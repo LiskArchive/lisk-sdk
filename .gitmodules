@@ -1,0 +1,6 @@
+[submodule "public"]
+	path = public
+	url = git@github.com:LiskHQ/lisk-ui.git
+[submodule "test/lisk-js"]
+	path = test/lisk-js
+	url = git@github.com:LiskHQ/lisk-js.git

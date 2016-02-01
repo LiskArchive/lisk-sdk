@@ -1,0 +1,161 @@
+{
+	"port": 7000,
+	"address": "127.0.0.1",
+	"serveHttpAPI": true,
+	"serveHttpWallet": true,
+	"version": "0.1.0",
+	"fileLogLevel": "log",
+	"consoleLogLevel": "log",
+	"sharePort": true,
+	"api": {
+		"access": {
+			"whiteList": []
+		}
+	},
+	"peers": {
+		"list": [
+		],
+		"blackList": [],
+		"options": {
+			"timeout": 1
+		}
+	},
+	"forging": {
+		"secret": [
+			"ddFX32mdxClpVkvOZd",
+			"no2xkMXV8w",
+			"8y3yAmWkNK1P1EVQHB",
+			"qUSXcARVtc",
+			"tQNMbQBTLlKAY51ThaqgYnD8ei4vSaCwp",
+			"nrBSPfHNkc9jB15YdLuSYWgHKna",
+			"AWwBHfmw8qeM5X",
+			"ksKWVn7xm3irhS0Yv18hRDv1yyOu1Vd9o",
+			"w7glbJiJTuhYlSD9sGtCDhPNXTLDFZINCvd3bwy",
+			"xTSGmx",
+			"aBiMc7Im",
+			"23MoNSy",
+			"rq55F",
+			"mwNls9SFJFuRE5uhbHQqaS",
+			"K0GEZks7",
+			"bJxD8BNWVY66cMWU5PvLuX25Exr",
+			"hQ3WyaxYsJvvSKUgBU1",
+			"RWUniz1w4Oj0RRjv5GF1HJb",
+			"sS6BsvWcn25Y",
+			"FiVpBMFWgabRcpZRJ9G",
+			"MIBye5Pj",
+			"29W",
+			"amgKwIVWRTetc0O5FiHfn",
+			"NEpB8JY5grl",
+			"Na40",
+			"TrKRWqycVkE1dUnkW1tmOCWqYkRaG5ttGz",
+			"G3qtfHFytSXe1mLlgdp1wtC3FLlwl6q2Sm7A",
+			"RsUAK9KEccVV2UNft",
+			"QrS41",
+			"DrEsTTpvKCWEbSg5YM32vRIHniXd",
+			"JlzGpKLtuFAdoju9TfmP4EQZAOt",
+			"6boDcvQmmhFs2Fg",
+			"1wtKAHK6KgqmhNOoMp3T",
+			"hkw4RoptX0Oe3q0hj4u9RBi4QyzSu",
+			"PIEbipRQh3LisYU0ITCXuP2iEYlRthiRpa",
+			"t66um6xv2qLf5rRFkJcfaRrvOE7xrJAjnX9sn",
+			"pSo2JZUwGaCwLdEWVk7Tjr4ZEnVBnJcqj8",
+			"WDSStqPE7vrOqzu",
+			"0",
+			"MbGaPgrpfZ7WgPYbvMx",
+			"qF5tQJ7Yz7AP7me",
+			"D5F3cv4np4lN1XhgJ4c4z2db5xCVtwIXASzWf",
+			"xDEGDChvK6l8TAq9ulawX0d2QRN9Xl6z",
+			"OQHabRcmMoaOwprIrkHTi6ouKUhShv8p",
+			"FV96e5qmdWv5CdxgqxvSqk5xh",
+			"kPRJF36M2wblfE5PIN7LO7M03XV",
+			"eEtO9dcnbYQoVJU",
+			"O5",
+			"VJxycU1uQOmo0WqMkljauJY",
+			"ZDiMs1NKzWc9Iulll",
+			"vppv2L",
+			"HavUCdTS7EJuyUmRv65dsvIdQjIqceGp4fizjD",
+			"zzllA",
+			"I2AZa8OFNqyRFl",
+			"8bQhs68Kj9TUM3WR",
+			"ARv5XUv1eqjyELv4tgSjCWIGzcdkY9y",
+			"HwdHy79oiMcaczeSmp",
+			"d1DgVcnlvhBLJqZzIvQgmrZpv7igM85",
+			"cAGXS1tDCIfdgmNmiyDSQPrzu65u",
+			"tFwfWSpH3VE19wG",
+			"Y",
+			"LDOVgRNEjxMqC40QNpSkRl5b4I4Db",
+			"i1DsUgE2jX6letT3CBkBo2nX2",
+			"2UJb5TocURB1WtAgZFOveLAuZDa5artTZMd1",
+			"tv5MIkmpduUBB5uKjmB7IU4cRrVC5A",
+			"moMwe8LpsSwXDAmGT",
+			"wnTrgJPPDsJch0kLlM",
+			"fgCpTaTVoq315O3",
+			"F3",
+			"hC7PFSVW1",
+			"U4oK4trQeo8TMRTKc3nvwAj4mHfNGtai",
+			"caaAR7eUCDYAGzbDB3J0IjxIWfHSa3OMZM",
+			"f3pL285hTCWgDQFQPxFM9Gjad5RH13VD9KQM",
+			"lhsUuJjTSaZC64YgcA8w4f7J2mY80Av0uK0ZgRD",
+			"5JY4yBKq18gdqz7SVTCabxnC1m9VfJx1",
+			"9HVTzkqzQjBKNy",
+			"Q8f1gpwahM7Jq4CrjxszEG7ViiOl6vDslYAqcCHS",
+			"d4As9eqeNJgeQaaF0",
+			"VJSufSt8KjcJjtWq9wDHVftXKbPVi8Mx0cUvg",
+			"tV6fle0G",
+			"85kDEI5MU0q81Q6dsfk9wBGjdR",
+			"Orj",
+			"JVyV0snUcmkR8",
+			"5EbWTfWG6ZcVNfn54WpmbTRB63",
+			"yk6eakVY2wtw1CXYRMbxU8Pid4Ulw",
+			"0ShBqS",
+			"j1SZBrCsZQp",
+			"13SQym9uBKDfC3kZqM0QNYfRbeS3YAD",
+			"zEYEvp11U5CBwTJhbn606vHJTBZc8Vc03Vn",
+			"Bhgwn9FxA2TdCd9T4CwDqXK37hC018P5OavO",
+			"NKoiJzM2REsqTwbpXiToO",
+			"nY5iX2TlU8YBTyFYpQVyXxtvRCH2EI6GC6C6OzK1",
+			"Kqlf9QpQUf0Hx",
+			"FmfyXDLXPZzaDqIp91ARLE3GFK",
+			"Xn",
+			"2qloI5KB2UPZ0AnGgkHVU",
+			"BvcjMNsuN5QcDOt3",
+			"E3aCZOPllrP8oha3LRN9pQ1dU61KY",
+			"DXQjcTg",
+			"GwRr0RlSi",
+			"2LAgOflQnsF2iQ3JEJsMlKCdOXfr286IZTA"
+		],
+		"access": {
+			"whiteList": [
+				"127.0.0.1"
+			]
+		}
+	},
+	"loading": {
+		"verifyOnLoading": true,
+		"loadPerIteration": 1000
+	},
+	"ssl": {
+		"enabled": false,
+		"options": {
+			"port": 443,
+			"address": "0.0.0.0",
+			"key": "path_to_key",
+			"cert": "path_to_cert"
+		}
+	},
+	"sia": {
+		"peers": [
+			{
+				"ip": "127.0.0.1",
+				"port": 8080
+			}
+		]
+	},
+	"mocha": {
+		"peers": {
+			"account": "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",
+			"address": "2334212999465599568C",
+			"publicKey": "631b91fa537f74e23addccd30555fbc7729ea267c7e0517cbf1bfcc46354abc3"
+		}
+	}
+}

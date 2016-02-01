@@ -1,0 +1,726 @@
+{
+  "accounts": [
+    {
+      "address": "14837479272589364523C",
+      "publicKey": "3ed4d689ced148a97017e2f611b5c4aa28de1564a92fca8234d32290319dbdb3",
+      "balance": 10000000000000000,
+      "secondPublicKey": null
+    }
+  ],
+  "delegates": [
+    {
+      "secret": "R84J1afZbXyzx3X9Qai3Cwh7qda3hg9cVo8gj3c2j4e75bZR6h",
+      "address": "14149649142371786324C",
+      "publicKey": "2417d656fb45a4c5141e6b7dad0d96dbe04ef44919fc2a6b0d6cf5addaa685b0",
+      "username": "genesisDelegate1"
+    },
+    {
+      "secret": "c8VUm3Wd18nLNhXZ1TqEF2kt4SSZcsfWYkNGkFwGwjdaoN9gG1",
+      "address": "3930100855738835149C",
+      "publicKey": "395d0ede9a8d227f906436fcec6cfecd07f2d0a1451131cea0d4f2231eb04ea3",
+      "username": "genesisDelegate2"
+    },
+    {
+      "secret": "CQjawRUUrj5ULsLVCBRGYwv7HfDAG7XmCExbRipGHRDYBa56we",
+      "address": "2371400196863235976C",
+      "publicKey": "bfd56d57838b093bb027ef24816abbe05c46bd846855009cf1fdb663eace0a33",
+      "username": "genesisDelegate3"
+    },
+    {
+      "secret": "4wDFonT82ZVgbGPcL1xVjcTVEz3b6xjHCaLTBRXEGZnH234oQw",
+      "address": "1546652172174924088C",
+      "publicKey": "53c3294e4e101471e5a822c0a6d87d98780d32e4a3fe5aeadc543cdcfd83bc78",
+      "username": "genesisDelegate4"
+    },
+    {
+      "secret": "5BUptfHGChP15PTJFdtVPM43s35RQkC9fDRQXUnV7wVc7hHouW",
+      "address": "6340230247863986810C",
+      "publicKey": "efa98b573b0e063ae1c01530f57c86d40417c4d0e25c796af94de28c1ced7687",
+      "username": "genesisDelegate5"
+    },
+    {
+      "secret": "ZxudeY9Z7fVs5xvQAaAjskywhUwXqXCgZzJA4kL8zJSkpio4YE",
+      "address": "17757266892540436146C",
+      "publicKey": "332702ab7446417c13d32001db884dcd67c9fe9103980e0304807c8f7b86b2fc",
+      "username": "genesisDelegate6"
+    },
+    {
+      "secret": "6B2vnp3LDS6ge9SPCbedo7fijfy8jmMGAW7icBDu639ocYX4ui",
+      "address": "5105253667869408271C",
+      "publicKey": "16d62c54de0b6c5586a97ed2d52f707137371dd07547f9148499a378e8be3dc8",
+      "username": "genesisDelegate7"
+    },
+    {
+      "secret": "d8JjQpkKPu5rD3jaLqADiKRhdjy2bFCRK1eRdcoMU2mkGpkiwT",
+      "address": "8133216448509405858C",
+      "publicKey": "910d3d83f8152bd6cd0c4fba5b8fe262b73c5cea7af0cb226ab1b821f49cd6f6",
+      "username": "genesisDelegate8"
+    },
+    {
+      "secret": "bUNxYepXmaQAhgZpDPVzNkqwmuQxnW13ZCjXcb5newc3mmzKqj",
+      "address": "15765978216346601412C",
+      "publicKey": "79585cfc1681486f5cf739b9abcd070345e2b49ad7a7b5123ebedb3e48319e76",
+      "username": "genesisDelegate9"
+    },
+    {
+      "secret": "KzJKPor6287LZnJ9yn2XtkZdsVaz5H8QJ3iqvnjdJCDJzhzhM2",
+      "address": "6846765359464936414C",
+      "publicKey": "2a68e33e7be0e0f8f753e8d782640aa87d1598a8ea8f45664127eb5378a6deb4",
+      "username": "genesisDelegate10"
+    },
+    {
+      "secret": "HumCukscsSwTLRUUS6RRiPhfCdahGMmrfhxHjA1rEujnsgT8JW",
+      "address": "2332067078797629819C",
+      "publicKey": "43b758e72a18cf77e8f41a96c9088bb698d4a8aef3d2ce064320a310046b8364",
+      "username": "genesisDelegate11"
+    },
+    {
+      "secret": "ioRYFfC8Qdcafff6LRcuRm2iQs34aLmnnjpJ1dvj3q6RNy7Y99",
+      "address": "11585661920873290468C",
+      "publicKey": "5ac06d0f103a436df28a602a36ab5f4216adee8c2f4c15e221c2b0c5198d9b76",
+      "username": "genesisDelegate12"
+    },
+    {
+      "secret": "vyxDocCkRfYD4nfvDEdZ5DVufcH14tQCQaaNEh6RfFTRNs2ME6",
+      "address": "5680448174010662040C",
+      "publicKey": "455e5969db29f7933f306c4460929a3e6ab8feadb8ce6d6ad8edde5e0cad094c",
+      "username": "genesisDelegate13"
+    },
+    {
+      "secret": "H4PPJEFXML8xm7o6Lv4Uh3vQKrcYmRqxUb9hWiiFD68Xg6CnwT",
+      "address": "17685651326529816661C",
+      "publicKey": "e0c02204d8ff67b29b770f5dd975853ebd6095c5db67b4adcb577f274bed9b0c",
+      "username": "genesisDelegate14"
+    },
+    {
+      "secret": "Sf2jCF8x4RdWLH2R3sRvw6bjNn3Ln4g6grmWtekvsbNfYKjZTX",
+      "address": "12447145671995788324C",
+      "publicKey": "38ea153094a432ee6340b77b9a9c5fc75bf57846fe649cfc0c084c8e0e7868f8",
+      "username": "genesisDelegate15"
+    },
+    {
+      "secret": "dJUnKrBKLy1tn2dsxFm6CDoZk2orFPSmzW8zN9EsUStwg7Kequ",
+      "address": "4070457139868932350C",
+      "publicKey": "1648e07b91365f9d77b31267231c288c395b2a1312c030795cf4854fc7a90e51",
+      "username": "genesisDelegate16"
+    },
+    {
+      "secret": "MPMcfB33z8piFFvTZewR5GpbzTUK7u7WXGED8mp4Wrhp2WmDvC",
+      "address": "13549936900765795049C",
+      "publicKey": "68e7e8ad42e04c0bdbe9cf1fb7e337ea2dcd6d3924f58de5fcee79477f50b457",
+      "username": "genesisDelegate17"
+    },
+    {
+      "secret": "J4FrChUPB4Jx1GHDepok5BXuhEjJ4vPkmh7EKKQRXHNpEQHZT7",
+      "address": "17663935890225648090C",
+      "publicKey": "da77e02ac3637a48a203235ad746a21f385179a3e5cc2dc462d3c52a035ebc75",
+      "username": "genesisDelegate18"
+    },
+    {
+      "secret": "DekEdjxzg8kjdWL1ETtYvdSW9r9fnkK5vjP3vHDgxs18YbMqYX",
+      "address": "3069300258098684658C",
+      "publicKey": "b4bfcae08570fc333ea716a5276ea654548223bffc1d9e7ecacdda3244d80ef5",
+      "username": "genesisDelegate19"
+    },
+    {
+      "secret": "FupN3Ex8NV76D6gx2eBcxdrfGAGFko47scCDX83Wsc47529W7j",
+      "address": "8495073755363331719C",
+      "publicKey": "9d8ec460a3b9be22b8b2848971ef1321a36195d564bf5e7a333f808b6ddc2404",
+      "username": "genesisDelegate20"
+    },
+    {
+      "secret": "VAEi9R2eMsmdzoFm5vVjxima3HGbVtrFQd38ummZ8a1Gxd3Pez",
+      "address": "10887453756696293032C",
+      "publicKey": "229aeea541142f27461489d094ef7192d78cd1c30d6724279cc8fa2e90ecc44c",
+      "username": "genesisDelegate21"
+    },
+    {
+      "secret": "KhjydUeUH9LSozEquuLpcdhBLF8UrurQXitp9C6ksTeRnEcUj9",
+      "address": "3020507804366674587C",
+      "publicKey": "b8010ecc95726293b22474aa3a86b76c996a2b54811f9831cf66df08df7982ae",
+      "username": "genesisDelegate22"
+    },
+    {
+      "secret": "tL9zC9UKAqnh5HYYx4BibxVbSY8DEYCKUNswsMFFP1YPpkRX96",
+      "address": "11812371338603273549C",
+      "publicKey": "2d637af18e5f5e5d329f4cb915d8985e4f642be71a66834764e84d7bb874e9db",
+      "username": "genesisDelegate23"
+    },
+    {
+      "secret": "2KR9uVQgq5dEY2XGHjyJrsehbAmsBsV4goStmZ6yKfkedpaMWk",
+      "address": "13608593157184195592C",
+      "publicKey": "da183027eb5e9dfc407bf87721ae536b9417a4ea830f58fbadd786414f8a98cb",
+      "username": "genesisDelegate24"
+    },
+    {
+      "secret": "tnkSkLfhEMtgk52bZbuKpWsozxm1HtFvHCM7gzXx879HdH8VEm",
+      "address": "16933729332011773593C",
+      "publicKey": "92816ec7e4ce1c2b27763adfae4c77639d2c25ae3ccd7a1ee3c2c087aacb50a7",
+      "username": "genesisDelegate25"
+    },
+    {
+      "secret": "VAqiSbtg2gnyQtt9ifhJxJdwdtNgP5fqicWCUye1b1XVkA51Yd",
+      "address": "17000486500472093535C",
+      "publicKey": "19312e307a50f1c93050fc3d1312db7a95c0fc9c7de75965722316674e41422f",
+      "username": "genesisDelegate26"
+    },
+    {
+      "secret": "PnkMFFfhyF5jsotrj2Um9b2yf4qombdmbUX9w1Hpmoxv1CQFX7",
+      "address": "10670480969439691666C",
+      "publicKey": "0ba5f80e7770a350acc9556060c748ce13adf764e98b9043b65a07e7332ba7c6",
+      "username": "genesisDelegate27"
+    },
+    {
+      "secret": "AFaih6AqKxDk3HNeiSzvu6qMcD9ZWjLFYtykt3de3YBdRKdXVc",
+      "address": "16308891823984801877C",
+      "publicKey": "f14078fb957bfd8e352f9ba5fd72bbf9cee5d7d8e72cc59815ba2e4de71c8f1a",
+      "username": "genesisDelegate28"
+    },
+    {
+      "secret": "fModYxKVJWP2b8ihj7aiY9ZMrfZwryR4mi3TrQfmpP85GXnKoj",
+      "address": "4821108347128009180C",
+      "publicKey": "ae755f9ac50083ad4cf287c2244d271fda6c471c25db6aaa04999d742475d317",
+      "username": "genesisDelegate29"
+    },
+    {
+      "secret": "GM2S5cdBNg6N8Zc7vMAuNZdoMG2rK821vLk3ZpAVd1MduoocQe",
+      "address": "14576453345547731305C",
+      "publicKey": "7cadd1b189f71b6f111a5ed1db290f2740f988895a06ca0a2d204d4b56ca0672",
+      "username": "genesisDelegate30"
+    },
+    {
+      "secret": "g1eVfZUPdHs2rhGM24cwPSsw2rGimvYxWMQqhboQKPXPpUghtw",
+      "address": "16048499378298796495C",
+      "publicKey": "7f63198cba46654d5de9f00003bb908f380531f87affef011cd59ab4d513adf9",
+      "username": "genesisDelegate31"
+    },
+    {
+      "secret": "CasBHoAmMWVPZ1jaiHhCKpFdLymNjs1KMAjGiUJdkBJmx7pNXm",
+      "address": "16123677409401007627C",
+      "publicKey": "803df90574972977fddebc3908fc6791c5a3769ee274965da24131e09a09b9fc",
+      "username": "genesisDelegate32"
+    },
+    {
+      "secret": "APKXKVDNWfAaMJ2PbcP58MY5TKDV2Komcc9A3ZChejpGf5Dj6R",
+      "address": "2849104026499520721C",
+      "publicKey": "249a6373ac6be63c24c8941cfed02fe25909ec24fb879d13b1e70be9c036c41a",
+      "username": "genesisDelegate33"
+    },
+    {
+      "secret": "M7Nuwc3d5zmhtAqTfPV1kbyFDxpnP4givsaa9Bw5nuHKgcRqkg",
+      "address": "10016610463005844368C",
+      "publicKey": "265246749984171420bd5292346dfd6eeec19771f14034b727f02762378588d9",
+      "username": "genesisDelegate34"
+    },
+    {
+      "secret": "Bp1or2DZBqZ7p1qK2WgoSM2AuDdSEaqMaTgos6vcyAzGEWSeF8",
+      "address": "14768455354105251689C",
+      "publicKey": "67678610db826dff19dd12eb4c1df47a65055f09bbbb99670d91e9355c1c60f8",
+      "username": "genesisDelegate35"
+    },
+    {
+      "secret": "oami4vZYhemvFnV9g2tLZHupucjyrvgmRR8yfEi7QUmYdTaQzY",
+      "address": "6476657933454433160C",
+      "publicKey": "d219ab243de3057f713245b52928044e86f4ff6df93c8c56fcaafd8636a647e7",
+      "username": "genesisDelegate36"
+    },
+    {
+      "secret": "QCc7Lgt7Byu1afv5Dyv4BF6UFvksCr41zWh7CeRfapD1bkzi72",
+      "address": "14169221901728199150C",
+      "publicKey": "844d73b8f644240dae653e7b69a247f0abca4721b95cb6b1c36597ca3951a103",
+      "username": "genesisDelegate37"
+    },
+    {
+      "secret": "jRcwh9LR2r8iwbgDwHjUr5NQjmDzNPQTKT6Eq4RyRVEpy2tVFA",
+      "address": "17460394485819658262C",
+      "publicKey": "c7dbd734e4fae3dd289ba080085c5b782893259662fd9d515396dfa0984dd8fd",
+      "username": "genesisDelegate38"
+    },
+    {
+      "secret": "Ddw5ZpBQ7Zx4ooU2wAebn543tT7fSgeSt4MfjNJDGsQTZauuhn",
+      "address": "4064826855161182787C",
+      "publicKey": "a6704523693b35d3fe867c4dc661bca2b797ddbb7aebbbac484db1a03ad8ea9b",
+      "username": "genesisDelegate39"
+    },
+    {
+      "secret": "KH53gqUC6pnscygxWAP6hFUXj5jm148hqVen2v47zNcjq1Z2UN",
+      "address": "9640977508953391005C",
+      "publicKey": "67f3508872ada4c2fa4406f3069b8fd4434910d24badd4bbc24c1d1ae8d8da06",
+      "username": "genesisDelegate40"
+    },
+    {
+      "secret": "iPmVGFFzCG6bL1mGsQCcH3PwCvSWW1PFz7fARNK89rmytaTm1r",
+      "address": "4646337298804455057C",
+      "publicKey": "cf6bf2b6295e6df353d7e67e216db03f5865f148db34d758ab7f607cc143c852",
+      "username": "genesisDelegate41"
+    },
+    {
+      "secret": "rwtg4VmQchRZHNKh8MsFHEcTgwx4CkkYATD7g39qyfjiC3w26B",
+      "address": "11948539340538038496C",
+      "publicKey": "05cc91398d3ba2178089d775231cc1b52d1ca346e0776676b772ada41454ac55",
+      "username": "genesisDelegate42"
+    },
+    {
+      "secret": "b64xEgkXXvKavFFHDQJfbZyhmsA3eDwyE9eErhN1LH7bPi7Vke",
+      "address": "16615739002464640478C",
+      "publicKey": "83c5ec11fd0877e36f9345ce4b0764dff1d7f3e6d8ba8a4ff953f71b0335906e",
+      "username": "genesisDelegate43"
+    },
+    {
+      "secret": "Zupp1YaZ5fTKVNJwzbJeWE8qTUW4pmG4HQam5o8Kpv7yMFtEUm",
+      "address": "2051824769291510025C",
+      "publicKey": "fa22d05f0606c46ab4896d245269e8c3079273147d1cb0cfbb6dcbcc4607536e",
+      "username": "genesisDelegate44"
+    },
+    {
+      "secret": "5S7MUmH2w7sfgbJs2SuuMir1uWchpThSxpHnC5sjH7hzM9ocwm",
+      "address": "11227248871004213299C",
+      "publicKey": "07bd498cf593c9ad377c12dbaac64af42dd099e2cd3ab675e467cf734b7a3128",
+      "username": "genesisDelegate45"
+    },
+    {
+      "secret": "UeHLe4bibUiRqHszvsBAT3TgP6UhQoN8bYr2vL2pLx4jHLFNg4",
+      "address": "4252989409429526679C",
+      "publicKey": "54156bbd557e63748bc6d8ab8d080e506a13feb2db00575ce65985c690bfddeb",
+      "username": "genesisDelegate46"
+    },
+    {
+      "secret": "B9eSm4Cs2Fm1QCYEdcwbh87iKNAZP6nkqwFE4cXVg11zCWcZGy",
+      "address": "10987092360394600230C",
+      "publicKey": "82596576d630c206744b02d3fb093805e766e2e285591d8a27fe89b1cb8f02cf",
+      "username": "genesisDelegate47"
+    },
+    {
+      "secret": "AssUM2ne1toZqrZu1Wd1LGhTovjgtqBGbxcaxRA9UHoFdWbty3",
+      "address": "2929571798475794906C",
+      "publicKey": "4490c043e0123bf1a760c5400855d349613b436db78d65d9c930456b97ae1047",
+      "username": "genesisDelegate48"
+    },
+    {
+      "secret": "bfQymuB6FW62Z7AznCirx88bdDVb8ajEyapV9XrcCg2eCCQgvW",
+      "address": "13212000726988153961C",
+      "publicKey": "4ebc2d2dd15dc2ba494e47df0e33394360763d7cb8779f7ff52219ef662e1fcf",
+      "username": "genesisDelegate49"
+    },
+    {
+      "secret": "BCCdkmRgQe8F2EBYdWvNrfyGDmPbQZP96gkP7coizaqNnronZc",
+      "address": "362695784576058426C",
+      "publicKey": "1300c2521cbd229dce515ccb42cfac4aa5bb5eb03094c57232c71a2a456e8337",
+      "username": "genesisDelegate50"
+    },
+    {
+      "secret": "ypXi14zDn2etsdJxW2monExx6eTejDW8Mq9LDuqWK8BmpTaJuh",
+      "address": "15232282601418822843C",
+      "publicKey": "6cd4e1aed92704002650571830e63113fad9608ed9c9f3a383fead976d3bf0c5",
+      "username": "genesisDelegate51"
+    },
+    {
+      "secret": "4294bztm8c8Hwn63ofr3BJGv3z7mHDUjGroj3JQR83ocqBRHKG",
+      "address": "13848339630784326905C",
+      "publicKey": "1c17df4cb25a19389ee84f4439246bcbede17fce5a490692ae45bf6ee0f86b05",
+      "username": "genesisDelegate52"
+    },
+    {
+      "secret": "3NeiQGDuVXFx8WJgxKGS6F1n7NepjrErv5a8bgbj93w3EnLyvP",
+      "address": "8098385897469633385C",
+      "publicKey": "1d611f29e3f06afb56445997d8bd5d8c76ae9d99cfc0380baa6825ef22d64e76",
+      "username": "genesisDelegate53"
+    },
+    {
+      "secret": "pZpCSirgSdtFUXQMQYfeeSECWtE4mGV2AiBRm7kuqPYrYTYxpd",
+      "address": "17758311103163879962C",
+      "publicKey": "b39d98b5b9221f6fd104aa9395eab0d8da9051ac2ce82a137250ece9339cc8e7",
+      "username": "genesisDelegate54"
+    },
+    {
+      "secret": "HMxg6sR3B3PReJQ3duB45rhv8fqA8Eh2mcFaTk1ypvn2CbRReA",
+      "address": "5025915167672758361C",
+      "publicKey": "6ce38c402eb347dc249f1c8cb343304acea3048c2fbd191c071faba9676f56a4",
+      "username": "genesisDelegate55"
+    },
+    {
+      "secret": "JTmWdn4p5gRqz7y2SfUCj6FXXU558A6qxsqrMX1TcUBY9ucGj9",
+      "address": "7627919955138172181C",
+      "publicKey": "789b93cd0160d62ba956180a7531d780cc6629ee67eb9ca1487f055955b2cdd6",
+      "username": "genesisDelegate56"
+    },
+    {
+      "secret": "dt3wffwJrqqVXw3hJjLMJa2jToCjxhuD9tXEcUHvVLGeuzMshu",
+      "address": "1470665512034530544C",
+      "publicKey": "c9329cf2ad030c0707ad60c3596fea46122e4d21b55cd09297b63e63c18faa44",
+      "username": "genesisDelegate57"
+    },
+    {
+      "secret": "uyPvi2msKS97dQ4HnX76k8g8UBPCB1m7BuA14Js7qK6Gs6Puay",
+      "address": "18040342337992489769C",
+      "publicKey": "91b2ac42898faf8274e83dc84bc9c08328664e5bb16fcef8ab5428b70c499e04",
+      "username": "genesisDelegate58"
+    },
+    {
+      "secret": "X26YzgatgixjMBXJgHQNAJfaJtxnpWCTW2Tj3Umqvjk6abEgFA",
+      "address": "3184562440875939626C",
+      "publicKey": "0037866eda96f0159755ae8d71922e22946e30ef81f3c8cf6052f8c9097f7790",
+      "username": "genesisDelegate59"
+    },
+    {
+      "secret": "ok5hixDbZn4cEM55iK7zw6REZy6539WipDMzxmDC5JeX2W4ciB",
+      "address": "3255553461030636719C",
+      "publicKey": "b1b2fc08eb01795cafc067ea6d4170628ec75cf6da0de865496e3477f130c557",
+      "username": "genesisDelegate60"
+    },
+    {
+      "secret": "cSLqd92QtPQDepu27Tzbc5kqF72hEVd6498Fck79zc59ie3Lkz",
+      "address": "17749727714368969006C",
+      "publicKey": "dc4c249428f85bf9a31998064cfe9be0bf359dd48cd91587322b367a83e993f3",
+      "username": "genesisDelegate61"
+    },
+    {
+      "secret": "RzYTsYBc9b5tgCh2qE77f7dQjjX7LGy9tHsaWvA49UtRkM3eci",
+      "address": "18174379888093702075C",
+      "publicKey": "4e0ed21c8ec9c0e8f6dc5256e10c2a4002f6102ae52d10e60b459090ee09a4d8",
+      "username": "genesisDelegate62"
+    },
+    {
+      "secret": "XCK3BogAgth3goy5hSEZGsjGvwDv2iBFp3VpEaNiaRqoG1r4NU",
+      "address": "10046952333460021873C",
+      "publicKey": "8c21ff834e09328cbad6645177bbd65dcd6e7f9e66c4f857f802472020459c6e",
+      "username": "genesisDelegate63"
+    },
+    {
+      "secret": "qdtEtng75fTZX1gudN4Qbdty7Hcn4tAzw8DMdUCjfkGirwK1Lz",
+      "address": "11549048937811276454C",
+      "publicKey": "e3c482b7996c8dffc1102d446516cc237a3efd921eb9690d50b90dac9c579ba0",
+      "username": "genesisDelegate64"
+    },
+    {
+      "secret": "qFDwihtJskME2nmjyuYkmygk897BhG5dH9x7faMP2fnTpqUWfp",
+      "address": "9836327148073559202C",
+      "publicKey": "0b6233964ce1fc8ae257f5b22b2229f5240f1ffccf050b5846a9f409720ba420",
+      "username": "genesisDelegate65"
+    },
+    {
+      "secret": "uFD1T4WekwMpTjVk2wiwke66cHPxvK6XCELeNhfh9azGpipZRE",
+      "address": "13417412952373532371C",
+      "publicKey": "a734556d6fb8f55aaa2af70dfe576315903074bce1b34c1788851d29e8a66049",
+      "username": "genesisDelegate66"
+    },
+    {
+      "secret": "udibKdQvJLgdocG1UH3yPp9dg1Q1YR5v5bNSuppi9eforzxvtz",
+      "address": "12621443593219659411C",
+      "publicKey": "3266f474e0dcf446feb00811d0b14decac76832b16365e5600e471c0e95a7b21",
+      "username": "genesisDelegate67"
+    },
+    {
+      "secret": "DoDuvkpCrfboA8kaJGgs2WavkC1oF1oKoqb7bVQSQcMqkectbT",
+      "address": "3964343074176533662C",
+      "publicKey": "bc9253c74c00996b87df0fb1ec2a90c4001929af314f17abd739e8c6b243160c",
+      "username": "genesisDelegate68"
+    },
+    {
+      "secret": "rJ9eRE5wFha59pZ4yLn3VLSVbgUC87rq7xH8zQ1Enk1VsTmYJ1",
+      "address": "16051110485036123077C",
+      "publicKey": "5f99f1fad59009456190f2b21c852419d5ac23dfacb7c8d30454e664f993f531",
+      "username": "genesisDelegate69"
+    },
+    {
+      "secret": "a4Qnu2WrJTevcybC8x6wBvoT3T1e4hsfkwgbW98PmpuEPsvuwK",
+      "address": "13082332565362896346C",
+      "publicKey": "6d3b1971d71dad816d43c37c452268d9013b0cb36918fb60adb9379ec4eadaef",
+      "username": "genesisDelegate70"
+    },
+    {
+      "secret": "4uPPakjsMy8zqe9E9E8U88ewDJk2Efoi12ecTPg8wx7hggE745",
+      "address": "10678021928958642624C",
+      "publicKey": "ee900285bff04a4033f6b6e5229ebc899b1802eb4e55a4bfa1e41833a298553b",
+      "username": "genesisDelegate71"
+    },
+    {
+      "secret": "q15eaHBFX6h3UAYkcLnwzW7Q8fYjnrEAx3Fz31pv33aVyf4wCa",
+      "address": "1955362945669071715C",
+      "publicKey": "53d0d59721c97e3006428ba07e1ccf7cfd28a259d8a0c37dd2bc9826c9bce73b",
+      "username": "genesisDelegate72"
+    },
+    {
+      "secret": "2ZNstgKGdqi8hv97S1NWede8QZYFLbsWv5utoxmwMJvBTvKoAP",
+      "address": "7868845772073636883C",
+      "publicKey": "fa9077cde2e19075738ee7a47e6ba204be1c8dc6f5f31f357faf68c06f1d1e33",
+      "username": "genesisDelegate73"
+    },
+    {
+      "secret": "i8iUXVcgLDD2HardEkDiPQ2X949Wyi52sVZCSyFZm5jNVwHNcA",
+      "address": "12600330024555274726C",
+      "publicKey": "446a8967bd7951821ab271177661c6cd8d4a48814a192d11fadf42e4e2e8810a",
+      "username": "genesisDelegate74"
+    },
+    {
+      "secret": "1X73ztcYqFVh8wHnVaqn92jZbLHUfbYB6T57JLu2NA7uFx5wvZ",
+      "address": "4492613397638560705C",
+      "publicKey": "6b5b0a5bbbb67ed5594ac6f9948e46fff209ab3abbaa87552770f8a3dcac9448",
+      "username": "genesisDelegate75"
+    },
+    {
+      "secret": "k9KyQX7ZeeToUZkEVNHxi6G15FspmKwpY7ztmnhny9ezB8Z9tT",
+      "address": "15040378437616378562C",
+      "publicKey": "7221257cd8205c899c0768f3868b56da159f90317e3cb56fd419ffeb9fbe8361",
+      "username": "genesisDelegate76"
+    },
+    {
+      "secret": "ZzEfxnhhF9X8D2ED1s8d51ktcrhy9RuMi99Yz44HdCK6iZwyop",
+      "address": "4456978766579419644C",
+      "publicKey": "ba94bbb9bddfd8b239f01bfdae0a301c5196a017ea330f107919c7344f051fa0",
+      "username": "genesisDelegate77"
+    },
+    {
+      "secret": "1fEWMLpvFuYBXkL97ZU3wU2CZcUodLCLRDhYruHw2yMXW4e84K",
+      "address": "16398535477392927163C",
+      "publicKey": "49788a3ca16f6f68bfc6caf0a2eeb178e9a4384aa3060ba9789bb181cf958804",
+      "username": "genesisDelegate78"
+    },
+    {
+      "secret": "adgD9UfPkr17rhSa5JKEo1A1VGLFx9mfqec859xgWT5cHyQky5",
+      "address": "5226368518959593116C",
+      "publicKey": "85f157f459454a7ba9bc8a8012649e72607aab5055a5c5659d3ffbe481240936",
+      "username": "genesisDelegate79"
+    },
+    {
+      "secret": "yGUrbKVi5stdvYQqdqqoeD3LAdH6fUKR7pbx9oVJBqppCRRgdo",
+      "address": "3959718745630166733C",
+      "publicKey": "8c43bd60ca3a1bcdff6f2f048abadbd197bfb0c79d63d915a6ec3cee50ae323a",
+      "username": "genesisDelegate80"
+    },
+    {
+      "secret": "fuPpkufR5XxYbwP2MJ4H5uzeb8tx4ea2FS16SphU1qtV7fnGC5",
+      "address": "4364414843655514205C",
+      "publicKey": "5843b77decfd185eab861cdbe6ea90bc5345245def4b6d865af9bf8134afde85",
+      "username": "genesisDelegate81"
+    },
+    {
+      "secret": "fxqFnUAWRtHPpoEznTeoY95UGr4nEtUa1eu5D9hxmBEfN8FeLs",
+      "address": "7986144469129728462C",
+      "publicKey": "a287631391c31b35200617c13df39e697fa67a39e006cb29a60a0c4253ecb689",
+      "username": "genesisDelegate82"
+    },
+    {
+      "secret": "msE1w4zCkUzMFzTv6pc9tbioWP4Gp4NVFTahSh6PEaKJizNwWj",
+      "address": "17538647435740034315C",
+      "publicKey": "b07077f810446e2ca94d0194c7f93b0d13ad0aea48a6994ab277ab635fb3d2d7",
+      "username": "genesisDelegate83"
+    },
+    {
+      "secret": "bXMfKvxmFGYfKTcgjHJUVgdv8iExe7ceNLTboe7qs2Xm6aFGJr",
+      "address": "15104388112430310509C",
+      "publicKey": "625b1f9bbc28c6983a8b8de5cb333f66123dba0e55de1ce738261fd6b8062a9d",
+      "username": "genesisDelegate84"
+    },
+    {
+      "secret": "Ka8X78qhebjJn6z6kXWi5uhAzkcEjeHsnmDL56avo9dE1UdMXe",
+      "address": "14308899259498030847C",
+      "publicKey": "fe2c7ac816ff89aada16e9625a31d93b0f5703263cc0bb6d691a706c115c242f",
+      "username": "genesisDelegate85"
+    },
+    {
+      "secret": "xNg7LveTL3maJ86JZpY5tKLs5NZp2rrqvqfnSbpU2CFBXQEn1j",
+      "address": "15969271948532424082C",
+      "publicKey": "e3fdefad09f0ae83e7d812d453df1aed6b4080fc5e440a59829aca52535de2c5",
+      "username": "genesisDelegate86"
+    },
+    {
+      "secret": "PhCyafaNHx9gcvhmpksnoZBpg4tunhjFrhgBT4Ew8uU1aDvFeh",
+      "address": "11833276369363981989C",
+      "publicKey": "a182fa32f8bea48d66723994fbfa86ea5c6f232ecd784d149b9a477150a9f4e4",
+      "username": "genesisDelegate87"
+    },
+    {
+      "secret": "GZpKjJDzb9PiyVeV7gy4KjxfAvQeiyeq8S1vGpNiRdNEun4dAx",
+      "address": "14285042690509157454C",
+      "publicKey": "969331f12d46c1e3c944bd3ea642151d6e3bae3db24175acf37ceb8a75ec4c5f",
+      "username": "genesisDelegate88"
+    },
+    {
+      "secret": "9dj9vCgNPShypKXorLMErDUYYf19b5N69u9YaBmsmNjuD3y4aJ",
+      "address": "17434063381780882543C",
+      "publicKey": "c3eb24791483b01520c8dc785c8f6c1ca636cc3ad10538e91ea6ef23c586fa1e",
+      "username": "genesisDelegate89"
+    },
+    {
+      "secret": "cswmBYoK1VvnvmVZRgq3nSnxNmBftPyYCVkMJ63tQGucVEPGg4",
+      "address": "5646096170307632401C",
+      "publicKey": "9ba93720c45dd2bc1a75cf79e15791037309b027395f3bd017f171886f15b4be",
+      "username": "genesisDelegate90"
+    },
+    {
+      "secret": "XQCotJupPanP8s4RiV9D9pT34ttehTD6Qi4mk4We8chcpbEZ7u",
+      "address": "7968271956522125597C",
+      "publicKey": "89c4c7992470f83f1f604df36a9bf54efb50ee9045e655e2d29ee01497badd7f",
+      "username": "genesisDelegate91"
+    },
+    {
+      "secret": "DoeAQAtRLhgpUAvosCuFovvsEbkgdTjPo5wueDtRuuz1u5go1i",
+      "address": "18167672454185986151C",
+      "publicKey": "4583a00a9cfca68a26ea12cb7dc3e2997064588fdfb21c6a1d3fd0035fe2c7a3",
+      "username": "genesisDelegate92"
+    },
+    {
+      "secret": "ckGAdETnTkh4Pwjhs7EHJw6uNXttudgFxn22f1wZYsrckQU8RH",
+      "address": "9366101519294512965C",
+      "publicKey": "f9f6dbaf5c8cbad91996e8cc77c6a69cd9acab5fe949eb7022824b56591c3c17",
+      "username": "genesisDelegate93"
+    },
+    {
+      "secret": "w6gUir7cdhXh2qcKCuMk2NEcumdmK7BGek4afAnE9VyMbojEfL",
+      "address": "8677907210672412525C",
+      "publicKey": "dbc3510ad163dcfd36e17f2de75147039726ee57bab765e4e6103df228ad95b7",
+      "username": "genesisDelegate94"
+    },
+    {
+      "secret": "bWHnXdqbxczG6BfhK6UnMy7ird72TteaStVyVBH759Mgqx1onp",
+      "address": "15573037599516789309C",
+      "publicKey": "90d325246d0188302e0aaffd508ba1b6d72f03a55c54b2bfef0cd5ec5442424a",
+      "username": "genesisDelegate95"
+    },
+    {
+      "secret": "eBUL7CLcNVk7omzVmv9133jGSE7MeWnsBTHTo7nwfp4HtGSkLt",
+      "address": "10785670140350106815C",
+      "publicKey": "c6017bdab6fcea113c573dbb5dce960e38a904855c91b1fa975e747282eba4be",
+      "username": "genesisDelegate96"
+    },
+    {
+      "secret": "b5W31m73FJGF89gCGLpZHmL8vg2TA7rvFosq36ss3vf8Mge5V2",
+      "address": "4652254507409009088C",
+      "publicKey": "58a7db9aa7ee6a2f50ab4557e16cdff9ea6de044a6e822fa95bdc09981e15a7b",
+      "username": "genesisDelegate97"
+    },
+    {
+      "secret": "3AH8eBg7Ya1fkcVdZZnKkVnCRWWBDs34wkw7rniR7EgkE7zH1Q",
+      "address": "11128656545149816581C",
+      "publicKey": "2ee7a02985ed30a79fc1d4634c2bc62c448384973aecc40b81819eb585a8c29e",
+      "username": "genesisDelegate98"
+    },
+    {
+      "secret": "mbn56SMkHuPdPoW315gao3sVjxuGidBJhkaTccq3MhipSpttNv",
+      "address": "1815362280573953758C",
+      "publicKey": "0cfa358b32a19ee20fdc4e55496145927cc83ca0250d6a0ee6026bd03a505873",
+      "username": "genesisDelegate99"
+    },
+    {
+      "secret": "BpyMa4y6thWrxYSx9TusvH28R2tYeRcxz4FSm1jqoekBHtwx2R",
+      "address": "7455482203685999092C",
+      "publicKey": "10bcf1cb6a827b82d1814f08681ba171fbd669cc7f686b750b11b09719236f08",
+      "username": "genesisDelegate100"
+    },
+    {
+      "secret": "jBTDLtM1rUL9NmFkGtCxUWHmDKDwPiaBvdLfAiAzxQnYnWchMD",
+      "address": "16869790427215953678C",
+      "publicKey": "12c6242d59bb795f71be03957defe7e0d3001dd3813d44e8c16b78585c9489af",
+      "username": "genesisDelegate101"
+    }
+  ],
+  "votes": {
+    "publicKeys": [
+      "3ed4d689ced148a97017e2f611b5c4aa28de1564a92fca8234d32290319dbdb3"
+    ],
+    "votes": [
+      "+2417d656fb45a4c5141e6b7dad0d96dbe04ef44919fc2a6b0d6cf5addaa685b0",
+      "+395d0ede9a8d227f906436fcec6cfecd07f2d0a1451131cea0d4f2231eb04ea3",
+      "+bfd56d57838b093bb027ef24816abbe05c46bd846855009cf1fdb663eace0a33",
+      "+53c3294e4e101471e5a822c0a6d87d98780d32e4a3fe5aeadc543cdcfd83bc78",
+      "+efa98b573b0e063ae1c01530f57c86d40417c4d0e25c796af94de28c1ced7687",
+      "+332702ab7446417c13d32001db884dcd67c9fe9103980e0304807c8f7b86b2fc",
+      "+16d62c54de0b6c5586a97ed2d52f707137371dd07547f9148499a378e8be3dc8",
+      "+910d3d83f8152bd6cd0c4fba5b8fe262b73c5cea7af0cb226ab1b821f49cd6f6",
+      "+79585cfc1681486f5cf739b9abcd070345e2b49ad7a7b5123ebedb3e48319e76",
+      "+2a68e33e7be0e0f8f753e8d782640aa87d1598a8ea8f45664127eb5378a6deb4",
+      "+43b758e72a18cf77e8f41a96c9088bb698d4a8aef3d2ce064320a310046b8364",
+      "+5ac06d0f103a436df28a602a36ab5f4216adee8c2f4c15e221c2b0c5198d9b76",
+      "+455e5969db29f7933f306c4460929a3e6ab8feadb8ce6d6ad8edde5e0cad094c",
+      "+e0c02204d8ff67b29b770f5dd975853ebd6095c5db67b4adcb577f274bed9b0c",
+      "+38ea153094a432ee6340b77b9a9c5fc75bf57846fe649cfc0c084c8e0e7868f8",
+      "+1648e07b91365f9d77b31267231c288c395b2a1312c030795cf4854fc7a90e51",
+      "+68e7e8ad42e04c0bdbe9cf1fb7e337ea2dcd6d3924f58de5fcee79477f50b457",
+      "+da77e02ac3637a48a203235ad746a21f385179a3e5cc2dc462d3c52a035ebc75",
+      "+b4bfcae08570fc333ea716a5276ea654548223bffc1d9e7ecacdda3244d80ef5",
+      "+9d8ec460a3b9be22b8b2848971ef1321a36195d564bf5e7a333f808b6ddc2404",
+      "+229aeea541142f27461489d094ef7192d78cd1c30d6724279cc8fa2e90ecc44c",
+      "+b8010ecc95726293b22474aa3a86b76c996a2b54811f9831cf66df08df7982ae",
+      "+2d637af18e5f5e5d329f4cb915d8985e4f642be71a66834764e84d7bb874e9db",
+      "+da183027eb5e9dfc407bf87721ae536b9417a4ea830f58fbadd786414f8a98cb",
+      "+92816ec7e4ce1c2b27763adfae4c77639d2c25ae3ccd7a1ee3c2c087aacb50a7",
+      "+19312e307a50f1c93050fc3d1312db7a95c0fc9c7de75965722316674e41422f",
+      "+0ba5f80e7770a350acc9556060c748ce13adf764e98b9043b65a07e7332ba7c6",
+      "+f14078fb957bfd8e352f9ba5fd72bbf9cee5d7d8e72cc59815ba2e4de71c8f1a",
+      "+ae755f9ac50083ad4cf287c2244d271fda6c471c25db6aaa04999d742475d317",
+      "+7cadd1b189f71b6f111a5ed1db290f2740f988895a06ca0a2d204d4b56ca0672",
+      "+7f63198cba46654d5de9f00003bb908f380531f87affef011cd59ab4d513adf9",
+      "+803df90574972977fddebc3908fc6791c5a3769ee274965da24131e09a09b9fc",
+      "+249a6373ac6be63c24c8941cfed02fe25909ec24fb879d13b1e70be9c036c41a",
+      "+265246749984171420bd5292346dfd6eeec19771f14034b727f02762378588d9",
+      "+67678610db826dff19dd12eb4c1df47a65055f09bbbb99670d91e9355c1c60f8",
+      "+d219ab243de3057f713245b52928044e86f4ff6df93c8c56fcaafd8636a647e7",
+      "+844d73b8f644240dae653e7b69a247f0abca4721b95cb6b1c36597ca3951a103",
+      "+c7dbd734e4fae3dd289ba080085c5b782893259662fd9d515396dfa0984dd8fd",
+      "+a6704523693b35d3fe867c4dc661bca2b797ddbb7aebbbac484db1a03ad8ea9b",
+      "+67f3508872ada4c2fa4406f3069b8fd4434910d24badd4bbc24c1d1ae8d8da06",
+      "+cf6bf2b6295e6df353d7e67e216db03f5865f148db34d758ab7f607cc143c852",
+      "+05cc91398d3ba2178089d775231cc1b52d1ca346e0776676b772ada41454ac55",
+      "+83c5ec11fd0877e36f9345ce4b0764dff1d7f3e6d8ba8a4ff953f71b0335906e",
+      "+fa22d05f0606c46ab4896d245269e8c3079273147d1cb0cfbb6dcbcc4607536e",
+      "+07bd498cf593c9ad377c12dbaac64af42dd099e2cd3ab675e467cf734b7a3128",
+      "+54156bbd557e63748bc6d8ab8d080e506a13feb2db00575ce65985c690bfddeb",
+      "+82596576d630c206744b02d3fb093805e766e2e285591d8a27fe89b1cb8f02cf",
+      "+4490c043e0123bf1a760c5400855d349613b436db78d65d9c930456b97ae1047",
+      "+4ebc2d2dd15dc2ba494e47df0e33394360763d7cb8779f7ff52219ef662e1fcf",
+      "+1300c2521cbd229dce515ccb42cfac4aa5bb5eb03094c57232c71a2a456e8337",
+      "+6cd4e1aed92704002650571830e63113fad9608ed9c9f3a383fead976d3bf0c5",
+      "+1c17df4cb25a19389ee84f4439246bcbede17fce5a490692ae45bf6ee0f86b05",
+      "+1d611f29e3f06afb56445997d8bd5d8c76ae9d99cfc0380baa6825ef22d64e76",
+      "+b39d98b5b9221f6fd104aa9395eab0d8da9051ac2ce82a137250ece9339cc8e7",
+      "+6ce38c402eb347dc249f1c8cb343304acea3048c2fbd191c071faba9676f56a4",
+      "+789b93cd0160d62ba956180a7531d780cc6629ee67eb9ca1487f055955b2cdd6",
+      "+c9329cf2ad030c0707ad60c3596fea46122e4d21b55cd09297b63e63c18faa44",
+      "+91b2ac42898faf8274e83dc84bc9c08328664e5bb16fcef8ab5428b70c499e04",
+      "+0037866eda96f0159755ae8d71922e22946e30ef81f3c8cf6052f8c9097f7790",
+      "+b1b2fc08eb01795cafc067ea6d4170628ec75cf6da0de865496e3477f130c557",
+      "+dc4c249428f85bf9a31998064cfe9be0bf359dd48cd91587322b367a83e993f3",
+      "+4e0ed21c8ec9c0e8f6dc5256e10c2a4002f6102ae52d10e60b459090ee09a4d8",
+      "+8c21ff834e09328cbad6645177bbd65dcd6e7f9e66c4f857f802472020459c6e",
+      "+e3c482b7996c8dffc1102d446516cc237a3efd921eb9690d50b90dac9c579ba0",
+      "+0b6233964ce1fc8ae257f5b22b2229f5240f1ffccf050b5846a9f409720ba420",
+      "+a734556d6fb8f55aaa2af70dfe576315903074bce1b34c1788851d29e8a66049",
+      "+3266f474e0dcf446feb00811d0b14decac76832b16365e5600e471c0e95a7b21",
+      "+bc9253c74c00996b87df0fb1ec2a90c4001929af314f17abd739e8c6b243160c",
+      "+5f99f1fad59009456190f2b21c852419d5ac23dfacb7c8d30454e664f993f531",
+      "+6d3b1971d71dad816d43c37c452268d9013b0cb36918fb60adb9379ec4eadaef",
+      "+ee900285bff04a4033f6b6e5229ebc899b1802eb4e55a4bfa1e41833a298553b",
+      "+53d0d59721c97e3006428ba07e1ccf7cfd28a259d8a0c37dd2bc9826c9bce73b",
+      "+fa9077cde2e19075738ee7a47e6ba204be1c8dc6f5f31f357faf68c06f1d1e33",
+      "+446a8967bd7951821ab271177661c6cd8d4a48814a192d11fadf42e4e2e8810a",
+      "+6b5b0a5bbbb67ed5594ac6f9948e46fff209ab3abbaa87552770f8a3dcac9448",
+      "+7221257cd8205c899c0768f3868b56da159f90317e3cb56fd419ffeb9fbe8361",
+      "+ba94bbb9bddfd8b239f01bfdae0a301c5196a017ea330f107919c7344f051fa0",
+      "+49788a3ca16f6f68bfc6caf0a2eeb178e9a4384aa3060ba9789bb181cf958804",
+      "+85f157f459454a7ba9bc8a8012649e72607aab5055a5c5659d3ffbe481240936",
+      "+8c43bd60ca3a1bcdff6f2f048abadbd197bfb0c79d63d915a6ec3cee50ae323a",
+      "+5843b77decfd185eab861cdbe6ea90bc5345245def4b6d865af9bf8134afde85",
+      "+a287631391c31b35200617c13df39e697fa67a39e006cb29a60a0c4253ecb689",
+      "+b07077f810446e2ca94d0194c7f93b0d13ad0aea48a6994ab277ab635fb3d2d7",
+      "+625b1f9bbc28c6983a8b8de5cb333f66123dba0e55de1ce738261fd6b8062a9d",
+      "+fe2c7ac816ff89aada16e9625a31d93b0f5703263cc0bb6d691a706c115c242f",
+      "+e3fdefad09f0ae83e7d812d453df1aed6b4080fc5e440a59829aca52535de2c5",
+      "+a182fa32f8bea48d66723994fbfa86ea5c6f232ecd784d149b9a477150a9f4e4",
+      "+969331f12d46c1e3c944bd3ea642151d6e3bae3db24175acf37ceb8a75ec4c5f",
+      "+c3eb24791483b01520c8dc785c8f6c1ca636cc3ad10538e91ea6ef23c586fa1e",
+      "+9ba93720c45dd2bc1a75cf79e15791037309b027395f3bd017f171886f15b4be",
+      "+89c4c7992470f83f1f604df36a9bf54efb50ee9045e655e2d29ee01497badd7f",
+      "+4583a00a9cfca68a26ea12cb7dc3e2997064588fdfb21c6a1d3fd0035fe2c7a3",
+      "+f9f6dbaf5c8cbad91996e8cc77c6a69cd9acab5fe949eb7022824b56591c3c17",
+      "+dbc3510ad163dcfd36e17f2de75147039726ee57bab765e4e6103df228ad95b7",
+      "+90d325246d0188302e0aaffd508ba1b6d72f03a55c54b2bfef0cd5ec5442424a",
+      "+c6017bdab6fcea113c573dbb5dce960e38a904855c91b1fa975e747282eba4be",
+      "+58a7db9aa7ee6a2f50ab4557e16cdff9ea6de044a6e822fa95bdc09981e15a7b",
+      "+2ee7a02985ed30a79fc1d4634c2bc62c448384973aecc40b81819eb585a8c29e",
+      "+0cfa358b32a19ee20fdc4e55496145927cc83ca0250d6a0ee6026bd03a505873",
+      "+10bcf1cb6a827b82d1814f08681ba171fbd669cc7f686b750b11b09719236f08",
+      "+12c6242d59bb795f71be03957defe7e0d3001dd3813d44e8c16b78585c9489af"
+    ]
+  }
+}
