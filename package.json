@@ -19,7 +19,7 @@
 		"change-case": "*",
 		"colors": "*",
 		"commander": "~2.6.0",
-		"lisk-sandbox": "https://downloads.lisk.io/lisk-sandbox/master",
+		"lisk-sandbox": "https://github.com/LiskHQ/lisk-sandbox/tarball/master",
 		"cycle": "^1.0.3",
 		"dblite": "https://github.com/LiskHQ/dblite/tarball/master",
 		"decompress-zip": "^0.2.0",
