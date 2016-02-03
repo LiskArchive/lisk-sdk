@@ -186,7 +186,7 @@ Block.prototype.dbSave = function (block, cb) {
 		numberOfTransactions: block.numberOfTransactions,
 		totalAmount: block.totalAmount,
 		totalFee: block.totalFee,
-		reward: block.reward,
+		reward: block.reward || 0,
 		payloadLength: block.payloadLength,
 		payloadHash: payloadHash,
 		generatorPublicKey: generatorPublicKey,
