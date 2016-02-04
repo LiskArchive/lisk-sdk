@@ -101,7 +101,7 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 		private.unFeesByRound[round] = (private.unFeesByRound[round] || 0);
 		private.unFeesByRound[round] += block.totalFee;
 
-		private.unRewardsByRound[round] = (private.rewardsByRound[round] || 0);
+		private.unRewardsByRound[round] = (private.rewardsByRound[round] || []);
 		private.unRewardsByRound[round].push(block.reward);
 
 		private.unDelegatesByRound[round] = private.unDelegatesByRound[round] || [];
