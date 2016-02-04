@@ -2409,7 +2409,7 @@ DApps.prototype.onBlockchainReady = function () {
 				id: dapp.dappid,
 				master: library.config.dapp.masterpassword
 			}, function (err) {
-				console.log("lanched " + dapp.dappid, err)
+				console.log("launched " + dapp.dappid, err || "successfully")
 				cb();
 			});
 		});
