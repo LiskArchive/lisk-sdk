@@ -24,6 +24,25 @@ function Round(cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+// Round changes
+function RoundChanges (round) {
+  var roundFees = parseInt(private.feesByRound[round]) || 0;
+  var roundRewards = (private.rewardsByRound[round] || []);
+
+  this.at = function (index) {
+    var fees = Math.floor(roundFees / slots.delegates),
+        feesRemaining = roundFees - (fees * slots.delegates),
+        rewards = parseInt(roundRewards[index]) || 0;
+
+    return {
+      fees : fees,
+      feesRemaining : feesRemaining,
+      rewards : rewards,
+      balance : fees + rewards
+    };
+  }
+}
+
 Round.prototype.loaded = function () {
 	return private.loaded;
 }
@@ -226,24 +245,6 @@ Round.prototype.tick = function (block, cb) {
 
 		private.delegatesByRound[round] = private.delegatesByRound[round] || [];
 		private.delegatesByRound[round].push(block.generatorPublicKey);
-
-		function RoundChanges (round) {
-			var roundFees = parseInt(private.feesByRound[round]) || 0;
-			var roundRewards = (private.rewardsByRound[round] || []);
-
-			this.at = function (index) {
-				var fees = Math.floor(roundFees / slots.delegates),
-				    feesRemaining = roundFees - (fees * slots.delegates),
-				    rewards = parseInt(roundRewards[index]) || 0;
-
-				return {
-					fees : fees,
-					feesRemaining : feesRemaining,
-					rewards : rewards,
-					balance : fees + rewards
-				};
-			}
-		}
 
 		var nextRound = self.calc(block.height + 1);
 
