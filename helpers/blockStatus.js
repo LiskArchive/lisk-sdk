@@ -26,8 +26,8 @@ function BlockStatus() {
 		var location = (parseHeight(height - rewardOffset) / distance).toFixed(0),
 		    lastMile = milestones[milestones.length - 1];
 
-		if (location > milestones.length) {
-			return lastMile;
+		if (location > (milestones.length - 1)) {
+			return milestones.lastIndexOf(lastMile);
 		} else {
 			return location;
 		}
