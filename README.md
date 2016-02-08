@@ -22,11 +22,11 @@ Each function call has **secondSecret** parameter, this parameter is optional.
 
 ### Create transaction
 
-Send 1000 LISK to 1859190791819301C
+Send 1000 LISK to 1859190791819301L
 
 ```js
 var lisk = require('lisk-js');
-var transaction = lisk.transaction.createTransaction("1859190791819301C", 1000, "secret", "secondSecret");
+var transaction = lisk.transaction.createTransaction("1859190791819301L", 1000, "secret", "secondSecret");
 ```
 
 ### Create second signature transaction
