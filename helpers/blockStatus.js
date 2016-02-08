@@ -62,6 +62,17 @@ function BlockStatus() {
 				} else {
 					amount = distance; // Assign completed milestone
 					height -= distance; // Deduct from total height
+
+					// After last milestone
+					if (height > 0 && i == milestones.length - 1) {
+						var postHeight = rewardOffset - 1;
+
+						if (height >= postHeight) {
+							amount += (height - postHeight);
+						} else {
+							amount += (postHeight - height);
+						}
+					}
 				}
 
 				rewards.push([amount, multiplier]);
