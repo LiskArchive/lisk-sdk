@@ -9,7 +9,8 @@ function BlockStatus() {
 		100000000  // Milestone 4
 	];
 
-	var distance = 3000000; // Distance between each milestone
+	var distance = 3000000, // Distance between each milestone
+	    rewardOffset = 60480; // Start rewards at block (n)
 
 	var parseHeight = function (height) {
 		height = parseInt(height);
@@ -22,7 +23,7 @@ function BlockStatus() {
 	};
 
 	this.calcMilestone = function (height) {
-		var location = (parseHeight(height) / distance).toFixed(0),
+		var location = (parseHeight(height - rewardOffset) / distance).toFixed(0),
 		    lastMile = milestones[milestones.length - 1];
 
 		if (location > milestones.length) {
@@ -33,7 +34,13 @@ function BlockStatus() {
 	};
 
 	this.calcReward = function (height) {
-		return milestones[this.calcMilestone(height)];
+		var height = parseHeight(height);
+
+		if (height < rewardOffset) {
+			return 0;
+		} else {
+			return milestones[this.calcMilestone(height)];
+		}
 	};
 
 	this.calcSupply = function (height) {
@@ -48,7 +55,9 @@ function BlockStatus() {
 			if (milestone >= i) {
 				multiplier = (milestones[i] / Math.pow(10,8));
 
-				if (height < distance) {
+				if (height < rewardOffset) {
+					break;
+				} else if (height < distance) {
 					amount = height % distance;
 				} else {
 					amount = distance;
@@ -63,9 +72,7 @@ function BlockStatus() {
 
 		for (i = 0; i < rewards.length; i++) {
 			var reward = rewards[i];
-
 			supply += reward[0] * reward[1];
-			if (i == 0) { supply -= reward[1]; }
 		}
 
 		return supply * Math.pow(10,8);
