@@ -193,7 +193,7 @@ function Username() {
 			return setImmediate(cb, errorCode("USERNAMES.ALLOW_CHARS", trs));
 		}
 
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (isAddress.test(trs.asset.username.alias.toLowerCase())) {
 			return setImmediate(cb, errorCode("USERNAMES.USERNAME_LIKE_ADDRESS", trs));
 		}
@@ -459,7 +459,7 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	var address = bignum.fromBuffer(temp).toString() + "C";
+	var address = bignum.fromBuffer(temp).toString() + 'L';
 	if (!address) {
 		throw Error("wrong publicKey " + publicKey);
 	}

@@ -2535,7 +2535,7 @@ shared.sendWithdrawal = function (req, cb) {
 		var keypair = ed.MakeKeypair(hash);
 		var query = {};
 
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (!isAddress.test(body.recipientId)) {
 			return cb("Incorrect address");
 		}

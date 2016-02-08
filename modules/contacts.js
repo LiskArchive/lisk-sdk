@@ -37,7 +37,7 @@ function Contact() {
 			return setImmediate(cb, "Empty following: " + trs.id);
 		}
 
-		var isAddress = /^[\+|\-][0-9]+[C|c]$/g;
+		var isAddress = /^[\+|\-][0-9]+[L|l]$/g;
 		if (!isAddress.test(trs.asset.contact.address.toLowerCase())) {
 			return setImmediate(cb, "Following is not address: " + trs.asset.contact.address);
 		}
@@ -447,7 +447,7 @@ shared.addContact = function (req, cb) {
 		var query = {};
 
 		var followingAddress = body.following.substring(1, body.following.length);
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (isAddress.test(followingAddress)) {
 			query.address = followingAddress;
 		} else {

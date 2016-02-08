@@ -34,7 +34,7 @@ function Transfer() {
 	}
 
 	this.verify = function (trs, sender, cb) {
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (!isAddress.test(trs.recipientId.toLowerCase())) {
 			return cb(errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
 		}
@@ -700,7 +700,7 @@ shared.addTransactions = function (req, cb) {
 
 		var query = {};
 
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (isAddress.test(body.recipientId)) {
 			query.address = body.recipientId;
 		} else {
