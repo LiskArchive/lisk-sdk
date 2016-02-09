@@ -64,7 +64,7 @@ if (program.log) {
 
 process.on('uncaughtException', function (err) {
 	// handle the error safely
-	logger.fatal('system error', {message: err.message, stack: err.stack});
+	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup');
 });
 
@@ -95,7 +95,7 @@ var logger = new Logger({echo: appConfig.consoleLogLevel, errorLevel: appConfig.
 
 var d = require('domain').create();
 d.on('error', function (err) {
-	logger.fatal('domain master', {message: err.message, stack: err.stack});
+	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
 d.run(function () {
@@ -243,7 +243,7 @@ d.run(function () {
 		dbSequence: ["logger", function (cb, scope) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
-					scope.logger.warn("db queue", current)
+					scope.logger.warn("DB queue", current)
 				}
 			});
 			cb(null, sequence);
@@ -252,7 +252,7 @@ d.run(function () {
 		sequence: ["logger", function (cb, scope) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
-					scope.logger.warn("main queue", current)
+					scope.logger.warn("Main queue", current)
 				}
 			});
 			cb(null, sequence);
@@ -261,7 +261,7 @@ d.run(function () {
 		balancesSequence: ["logger", function (cb, scope) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
-					scope.logger.warn("balance queue", current)
+					scope.logger.warn("Balance queue", current)
 				}
 			});
 			cb(null, sequence);
@@ -415,11 +415,11 @@ d.run(function () {
 					var d = require('domain').create();
 
 					d.on('error', function (err) {
-						scope.logger.fatal('domain ' + name, {message: err.message, stack: err.stack});
+						scope.logger.fatal('Domain ' + name, {message: err.message, stack: err.stack});
 					});
 
 					d.run(function () {
-						logger.debug('loading module', name)
+						logger.debug('Loading module', name)
 						var Klass = require(config.modules[name]);
 						var obj = new Klass(cb, scope)
 						modules.push(obj);

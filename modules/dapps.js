@@ -1736,7 +1736,7 @@ private.removeDApp = function (dApp, cb) {
 
 	function remove(err) {
 		if (err) {
-			library.logger.error("Uninstall dapp: " + err);
+			library.logger.error("Failed to uninstall dapp: " + err);
 		}
 
 		rmdir(dappPath, function (err) {
@@ -1760,7 +1760,7 @@ private.removeDApp = function (dApp, cb) {
 
 			modules.sql.dropTables(dApp.transactionId, blockchain, function (err) {
 				if (err) {
-					library.logger.error("Can't remove tables of dapp: " + err);
+					library.logger.error("Failed to drop dapp tables: " + err);
 				}
 				remove(err);
 			});
@@ -1813,7 +1813,7 @@ private.downloadDApp = function (dApp, cb) {
 					// Fetch from sia
 					modules.sia.uploadAscii(dApp.siaAscii, function (err, file) {
 						if (err) {
-							library.logger.error("Uploading ascii: " + err.toString());
+							library.logger.error("Failed to upload ascii: " + err.toString());
 							rmdir(dappPath, function (err) {
 								if (err) {
 									library.logger.error(err.toString());
@@ -2160,19 +2160,19 @@ private.launchApp = function (dApp, params, cb) {
 			private.sandboxes[dApp.transactionId] = sandbox;
 
 			sandbox.on("exit", function () {
-				library.logger.info("DApp " + dApp.transactionId + " closed ");
+				library.logger.info("Dapp " + dApp.transactionId + " closed ");
 				private.stop(dApp, function (err) {
 					if (err) {
-						library.logger.error("Error on stop dapp: " + err);
+						library.logger.error("Encountered error while stopping dapp: " + err);
 					}
 				});
 			});
 
 			sandbox.on("error", function (err) {
-				library.logger.info("Error in DApp " + dApp.transactionId + " " + err.toString());
+				library.logger.info("Encountered error in dapp " + dApp.transactionId + " " + err.toString());
 				private.stop(dApp, function (err) {
 					if (err) {
-						library.logger.error("Error on stop dapp: " + err);
+						library.logger.error("Encountered error while stopping dapp: " + err);
 					}
 				});
 			});
@@ -2408,7 +2408,7 @@ DApps.prototype.onBlockchainReady = function () {
 				id: dapp.dappid,
 				master: library.config.dapp.masterpassword
 			}, function (err) {
-				console.log("launched " + dapp.dappid, err || "successfully")
+				console.log("Launched " + dapp.dappid, err || "successfully")
 				cb();
 			});
 		});

@@ -363,9 +363,9 @@ Peer.prototype.onBlockchainReady = function () {
 					err && library.logger.error('updatePeerList', err);
 					library.bus.message('peerReady');
 				})
-				library.logger.info('peer ready, stored ' + count);
+				library.logger.info('Peers ready, stored ' + count);
 			} else {
-				library.logger.warn('peer list is empty');
+				library.logger.warn('Peers list is empty');
 			}
 		});
 	});

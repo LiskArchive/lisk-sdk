@@ -490,12 +490,12 @@ private.getBlockSlotData = function (slot, height, cb) {
 
 private.loop = function (cb) {
 	if (!Object.keys(private.keypairs).length) {
-		library.logger.debug('loop', 'exit: have no delegates');
+		library.logger.debug('Loop', 'exit: no delegates');
 		return setImmediate(cb);
 	}
 
 	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded()) {
-		// library.logger.log('loop', 'exit: syncing');
+		// library.logger.log('Loop', 'exit: syncing');
 		return setImmediate(cb);
 	}
 
@@ -503,13 +503,13 @@ private.loop = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (currentSlot == slots.getSlotNumber(lastBlock.timestamp)) {
-		// library.logger.log('loop', 'exit: lastBlock is in the same slot');
+		// library.logger.log('Loop', 'exit: lastBlock is in the same slot');
 		return setImmediate(cb);
 	}
 
 	private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.log('loop', 'skip slot');
+			library.logger.log('Loop', 'skiping slot');
 			return setImmediate(cb);
 		}
 
@@ -520,12 +520,12 @@ private.loop = function (cb) {
 					cb(err);
 				});
 			} else {
-				// library.logger.log('loop', 'exit: ' + _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
+				// library.logger.log('Loop', 'exit: ' + _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
 				setImmediate(cb);
 			}
 		}, function (err) {
 			if (err) {
-				library.logger.error("Problem in block generation", err);
+				library.logger.error("Failed to get block slot data", err);
 			}
 			setImmediate(cb);
 		});
@@ -556,7 +556,7 @@ private.loadMyDelegates = function (cb) {
 				private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 				library.logger.info("Forging enabled on account: " + account.address);
 			} else {
-				library.logger.info("Forger with this public key not found " + keypair.publicKey.toString('hex'));
+				library.logger.info("Delegate with this public key not found: " + keypair.publicKey.toString('hex'));
 			}
 			cb();
 		});
@@ -689,7 +689,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 }
 
 Delegates.prototype.fork = function (block, cause) {
-	library.logger.info('fork', {
+	library.logger.info('Fork', {
 		delegate: block.generatorPublicKey,
 		block: {id: block.id, timestamp: block.timestamp, height: block.height, previousBlock: block.previousBlock},
 		cause: cause
@@ -737,7 +737,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	private.loadMyDelegates(function nextLoop(err) {
 		if (err) {
-			library.logger.error("Can`t load delegates", err);
+			library.logger.error("Failed to load delegates", err);
 		}
 
 		private.loop(function () {

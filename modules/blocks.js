@@ -991,12 +991,12 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 							async.eachSeries(block.transactions, function (transaction, cb) {
 								modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 									if (err) {
-										library.logger.error("Can't apply transactions: " + transaction.id);
+										library.logger.error("Failed to apply transactions: " + transaction.id);
 										process.exit(0);
 									}
 									modules.transactions.apply(transaction, block, sender, function (err) {
 										if (err) {
-											library.logger.error("Can't apply transactions: " + transaction.id);
+											library.logger.error("Failed to apply transactions: " + transaction.id);
 											process.exit(0);
 										}
 										modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -1006,7 +1006,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 							}, function (err) {
 								private.saveBlock(block, function (err) {
 									if (err) {
-										library.logger.error("Can't save block...");
+										library.logger.error("Failed to save block...");
 										library.logger.error(err);
 										process.exit(0);
 									}
@@ -1075,7 +1075,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
 							var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
-							library.logger.log('block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
+							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 							return setImmediate(cb, e);
 						}
@@ -1085,7 +1085,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 								lastValidBlock = block;
 							} else {
 								var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
-								library.logger.log('block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
+								library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 								modules.peer.state(peer.ip, peer.port, 0, 3600);
 							}
 

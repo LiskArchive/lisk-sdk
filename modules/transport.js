@@ -37,7 +37,6 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		// console.log("Request for us: " + req.url);
 		var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
 		if (peerIp == "127.0.0.1") {
@@ -154,7 +153,7 @@ private.attachApi = function () {
 
 				var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 				var peerStr = peerIp ? peerIp + ":" + (isNaN(parseInt(req.headers['port'])) ? 'unkwnown' : parseInt(req.headers['port'])) : 'unknown';
-				library.logger.log('common block request is not valid, ban 60 min', peerStr);
+				library.logger.log('Invalid common block request, ban 60 min', peerStr);
 
 				if (report) {
 					modules.peer.state(ip.toLong(peerIp), RequestSanitizer.int(req.headers['port']), 0, 3600);
@@ -230,7 +229,7 @@ private.attachApi = function () {
 		} catch (e) {
 			var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 			var peerStr = peerIp ? peerIp + ":" + (isNaN(parseInt(req.headers['port'])) ? 'unkwnown' : parseInt(req.headers['port'])) : 'unknown';
-			library.logger.log('block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
+			library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 
 			if (peerIp && report) {
 				modules.peer.state(ip.toLong(peerIp), parseInt(req.headers['port']), 0, 3600);
@@ -326,7 +325,7 @@ private.attachApi = function () {
 		} catch (e) {
 			var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 			var peerStr = peerIp ? peerIp + ":" + (isNaN(req.headers['port']) ? 'unknown' : req.headers['port']) : 'unknown';
-			library.logger.log('recieved transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', peerStr);
+			library.logger.log('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', peerStr);
 
 			if (peerIp && report) {
 				modules.peer.state(ip.toLong(peerIp), req.headers['port'], 0, 3600);
@@ -530,7 +529,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 	return request(req, function (err, response, body) {
 		if (err || response.statusCode != 200) {
-			library.logger.debug('request', {
+			library.logger.debug('Request', {
 				url: req.url,
 				statusCode: response ? response.statusCode : 'unknown',
 				err: err
@@ -540,14 +539,14 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				if (err && (err.code == "ETIMEDOUT" || err.code == "ESOCKETTIMEDOUT" || err.code == "ECONNREFUSED")) {
 					modules.peer.remove(peer.ip, peer.port, function (err) {
 						if (!err) {
-							library.logger.info('remove peer ' + req.method + ' ' + req.url)
+							library.logger.info('Removing peer ' + req.method + ' ' + req.url)
 						}
 					});
 				} else {
 					if (!options.not_ban) {
 						modules.peer.state(peer.ip, peer.port, 0, 600, function (err) {
 							if (!err) {
-								library.logger.info('ban 10 min ' + req.method + ' ' + req.url);
+								library.logger.info('Ban 10 min ' + req.method + ' ' + req.url);
 							}
 						});
 					}
