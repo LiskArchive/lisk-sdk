@@ -187,11 +187,9 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	}
 
-	/*
-	 if (!this.ready(trs, sender)) {
-	 return setImmediate(cb, "Transaction is not ready: " + trs.id);
-	 }
-	 */
+	// if (!this.ready(trs, sender)) {
+	// 	return setImmediate(cb, "Transaction is not ready: " + trs.id);
+	// }
 
 	try {
 		var txId = this.getId(trs);
