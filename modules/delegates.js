@@ -57,8 +57,8 @@ function Delegate() {
 				return setImmediate(cb, errorCode("DELEGATES.USERNAME_CHARS", trs));
 			}
 
-			var isAddress = /^[0-9]+c$/g;
-			if (isAddress.test(trs.asset.delegate.username.toLowerCase())) {
+			var isAddress = /^[0-9]+[L|l]$/g;
+			if (isAddress.test(trs.asset.delegate.username)) {
 				return setImmediate(cb, errorCode("DELEGATES.USERNAME_LIKE_ADDRESS", trs));
 			}
 
