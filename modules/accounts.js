@@ -580,9 +580,9 @@ shared.getBalance = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		var isAddress = /^[0-9]+c$/g;
-		if (!isAddress.test(query.address.toLowerCase())) {
-			return cb(errorCode("ACCOUNTS.INVALID_ADDRESS", {address: query.address}))
+		var isAddress = /^[0-9]+[L|l]$/g;
+		if (!isAddress.test(query.address)) {
+			return cb(errorCode("ACCOUNTS.INVALID_ADDRESS", {address: query.address}));
 		}
 
 		self.getAccount({address: query.address}, function (err, account) {
