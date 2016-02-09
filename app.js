@@ -442,7 +442,7 @@ d.run(function () {
 			scope.logger.info("Modules ready and launched");
 
 			process.once('cleanup', function () {
-				console.log("cleaning")
+				scope.logger.info("Cleaning up...");
 				async.eachSeries(modules, function (module, cb) {
 					if (typeof(module.cleanup) == 'function'){
 						module.cleanup(cb);
@@ -450,7 +450,11 @@ d.run(function () {
 						setImmediate(cb);
 					}
 				}, function (err) {
-					console.log("cleaned", err)
+					if (err) {
+							scope.logger.error(err);
+					} else {
+							scope.logger.info("Cleaned up successfully");
+					}
 					process.exit(1);
 				});
 			});
