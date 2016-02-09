@@ -23,7 +23,7 @@ function BlockStatus() {
 	};
 
 	this.calcMilestone = function (height) {
-		var location = (parseHeight(height - rewardOffset) / distance).toFixed(0),
+		var location = parseInt(parseHeight(height - rewardOffset) / distance),
 		    lastMile = milestones[milestones.length - 1];
 
 		if (location > (milestones.length - 1)) {
