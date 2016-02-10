@@ -1,16 +1,16 @@
-'use strict';
+"use strict";
 
 // Requires and node configuration
-var _ = require('lodash'),
-    config = require('./config.json'),
-    expect = require('chai').expect,
-    chai = require('chai'),
-    supertest = require('supertest'),
-    baseUrl = 'http://' + config.address + ':' + config.port,
-    api = supertest(baseUrl + '/api'),
-    peer = supertest(baseUrl + '/peer'),
-    async = require('async'),
-    request = require('request');
+var _ = require("lodash"),
+    config = require("./config.json"),
+    expect = require("chai").expect,
+    chai = require("chai"),
+    supertest = require("supertest"),
+    baseUrl = "http://" + config.address + ":" + config.port,
+    api = supertest(baseUrl + "/api"),
+    peer = supertest(baseUrl + "/peer"),
+    async = require("async"),
+    request = require("request");
 
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
@@ -41,22 +41,22 @@ var DappGit = {
 
 // Account info for delegate to register manually
 var Daccount = {
-  'address': '9946841100442405851C',
-  'publicKey': 'caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc',
-  'password': "1234",
-  'secondPassword' : "12345",
-  'balance': 0,
-  'delegateName':'sebastian',
-  'username':'bdevelle'
+  "address": "9946841100442405851C",
+  "publicKey": "caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc",
+  "password": "1234",
+  "secondPassword" : "12345",
+  "balance": 0,
+  "delegateName":"sebastian",
+  "username":"bdevelle"
 };
 
 // Existing delegate account in blockchain
 var Eaccount = {
-  'address': '17604940945017291637C',
-  'publicKey': 'f143730cbb5c42a9a02f183f8ee7b4b2ade158cb179b12777714edf27b4fcf3e',
-  'password': "GwRr0RlSi",
-  'balance': 0,
-  'delegateName': 'genesisDelegate100'
+  "address": "17604940945017291637C",
+  "publicKey": "f143730cbb5c42a9a02f183f8ee7b4b2ade158cb179b12777714edf27b4fcf3e",
+  "password": "GwRr0RlSi",
+  "balance": 0,
+  "delegateName": "genesisDelegate100"
 };
 
 // List of all transaction types codes
@@ -92,10 +92,10 @@ var DappCategory = {
 
 // Account info for foundation account - LISK > 1,000,000 | Needed for voting, registrations and Tx
 var Faccount = {
-  'address': '2334212999465599568C',
-  'publicKey': '631b91fa537f74e23addccd30555fbc7729ea267c7e0517cbf1bfcc46354abc3',
-  'password': "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",
-  'balance': 0
+  "address": "2334212999465599568C",
+  "publicKey": "631b91fa537f74e23addccd30555fbc7729ea267c7e0517cbf1bfcc46354abc3",
+  "password": "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",
+  "balance": 0
 };
 
 // Random LISK Amount
@@ -191,7 +191,7 @@ function waitForNewBlock(height, cb) {
 
 // Adds peers to local node
 function addPeers(numOfPeers, cb) {
-  var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
+  var operatingSystems = ["win32","win64","ubuntu","debian", "centos"];
   var ports = [4000, 5000, 7000, 8000];
   var sharePortOptions = [0,1];
   var os,version,port,sharePort;
@@ -210,10 +210,10 @@ function addPeers(numOfPeers, cb) {
       url: baseUrl + "/peer/height",
       json: true,
       headers: {
-        'version': version,
-        'port': port,
-        'share-port': 0,
-        'os': os
+        "version": version,
+        "port": port,
+        "share-port": 0,
+        "os": os
       }
     }, function (err, resp, body) {
       if (err || resp.statusCode != 200) {
@@ -269,13 +269,13 @@ function randomCapitalUsername(){
 // Used to create random basic accounts
 function randomAccount(){
   var account = {
-    'address' : '',
-    'publicKey' : '',
-    'password' : "",
-    'secondPassword': "",
-    'delegateName' : "",
-    'username':"",
-    'balance': 0
+    "address" : "",
+    "publicKey" : "",
+    "password" : "",
+    "secondPassword": "",
+    "delegateName" : "",
+    "username":"",
+    "balance": 0
   };
 
   account.password = randomPassword();
@@ -289,9 +289,9 @@ function randomAccount(){
 // Used to create random transaction accounts (holds additional info to regular account)
 function randomTxAccount(){
   return _.defaults(randomAccount(), {
-    sentAmount:'',
-    paidFee: '',
-    totalPaidFee: '',
+    sentAmount:"",
+    paidFee: "",
+    totalPaidFee: "",
     transactions: []
   })
 }
@@ -306,7 +306,7 @@ module.exports = {
   api: api,
   chai: chai,
   peer : peer,
-  lisk : require('./lisk-js'),
+  lisk : require("./lisk-js"),
   supertest: supertest,
   expect: expect,
   version: version,
