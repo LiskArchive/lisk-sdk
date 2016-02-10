@@ -490,7 +490,6 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 		return cb("Invalid filter");
 	}
 
-	// console.time('loading');
 	var params = {limit: filter.limit || 1};
 	filter.lastId && (params['lastId'] = filter.lastId);
 	filter.id && !filter.lastId && (params['id'] = filter.id);
