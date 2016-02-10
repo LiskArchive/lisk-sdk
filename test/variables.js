@@ -24,9 +24,9 @@ var Fees = {
   voteFee : 100000000,
   usernameFee : 10000000000,
   followFee : 100000000,
-  transactionFee : 0.001,
+  transactionFee : 10000000,
   secondPasswordFee : 10000000000,
-  delegateRegistrationFee : 1000000000000,
+  delegateRegistrationFee : 10000000000,
   multisignatureRegistrationFee : 500000000,
   dappAddFee : 50000000000
 };
