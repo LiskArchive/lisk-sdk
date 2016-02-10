@@ -7,7 +7,6 @@ var TransactionTypes = require('../helpers/transaction-types.js'),
 	Diff = require('../helpers/diff.js'),
 	async = require('async'),
 	util = require('util'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 var modules, library, self, private = {}, shared = {};
@@ -47,12 +46,12 @@ function Contact() {
 		}
 
 		if (trs.recipientId) {
-			return setImmediate(cb, "Invalid recipientId: " + trs.id);
+			return setImmediate(cb, "Invalid recipient: " + trs.id);
 		}
 
 		self.checkContacts(trs.senderPublicKey, [trs.asset.contact.address], function (err) {
 			if (err) {
-				return setImmediate(cb, errorCode("CONTACTS.ALREADY_ADDED_CONFIRMED", trs));
+				return setImmediate(cb, "Account is already a contact");
 			}
 			setImmediate(cb, err, trs);
 		});
@@ -105,7 +104,7 @@ function Contact() {
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		self.checkUnconfirmedContacts(trs.senderPublicKey, [trs.asset.contact.address], function (err) {
 			if (err) {
-				return setImmediate(cb, errorCode("CONTACTS.ALREADY_ADDED_UNCONFIRMED", trs));
+				return setImmediate(cb, "Account is already a contact");
 			}
 
 			this.scope.account.merge(sender.address, {
@@ -193,7 +192,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -204,7 +203,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/contacts', router);
@@ -266,11 +265,11 @@ Contacts.prototype.checkUnconfirmedContacts = function (publicKey, contacts, cb)
 				var contactAddress = contact.slice(1);
 
 				if (math != '+') {
-					return cb(errorCode('Incorrect math'));
+					return cb("Incorrect math operator");
 				}
 
 				// if (contactAddress == selfAddress) {
-				// 	return cb(errorCode("CONTACTS.SELF_FRIENDING"));
+				// 	return cb("Can not add self as own contact"));
 				// }
 
 				modules.accounts.setAccountAndGet({
@@ -365,7 +364,7 @@ shared.getContacts = function (req, cb) {
 				return cb(err.toString());
 			}
 			if (!account) {
-				return cb(errorCode("ACCOUNTS.ACCOUNT_DOESNT_FOUND", {address: query.address}));
+				return cb("Account not found");
 			}
 
 			async.series({
@@ -440,7 +439,7 @@ shared.addContact = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -479,11 +478,11 @@ shared.addContact = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -491,7 +490,7 @@ shared.addContact = function (req, cb) {
 						}
 
 						if (!following) {
-							return cb(errorCode("CONTACTS.USERNAME_DOESNT_FOUND"));
+							return cb("Username not found");
 						}
 
 						followingAddress = body.following[0] + following.address;
@@ -525,7 +524,7 @@ shared.addContact = function (req, cb) {
 					}
 
 					if (!following) {
-						return cb(errorCode("CONTACTS.USERNAME_DOESNT_FOUND"));
+						return cb("Username not found");
 					}
 
 					followingAddress = body.following[0] + following.address;
@@ -535,11 +534,11 @@ shared.addContact = function (req, cb) {
 							return cb(err.toString());
 						}
 						if (!account) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid account");
 						}
 
 						if (account.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (account.secondSignature && body.secondSecret) {

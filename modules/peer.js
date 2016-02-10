@@ -5,7 +5,6 @@ var async = require('async'),
 	extend = require('extend'),
 	fs = require('fs'),
 	path = require('path'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 require('array.prototype.find'); // Old node fix
@@ -29,7 +28,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -39,7 +38,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/peers', router);
@@ -434,12 +433,12 @@ shared.getPeers = function (req, cb) {
 		}
 
 		if (query.limit < 0 || query.limit > 100) {
-			return cb(errorCode("PEERS.LIMIT", query));
+			return cb("Invalid limit. Maximum is 100");
 		}
 
 		private.getByFilter(query, function (err, peers) {
 			if (err) {
-				return cb(errorCode("PEERS.PEER_NOT_FOUND"));
+				return cb("Peer not found");
 			}
 
 			for (var i = 0; i < peers.length; i++) {
@@ -475,7 +474,7 @@ shared.getPeer = function (req, cb) {
 		try {
 			var ip_str = ip.toLong(query.ip_str);
 		} catch (e) {
-			return cb(errorCode("PEERS.INVALID_PEER"));
+			return cb("Invalid peer");
 		}
 
 		private.getByFilter({
@@ -483,7 +482,7 @@ shared.getPeer = function (req, cb) {
 			port: port
 		}, function (err, peers) {
 			if (err) {
-				return cb(errorCode("PEERS.PEER_NOT_FOUND"));
+				return cb("Peer not found");
 			}
 
 			var peer = peers.length ? peers[0] : null;

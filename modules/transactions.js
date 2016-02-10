@@ -9,7 +9,6 @@ var ed = require('ed25519'),
 	Router = require('../helpers/router.js'),
 	async = require('async'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
@@ -36,11 +35,11 @@ function Transfer() {
 	this.verify = function (trs, sender, cb) {
 		var isAddress = /^[0-9]+[L|l]$/g;
 		if (!isAddress.test(trs.recipientId.toLowerCase())) {
-			return cb(errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return cb("Invalid recipient");
 		}
 
 		if (trs.amount <= 0) {
-			return cb(errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return cb("Invalid transaction amount");
 		}
 
 		cb(null, trs);
@@ -143,7 +142,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -155,7 +154,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/transactions', router);
@@ -554,7 +553,7 @@ shared.getTransactions = function (req, cb) {
 
 		private.list(query, function (err, data) {
 			if (err) {
-				return cb(errorCode("TRANSACTIONS.TRANSACTIONS_NOT_FOUND"));
+				return cb("No transactions found");
 			}
 
 			cb(null, {transactions: data.transactions, count: data.count});
@@ -580,7 +579,7 @@ shared.getTransaction = function (req, cb) {
 
 		private.getById(query.id, function (err, transaction) {
 			if (!transaction || err) {
-				return cb(errorCode("TRANSACTIONS.TRANSACTION_NOT_FOUND"));
+				return cb("Transaction not found");
 			}
 			cb(null, {transaction: transaction});
 		});
@@ -606,7 +605,7 @@ shared.getUnconfirmedTransaction = function (req, cb) {
 		var unconfirmedTransaction = self.getUnconfirmedTransaction(query.id);
 
 		if (!unconfirmedTransaction) {
-			return cb(errorCode("TRANSACTIONS.TRANSACTION_NOT_FOUND"));
+			return cb("Transaction not found");
 		}
 
 		cb(null, {transaction: unconfirmedTransaction});
@@ -694,7 +693,7 @@ shared.addTransactions = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -713,7 +712,7 @@ shared.addTransactions = function (req, cb) {
 					return cb(err.toString());
 				}
 				if (!recipient && query.username) {
-					return cb(errorCode("TRANSACTIONS.RECIPIENT_NOT_FOUND"));
+					return cb("Recipient not found");
 				}
 				var recipientId = recipient ? recipient.address : body.recipientId;
 				var recipientUsername = recipient ? recipient.username : null;
@@ -742,11 +741,11 @@ shared.addTransactions = function (req, cb) {
 							}
 
 							if (!requester || !requester.publicKey) {
-								return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+								return cb("Invalid requester");
 							}
 
 							if (requester.secondSignature && !body.secondSecret) {
-								return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+								return cb("Invalid second passphrase");
 							}
 
 							if (requester.publicKey == account.publicKey) {
@@ -783,11 +782,11 @@ shared.addTransactions = function (req, cb) {
 							return cb(err.toString());
 						}
 						if (!account || !account.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid account");
 						}
 
 						if (account.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						var secondKeypair = null;

@@ -11,7 +11,6 @@ var crypto = require('crypto'),
 	util = require('util'),
 	async = require('async'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 require('array.prototype.findindex'); // Old node fix
@@ -94,7 +93,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -109,7 +108,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/blocks', router);
@@ -256,7 +255,7 @@ private.getById = function (id, cb) {
 		"from blocks b " +
 		"where b.id = $id", {id: id}, ['b_id', 'b_version', 'b_timestamp', 'b_height', 'b_previousBlock', 'b_numberOfTransactions', 'b_totalAmount', 'b_totalFee', 'b_reward', 'b_payloadLength', 'b_payloadHash', 'b_generatorPublicKey', 'b_blockSignature', 'b_confirmations'], function (err, rows) {
 		if (err || !rows.length) {
-			return cb(err || errorCode("BLOCKS.BLOCK_NOT_FOUND"));
+			return cb(err || "Block not found"));
 		}
 
 		var block = library.logic.block.dbRead(rows[0]);
@@ -798,7 +797,7 @@ Blocks.prototype.getLastBlock = function () {
 
 Blocks.prototype.processBlock = function (block, broadcast, cb) {
 	if (!private.loaded) {
-		return setImmediate(cb, errorCode('COMMON.LOADING'));
+		return setImmediate(cb, "Blockchain is loading");
 	}
 	private.isActive = true;
 	library.balancesSequence.add(function (cb) {
@@ -1209,7 +1208,7 @@ Blocks.prototype.cleanup = function (cb) {
 // Shared
 shared.getBlock = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
@@ -1229,7 +1228,7 @@ shared.getBlock = function (req, cb) {
 		library.dbSequence.add(function (cb) {
 			private.getById(query.id, function (err, block) {
 				if (!block || err) {
-					return cb(errorCode("BLOCKS.BLOCK_NOT_FOUND"));
+					return cb("Block not found");
 				}
 				cb(null, {block: block});
 			});
@@ -1239,7 +1238,7 @@ shared.getBlock = function (req, cb) {
 
 shared.getBlocks = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
@@ -1300,7 +1299,7 @@ shared.getBlocks = function (req, cb) {
 
 shared.getHeight = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	cb(null, {height: private.lastBlock.height});
@@ -1308,7 +1307,7 @@ shared.getHeight = function (req, cb) {
 
 shared.getFee = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	cb(null, {fee: library.logic.block.calculateFee()});
@@ -1316,7 +1315,7 @@ shared.getFee = function (req, cb) {
 
 shared.getMilestone = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {milestone: private.blockStatus.calcMilestone(height)});
@@ -1324,7 +1323,7 @@ shared.getMilestone = function (req, cb) {
 
 shared.getReward = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {reward: private.blockStatus.calcReward(height)});
@@ -1332,7 +1331,7 @@ shared.getReward = function (req, cb) {
 
 shared.getSupply = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {supply: private.blockStatus.calcSupply(height)});
@@ -1340,7 +1339,7 @@ shared.getSupply = function (req, cb) {
 
 shared.getStatus = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {

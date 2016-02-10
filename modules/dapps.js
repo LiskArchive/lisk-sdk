@@ -12,7 +12,6 @@ var async = require('async'),
 	DecompressZip = require('decompress-zip'),
 	crypto = require('crypto'),
 	constants = require('../helpers/constants.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	Sandbox = require("lisk-sandbox"),
 	ed = require('ed25519'),
 	rmdir = require('rimraf'),
@@ -59,11 +58,11 @@ function OutTransfer() {
 
 	this.verify = function (trs, sender, cb) {
 		if (!trs.recipientId) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (!trs.amount) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		if (!trs.asset.outTransfer.dappId) {
@@ -262,11 +261,11 @@ function InTransfer() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (!trs.amount) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		library.dbLite.query("SELECT count(*) FROM dapps WHERE transactionId=$id", {
@@ -424,15 +423,15 @@ function DApp() {
 		var isSiaIcon = false;
 
 		if (trs.recipientId) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (trs.amount != 0) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		if (trs.asset.dapp.category != 0 && !trs.asset.dapp.category) {
-			return setImmediate(cb, errorCode("DAPPS.UNKNOWN_CATEGORY"));
+			return setImmediate(cb, "Invalid dapp category");
 		}
 
 		var foundCategory = false;
@@ -444,14 +443,14 @@ function DApp() {
 		}
 
 		if (!foundCategory) {
-			return setImmediate(cb, errorCode("DAPPS.UNKNOWN_CATEGORY"));
+			return setImmediate(cb, "Unknown dapp category");
 		}
 
 		if (trs.asset.dapp.siaAscii) {
 			isSia = true;
 
 			if (trs.asset.dapp.siaAscii.trim() != trs.asset.dapp.siaAscii) {
-				return setImmediate(cb, "Didn't trimmed sia ascii");
+				return setImmediate(cb, "Untrimmed sia ascii");
 			}
 
 			if (trs.asset.dapp.siaAscii.trim().length == 0) {
@@ -459,15 +458,15 @@ function DApp() {
 			}
 
 			if (trs.asset.dapp.siaAscii.length > 10000) {
-				return setImmediate(cb, "Sia ascii max length is 10000");
+				return setImmediate(cb, "Invalid sia ascii length. Maximum is 10000");
 			}
 
 			if (typeof trs.asset.dapp.siaAscii !== 'string') {
-				return setImmediate(cb, errorCode("DAPPS.MISSED_SIA_ASCII"));
+				return setImmediate(cb, "Invalid sia ascii");
 			}
 
 			if (!isASCII(trs.asset.dapp.siaAscii)) {
-				return setImmediate(cb, errorCode("DAPP.INCORRECT_ASCII_SIA", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia ascii");
 			}
 		}
 
@@ -479,29 +478,29 @@ function DApp() {
 			}
 
 			if (trs.asset.dapp.siaIcon != trs.asset.dapp.siaIcon.trim()) {
-				return setImmediate(cb, "Not trimmed sia icon");
+				return setImmediate(cb, "Untrimmed sia icon");
 			}
 
 			if (trs.asset.dapp.siaIcon.length > 10000) {
-				return setImmediate(cb, "Incorrect sia icon length");
+				return setImmediate(cb, "Invalid sia icon length. Maximum is 10000");
 			}
 
 			if (typeof trs.asset.dapp.siaIcon !== 'string') {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_SIA_ICON", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia icon");
 			}
 
 			if (!isASCII(trs.asset.dapp.siaIcon)) {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_SIA_ICON", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia icon ascii");
 			}
 		}
 
 		if (trs.asset.dapp.icon) {
 			if (isSiaIcon) {
-				return setImmediate(cb, errorCode("DAPPS.ALREADY_SIA_ICON"));
+				return setImmediate(cb, "Dapp already has a sia icon");
 			}
 
 			if (!valid_url.isUri(trs.asset.dapp.icon)) {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_ICON_LINK", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia icon link");
 			}
 
 			var length = trs.asset.dapp.icon.length;
@@ -511,42 +510,42 @@ function DApp() {
 				trs.asset.dapp.icon.indexOf('.jpg') != length - 4 &&
 				trs.asset.dapp.icon.indexOf('.jpeg') != length - 5
 			) {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_ICON_LINK", trs.asset.dapp))
+				return setImmediate(cb, "Invalid sia icon file type")
 			}
 		}
 
 		if (trs.asset.dapp.type > 1 || trs.asset.dapp.type < 0) {
-			return setImmediate(cb, errorCode("DAPPS.UNKNOWN_TYPE"));
+			return setImmediate(cb, "Invalid dapp type");
 		}
 
 		if (trs.asset.dapp.git) {
 			if (isSia) {
-				return setImmediate(cb, errorCode("DAPPS.GIT_AND_SIA"));
+				return setImmediate(cb, "Dapp can only be hosted in one location (github or sia)");
 			}
 
 			if (!(/^git\@github\.com\:.+\.git$/.test(trs.asset.dapp.git))) {
-				return setImmediate(cb, errorCode("DAPPS.INVALID_GIT"));
+				return setImmediate(cb, "Invalid github repository link");
 			}
 		}
 
 		if (!isSia && !trs.asset.dapp.git) {
-			return setImmediate(cb, errorCode("DAPPS.STORAGE_MISSED"));
+			return setImmediate(cb, "Invalid dapp storage option");
 		}
 
 		if (!trs.asset.dapp.name || trs.asset.dapp.name.trim().length == 0 || trs.asset.dapp.name.trim() != trs.asset.dapp.name) {
-			return setImmediate(cb, errorCode("DAPPS.EMPTY_NAME"));
+			return setImmediate(cb, "Missing dapp name");
 		}
 
 		if (trs.asset.dapp.name.length > 32) {
-			return setImmediate(cb, errorCode("DAPPS.TOO_LONG_NAME"));
+			return setImmediate(cb, "Dapp name is too long. Maximum is 32 characters");
 		}
 
 		if (trs.asset.dapp.description && trs.asset.dapp.description.length > 160) {
-			return setImmediate(cb, errorCode("DAPPS.TOO_LONG_DESCRIPTION"));
+			return setImmediate(cb, "Dapp description is too long. Maximum is 160 characters");
 		}
 
 		if (trs.asset.dapp.tags && trs.asset.dapp.tags.length > 160) {
-			return setImmediate(cb, errorCode("DAPPS.TOO_LONG_TAGS"));
+			return setImmediate(cb, "Dapp has too many tags. Maximum is 160");
 		}
 
 		if (trs.asset.dapp.tags) {
@@ -840,7 +839,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.put('/', function (req, res, next) {
@@ -913,7 +912,7 @@ private.attachApi = function () {
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
-					return res.json({success: false, error: errorCode("COMMON.INVALID_SECRET_KEY")});
+					return res.json({success: false, error: "Invalid passphrase"});
 				}
 			}
 
@@ -924,11 +923,11 @@ private.attachApi = function () {
 					}
 
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;
@@ -1023,7 +1022,7 @@ private.attachApi = function () {
 
 			private.list(query, function (err, dapps) {
 				if (err) {
-					return res.json({success: false, error: errorCode("DAPPS.DAPPS_NOT_FOUND")});
+					return res.json({success: false, error: "Dapp not found"});
 				}
 
 				res.json({success: true, dapps: dapps});
@@ -2261,7 +2260,7 @@ private.addTransactions = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -2292,11 +2291,11 @@ private.addTransactions = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -2333,11 +2332,11 @@ private.addTransactions = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;
@@ -2384,10 +2383,10 @@ DApps.prototype.message = function (dappid, body, cb) {
 
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!private.sandboxes[dappid]) {
-		return cb(errorCode("DAPPS.DAPPS_NOT_FOUND"));
+		return cb("Dapp not found");
 	}
 	if (!private.dappready[dappid]) {
-		return cb(errorCode("DAPPS.DAPPS_NOT_READY"));
+		return cb("Dapp not ready");
 	}
 	private.sandboxes[dappid].sendMessage({
 		method: method,
@@ -2565,11 +2564,11 @@ shared.sendWithdrawal = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -2607,11 +2606,11 @@ shared.sendWithdrawal = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;

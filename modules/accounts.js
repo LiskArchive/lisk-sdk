@@ -7,7 +7,7 @@ var crypto = require('crypto'),
 	constants = require('../helpers/constants.js'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	Diff = require('../helpers/diff.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
+	util = require('util'),
 	extend = require('extend'),
 	sandboxHelper = require('../helpers/sandbox.js');
 
@@ -29,15 +29,15 @@ function Vote() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId != trs.senderId) {
-			return setImmediate(cb, errorCode("VOTES.INCORRECT_RECIPIENT", trs));
+			return setImmediate(cb, "Recipient is identical to sender");
 		}
 
 		if (!trs.asset.votes || !trs.asset.votes.length) {
-			return setImmediate(cb, errorCode("VOTES.EMPTY_VOTES", trs));
+			return setImmediate(cb, "Not enough spare votes available");
 		}
 
 		if (trs.asset.votes && trs.asset.votes.length > 33) {
-			return setImmediate(cb, errorCode("VOTES.MAXIMUM_DELEGATES_VOTE", trs));
+			return setImmediate(cb, "Voting limited exceeded. Maxmium is 33 per transaction"));
 		}
 
 		modules.delegates.checkDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
@@ -177,29 +177,29 @@ function Username() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId) {
-			return setImmediate(cb, errorCode("USERNAMES.INCORRECT_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient"));
 		}
 
 		if (trs.amount != 0) {
-			return setImmediate(cb, errorCode("USERNAMES.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount"));
 		}
 
 		if (!trs.asset.username.alias) {
-			return setImmediate(cb, errorCode("USERNAMES.EMPTY_ASSET", trs));
+			return setImmediate(cb, "Invalid username transaction asset");
 		}
 
 		var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
 		if (!allowSymbols.test(trs.asset.username.alias.toLowerCase())) {
-			return setImmediate(cb, errorCode("USERNAMES.ALLOW_CHARS", trs));
+			return setImmediate(cb, "Username must only contain alphanumeric characters (with the exception of !@$&_)");
 		}
 
 		var isAddress = /^[0-9]+[L|l]$/g;
 		if (isAddress.test(trs.asset.username.alias.toLowerCase())) {
-			return setImmediate(cb, errorCode("USERNAMES.USERNAME_LIKE_ADDRESS", trs));
+			return setImmediate(cb, "Username cannot be a potential lisk address");
 		}
 
 		if (trs.asset.username.alias.length == 0 || trs.asset.username.alias.length > 20) {
-			return setImmediate(cb, errorCode("USERNAMES.INCORRECT_USERNAME_LENGTH", trs));
+			return setImmediate(cb, "Invalid username length. Must be between 1 to 20 characters");
 		}
 
 		self.getAccount({
@@ -212,13 +212,13 @@ function Username() {
 				return cb(err);
 			}
 			if (account && account.username == trs.asset.username.alias) {
-				return cb(errorCode("DELEGATES.EXISTS_USERNAME", trs));
+				return cb("Username is already in use");
 			}
 			if (sender.username && sender.username != trs.asset.username.alias) {
-				return cb(errorCode("DELEGATES.WRONG_USERNAME"));
+				return cb("Invalid username. Does not match transaction asset");
 			}
 			if (sender.u_username && sender.u_username != trs.asset.username.alias) {
-				return cb(errorCode("USERNAMES.ALREADY_HAVE_USERNAME", trs));
+				return cb("Account already has a username");
 			}
 
 			cb(null, trs);
@@ -261,7 +261,7 @@ function Username() {
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		if (sender.username || sender.u_username) {
-			return setImmediate(cb, errorCode("USERNAMES.ALREADY_HAVE_USERNAME", trs));
+			return setImmediate(cb, "Account already has a username");
 		}
 
 		var address = modules.accounts.generateAddressByPublicKey(trs.senderPublicKey);
@@ -276,7 +276,7 @@ function Username() {
 				return cb(err);
 			}
 			if (account && account.u_username) {
-				return cb(errorCode("USERNAMES.EXISTS_USERNAME", trs));
+				return cb("Username already exists");
 			}
 
 			self.setAccountAndGet({address: sender.address, u_username: trs.asset.username.alias, u_nameexist: 1}, cb);
@@ -362,7 +362,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -433,7 +433,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint was not found"});
 	});
 
 	library.network.app.use('/api/accounts', router);
@@ -582,7 +582,7 @@ shared.getBalance = function (req, cb) {
 
 		var isAddress = /^[0-9]+[L|l]$/g;
 		if (!isAddress.test(query.address)) {
-			return cb(errorCode("ACCOUNTS.INVALID_ADDRESS", {address: query.address}));
+			return cb("Invalid address");
 		}
 
 		self.getAccount({address: query.address}, function (err, account) {
@@ -618,7 +618,7 @@ shared.getPublickey = function (req, cb) {
 				return cb(err.toString());
 			}
 			if (!account || !account.publicKey) {
-				return cb(errorCode("ACCOUNTS.ACCOUNT_PUBLIC_KEY_NOT_FOUND", {address: query.address}))
+				return cb("Account does not have a public key");
 			}
 			cb(null, {publicKey: account.publicKey});
 		});
@@ -674,7 +674,7 @@ shared.getDelegates = function (req, cb) {
 				return cb(err.toString());
 			}
 			if (!account) {
-				return cb(errorCode("ACCOUNTS.ACCOUNT_DOESNT_FOUND", {address: query.address}));
+				return cb("Account not found");
 			}
 
 			if (account.delegates) {
@@ -754,7 +754,7 @@ shared.addDelegates = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -783,15 +783,15 @@ shared.addDelegates = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
-							return cb("Incorrect requester");
+							return cb("Invalid requester");
 						}
 
 						var secondKeypair = null;
@@ -822,11 +822,11 @@ shared.addDelegates = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;
@@ -898,7 +898,7 @@ shared.addUsername = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -927,11 +927,11 @@ shared.addUsername = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -966,11 +966,11 @@ shared.addUsername = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;
@@ -1026,7 +1026,7 @@ shared.getAccount = function (req, cb) {
 				return cb(err.toString());
 			}
 			if (!account) {
-				return cb(errorCode("ACCOUNTS.ACCOUNT_DOESNT_FOUND"));
+				return cb("Account not found");
 			}
 
 			cb(null, {
@@ -1066,7 +1066,7 @@ shared.getUsername = function (req, cb) {
 			username: {$like: query.username.toLowerCase()}
 		}, function (err, account) {
 			if (err || !account) {
-				return cb(errorCode("ACCOUNTS.ACCOUNT_DOESNT_FOUND", account));
+				return cb("Account not found");
 			}
 
 			cb(null, {

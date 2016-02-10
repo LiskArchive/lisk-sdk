@@ -5,7 +5,6 @@ var Router = require('../helpers/router.js'),
 	util = require('util'),
 	_ = require('underscore'),
 	zlib = require('zlib'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	extend = require('extend'),
 	crypto = require('crypto'),
 	bignum = require('../helpers/bignum.js'),
@@ -34,7 +33,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules && private.loaded) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.use(function (req, res, next) {
@@ -161,7 +160,7 @@ private.attachApi = function () {
 					modules.peer.state(ip.toLong(peerIp), RequestSanitizer.int(req.headers['port']), 0, 3600);
 				}
 
-				return res.json({success: false, error: errorCode("BLOCKS.WRONG_ID_SEQUENCE")});
+				return res.json({success: false, error: "Invalid block id sequence"});
 			}
 
 			library.dbLite.query("select max(height), id, previousBlock, timestamp from blocks where id in (" + escapedIds.join(',') + ") and height >= $min and height <= $max", {
@@ -174,7 +173,7 @@ private.attachApi = function () {
 				"timestamp": Number
 			}, function (err, rows) {
 				if (err) {
-					return res.json({success: false, error: errorCode("COMMON.DB_ERR")});
+					return res.json({success: false, error: "Database error"});
 				}
 
 				var commonBlock = rows.length ? rows[0] : null;
@@ -430,7 +429,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/peer', router);
