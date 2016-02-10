@@ -15,6 +15,7 @@ var offsetTimestamp = 0;
 // Used for calculating amounts
 var expectedFee = 0;
 var totalTxFee = 0;
+var randomLISK = 0;
 
 // Used for test labeling
 var test = 0;
