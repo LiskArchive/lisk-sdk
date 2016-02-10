@@ -202,12 +202,12 @@ describe("Transactions", function() {
 
         // Wait for new block to ensure all data has been recieved
         node.onNewBlock(function(err) {
-      node.expect(err).to.be.not.ok;
-            console.log("ACCOUNT 1:" + Account1);
-            console.log("ACCOUNT 2:" + Account2);
-            done();
+            node.expect(err).to.be.not.ok;
+                console.log("ACCOUNT 1:" + Account1);
+                console.log("ACCOUNT 2:" + Account2);
+                done();
+            });
         });
-    });
 
         describe("/transactions", function () {
             test = test + 1;
