@@ -126,9 +126,10 @@ function randomProperty(obj, needKey){
 };
 
 // Randomizes LISK amount
-function randomizeLISK(){
+function randomLISK(){
   return Math.floor(Math.random() * (10000 * 100000000)) + (1000 * 100000000);
 }
+
 // Returns current block height
 function getHeight(cb) {
   request({
@@ -325,7 +326,7 @@ module.exports = {
   blockTimePlus: blockTimePlus,
   randomProperty: randomProperty,
   randomDelegateName: randomDelegateName,
-  randomizeLISK: randomizeLISK,
+  randomLISK: randomLISK,
   randomPassword: randomPassword,
   randomAccount: randomAccount,
   randomTxAccount: randomTxAccount,

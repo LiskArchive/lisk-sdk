@@ -61,7 +61,7 @@ var accountSendTurn = 0;
 
 function sendLISK (account, i){
     node.onNewBlock(function(err) {
-        var randomLISK = node.randomizeLISK();
+        var randomLISK = node.randomLISK();
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({

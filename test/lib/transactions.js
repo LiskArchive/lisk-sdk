@@ -112,7 +112,7 @@ describe("Transactions", function() {
     before(function (done) {
         // Send to LISK to account 1 address
         setTimeout(function() {
-            randomLISK = node.randomizeLISK();
+            randomLISK = node.randomLISK();
             expectedFee = node.expectedFee(randomLISK);
             node.api.put("/transactions")
                 .set("Accept", "application/json")
@@ -156,7 +156,7 @@ describe("Transactions", function() {
     before(function (done) {
         // Send to LISK to account 1 address
         setTimeout(function() {
-            randomLISK = node.randomizeLISK();
+            randomLISK = node.randomLISK();
             expectedFee = node.expectedFee(randomLISK);
             node.api.put("/transactions")
                 .set("Accept", "application/json")
