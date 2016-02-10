@@ -8,8 +8,6 @@ var _ = require('lodash'),
     supertest = require('supertest'),
     baseUrl = 'http://' + config.address + ':' + config.port,
     api = supertest(baseUrl + '/api'),
-    secondBaseUrL = 'http://192.168.253.28:5040',
-    secondNodeAPI = supertest(secondBaseUrL + '/api'),
     peer = supertest(baseUrl + '/peer'),
     async = require('async'),
     request = require('request');
@@ -307,7 +305,6 @@ function randomPassword(){
 module.exports = {
   api: api,
   chai: chai,
-  secondNodeAPI: secondNodeAPI,
   peer : peer,
   lisk : require('./lisk-js'),
   supertest: supertest,
