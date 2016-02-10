@@ -1,6 +1,6 @@
 function callMethod(shared, call, args, cb) {
 	if (typeof shared[call] !== "function") {
-		return cb("This call not found in this module: " + call);
+		return cb("Function not found in module: " + call);
 	}
 
 	var callArgs = [args, cb];

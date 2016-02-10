@@ -9,7 +9,6 @@ var ed = require('ed25519'),
 	Router = require('../helpers/router.js'),
 	async = require('async'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
@@ -34,13 +33,13 @@ function Transfer() {
 	}
 
 	this.verify = function (trs, sender, cb) {
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (!isAddress.test(trs.recipientId.toLowerCase())) {
-			return cb(errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return cb("Invalid recipient");
 		}
 
 		if (trs.amount <= 0) {
-			return cb(errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return cb("Invalid transaction amount");
 		}
 
 		cb(null, trs);
@@ -143,7 +142,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -155,7 +154,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/transactions', router);
@@ -222,12 +221,12 @@ private.list = function (filter, cb) {
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid field to sort");
+			return cb("Invalid sort field");
 		}
 	}
 
 	if (filter.limit > 100) {
-		return cb('Maximum of limit is 100');
+		return cb("Invalid limit. Maximum is 100");
 	}
 
 	library.dbLite.query("select count(t.id) " +
@@ -364,7 +363,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 				}
 
 				if (!requester) {
-					return cb("Requester didn't found");
+					return cb("Invalid requester");
 				}
 
 				library.logic.transaction.process(transaction, sender, requester, function (err, transaction) {
@@ -374,7 +373,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 					// Check in confirmed transactions
 					if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-						return cb("This transaction already exists");
+						return cb("Transaction already exists");
 					}
 
 					library.logic.transaction.verify(transaction, sender, done);
@@ -388,7 +387,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 				// Check in confirmed transactions
 				if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-					return cb("This transaction already exists");
+					return cb("Transaction already exists");
 				}
 
 				library.logic.transaction.verify(transaction, sender, done);
@@ -441,7 +440,7 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	if (!sender && transaction.blockId != genesisblock.block.id) {
-		return cb('Failed account: ' + transaction.id);
+		return cb("Invalid account");
 	} else {
 		if (transaction.requesterPublicKey) {
 			modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
@@ -450,7 +449,7 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 				}
 
 				if (!requester) {
-					return cb('Failed requester: ' + transaction.id);
+					return cb("Invalid requester");
 				}
 
 				library.logic.transaction.applyUnconfirmed(transaction, sender, requester, cb);
@@ -554,7 +553,7 @@ shared.getTransactions = function (req, cb) {
 
 		private.list(query, function (err, data) {
 			if (err) {
-				return cb(errorCode("TRANSACTIONS.TRANSACTIONS_NOT_FOUND"));
+				return cb("Failed to get transactions");
 			}
 
 			cb(null, {transactions: data.transactions, count: data.count});
@@ -580,7 +579,7 @@ shared.getTransaction = function (req, cb) {
 
 		private.getById(query.id, function (err, transaction) {
 			if (!transaction || err) {
-				return cb(errorCode("TRANSACTIONS.TRANSACTION_NOT_FOUND"));
+				return cb("Transaction not found");
 			}
 			cb(null, {transaction: transaction});
 		});
@@ -606,7 +605,7 @@ shared.getUnconfirmedTransaction = function (req, cb) {
 		var unconfirmedTransaction = self.getUnconfirmedTransaction(query.id);
 
 		if (!unconfirmedTransaction) {
-			return cb(errorCode("TRANSACTIONS.TRANSACTION_NOT_FOUND"));
+			return cb("Transaction not found");
 		}
 
 		cb(null, {transaction: unconfirmedTransaction});
@@ -694,13 +693,13 @@ shared.addTransactions = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
 		var query = {};
 
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (isAddress.test(body.recipientId)) {
 			query.address = body.recipientId;
 		} else {
@@ -713,7 +712,7 @@ shared.addTransactions = function (req, cb) {
 					return cb(err.toString());
 				}
 				if (!recipient && query.username) {
-					return cb(errorCode("TRANSACTIONS.RECIPIENT_NOT_FOUND"));
+					return cb("Recipient not found");
 				}
 				var recipientId = recipient ? recipient.address : body.recipientId;
 				var recipientUsername = recipient ? recipient.username : null;
@@ -729,11 +728,11 @@ shared.addTransactions = function (req, cb) {
 						}
 
 						if (!account.multisignatures || !account.multisignatures) {
-							return cb("This account don't have multisignature");
+							return cb("Account does not have multisignatures enabled");
 						}
 
 						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-							return cb("This account don't added to multisignature");
+							return cb("Account does not belong to multisignature group");
 						}
 
 						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -742,15 +741,15 @@ shared.addTransactions = function (req, cb) {
 							}
 
 							if (!requester || !requester.publicKey) {
-								return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+								return cb("Invalid requester");
 							}
 
 							if (requester.secondSignature && !body.secondSecret) {
-								return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+								return cb("Invalid second passphrase");
 							}
 
 							if (requester.publicKey == account.publicKey) {
-								return cb("Incorrect requester");
+								return cb("Invalid requester");
 							}
 
 							var secondKeypair = null;
@@ -783,11 +782,11 @@ shared.addTransactions = function (req, cb) {
 							return cb(err.toString());
 						}
 						if (!account || !account.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid account");
 						}
 
 						if (account.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						var secondKeypair = null;

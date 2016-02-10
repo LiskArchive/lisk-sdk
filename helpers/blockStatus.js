@@ -9,7 +9,8 @@ function BlockStatus() {
 		100000000  // Milestone 4
 	];
 
-	var distance = 3000000; // Distance between each milestone
+	var distance = 3000000, // Distance between each milestone
+	    rewardOffset = 60480; // Start rewards at block (n)
 
 	var parseHeight = function (height) {
 		height = parseInt(height);
@@ -22,18 +23,24 @@ function BlockStatus() {
 	};
 
 	this.calcMilestone = function (height) {
-		var location = (parseHeight(height) / distance).toFixed(0),
+		var location = parseInt(parseHeight(height - rewardOffset) / distance),
 		    lastMile = milestones[milestones.length - 1];
 
-		if (location > milestones.length) {
-			return lastMile;
+		if (location > (milestones.length - 1)) {
+			return milestones.lastIndexOf(lastMile);
 		} else {
 			return location;
 		}
 	};
 
 	this.calcReward = function (height) {
-		return milestones[this.calcMilestone(height)];
+		var height = parseHeight(height);
+
+		if (height < rewardOffset) {
+			return 0;
+		} else {
+			return milestones[this.calcMilestone(height)];
+		}
 	};
 
 	this.calcSupply = function (height) {
@@ -48,24 +55,35 @@ function BlockStatus() {
 			if (milestone >= i) {
 				multiplier = (milestones[i] / Math.pow(10,8));
 
-				if (height < distance) {
-					amount = height % distance;
+				if (height < rewardOffset) {
+					break; // Rewards not started yet
+				} else if (height < distance) {
+					amount = height % distance; // Measure distance thus far
 				} else {
-					amount = distance;
-					height -= distance;
+					amount = distance; // Assign completed milestone
+					height -= distance; // Deduct from total height
+
+					// After last milestone
+					if (height > 0 && i == milestones.length - 1) {
+						var postHeight = rewardOffset - 1;
+
+						if (height >= postHeight) {
+							amount += (height - postHeight);
+						} else {
+							amount += (postHeight - height);
+						}
+					}
 				}
 
 				rewards.push([amount, multiplier]);
 			} else {
-				break;
+				break; // Milestone out of bounds
 			}
 		}
 
 		for (i = 0; i < rewards.length; i++) {
 			var reward = rewards[i];
-
 			supply += reward[0] * reward[1];
-			if (i == 0) { supply -= reward[1]; }
 		}
 
 		return supply * Math.pow(10,8);

@@ -10,7 +10,6 @@ var crypto = require('crypto'),
 	constants = require('../helpers/constants.js'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	MilestoneBlocks = require("../helpers/milestoneBlocks.js"),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 require('array.prototype.find'); // Old node fix
@@ -40,43 +39,43 @@ function Delegate() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId) {
-			return setImmediate(cb, errorCode("DELEGATES.INVALID_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (trs.amount != 0) {
-			return setImmediate(cb, errorCode("DELEGATES.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		if (!sender.username) {
 			if (!trs.asset.delegate.username) {
-				return setImmediate(cb, errorCode("DELEGATES.EMPTY_TRANSACTION_ASSET", trs));
+				return setImmediate(cb, "Invalid transaction asset");
 			}
 
 			var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
 			if (!allowSymbols.test(trs.asset.delegate.username.toLowerCase())) {
-				return setImmediate(cb, errorCode("DELEGATES.USERNAME_CHARS", trs));
+				return setImmediate(cb, "Username contains invalid characters");
 			}
 
-			var isAddress = /^[0-9]+c$/g;
-			if (isAddress.test(trs.asset.delegate.username.toLowerCase())) {
-				return setImmediate(cb, errorCode("DELEGATES.USERNAME_LIKE_ADDRESS", trs));
+			var isAddress = /^[0-9]+[L|l]$/g;
+			if (isAddress.test(trs.asset.delegate.username)) {
+				return setImmediate(cb, "Username cannot be a potential address");
 			}
 
 			if (trs.asset.delegate.username.length < 1) {
-				return setImmediate(cb, errorCode("DELEGATES.USERNAME_IS_TOO_SHORT", trs));
+				return setImmediate(cb, "Username is too short. Minimum is 1 character");
 			}
 
 			if (trs.asset.delegate.username.length > 20) {
-				return setImmediate(cb, errorCode("DELEGATES.USERNAME_IS_TOO_LONG", trs));
+				return setImmediate(cb, "Username is too long. Maximum is 20 characters");
 			}
 		} else {
 			if (trs.asset.delegate.username && trs.asset.delegate.username != sender.username) {
-				return cb(errorCode("USERNAMES.ALREADY_HAVE_USERNAME"));
+				return cb("Account already has a username");
 			}
 		}
 
 		if (sender.isDelegate) {
-			return cb(errorCode("DELEGATES.EXISTS_DELEGATE"));
+			return cb("Account is already a delegate");
 		}
 
 		if (sender.username) {
@@ -91,7 +90,7 @@ function Delegate() {
 			}
 
 			if (account) {
-				return cb(errorCode("DELEGATES.EXISTS_USERNAME", trs));
+				return cb("Username already exists");
 			}
 
 			cb(null, trs);
@@ -149,11 +148,11 @@ function Delegate() {
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		if (sender.u_username && trs.asset.delegate.username && trs.asset.delegate.username != sender.u_username) {
-			return cb(errorCode("USERNAMES.ALREADY_HAVE_USERNAME"));
+			return cb("Account already has a username");
 		}
 
 		if (sender.u_isDelegate) {
-			return cb(errorCode("DELEGATES.EXISTS_DELEGATE"));
+			return cb("Account is already a delegate");
 		}
 
 		function done() {
@@ -183,7 +182,7 @@ function Delegate() {
 			}
 
 			if (account) {
-				return cb(errorCode("DELEGATES.EXISTS_USERNAME"));
+				return cb("Username already exists");
 			}
 
 			done();
@@ -275,7 +274,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules && private.loaded) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -335,19 +334,19 @@ private.attachApi = function () {
 			var ip = req.connection.remoteAddress;
 
 			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
-				return res.json({success: false, error: errorCode("COMMON.ACCESS_DENIED")});
+				return res.json({success: false, error: "Access denied"});
 			}
 
 			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
-					return res.json({success: false, error: errorCode("COMMON.INVALID_SECRET_KEY")});
+					return res.json({success: false, error: "Invalid passphrase"});
 				}
 			}
 
 			if (private.keypairs[keypair.publicKey.toString('hex')]) {
-				return res.json({success: false, error: errorCode("COMMON.FORGING_ALREADY_ENABLED")});
+				return res.json({success: false, error: "Forging is already enabled"});
 			}
 
 			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
@@ -359,7 +358,7 @@ private.attachApi = function () {
 					return res.json({success: true, address: account.address});
 					library.logger.info("Forging enabled on account: " + account.address);
 				} else {
-					return res.json({success: false, error: errorCode("DELEGATES.DELEGATE_NOT_FOUND")});
+					return res.json({success: false, error: "Delegate not found"});
 				}
 			});
 		});
@@ -389,19 +388,19 @@ private.attachApi = function () {
 			var ip = req.connection.remoteAddress;
 
 			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
-				return res.json({success: false, error: errorCode("COMMON.ACCESS_DENIED")});
+				return res.json({success: false, error: "Access denied"});
 			}
 
 			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
-					return res.json({success: false, error: errorCode("COMMON.INVALID_SECRET_KEY")});
+					return res.json({success: false, error: "Invalid passphrase"});
 				}
 			}
 
 			if (!private.keypairs[keypair.publicKey.toString('hex')]) {
-				return res.json({success: false, error: errorCode("DELEGATES.FORGER_NOT_FOUND")});
+				return res.json({success: false, error: "Delegate not found"});
 			}
 
 			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
@@ -413,7 +412,7 @@ private.attachApi = function () {
 					return res.json({success: true, address: account.address});
 					library.logger.info("Forging disabled on account: " + account.address);
 				} else {
-					return res.json({success: false, error: errorCode("DELEGATES.FORGER_NOT_FOUND")});
+					return res.json({success: false, error: "Delegate not found"});
 				}
 			});
 		});
@@ -491,12 +490,12 @@ private.getBlockSlotData = function (slot, height, cb) {
 
 private.loop = function (cb) {
 	if (!Object.keys(private.keypairs).length) {
-		library.logger.debug('loop', 'exit: have no delegates');
+		library.logger.debug('Loop', 'exit: no delegates');
 		return setImmediate(cb);
 	}
 
 	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded()) {
-		// library.logger.log('loop', 'exit: syncing');
+		// library.logger.log('Loop', 'exit: syncing');
 		return setImmediate(cb);
 	}
 
@@ -504,29 +503,29 @@ private.loop = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (currentSlot == slots.getSlotNumber(lastBlock.timestamp)) {
-		// library.logger.log('loop', 'exit: lastBlock is in the same slot');
+		// library.logger.log('Loop', 'exit: lastBlock is in the same slot');
 		return setImmediate(cb);
 	}
 
 	private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.log('loop', 'skip slot');
+			library.logger.log('Loop', 'skiping slot');
 			return setImmediate(cb);
 		}
 
 		library.sequence.add(function (cb) {
 			if (slots.getSlotNumber(currentBlockData.time) == slots.getSlotNumber()) {
 				modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
-					library.logger.log('round ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' new block id: ' + modules.blocks.getLastBlock().id + ' height:' + modules.blocks.getLastBlock().height + ' slot:' + slots.getSlotNumber(currentBlockData.time))
+					library.logger.log('Round ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' new block id: ' + modules.blocks.getLastBlock().id + ' height: ' + modules.blocks.getLastBlock().height + ' slot: ' + slots.getSlotNumber(currentBlockData.time) + ' reward: ' + modules.blocks.getLastBlock().reward)
 					cb(err);
 				});
 			} else {
-				// library.logger.log('loop', 'exit: ' + _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
+				// library.logger.log('Loop', 'exit: ' + _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
 				setImmediate(cb);
 			}
 		}, function (err) {
 			if (err) {
-				library.logger.error("Problem in block generation", err);
+				library.logger.error("Failed to get block slot data", err);
 			}
 			setImmediate(cb);
 		});
@@ -557,7 +556,7 @@ private.loadMyDelegates = function (cb) {
 				private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 				library.logger.info("Forging enabled on account: " + account.address);
 			} else {
-				library.logger.info("Forger with this public key not found " + keypair.publicKey.toString('hex'));
+				library.logger.info("Delegate with this public key not found: " + keypair.publicKey.toString('hex'));
 			}
 			cb();
 		});
@@ -602,7 +601,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				var math = action[0];
 
 				if (math !== '+' && math !== '-') {
-					return cb("Wrong math");
+					return cb("Invalid math operator");
 				}
 
 				var publicKey = action.slice(1);
@@ -610,14 +609,14 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				try {
 					new Buffer(publicKey, "hex");
 				} catch (e) {
-					return cb("wrong public key");
+					return cb("Invalid public key");
 				}
 
 				if (math == "+" && (account.delegates !== null && account.delegates.indexOf(publicKey) != -1)) {
-					return cb("Can't verify votes, you already voted for this delegate");
+					return cb("Failed to add vote, account has already voted for this delegate");
 				}
 				if (math == "-" && (account.delegates === null || account.delegates.indexOf(publicKey) === -1)) {
-					return cb("Can't verify votes, you had no votes for this delegate");
+					return cb("Failed to remove vote, account has not voted for this delegate");
 				}
 
 				modules.accounts.getAccount({publicKey: publicKey, isDelegate: 1}, function (err, account) {
@@ -626,7 +625,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 					}
 
 					if (!account) {
-						return cb("Your delegate not found");
+						return cb("Delegate not found");
 					}
 
 					cb();
@@ -634,7 +633,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 			}, cb)
 		});
 	} else {
-		setImmediate(cb, "Provide array of votes");
+		setImmediate(cb, "Please provide an array of votes");
 	}
 }
 
@@ -652,7 +651,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 				var math = action[0];
 
 				if (math !== '+' && math !== '-') {
-					return cb("Wrong math");
+					return cb("Invalid math operator");
 				}
 
 				var publicKey = action.slice(1);
@@ -661,14 +660,14 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 				try {
 					new Buffer(publicKey, "hex");
 				} catch (e) {
-					return cb("wrong public key");
+					return cb("Invalid public key");
 				}
 
 				if (math == "+" && (account.u_delegates !== null && account.u_delegates.indexOf(publicKey) != -1)) {
-					return cb("Can't verify votes, you already voted for this delegate");
+					return cb("Failed to add vote, account has already voted for this delegate");
 				}
 				if (math == "-" && (account.u_delegates === null || account.u_delegates.indexOf(publicKey) === -1)) {
-					return cb("Can't verify votes, you had no votes for this delegate");
+					return cb("Failed to remove vote, account has not voted for this delegate");
 				}
 
 				modules.accounts.getAccount({publicKey: publicKey, isDelegate: 1}, function (err, account) {
@@ -677,7 +676,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 					}
 
 					if (!account) {
-						return cb("Your delegate not found");
+						return cb("Delegate not found");
 					}
 
 					cb();
@@ -685,12 +684,12 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 			}, cb)
 		});
 	} else {
-		return setImmediate(cb, "Provide array of votes");
+		return setImmediate(cb, "Please provide an array of votes");
 	}
 }
 
 Delegates.prototype.fork = function (block, cause) {
-	library.logger.info('fork', {
+	library.logger.info('Fork', {
 		delegate: block.generatorPublicKey,
 		block: {id: block.id, timestamp: block.timestamp, height: block.height, previousBlock: block.previousBlock},
 		cause: cause
@@ -720,7 +719,7 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 			return cb();
 		}
 
-		cb("Can't verify slot");
+		cb("Failed to verify slot");
 	});
 }
 
@@ -738,7 +737,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	private.loadMyDelegates(function nextLoop(err) {
 		if (err) {
-			library.logger.error("Can`t load delegates", err);
+			library.logger.error("Failed to load delegates", err);
 		}
 
 		private.loop(function () {
@@ -821,7 +820,7 @@ shared.getDelegate = function (req, cb) {
 			if (delegate) {
 				cb(null, {delegate: delegate});
 			} else {
-				cb(errorCode("DELEGATES.DELEGATE_NOT_FOUND"));
+				cb("Delegate not found");
 			}
 		});
 	});
@@ -848,7 +847,7 @@ shared.getVoters = function (req, cb) {
 		}, ['accountId'], function (err, rows) {
 			if (err) {
 				library.logger.error(err);
-				return cb("Internal sql error");
+				return cb("Database error");
 			}
 
 			var addresses = rows[0].accountId.split(',');
@@ -859,7 +858,7 @@ shared.getVoters = function (req, cb) {
 			}, ['address', 'balance'], function (err, rows) {
 				if (err) {
 					library.logger.error(err);
-					return cb("Internal sql error");
+					return cb("Database error");
 				}
 
 				return cb(null, {accounts: rows});
@@ -1025,7 +1024,7 @@ shared.addDelegate = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -1041,11 +1040,11 @@ shared.addDelegate = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -1054,11 +1053,11 @@ shared.addDelegate = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -1094,11 +1093,11 @@ shared.addDelegate = function (req, cb) {
 					}
 
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;

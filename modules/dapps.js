@@ -12,7 +12,6 @@ var async = require('async'),
 	DecompressZip = require('decompress-zip'),
 	crypto = require('crypto'),
 	constants = require('../helpers/constants.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	Sandbox = require("lisk-sandbox"),
 	ed = require('ed25519'),
 	rmdir = require('rimraf'),
@@ -59,19 +58,19 @@ function OutTransfer() {
 
 	this.verify = function (trs, sender, cb) {
 		if (!trs.recipientId) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (!trs.amount) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		if (!trs.asset.outTransfer.dappId) {
-			return setImmediate(cb, "DApp Id missed for out transfer transaction");
+			return setImmediate(cb, "Invalid dapp id for out transfer");
 		}
 
 		if (!trs.asset.outTransfer.transactionId) {
-			return setImmediate(cb, "DApp Id missed for input transfer transaction");
+			return setImmediate(cb, "Invalid dapp id for input transfer");
 		}
 
 		setImmediate(cb, null, trs);
@@ -83,17 +82,17 @@ function OutTransfer() {
 		}, ['count'], function (err, rows) {
 			if (err) {
 				library.logger.error(err.toString());
-				return cb("This dapp not found: " + trs.asset.outTransfer.dappId);
+				return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
 			}
 
 			var count = rows[0].count;
 
 			if (count == 0) {
-				return cb("This dapp not found: " + trs.asset.outTransfer.dappId);
+				return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
 			}
 
 			if (private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId]) {
-				return cb("This transaction already on processing: " + trs.asset.outTransfer.transactionId);
+				return cb("Transaction is already processing: " + trs.asset.outTransfer.transactionId);
 			}
 
 			library.dbLite.query("SELECT count(*) FROM outtransfer WHERE outTransactionId = $transactionId", {
@@ -101,12 +100,12 @@ function OutTransfer() {
 			}, {'count': Number}, function (err, rows) {
 				if (err) {
 					library.logger.error(err.toString());
-					return cb("This transaction already confirmed: " + trs.asset.outTransfer.transactionId);
+					return cb("Transaction is already confirmed: " + trs.asset.outTransfer.transactionId);
 				} else {
 					var count = rows[0].count;
 
 					if (count) {
-						return cb("This transaction already confirmed");
+						return cb("Transaction is already confirmed");
 					} else {
 						return cb(null, trs);
 					}
@@ -262,11 +261,11 @@ function InTransfer() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (!trs.amount) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		library.dbLite.query("SELECT count(*) FROM dapps WHERE transactionId=$id", {
@@ -274,12 +273,12 @@ function InTransfer() {
 		}, ['count'], function (err, rows) {
 			if (err) {
 				library.logger.error(err.toString());
-				return setImmediate(cb, "This dapp not found: " + trs.asset.inTransfer.dappId);
+				return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
 			}
 
 			var count = rows[0].count;
 			if (count == 0) {
-				return setImmediate(cb, "This dapp not found: " + trs.asset.inTransfer.dappId);
+				return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
 			}
 
 			setImmediate(cb);
@@ -424,15 +423,15 @@ function DApp() {
 		var isSiaIcon = false;
 
 		if (trs.recipientId) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_RECIPIENT", trs));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (trs.amount != 0) {
-			return setImmediate(cb, errorCode("TRANSACTIONS.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		if (trs.asset.dapp.category != 0 && !trs.asset.dapp.category) {
-			return setImmediate(cb, errorCode("DAPPS.UNKNOWN_CATEGORY"));
+			return setImmediate(cb, "Invalid dapp category");
 		}
 
 		var foundCategory = false;
@@ -444,14 +443,14 @@ function DApp() {
 		}
 
 		if (!foundCategory) {
-			return setImmediate(cb, errorCode("DAPPS.UNKNOWN_CATEGORY"));
+			return setImmediate(cb, "Unknown dapp category");
 		}
 
 		if (trs.asset.dapp.siaAscii) {
 			isSia = true;
 
 			if (trs.asset.dapp.siaAscii.trim() != trs.asset.dapp.siaAscii) {
-				return setImmediate(cb, "Didn't trimmed sia ascii");
+				return setImmediate(cb, "Untrimmed sia ascii");
 			}
 
 			if (trs.asset.dapp.siaAscii.trim().length == 0) {
@@ -459,15 +458,15 @@ function DApp() {
 			}
 
 			if (trs.asset.dapp.siaAscii.length > 10000) {
-				return setImmediate(cb, "Sia ascii max length is 10000");
+				return setImmediate(cb, "Invalid sia ascii length. Maximum is 10000");
 			}
 
 			if (typeof trs.asset.dapp.siaAscii !== 'string') {
-				return setImmediate(cb, errorCode("DAPPS.MISSED_SIA_ASCII"));
+				return setImmediate(cb, "Invalid sia ascii");
 			}
 
 			if (!isASCII(trs.asset.dapp.siaAscii)) {
-				return setImmediate(cb, errorCode("DAPP.INCORRECT_ASCII_SIA", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia ascii");
 			}
 		}
 
@@ -479,29 +478,29 @@ function DApp() {
 			}
 
 			if (trs.asset.dapp.siaIcon != trs.asset.dapp.siaIcon.trim()) {
-				return setImmediate(cb, "Not trimmed sia icon");
+				return setImmediate(cb, "Untrimmed sia icon");
 			}
 
 			if (trs.asset.dapp.siaIcon.length > 10000) {
-				return setImmediate(cb, "Incorrect sia icon length");
+				return setImmediate(cb, "Invalid sia icon length. Maximum is 10000");
 			}
 
 			if (typeof trs.asset.dapp.siaIcon !== 'string') {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_SIA_ICON", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia icon");
 			}
 
 			if (!isASCII(trs.asset.dapp.siaIcon)) {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_SIA_ICON", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia icon ascii");
 			}
 		}
 
 		if (trs.asset.dapp.icon) {
 			if (isSiaIcon) {
-				return setImmediate(cb, errorCode("DAPPS.ALREADY_SIA_ICON"));
+				return setImmediate(cb, "Dapp already has a sia icon");
 			}
 
 			if (!valid_url.isUri(trs.asset.dapp.icon)) {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_ICON_LINK", trs.asset.dapp));
+				return setImmediate(cb, "Invalid sia icon link");
 			}
 
 			var length = trs.asset.dapp.icon.length;
@@ -511,42 +510,42 @@ function DApp() {
 				trs.asset.dapp.icon.indexOf('.jpg') != length - 4 &&
 				trs.asset.dapp.icon.indexOf('.jpeg') != length - 5
 			) {
-				return setImmediate(cb, errorCode("DAPPS.INCORRECT_ICON_LINK", trs.asset.dapp))
+				return setImmediate(cb, "Invalid sia icon file type")
 			}
 		}
 
 		if (trs.asset.dapp.type > 1 || trs.asset.dapp.type < 0) {
-			return setImmediate(cb, errorCode("DAPPS.UNKNOWN_TYPE"));
+			return setImmediate(cb, "Invalid dapp type");
 		}
 
 		if (trs.asset.dapp.git) {
 			if (isSia) {
-				return setImmediate(cb, errorCode("DAPPS.GIT_AND_SIA"));
+				return setImmediate(cb, "Dapp can only be hosted in one location (github or sia)");
 			}
 
 			if (!(/^git\@github\.com\:.+\.git$/.test(trs.asset.dapp.git))) {
-				return setImmediate(cb, errorCode("DAPPS.INVALID_GIT"));
+				return setImmediate(cb, "Invalid github repository link");
 			}
 		}
 
 		if (!isSia && !trs.asset.dapp.git) {
-			return setImmediate(cb, errorCode("DAPPS.STORAGE_MISSED"));
+			return setImmediate(cb, "Invalid dapp storage option");
 		}
 
 		if (!trs.asset.dapp.name || trs.asset.dapp.name.trim().length == 0 || trs.asset.dapp.name.trim() != trs.asset.dapp.name) {
-			return setImmediate(cb, errorCode("DAPPS.EMPTY_NAME"));
+			return setImmediate(cb, "Missing dapp name");
 		}
 
 		if (trs.asset.dapp.name.length > 32) {
-			return setImmediate(cb, errorCode("DAPPS.TOO_LONG_NAME"));
+			return setImmediate(cb, "Dapp name is too long. Maximum is 32 characters");
 		}
 
 		if (trs.asset.dapp.description && trs.asset.dapp.description.length > 160) {
-			return setImmediate(cb, errorCode("DAPPS.TOO_LONG_DESCRIPTION"));
+			return setImmediate(cb, "Dapp description is too long. Maximum is 160 characters");
 		}
 
 		if (trs.asset.dapp.tags && trs.asset.dapp.tags.length > 160) {
-			return setImmediate(cb, errorCode("DAPPS.TOO_LONG_TAGS"));
+			return setImmediate(cb, "Dapp has too many tags. Maximum is 160");
 		}
 
 		if (trs.asset.dapp.tags) {
@@ -558,7 +557,7 @@ function DApp() {
 
 			for (var i = 0; i < tags.length - 1; i++) {
 				if (tags[i + 1] == tags[i]) {
-					return setImmediate(cb, "Dublicate tags: " + tags[i]);
+					return setImmediate(cb, "Encountered duplicate tags: " + tags[i]);
 				}
 			}
 		}
@@ -625,15 +624,15 @@ function DApp() {
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		if (private.unconfirmedNames[trs.asset.dapp.name]) {
-			return setImmediate(cb, "dapp name is exists");
+			return setImmediate(cb, "Dapp name already exists");
 		}
 
 		if (trs.asset.dapp.git && private.unconfirmedLinks[trs.asset.dapp.git]) {
-			return setImmediate(cb, "dapp git link is exists");
+			return setImmediate(cb, "Git repository link already exists");
 		}
 
 		if (trs.asset.dapp.siAscii && private.unconfirmedAscii[trs.asset.dapp.siaAscii]) {
-			return setImmediate(cb, "dapp ascii is exists");
+			return setImmediate(cb, "Dapp ascii already exists");
 		}
 
 		private.unconfirmedNames[trs.asset.dapp.name] = true;
@@ -647,20 +646,20 @@ function DApp() {
 			transactionId: trs.id
 		}, ['name', 'siaAscii', 'git'], function (err, rows) {
 			if (err) {
-				return setImmediate(cb, "Sql error");
+				return setImmediate(cb, "Database error");
 			}
 
 			if (rows.length > 0) {
 				var dapp = rows[0];
 
 				if (dapp.name == trs.asset.dapp.name) {
-					return setImmediate(cb, "DApp with this name already exists: " + dapp.name);
+					return setImmediate(cb, "Dapp name already exists: " + dapp.name);
 				} else if (dapp.siaAscii == trs.asset.dapp.siaAscii) {
-					return setImmediate(cb, "DApp with this sia code already exists")
+					return setImmediate(cb, "Dapp sia code already exists")
 				} else if (dapp.git == trs.asset.dapp.git) {
-					return setImmediate(cb, "DApp with this git already exists: " + dapp.git);
+					return setImmediate(cb, "Git repository link already exists: " + dapp.git);
 				} else {
-					return setImmediate(cb, "Some error");
+					return setImmediate(cb, "Unknown error");
 				}
 			} else {
 				return setImmediate(cb, null, trs);
@@ -840,7 +839,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.put('/', function (req, res, next) {
@@ -913,22 +912,22 @@ private.attachApi = function () {
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
-					return res.json({success: false, error: errorCode("COMMON.INVALID_SECRET_KEY")});
+					return res.json({success: false, error: "Invalid passphrase"});
 				}
 			}
 
 			library.balancesSequence.add(function (cb) {
 				modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 					if (err) {
-						return cb("Sql error");
+						return cb("Database error");
 					}
 
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;
@@ -1023,7 +1022,7 @@ private.attachApi = function () {
 
 			private.list(query, function (err, dapps) {
 				if (err) {
-					return res.json({success: false, error: errorCode("DAPPS.DAPPS_NOT_FOUND")});
+					return res.json({success: false, error: "Dapp not found"});
 				}
 
 				res.json({success: true, dapps: dapps});
@@ -1549,7 +1548,7 @@ private.attachApi = function () {
 private.get = function (id, cb) {
 	library.dbLite.query("SELECT name, description, tags, siaAscii, siaIcon, git, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ['name', 'description', 'tags', 'siaAscii', 'siaIcon', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err || rows.length == 0) {
-			return setImmediate(cb, err ? "Sql error" : "DApp not found");
+			return setImmediate(cb, err ? "Database error" : "DApp not found");
 		}
 
 		return setImmediate(cb, null, rows[0]);
@@ -1563,7 +1562,7 @@ private.getByIds = function (ids, cb) {
 
 	library.dbLite.query("SELECT name, description, tags, siaAscii, siaIcon, git, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(',') + ")", {}, ['name', 'description', 'tags', 'siaAscii', 'siaIcon', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err) {
-			return setImmediate(cb, err ? "Sql error" : "DApp not found");
+			return setImmediate(cb, err ? "Database error" : "DApp not found");
 		}
 
 		return setImmediate(cb, null, rows);
@@ -1590,7 +1589,7 @@ private.list = function (filter, cb) {
 			fields.push('category = $category');
 			params.category = category;
 		} else {
-			return setImmediate(cb, "Incorrect category");
+			return setImmediate(cb, "Invalid dapp category");
 		}
 	}
 	if (filter.git) {
@@ -1626,7 +1625,7 @@ private.list = function (filter, cb) {
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid field to sort");
+			return cb("Invalid sort field");
 		}
 	}
 
@@ -1701,7 +1700,7 @@ private.installDependencies = function (dApp, cb) {
 	try {
 		config = JSON.parse(fs.readFileSync(packageJson));
 	} catch (e) {
-		return setImmediate(cb, "Incorrect package.json file for " + dApp.transactionId + " DApp");
+		return setImmediate(cb, "Failed to open package.json file for: " + dApp.transactionId);
 	}
 
 	npm.load(config, function (err) {
@@ -1737,12 +1736,12 @@ private.removeDApp = function (dApp, cb) {
 
 	function remove(err) {
 		if (err) {
-			library.logger.error("Uninstall dapp: " + err);
+			library.logger.error("Failed to uninstall dapp: " + err);
 		}
 
 		rmdir(dappPath, function (err) {
 			if (err) {
-				return setImmediate(cb, "Can't removed dapp folder: " + err);
+				return setImmediate(cb, "Failed to remove dapp folder: " + err);
 			} else {
 				return cb();
 			}
@@ -1751,7 +1750,7 @@ private.removeDApp = function (dApp, cb) {
 
 	fs.exists(dappPath, function (exists) {
 		if (!exists) {
-			return setImmediate(cb, "This dapp not found");
+			return setImmediate(cb, "Dapp not found");
 		} else {
 			try {
 				var blockchain = require(path.join(dappPath, 'blockchain.json'));
@@ -1761,7 +1760,7 @@ private.removeDApp = function (dApp, cb) {
 
 			modules.sql.dropTables(dApp.transactionId, blockchain, function (err) {
 				if (err) {
-					library.logger.error("Can't remove tables of dapp: " + err);
+					library.logger.error("Failed to drop dapp tables: " + err);
 				}
 				remove(err);
 			});
@@ -1774,11 +1773,11 @@ private.downloadDApp = function (dApp, cb) {
 
 	fs.exists(dappPath, function (exists) {
 		if (exists) {
-			return setImmediate(cb, "This dapp already installed");
+			return setImmediate(cb, "Dapp is already installed");
 		} else {
 			fs.mkdir(dappPath, function (err) {
 				if (err) {
-					return setImmediate(cb, "Can't create folder for dapp: " + dApp.transactionId);
+					return setImmediate(cb, "Failed to create dapp folder for: " + dApp.transactionId);
 				}
 
 				if (dApp.git) {
@@ -1792,7 +1791,7 @@ private.downloadDApp = function (dApp, cb) {
 									library.logger.error(err.toString());
 								}
 
-								return setImmediate(cb, "Git error of cloning repository " + dApp.git + " at " + dApp.transactionId);
+								return setImmediate(cb, "Error cloning git repository " + dApp.git + " at " + dApp.transactionId);
 							});
 						} else {
 							return setImmediate(cb, null, dappPath);
@@ -1805,7 +1804,7 @@ private.downloadDApp = function (dApp, cb) {
 								library.logger.error(err.toString());
 							}
 
-							return setImmediate(cb, "Sia disabled");
+							return setImmediate(cb, "Sia is disabled");
 						});
 					}
 
@@ -1814,13 +1813,13 @@ private.downloadDApp = function (dApp, cb) {
 					// Fetch from sia
 					modules.sia.uploadAscii(dApp.siaAscii, function (err, file) {
 						if (err) {
-							library.logger.error("Uploading ascii: " + err.toString());
+							library.logger.error("Failed to upload ascii: " + err.toString());
 							rmdir(dappPath, function (err) {
 								if (err) {
 									library.logger.error(err.toString());
 								}
 
-								return setImmediate(cb, "Failed to download sia dapp");
+								return setImmediate(cb, "Failed to download dapp from sia");
 							});
 							return;
 						}
@@ -1834,7 +1833,7 @@ private.downloadDApp = function (dApp, cb) {
 										library.logger.error(err);
 									}
 
-									return setImmediate(cb, "Failed to fetch ascii code from sia: \n" + dApp.siaAscii + " \n " + dappPath);
+									return setImmediate(cb, "Failed to get ascii code: \n" + dApp.siaAscii + " \n " + dappPath);
 								});
 							} else {
 								var unzipper = new DecompressZip(dappZip);
@@ -1852,7 +1851,7 @@ private.downloadDApp = function (dApp, cb) {
 												library.logger.error(err);
 											}
 
-											return cb("Can't unzip file of app: " + dappZip);
+											return cb("Failed to unzip file: " + dappZip);
 										});
 									});
 								});
@@ -1860,7 +1859,7 @@ private.downloadDApp = function (dApp, cb) {
 								unzipper.on('extract', function (log) {
 									fs.unlink(dappZip, function (err) {
 										if (err) {
-											return cb("Can't remove zip file of app: " + dappZip);
+											return cb("Failed to remove zip file: " + dappZip);
 										} else {
 											return cb(null, dappPath);
 										}
@@ -1986,7 +1985,7 @@ private.dappRoutes = function (dapp, cb) {
 			try {
 				var routes = require(dappRoutesPath);
 			} catch (e) {
-				return setImmediate(cb, "Can't connect to api of DApp " + dapp.transactionId + " , routes file not found");
+				return setImmediate(cb, "Failed to open routes.json file for: " + dapp.transactionId);
 			}
 
 			private.routes[dapp.transactionId] = new Router();
@@ -2047,7 +2046,7 @@ private.launch = function (body, cb) {
 		}
 
 		if (private.launched[body.id]) {
-			return cb("DApp already launched");
+			return cb("Dapp already launched");
 		}
 
 		body.params = body.params || [''];
@@ -2062,26 +2061,26 @@ private.launch = function (body, cb) {
 			if (err) {
 				private.launched[body.id] = false;
 				library.logger.error(err);
-				return cb("Can't find dapp");
+				return cb("Failed to find dapp");
 			} else {
 				private.getInstalledIds(function (err, files) {
 					if (err) {
 						private.launched[body.id] = false;
 						library.logger.error(err);
-						return cb("Can't get installed dapps");
+						return cb("Failed to get installed dapps");
 					} else {
 						if (files.indexOf(body.id) >= 0) {
 							private.symlink(dapp, function (err) {
 								if (err) {
 									private.launched[body.id] = false;
 									library.logger.error(err);
-									return cb("Can't create public link for: " + body.id);
+									return cb("Failed to create public link for: " + body.id);
 								} else {
 									private.launchApp(dapp, body.params || ['', "modules.full.json"], function (err) {
 										if (err) {
 											private.launched[body.id] = false;
 											library.logger.error(err);
-											return cb("Can't launch dapp, see logs: " + body.id);
+											return cb("Failed to launch dapp, check logs: " + body.id);
 										} else {
 											private.dappRoutes(dapp, function (err) {
 												if (err) {
@@ -2090,10 +2089,10 @@ private.launch = function (body, cb) {
 													private.stop(dapp, function (err) {
 														if (err) {
 															library.logger.error(err);
-															return cb("Can't stop dapp, check logs: " + body.id)
+															return cb("Failed to stop dapp, check logs: " + body.id)
 														}
 
-														return cb("Can't start dapp");
+														return cb("Failed to launch dapp");
 													});
 												} else {
 													return cb(null);
@@ -2105,7 +2104,7 @@ private.launch = function (body, cb) {
 							});
 						} else {
 							private.launched[body.id] = false;
-							return cb("DApp didn't installed");
+							return cb("Dapp not installed");
 						}
 					}
 				});
@@ -2132,7 +2131,7 @@ private.launchApp = function (dApp, params, cb) {
 	try {
 		var dappConfig = require(path.join(dappPath, "config.json"));
 	} catch (e) {
-		return setImmediate(cb, "This DApp has no config file, can't launch it");
+		return setImmediate(cb, "Failed to open config.json file for: " + dapp.transactionId);
 	}
 
 	// dappConfig.db
@@ -2149,7 +2148,7 @@ private.launchApp = function (dApp, params, cb) {
 		try {
 			var blockchain = require(path.join(dappPath, "blockchain.json"));
 		} catch (e) {
-			return setImmediate(cb, "This DApp has no blockchain file, can't launch it");
+			return setImmediate(cb, "Failed to open blockchain.db file for: " + dapp.transactionId);
 		}
 
 		modules.sql.createTables(dApp.transactionId, blockchain, function (err) {
@@ -2161,19 +2160,19 @@ private.launchApp = function (dApp, params, cb) {
 			private.sandboxes[dApp.transactionId] = sandbox;
 
 			sandbox.on("exit", function () {
-				library.logger.info("DApp " + dApp.transactionId + " closed ");
+				library.logger.info("Dapp " + dApp.transactionId + " closed ");
 				private.stop(dApp, function (err) {
 					if (err) {
-						library.logger.error("Error on stop dapp: " + err);
+						library.logger.error("Encountered error while stopping dapp: " + err);
 					}
 				});
 			});
 
 			sandbox.on("error", function (err) {
-				library.logger.info("Error in DApp " + dApp.transactionId + " " + err.toString());
+				library.logger.info("Encountered error in dapp " + dApp.transactionId + " " + err.toString());
 				private.stop(dApp, function (err) {
 					if (err) {
-						library.logger.error("Error on stop dapp: " + err);
+						library.logger.error("Encountered error while stopping dapp: " + err);
 					}
 				});
 			});
@@ -2261,7 +2260,7 @@ private.addTransactions = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -2279,11 +2278,11 @@ private.addTransactions = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -2292,11 +2291,11 @@ private.addTransactions = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -2333,11 +2332,11 @@ private.addTransactions = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;
@@ -2384,10 +2383,10 @@ DApps.prototype.message = function (dappid, body, cb) {
 
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!private.sandboxes[dappid]) {
-		return cb(errorCode("DAPPS.DAPPS_NOT_FOUND"));
+		return cb("Dapp not found");
 	}
 	if (!private.dappready[dappid]) {
-		return cb(errorCode("DAPPS.DAPPS_NOT_READY"));
+		return cb("Dapp not ready");
 	}
 	private.sandboxes[dappid].sendMessage({
 		method: method,
@@ -2409,7 +2408,7 @@ DApps.prototype.onBlockchainReady = function () {
 				id: dapp.dappid,
 				master: library.config.dapp.masterpassword
 			}, function (err) {
-				console.log("launched " + dapp.dappid, err || "successfully")
+				console.log("Launched " + dapp.dappid, err || "successfully")
 				cb();
 			});
 		});
@@ -2453,7 +2452,7 @@ shared.getGenesis = function (req, cb) {
 		authorId: String
 	}, function (err, rows) {
 		if (err || rows.length == 0) {
-			return cb("Sql error");
+			return cb("Database error");
 		}
 
 		cb(null, {
@@ -2484,7 +2483,7 @@ shared.getCommonBlock = function (req, cb) {
 		amount: String
 	}, function (err, rows) {
 		if (err) {
-			return cb("Sql error");
+			return cb("Database error");
 		}
 		cb(null, rows);
 	});
@@ -2535,7 +2534,7 @@ shared.sendWithdrawal = function (req, cb) {
 		var keypair = ed.MakeKeypair(hash);
 		var query = {};
 
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (!isAddress.test(body.recipientId)) {
 			return cb("Incorrect address");
 		}
@@ -2552,11 +2551,11 @@ shared.sendWithdrawal = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -2565,11 +2564,11 @@ shared.sendWithdrawal = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -2607,11 +2606,11 @@ shared.sendWithdrawal = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondKeypair = null;
@@ -2660,7 +2659,7 @@ shared.getWithdrawalLastTransaction = function (req, cb) {
 		id: String
 	}, function (err, rows) {
 		if (err) {
-			return cb("Sql error");
+			return cb("Database error");
 		}
 		cb(null, rows[0]);
 	});
@@ -2681,7 +2680,7 @@ shared.getBalanceTransactions = function (req, cb) {
 		amount: Number
 	}, function (err, rows) {
 		if (err) {
-			return cb("Sql error");
+			return cb("Database error");
 		}
 		cb(null, rows);
 	});

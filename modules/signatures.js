@@ -7,7 +7,6 @@ var ed = require('ed25519'),
 	async = require('async'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	MilestoneBlocks = require("../helpers/milestoneBlocks.js"),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
@@ -30,19 +29,19 @@ function Signature() {
 
 	this.verify = function (trs, sender, cb) {
 		if (!trs.asset.signature) {
-			return setImmediate(cb, errorCode("SIGNATURES.INVALID_ASSET", trs))
+			return setImmediate(cb, "Invalid transaction asset")
 		}
 
 		if (trs.amount != 0) {
-			return setImmediate(cb, errorCode("SIGNATURES.INVALID_AMOUNT", trs));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		try {
 			if (!trs.asset.signature.publicKey || new Buffer(trs.asset.signature.publicKey, 'hex').length != 32) {
-				return setImmediate(cb, errorCode("SIGNATURES.INVALID_LENGTH", trs));
+				return setImmediate(cb, "Invalid signature length");
 			}
 		} catch (e) {
-			return setImmediate(cb, errorCode("SIGNATURES.INVALID_HEX", trs));
+			return setImmediate(cb, "Invalid signature hex");
 		}
 
 		setImmediate(cb, null, trs);
@@ -88,7 +87,7 @@ function Signature() {
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		if (sender.u_secondSignature || sender.secondSignature) {
-			return setImmediate(cb, "Failed secondSignature: " + trs.id);
+			return setImmediate(cb, "Failed second signature: " + trs.id);
 		}
 
 		modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb);
@@ -173,7 +172,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 
@@ -183,7 +182,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/signatures', router);
@@ -246,7 +245,7 @@ shared.addSignature = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -262,15 +261,15 @@ shared.addSignature = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					if (account.secondSignature || account.u_secondSignature) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -279,15 +278,15 @@ shared.addSignature = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
-							return cb("Incorrect requester");
+							return cb("Invalid requester");
 						}
 
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
@@ -315,11 +314,11 @@ shared.addSignature = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+						return cb("Invalid account");
 					}
 
 					if (account.secondSignature || account.u_secondSignature) {
-						return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+						return cb("Invalid second passphrase");
 					}
 
 					var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();

@@ -11,7 +11,6 @@ var ed = require('ed25519'),
 	RequestSanitizer = require('../helpers/request-sanitizer.js'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	Diff = require('../helpers/diff.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
@@ -37,27 +36,27 @@ function Multisignature() {
 
 	this.verify = function (trs, sender, cb) {
 		if (!trs.asset.multisignature) {
-			return setImmediate(cb, "Invalid asset: " + trs.id);
+			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
 		if (!util.isArray(trs.asset.multisignature.keysgroup)) {
-			return setImmediate(cb, "Wrong transaction asset for multisignature transaction: " + trs.id);
+			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
 		if (trs.asset.multisignature.keysgroup.length == 0) {
-			return setImmediate(cb, "Multisignature can't contain less then one member");
+			return setImmediate(cb, "Multisignature group must contain at least one member");
 		}
 
 		if (trs.asset.multisignature.min <= 1 || trs.asset.multisignature.min > 16) {
-			return setImmediate(cb, "Wrong transaction asset min for multisignature transaction: " + trs.id);
+			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
 		if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length + 1) {
-			return setImmediate(cb, "Wrong multisignature min");
+			return setImmediate(cb, "Invalid multisignature min");
 		}
 
 		if (trs.asset.multisignature.lifetime < 1 || trs.asset.multisignature.lifetime > 72) {
-			return setImmediate(cb, "Wrong transaction asset lifetime for multisignature transaction: " + trs.id);
+			return setImmediate(cb, "Invalid multisignature lifetime: " + trs.id);
 		}
 
 		// If it's ready
@@ -76,16 +75,16 @@ function Multisignature() {
 					}
 
 					if (!verify) {
-						return setImmediate(cb, "Failed multisignature verification: " + trs.id);
+						return setImmediate(cb, "Failed to verify multisignature: " + trs.id);
 					}
 				}
 			} catch (e) {
-				return setImmediate(cb, "Failed multisignature exception: " + trs.id);
+				return setImmediate(cb, "Failed to verify multisignature: " + trs.id);
 			}
 		}
 
 		if (trs.asset.multisignature.keysgroup.indexOf("+" + sender.publicKey) != -1) {
-			return setImmediate(cb, errorCode("MULTISIGNATURES.SELF_SIGN"));
+			return setImmediate(cb, "Unable to sign transaction using own public key");
 		}
 
 		async.eachSeries(trs.asset.multisignature.keysgroup, function (key, cb) {
@@ -93,17 +92,17 @@ function Multisignature() {
 			var publicKey = key.slice(1);
 
 			if (math != '+') {
-				return cb("Math wrong");
+				return cb("Invalid math operator");
 			}
 
 			// Check that there is a publicKey
 			try {
 				var b = new Buffer(publicKey, 'hex');
 				if (b.length != 32) {
-					return cb("Wrong public key" + publicKey);
+					return cb("Invalid public key");
 				}
 			} catch (e) {
-				return cb("Wrong public key: " + publicKey);
+				return cb("Invalid public key");
 			}
 
 			return setImmediate(cb);
@@ -118,7 +117,7 @@ function Multisignature() {
 			}, []);
 
 			if (keysgroup.length != trs.asset.multisignature.keysgroup.length) {
-				return setImmediate(cb, errorCode("MULTISIGNATURES.NOT_UNIQUE_SET"));
+				return setImmediate(cb, "Multisignature group contains non-unique public keys");
 			}
 
 			setImmediate(cb, null, trs);
@@ -190,11 +189,11 @@ function Multisignature() {
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		if (private.unconfirmedSignatures[sender.address]) {
-			return setImmediate(cb, "Signature on this account wait for confirmation");
+			return setImmediate(cb, "Signature on this account is pending confirmation");
 		}
 
 		if (sender.multisignatures.length) {
-			return setImmediate(cb, "This account already have multisignature");
+			return setImmediate(cb, "Account already has multisignatures enabled");
 		}
 
 		private.unconfirmedSignatures[sender.address] = true;
@@ -313,7 +312,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -324,7 +323,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/multisignatures', router);
@@ -367,7 +366,7 @@ shared.getAccounts = function (req, cb) {
 		}, ['accountId'], function (err, rows) {
 			if (err) {
 				library.logger.error(err.toString());
-				return cb("Internal sql error");
+				return cb("Database error");
 			}
 
 			var addresses = rows[0].accountId.split(',');
@@ -378,7 +377,7 @@ shared.getAccounts = function (req, cb) {
 			}, ['address', 'balance', 'multisignatures', 'multilifetime', 'multimin'], function (err, rows) {
 				if (err) {
 					library.logger.error(err);
-					return cb("Internal sql error");
+					return cb("Database error");
 				}
 
 				async.eachSeries(rows, function (account, cb) {
@@ -468,7 +467,7 @@ shared.pending = function (req, cb) {
 				}
 
 				if (!sender) {
-					return cb(errorCode("Sender not found"));
+					return cb("Invalid sender");
 				}
 
 				if ((sender.publicKey == query.publicKey && sender.u_multisignatures.length > 0) || sender.u_multisignatures.indexOf(query.publicKey) >= 0 || sender.multisignatures.indexOf(query.publicKey) >= 0) {
@@ -513,14 +512,14 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 	}
 
 	if (!transaction) {
-		return cb(errorCode("TRANSACTIONS.TRANSACTION_NOT_FOUND"));
+		return cb("Transaction not found");
 	}
 
 	if (transaction.type == TransactionTypes.MULTI) {
 		transaction.signatures = transaction.signatures || [];
 
 		if (transaction.asset.multisignature.signatures || transaction.signatures.indexOf(tx.signature) != -1) {
-			return cb(errorCode("MULTISIGNATURES.SIGN_NOT_ALLOWED", transaction));
+			return cb("Permission to sign transaction denied");
 		}
 
 		// Find public key
@@ -532,11 +531,11 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 				verify = library.logic.transaction.verifySignature(transaction, key, tx.signature);
 			}
 		} catch (e) {
-			return cb("Failed to signature verification, exception");
+			return cb("Failed to verify signature");
 		}
 
 		if (!verify) {
-			return cb("Failed to signature verification")
+			return cb("Failed to verify signature")
 		}
 
 		done(cb);
@@ -545,7 +544,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			address: transaction.senderId
 		}, function (err, account) {
 			if (err) {
-				return cb("Error, account for multisignature transaction not found");
+				return cb("Multisignature account not found");
 			}
 
 			var verify = false;
@@ -556,14 +555,14 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			}
 
 			if (!account) {
-				return cb(errorCode("Account not found"));
+				return cb("Account not found");
 			}
 
 
 			transaction.signatures = transaction.signatures || [];
 
 			if (transaction.signatures.indexOf(tx.signature) >= 0) {
-				return cb("This signature already exists");
+				return cb("Signature already exists");
 			}
 
 			try {
@@ -571,11 +570,11 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 					verify = library.logic.transaction.verifySignature(transaction, multisignatures[i], tx.signature);
 				}
 			} catch (e) {
-				return cb("Failed to verify signature: " + transaction.id);
+				return cb("Failed to verify signature");
 			}
 
 			if (!verify) {
-				return cb("Failed to verify signature: " + transaction.id);
+				return cb("Failed to verify signature");
 			}
 
 			library.network.io.sockets.emit('mutlsigiantures/singature/change', {});
@@ -616,7 +615,7 @@ shared.sign = function (req, cb) {
 		var transaction = modules.transactions.getUnconfirmedTransaction(body.transactionId);
 
 		if (!transaction) {
-			return cb(errorCode("TRANSACTIONS.TRANSACTION_NOT_FOUND"));
+			return cb("Transaction not found");
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
@@ -624,7 +623,7 @@ shared.sign = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -657,7 +656,7 @@ shared.sign = function (req, cb) {
 
 		if (transaction.type == TransactionTypes.MULTI) {
 			if (transaction.asset.multisignature.keysgroup.indexOf("+" + keypair.publicKey.toString('hex')) == -1 || (transaction.signatures && transaction.signatures.indexOf(sign.toString('hex')) != -1)) {
-				return cb(errorCode("MULTISIGNATURES.SIGN_NOT_ALLOWED", transaction));
+				return cb("Permission to sign transaction denied");
 			}
 
 			library.network.io.sockets.emit('mutlsigiantures/singature/change', {});
@@ -667,25 +666,25 @@ shared.sign = function (req, cb) {
 				address: transaction.senderId
 			}, function (err, account) {
 				if (err) {
-					return cb("Error, account for multisignature transaction not found");
+					return cb("Multisignature account not found");
 				}
 
 				if (!account) {
-					return cb(errorCode("Account not found"));
+					return cb("Account not found");
 				}
 
 				if (!transaction.requesterPublicKey) {
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb(errorCode("MULTISIGNATURES.SIGN_NOT_ALLOWED", transaction));
+						return cb("Permission to sign transaction denied");
 					}
 				} else {
 					if (account.publicKey != keypair.publicKey.toString('hex') || transaction.senderPublicKey != keypair.publicKey.toString('hex')) {
-						return cb(errorCode("MULTISIGNATURES.SIGN_NOT_ALLOWED", transaction));
+						return cb("Permission to sign transaction denied");
 					}
 				}
 
 				if (transaction.signatures && transaction.signatures.indexOf(sign) != -1) {
-					return cb(errorCode("MULTISIGNATURES.SIGN_NOT_ALLOWED", transaction));
+					return cb("Permission to sign transaction denied");
 				}
 
 				library.network.io.sockets.emit('mutlsigiantures/singature/change', {});
@@ -741,7 +740,7 @@ shared.addMultisignature = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
@@ -751,11 +750,11 @@ shared.addMultisignature = function (req, cb) {
 					return cb(err.toString());
 				}
 				if (!account || !account.publicKey) {
-					return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+					return cb("Invalid account");
 				}
 
 				if (account.secondSignature && !body.secondSecret) {
-					return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+					return cb("Invalid second passphrase");
 				}
 
 				var secondKeypair = null;

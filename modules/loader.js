@@ -67,7 +67,7 @@ private.loadFullDb = function (peer, cb) {
 
 	var commonBlockId = private.genesisBlock.block.id;
 
-	library.logger.debug("Load blocks from genesis from " + peerStr);
+	library.logger.debug("Loading blocks from genesis from " + peerStr);
 
 	modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
 }
@@ -124,13 +124,13 @@ private.findUpdate = function (lastBlock, peer, cb) {
 					}
 				},
 				function (cb) {
-					library.logger.debug("Load blocks from peer " + peerStr);
+					library.logger.debug("Loading blocks from peer " + peerStr);
 
 					modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, function (err, lastValidBlock) {
 						if (err) {
 							modules.transactions.deleteHiddenTransaction();
 							library.logger.error(err);
-							library.logger.log("can't load blocks, ban 60 min", peerStr);
+							library.logger.log("Failed to load blocks, ban 60 min", peerStr);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 
 							if (lastValidBlock) {
@@ -229,7 +229,7 @@ private.loadBlocks = function (lastBlock, cb) {
 	}, function (err, data) {
 		var peerStr = data && data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
 		if (err || !data.body) {
-			library.logger.log("Fail request at " + peerStr);
+			library.logger.log("Failed to get height from peer: " + peerStr);
 			return cb();
 		}
 
@@ -248,7 +248,7 @@ private.loadBlocks = function (lastBlock, cb) {
 		});
 
 		if (!report) {
-			library.logger.log("Can't parse blockchain height: " + peerStr + "\n" + library.scheme.getLastError());
+			library.logger.log("Failed to parse blockchain height: " + peerStr + "\n" + library.scheme.getLastError());
 			return cb();
 		}
 
@@ -337,7 +337,7 @@ private.loadUnconfirmedTransactions = function (cb) {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
 				var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
-				library.logger.log('transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peerStr);
+				library.logger.log('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peerStr);
 				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
@@ -370,7 +370,7 @@ private.loadBlockChain = function () {
 							function () {
 								return count < offset
 							}, function (cb) {
-								library.logger.info('current ' + offset);
+								library.logger.info('Current ' + offset);
 								setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
 										if (err) {
@@ -387,14 +387,14 @@ private.loadBlockChain = function () {
 								if (err) {
 									library.logger.error('loadBlocksOffset', err);
 									if (err.block) {
-										library.logger.error('blockchain failed at ', err.block.height)
+										library.logger.error('Blockchain failed at ', err.block.height)
 										modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {
-											library.logger.error('blockchain clipped');
+											library.logger.error('Blockchain clipped');
 											library.bus.message('blockchainReady');
 										})
 									}
 								} else {
-									library.logger.info('blockchain ready');
+									library.logger.info('Blockchain ready');
 									library.bus.message('blockchainReady');
 								}
 							}
@@ -418,10 +418,10 @@ private.loadBlockChain = function () {
 
 				modules.blocks.count(function (err, count) {
 					if (err) {
-						return library.logger.error('blocks.count', err)
+						return library.logger.error('Failed to count blocks', err)
 					}
 
-					library.logger.info('blocks ' + count);
+					library.logger.info('Blocks ' + count);
 
 					// Check if previous loading missed
 					if (reject || verify || count == 1) {
@@ -432,26 +432,26 @@ private.loadBlockChain = function () {
 							, function (err, updated) {
 								if (err) {
 									library.logger.error(err);
-									library.logger.info("Can't load without verifying, clear accounts from database and load");
+									library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
 									load(count);
 								} else {
 									library.dbLite.query("select a.blockId, b.id from mem_accounts a left outer join blocks b on b.id = a.blockId where b.id is null", {}, ['a_blockId', 'b_id'], function (err, rows) {
 										if (err || rows.length > 0) {
-											library.logger.error(err || "Found missed block, looks like node went down on block processing");
-											library.logger.info("Can't load without verifying, clear accounts from database and load");
+											library.logger.error(err || "Encountered missing block, looks like node went down during block processing");
+											library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
 											load(count);
 										} else {
 											// Load delegates
 											library.dbLite.query("SELECT lower(hex(publicKey)) FROM mem_accounts WHERE isDelegate=1", ['publicKey'], function (err, delegates) {
 												if (err || delegates.length == 0) {
 													library.logger.error(err || "No delegates, reload database");
-													library.logger.info("Can't load without verifying, clear accounts from database and load");
+													library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
 													load(count);
 												} else {
 													modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
 														if (err) {
-															library.logger.error(err || "Can't load last block");
-															library.logger.info("Can't load without verifying, clear accounts from database and load");
+															library.logger.error(err || "Unable to load last block");
+															library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
 															load(count);
 														} else {
 															modules.blocks.loadLastBlock(function (err, block) {
@@ -459,7 +459,7 @@ private.loadBlockChain = function () {
 																	return load(count);
 																}
 																private.lastBlock = block;
-																library.logger.info('blockchain ready');
+																library.logger.info('Blockchain ready');
 																library.bus.message('blockchainReady');
 															});
 														}

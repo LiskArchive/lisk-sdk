@@ -11,7 +11,6 @@ var crypto = require('crypto'),
 	util = require('util'),
 	async = require('async'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 require('array.prototype.findindex'); // Old node fix
@@ -94,7 +93,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -109,7 +108,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/blocks', router);
@@ -199,7 +198,7 @@ private.list = function (filter, cb) {
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid field to sort");
+			return cb("Invalid sort field");
 		}
 	}
 
@@ -215,7 +214,7 @@ private.list = function (filter, cb) {
 	params.offset = filter.offset;
 
 	if (filter.limit > 100) {
-		return cb('Maximum of limit is 100');
+		return cb("Invalid limit. Maximum is 100");
 	}
 
 	library.dbLite.query("select count(b.id) " +
@@ -256,7 +255,7 @@ private.getById = function (id, cb) {
 		"from blocks b " +
 		"where b.id = $id", {id: id}, ['b_id', 'b_version', 'b_timestamp', 'b_height', 'b_previousBlock', 'b_numberOfTransactions', 'b_totalAmount', 'b_totalFee', 'b_reward', 'b_payloadLength', 'b_payloadHash', 'b_generatorPublicKey', 'b_blockSignature', 'b_confirmations'], function (err, rows) {
 		if (err || !rows.length) {
-			return cb(err || errorCode("BLOCKS.BLOCK_NOT_FOUND"));
+			return cb(err || "Block not found");
 		}
 
 		var block = library.logic.block.dbRead(rows[0]);
@@ -488,10 +487,9 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 	options = options || {};
 
 	if (filter.lastId && filter.id) {
-		return cb("LastId and Id can't go in one request");
+		return cb("Invalid filter");
 	}
 
-	// console.time('loading');
 	var params = {limit: filter.limit || 1};
 	filter.lastId && (params['lastId'] = filter.lastId);
 	filter.id && !filter.lastId && (params['id'] = filter.id);
@@ -798,7 +796,7 @@ Blocks.prototype.getLastBlock = function () {
 
 Blocks.prototype.processBlock = function (block, broadcast, cb) {
 	if (!private.loaded) {
-		return setImmediate(cb, errorCode('COMMON.LOADING'));
+		return setImmediate(cb, "Blockchain is loading");
 	}
 	private.isActive = true;
 	library.balancesSequence.add(function (cb) {
@@ -910,7 +908,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 									setImmediate(cb, "Transaction already exists: " + transaction.id);
 								} else {
 									if (appliedTransactions[transaction.id]) {
-										return setImmediate(cb, "Dublicated transaction in block: " + transaction.id);
+										return setImmediate(cb, "Duplicated transaction in block: " + transaction.id);
 									}
 
 									modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
@@ -925,7 +923,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 
 											modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 												if (err) {
-													return setImmediate(cb, "Can't apply transaction: " + transaction.id);
+													return setImmediate(cb, "Failed to apply transaction: " + transaction.id);
 												}
 
 												try {
@@ -992,12 +990,12 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 							async.eachSeries(block.transactions, function (transaction, cb) {
 								modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 									if (err) {
-										library.logger.error("Can't apply transactions: " + transaction.id);
+										library.logger.error("Failed to apply transactions: " + transaction.id);
 										process.exit(0);
 									}
 									modules.transactions.apply(transaction, block, sender, function (err) {
 										if (err) {
-											library.logger.error("Can't apply transactions: " + transaction.id);
+											library.logger.error("Failed to apply transactions: " + transaction.id);
 											process.exit(0);
 										}
 										modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -1007,7 +1005,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 							}, function (err) {
 								private.saveBlock(block, function (err) {
 									if (err) {
-										library.logger.error("Can't save block...");
+										library.logger.error("Failed to save block...");
 										library.logger.error(err);
 										process.exit(0);
 									}
@@ -1076,7 +1074,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
 							var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
-							library.logger.log('block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
+							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 							return setImmediate(cb, e);
 						}
@@ -1086,7 +1084,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 								lastValidBlock = block;
 							} else {
 								var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
-								library.logger.log('block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
+								library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 								modules.peer.state(peer.ip, peer.port, 0, 3600);
 							}
 
@@ -1129,7 +1127,7 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
 		modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err || !sender) {
-				return cb("Missing transaction sender");
+				return cb("Invalid sender");
 			}
 
 			if (library.logic.transaction.ready(transaction, sender)) {
@@ -1169,16 +1167,16 @@ Blocks.prototype.onReceiveBlock = function (block) {
 
 	library.sequence.add(function (cb) {
 		if (block.previousBlock == private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
-			library.logger.log('recieved new block id:' + block.id + ' height:' + block.height + ' slot:' + slots.getSlotNumber(block.timestamp))
+			library.logger.log('Recieved new block id: ' + block.id + ' height: ' + block.height + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
 			self.processBlock(block, true, cb);
 		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			// Fork right height and different previous block
 			modules.delegates.fork(block, 1);
-			cb('fork');
+			cb("Fork");
 		} else if (block.previousBlock == private.lastBlock.previousBlock && block.height == private.lastBlock.height && block.id != private.lastBlock.id) {
 			// Fork same height and same previous block, but different block id
 			modules.delegates.fork(block, 5);
-			cb('fork');
+			cb("Fork");
 		} else {
 			cb();
 		}
@@ -1209,7 +1207,7 @@ Blocks.prototype.cleanup = function (cb) {
 // Shared
 shared.getBlock = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
@@ -1229,7 +1227,7 @@ shared.getBlock = function (req, cb) {
 		library.dbSequence.add(function (cb) {
 			private.getById(query.id, function (err, block) {
 				if (!block || err) {
-					return cb(errorCode("BLOCKS.BLOCK_NOT_FOUND"));
+					return cb("Block not found");
 				}
 				cb(null, {block: block});
 			});
@@ -1239,7 +1237,7 @@ shared.getBlock = function (req, cb) {
 
 shared.getBlocks = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
@@ -1290,7 +1288,7 @@ shared.getBlocks = function (req, cb) {
 		library.dbSequence.add(function (cb) {
 			private.list(query, function (err, data) {
 				if (err) {
-					return cb("Sql error");
+					return cb("Database error");
 				}
 				cb(null, {blocks: data.blocks, count: data.count});
 			});
@@ -1300,7 +1298,7 @@ shared.getBlocks = function (req, cb) {
 
 shared.getHeight = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	cb(null, {height: private.lastBlock.height});
@@ -1308,7 +1306,7 @@ shared.getHeight = function (req, cb) {
 
 shared.getFee = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body;
 	cb(null, {fee: library.logic.block.calculateFee()});
@@ -1316,7 +1314,7 @@ shared.getFee = function (req, cb) {
 
 shared.getMilestone = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {milestone: private.blockStatus.calcMilestone(height)});
@@ -1324,7 +1322,7 @@ shared.getMilestone = function (req, cb) {
 
 shared.getReward = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {reward: private.blockStatus.calcReward(height)});
@@ -1332,7 +1330,7 @@ shared.getReward = function (req, cb) {
 
 shared.getSupply = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {supply: private.blockStatus.calcSupply(height)});
@@ -1340,7 +1338,7 @@ shared.getSupply = function (req, cb) {
 
 shared.getStatus = function (req, cb) {
 	if (!private.loaded) {
-		cb(errorCode('COMMON.LOADING'))
+		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {

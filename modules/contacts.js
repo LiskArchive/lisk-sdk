@@ -7,7 +7,6 @@ var TransactionTypes = require('../helpers/transaction-types.js'),
 	Diff = require('../helpers/diff.js'),
 	async = require('async'),
 	util = require('util'),
-	errorCode = require('../helpers/errorCodes.js').error,
 	sandboxHelper = require('../helpers/sandbox.js');
 
 var modules, library, self, private = {}, shared = {};
@@ -30,16 +29,16 @@ function Contact() {
 
 	this.verify = function (trs, sender, cb) {
 		if (!trs.asset.contact) {
-			return setImmediate(cb, "Invalid asset: " + trs.id);
+			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
 		if (!trs.asset.contact.address) {
-			return setImmediate(cb, "Empty following: " + trs.id);
+			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
-		var isAddress = /^[\+|\-][0-9]+[C|c]$/g;
+		var isAddress = /^[\+|\-][0-9]+[L|l]$/g;
 		if (!isAddress.test(trs.asset.contact.address.toLowerCase())) {
-			return setImmediate(cb, "Following is not address: " + trs.asset.contact.address);
+			return setImmediate(cb, "Contact is not an address: " + trs.asset.contact.address);
 		}
 
 		if (trs.amount != 0) {
@@ -47,12 +46,12 @@ function Contact() {
 		}
 
 		if (trs.recipientId) {
-			return setImmediate(cb, "Invalid recipientId: " + trs.id);
+			return setImmediate(cb, "Invalid recipient: " + trs.id);
 		}
 
 		self.checkContacts(trs.senderPublicKey, [trs.asset.contact.address], function (err) {
 			if (err) {
-				return setImmediate(cb, errorCode("CONTACTS.ALREADY_ADDED_CONFIRMED", trs));
+				return setImmediate(cb, "Account is already a contact");
 			}
 			setImmediate(cb, err, trs);
 		});
@@ -105,7 +104,7 @@ function Contact() {
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		self.checkUnconfirmedContacts(trs.senderPublicKey, [trs.asset.contact.address], function (err) {
 			if (err) {
-				return setImmediate(cb, errorCode("CONTACTS.ALREADY_ADDED_UNCONFIRMED", trs));
+				return setImmediate(cb, "Account is already a contact");
 			}
 
 			this.scope.account.merge(sender.address, {
@@ -193,7 +192,7 @@ private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		if (modules) return next();
-		res.status(500).send({success: false, error: errorCode('COMMON.LOADING')});
+		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
 	router.map(shared, {
@@ -204,7 +203,7 @@ private.attachApi = function () {
 	});
 
 	router.use(function (req, res) {
-		res.status(500).send({success: false, error: errorCode('COMMON.INVALID_API')});
+		res.status(500).send({success: false, error: "API endpoint not found"});
 	});
 
 	library.network.app.use('/api/contacts', router);
@@ -231,21 +230,21 @@ Contacts.prototype.checkContacts = function (publicKey, contacts, cb) {
 				var contactAddress = contacts[i].slice(1);
 
 				if (math != '+') {
-					return cb("Incorrect math for contact");
+					return cb("Incorrect math operator");
 				}
 
 				if (math == "+" && (account.contacts !== null && account.contacts.indexOf(contactAddress) != -1)) {
-					return cb("Can't verify contacts, you already added this contact");
+					return cb("Failed to add contact, account already has this contact");
 				}
 				if (math == "-" && (account.contacts === null || account.contacts.indexOf(contactAddress) === -1)) {
-					return cb("Can't verify contacts, you had no this contact for removing");
+					return cb("Failed to remove contact, account does not have this contact");
 				}
 			}
 
 			cb();
 		});
 	} else {
-		setImmediate(cb, "Provide array of contacts");
+		setImmediate(cb, "Please provide an array of contacts");
 	}
 }
 
@@ -266,11 +265,11 @@ Contacts.prototype.checkUnconfirmedContacts = function (publicKey, contacts, cb)
 				var contactAddress = contact.slice(1);
 
 				if (math != '+') {
-					return cb(errorCode('Incorrect math'));
+					return cb("Invalid math operator");
 				}
 
 				// if (contactAddress == selfAddress) {
-				// 	return cb(errorCode("CONTACTS.SELF_FRIENDING"));
+				// 	return cb("Unable to add self as contact"));
 				// }
 
 				modules.accounts.setAccountAndGet({
@@ -281,10 +280,10 @@ Contacts.prototype.checkUnconfirmedContacts = function (publicKey, contacts, cb)
 					}
 
 					if (math == "+" && (account.u_contacts !== null && account.u_contacts.indexOf(contactAddress) != -1)) {
-						return cb("Can't verify contacts, you already voted for this delegate");
+						return cb("Failed to add contact, account already has this contact");
 					}
 					if (math == "-" && (account.u_contacts === null || account.u_contacts.indexOf(contactAddress) === -1)) {
-						return cb("Can't verify contacts, you had no contacts for this delegate");
+						return cb("Failed to remove contact, account does not have this contact");
 					}
 
 					return cb();
@@ -293,7 +292,7 @@ Contacts.prototype.checkUnconfirmedContacts = function (publicKey, contacts, cb)
 			}, cb);
 		});
 	} else {
-		return setImmediate(cb, "Provide array of contacts");
+		return setImmediate(cb, "Please provide an array of contacts");
 	}
 }
 
@@ -365,7 +364,7 @@ shared.getContacts = function (req, cb) {
 				return cb(err.toString());
 			}
 			if (!account) {
-				return cb(errorCode("ACCOUNTS.ACCOUNT_DOESNT_FOUND", {address: query.address}));
+				return cb("Account not found");
 			}
 
 			async.series({
@@ -440,14 +439,14 @@ shared.addContact = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
-				return cb(errorCode("COMMON.INVALID_SECRET_KEY"));
+				return cb("Invalid passphrase");
 			}
 		}
 
 		var query = {};
 
 		var followingAddress = body.following.substring(1, body.following.length);
-		var isAddress = /^[0-9]+[C|c]$/g;
+		var isAddress = /^[0-9]+[L|l]$/g;
 		if (isAddress.test(followingAddress)) {
 			query.address = followingAddress;
 		} else {
@@ -466,11 +465,11 @@ shared.addContact = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -479,11 +478,11 @@ shared.addContact = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid requester");
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (requester.publicKey == account.publicKey) {
@@ -491,7 +490,7 @@ shared.addContact = function (req, cb) {
 						}
 
 						if (!following) {
-							return cb(errorCode("CONTACTS.USERNAME_DOESNT_FOUND"));
+							return cb("Username not found");
 						}
 
 						followingAddress = body.following[0] + following.address;
@@ -525,7 +524,7 @@ shared.addContact = function (req, cb) {
 					}
 
 					if (!following) {
-						return cb(errorCode("CONTACTS.USERNAME_DOESNT_FOUND"));
+						return cb("Username not found");
 					}
 
 					followingAddress = body.following[0] + following.address;
@@ -535,11 +534,11 @@ shared.addContact = function (req, cb) {
 							return cb(err.toString());
 						}
 						if (!account) {
-							return cb(errorCode("COMMON.OPEN_ACCOUNT"));
+							return cb("Invalid account");
 						}
 
 						if (account.secondSignature && !body.secondSecret) {
-							return cb(errorCode("COMMON.SECOND_SECRET_KEY"));
+							return cb("Invalid second passphrase");
 						}
 
 						if (account.secondSignature && body.secondSecret) {
