@@ -36,7 +36,7 @@ Sia.prototype.uploadAscii = function (ascii, cb) {
 		}
 
 		if (!body.FilesAdded || body.FilesAdded.length == 0) {
-			return cb("Can't upload ascii");
+			return cb("Failed to upload ascii");
 		}
 
 		return cb(null, body.FilesAdded[0]);

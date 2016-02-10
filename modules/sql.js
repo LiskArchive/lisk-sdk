@@ -138,7 +138,7 @@ private.query = function (action, config, cb) {
 // Public methods
 Sql.prototype.createTables = function (dappid, config, cb) {
 	if (!config) {
-		return cb("wrong tables format");
+		return cb("Invalid table format");
 	}
 
 	var sqles = [];

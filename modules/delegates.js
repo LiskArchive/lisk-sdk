@@ -48,7 +48,7 @@ function Delegate() {
 
 		if (!sender.username) {
 			if (!trs.asset.delegate.username) {
-				return setImmediate(cb, "Invalid transaction assset");
+				return setImmediate(cb, "Invalid transaction asset");
 			}
 
 			var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
@@ -58,7 +58,7 @@ function Delegate() {
 
 			var isAddress = /^[0-9]+[L|l]$/g;
 			if (isAddress.test(trs.asset.delegate.username)) {
-				return setImmediate(cb, "Username must not resemble an address");
+				return setImmediate(cb, "Username cannot be a potential address");
 			}
 
 			if (trs.asset.delegate.username.length < 1) {
@@ -334,14 +334,14 @@ private.attachApi = function () {
 			var ip = req.connection.remoteAddress;
 
 			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
-				return res.json({success: false, error: "Access denied")});
+				return res.json({success: false, error: "Access denied"});
 			}
 
 			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
-					return res.json({success: false, error: "Invalid passphrase")});
+					return res.json({success: false, error: "Invalid passphrase"});
 				}
 			}
 
@@ -358,7 +358,7 @@ private.attachApi = function () {
 					return res.json({success: true, address: account.address});
 					library.logger.info("Forging enabled on account: " + account.address);
 				} else {
-					return res.json({success: false, error: "Delegate not found")});
+					return res.json({success: false, error: "Delegate not found"});
 				}
 			});
 		});
@@ -388,19 +388,19 @@ private.attachApi = function () {
 			var ip = req.connection.remoteAddress;
 
 			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
-				return res.json({success: false, error: "Access denied")});
+				return res.json({success: false, error: "Access denied"});
 			}
 
 			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
-					return res.json({success: false, error: "Invalid passphrase")});
+					return res.json({success: false, error: "Invalid passphrase"});
 				}
 			}
 
 			if (!private.keypairs[keypair.publicKey.toString('hex')]) {
-				return res.json({success: false, error: "Delegate not found")});
+				return res.json({success: false, error: "Delegate not found"});
 			}
 
 			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
@@ -412,7 +412,7 @@ private.attachApi = function () {
 					return res.json({success: true, address: account.address});
 					library.logger.info("Forging disabled on account: " + account.address);
 				} else {
-					return res.json({success: false, error: "Delegate not found")});
+					return res.json({success: false, error: "Delegate not found"});
 				}
 			});
 		});
@@ -601,7 +601,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				var math = action[0];
 
 				if (math !== '+' && math !== '-') {
-					return cb("Wrong math");
+					return cb("Invalid math operator");
 				}
 
 				var publicKey = action.slice(1);
@@ -609,14 +609,14 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				try {
 					new Buffer(publicKey, "hex");
 				} catch (e) {
-					return cb("wrong public key");
+					return cb("Invalid public key");
 				}
 
 				if (math == "+" && (account.delegates !== null && account.delegates.indexOf(publicKey) != -1)) {
-					return cb("Can't verify votes, you already voted for this delegate");
+					return cb("Failed to add vote, account has already voted for this delegate");
 				}
 				if (math == "-" && (account.delegates === null || account.delegates.indexOf(publicKey) === -1)) {
-					return cb("Can't verify votes, you had no votes for this delegate");
+					return cb("Failed to remove vote, account has not voted for this delegate");
 				}
 
 				modules.accounts.getAccount({publicKey: publicKey, isDelegate: 1}, function (err, account) {
@@ -625,7 +625,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 					}
 
 					if (!account) {
-						return cb("Your delegate not found");
+						return cb("Delegate not found");
 					}
 
 					cb();
@@ -633,7 +633,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 			}, cb)
 		});
 	} else {
-		setImmediate(cb, "Provide array of votes");
+		setImmediate(cb, "Please provide an array of votes");
 	}
 }
 
@@ -651,7 +651,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 				var math = action[0];
 
 				if (math !== '+' && math !== '-') {
-					return cb("Wrong math");
+					return cb("Invalid math operator");
 				}
 
 				var publicKey = action.slice(1);
@@ -660,14 +660,14 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 				try {
 					new Buffer(publicKey, "hex");
 				} catch (e) {
-					return cb("wrong public key");
+					return cb("Invalid public key");
 				}
 
 				if (math == "+" && (account.u_delegates !== null && account.u_delegates.indexOf(publicKey) != -1)) {
-					return cb("Can't verify votes, you already voted for this delegate");
+					return cb("Failed to add vote, account has already voted for this delegate");
 				}
 				if (math == "-" && (account.u_delegates === null || account.u_delegates.indexOf(publicKey) === -1)) {
-					return cb("Can't verify votes, you had no votes for this delegate");
+					return cb("Failed to remove vote, account has not voted for this delegate");
 				}
 
 				modules.accounts.getAccount({publicKey: publicKey, isDelegate: 1}, function (err, account) {
@@ -676,7 +676,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 					}
 
 					if (!account) {
-						return cb("Your delegate not found");
+						return cb("Delegate not found");
 					}
 
 					cb();
@@ -684,7 +684,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 			}, cb)
 		});
 	} else {
-		return setImmediate(cb, "Provide array of votes");
+		return setImmediate(cb, "Please provide an array of votes");
 	}
 }
 
@@ -719,7 +719,7 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 			return cb();
 		}
 
-		cb("Can't verify slot");
+		cb("Failed to verify slot");
 	});
 }
 
@@ -847,7 +847,7 @@ shared.getVoters = function (req, cb) {
 		}, ['accountId'], function (err, rows) {
 			if (err) {
 				library.logger.error(err);
-				return cb("Internal sql error");
+				return cb("Database error");
 			}
 
 			var addresses = rows[0].accountId.split(',');
@@ -858,7 +858,7 @@ shared.getVoters = function (req, cb) {
 			}, ['address', 'balance'], function (err, rows) {
 				if (err) {
 					library.logger.error(err);
-					return cb("Internal sql error");
+					return cb("Database error");
 				}
 
 				return cb(null, {accounts: rows});
@@ -1040,11 +1040,11 @@ shared.addDelegate = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {

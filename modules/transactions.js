@@ -221,12 +221,12 @@ private.list = function (filter, cb) {
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid field to sort");
+			return cb("Invalid sort field");
 		}
 	}
 
 	if (filter.limit > 100) {
-		return cb('Maximum of limit is 100');
+		return cb("Invalid limit. Maximum is 100");
 	}
 
 	library.dbLite.query("select count(t.id) " +
@@ -363,7 +363,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 				}
 
 				if (!requester) {
-					return cb("Requester didn't found");
+					return cb("Invalid requester");
 				}
 
 				library.logic.transaction.process(transaction, sender, requester, function (err, transaction) {
@@ -373,7 +373,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 					// Check in confirmed transactions
 					if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-						return cb("This transaction already exists");
+						return cb("Transaction already exists");
 					}
 
 					library.logic.transaction.verify(transaction, sender, done);
@@ -387,7 +387,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 				// Check in confirmed transactions
 				if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-					return cb("This transaction already exists");
+					return cb("Transaction already exists");
 				}
 
 				library.logic.transaction.verify(transaction, sender, done);
@@ -440,7 +440,7 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	if (!sender && transaction.blockId != genesisblock.block.id) {
-		return cb('Failed account: ' + transaction.id);
+		return cb("Invalid account");
 	} else {
 		if (transaction.requesterPublicKey) {
 			modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
@@ -449,7 +449,7 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 				}
 
 				if (!requester) {
-					return cb('Failed requester: ' + transaction.id);
+					return cb("Invalid requester");
 				}
 
 				library.logic.transaction.applyUnconfirmed(transaction, sender, requester, cb);
@@ -553,7 +553,7 @@ shared.getTransactions = function (req, cb) {
 
 		private.list(query, function (err, data) {
 			if (err) {
-				return cb("No transactions found");
+				return cb("Failed to get transactions");
 			}
 
 			cb(null, {transactions: data.transactions, count: data.count});
@@ -728,11 +728,11 @@ shared.addTransactions = function (req, cb) {
 						}
 
 						if (!account.multisignatures || !account.multisignatures) {
-							return cb("This account don't have multisignature");
+							return cb("Account does not have multisignatures enabled");
 						}
 
 						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-							return cb("This account don't added to multisignature");
+							return cb("Account does not belong to multisignature group");
 						}
 
 						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -749,7 +749,7 @@ shared.addTransactions = function (req, cb) {
 							}
 
 							if (requester.publicKey == account.publicKey) {
-								return cb("Incorrect requester");
+								return cb("Invalid requester");
 							}
 
 							var secondKeypair = null;

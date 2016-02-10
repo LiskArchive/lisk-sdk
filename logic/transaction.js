@@ -184,7 +184,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	}
 
 	if (!private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
+		return setImmediate(cb, "Unknown transaction type " + trs.type);
 	}
 
 	// if (!this.ready(trs, sender)) {
@@ -203,7 +203,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	}
 
 	if (!sender) {
-		return setImmediate(cb, "Can't process transaction, sender not found");
+		return setImmediate(cb, "Invalid sender");
 	}
 
 	trs.senderId = sender.address;
@@ -211,18 +211,18 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	// Verify that requester in multisignature
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, "Can't verify requester signature");
+			return setImmediate(cb, "Failed to verify signature");
 		}
 	}
 
 	if (trs.requesterPublicKey) {
 		if (!this.verifySignature(trs, trs.requesterPublicKey, trs.signature)) {
-			return setImmediate(cb, "Can't verify signature");
+			return setImmediate(cb, "Failed to verify signature");
 		}
 	}
 	else {
 		if (!this.verifySignature(trs, trs.senderPublicKey, trs.signature)) {
-			return setImmediate(cb, "Can't verify signature");
+			return setImmediate(cb, "Failed to verify signature");
 		}
 	}
 
@@ -234,13 +234,13 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 
 		this.scope.dbLite.query("SELECT count(id) FROM trs WHERE id=$id", {id: trs.id}, {"count": Number}, function (err, rows) {
 			if (err) {
-				return cb("Internal sql error");
+				return cb("Database error");
 			}
 
 			var res = rows.length && rows[0];
 
 			if (res.count) {
-				return cb("Can't process transaction, transaction already confirmed");
+				return cb("Failed to process already confirmed transaction");
 			}
 
 			cb(null, trs);
@@ -254,21 +254,21 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 	}
 
 	if (!private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
+		return setImmediate(cb, "Unknown transaction type " + trs.type);
 	}
 
 	// Check sender
 	if (!sender) {
-		return setImmediate(cb, "Can't find sender");
+		return setImmediate(cb, "Invalid sender");
 	}
 
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, "Can't verify requester signature");
+			return setImmediate(cb, "Failed to verify signature");
 		}
 
 		if (sender.publicKey != trs.senderPublicKey) {
-			return setImmediate(cb, "Incorrect sender public key");
+			return setImmediate(cb, "Invalid public key");
 		}
 	}
 
@@ -286,7 +286,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 	}
 
 	if (!valid) {
-		return setImmediate(cb, "Can't verify signature");
+		return setImmediate(cb, "Failed to verify signature");
 	}
 
 	// Verify second signature
@@ -297,7 +297,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 			return setImmediate(cb, e.toString());
 		}
 		if (!valid) {
-			return setImmediate(cb, "Can't verify second signature: " + trs.id);
+			return setImmediate(cb, "Failed to verify second signature: " + trs.id);
 		}
 	} else if (trs.requesterPublicKey && requester.secondSignature) {
 		try {
@@ -306,7 +306,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 			return setImmediate(cb, e.toString());
 		}
 		if (!valid) {
-			return setImmediate(cb, "Can't verify second signature: " + trs.id);
+			return setImmediate(cb, "Failed to verify second signature: " + trs.id);
 		}
 	}
 
@@ -318,7 +318,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 		}, []);
 
 		if (signatures.length != trs.signatures.length) {
-			return setImmediate(cb, "Dublicates signatures");
+			return setImmediate(cb, "Encountered duplicate signatures");
 		}
 	}
 
@@ -352,7 +352,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 			}
 
 			if (!verify) {
-				return setImmediate(cb, "Failed multisignature: " + trs.id);
+				return setImmediate(cb, "Failed to verify multisignature: " + trs.id);
 			}
 		}
 	}
@@ -437,7 +437,7 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
 
 Transaction.prototype.apply = function (trs, block, sender, cb) {
 	if (!private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
+		return setImmediate(cb, "Unknown transaction type " + trs.type);
 	}
 
 	if (!this.ready(trs, sender)) {
@@ -447,7 +447,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 	var amount = trs.amount + trs.fee;
 
 	if (trs.blockId != genesisblock.block.id && sender.balance < amount) {
-		return setImmediate(cb, "Balance has no LISK: " + trs.id);
+		return setImmediate(cb, "Account has no LISK: " + trs.id);
 	}
 
 	this.scope.account.merge(sender.address, {
@@ -477,7 +477,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 
 Transaction.prototype.undo = function (trs, block, sender, cb) {
 	if (!private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
+		return setImmediate(cb, "Unknown transaction type " + trs.type);
 	}
 
 	var amount = trs.amount + trs.fee;
@@ -513,29 +513,29 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 	}
 
 	if (!private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
+		return setImmediate(cb, "Unknown transaction type " + trs.type);
 	}
 
 	if (!trs.requesterPublicKey && sender.secondSignature && !trs.signSignature && trs.blockId != genesisblock.block.id) {
-		return setImmediate(cb, 'Failed second signature: ' + trs.id);
+		return setImmediate(cb, "Failed second signature: " + trs.id);
 	}
 
 	if (!trs.requesterPublicKey && !sender.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
-		return setImmediate(cb, "Account doesn't have second signature");
+		return setImmediate(cb, "Account does not have a second signature");
 	}
 
 	if (trs.requesterPublicKey && requester.secondSignature && !trs.signSignature) {
-		return setImmediate(cb, 'Failed second signature: ' + trs.id);
+		return setImmediate(cb, "Failed second signature: " + trs.id);
 	}
 
 	if (trs.requesterPublicKey && !requester.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
-		return setImmediate(cb, "Account doesn't have second signature");
+		return setImmediate(cb, "Account does not have a second signature");
 	}
 
 	var amount = trs.amount + trs.fee;
 
 	if (sender.u_balance < amount && trs.blockId != genesisblock.block.id) {
-		return setImmediate(cb, 'Account has no balance: ' + trs.id);
+		return setImmediate(cb, "Account has no LISK: " + trs.id);
 	}
 
 	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
@@ -557,7 +557,7 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 
 Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	if (!private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
+		return setImmediate(cb, "Unknown transaction type " + trs.type);
 	}
 
 	var amount = trs.amount + trs.fee;
@@ -581,7 +581,7 @@ Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
 
 Transaction.prototype.dbSave = function (trs, cb) {
 	if (!private.types[trs.type]) {
-		return cb('Unknown transaction type ' + trs.type);
+		return cb("Unknown transaction type: " + trs.type);
 	}
 
 	try {

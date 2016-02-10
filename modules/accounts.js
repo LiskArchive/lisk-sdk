@@ -37,7 +37,7 @@ function Vote() {
 		}
 
 		if (trs.asset.votes && trs.asset.votes.length > 33) {
-			return setImmediate(cb, "Voting limited exceeded. Maxmium is 33 per transaction"));
+			return setImmediate(cb, "Voting limited exceeded. Maxmium is 33 per transaction");
 		}
 
 		modules.delegates.checkDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
@@ -177,15 +177,15 @@ function Username() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId) {
-			return setImmediate(cb, "Invalid recipient"));
+			return setImmediate(cb, "Invalid recipient");
 		}
 
 		if (trs.amount != 0) {
-			return setImmediate(cb, "Invalid transaction amount"));
+			return setImmediate(cb, "Invalid transaction amount");
 		}
 
 		if (!trs.asset.username.alias) {
-			return setImmediate(cb, "Invalid username transaction asset");
+			return setImmediate(cb, "Invalid transaction asset");
 		}
 
 		var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
@@ -195,7 +195,7 @@ function Username() {
 
 		var isAddress = /^[0-9]+[L|l]$/g;
 		if (isAddress.test(trs.asset.username.alias.toLowerCase())) {
-			return setImmediate(cb, "Username cannot be a potential lisk address");
+			return setImmediate(cb, "Username cannot be a potential address");
 		}
 
 		if (trs.asset.username.alias.length == 0 || trs.asset.username.alias.length > 20) {
@@ -212,7 +212,7 @@ function Username() {
 				return cb(err);
 			}
 			if (account && account.username == trs.asset.username.alias) {
-				return cb("Username is already in use");
+				return cb("Username already exists");
 			}
 			if (sender.username && sender.username != trs.asset.username.alias) {
 				return cb("Invalid username. Does not match transaction asset");
@@ -485,11 +485,11 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			return cb("must provide address or publicKey");
+			return cb("Missing address or public key");
 		}
 	}
 	if (!address) {
-		throw cb("wrong publicKey at setAccountAndGet " + publicKey);
+		throw cb("Invalid public key");
 	}
 	library.logic.account.set(address, data, function (err) {
 		if (err) {
@@ -505,11 +505,11 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			return cb("must provide address or publicKey");
+			return cb("Missing address or public key");
 		}
 	}
 	if (!address) {
-		throw cb("wrong publicKey at mergeAccountAndGet " + publicKey);
+		throw cb("Invalid public key");
 	}
 	library.logic.account.merge(address, data, cb);
 }
@@ -770,11 +770,11 @@ shared.addDelegates = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -914,11 +914,11 @@ shared.addUsername = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {

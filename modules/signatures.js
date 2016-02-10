@@ -87,7 +87,7 @@ function Signature() {
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		if (sender.u_secondSignature || sender.secondSignature) {
-			return setImmediate(cb, "Failed secondSignature: " + trs.id);
+			return setImmediate(cb, "Failed second signature: " + trs.id);
 		}
 
 		modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb);
@@ -261,11 +261,11 @@ shared.addSignature = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					if (account.secondSignature || account.u_secondSignature) {
@@ -286,7 +286,7 @@ shared.addSignature = function (req, cb) {
 						}
 
 						if (requester.publicKey == account.publicKey) {
-							return cb("Incorrect requester");
+							return cb("Invalid requester");
 						}
 
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();

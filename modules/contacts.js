@@ -29,16 +29,16 @@ function Contact() {
 
 	this.verify = function (trs, sender, cb) {
 		if (!trs.asset.contact) {
-			return setImmediate(cb, "Invalid asset: " + trs.id);
+			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
 		if (!trs.asset.contact.address) {
-			return setImmediate(cb, "Empty following: " + trs.id);
+			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
 		var isAddress = /^[\+|\-][0-9]+[L|l]$/g;
 		if (!isAddress.test(trs.asset.contact.address.toLowerCase())) {
-			return setImmediate(cb, "Following is not address: " + trs.asset.contact.address);
+			return setImmediate(cb, "Contact is not an address: " + trs.asset.contact.address);
 		}
 
 		if (trs.amount != 0) {
@@ -230,21 +230,21 @@ Contacts.prototype.checkContacts = function (publicKey, contacts, cb) {
 				var contactAddress = contacts[i].slice(1);
 
 				if (math != '+') {
-					return cb("Incorrect math for contact");
+					return cb("Incorrect math operator");
 				}
 
 				if (math == "+" && (account.contacts !== null && account.contacts.indexOf(contactAddress) != -1)) {
-					return cb("Can't verify contacts, you already added this contact");
+					return cb("Failed to add contact, account already has this contact");
 				}
 				if (math == "-" && (account.contacts === null || account.contacts.indexOf(contactAddress) === -1)) {
-					return cb("Can't verify contacts, you had no this contact for removing");
+					return cb("Failed to remove contact, account does not have this contact");
 				}
 			}
 
 			cb();
 		});
 	} else {
-		setImmediate(cb, "Provide array of contacts");
+		setImmediate(cb, "Please provide an array of contacts");
 	}
 }
 
@@ -265,11 +265,11 @@ Contacts.prototype.checkUnconfirmedContacts = function (publicKey, contacts, cb)
 				var contactAddress = contact.slice(1);
 
 				if (math != '+') {
-					return cb("Incorrect math operator");
+					return cb("Invalid math operator");
 				}
 
 				// if (contactAddress == selfAddress) {
-				// 	return cb("Can not add self as own contact"));
+				// 	return cb("Unable to add self as contact"));
 				// }
 
 				modules.accounts.setAccountAndGet({
@@ -280,10 +280,10 @@ Contacts.prototype.checkUnconfirmedContacts = function (publicKey, contacts, cb)
 					}
 
 					if (math == "+" && (account.u_contacts !== null && account.u_contacts.indexOf(contactAddress) != -1)) {
-						return cb("Can't verify contacts, you already voted for this delegate");
+						return cb("Failed to add contact, account already has this contact");
 					}
 					if (math == "-" && (account.u_contacts === null || account.u_contacts.indexOf(contactAddress) === -1)) {
-						return cb("Can't verify contacts, you had no contacts for this delegate");
+						return cb("Failed to remove contact, account does not have this contact");
 					}
 
 					return cb();
@@ -292,7 +292,7 @@ Contacts.prototype.checkUnconfirmedContacts = function (publicKey, contacts, cb)
 			}, cb);
 		});
 	} else {
-		return setImmediate(cb, "Provide array of contacts");
+		return setImmediate(cb, "Please provide an array of contacts");
 	}
 }
 
@@ -465,11 +465,11 @@ shared.addContact = function (req, cb) {
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb("This account don't have multisignature");
+						return cb("Account does not have multisignatures enabled");
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb("This account don't added to multisignature");
+						return cb("Account does not belong to multisignature group");
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {

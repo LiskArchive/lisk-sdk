@@ -108,7 +108,7 @@ private.updatePeerList = function (cb) {
 				}, function (err) {
 					if (err) {
 						console.log(err, peer);
-						return setImmediate(cb, "Peer incorrect: " + err);
+						return setImmediate(cb, "Invalid peer: " + err);
 					}
 
 					peer.ip = parseInt(peer.ip);
@@ -196,13 +196,13 @@ private.getByFilter = function (filter, cb) {
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid field to sort");
+			return cb("Invalid sort field");
 		}
 	}
 
 	if (limit !== null) {
 		if (limit > 100) {
-			return cb("Maximum limit is 100");
+			return cb("Invalid limit. Maximum is 100");
 		}
 		params['limit'] = limit;
 	}
@@ -248,7 +248,7 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	var isFrozenList = library.config.peers.list.find(function (peer) {
 		return peer.ip == ip.fromLong(pip) && peer.port == port;
 	});
-	if (isFrozenList !== undefined) return cb && cb('peer in white list');
+	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
 	if (state == 0) {
 		var clock = (timeoutSeconds || 1) * 1000;
 		clock = Date.now() + clock;
@@ -271,7 +271,7 @@ Peer.prototype.remove = function (pip, port, cb) {
 	var isFrozenList = library.config.peers.list.find(function (peer) {
 		return peer.ip == ip.fromLong(pip) && peer.port == port;
 	});
-	if (isFrozenList !== undefined) return cb && cb('peer in white list');
+	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
 	library.dbLite.query("DELETE FROM peers WHERE ip = $ip and port = $port;", {
 		ip: pip,
 		port: port

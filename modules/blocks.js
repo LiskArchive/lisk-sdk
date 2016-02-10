@@ -198,7 +198,7 @@ private.list = function (filter, cb) {
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid field to sort");
+			return cb("Invalid sort field");
 		}
 	}
 
@@ -214,7 +214,7 @@ private.list = function (filter, cb) {
 	params.offset = filter.offset;
 
 	if (filter.limit > 100) {
-		return cb('Maximum of limit is 100');
+		return cb("Invalid limit. Maximum is 100");
 	}
 
 	library.dbLite.query("select count(b.id) " +
@@ -255,7 +255,7 @@ private.getById = function (id, cb) {
 		"from blocks b " +
 		"where b.id = $id", {id: id}, ['b_id', 'b_version', 'b_timestamp', 'b_height', 'b_previousBlock', 'b_numberOfTransactions', 'b_totalAmount', 'b_totalFee', 'b_reward', 'b_payloadLength', 'b_payloadHash', 'b_generatorPublicKey', 'b_blockSignature', 'b_confirmations'], function (err, rows) {
 		if (err || !rows.length) {
-			return cb(err || "Block not found"));
+			return cb(err || "Block not found");
 		}
 
 		var block = library.logic.block.dbRead(rows[0]);
@@ -487,7 +487,7 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 	options = options || {};
 
 	if (filter.lastId && filter.id) {
-		return cb("LastId and Id can't go in one request");
+		return cb("Invalid filter");
 	}
 
 	// console.time('loading');
@@ -909,7 +909,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 									setImmediate(cb, "Transaction already exists: " + transaction.id);
 								} else {
 									if (appliedTransactions[transaction.id]) {
-										return setImmediate(cb, "Dublicated transaction in block: " + transaction.id);
+										return setImmediate(cb, "Duplicated transaction in block: " + transaction.id);
 									}
 
 									modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
@@ -924,7 +924,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 
 											modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 												if (err) {
-													return setImmediate(cb, "Can't apply transaction: " + transaction.id);
+													return setImmediate(cb, "Failed to apply transaction: " + transaction.id);
 												}
 
 												try {
@@ -1128,7 +1128,7 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
 		modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err || !sender) {
-				return cb("Missing transaction sender");
+				return cb("Invalid sender");
 			}
 
 			if (library.logic.transaction.ready(transaction, sender)) {
@@ -1173,11 +1173,11 @@ Blocks.prototype.onReceiveBlock = function (block) {
 		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			// Fork right height and different previous block
 			modules.delegates.fork(block, 1);
-			cb('fork');
+			cb("Fork");
 		} else if (block.previousBlock == private.lastBlock.previousBlock && block.height == private.lastBlock.height && block.id != private.lastBlock.id) {
 			// Fork same height and same previous block, but different block id
 			modules.delegates.fork(block, 5);
-			cb('fork');
+			cb("Fork");
 		} else {
 			cb();
 		}
@@ -1289,7 +1289,7 @@ shared.getBlocks = function (req, cb) {
 		library.dbSequence.add(function (cb) {
 			private.list(query, function (err, data) {
 				if (err) {
-					return cb("Sql error");
+					return cb("Database error");
 				}
 				cb(null, {blocks: data.blocks, count: data.count});
 			});
