@@ -58,7 +58,7 @@ Build the user-interface:
 cd public
 npm install
 bower install
-grunt
+grunt release
 ```
 
 ## Launch
