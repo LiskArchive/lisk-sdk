@@ -7,7 +7,7 @@ var totalMembers = node.randomNumber(2,16);
 var requiredSignatures = node.randomNumber(2,totalMembers+1);
 
 var NoLISKAccount = node.randomAccount();
-NoLISKAccount.name = "noxcr";
+NoLISKAccount.name = "nolisk";
 
 var MultisigAccount = node.randomAccount();
 MultisigAccount.name = "multi";
@@ -45,7 +45,7 @@ function openAccount (account, i){
                     Accounts[i].address = res.body.account.address;
                     Accounts[i].publicKey = res.body.account.publicKey;
                 }
-                else if (account.name == "noxcr"){
+                else if (account.name == "nolisk"){
                     NoLISKAccount.address = res.body.account.address;
                     NoLISKAccount.publicKey = res.body.account.publicKey;
                 }
