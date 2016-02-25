@@ -45,7 +45,6 @@ var transaction = lisk.transaction.createDelegate("secret", "username", "secondS
 
 ### Create vote transaction
 
-
 ```js
 var lisk = require('lisk-js');
 var transaction = createVote("secret", ["+58199578191950019299181920120128129"], "secondSecret");
