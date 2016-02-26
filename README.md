@@ -18,7 +18,7 @@ Tests written using mocha + schedule.js.
 
 ## Usage
 
-Each function call has **secondSecret** parameter, this parameter is optional.
+Please note, the **secondSecret** parameter given to each function is optional.
 
 ### Create transaction
 
