@@ -1,4 +1,4 @@
-module.exports = {
+lisk = {
 	transaction : require("./lib/transactions/transaction.js"),
 	signature : require("./lib/transactions/signature.js"),
 	delegate : require("./lib/transactions/delegate.js"),
@@ -7,3 +7,5 @@ module.exports = {
 	username: require('./lib/transactions/username.js'),
 	contact: require('./lib/transactions/contact.js')
 }
+
+module.exports = lisk;
