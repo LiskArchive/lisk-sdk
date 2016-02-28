@@ -158,14 +158,14 @@ describe("Lisk JS", function () {
 			});
 
 			it("should return number", function () {
-				var fee = getFee({amount: 100000, type: 0}, 0.5);
+				var fee = getFee({amount: 100000, type: 0});
 				(fee).should.be.type('number');
 				(fee).should.be.not.NaN;
 			});
 
-			it("should return 500", function () {
-				var fee = getFee({amount: 100000, type: 0}, 0.5);
-				(fee).should.be.type('number').and.equal(500);
+			it("should return 10000000", function () {
+				var fee = getFee({amount: 100000, type: 0});
+				(fee).should.be.type('number').and.equal(10000000);
 			});
 
 			it("should return 10000000000", function () {
@@ -645,7 +645,7 @@ describe("Lisk JS", function () {
 				});
 
 				it("should return epoch time as number, equal to 196144", function () {
-					var d = 1425796144150;
+					var d = 1428733744000;
 					var time = getTime(d);
 					(time).should.be.ok;
 					(time).should.be.type('number').and.equal(196144);
@@ -663,11 +663,11 @@ describe("Lisk JS", function () {
 					(getRealTime).should.be.type('function');
 				});
 
-				it("should return return real time, convert 196144 to 1425796144000", function () {
+				it("should return return real time, convert 196144 to 1428733744000", function () {
 					var d = 196144;
 					var real = getRealTime(d);
 					(real).should.be.ok;
-					(real).should.be.type('number').and.equal(1425796144000);
+					(real).should.be.type('number').and.equal(1428733744000);
 				});
 			});
 
