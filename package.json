@@ -1,7 +1,7 @@
 {
   "name": "lisk-js",
   "version": "0.1.0",
-  "description": "Client-side transactions library for Lisk",
+  "description": "JavaScript library for sending Lisk transactions from the client or server",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
