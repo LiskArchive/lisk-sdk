@@ -111,7 +111,17 @@ Content-Type: application/json
 Using [jQuery](https://jquery.com/):
 
 ```js
-$.post('https://login.lisk.io/api/peer/transactions', { transaction: transactionObject } );
+$.post({
+  url: 'https://login.lisk.io/peer/transactions',
+  data: { transaction: transactionObject },
+  headers: {
+    'Content-Type': 'application/json',
+    'os': 'linux3.2.0-4-amd64',
+    'version': '0.1.1',
+    'port': 1,
+    'share-port': 0
+  }
+});
 ```
 
 #### On the Server
@@ -121,7 +131,17 @@ Using [Request](https://github.com/request/request):
 ```js
 var request = require('request');
 
-request.post('https://login.lisk.io/api/peer/transactions').form({ transaction: transactionObject });
+request({
+  url: 'https://login.lisk.io/peer/transactions',
+  form: { transaction: transactionObject },
+  headers: {
+    'Content-Type': 'application/json',
+    'os': 'linux3.2.0-4-amd64',
+    'version': '0.1.1',
+    'port': 1,
+    'share-port': 0
+  }
+});
 ```
 
 #### Peer Response
