@@ -129,7 +129,7 @@ request.post('https://login.lisk.io/api/peer/transactions').form({ transaction: 
 Upon successfully accepting a transaction, the receiving node will respond with:
 
 ```json
-{ "success": true, "transactionId": "500224999259823996" }
+{ "success": true }
 ```
 
 If the transaction is deemed invalid, or an error is encountered, the receiving node will respond with:
