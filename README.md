@@ -167,7 +167,7 @@ Upon successfully accepting a transaction, the receiving node will respond with:
 If the transaction is deemed invalid, or an error is encountered, the receiving node will respond with:
 
 ```json
-{ "success": false, "error": "Error message" }
+{ "success": false, "message": "Error message" }
 ```
 
 ***
