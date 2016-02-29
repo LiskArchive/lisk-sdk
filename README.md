@@ -91,7 +91,7 @@ Returning:
 
 ### Posting a transaction
 
-Transaction objects are sent to `/api/peer/transactions`, using the `POST` method.
+Transaction objects are sent to `/peer/transactions`, using the `POST` method.
 
 Example:
 
