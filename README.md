@@ -111,16 +111,23 @@ Content-Type: application/json
 Using [jQuery](https://jquery.com/):
 
 ```js
-$.post({
+var success = function(data) {
+  console.log(data);
+}
+
+$.ajax({
   url: 'https://login.lisk.io/peer/transactions',
-  data: { transaction: transactionObject },
+  data: JSON.stringify({ transaction: transaction }),
+  dataType: 'json',
+  method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'os': 'linux3.2.0-4-amd64',
     'version': '0.1.1',
     'port': 1,
     'share-port': 0
-  }
+  },
+  success: success
 });
 ```
 
