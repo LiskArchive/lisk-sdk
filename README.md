@@ -138,9 +138,14 @@ Using [Request](https://github.com/request/request):
 ```js
 var request = require('request');
 
+var callback = function(error, response, body){
+  console.log(error || body);
+}
+
 request({
   url: 'https://login.lisk.io/peer/transactions',
-  form: { transaction: transactionObject },
+  json: { transaction: transaction },
+  method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'os': 'linux3.2.0-4-amd64',
@@ -148,7 +153,7 @@ request({
     'port': 1,
     'share-port': 0
   }
-});
+}, callback);
 ```
 
 #### Peer Response
