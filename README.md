@@ -138,7 +138,7 @@ Using [Request](https://github.com/request/request):
 ```js
 var request = require('request');
 
-var callback = function(error, response, body){
+var callback = function(error, response, body) {
   console.log(error || body);
 }
 
