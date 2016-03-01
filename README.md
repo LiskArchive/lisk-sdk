@@ -113,7 +113,7 @@ Using [jQuery](https://jquery.com/):
 ```js
 var success = function(data) {
   console.log(data);
-}
+};
 
 $.ajax({
   url: 'https://login.lisk.io/peer/transactions',
@@ -140,7 +140,7 @@ var request = require('request');
 
 var callback = function(error, response, body) {
   console.log(error || body);
-}
+};
 
 request({
   url: 'https://login.lisk.io/peer/transactions',
