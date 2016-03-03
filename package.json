@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git@github.com:LiskHQ/lisk-js.git"
   },
-  "author": "Boris Povod <boris@crypti.me>, Olivier Beddows <olivier@lisk.io>",
+  "author": "Boris Povod <boris@crypti.me>, Oliver Beddows <oliver@lisk.io>",
   "license": "MIT",
   "dependencies": {
     "browserify-bignum": "^1.3.0-2",
