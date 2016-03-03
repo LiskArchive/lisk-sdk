@@ -197,7 +197,7 @@ var transaction = lisk.transaction.createVote("secret", ["+581995781919500192991
 ## Authors
 
 - Boris Povod <boris@crypti.me>
-- Olivier Beddows <olivier@lisk.io>
+- Oliver Beddows <oliver@lisk.io>
 
 ## License
 
