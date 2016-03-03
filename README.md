@@ -103,7 +103,7 @@ mocha test/lib/transactions.js
 - Boris Povod <boris@crypti.me>
 - Pavel Nekrasov <landgraf.paul@gmail.com>
 - Sebastian Stupurac <stupurac.sebastian@gmail.com>
-- Olivier Beddows <olivier@lisk.io>
+- Oliver Beddows <oliver@lisk.io>
 
 ## License
   
