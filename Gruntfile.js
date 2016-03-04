@@ -48,7 +48,7 @@ module.exports = function (grunt) {
 					     + util.format('cp %s/public/loading.html %s/public/ && ', __dirname, version_dir)
 					     + util.format('cp -rf %s/public/images %s/public/ && ', __dirname, version_dir)
 					     + util.format('cp -rf %s/public/partials %s/public/ && ', __dirname, version_dir)
-					     + util.format('cp -rf %s/public/static %s/public/ && ', __dirname, version_dir)
+					     + util.format('cp -rfL %s/public/static %s/public/ && ', __dirname, version_dir)
 					     + util.format('mkdir -p %s/public/node_modules && ', version_dir)
 					     + util.format('cp -rf %s/public/node_modules/chart.js %s/public/node_modules && ', __dirname, version_dir)
 					     + util.format('cp -rf %s/public/node_modules/zeroclipboard %s/public/node_modules && ', __dirname, version_dir)
