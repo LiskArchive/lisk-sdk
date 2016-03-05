@@ -41,14 +41,6 @@
 			"cert": "path_to_cert"
 		}
 	},
-	"sia": {
-		"peers": [
-			{
-				"ip": "127.0.0.1",
-				"port": 8080
-			}
-		]
-	},
 	"mocha": {
 		"peers": {
 			"account": "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",

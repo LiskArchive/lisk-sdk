@@ -5,7 +5,6 @@ var path = require("path");
 // Requires and node configuration
 var node = require("./../variables.js");
 var test = 0;
-var siaDappName = "";
 var gitDappName = "";
 var Dapp = {};
 var DappToInstall = {};
@@ -221,9 +220,9 @@ describe("Dapps", function() {
             type: node.DappType.DAPP,
             name: node.randomDelegateName(),
             description: "A dapp that should not be added",
-            tags: "Invalid,Wrong,Incorrect,Shouldn"t work,Error Expected",
-            siaAscii: node.DappAscii.app,
-            siaIcon: node.DappAscii.icon
+            tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected",
+            git: node.DappGit.git,
+            icon: node.DappGit.icon
           })
           .expect("Content-Type", /json/)
           .expect(200)
@@ -246,35 +245,9 @@ describe("Dapps", function() {
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn"t work,Error Expected",
-          siaAscii:node.DappAscii.app,
-          siaIcon:node.DappAscii.icon
-        })
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          node.expect(res.body).to.have.property("success").to.be.false;
-          node.expect(res.body).to.have.property("error");
-          done();
-        });
-    });
-
-    test += 1;
-    it(test + ".Attempting to add DApp. Both SIA AND GIT. We expect error",function(done){
-      node.api.put("/dapps")
-        .set("Accept", "application/json")
-        .send({
-          secret: Account1.password,
-          category: node.randomProperty(node.DappCategory),
-          type: node.DappType.DAPP,
-          name: node.randomDelegateName(),
-          description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn"t work,Error Expected",
-          siaAscii:node.DappAscii.app,
-          siaIcon:node.DappAscii.icon,
-          git:node.DappGit.git,
-          icon:node.DappGit.icon
+          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected",
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -295,9 +268,9 @@ describe("Dapps", function() {
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn"t work,Error Expected",
-          git:node.DappGit.git,
-          icon:node.DappGit.icon
+          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected",
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -320,8 +293,8 @@ describe("Dapps", function() {
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
           description: node.DappAscii.app,
-          git:node.DappGit.git,
-          icon:node.DappGit.icon
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -345,8 +318,8 @@ describe("Dapps", function() {
           name: node.randomDelegateName(),
           description: "A dapp that should not be added",
           tags:node.DappAscii.app,
-          git:node.DappGit.git,
-          icon:node.DappGit.icon
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -369,9 +342,7 @@ describe("Dapps", function() {
           type: node.DappType.DAPP,
           name: node.randomDelegateName() + node.randomDelegateName + node.randomDelegateName,
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn"t work,Error Expected",
-          siaAscii: node.DappAscii.app,
-          siaIcon: node.DappAscii.icon
+          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected"
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -384,7 +355,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. NO SIA, NO GIT. We expect error",function(done){
+    it(test + ".Attempting to add DApp. NO GIT. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -394,7 +365,7 @@ describe("Dapps", function() {
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn"t work,Error Expected"
+          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected"
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -402,117 +373,12 @@ describe("Dapps", function() {
           console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
-          done();
-        });
-    });
-
-    test += 1;
-    it(test + ".Attempting to add DApp. Both SIA AND GIT. We expect error",function(done){
-      node.api.put("/dapps")
-        .set("Accept", "application/json")
-        .send({
-          secret: "justAR4nd0m Passw0rd",
-          secondSecret: "",
-          category: node.randomProperty(node.DappCategory),
-          type: node.DappType.DAPP,
-          name: node.randomDelegateName(),
-          description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn"t work,Error Expected",
-          siaAscii: node.DappAscii.app,
-          siaIcon: node.DappAscii.icon,
-          git: node.DappGit.git,
-          icon: node.DappGit.icon
-        })
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          node.expect(res.body).to.have.property("success").to.be.false;
-          node.expect(res.body).to.have.property("error");
-          done();
-        });
-    });
-
-    test += 1;
-    it(test + ".Attempting to add DApp. Valid SIA. 0 LISK account. We expect error",function(done){
-        node.api.put("/dapps")
-          .set("Accept", "application/json")
-          .send({
-            secret: Account3.password,
-            secondSecret: "",
-            category: node.randomProperty(node.DappCategory),
-            type: node.DappType.DAPP,
-            name: node.randomDelegateName(),
-            description: "A SIA dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            siaAscii: node.DappAscii.app,
-            siaIcon: node.DappAscii.icon
-          })
-          .expect("Content-Type", /json/)
-          .expect(200)
-          .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
-            node.expect(res.body).to.have.property("success").to.be.false;
-            done();
-          });
-    });
-
-    test += 1;
-    it(test + ".Attempting to add DApp. Valid SIA. Invalid 2nd password. We expect error",function(done){
-      console.log(Account2.password, Account2.secondPassword);
-      node.onNewBlock(function () {
-        node.api.put("/dapps")
-          .set("Accept", "application/json")
-          .send({
-            secret: Account2.password,
-            secondSecret: Account2.secondPassword + "1",
-            category: node.randomProperty(node.DappCategory),
-            type: node.DappType.DAPP,
-            name: node.randomDelegateName(),
-            description: "A SIA dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            siaAscii: node.DappAscii.app,
-            siaIcon: node.DappAscii.icon
-          })
-          .expect("Content-Type", /json/)
-          .expect(200)
-          .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
-            node.expect(res.body).to.have.property("success").to.be.false;
-            done();
-          });
-      });
-
-    });
-
-    test += 1;
-    it(test + ".Attempting to add DApp. Valid SIA. Invalid Type. We expect error",function(done){
-      siaDappName = node.randomDelegateName();
-      node.api.put("/dapps")
-        .set("Accept", "application/json")
-        .send({
-          secret: Account1.password,
-          secondSecret: "",
-          category: node.randomProperty(node.DappCategory),
-          type: "INVALID TYPE",
-          name: siaDappName,
-          description: "A SIA dapp which was added via API autotest",
-          tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-          siaAscii: node.DappAscii.app,
-          siaIcon: node.DappAscii.icon
-        })
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          node.expect(res.body).to.have.property("success").to.be.false;
           done();
         });
     });
 
     test += 1;
     it(test + ".Attempting to add Dapp. Invalid Fields. We expect error",function(done){
-      siaDappName = node.randomDelegateName();
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -522,8 +388,8 @@ describe("Dapps", function() {
           name: 1234,
           description: 1234,
           tags: 1234,
-          siaAscii:1234,
-          siaIcon:1234
+          git: 1234,
+          icon: 1234
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -532,101 +398,6 @@ describe("Dapps", function() {
           node.expect(res.body).to.have.property("success").to.be.error;
           done();
         });
-    });
-
-    test += 1;
-    it(test + ".Attempting to add Dapp. Valid SIA. We expect success",function(done){
-      node.onNewBlock(function () {
-        siaDappName = node.randomDelegateName();
-        var currentCategory = node.randomProperty(node.DappCategory);
-        node.api.put("/dapps")
-          .set("Accept", "application/json")
-          .send({
-            secret: Account1.password,
-            category: currentCategory,
-            type: node.DappType.DAPP,
-            name: siaDappName,
-            description: "A SIA dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            siaAscii: node.DappAscii.app,
-            siaIcon: node.DappAscii.icon
-          })
-          .expect("Content-Type", /json/)
-          .expect(200)
-          .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
-            node.expect(res.body).to.have.property("success").to.be.true;
-            node.expect(res.body.transaction).to.have.property("id");
-            node.expect(res.body.transaction).to.have.property("type");
-            node.expect(res.body.transaction).to.have.property("amount").to.equal(0);
-            node.expect(res.body.transaction).to.have.property("senderPublicKey");
-            node.expect(res.body.transaction).to.have.property("timestamp");
-            node.expect(res.body.transaction).to.have.property("asset").that.is.an("object");
-            node.expect(res.body.transaction).to.have.property("recipientId");
-            node.expect(res.body.transaction).to.have.property("signature");
-            node.expect(res.body.transaction).to.have.property("fee").to.equal(node.Fees.dappAddFee);
-            node.expect(res.body.transaction).to.have.property("senderId").to.equal(Account1.address);
-            node.expect(res.body.transaction.asset).to.have.property("dapp").that.is.an("object");
-            node.expect(res.body.transaction.asset.dapp).to.have.property("category").to.equal(currentCategory);
-            node.expect(res.body.transaction.asset.dapp).to.have.property("name").to.equal(siaDappName);
-            node.expect(res.body.transaction.asset.dapp).to.have.property("type").to.equal(node.DappType.DAPP);
-            node.expect(res.body.transaction.asset.dapp).to.have.property("siaAscii").to.equal(node.DappAscii.app);
-            done();
-          });
-      });
-    });
-
-    test += 1;
-    it(test + ".Attempting to add Dapp. Existing DAPP name (sia). We expect error",function(done){
-      node.onNewBlock(function () {
-        node.api.put("/dapps")
-          .set("Accept", "application/json")
-          .send({
-            secret: Account1.password,
-            category: node.randomProperty(node.DappCategory),
-            type: node.DappType.DAPP,
-            name: siaDappName,
-            description: "A SIA dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            siaAscii: node.DappAscii.app + "abc",
-            siaIcon: node.DappAscii.icon
-          })
-          .expect("Content-Type", /json/)
-          .expect(200)
-          .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
-            node.expect(res.body).to.have.property("success").to.be.false;
-            node.expect(res.body).to.have.property("error");
-            done();
-          });
-      });
-
-    });
-
-    test += 1;
-    it(test + ".Attempting to add DApp. Existing ASCII Code. We expect error",function(done){
-      node.onNewBlock(function () {
-        node.api.put("/dapps")
-          .set("Accept", "application/json")
-          .send({
-            secret: Account1.password,
-            category: node.randomProperty(node.DappCategory),
-            type: node.DappType.DAPP,
-            name: node.randomDelegateName(),
-            description: "A SIA dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            siaAscii: node.DappAscii.app,
-            siaIcon: node.DappAscii.icon
-          })
-          .expect("Content-Type", /json/)
-          .expect(200)
-          .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
-            node.expect(res.body).to.have.property("success").to.be.false;
-            node.expect(res.body).to.have.property("error");
-            done();
-          });
-      });
     });
 
     test += 1;
@@ -640,8 +411,8 @@ describe("Dapps", function() {
           name: node.randomDelegateName(),
           description: "A GIT dapp which was added via API autotest",
           tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-          git:node.DappGit.git,
-          icon:node.DappGit.icon
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -664,8 +435,8 @@ describe("Dapps", function() {
           name: node.randomDelegateName(),
           description: "A GIT dapp which was added via API autotest",
           tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-          git:node.DappGit.git,
-          icon:node.DappGit.icon
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -689,8 +460,8 @@ describe("Dapps", function() {
           name: gitDappName,
           description: "A GIT dapp which was added via API autotest",
           tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-          git:node.DappGit.git,
-          icon:node.DappGit.icon
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -713,8 +484,8 @@ describe("Dapps", function() {
           name: 1234,
           description: 1234,
           tags: 1234,
-          git:1234,
-          icon:1234
+          git: 1234,
+          icon: 1234
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -738,8 +509,8 @@ describe("Dapps", function() {
             name: gitDappName,
             description: "A GIT dapp which was added via API autotest",
             tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            git:node.DappGit.git,
-            icon:node.DappGit.icon
+            git: node.DappGit.git,
+            icon: node.DappGit.icon
           })
           .expect("Content-Type", /json/)
           .expect(200)
@@ -777,7 +548,6 @@ describe("Dapps", function() {
       });
     });
 
-
     test += 1;
     it(test + ".Attempting to add DApp. Existing GIT link. We expect error",function(done){
       node.onNewBlock(function(err) {
@@ -790,7 +560,7 @@ describe("Dapps", function() {
             name: node.randomDelegateName(),
             description: "A GIT dapp which was added via API autotest",
             tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            git:node.DappGit.git,
+            git: node.DappGit.git,
             icon: node.DappGit.icon
           })
           .expect("Content-Type", /json/)
@@ -810,8 +580,8 @@ describe("Dapps", function() {
 
     test += 1;
     it(test + ". Get all Dapps. No limit. We expect success",function(done){
-      var category = ""; var name = ""; var type = ""; var git = ""; var siaAscii = "";
-      var siaIcon = ""; var icon = ""; var limit = ""; var offset = ""; var orderBy = "";
+      var category = ""; var name = ""; var type = ""; var git = "";
+      var icon = ""; var limit = ""; var offset = ""; var orderBy = "";
       node.onNewBlock(function(err) {
         node.api.get("/dapps")
           .expect("Content-Type", /json/)
@@ -839,20 +609,6 @@ describe("Dapps", function() {
     it(test + ". Get all Dapps. Invalid Parameter types (git). We expect error",function(done){
       var category = "a category"; var name = 1234; var type = "type"; var git = 1234; var icon = 1234;
       node.api.get("/dapps?category=" + category + "&name=" + name + "&type=" + type + "&git=" + git + "&icon=" + icon)
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          node.expect(res.body).to.have.property("success").to.be.false;
-          node.expect(res.body).to.have.property("error");
-          done();
-        });
-    });
-
-    test += 1;
-    it(test + ". Get all Dapps. Invalid Parameter types (sia). We expect error",function(done){
-      var siaIcon = 1234; var siaAscii = 1234; var limit = "limitless"; var offset = "many"; var orderBy = 1234;
-      node.api.get("/dapps?siaIcon=" + siaIcon + "&siaAscii=" + siaAscii + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
@@ -1495,50 +1251,6 @@ describe("Dapps", function() {
           for (var i in node.DappCategory) {
             node.expect(res.body.categories[i]).to.equal(node.DappCategory[i]);
           }
-          done();
-        });
-    });
-
-  });
-
-  describe("Get DApp icon from sia ", function() {
-
-    test += 1;
-    it(test + ". Get DApps icon from SIA. We send invalid ID. We expect error",function(done){
-      var dappId = installedDapp.transactionId;
-      node.api.get("/dapps/icon?id=0")
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          node.expect(res.body).to.have.property("success").to.be.false;
-          node.expect(res.body).to.have.property("error");
-          done();
-        });
-    });
-
-    test += 1;
-    it(test + ". Get DApps icon from SIA. We do not send ID. We expect error",function(done){
-      var dappId = installedDapp.transactionId;
-      node.api.get("/dapps/icon?id=")
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          node.expect(res.body).to.have.property("success").to.be.false;
-          node.expect(res.body).to.have.property("error");
-          done();
-        });
-    });
-
-    test += 1;
-    it(test + ". Get DApps icon from SIA. We send valid ID. We expect success",function(done){
-      var dappId = installedDapp.transactionId;
-      node.api.get("/dapps/icon?id=" + dappId)
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
           done();
         });
     });
