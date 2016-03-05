@@ -35,10 +35,6 @@ private.dappready = {};
 private.routes = {};
 private.unconfirmedOutTansfers = {};
 
-function isASCII(str, extended) {
-	return (extended ? /^[\x00-\xFF]*$/ : /^[\x00-\x7F]*$/).test(str);
-}
-
 function OutTransfer() {
 	this.create = function (data, trs) {
 		trs.recipientId = data.recipientId;
@@ -405,10 +401,8 @@ function DApp() {
 			description: data.description,
 			tags: data.tags,
 			type: data.dapp_type,
-			siaAscii: data.siaAscii,
 			git: data.git,
-			icon: data.icon,
-			siaIcon: data.siaIcon
+			icon: data.icon
 		};
 
 		return trs;
@@ -419,9 +413,6 @@ function DApp() {
 	}
 
 	this.verify = function (trs, sender, cb) {
-		var isSia = false;
-		var isSiaIcon = false;
-
 		if (trs.recipientId) {
 			return setImmediate(cb, "Invalid recipient");
 		}
@@ -446,61 +437,9 @@ function DApp() {
 			return setImmediate(cb, "Unknown dapp category");
 		}
 
-		if (trs.asset.dapp.siaAscii) {
-			isSia = true;
-
-			if (trs.asset.dapp.siaAscii.trim() != trs.asset.dapp.siaAscii) {
-				return setImmediate(cb, "Untrimmed sia ascii");
-			}
-
-			if (trs.asset.dapp.siaAscii.trim().length == 0) {
-				return setImmediate(cb, "Empty sia ascii");
-			}
-
-			if (trs.asset.dapp.siaAscii.length > 10000) {
-				return setImmediate(cb, "Invalid sia ascii length. Maximum is 10000");
-			}
-
-			if (typeof trs.asset.dapp.siaAscii !== 'string') {
-				return setImmediate(cb, "Invalid sia ascii");
-			}
-
-			if (!isASCII(trs.asset.dapp.siaAscii)) {
-				return setImmediate(cb, "Invalid sia ascii");
-			}
-		}
-
-		if (trs.asset.dapp.siaIcon) {
-			isSiaIcon = true;
-
-			if (trs.asset.dapp.siaIcon.length == 0) {
-				return setImmediate(cb, "Empty sia icon");
-			}
-
-			if (trs.asset.dapp.siaIcon != trs.asset.dapp.siaIcon.trim()) {
-				return setImmediate(cb, "Untrimmed sia icon");
-			}
-
-			if (trs.asset.dapp.siaIcon.length > 10000) {
-				return setImmediate(cb, "Invalid sia icon length. Maximum is 10000");
-			}
-
-			if (typeof trs.asset.dapp.siaIcon !== 'string') {
-				return setImmediate(cb, "Invalid sia icon");
-			}
-
-			if (!isASCII(trs.asset.dapp.siaIcon)) {
-				return setImmediate(cb, "Invalid sia icon ascii");
-			}
-		}
-
 		if (trs.asset.dapp.icon) {
-			if (isSiaIcon) {
-				return setImmediate(cb, "Dapp already has a sia icon");
-			}
-
 			if (!valid_url.isUri(trs.asset.dapp.icon)) {
-				return setImmediate(cb, "Invalid sia icon link");
+				return setImmediate(cb, "Invalid icon link");
 			}
 
 			var length = trs.asset.dapp.icon.length;
@@ -510,7 +449,7 @@ function DApp() {
 				trs.asset.dapp.icon.indexOf('.jpg') != length - 4 &&
 				trs.asset.dapp.icon.indexOf('.jpeg') != length - 5
 			) {
-				return setImmediate(cb, "Invalid sia icon file type")
+				return setImmediate(cb, "Invalid icon file type")
 			}
 		}
 
@@ -519,16 +458,12 @@ function DApp() {
 		}
 
 		if (trs.asset.dapp.git) {
-			if (isSia) {
-				return setImmediate(cb, "Dapp can only be hosted in one location (github or sia)");
-			}
-
 			if (!(/^(https:\/\/github\.com\/|git\@github\.com\:)(.+)(\.git)$/.test(trs.asset.dapp.git))) {
 				return setImmediate(cb, "Invalid github repository link");
 			}
 		}
 
-		if (!isSia && !trs.asset.dapp.git) {
+		if (!trs.asset.dapp.git) {
 			return setImmediate(cb, "Invalid dapp storage option");
 		}
 
@@ -585,14 +520,6 @@ function DApp() {
 				buf = Buffer.concat([buf, tagsBuf]);
 			}
 
-			if (trs.asset.dapp.siaAscii) {
-				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.siaAscii, 'ascii')]);
-			}
-
-			if (trs.asset.dapp.siaIcon) {
-				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.siaIcon, 'ascii')]);
-			}
-
 			if (trs.asset.dapp.git) {
 				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.git, 'utf8')]);
 			}
@@ -631,20 +558,14 @@ function DApp() {
 			return setImmediate(cb, "Git repository link already exists");
 		}
 
-		if (trs.asset.dapp.siAscii && private.unconfirmedAscii[trs.asset.dapp.siaAscii]) {
-			return setImmediate(cb, "Dapp ascii already exists");
-		}
-
 		private.unconfirmedNames[trs.asset.dapp.name] = true;
 		private.unconfirmedLinks[trs.asset.dapp.git] = true;
-		private.unconfirmedAscii[trs.asset.dapp.siaAscii] = true;
 
-		library.dbLite.query("SELECT name, siaAscii, git FROM dapps WHERE (name = $name or siaAscii = $siaAscii or git = $git) and transactionId != $transactionId", {
+		library.dbLite.query("SELECT name, git FROM dapps WHERE (name = $name or git = $git) and transactionId != $transactionId", {
 			name: trs.asset.dapp.name,
-			siaAscii: trs.asset.dapp.siaAscii || null,
 			git: trs.asset.dapp.git || null,
 			transactionId: trs.id
-		}, ['name', 'siaAscii', 'git'], function (err, rows) {
+		}, ['name', 'git'], function (err, rows) {
 			if (err) {
 				return setImmediate(cb, "Database error");
 			}
@@ -654,8 +575,6 @@ function DApp() {
 
 				if (dapp.name == trs.asset.dapp.name) {
 					return setImmediate(cb, "Dapp name already exists: " + dapp.name);
-				} else if (dapp.siaAscii == trs.asset.dapp.siaAscii) {
-					return setImmediate(cb, "Dapp sia code already exists")
 				} else if (dapp.git == trs.asset.dapp.git) {
 					return setImmediate(cb, "Git repository link already exists: " + dapp.git);
 				} else {
@@ -670,7 +589,6 @@ function DApp() {
 	this.undoUnconfirmed = function (trs, sender, cb) {
 		delete private.unconfirmedNames[trs.asset.dapp.name];
 		delete private.unconfirmedLinks[trs.asset.dapp.git];
-		delete private.unconfirmedAscii[trs.asset.dapp.siaAscii];
 
 		setImmediate(cb);
 	}
@@ -739,8 +657,6 @@ function DApp() {
 				description: raw.dapp_description,
 				tags: raw.dapp_tags,
 				type: raw.dapp_type,
-				siaAscii: raw.dapp_siaAscii,
-				siaIcon: raw.dapp_siaIcon,
 				git: raw.dapp_git,
 				category: raw.dapp_category,
 				icon: raw.dapp_icon
@@ -751,13 +667,11 @@ function DApp() {
 	}
 
 	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO dapps(type, name, description, tags, siaAscii, siaIcon, git, category, icon, transactionId) VALUES($type, $name, $description, $tags, $siaAscii, $siaIcon, $git, $category, $icon, $transactionId)", {
+		library.dbLite.query("INSERT INTO dapps(type, name, description, tags, git, category, icon, transactionId) VALUES($type, $name, $description, $tags, $git, $category, $icon, $transactionId)", {
 			type: trs.asset.dapp.type,
 			name: trs.asset.dapp.name,
 			description: trs.asset.dapp.description || null,
 			tags: trs.asset.dapp.tags || null,
-			siaAscii: trs.asset.dapp.siaAscii || null,
-			siaIcon: trs.asset.dapp.siaIcon || null,
 			git: trs.asset.dapp.git || null,
 			icon: trs.asset.dapp.icon || null,
 			category: trs.asset.dapp.category,
@@ -881,11 +795,6 @@ private.attachApi = function () {
 					type: "integer",
 					minimum: 0
 				},
-				siaAscii: {
-					type: "string",
-					minLength: 1,
-					maxLength: 10000
-				},
 				git: {
 					type: "string",
 					maxLength: 2000,
@@ -895,11 +804,6 @@ private.attachApi = function () {
 					type: "string",
 					minLength: 1,
 					maxLength: 2000
-				},
-				siaIcon: {
-					type: "string",
-					minLength: 1,
-					maxLength: 10000
 				}
 			},
 			required: ["secret", "type", "name", "category"]
@@ -948,10 +852,8 @@ private.attachApi = function () {
 							description: body.description,
 							tags: body.tags,
 							dapp_type: body.type,
-							siaAscii: body.siaAscii,
 							git: body.git,
-							icon: body.icon,
-							siaIcon: body.siaIcon
+							icon: body.icon
 						});
 					} catch (e) {
 						return cb(e.toString());
@@ -988,14 +890,6 @@ private.attachApi = function () {
 				git: {
 					type: "string",
 					maxLength: 2000,
-					minLength: 1
-				},
-				siaAscii: {
-					type: "string",
-					minLength: 1
-				},
-				siaIcon: {
-					type: "string",
 					minLength: 1
 				},
 				limit: {
@@ -1111,13 +1005,11 @@ private.attachApi = function () {
 										return row.rowid;
 									});
 
-									library.dbLite.query("SELECT transactionId, name, description, tags, siaAscii, siaIcon, git, type, category, icon FROM dapps WHERE rowid IN (" + rowids.join(',') + ")" + categorySql, {category: category}, {
+									library.dbLite.query("SELECT transactionId, name, description, tags, git, type, category, icon FROM dapps WHERE rowid IN (" + rowids.join(',') + ")" + categorySql, {category: category}, {
 										'transactionId': String,
 										'name': String,
 										'description': String,
 										'tags': String,
-										'siaAscii': String,
-										'siaIcon': String,
 										'git': String,
 										'type': Number,
 										'category': Number,
@@ -1237,7 +1129,6 @@ private.attachApi = function () {
 											if (err) {
 												library.logger.error(err);
 											}
-
 
 											private.loading[body.id] = false;
 											return res.json({
@@ -1388,10 +1279,6 @@ private.attachApi = function () {
 		});
 	});
 
-	router.get('/siaenabled', function (req, res, next) {
-		return res.json({success: true, enabled: !!library.config.sia.peer});
-	})
-
 	router.get('/installing', function (req, res, next) {
 		var ids = [];
 		for (var i in private.loading) {
@@ -1476,62 +1363,6 @@ private.attachApi = function () {
 		});
 	});
 
-	router.get('/file', function (req, res, next) {
-		req.sanitize(req.query, {
-			type: "object",
-			properties: {
-				id: {
-					type: "string",
-					minLength: 1
-				}
-			},
-			required: ['id']
-		}, function (err, report, query) {
-			if (err) return next(err);
-			if (!report.isValid) return res.json({success: false, error: report.issues});
-
-			private.get(query.id, function (err, dapp) {
-				if (err) {
-					return res.json({success: false, error: err});
-				}
-
-				if (!dapp.siaIcon) {
-					return res.json({success: false, error: "This dapp don't have sia icon."})
-				}
-
-				private.getFile(dapp, res);
-			});
-		});
-	})
-
-	router.get('/icon', function (req, res, next) {
-		req.sanitize(req.query, {
-			type: "object",
-			properties: {
-				id: {
-					type: "string",
-					minLength: 1
-				}
-			},
-			required: ['id']
-		}, function (err, report, query) {
-			if (err) return next(err);
-			if (!report.isValid) return res.json({success: false, error: report.issues});
-
-			private.get(query.id, function (err, dapp) {
-				if (err) {
-					return res.json({success: false, error: err});
-				}
-
-				if (!dapp.siaIcon) {
-					return res.json({success: false, error: "This dapp don't have sia icon."})
-				}
-
-				private.getIcon(dapp, res);
-			});
-		});
-	});
-
 	router.map(private, {
 		"put /transaction": "addTransactions"
 	});
@@ -1546,7 +1377,7 @@ private.attachApi = function () {
 
 // Private methods
 private.get = function (id, cb) {
-	library.dbLite.query("SELECT name, description, tags, siaAscii, siaIcon, git, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ['name', 'description', 'tags', 'siaAscii', 'siaIcon', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
+	library.dbLite.query("SELECT name, description, tags, git, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ['name', 'description', 'tags', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err || rows.length == 0) {
 			return setImmediate(cb, err ? "Database error" : "DApp not found");
 		}
@@ -1560,7 +1391,7 @@ private.getByIds = function (ids, cb) {
 		ids[i] = "'" + ids[i] + "'";
 	}
 
-	library.dbLite.query("SELECT name, description, tags, siaAscii, siaIcon, git, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(',') + ")", {}, ['name', 'description', 'tags', 'siaAscii', 'siaIcon', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
+	library.dbLite.query("SELECT name, description, tags, git, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(',') + ")", {}, ['name', 'description', 'tags', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err) {
 			return setImmediate(cb, err ? "Database error" : "DApp not found");
 		}
@@ -1630,7 +1461,7 @@ private.list = function (filter, cb) {
 	}
 
 	// Need to fix 'or' or 'and' in query
-	library.dbLite.query("select name, description, tags, siaAscii, siaIcon, git, type, category, icon, transactionId " +
+	library.dbLite.query("select name, description, tags, git, type, category, icon, transactionId " +
 		"from dapps " +
 		(fields.length ? "where " + fields.join(' or ') + " " : "") +
 		(filter.orderBy ? 'order by ' + sortBy + ' ' + sortMethod : '') + " " +
@@ -1639,8 +1470,6 @@ private.list = function (filter, cb) {
 		name: String,
 		description: String,
 		tags: String,
-		siaAscii: String,
-		siaIcon: String,
 		git: String,
 		type: Number,
 		category: Number,
@@ -1797,82 +1626,6 @@ private.downloadDApp = function (dApp, cb) {
 							return setImmediate(cb, null, dappPath);
 						}
 					});
-				} else if (dApp.siaAscii) {
-					if (!library.config.sia.peer) {
-						rmdir(dappPath, function (err) {
-							if (err) {
-								library.logger.error(err.toString());
-							}
-
-							return setImmediate(cb, "Sia is disabled");
-						});
-					}
-
-					var dappZip = path.join(dappPath, dApp.transactionId + ".zip");
-
-					// Fetch from sia
-					modules.sia.uploadAscii(dApp.siaAscii, function (err, file) {
-						if (err) {
-							library.logger.error("Failed to upload ascii: " + err.toString());
-							rmdir(dappPath, function (err) {
-								if (err) {
-									library.logger.error(err.toString());
-								}
-
-								return setImmediate(cb, "Failed to download dapp from sia");
-							});
-							return;
-						}
-
-						modules.sia.download(file, dappZip, function (err) {
-							if (err) {
-								library.logger.error(err);
-
-								rmdir(dappPath, function (err) {
-									if (err) {
-										library.logger.error(err);
-									}
-
-									return setImmediate(cb, "Failed to get ascii code: \n" + dApp.siaAscii + " \n " + dappPath);
-								});
-							} else {
-								var unzipper = new DecompressZip(dappZip);
-
-								unzipper.on('error', function (err) {
-									library.logger.error(err);
-
-									fs.unlink(dappZip, function (err) {
-										if (err) {
-											library.logger.error(err);
-										}
-
-										rmdir(dappPath, function (err) {
-											if (err) {
-												library.logger.error(err);
-											}
-
-											return cb("Failed to unzip file: " + dappZip);
-										});
-									});
-								});
-
-								unzipper.on('extract', function (log) {
-									fs.unlink(dappZip, function (err) {
-										if (err) {
-											return cb("Failed to remove zip file: " + dappZip);
-										} else {
-											return cb(null, dappPath);
-										}
-									});
-								});
-
-								unzipper.extract({
-									path: dappPath
-								});
-							}
-						});
-					});
-
 				}
 			});
 		}
@@ -1916,63 +1669,6 @@ private.apiHandler = function (message, callback) {
 		modules[module].sandboxApi(call, {"body": message.args, "dappid": message.dappid}, callback);
 	} catch (e) {
 		return setImmediate(callback, "Incorrect call " + e.toString());
-	}
-}
-
-private.getFile = function (dapp, res) {
-	if (!library.config.sia.peer) {
-		return res.json({success: false, error: "Sia disabled"});
-	}
-
-	modules.sia.uploadAscii(dapp.transactionId, dapp.siaAscii, false, function (err, file) {
-		if (err) {
-			return res.json({success: false, error: "Internal error"});
-		} else {
-			res.writeHead(200, {
-				'Content-Type': 'application/vnd.android.package-archive',
-				'Content-Disposition': 'attachment; filename=' + file
-			});
-
-			modules.sia.download(file, res);
-		}
-	});
-}
-
-private.getIcon = function (dapp, res) {
-	var iconPath = path.join(library.public, 'images', 'dapps', dapp.transactionId);
-
-
-	if (!library.config.sia.peer) {
-		var readStream = fs.createReadStream(path.join(library.public, 'images', 'placeholder.png'));
-		readStream.pipe(res);
-	} else {
-		function error() {
-			var readStream = fs.createReadStream(path.join(library.public, 'images', 'siaerror.png'));
-			readStream.pipe(res);
-		}
-
-		fs.exists(iconPath, function (exists) {
-			if (!exists) {
-				modules.sia.uploadAscii(dapp.siaIcon, function (err, file) {
-					if (err) {
-						console.log(err);
-						return error();
-					} else {
-						modules.sia.download(file, iconPath, function (err) {
-							if (err) {
-								return error();
-							}
-
-							var readStream = fs.createReadStream(iconPath);
-							readStream.pipe(res);
-						});
-					}
-				});
-			} else {
-				var readStream = fs.createReadStream(iconPath);
-				readStream.pipe(res);
-			}
-		});
 	}
 }
 
@@ -2113,16 +1809,6 @@ private.launch = function (body, cb) {
 	});
 }
 
-private.downloadSiaFile = function (id, ascii, icon, path, cb) {
-	modules.sia.uploadAscii(id, ascii, icon, function (err, file) {
-		if (err) {
-			return setImmediate(cb, err);
-		} else {
-			modules.sia.download(file, path, cb);
-		}
-	});
-}
-
 private.launchApp = function (dApp, params, cb) {
 	var dappPath = path.join(private.dappsPath, dApp.transactionId);
 	var dappPublicPath = path.join(dappPath, "public");
@@ -2191,7 +1877,6 @@ private.stop = function (dApp, cb) {
 		function (cb) {
 			fs.exists(dappPublicLink, function (exists) {
 				if (exists) {
-					// rm
 					return setImmediate(cb);
 				} else {
 					setImmediate(cb);
