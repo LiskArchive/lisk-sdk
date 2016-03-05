@@ -523,7 +523,7 @@ function DApp() {
 				return setImmediate(cb, "Dapp can only be hosted in one location (github or sia)");
 			}
 
-			if (!(/^git\@github\.com\:.+\.git$/.test(trs.asset.dapp.git))) {
+			if (!(/^(https:\/\/github\.com\/|git\@github\.com\:)(.+)(\.git)$/.test(trs.asset.dapp.git))) {
 				return setImmediate(cb, "Invalid github repository link");
 			}
 		}
