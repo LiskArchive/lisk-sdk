@@ -65,7 +65,7 @@ function sendLISK (account, i){
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: node.Faccount.password,
+                secret: node.Gaccount.password,
                 amount: randomLISK,
                 recipientId: account.address
             })
@@ -750,7 +750,7 @@ describe("Multisignatures", function() {
         test += 1;
         it(test + ". Try to send LISK FROM multisignature account (confirmations still pending). We expect success",function(done) {
             node.onNewBlock(function (err) {
-                sendLISKfromMultisigAccount(100000000, node.Faccount.address);
+                sendLISKfromMultisigAccount(100000000, node.Gaccount.address);
                 done();
             });
         });

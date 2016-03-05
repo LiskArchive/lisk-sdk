@@ -118,7 +118,7 @@ describe("Transactions", function() {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
-                    secret: node.Faccount.password,
+                    secret: node.Gaccount.password,
                     amount: randomLISK,
                     recipientId: Account1.address
                 })
@@ -135,7 +135,7 @@ describe("Transactions", function() {
                         totalTxFee += (expectedFee / node.normalizer);
                         Account1.balance += randomLISK;
                         transactionList[transactionCount - 1] = {
-                            "sender": node.Faccount.address,
+                            "sender": node.Gaccount.address,
                             "recipient": Account1.address,
                             "brutoSent": (randomLISK + expectedFee) / node.normalizer,
                             "fee": expectedFee / node.normalizer,
@@ -146,7 +146,7 @@ describe("Transactions", function() {
                     }
                     else{
                         console.log("Sending LISK to Account1 failed.");
-                        console.log("Sent: secret: " + node.Faccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
+                        console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -162,7 +162,7 @@ describe("Transactions", function() {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
-                    secret: node.Faccount.password,
+                    secret: node.Gaccount.password,
                     amount: randomLISK,
                     recipientId: Account2.address
                 })
@@ -170,7 +170,7 @@ describe("Transactions", function() {
                 .expect(200)
                 .end(function (err, res) {
                     console.log(JSON.stringify(res.body));
-                    console.log("We send the LISK from foundation account to account. Recipient is: " + Account2.address);
+                    console.log("We send the LISK from genesis account to account. Recipient is: " + Account2.address);
                     console.log("Sent to " + Account2.address + " " + (randomLISK / node.normalizer) + " LISK");
                     console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
                     node.expect(res.body).to.have.property("success").to.be.true;
@@ -180,7 +180,7 @@ describe("Transactions", function() {
                         totalTxFee += (expectedFee / node.normalizer);
                         Account2.balance += randomLISK;
                         transactionList[transactionCount - 1] = {
-                            "sender": node.Faccount.address,
+                            "sender": node.Gaccount.address,
                             "recipient": Account2.address,
                             "brutoSent": (randomLISK + expectedFee) / node.normalizer,
                             "fee": expectedFee / node.normalizer,
@@ -191,7 +191,7 @@ describe("Transactions", function() {
                     }
                     else{
                         console.log("Sending LISK to Account2 failed.");
-                        console.log("Sent: secret: " + node.Faccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
+                        console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -213,7 +213,7 @@ describe("Transactions", function() {
         describe("/transactions", function () {
             test = test + 1;
             it(test + ". Attempting to get transactions list. Expecting success", function (done) {
-                var senderId = node.Faccount.address, blockId = "", recipientId = Account1.address, limit = 10, offset = 0, orderBy = "t_amount:asc";
+                var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 10, offset = 0, orderBy = "t_amount:asc";
 
                 console.log(Account1);
                 console.log("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy);
@@ -243,7 +243,7 @@ describe("Transactions", function() {
 
             test = test + 1;
             it(test + ". Attempting to get transactions list. Invalid limit. Expecting error", function (done) {
-                var senderId = node.Faccount.address, blockId = "", recipientId = Account1.address, limit = 999999, offset = 0, orderBy = "t_amount:asc";
+                var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 999999, offset = 0, orderBy = "t_amount:asc";
 
                 node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
                     .set("Accept", "application/json")
@@ -330,7 +330,7 @@ describe("Transactions", function() {
 
             test = test + 1;
             it(test + ". Attempting to get transactions list. No limit. Expecting success", function (done) {
-                var senderId = node.Faccount.address, blockId = "", recipientId = Account1.address, offset = 0, orderBy = "t_amount:desc";
+                var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, offset = 0, orderBy = "t_amount:desc";
 
                 node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&offset=" + offset + "&orderBy=" + orderBy)
                     .set("Accept", "application/json")

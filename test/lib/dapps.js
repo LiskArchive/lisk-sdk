@@ -114,7 +114,7 @@ describe("Dapps", function() {
       node.api.put("/transactions")
         .set("Accept", "application/json")
         .send({
-          secret: node.Faccount.password,
+          secret: node.Gaccount.password,
           amount: randomLISK,
           recipientId: Account1.address
         })
@@ -131,7 +131,7 @@ describe("Dapps", function() {
           }
           else{
             console.log("Sending LISK to Account1 failed.");
-            console.log("Sent: secret: " + node.Faccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
+            console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
             node.expect("TEST").to.equal("FAILED");
           }
           done();
@@ -146,7 +146,7 @@ describe("Dapps", function() {
       node.api.put("/transactions")
         .set("Accept", "application/json")
         .send({
-          secret: node.Faccount.password,
+          secret: node.Gaccount.password,
           amount: randomLISK,
           recipientId: Account2.address
         })
@@ -154,7 +154,7 @@ describe("Dapps", function() {
         .expect(200)
         .end(function (err, res) {
           console.log(JSON.stringify(res.body));
-          console.log("We send the LISK from foundation account to account. Recipient is: " + Account2.address);
+          console.log("We send the LISK from genesis account to account. Recipient is: " + Account2.address);
           console.log("Sent to " + Account2.address + " " + (randomLISK / node.normalizer) + " LISK");
           console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
           node.expect(res.body).to.have.property("success").to.be.true;
@@ -164,7 +164,7 @@ describe("Dapps", function() {
             totalTxFee += (expectedFee / node.normalizer);
             Account2.balance += randomLISK;
             transactionList[transactionCount - 1] = {
-              "sender": node.Faccount.address,
+              "sender": node.Gaccount.address,
               "recipient": Account2.address,
               "brutoSent": (randomLISK + expectedFee) / node.normalizer,
               "fee": expectedFee / node.normalizer,
@@ -175,7 +175,7 @@ describe("Dapps", function() {
           }
           else{
             console.log("Sending LISK to Account2 failed.");
-            console.log("Sent: secret: " + node.Faccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
+            console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
             node.expect("TEST").to.equal("FAILED");
           }
           done();

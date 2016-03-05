@@ -85,12 +85,12 @@ var DappCategory = {
   "Games": 8
 };
 
-// Account info for foundation account - LISK > 1,000,000 | Needed for voting, registrations and Tx
-var Faccount = {
-  "address": "2334212999465599568C",
-  "publicKey": "631b91fa537f74e23addccd30555fbc7729ea267c7e0517cbf1bfcc46354abc3",
-  "password": "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",
-  "balance": 0
+// Account info for genesis account - Needed for voting, registrations and Tx
+var Gaccount = {
+  "address": "14837479272589364523L",
+  "publicKey": "3ed4d689ced148a97017e2f611b5c4aa28de1564a92fca8234d32290319dbdb3",
+  "password": "2GgPLLVtafukQWqCPgwRzpn9)irWCZZczkfrKYasG)RLTsvKDB",
+  "balance": 10000000000000000
 };
 
 // Random LISK Amount
@@ -306,7 +306,7 @@ module.exports = {
   expect: expect,
   version: version,
   LISK: LISK,
-  Faccount: Faccount,
+  Gaccount: Gaccount,
   Daccount: Daccount,
   Eaccount: Eaccount,
   TxTypes: TxTypes,

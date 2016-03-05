@@ -110,11 +110,11 @@ describe("Delegates", function() {
     describe("upVoting and downVoting",function() {
 
         before(function(done){
-            // Send random LISK amount from foundation account to Random account
+            // Send random LISK amount from genesis account to Random account
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
-                    secret: node.Faccount.password,
+                    secret: node.Gaccount.password,
                     amount: node.LISK,
                     recipientId: Raccount.address
                 })
@@ -130,7 +130,7 @@ describe("Delegates", function() {
                     }
                     else{
                         console.log("Transaction failed or transactionId is null");
-                        console.log("Sent: secret: " + node.Faccount.password + ", amount: " + node.LISK + ", recipientId: " + Raccount.address);
+                        console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + node.LISK + ", recipientId: " + Raccount.address);
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -702,7 +702,7 @@ describe("Delegates", function() {
 
         test += 1;
         it(test + ". We attempt to get list of delegates voted by specific address parameter. We expect success",function(done) {
-                node.api.get("/accounts/delegates?address=" + node.Faccount.address)
+                node.api.get("/accounts/delegates?address=" + node.Gaccount.address)
                     .set("Accept", "application/json")
                     .expect("Content-Type", /json/)
                     .expect(200)
