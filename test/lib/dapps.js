@@ -202,9 +202,9 @@ describe("Dapps", function() {
           done();
         });
     });
-    console.log("ACCOUNT 1:" + Account1);
-    console.log("ACCOUNT 2:" + Account2);
-    console.log("ACCOUNT 3:" + Account3);
+    console.log("ACCOUNT 1: " + Account1.address);
+    console.log("ACCOUNT 2: " + Account2.address);
+    console.log("ACCOUNT 3: " + Account3.address);
 
   });
 
