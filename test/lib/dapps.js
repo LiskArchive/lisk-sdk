@@ -220,7 +220,7 @@ describe("Dapps", function() {
             type: node.DappType.DAPP,
             name: node.randomDelegateName(),
             description: "A dapp that should not be added",
-            tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected",
+            tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
             git: node.DappGit.git,
             icon: node.DappGit.icon
           })
@@ -245,7 +245,7 @@ describe("Dapps", function() {
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected",
+          tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
           git: node.DappGit.git,
           icon: node.DappGit.icon
         })
@@ -268,7 +268,7 @@ describe("Dapps", function() {
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected",
+          tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
           git: node.DappGit.git,
           icon: node.DappGit.icon
         })
@@ -288,11 +288,10 @@ describe("Dapps", function() {
         .set("Accept", "application/json")
         .send({
           secret:Account1.password,
-          secondSecret:"",
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
-          description: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. N",
+          description: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c",
           git: node.DappGit.git,
           icon: node.DappGit.icon
         })
@@ -312,12 +311,11 @@ describe("Dapps", function() {
         .set("Accept", "application/json")
         .send({
           secret: Account1.password,
-          secondSecret:"",
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
           description: "A dapp that should not be added",
-          tags: "8JbbLqxZjWl7OFuhkGLSIHiCEiJeTEDMBhqyUVE9hT3g4nkzz3WtQUUU7AEEPfL6oxcDg3vceKoYBmuMo5vgJibIJ56t0D2Wu1j65BGKZTiZMI6t9tYujkWuX5K1ZGK5PLAsjDuCX",
+          tags: "develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist",
           git: node.DappGit.git,
           icon: node.DappGit.icon
         })
@@ -337,12 +335,13 @@ describe("Dapps", function() {
         .set("Accept", "application/json")
         .send({
           secret: Account1.password,
-          secondSecret: "",
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
-          name: node.randomDelegateName() + node.randomDelegateName + node.randomDelegateName,
+          name: "Lorem ipsum dolor sit amet, conse",
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected"
+          tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
+          git: node.DappGit.git,
+          icon: node.DappGit.icon
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -360,12 +359,11 @@ describe("Dapps", function() {
         .set("Accept", "application/json")
         .send({
           secret: Account1.password,
-          secondSecret: "",
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
           description: "A dapp that should not be added",
-          tags: "Invalid,Wrong,Incorrect,Shouldn't work,Error Expected"
+          tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -378,7 +376,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add Dapp. Invalid Fields. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Invalid Field type. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -409,8 +407,8 @@ describe("Dapps", function() {
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
-          description: "A GIT dapp which was added via API autotest",
-          tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
+          description: "A dapp that should not be added",
+          tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
           git: node.DappGit.git,
           icon: node.DappGit.icon
         })
@@ -429,12 +427,12 @@ describe("Dapps", function() {
         .set("Accept", "application/json")
         .send({
           secret: Account2.password,
-          secondSecret: Account2.secondPassword + "1",
+          secondSecret: null,
           category: node.randomProperty(node.DappCategory),
           type: node.DappType.DAPP,
           name: node.randomDelegateName(),
-          description: "A GIT dapp which was added via API autotest",
-          tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
+          description: "A dapp that should not be added",
+          tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
           git: node.DappGit.git,
           icon: node.DappGit.icon
         })
@@ -454,38 +452,14 @@ describe("Dapps", function() {
         .set("Accept", "application/json")
         .send({
           secret: Account1.password,
-          secondSecret:"",
+          secondSecret: null,
           category: node.randomProperty(node.DappCategory),
           type: "INVALIDTYPE",
           name: gitDappName,
-          description: "A GIT dapp which was added via API autotest",
-          tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
+          description: "A dapp that should not be added",
+          tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
           git: node.DappGit.git,
           icon: node.DappGit.icon
-        })
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          node.expect(res.body).to.have.property("success").to.be.false;
-          done();
-        });
-    });
-
-    test += 1;
-    it(test + ".Attempting to add DApp. Invalid Fields types. We expect error",function(done){
-      gitDappName = node.randomDelegateName();
-      node.api.put("/dapps")
-        .set("Accept", "application/json")
-        .send({
-          secret: Account1.password,
-          category: "Category",
-          type: "String",
-          name: 1234,
-          description: 1234,
-          tags: 1234,
-          git: 1234,
-          icon: 1234
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -507,8 +481,8 @@ describe("Dapps", function() {
             category: node.randomProperty(node.DappCategory),
             type: node.DappType.DAPP,
             name: gitDappName,
-            description: "A GIT dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
+            description: "A Git Dapp added via API autotest",
+            tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
             git: node.DappGit.git,
             icon: node.DappGit.icon
           })
@@ -533,9 +507,9 @@ describe("Dapps", function() {
             category: node.randomProperty(node.DappCategory),
             type: node.DappType.DAPP,
             name: gitDappName,
-            description: "A GIT dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
-            git: "1" + node.DappGit.git,
+            description: "A dapp that should not be added",
+            tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
+            git: node.DappGit.git,
             icon: node.DappGit.icon
           })
           .expect("Content-Type", /json/)
@@ -558,8 +532,8 @@ describe("Dapps", function() {
             category: node.randomProperty(node.DappCategory),
             type: node.DappType.DAPP,
             name: node.randomDelegateName(),
-            description: "A GIT dapp which was added via API autotest",
-            tags: "API, api, 123, A123, a123, !@##$, ~~~!@#$%^&&**(, ,, aPI, Api, �, ����",
+            description: "A dapp that should not be added",
+            tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
             git: node.DappGit.git,
             icon: node.DappGit.icon
           })
@@ -943,7 +917,8 @@ describe("Dapps", function() {
       node.api.post("/dapps/install")
         .set("Accept", "application/json")
         .send({
-          id: "DAPP ID"
+          id: "DAPP ID",
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -962,7 +937,8 @@ describe("Dapps", function() {
       node.api.post("/dapps/install")
         .set("Accept", "application/json")
         .send({
-          id: dappId
+          id: dappId,
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1109,6 +1085,7 @@ describe("Dapps", function() {
       node.api.post("/dapps/launch")
         .set("Accept", "application/json")
         .send({
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1121,12 +1098,13 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to launch DApp. Invalid Type. We expect error",function(done){
+    it(test + ".Attempting to launch DApp. Unknown ID. We expect error",function(done){
       var dappId = "HELLOW";
       node.api.post("/dapps/launch")
         .set("Accept", "application/json")
         .send({
-          id: dappId
+          id: dappId,
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1145,7 +1123,8 @@ describe("Dapps", function() {
       node.api.post("/dapps/launch")
         .set("Accept", "application/json")
         .send({
-          id: dappId
+          id: dappId,
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1201,12 +1180,13 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to stop DApp. Invalid Type. We expect error",function(done){
+    it(test + ".Attempting to stop DApp. Unknown ID. We expect error",function(done){
       var dappId = "HELLOW";
       node.api.post("/dapps/stop")
         .set("Accept", "application/json")
         .send({
-          id: dappId
+          id: dappId,
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1224,7 +1204,8 @@ describe("Dapps", function() {
       node.api.post("/dapps/stop")
         .set("Accept", "application/json")
         .send({
-          id: dappId
+          id: dappId,
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1264,6 +1245,8 @@ describe("Dapps", function() {
       node.api.post("/dapps/uninstall")
         .set("Accept", "application/json")
         .send({
+          id: null,
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1276,11 +1259,12 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to uninstall DApp. Invalid ID. We expect error",function(done){
+    it(test + ".Attempting to uninstall DApp. Unknown ID. We expect error",function(done){
       node.api.post("/dapps/uninstall")
         .set("Accept", "application/json")
         .send({
-          id: "DAPP ID"
+          id: "UNKNOWN_ID",
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1298,12 +1282,14 @@ describe("Dapps", function() {
       node.api.post("/dapps/uninstall")
         .set("Accept", "application/json")
         .send({
-          id: "15616498276233037701"
+          id: dappId,
+          master: node.config.dapp.masterpassword
         })
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
           console.log(JSON.stringify(res.body));
+          node.expect(res.body).to.have.property("success").to.be.true;
           done();
         });
     });
