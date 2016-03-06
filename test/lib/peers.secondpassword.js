@@ -6,7 +6,7 @@ var account2 = node.randomAccount();
 var account3 = node.randomAccount();
 
 describe("Peers second signature transactions", function () {
-  it("Send second signature from account that doesn"t have it. Should return not ok", function (done) {
+  it("Send second signature from account that doesn't have it. Should return not ok", function (done) {
     var transaction = node.lisk.transaction.createTransaction("1C", 1, node.peers_config.account, account.secondPassword);
     node.peer.post("/transactions")
       .set("Accept", "application/json")

@@ -59,7 +59,7 @@ describe("Peers usernames", function () {
           account.address = res.body.account.address;
         }
         else {
-          console.log("Couldn"t open account. Test failed");
+          console.log("Couldn't open account. Test failed");
           node.expect(true).to.equal(false);
           done();
         }

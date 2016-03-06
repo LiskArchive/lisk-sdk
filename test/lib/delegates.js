@@ -168,7 +168,7 @@ describe("Delegates", function() {
 
         test += 1;
         it(test + ". We attempt to upVote same delegate SEVERAL TIMES from random account. We expect error",function(done){
-            var votedDelegate = ""+" + node.Eaccount.publicKey + "","+" + node.Eaccount.publicKey + """;
+            var votedDelegate = "'+" + node.Eaccount.publicKey + "','+" + node.Eaccount.publicKey + "'";
             node.onNewBlock(function(err){
                 node.api.put("/accounts/delegates")
                     .set("Accept", "application/json")
@@ -192,7 +192,7 @@ describe("Delegates", function() {
 
         test += 1;
         it(test + ". We attempt to downVote same delegate SEVERAL TIMES from random account. We expect error",function(done){
-            var votedDelegate = ""-" + node.Eaccount.publicKey + "","-" + node.Eaccount.publicKey + """;
+            var votedDelegate = "'-" + node.Eaccount.publicKey + "','-" + node.Eaccount.publicKey + "'";
             node.onNewBlock(function(err){
                 node.api.put("/accounts/delegates")
                     .set("Accept", "application/json")
@@ -216,7 +216,7 @@ describe("Delegates", function() {
 
         test += 1;
         it(test + ". We attempt to upVote & downVote same delegate from random account in same request. We expect error",function(done){
-            var votedDelegate = ""+" + node.Eaccount.publicKey + "","-" + node.Eaccount.publicKey + """;
+            var votedDelegate = "'+" + node.Eaccount.publicKey + "','-" + node.Eaccount.publicKey + "'";
             node.onNewBlock(function(err){
                 node.api.put("/accounts/delegates")
                     .set("Accept", "application/json")
