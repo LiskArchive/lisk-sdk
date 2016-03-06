@@ -1,46 +1,4 @@
 {
-	"port": 7000,
-	"address": "127.0.0.1",
-	"serveHttpAPI": true,
-	"serveHttpWallet": true,
-	"version": "0.1.0",
-	"fileLogLevel": "log",
-	"consoleLogLevel": "log",
-	"sharePort": true,
-	"api": {
-		"access": {
-			"whiteList": []
-		}
-	},
-	"peers": {
-		"list": [
-		],
-		"blackList": [],
-		"options": {
-			"timeout": 1
-		}
-	},
-	"forging": {
-		"secret": [],
-		"access": {
-			"whiteList": [
-				"127.0.0.1"
-			]
-		}
-	},
-	"loading": {
-		"verifyOnLoading": true,
-		"loadPerIteration": 1000
-	},
-	"ssl": {
-		"enabled": false,
-		"options": {
-			"port": 443,
-			"address": "0.0.0.0",
-			"key": "path_to_key",
-			"cert": "path_to_cert"
-		}
-	},
 	"mocha": {
 		"peers": {
 			"account": "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",

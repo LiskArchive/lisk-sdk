@@ -1,55 +1,65 @@
 "use strict";
 
-// Requires and node configuration
+// Requires
 var _ = require("lodash"),
-    config = require("./config.json"),
     expect = require("chai").expect,
     chai = require("chai"),
     supertest = require("supertest"),
-    baseUrl = "http://" + config.address + ":" + config.port,
-    api = supertest(baseUrl + "/api"),
-    peer = supertest(baseUrl + "/peer"),
     async = require("async"),
     request = require("request");
+
+// Node configuration
+var config = require("../config.json"),
+    baseUrl = "http://" + config.address + ":" + config.port,
+    api = supertest(baseUrl + "/api"),
+    peer = supertest(baseUrl + "/peer");
+
+config.mocha = {
+  "peers": {
+    "account": "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",
+    "address": "2334212999465599568C",
+    "publicKey": "631b91fa537f74e23addccd30555fbc7729ea267c7e0517cbf1bfcc46354abc3"
+  }
+}
 
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
 var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-var version = "0.1.0" // Node version
+var version = "0.1.1" // Node version
 
 // Holds Fee amounts for different transaction types
 var Fees = {
-  voteFee : 100000000,
-  usernameFee : 10000000000,
-  followFee : 100000000,
-  transactionFee : 10000000,
-  secondPasswordFee : 10000000000,
-  delegateRegistrationFee : 10000000000,
-  multisignatureRegistrationFee : 500000000,
-  dappAddFee : 50000000000
+  voteFee: 100000000,
+  usernameFee: 10000000000,
+  followFee: 100000000,
+  transactionFee: 10000000,
+  secondPasswordFee: 10000000000,
+  delegateRegistrationFee: 10000000000,
+  multisignatureRegistrationFee: 500000000,
+  dappAddFee: 50000000000
 };
 
 var DappGit = {
-  icon:"http://orig07.deviantart.net/a7d7/f/2012/151/5/2/meme_me_encanta_png_by_agustifran-d51rxv9.png",
-  git: "git@github.com:LiskHQ/cryptipad.git"
+  icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png",
+  git: "https://github.com/MaxKK/guestbookDapp.git"
 };
 
 // Account info for delegate to register manually
 var Daccount = {
-  "address": "9946841100442405851C",
+  "address": "9946841100442405851L",
   "publicKey": "caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc",
   "password": "1234",
-  "secondPassword" : "12345",
+  "secondPassword": "12345",
   "balance": 0,
-  "delegateName":"sebastian",
-  "username":"bdevelle"
+  "delegateName": "sebastian",
+  "username": "bdevelle"
 };
 
 // Existing delegate account in blockchain
 var Eaccount = {
-  "address": "17604940945017291637C",
-  "publicKey": "f143730cbb5c42a9a02f183f8ee7b4b2ade158cb179b12777714edf27b4fcf3e",
-  "password": "GwRr0RlSi",
+  "address": "11210991311698004616L",
+  "publicKey": "9f7c5f9c5096c5de59a8514c64386960e3b7116938254a4359e104fc12227ff7",
+  "password": "Eta3SAounYFXxAeDcCmiQLKS1KKiuKxtD1xgEjE71FaVLxciSK",
   "balance": 0,
   "delegateName": "genesisDelegate100"
 };
@@ -235,7 +245,7 @@ function randomNumber(min, max) {
 
 // Calculates the expected fee from a transaction
 function expectedFee(amount) {
-  return parseInt(amount * Fees.transactionFee);
+  return parseInt(Fees.transactionFee);
 }
 
 // Used to create random usernames
