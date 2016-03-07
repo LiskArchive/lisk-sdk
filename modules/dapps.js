@@ -480,7 +480,7 @@ function DApp() {
 		}
 
 		if (trs.asset.dapp.tags && trs.asset.dapp.tags.length > 160) {
-			return setImmediate(cb, "Dapp has too many tags. Maximum is 160");
+			return setImmediate(cb, "Dapp tags is too long. Maximum is 160 characters");
 		}
 
 		if (trs.asset.dapp.tags) {
