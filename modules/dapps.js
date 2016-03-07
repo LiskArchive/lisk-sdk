@@ -353,7 +353,7 @@ function InTransfer() {
 		});
 
 		if (!report) {
-			throw Error("Can't verify dapp in transaction, incorrect parameters: " + library.scheme.getLastError());
+			throw Error("Unable to verify dapp transaction, incorrect parameters: " + library.scheme.getLastError());
 		}
 
 		return trs;
@@ -468,7 +468,7 @@ function DApp() {
 		}
 
 		if (!trs.asset.dapp.name || trs.asset.dapp.name.trim().length == 0 || trs.asset.dapp.name.trim() != trs.asset.dapp.name) {
-			return setImmediate(cb, "Missing dapp name");
+			return setImmediate(cb, "Dapp name can not be blank");
 		}
 
 		if (trs.asset.dapp.name.length > 32) {
@@ -492,7 +492,7 @@ function DApp() {
 
 			for (var i = 0; i < tags.length - 1; i++) {
 				if (tags[i + 1] == tags[i]) {
-					return setImmediate(cb, "Encountered duplicate tags: " + tags[i]);
+					return setImmediate(cb, "Encountered duplicated tag: " + tags[i]);
 				}
 			}
 		}
@@ -642,7 +642,7 @@ function DApp() {
 		});
 
 		if (!report) {
-			throw Error("Can't verify dapp new transaction, incorrect parameters: " + library.scheme.getLastError());
+			throw Error("Unable to verify dapp transaction, incorrect parameters: " + library.scheme.getLastError());
 		}
 
 		return trs;
@@ -981,19 +981,19 @@ private.attachApi = function () {
 			library.dbLite.query("CREATE VIRTUAL TABLE IF NOT EXISTS dapps_search USING fts4(content=dapps, name, description, tags)", function (err, rows) {
 				if (err) {
 					library.logger.error(err);
-					return res.json({success: false, error: "Sql error, check logs"});
+					return res.json({success: false, error: "Database error, check logs"});
 				} else {
 					// INSERT INTO t3(docid, b, c) SELECT id, b, c FROM t2;
 
 					library.dbLite.query("INSERT OR IGNORE INTO dapps_search(docid, name, description, tags) SELECT rowid, name, description, tags FROM dapps", function (err, rows) {
 						if (err) {
 							library.logger.error(err);
-							return res.json({success: false, error: "Sql error, check logs"})
+							return res.json({success: false, error: "Database error, check logs"})
 						} else {
 							library.dbLite.query("SELECT rowid FROM dapps_search WHERE dapps_search MATCH $q", {q: query.q + "*"}, ["rowid"], function (err, rows) {
 								if (err) {
 									library.logger.error(err);
-									return res.json({success: false, error: "Sql error, check logs"});
+									return res.json({success: false, error: "Database error, check logs"});
 								} else if (rows.length > 0) {
 									var categorySql = "";
 
@@ -1017,7 +1017,7 @@ private.attachApi = function () {
 									}, function (err, rows) {
 										if (err) {
 											library.logger.error(err);
-											return res.json({success: false, error: "Sql error, check logs"});
+											return res.json({success: false, error: "Database error, check logs"});
 										} else {
 											if (query.installed === null || typeof query.installed === 'undefined') {
 												return res.json({success: true, dapps: rows});
@@ -1026,7 +1026,7 @@ private.attachApi = function () {
 													if (err) {
 														return res.json({
 															success: false,
-															error: "Can't get installed dapps ids"
+															error: "Failed to obtain installed dapps ids"
 														});
 													}
 
@@ -1044,7 +1044,7 @@ private.attachApi = function () {
 													if (err) {
 														return res.json({
 															success: false,
-															error: "Can't get installed dapps ids to get uninstalled"
+															error: "Failed to obtain installed dapps ids"
 														});
 													}
 
@@ -1104,11 +1104,11 @@ private.attachApi = function () {
 					}
 
 					if (ids.indexOf(body.id) >= 0) {
-						return res.json({success: false, error: "This dapp already installed"});
+						return res.json({success: false, error: "Dapp is already installed"});
 					}
 
 					if (private.removing[body.id] || private.loading[body.id]) {
-						return res.json({success: false, error: "This DApp already on downloading/removing"});
+						return res.json({success: false, error: "Dapp is already being downloaded or uninstalled"});
 					}
 
 					private.loading[body.id] = true;
@@ -1133,7 +1133,7 @@ private.attachApi = function () {
 											private.loading[body.id] = false;
 											return res.json({
 												success: false,
-												error: "Can't install DApp dependencies, check logs"
+												error: "Failed to install dapp dependencies, check logs"
 											});
 										});
 									} else {
@@ -1160,7 +1160,7 @@ private.attachApi = function () {
 		private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
-				return res.json({success: false, error: "Can't get installed dapps id, see logs"});
+				return res.json({success: false, error: "Failed to obtain installed dapps id, see logs"});
 			}
 
 			if (files.length == 0) {
@@ -1170,7 +1170,7 @@ private.attachApi = function () {
 			private.getByIds(files, function (err, dapps) {
 				if (err) {
 					library.logger.error(err);
-					return res.json({success: false, error: "Can't get installed dapps, see logs"});
+					return res.json({success: false, error: "Failed to obtain installed dapps, see logs"});
 				}
 
 				return res.json({success: true, dapps: dapps});
@@ -1182,7 +1182,7 @@ private.attachApi = function () {
 		private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
-				return res.json({success: false, error: "Can't get installed dapps ids, see logs"});
+				return res.json({success: false, error: "Failed to obtain installed dapps ids, see logs"});
 			}
 
 			return res.json({success: true, ids: files});
@@ -1221,7 +1221,7 @@ private.attachApi = function () {
 				}
 
 				if (private.removing[body.id] || private.loading[body.id]) {
-					return res.json({success: true, error: "This DApp already on uninstall/loading"});
+					return res.json({success: true, error: "Dapp is already being downloaded or uninstalled"});
 				}
 
 				private.removing[body.id] = true;
@@ -1231,7 +1231,7 @@ private.attachApi = function () {
 					private.stop(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
-							return res.json({success: false, error: "Can't stop dapp, check logs"});
+							return res.json({success: false, error: "Failed to stop dapp, check logs"});
 						} else {
 							private.launched[body.id] = false;
 							private.removeDApp(dapp, function (err) {
@@ -1345,12 +1345,12 @@ private.attachApi = function () {
 			private.get(body.id, function (err, dapp) {
 				if (err) {
 					library.logger.error(err);
-					return res.json({success: false, error: "Can't find dapp"});
+					return res.json({success: false, error: "Failed to find dapp"});
 				} else {
 					private.stop(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
-							return res.json({success: false, error: "Can't stop dapp, check logs"});
+							return res.json({success: false, error: "Failed to stop dapp, check logs"});
 						} else {
 
 							library.network.io.sockets.emit('dapps/change', {});
@@ -1663,7 +1663,7 @@ private.apiHandler = function (message, callback) {
 		}
 
 		if (!modules[module].sandboxApi) {
-			return setImmediate(callback, "This module doesn't have sandbox api");
+			return setImmediate(callback, "Module does not have sandbox api");
 		}
 
 		modules[module].sandboxApi(call, {"body": message.args, "dappid": message.dappid}, callback);
@@ -1834,7 +1834,7 @@ private.launchApp = function (dApp, params, cb) {
 		try {
 			var blockchain = require(path.join(dappPath, "blockchain.json"));
 		} catch (e) {
-			return setImmediate(cb, "Failed to open blockchain.db file for: " + dapp.transactionId);
+			return setImmediate(cb, "Failed to open blockchain.json file for: " + dapp.transactionId);
 		}
 
 		modules.sql.createTables(dApp.transactionId, blockchain, function (err) {
