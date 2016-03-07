@@ -53,8 +53,6 @@
 		"strftime": "*",
 		"toposort": "~0.2.10",
 		"underscore": "https://github.com/LiskHQ/underscore/tarball/master",
-		"unzip": "*",
-		"unzip2": "^0.2.5",
 		"usage": "^0.6.0",
 		"util-extend": "*",
 		"valid-url": "^1.0.9",
