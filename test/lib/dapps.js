@@ -844,7 +844,7 @@ describe("Dapps", function() {
   describe("Get DApp By ID", function() {
 
     test += 1;
-    it(test + ". Get DApp by DApp ID. invalid ID. We expect error",function(done){
+    it(test + ". Get DApp by DApp ID. Unknown ID. We expect error",function(done){
       var dappId = "string";
       node.api.get("/dapps/get?id=" + dappId)
         .expect("Content-Type", /json/)
@@ -858,7 +858,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ". Get DApp by DApp ID. We do not send anything as ID parameter. We expect error",function(done){
+    it(test + ". Get DApp by DApp ID. No ID. We expect error",function(done){
       node.api.get("/dapps/get?id=")
         .expect("Content-Type", /json/)
         .expect(200)
@@ -871,7 +871,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ". Get DApp by DApp ID. valid ID. We expect success",function(done){
+    it(test + ". Get DApp by DApp ID. Valid ID. We expect success",function(done){
       var dappId = DappToInstall.transactionId;
       node.api.get("/dapps/get?id=" + dappId)
         .expect("Content-Type", /json/)
