@@ -1335,7 +1335,7 @@ private.attachApi = function () {
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
 			if (!private.launched[body.id]) {
-				return res.json({success: false, error: "DApp not launched"});
+				return res.json({success: false, error: "Dapp not launched"});
 			}
 
 			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
@@ -1379,7 +1379,7 @@ private.attachApi = function () {
 private.get = function (id, cb) {
 	library.dbLite.query("SELECT name, description, tags, git, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ['name', 'description', 'tags', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err || rows.length == 0) {
-			return setImmediate(cb, err ? "Database error" : "DApp not found");
+			return setImmediate(cb, err ? "Database error" : "Dapp not found");
 		}
 
 		return setImmediate(cb, null, rows[0]);
@@ -1393,7 +1393,7 @@ private.getByIds = function (ids, cb) {
 
 	library.dbLite.query("SELECT name, description, tags, git, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(',') + ")", {}, ['name', 'description', 'tags', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err) {
-			return setImmediate(cb, err ? "Database error" : "DApp not found");
+			return setImmediate(cb, err ? "Database error" : "Dapp not found");
 		}
 
 		return setImmediate(cb, null, rows);
