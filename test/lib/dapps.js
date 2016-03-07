@@ -208,10 +208,10 @@ describe("Dapps", function() {
 
   });
 
-  describe("Add DApp", function() {
+  describe("Add Dapp", function() {
     node.onNewBlock(function () {
       test += 1;
-      it(test + ".Attempting to add DApp. Invalid secret. We expect error", function (done) {
+      it(test + ".Attempting to add Dapp. Invalid secret. We expect error", function (done) {
         node.api.put("/dapps")
           .set("Accept", "application/json")
           .send({
@@ -236,7 +236,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Invalid Category. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Invalid Category. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -260,7 +260,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. No Dapp name. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. No Dapp name. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -283,7 +283,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Very long description. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Very long description. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -306,7 +306,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Very long tag. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Very long tag. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -330,7 +330,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Very long name. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Very long name. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -354,7 +354,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. NO GIT. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. NO GIT. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -399,7 +399,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Via GIT. 0 LISK account. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Via GIT. 0 LISK account. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -422,7 +422,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Via GIT. Invalid 2nd password. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Via GIT. Invalid 2nd password. We expect error",function(done){
       node.api.put("/dapps")
         .set("Accept", "application/json")
         .send({
@@ -446,7 +446,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Via GIT. Invalid Type. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Via GIT. Invalid Type. We expect error",function(done){
       gitDappName = node.randomDelegateName();
       node.api.put("/dapps")
         .set("Accept", "application/json")
@@ -471,7 +471,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Valid GIT. We expect success",function(done){
+    it(test + ".Attempting to add Dapp. Valid GIT. We expect success",function(done){
       node.onNewBlock(function () {
         gitDappName = node.randomDelegateName();
         node.api.put("/dapps")
@@ -498,7 +498,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Existing Dapp name (git). We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Existing Dapp name (git). We expect error",function(done){
       node.onNewBlock(function(err) {
         node.api.put("/dapps")
           .set("Accept", "application/json")
@@ -523,7 +523,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to add DApp. Existing GIT link. We expect error",function(done){
+    it(test + ".Attempting to add Dapp. Existing GIT link. We expect error",function(done){
       node.onNewBlock(function(err) {
         node.api.put("/dapps")
           .set("Accept", "application/json")
@@ -550,7 +550,7 @@ describe("Dapps", function() {
 
   });
 
-  describe("Get DApp", function() {
+  describe("Get Dapp", function() {
 
     test += 1;
     it(test + ". Get all Dapps. No limit. We expect success",function(done){
@@ -804,7 +804,7 @@ describe("Dapps", function() {
     test += 1;
     it(test + ". Get dapps using offset. We expect success",function(done){
       var offset = 1;
-      var secondDApp;
+      var secondDapp;
       node.api.get("/dapps")
         .expect("Content-Type", /json/)
         .expect(200)
@@ -814,7 +814,7 @@ describe("Dapps", function() {
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
             if (res.body.dapps[1] != null){
-              secondDApp = res.body.dapps[1];
+              secondDapp = res.body.dapps[1];
               console.log(offset);
               node.api.get("/dapps?offset=" + offset )
                 .expect("Content-Type", /json/)
@@ -823,7 +823,7 @@ describe("Dapps", function() {
                   console.log(JSON.stringify(res.body));
                   node.expect(res.body).to.have.property("success").to.be.true;
                   if (res.body.success == true && res.body.dapps != null){
-                    node.expect(res.body.dapps[0]).to.deep.equal(secondDApp);
+                    node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
                   }
                 });
             }
@@ -841,10 +841,10 @@ describe("Dapps", function() {
     });
   });
 
-  describe("Get DApp By ID", function() {
+  describe("Get Dapp By ID", function() {
 
     test += 1;
-    it(test + ". Get DApp by DApp ID. Unknown ID. We expect error",function(done){
+    it(test + ". Get Dapp by Dapp ID. Unknown ID. We expect error",function(done){
       var dappId = "string";
       node.api.get("/dapps/get?id=" + dappId)
         .expect("Content-Type", /json/)
@@ -858,7 +858,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ". Get DApp by DApp ID. No ID. We expect error",function(done){
+    it(test + ". Get Dapp by Dapp ID. No ID. We expect error",function(done){
       node.api.get("/dapps/get?id=")
         .expect("Content-Type", /json/)
         .expect(200)
@@ -871,7 +871,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ". Get DApp by DApp ID. Valid ID. We expect success",function(done){
+    it(test + ". Get Dapp by Dapp ID. Valid ID. We expect success",function(done){
       var dappId = DappToInstall.transactionId;
       node.api.get("/dapps/get?id=" + dappId)
         .expect("Content-Type", /json/)
@@ -893,10 +893,10 @@ describe("Dapps", function() {
 
   });
 
-  describe("Install DApp", function() {
+  describe("Install Dapp", function() {
 
     test += 1;
-    it(test + ".Attempting to install DApp. No ID. We expect error",function(done){
+    it(test + ".Attempting to install Dapp. No ID. We expect error",function(done){
       var dappId = DappToInstall.transactionId;
       node.api.post("/dapps/install")
         .set("Accept", "application/json")
@@ -913,7 +913,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to install DApp. Invalid Type. We expect error",function(done){
+    it(test + ".Attempting to install Dapp. Invalid Type. We expect error",function(done){
       node.api.post("/dapps/install")
         .set("Accept", "application/json")
         .send({
@@ -932,7 +932,7 @@ describe("Dapps", function() {
 
     // Not right test, dapp can be installed before you run this test
     test += 1;
-    it(test + ".Attempting to install DApp (and get InstallingID). Valid ID. We expect success",function(done){
+    it(test + ".Attempting to install Dapp (and get InstallingID). Valid ID. We expect success",function(done){
       var dappId = DappToInstall.transactionId;
       node.api.post("/dapps/install")
         .set("Accept", "application/json")
@@ -969,10 +969,10 @@ describe("Dapps", function() {
 
   });
 
-  describe("Get Installed DApps", function() {
+  describe("Get Installed Dapps", function() {
 
     test += 1;
-    it(test + ". Get all installed DApps. We expect success",function(done){
+    it(test + ". Get all installed Dapps. We expect success",function(done){
       var flag = 0;
       node.api.get("/dapps/installed")
         .expect("Content-Type", /json/)
@@ -1000,7 +1000,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ". Get all installed DApps IDs. We expect success",function(done){
+    it(test + ". Get all installed Dapps IDs. We expect success",function(done){
       var flag = 0;
       node.api.get("/dapps/installedIds")
         .expect("Content-Type", /json/)
@@ -1029,7 +1029,7 @@ describe("Dapps", function() {
 
   });
 
-  describe("Search DApps", function() {
+  describe("Search Dapps", function() {
 
     test += 1;
     it(test + ". Search Dapps. Invalid parameters. We expect error",function(done){
@@ -1077,10 +1077,10 @@ describe("Dapps", function() {
     });
   });
 
-  describe("Launch DApp and get Launched DApps", function() {
+  describe("Launch Dapp and get Launched Dapps", function() {
 
     test += 1;
-    it(test + ".Attempting to launch DApp. No ID. We expect error",function(done){
+    it(test + ".Attempting to launch Dapp. No ID. We expect error",function(done){
       var dappId = installedDapp.transactionId;
       node.api.post("/dapps/launch")
         .set("Accept", "application/json")
@@ -1098,7 +1098,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to launch DApp. Unknown ID. We expect error",function(done){
+    it(test + ".Attempting to launch Dapp. Unknown ID. We expect error",function(done){
       var dappId = "HELLOW";
       node.api.post("/dapps/launch")
         .set("Accept", "application/json")
@@ -1117,7 +1117,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to launch DApp. Valid ID. We expect success",function(done){
+    it(test + ".Attempting to launch Dapp. Valid ID. We expect success",function(done){
       var dappId = installedDapp.transactionId;
       console.log(dappId);
       node.api.post("/dapps/launch")
@@ -1160,10 +1160,10 @@ describe("Dapps", function() {
 
   });
 
-  describe("Stop DApp", function() {
+  describe("Stop Dapp", function() {
 
     test += 1;
-    it(test + ".Attempting to stop DApp. No ID. We expect error",function(done){
+    it(test + ".Attempting to stop Dapp. No ID. We expect error",function(done){
       var dappId = installedDapp.transactionId;
       node.api.post("/dapps/stop")
         .set("Accept", "application/json")
@@ -1180,7 +1180,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to stop DApp. Unknown ID. We expect error",function(done){
+    it(test + ".Attempting to stop Dapp. Unknown ID. We expect error",function(done){
       var dappId = "HELLOW";
       node.api.post("/dapps/stop")
         .set("Accept", "application/json")
@@ -1199,7 +1199,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to stop DApp. Valid ID. We expect success",function(done){
+    it(test + ".Attempting to stop Dapp. Valid ID. We expect success",function(done){
       var dappId = installedDapp.transactionId;
       node.api.post("/dapps/stop")
         .set("Accept", "application/json")
@@ -1218,10 +1218,10 @@ describe("Dapps", function() {
 
   });
 
-  describe("Get DApps Categories", function() {
+  describe("Get Dapps Categories", function() {
 
     test += 1;
-    it(test + ". Get DApps categories. We expect success",function(done){
+    it(test + ". Get Dapps categories. We expect success",function(done){
       node.api.get("/dapps/categories")
         .expect("Content-Type", /json/)
         .expect(200)
@@ -1238,10 +1238,10 @@ describe("Dapps", function() {
 
   });
 
-  describe("Uninstall DApp", function() {
+  describe("Uninstall Dapp", function() {
 
     test += 1;
-    it(test + ".Attempting to uninstall DApp. No ID. We expect error",function(done){
+    it(test + ".Attempting to uninstall Dapp. No ID. We expect error",function(done){
       node.api.post("/dapps/uninstall")
         .set("Accept", "application/json")
         .send({
@@ -1259,7 +1259,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to uninstall DApp. Unknown ID. We expect error",function(done){
+    it(test + ".Attempting to uninstall Dapp. Unknown ID. We expect error",function(done){
       node.api.post("/dapps/uninstall")
         .set("Accept", "application/json")
         .send({
@@ -1277,7 +1277,7 @@ describe("Dapps", function() {
     });
 
     test += 1;
-    it(test + ".Attempting to uninstall DApp (and get UninstallingID). Valid ID. We expect success", function(done) {
+    it(test + ".Attempting to uninstall Dapp (and get UninstallingID). Valid ID. We expect success", function(done) {
       var dappId = installedDapp.transactionId;
       node.api.post("/dapps/uninstall")
         .set("Accept", "application/json")
