@@ -39,9 +39,9 @@ var Fees = {
   dappAddFee: 50000000000
 };
 
-var DappGit = {
+var guestbookDapp = {
   icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png",
-  git: "https://github.com/MaxKK/guestbookDapp.git"
+	link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip"
 };
 
 // Account info for delegate to register manually
@@ -322,7 +322,7 @@ module.exports = {
   TxTypes: TxTypes,
   DappType: DappType,
   DappCategory: DappCategory,
-  DappGit: DappGit,
+  guestbookDapp: guestbookDapp,
   Fees: Fees,
   normalizer: normalizer,
   blockTime: blockTime,

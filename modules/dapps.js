@@ -4,7 +4,7 @@ var async = require('async'),
     TransactionTypes = require('../helpers/transaction-types.js'),
     ByteBuffer = require("bytebuffer"),
     fs = require('fs'),
-    gift = require('gift'),
+    request = require('request'),
     path = require('path'),
     npm = require('npm'),
     slots = require('../helpers/slots.js'),
@@ -401,7 +401,7 @@ function DApp() {
 			description: data.description,
 			tags: data.tags,
 			type: data.dapp_type,
-			git: data.git,
+			link: data.link,
 			icon: data.icon
 		};
 
@@ -457,18 +457,16 @@ function DApp() {
 			return setImmediate(cb, "Invalid dapp type");
 		}
 
-		if (trs.asset.dapp.git) {
-			if (!(/^(https:\/\/github\.com\/|git\@github\.com\:)(.+)(\.git)$/.test(trs.asset.dapp.git))) {
-				return setImmediate(cb, "Invalid github repository link");
-			}
+		if (!valid_url.isUri(trs.asset.dapp.link)) {
+			return setImmediate(cb, "Invalid dapp link");
 		}
 
-		if (!trs.asset.dapp.git) {
-			return setImmediate(cb, "Invalid dapp storage option");
+		if (trs.asset.dapp.link.indexOf('.zip') != trs.asset.dapp.link.length - 4) {
+			return setImmediate(cb, "Invalid dapp file type")
 		}
 
 		if (!trs.asset.dapp.name || trs.asset.dapp.name.trim().length == 0 || trs.asset.dapp.name.trim() != trs.asset.dapp.name) {
-			return setImmediate(cb, "Dapp name can not be blank");
+			return setImmediate(cb, "Dapp name must not be blank");
 		}
 
 		if (trs.asset.dapp.name.length > 32) {
@@ -520,8 +518,8 @@ function DApp() {
 				buf = Buffer.concat([buf, tagsBuf]);
 			}
 
-			if (trs.asset.dapp.git) {
-				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.git, 'utf8')]);
+			if (trs.asset.dapp.link) {
+				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.link, 'utf8')]);
 			}
 
 			if (trs.asset.dapp.icon) {
@@ -554,18 +552,18 @@ function DApp() {
 			return setImmediate(cb, "Dapp name already exists");
 		}
 
-		if (trs.asset.dapp.git && private.unconfirmedLinks[trs.asset.dapp.git]) {
-			return setImmediate(cb, "Git repository link already exists");
+		if (trs.asset.dapp.link && private.unconfirmedLinks[trs.asset.dapp.link]) {
+			return setImmediate(cb, "Dapp link already exists");
 		}
 
 		private.unconfirmedNames[trs.asset.dapp.name] = true;
-		private.unconfirmedLinks[trs.asset.dapp.git] = true;
+		private.unconfirmedLinks[trs.asset.dapp.link] = true;
 
-		library.dbLite.query("SELECT name, git FROM dapps WHERE (name = $name or git = $git) and transactionId != $transactionId", {
+		library.dbLite.query("SELECT name, link FROM dapps WHERE (name = $name or link = $link) and transactionId != $transactionId", {
 			name: trs.asset.dapp.name,
-			git: trs.asset.dapp.git || null,
+			link: trs.asset.dapp.link || null,
 			transactionId: trs.id
-		}, ['name', 'git'], function (err, rows) {
+		}, ['name', 'link'], function (err, rows) {
 			if (err) {
 				return setImmediate(cb, "Database error");
 			}
@@ -575,8 +573,8 @@ function DApp() {
 
 				if (dapp.name == trs.asset.dapp.name) {
 					return setImmediate(cb, "Dapp name already exists: " + dapp.name);
-				} else if (dapp.git == trs.asset.dapp.git) {
-					return setImmediate(cb, "Git repository link already exists: " + dapp.git);
+				} else if (dapp.link == trs.asset.dapp.link) {
+					return setImmediate(cb, "Dapp link already exists: " + dapp.link);
 				} else {
 					return setImmediate(cb, "Unknown error");
 				}
@@ -588,7 +586,7 @@ function DApp() {
 
 	this.undoUnconfirmed = function (trs, sender, cb) {
 		delete private.unconfirmedNames[trs.asset.dapp.name];
-		delete private.unconfirmedLinks[trs.asset.dapp.git];
+		delete private.unconfirmedLinks[trs.asset.dapp.link];
 
 		setImmediate(cb);
 	}
@@ -627,7 +625,7 @@ function DApp() {
 					type: "integer",
 					minimum: 0
 				},
-				git: {
+				link: {
 					type: "string",
 					minLength: 0,
 					maxLength: 2000
@@ -657,7 +655,7 @@ function DApp() {
 				description: raw.dapp_description,
 				tags: raw.dapp_tags,
 				type: raw.dapp_type,
-				git: raw.dapp_git,
+				link: raw.dapp_link,
 				category: raw.dapp_category,
 				icon: raw.dapp_icon
 			}
@@ -667,12 +665,12 @@ function DApp() {
 	}
 
 	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO dapps(type, name, description, tags, git, category, icon, transactionId) VALUES($type, $name, $description, $tags, $git, $category, $icon, $transactionId)", {
+		library.dbLite.query("INSERT INTO dapps(type, name, description, tags, link, category, icon, transactionId) VALUES($type, $name, $description, $tags, $link, $category, $icon, $transactionId)", {
 			type: trs.asset.dapp.type,
 			name: trs.asset.dapp.name,
 			description: trs.asset.dapp.description || null,
 			tags: trs.asset.dapp.tags || null,
-			git: trs.asset.dapp.git || null,
+			link: trs.asset.dapp.link || null,
 			icon: trs.asset.dapp.icon || null,
 			category: trs.asset.dapp.category,
 			transactionId: trs.id
@@ -795,7 +793,7 @@ private.attachApi = function () {
 					type: "integer",
 					minimum: 0
 				},
-				git: {
+				link: {
 					type: "string",
 					maxLength: 2000,
 					minLength: 1
@@ -852,7 +850,7 @@ private.attachApi = function () {
 							description: body.description,
 							tags: body.tags,
 							dapp_type: body.type,
-							git: body.git,
+							link: body.link,
 							icon: body.icon
 						});
 					} catch (e) {
@@ -887,7 +885,7 @@ private.attachApi = function () {
 					type: "integer",
 					minimum: 0
 				},
-				git: {
+				link: {
 					type: "string",
 					maxLength: 2000,
 					minLength: 1
@@ -1005,12 +1003,12 @@ private.attachApi = function () {
 										return row.rowid;
 									});
 
-									library.dbLite.query("SELECT transactionId, name, description, tags, git, type, category, icon FROM dapps WHERE rowid IN (" + rowids.join(',') + ")" + categorySql, {category: category}, {
+									library.dbLite.query("SELECT transactionId, name, description, tags, link, type, category, icon FROM dapps WHERE rowid IN (" + rowids.join(',') + ")" + categorySql, {category: category}, {
 										'transactionId': String,
 										'name': String,
 										'description': String,
 										'tags': String,
-										'git': String,
+										'link': String,
 										'type': Number,
 										'category': Number,
 										'icon': String
@@ -1113,7 +1111,7 @@ private.attachApi = function () {
 
 					private.loading[body.id] = true;
 
-					private.downloadDApp(dapp, function (err, dappPath) {
+					private.installDApp(dapp, function (err, dappPath) {
 						if (err) {
 							private.loading[body.id] = false;
 							return res.json({success: false, error: err});
@@ -1221,7 +1219,7 @@ private.attachApi = function () {
 				}
 
 				if (private.removing[body.id] || private.loading[body.id]) {
-					return res.json({success: true, error: "Dapp is already being downloaded or uninstalled"});
+					return res.json({success: true, error: "Dapp is already being installed / uninstalled"});
 				}
 
 				private.removing[body.id] = true;
@@ -1377,7 +1375,7 @@ private.attachApi = function () {
 
 // Private methods
 private.get = function (id, cb) {
-	library.dbLite.query("SELECT name, description, tags, git, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ['name', 'description', 'tags', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
+	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ['name', 'description', 'tags', 'link', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err || rows.length == 0) {
 			return setImmediate(cb, err ? "Database error" : "Dapp not found");
 		}
@@ -1391,7 +1389,7 @@ private.getByIds = function (ids, cb) {
 		ids[i] = "'" + ids[i] + "'";
 	}
 
-	library.dbLite.query("SELECT name, description, tags, git, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(',') + ")", {}, ['name', 'description', 'tags', 'git', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
+	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(',') + ")", {}, ['name', 'description', 'tags', 'link', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
 		if (err) {
 			return setImmediate(cb, err ? "Database error" : "Dapp not found");
 		}
@@ -1401,7 +1399,7 @@ private.getByIds = function (ids, cb) {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = ['type', 'name', 'category', 'git'];
+	var sortFields = ['type', 'name', 'category', 'link'];
 	var params = {}, fields = [];
 
 	if (filter.type >= 0) {
@@ -1423,9 +1421,9 @@ private.list = function (filter, cb) {
 			return setImmediate(cb, "Invalid dapp category");
 		}
 	}
-	if (filter.git) {
-		fields.push('git = $git');
-		params.git = filter.git;
+	if (filter.link) {
+		fields.push('link = $link');
+		params.link = filter.link;
 	}
 
 	if (!filter.limit && filter.limit != 0) {
@@ -1461,7 +1459,7 @@ private.list = function (filter, cb) {
 	}
 
 	// Need to fix 'or' or 'and' in query
-	library.dbLite.query("select name, description, tags, git, type, category, icon, transactionId " +
+	library.dbLite.query("select name, description, tags, link, type, category, icon, transactionId " +
 		"from dapps " +
 		(fields.length ? "where " + fields.join(' or ') + " " : "") +
 		(filter.orderBy ? 'order by ' + sortBy + ' ' + sortMethod : '') + " " +
@@ -1470,7 +1468,7 @@ private.list = function (filter, cb) {
 		name: String,
 		description: String,
 		tags: String,
-		git: String,
+		link: String,
 		type: Number,
 		category: Number,
 		icon: String,
@@ -1597,37 +1595,108 @@ private.removeDApp = function (dApp, cb) {
 	});
 }
 
-private.downloadDApp = function (dApp, cb) {
-	var dappPath = path.join(private.dappsPath, dApp.transactionId);
+private.downloadLink = function (dApp, dappPath, cb) {
+	var tmpDir = "tmp",
+	    tmpPath = path.join(private.appPath, tmpDir, dApp.transactionId + ".zip"),
+	    file = fs.createWriteStream(tmpPath);
 
-	fs.exists(dappPath, function (exists) {
-		if (exists) {
-			return setImmediate(cb, "Dapp is already installed");
-		} else {
-			fs.mkdir(dappPath, function (err) {
-				if (err) {
-					return setImmediate(cb, "Failed to create dapp folder for: " + dApp.transactionId);
-				}
-
-				if (dApp.git) {
-					// Fetch repo
-					gift.clone(dApp.git, dappPath, function (err, repo) {
+	async.series({
+		makeDirectory: function (serialCb) {
+			fs.exists(tmpDir, function (exists) {
+				if (exists) {
+					return serialCb(null);
+				} else {
+					fs.mkdir(tmpDir , function (err) {
 						if (err) {
-							library.logger.error(err.toString());
-
-							rmdir(dappPath, function (err) {
-								if (err) {
-									library.logger.error(err.toString());
-								}
-
-								return setImmediate(cb, "Error cloning git repository " + dApp.git + " at " + dApp.transactionId);
-							});
+							return serialCb("Failed to make tmp directory");
 						} else {
-							return setImmediate(cb, null, dappPath);
+							return serialCb(null);
 						}
 					});
 				}
 			});
+		},
+		performRequest: function (serialCb) {
+			var download = request.get(dApp.link, { timeout: 12000 });
+
+			download.on("response", function (response) {
+				if (response.statusCode !== 200) {
+					return serialCb("Received bad response code: " + response.statusCode);
+				}
+			});
+
+			download.on("error", function (err) {
+				fs.unlink(file);
+				return serialCb(err.message);
+			});
+
+			download.pipe(file);
+
+			file.on("finish", function () {
+				file.close(serialCb);
+			});
+		},
+		decompressZip: function (serialCb) {
+			var unzipper = new DecompressZip(tmpPath)
+
+			unzipper.on('error', function (err) {
+				fs.unlink(tmpPath);
+				fs.unlink(dappPath);
+				serialCb("Failed to decompress zip file: " + err);
+			});
+
+			unzipper.on('extract', function (log) {
+				library.logger.info(dApp.transactionId + " Finished extracting");
+				fs.unlink(tmpPath);
+				serialCb(null);
+			});
+
+			unzipper.on('progress', function (fileIndex, fileCount) {
+				library.logger.info(dApp.transactionId + " Extracted file " + (fileIndex + 1) + " of " + fileCount);
+			});
+
+			unzipper.extract({
+				path: dappPath,
+				strip: 1
+			});
+		}
+	},
+	function (err) {
+		return cb(err);
+	});
+}
+
+private.installDApp = function (dApp, cb) {
+	var dappPath = path.join(private.dappsPath, dApp.transactionId);
+
+	async.series({
+		checkInstalled: function (serialCb) {
+			fs.exists(dappPath, function (exists) {
+				if (exists) {
+					return serialCb("Dapp is already installed");
+				} else {
+					return serialCb(null);
+				}
+			});
+		},
+		makeDirectory: function (serialCb) {
+			fs.mkdir(dappPath, function (err) {
+				if (err) {
+					return serialCb("Failed to make dapp directory");
+				} else {
+					return serialCb(null);
+				}
+			});
+		},
+		performInstall: function (serialCb) {
+			return private.downloadLink(dApp, dappPath, serialCb);
+		}
+	},
+	function (err) {
+		if (err) {
+			return setImmediate(cb, "Failed to install dapp: " + dApp.transactionId + " ~> " + err);
+		} else {
+			return setImmediate(cb, null, dappPath);
 		}
 	});
 }
