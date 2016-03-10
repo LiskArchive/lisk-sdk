@@ -1386,7 +1386,7 @@ private.get = function (id, cb) {
 
 private.getByIds = function (ids, cb) {
 	for (var i = 0; i < ids.length; i++) {
-		ids[i] = """ + ids[i] + """;
+		ids[i] = "'" + ids[i] + "'";
 	}
 
 	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(",") + ")", {}, ["name", "description", "tags", "link", "type", "category", "icon", "transactionId"], function (err, rows) {
