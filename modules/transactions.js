@@ -440,7 +440,7 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	if (!sender && transaction.blockId != genesisblock.block.id) {
-		return cb("Invalid account");
+		return cb("Invalid block id");
 	} else {
 		if (transaction.requesterPublicKey) {
 			modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
@@ -782,7 +782,7 @@ shared.addTransactions = function (req, cb) {
 							return cb(err.toString());
 						}
 						if (!account || !account.publicKey) {
-							return cb("Invalid account");
+							return cb("Account not found");
 						}
 
 						if (account.secondSignature && !body.secondSecret) {

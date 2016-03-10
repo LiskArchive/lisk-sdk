@@ -1093,7 +1093,7 @@ shared.addDelegate = function (req, cb) {
 					}
 
 					if (!account || !account.publicKey) {
-						return cb("Invalid account");
+						return cb("Account not found");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {

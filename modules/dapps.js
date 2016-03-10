@@ -825,7 +825,7 @@ private.attachApi = function () {
 					}
 
 					if (!account || !account.publicKey) {
-						return cb("Invalid account");
+						return cb("Account not found");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
@@ -2086,7 +2086,7 @@ private.addTransactions = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb("Invalid account");
+						return cb("Account not found");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
@@ -2360,7 +2360,7 @@ shared.sendWithdrawal = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb("Invalid account");
+						return cb("Account not found");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {

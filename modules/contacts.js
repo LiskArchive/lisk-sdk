@@ -533,8 +533,8 @@ shared.addContact = function (req, cb) {
 						if (err) {
 							return cb(err.toString());
 						}
-						if (!account) {
-							return cb("Invalid account");
+						if (!account || !account.publicKey) {
+							return cb("Account not found");
 						}
 
 						if (account.secondSignature && !body.secondSecret) {
