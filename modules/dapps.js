@@ -1,24 +1,24 @@
-var async = require('async'),
-    dappTypes = require('../helpers/dappTypes.js'),
-    dappCategory = require('../helpers/dappCategory.js'),
-    TransactionTypes = require('../helpers/transaction-types.js'),
+var async = require("async"),
+    dappTypes = require("../helpers/dappTypes.js"),
+    dappCategory = require("../helpers/dappCategory.js"),
+    TransactionTypes = require("../helpers/transaction-types.js"),
     ByteBuffer = require("bytebuffer"),
-    fs = require('fs'),
-    request = require('request'),
-    path = require('path'),
-    npm = require('npm'),
-    slots = require('../helpers/slots.js'),
-    Router = require('../helpers/router.js'),
-    DecompressZip = require('decompress-zip'),
-    crypto = require('crypto'),
-    constants = require('../helpers/constants.js'),
+    fs = require("fs"),
+    request = require("request"),
+    path = require("path"),
+    npm = require("npm"),
+    slots = require("../helpers/slots.js"),
+    Router = require("../helpers/router.js"),
+    DecompressZip = require("decompress-zip"),
+    crypto = require("crypto"),
+    constants = require("../helpers/constants.js"),
     Sandbox = require("lisk-sandbox"),
-    ed = require('ed25519'),
-    rmdir = require('rimraf'),
-    extend = require('extend'),
-    ip = require('ip'),
-    valid_url = require('valid-url'),
-    sandboxHelper = require('../helpers/sandbox.js');
+    ed = require("ed25519"),
+    rmdir = require("rimraf"),
+    extend = require("extend"),
+    ip = require("ip"),
+    valid_url = require("valid-url"),
+    sandboxHelper = require("../helpers/sandbox.js");
 
 var modules, library, self, private = {}, shared = {};
 
@@ -29,7 +29,7 @@ private.unconfirmedNames = {};
 private.unconfirmedLinks = {};
 private.unconfirmedAscii = {};
 private.appPath = process.cwd();
-private.dappsPath = path.join(process.cwd(), 'dapps');
+private.dappsPath = path.join(process.cwd(), "dapps");
 private.sandboxes = {};
 private.dappready = {};
 private.routes = {};
@@ -75,7 +75,7 @@ function OutTransfer() {
 	this.process = function (trs, sender, cb) {
 		library.dbLite.query("SELECT count(*) FROM dapps WHERE transactionId=$id", {
 			id: trs.asset.outTransfer.dappId
-		}, ['count'], function (err, rows) {
+		}, ["count"], function (err, rows) {
 			if (err) {
 				library.logger.error(err.toString());
 				return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
@@ -93,7 +93,7 @@ function OutTransfer() {
 
 			library.dbLite.query("SELECT count(*) FROM outtransfer WHERE outTransactionId = $transactionId", {
 				transactionId: trs.asset.outTransfer.transactionId
-			}, {'count': Number}, function (err, rows) {
+			}, {"count": Number}, function (err, rows) {
 				if (err) {
 					library.logger.error(err.toString());
 					return cb("Transaction is already confirmed: " + trs.asset.outTransfer.transactionId);
@@ -113,8 +113,8 @@ function OutTransfer() {
 	this.getBytes = function (trs) {
 		try {
 			var buf = new Buffer([]);
-			var dappIdBuf = new Buffer(trs.asset.outTransfer.dappId, 'utf8');
-			var transactionIdBuff = new Buffer(trs.asset.outTransfer.transactionId, 'utf8');
+			var dappIdBuf = new Buffer(trs.asset.outTransfer.dappId, "utf8");
+			var transactionIdBuff = new Buffer(trs.asset.outTransfer.transactionId, "utf8");
 			buf = Buffer.concat([buf, dappIdBuf, transactionIdBuff]);
 		} catch (e) {
 			throw Error(e.toString());
@@ -266,7 +266,7 @@ function InTransfer() {
 
 		library.dbLite.query("SELECT count(*) FROM dapps WHERE transactionId=$id", {
 			id: trs.asset.inTransfer.dappId
-		}, ['count'], function (err, rows) {
+		}, ["count"], function (err, rows) {
 			if (err) {
 				library.logger.error(err.toString());
 				return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
@@ -289,7 +289,7 @@ function InTransfer() {
 	this.getBytes = function (trs) {
 		try {
 			var buf = new Buffer([]);
-			var nameBuf = new Buffer(trs.asset.inTransfer.dappId, 'utf8');
+			var nameBuf = new Buffer(trs.asset.inTransfer.dappId, "utf8");
 			buf = Buffer.concat([buf, nameBuf]);
 		} catch (e) {
 			throw Error(e.toString());
@@ -445,9 +445,9 @@ function DApp() {
 			var length = trs.asset.dapp.icon.length;
 
 			if (
-				trs.asset.dapp.icon.indexOf('.png') != length - 4 &&
-				trs.asset.dapp.icon.indexOf('.jpg') != length - 4 &&
-				trs.asset.dapp.icon.indexOf('.jpeg') != length - 5
+				trs.asset.dapp.icon.indexOf(".png") != length - 4 &&
+				trs.asset.dapp.icon.indexOf(".jpg") != length - 4 &&
+				trs.asset.dapp.icon.indexOf(".jpeg") != length - 5
 			) {
 				return setImmediate(cb, "Invalid icon file type")
 			}
@@ -461,7 +461,7 @@ function DApp() {
 			return setImmediate(cb, "Invalid dapp link");
 		}
 
-		if (trs.asset.dapp.link.indexOf('.zip') != trs.asset.dapp.link.length - 4) {
+		if (trs.asset.dapp.link.indexOf(".zip") != trs.asset.dapp.link.length - 4) {
 			return setImmediate(cb, "Invalid dapp file type")
 		}
 
@@ -482,7 +482,7 @@ function DApp() {
 		}
 
 		if (trs.asset.dapp.tags) {
-			var tags = trs.asset.dapp.tags.split(',');
+			var tags = trs.asset.dapp.tags.split(",");
 
 			tags = tags.map(function (tag) {
 				return tag.trim();
@@ -505,25 +505,25 @@ function DApp() {
 	this.getBytes = function (trs) {
 		try {
 			var buf = new Buffer([]);
-			var nameBuf = new Buffer(trs.asset.dapp.name, 'utf8');
+			var nameBuf = new Buffer(trs.asset.dapp.name, "utf8");
 			buf = Buffer.concat([buf, nameBuf]);
 
 			if (trs.asset.dapp.description) {
-				var descriptionBuf = new Buffer(trs.asset.dapp.description, 'utf8');
+				var descriptionBuf = new Buffer(trs.asset.dapp.description, "utf8");
 				buf = Buffer.concat([buf, descriptionBuf]);
 			}
 
 			if (trs.asset.dapp.tags) {
-				var tagsBuf = new Buffer(trs.asset.dapp.tags, 'utf8');
+				var tagsBuf = new Buffer(trs.asset.dapp.tags, "utf8");
 				buf = Buffer.concat([buf, tagsBuf]);
 			}
 
 			if (trs.asset.dapp.link) {
-				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.link, 'utf8')]);
+				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.link, "utf8")]);
 			}
 
 			if (trs.asset.dapp.icon) {
-				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.icon, 'utf8')]);
+				buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.icon, "utf8")]);
 			}
 
 			var bb = new ByteBuffer(4 + 4, true);
@@ -563,7 +563,7 @@ function DApp() {
 			name: trs.asset.dapp.name,
 			link: trs.asset.dapp.link || null,
 			transactionId: trs.id
-		}, ['name', 'link'], function (err, rows) {
+		}, ["name", "link"], function (err, rows) {
 			if (err) {
 				return setImmediate(cb, "Database error");
 			}
@@ -593,7 +593,7 @@ function DApp() {
 
 	this.objectNormalize = function (trs) {
 		for (var i in trs.asset.dapp) {
-			if (trs.asset.dapp[i] === null || typeof trs.asset.dapp[i] === 'undefined') {
+			if (trs.asset.dapp[i] === null || typeof trs.asset.dapp[i] === "undefined") {
 				delete trs.asset.dapp[i];
 			}
 		}
@@ -679,7 +679,7 @@ function DApp() {
 				return setImmediate(cb, err);
 			} else {
 				// Broadcast
-				library.network.io.sockets.emit('dapps/change', {});
+				library.network.io.sockets.emit("dapps/change", {});
 				return setImmediate(cb);
 			}
 		});
@@ -708,7 +708,7 @@ function DApps(cb, scope) {
 
 	private.attachApi();
 
-	process.on('exit', function () {
+	process.on("exit", function () {
 		var keys = Object.keys(private.launched);
 
 		async.eachSeries(keys, function (id, cb) {
@@ -726,9 +726,9 @@ function DApps(cb, scope) {
 		});
 	});
 
-	fs.exists(path.join('.', 'public', 'dapps'), function (exists) {
+	fs.exists(path.join(".", "public", "dapps"), function (exists) {
 		if (exists) {
-			rmdir(path.join('.', 'public', 'dapps'), function (err) {
+			rmdir(path.join(".", "public", "dapps"), function (err) {
 				if (err) {
 					library.logger.error(err);
 				}
@@ -754,7 +754,7 @@ private.attachApi = function () {
 		res.status(500).send({success: false, error: "Blockchain is loading"});
 	});
 
-	router.put('/', function (req, res, next) {
+	router.put("/", function (req, res, next) {
 		req.sanitize(req.body, {
 			type: "object",
 			properties: {
@@ -809,17 +809,17 @@ private.attachApi = function () {
 			if (err) return next(err);
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
-			var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+			var hash = crypto.createHash("sha256").update(body.secret, "utf8").digest();
 			var keypair = ed.MakeKeypair(hash);
 
 			if (body.publicKey) {
-				if (keypair.publicKey.toString('hex') != body.publicKey) {
+				if (keypair.publicKey.toString("hex") != body.publicKey) {
 					return res.json({success: false, error: "Invalid passphrase"});
 				}
 			}
 
 			library.balancesSequence.add(function (cb) {
-				modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				modules.accounts.getAccount({publicKey: keypair.publicKey.toString("hex")}, function (err, account) {
 					if (err) {
 						return cb("Database error");
 					}
@@ -835,7 +835,7 @@ private.attachApi = function () {
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash("sha256").update(body.secondSecret, "utf8").digest();
 						secondKeypair = ed.MakeKeypair(secondHash);
 					}
 
@@ -868,7 +868,7 @@ private.attachApi = function () {
 		});
 	});
 
-	router.get('/', function (req, res, next) {
+	router.get("/", function (req, res, next) {
 		req.sanitize(req.query, {
 			type: "object",
 			properties: {
@@ -922,12 +922,12 @@ private.attachApi = function () {
 		});
 	});
 
-	router.get('/get', function (req, res, next) {
+	router.get("/get", function (req, res, next) {
 		req.sanitize(req.query, {
 			type: "object",
 			properties: {
 				id: {
-					type: 'string',
+					type: "string",
 					minLength: 1
 				}
 			},
@@ -946,21 +946,21 @@ private.attachApi = function () {
 		});
 	});
 
-	router.get('/search', function (req, res, next) {
+	router.get("/search", function (req, res, next) {
 		req.sanitize(req.query, {
 			type: "object",
 			properties: {
 				q: {
-					type: 'string',
+					type: "string",
 					minLength: 1
 				},
 				category: {
-					type: 'integer',
+					type: "integer",
 					minimum: 0,
 					maximum: 8
 				},
 				installed: {
-					type: 'integer',
+					type: "integer",
 					minimum: 0,
 					maximum: 1
 				}
@@ -1003,21 +1003,21 @@ private.attachApi = function () {
 										return row.rowid;
 									});
 
-									library.dbLite.query("SELECT transactionId, name, description, tags, link, type, category, icon FROM dapps WHERE rowid IN (" + rowids.join(',') + ")" + categorySql, {category: category}, {
-										'transactionId': String,
-										'name': String,
-										'description': String,
-										'tags': String,
-										'link': String,
-										'type': Number,
-										'category': Number,
-										'icon': String
+									library.dbLite.query("SELECT transactionId, name, description, tags, link, type, category, icon FROM dapps WHERE rowid IN (" + rowids.join(",") + ")" + categorySql, {category: category}, {
+										"transactionId": String,
+										"name": String,
+										"description": String,
+										"tags": String,
+										"link": String,
+										"type": Number,
+										"category": Number,
+										"icon": String
 									}, function (err, rows) {
 										if (err) {
 											library.logger.error(err);
 											return res.json({success: false, error: "Database error, check logs"});
 										} else {
-											if (query.installed === null || typeof query.installed === 'undefined') {
+											if (query.installed === null || typeof query.installed === "undefined") {
 												return res.json({success: true, dapps: rows});
 											} else if (query.installed == 1) {
 												private.getInstalledIds(function (err, installed) {
@@ -1069,16 +1069,16 @@ private.attachApi = function () {
 		});
 	});
 
-	router.post('/install', function (req, res, next) {
+	router.post("/install", function (req, res, next) {
 		req.sanitize(req.body, {
 			type: "object",
 			properties: {
 				id: {
-					type: 'string',
+					type: "string",
 					minLength: 1
 				},
 				master: {
-					type: 'string',
+					type: "string",
 					minLength: 1
 				}
 			},
@@ -1135,14 +1135,14 @@ private.attachApi = function () {
 											});
 										});
 									} else {
-										library.network.io.sockets.emit('dapps/change', {});
+										library.network.io.sockets.emit("dapps/change", {});
 
 										private.loading[body.id] = false;
 										return res.json({success: true, path: dappPath});
 									}
 								})
 							} else {
-								library.network.io.sockets.emit('dapps/change', {});
+								library.network.io.sockets.emit("dapps/change", {});
 
 								private.loading[body.id] = false;
 								return res.json({success: true, path: dappPath});
@@ -1154,7 +1154,7 @@ private.attachApi = function () {
 		});
 	});
 
-	router.get('/installed', function (req, res, next) {
+	router.get("/installed", function (req, res, next) {
 		private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
@@ -1176,7 +1176,7 @@ private.attachApi = function () {
 		});
 	});
 
-	router.get('/installedIds', function (req, res, next) {
+	router.get("/installedIds", function (req, res, next) {
 		private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
@@ -1187,20 +1187,20 @@ private.attachApi = function () {
 		})
 	});
 
-	router.get('/ismasterpasswordenabled', function (req, res, next) {
+	router.get("/ismasterpasswordenabled", function (req, res, next) {
 		return res.json({success: true, enabled: !!library.config.dapp.masterpassword});
 	});
 
-	router.post('/uninstall', function (req, res, next) {
+	router.post("/uninstall", function (req, res, next) {
 		req.sanitize(req.body, {
 			type: "object",
 			properties: {
 				id: {
-					type: 'string',
+					type: "string",
 					minLength: 1
 				},
 				master: {
-					type: 'string',
+					type: "string",
 					minLength: 1
 				}
 			},
@@ -1238,7 +1238,7 @@ private.attachApi = function () {
 								if (err) {
 									return res.json({success: false, error: err});
 								} else {
-									library.network.io.sockets.emit('dapps/change', {});
+									library.network.io.sockets.emit("dapps/change", {});
 
 									return res.json({success: true});
 								}
@@ -1252,7 +1252,7 @@ private.attachApi = function () {
 						if (err) {
 							return res.json({success: false, error: err});
 						} else {
-							library.network.io.sockets.emit('dapps/change', {});
+							library.network.io.sockets.emit("dapps/change", {});
 
 							return res.json({success: true});
 						}
@@ -1262,7 +1262,7 @@ private.attachApi = function () {
 		});
 	});
 
-	router.post('/launch', function (req, res, next) {
+	router.post("/launch", function (req, res, next) {
 		if (library.config.dapp.masterpassword && req.body.master !== library.config.dapp.masterpassword) {
 			return res.json({success: false, error: "Incorrect master password"});
 		}
@@ -1272,12 +1272,12 @@ private.attachApi = function () {
 				return res.json({"success": false, "error": err});
 			}
 
-			library.network.io.sockets.emit('dapps/change', {});
+			library.network.io.sockets.emit("dapps/change", {});
 			res.json({"success": true});
 		});
 	});
 
-	router.get('/installing', function (req, res, next) {
+	router.get("/installing", function (req, res, next) {
 		var ids = [];
 		for (var i in private.loading) {
 			if (private.loading[i]) {
@@ -1288,7 +1288,7 @@ private.attachApi = function () {
 		return res.json({success: true, installing: ids});
 	});
 
-	router.get('/removing', function (req, res, next) {
+	router.get("/removing", function (req, res, next) {
 		var ids = [];
 		for (var i in private.removing) {
 			if (private.removing[i]) {
@@ -1299,7 +1299,7 @@ private.attachApi = function () {
 		return res.json({success: true, removing: ids});
 	});
 
-	router.get('/launched', function (req, res, next) {
+	router.get("/launched", function (req, res, next) {
 		var ids = [];
 		for (var i in private.launched) {
 			if (private.launched[i]) {
@@ -1310,16 +1310,16 @@ private.attachApi = function () {
 		return res.json({success: true, launched: ids});
 	});
 
-	router.get('/categories', function (req, res, next) {
+	router.get("/categories", function (req, res, next) {
 		return res.json({success: true, categories: dappCategory});
 	})
 
-	router.post('/stop', function (req, res, next) {
+	router.post("/stop", function (req, res, next) {
 		req.sanitize(req.body, {
 			type: "object",
 			properties: {
 				id: {
-					type: 'string',
+					type: "string",
 					minLength: 1
 				},
 				master: {
@@ -1351,7 +1351,7 @@ private.attachApi = function () {
 							return res.json({success: false, error: "Failed to stop dapp, check logs"});
 						} else {
 
-							library.network.io.sockets.emit('dapps/change', {});
+							library.network.io.sockets.emit("dapps/change", {});
 							private.launched[body.id] = false;
 							return res.json({success: true});
 						}
@@ -1365,7 +1365,7 @@ private.attachApi = function () {
 		"put /transaction": "addTransactions"
 	});
 
-	library.network.app.use('/api/dapps', router);
+	library.network.app.use("/api/dapps", router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
 		library.logger.error(req.url, err.toString());
@@ -1375,7 +1375,7 @@ private.attachApi = function () {
 
 // Private methods
 private.get = function (id, cb) {
-	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ['name', 'description', 'tags', 'link', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
+	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ["name", "description", "tags", "link", "type", "category", "icon", "transactionId"], function (err, rows) {
 		if (err || rows.length == 0) {
 			return setImmediate(cb, err ? "Database error" : "Dapp not found");
 		}
@@ -1386,10 +1386,10 @@ private.get = function (id, cb) {
 
 private.getByIds = function (ids, cb) {
 	for (var i = 0; i < ids.length; i++) {
-		ids[i] = "'" + ids[i] + "'";
+		ids[i] = """ + ids[i] + """;
 	}
 
-	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(',') + ")", {}, ['name', 'description', 'tags', 'link', 'type', 'category', 'icon', 'transactionId'], function (err, rows) {
+	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(",") + ")", {}, ["name", "description", "tags", "link", "type", "category", "icon", "transactionId"], function (err, rows) {
 		if (err) {
 			return setImmediate(cb, err ? "Database error" : "Dapp not found");
 		}
@@ -1399,30 +1399,30 @@ private.getByIds = function (ids, cb) {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = ['type', 'name', 'category', 'link'];
+	var sortFields = ["type", "name", "category", "link"];
 	var params = {}, fields = [];
 
 	if (filter.type >= 0) {
-		fields.push('type = $type');
+		fields.push("type = $type");
 		params.type = filter.type;
 	}
 
 	if (filter.name) {
-		fields.push('name = $name');
+		fields.push("name = $name");
 		params.name = filter.name;
 	}
 	if (filter.category) {
 		var category = dappCategory[filter.category];
 
 		if (category !== null && category !== undefined) {
-			fields.push('category = $category');
+			fields.push("category = $category");
 			params.category = category;
 		} else {
 			return setImmediate(cb, "Invalid dapp category");
 		}
 	}
 	if (filter.link) {
-		fields.push('link = $link');
+		fields.push("link = $link");
 		params.link = filter.link;
 	}
 
@@ -1443,10 +1443,10 @@ private.list = function (filter, cb) {
 	}
 
 	if (filter.orderBy) {
-		var sort = filter.orderBy.split(':');
-		var sortBy = sort[0].replace(/[^\w_]/gi, '');
+		var sort = filter.orderBy.split(":");
+		var sortBy = sort[0].replace(/[^\w_]/gi, "");
 		if (sort.length == 2) {
-			var sortMethod = sort[1] == 'desc' ? 'desc' : 'asc'
+			var sortMethod = sort[1] == "desc" ? "desc" : "asc"
 		} else {
 			sortMethod = "desc";
 		}
@@ -1458,13 +1458,13 @@ private.list = function (filter, cb) {
 		}
 	}
 
-	// Need to fix 'or' or 'and' in query
+	// Need to fix "or" or "and" in query
 	library.dbLite.query("select name, description, tags, link, type, category, icon, transactionId " +
 		"from dapps " +
-		(fields.length ? "where " + fields.join(' or ') + " " : "") +
-		(filter.orderBy ? 'order by ' + sortBy + ' ' + sortMethod : '') + " " +
-		(filter.limit ? 'limit $limit' : '') + " " +
-		(filter.offset ? 'offset $offset' : ''), params, {
+		(fields.length ? "where " + fields.join(" or ") + " " : "") +
+		(filter.orderBy ? "order by " + sortBy + " " + sortMethod : "") + " " +
+		(filter.limit ? "limit $limit" : "") + " " +
+		(filter.offset ? "offset $offset" : ""), params, {
 		name: String,
 		description: String,
 		tags: String,
@@ -1485,7 +1485,7 @@ private.list = function (filter, cb) {
 private.createBasePathes = function (cb) {
 	async.series([
 		function (cb) {
-			var iconsPath = path.join(library.public, 'images', 'dapps');
+			var iconsPath = path.join(library.public, "images", "dapps");
 			fs.exists(iconsPath, function (exists) {
 				if (exists) {
 					return setImmediate(cb);
@@ -1504,7 +1504,7 @@ private.createBasePathes = function (cb) {
 			});
 		},
 		function (cb) {
-			var dappsPublic = path.join(private.appPath, 'public', 'dapps')
+			var dappsPublic = path.join(private.appPath, "public", "dapps")
 			fs.exists(dappsPublic, function (exists) {
 				if (exists) {
 					return setImmediate(cb);
@@ -1580,7 +1580,7 @@ private.removeDApp = function (dapp, cb) {
 			return setImmediate(cb, "Dapp not found");
 		} else {
 			try {
-				var blockchain = require(path.join(dappPath, 'blockchain.json'));
+				var blockchain = require(path.join(dappPath, "blockchain.json"));
 			} catch (e) {
 				return remove(e.toString());
 			}
@@ -1639,19 +1639,19 @@ private.downloadLink = function (dapp, dappPath, cb) {
 		decompressZip: function (serialCb) {
 			var unzipper = new DecompressZip(tmpPath)
 
-			unzipper.on('error', function (err) {
+			unzipper.on("error", function (err) {
 				fs.unlink(tmpPath);
 				fs.unlink(dappPath);
 				serialCb("Failed to decompress zip file: " + err);
 			});
 
-			unzipper.on('extract', function (log) {
+			unzipper.on("extract", function (log) {
 				library.logger.info(dapp.transactionId + " Finished extracting");
 				fs.unlink(tmpPath);
 				serialCb(null);
 			});
 
-			unzipper.on('progress', function (fileIndex, fileCount) {
+			unzipper.on("progress", function (fileIndex, fileCount) {
 				library.logger.info(dapp.transactionId + " Extracted file " + (fileIndex + 1) + " of " + fileCount);
 			});
 
@@ -1724,7 +1724,7 @@ private.symlink = function (dapp, cb) {
 private.apiHandler = function (message, callback) {
 	// Get all modules
 	try {
-		var strs = message.call.split('#');
+		var strs = message.call.split("#");
 		var module = strs[0], call = strs[1];
 
 		if (!modules[module]) {
@@ -1773,7 +1773,7 @@ private.dappRoutes = function (dapp, cb) {
 				}
 			});
 
-			library.network.app.use('/api/dapps/' + dapp.transactionId + '/api/', private.routes[dapp.transactionId]);
+			library.network.app.use("/api/dapps/" + dapp.transactionId + "/api/", private.routes[dapp.transactionId]);
 			library.network.app.use(function (err, req, res, next) {
 				if (!err) return next();
 				library.logger.error(req.url, err.toString());
@@ -1796,7 +1796,7 @@ private.launch = function (body, cb) {
 				minLength: 1
 			},
 			id: {
-				type: 'string',
+				type: "string",
 				minLength: 1
 			},
 			master: {
@@ -1814,7 +1814,7 @@ private.launch = function (body, cb) {
 			return cb("Dapp already launched");
 		}
 
-		body.params = body.params || [''];
+		body.params = body.params || [""];
 
 		if (body.params.length > 0) {
 			body.params.push("modules.full.json");
@@ -1841,7 +1841,7 @@ private.launch = function (body, cb) {
 									library.logger.error(err);
 									return cb("Failed to create public link for: " + body.id);
 								} else {
-									private.launchApp(dapp, body.params || ['', "modules.full.json"], function (err) {
+									private.launchApp(dapp, body.params || ["", "modules.full.json"], function (err) {
 										if (err) {
 											private.launched[body.id] = false;
 											library.logger.error(err);
@@ -2009,11 +2009,11 @@ private.addTransactions = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash("sha256").update(body.secret, "utf8").digest();
 		var keypair = ed.MakeKeypair(hash);
 
 		if (body.publicKey) {
-			if (keypair.publicKey.toString('hex') != body.publicKey) {
+			if (keypair.publicKey.toString("hex") != body.publicKey) {
 				return cb("Invalid passphrase");
 			}
 		}
@@ -2021,7 +2021,7 @@ private.addTransactions = function (req, cb) {
 		var query = {};
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString('hex')) {
+			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString("hex")) {
 				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
 						return cb(err.toString());
@@ -2035,7 +2035,7 @@ private.addTransactions = function (req, cb) {
 						return cb("Account does not have multisignatures enabled");
 					}
 
-					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
+					if (account.multisignatures.indexOf(keypair.publicKey.toString("hex")) < 0) {
 						return cb("Account does not belong to multisignature group");
 					}
 
@@ -2059,7 +2059,7 @@ private.addTransactions = function (req, cb) {
 						var secondKeypair = null;
 
 						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash("sha256").update(body.secondSecret, "utf8").digest();
 							secondKeypair = ed.MakeKeypair(secondHash);
 						}
 
@@ -2081,7 +2081,7 @@ private.addTransactions = function (req, cb) {
 					});
 				});
 			} else {
-				modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				modules.accounts.getAccount({publicKey: keypair.publicKey.toString("hex")}, function (err, account) {
 					if (err) {
 						return cb(err.toString());
 					}
@@ -2096,7 +2096,7 @@ private.addTransactions = function (req, cb) {
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash("sha256").update(body.secondSecret, "utf8").digest();
 						secondKeypair = ed.MakeKeypair(secondHash);
 					}
 
@@ -2278,13 +2278,13 @@ shared.sendWithdrawal = function (req, cb) {
 				format: "publicKey"
 			}
 		},
-		required: ["secret", 'recipientId', "amount", "transactionId"]
+		required: ["secret", "recipientId", "amount", "transactionId"]
 	}, function (err) {
 		if (err) {
 			return cb(err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash("sha256").update(body.secret, "utf8").digest();
 		var keypair = ed.MakeKeypair(hash);
 		var query = {};
 
@@ -2294,7 +2294,7 @@ shared.sendWithdrawal = function (req, cb) {
 		}
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString('hex')) {
+			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString("hex")) {
 				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
 						return cb(err.toString());
@@ -2308,7 +2308,7 @@ shared.sendWithdrawal = function (req, cb) {
 						return cb("Account does not have multisignatures enabled");
 					}
 
-					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
+					if (account.multisignatures.indexOf(keypair.publicKey.toString("hex")) < 0) {
 						return cb("Account does not belong to multisignature group");
 					}
 
@@ -2332,7 +2332,7 @@ shared.sendWithdrawal = function (req, cb) {
 						var secondKeypair = null;
 
 						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash("sha256").update(body.secondSecret, "utf8").digest();
 							secondKeypair = ed.MakeKeypair(secondHash);
 						}
 
@@ -2355,7 +2355,7 @@ shared.sendWithdrawal = function (req, cb) {
 					});
 				});
 			} else {
-				modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				modules.accounts.getAccount({publicKey: keypair.publicKey.toString("hex")}, function (err, account) {
 					if (err) {
 						return cb(err.toString());
 					}
@@ -2370,7 +2370,7 @@ shared.sendWithdrawal = function (req, cb) {
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash("sha256").update(body.secondSecret, "utf8").digest();
 						secondKeypair = ed.MakeKeypair(secondHash);
 					}
 
