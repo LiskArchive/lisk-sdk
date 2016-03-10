@@ -1518,8 +1518,8 @@ private.createBasePathes = function (cb) {
 	});
 }
 
-private.installDependencies = function (dApp, cb) {
-	var dappPath = path.join(private.dappsPath, dApp.transactionId);
+private.installDependencies = function (dapp, cb) {
+	var dappPath = path.join(private.dappsPath, dapp.transactionId);
 
 	var packageJson = path.join(dappPath, "package.json");
 	var config = null;
@@ -1527,7 +1527,7 @@ private.installDependencies = function (dApp, cb) {
 	try {
 		config = JSON.parse(fs.readFileSync(packageJson));
 	} catch (e) {
-		return setImmediate(cb, "Failed to open package.json file for: " + dApp.transactionId);
+		return setImmediate(cb, "Failed to open package.json file for: " + dapp.transactionId);
 	}
 
 	npm.load(config, function (err) {
@@ -1558,8 +1558,8 @@ private.getInstalledIds = function (cb) {
 	});
 }
 
-private.removeDApp = function (dApp, cb) {
-	var dappPath = path.join(private.dappsPath, dApp.transactionId);
+private.removeDApp = function (dapp, cb) {
+	var dappPath = path.join(private.dappsPath, dapp.transactionId);
 
 	function remove(err) {
 		if (err) {
@@ -1585,7 +1585,7 @@ private.removeDApp = function (dApp, cb) {
 				return remove(e.toString());
 			}
 
-			modules.sql.dropTables(dApp.transactionId, blockchain, function (err) {
+			modules.sql.dropTables(dapp.transactionId, blockchain, function (err) {
 				if (err) {
 					library.logger.error("Failed to drop dapp tables: " + err);
 				}
@@ -1595,9 +1595,9 @@ private.removeDApp = function (dApp, cb) {
 	});
 }
 
-private.downloadLink = function (dApp, dappPath, cb) {
+private.downloadLink = function (dapp, dappPath, cb) {
 	var tmpDir = "tmp",
-	    tmpPath = path.join(private.appPath, tmpDir, dApp.transactionId + ".zip"),
+	    tmpPath = path.join(private.appPath, tmpDir, dapp.transactionId + ".zip"),
 	    file = fs.createWriteStream(tmpPath);
 
 	async.series({
@@ -1617,7 +1617,7 @@ private.downloadLink = function (dApp, dappPath, cb) {
 			});
 		},
 		performDownload: function (serialCb) {
-			var download = request.get(dApp.link, { timeout: 12000 });
+			var download = request.get(dapp.link, { timeout: 12000 });
 
 			download.on("response", function (response) {
 				if (response.statusCode !== 200) {
@@ -1646,13 +1646,13 @@ private.downloadLink = function (dApp, dappPath, cb) {
 			});
 
 			unzipper.on('extract', function (log) {
-				library.logger.info(dApp.transactionId + " Finished extracting");
+				library.logger.info(dapp.transactionId + " Finished extracting");
 				fs.unlink(tmpPath);
 				serialCb(null);
 			});
 
 			unzipper.on('progress', function (fileIndex, fileCount) {
-				library.logger.info(dApp.transactionId + " Extracted file " + (fileIndex + 1) + " of " + fileCount);
+				library.logger.info(dapp.transactionId + " Extracted file " + (fileIndex + 1) + " of " + fileCount);
 			});
 
 			unzipper.extract({
@@ -1666,8 +1666,8 @@ private.downloadLink = function (dApp, dappPath, cb) {
 	});
 }
 
-private.installDApp = function (dApp, cb) {
-	var dappPath = path.join(private.dappsPath, dApp.transactionId);
+private.installDApp = function (dapp, cb) {
+	var dappPath = path.join(private.dappsPath, dapp.transactionId);
 
 	async.series({
 		checkInstalled: function (serialCb) {
@@ -1689,22 +1689,22 @@ private.installDApp = function (dApp, cb) {
 			});
 		},
 		performInstall: function (serialCb) {
-			return private.downloadLink(dApp, dappPath, serialCb);
+			return private.downloadLink(dapp, dappPath, serialCb);
 		}
 	},
 	function (err) {
 		if (err) {
-			return setImmediate(cb, dApp.transactionId + " Installation failed: " + err);
+			return setImmediate(cb, dapp.transactionId + " Installation failed: " + err);
 		} else {
 			return setImmediate(cb, null, dappPath);
 		}
 	});
 }
 
-private.symlink = function (dApp, cb) {
-	var dappPath = path.join(private.dappsPath, dApp.transactionId);
+private.symlink = function (dapp, cb) {
+	var dappPath = path.join(private.dappsPath, dapp.transactionId);
 	var dappPublicPath = path.join(dappPath, "public");
-	var dappPublicLink = path.join(private.appPath, "public", "dapps", dApp.transactionId);
+	var dappPublicLink = path.join(private.appPath, "public", "dapps", dapp.transactionId);
 
 	fs.exists(dappPublicPath, function (exists) {
 		if (exists) {
@@ -1878,10 +1878,10 @@ private.launch = function (body, cb) {
 	});
 }
 
-private.launchApp = function (dApp, params, cb) {
-	var dappPath = path.join(private.dappsPath, dApp.transactionId);
+private.launchApp = function (dapp, params, cb) {
+	var dappPath = path.join(private.dappsPath, dapp.transactionId);
 	var dappPublicPath = path.join(dappPath, "public");
-	var dappPublicLink = path.join(private.appPath, "public", "dapps", dApp.transactionId);
+	var dappPublicLink = path.join(private.appPath, "public", "dapps", dapp.transactionId);
 
 	try {
 		var dappConfig = require(path.join(dappPath, "config.json"));
@@ -1894,7 +1894,7 @@ private.launchApp = function (dApp, params, cb) {
 		modules.peer.addDapp({
 			ip: ip.toLong(peer.ip),
 			port: peer.port,
-			dappid: dApp.transactionId
+			dappid: dapp.transactionId
 		}, cb);
 	}, function (err) {
 		if (err) {
@@ -1906,17 +1906,17 @@ private.launchApp = function (dApp, params, cb) {
 			return setImmediate(cb, "Failed to open blockchain.json file for: " + dapp.transactionId);
 		}
 
-		modules.sql.createTables(dApp.transactionId, blockchain, function (err) {
+		modules.sql.createTables(dapp.transactionId, blockchain, function (err) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
-			var sandbox = new Sandbox(path.join(dappPath, "index.js"), dApp.transactionId, params, private.apiHandler, true);
-			private.sandboxes[dApp.transactionId] = sandbox;
+			var sandbox = new Sandbox(path.join(dappPath, "index.js"), dapp.transactionId, params, private.apiHandler, true);
+			private.sandboxes[dapp.transactionId] = sandbox;
 
 			sandbox.on("exit", function () {
-				library.logger.info("Dapp " + dApp.transactionId + " closed ");
-				private.stop(dApp, function (err) {
+				library.logger.info("Dapp " + dapp.transactionId + " closed ");
+				private.stop(dapp, function (err) {
 					if (err) {
 						library.logger.error("Encountered error while stopping dapp: " + err);
 					}
@@ -1924,8 +1924,8 @@ private.launchApp = function (dApp, params, cb) {
 			});
 
 			sandbox.on("error", function (err) {
-				library.logger.info("Encountered error in dapp " + dApp.transactionId + " " + err.toString());
-				private.stop(dApp, function (err) {
+				library.logger.info("Encountered error in dapp " + dapp.transactionId + " " + err.toString());
+				private.stop(dapp, function (err) {
 					if (err) {
 						library.logger.error("Encountered error while stopping dapp: " + err);
 					}
@@ -1939,8 +1939,8 @@ private.launchApp = function (dApp, params, cb) {
 	});
 }
 
-private.stop = function (dApp, cb) {
-	var dappPublicLink = path.join(private.appPath, "public", "dapps", dApp.transactionId);
+private.stop = function (dapp, cb) {
+	var dappPublicLink = path.join(private.appPath, "public", "dapps", dapp.transactionId);
 
 	async.series([
 		function (cb) {
@@ -1953,16 +1953,16 @@ private.stop = function (dApp, cb) {
 			});
 		},
 		function (cb) {
-			if (private.sandboxes[dApp.transactionId]) {
-				private.sandboxes[dApp.transactionId].exit();
+			if (private.sandboxes[dapp.transactionId]) {
+				private.sandboxes[dapp.transactionId].exit();
 			}
 
-			delete private.sandboxes[dApp.transactionId];
+			delete private.sandboxes[dapp.transactionId];
 
 			setImmediate(cb)
 		},
 		function (cb) {
-			delete private.routes[dApp.transactionId];
+			delete private.routes[dapp.transactionId];
 			setImmediate(cb);
 		}
 	], function (err) {
