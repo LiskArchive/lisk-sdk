@@ -1616,7 +1616,7 @@ private.downloadLink = function (dApp, dappPath, cb) {
 				}
 			});
 		},
-		performRequest: function (serialCb) {
+		performDownload: function (serialCb) {
 			var download = request.get(dApp.link, { timeout: 12000 });
 
 			download.on("response", function (response) {
