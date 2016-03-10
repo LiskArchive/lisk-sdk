@@ -1343,7 +1343,7 @@ private.attachApi = function () {
 			private.get(body.id, function (err, dapp) {
 				if (err) {
 					library.logger.error(err);
-					return res.json({success: false, error: "Failed to find dapp"});
+					return res.json({success: false, error: "Dapp not found"});
 				} else {
 					private.stop(dapp, function (err) {
 						if (err) {
