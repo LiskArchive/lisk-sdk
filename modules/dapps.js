@@ -1694,7 +1694,7 @@ private.installDApp = function (dApp, cb) {
 	},
 	function (err) {
 		if (err) {
-			return setImmediate(cb, "Failed to install dapp: " + dApp.transactionId + " ~> " + err);
+			return setImmediate(cb, dApp.transactionId + " Installation failed: " + err);
 		} else {
 			return setImmediate(cb, null, dappPath);
 		}
