@@ -189,7 +189,7 @@ function OutTransfer() {
 		});
 
 		if (!report) {
-			throw Error("Can't verify dapp out transaction, incorrect parameters: " + library.scheme.getLastError());
+			throw Error("Unable to verify dapp out transaction, incorrect parameters: " + library.scheme.getLastError());
 		}
 
 		return trs;
