@@ -45,6 +45,15 @@ Install node modules:
 npm install
 ```
 
+Install Lisk Node, a specialized version of Node.js used to execute dapps within a virtual machine:
+
+```
+wget https://downloads.lisk.io/lisk-node.zip
+unzip lisk-node.zip
+```
+
+Lisk Node has to be in `[LISK_DIR]/nodejs/node`.
+
 Load git submodules ([lisk-ui](https://github.com/LiskHQ/lisk-ui) and [lisk-js](https://github.com/LiskHQ/lisk-js)):
 
 ```
