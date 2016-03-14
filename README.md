@@ -84,6 +84,14 @@ node app.js
 node app.js -p [port] -a [address] -c [config-path]
 ```
 
+## Passphrases
+
+The master passphrase for the genesis account is as follows: `2GgPLLVtafukQWqCPgwRzpn9)irWCZZczkfrKYasG)RLTsvKDB`
+
+This passphrase will grant you access to the entire initial supply, and can be used for development and testing of the network within a local environment.
+
+Additionally, all 101 genesis delegates are pre-configured for forging within the included:  [config.json](https://github.com/LiskHQ/lisk/blob/development/config.json#L22).
+
 ## Tests
 
 Before running any tests, please ensure Lisk is configured to run on a local testnet (this is the default), and not the mainnet.
