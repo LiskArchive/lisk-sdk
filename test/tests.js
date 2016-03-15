@@ -632,70 +632,524 @@ describe("Lisk JS", function () {
 				});
 			});
 		});
+	});
 
-		describe("signature.js", function () {
-			var signature = lisk.signature;
+	describe("signature.js", function () {
+		var signature = lisk.signature;
+		it("should be ok", function () {
+			(signature).should.be.ok;
+		});
+
+		it("should be object", function () {
+			(signature).should.be.type('object');
+		});
+
+		it("should have properties", function () {
+			(signature).should.have.property("createSignature");
+		});
+
+		describe("#createSignature", function () {
+			var createSignature = signature.createSignature;
+			var sgn = null;
+
+			it("should be function", function () {
+				(createSignature).should.be.type("function");
+			});
+
+			it("should create signature transaction", function () {
+				sgn = createSignature("secret", "second secret");
+				(sgn).should.be.ok;
+				(sgn).should.be.type('object');
+			});
+
+			describe("returned signature transaction", function () {
+				it("should have empty recipientId", function () {
+					(sgn).should.have.property('recipientId').equal(null);
+				});
+
+				it("should have amount equal 0", function () {
+					(sgn.amount).should.be.type('number').equal(0);
+				});
+
+				it("should have asset", function () {
+					(sgn.asset).should.be.type('object');
+					(sgn.asset).should.be.not.empty;
+				});
+
+				it("should have signature inside asset", function () {
+					(sgn.asset).should.have.property('signature');
+				});
+
+				describe("signature in transaction", function () {
+					it("should be ok", function () {
+						(sgn.asset.signature).should.be.ok;
+					})
+
+					it("should be object", function () {
+						(sgn.asset.signature).should.be.type('object');
+					});
+
+					it("should have publicKey property", function () {
+						(sgn.asset.signature).should.have.property('publicKey');
+					});
+
+					it("should have publicKey in hex", function () {
+						(sgn.asset.signature.publicKey).should.be.type('string').and.match(function () {
+							try {
+								new Buffer(sgn.asset.signature.publicKey);
+							} catch (e) {
+								return false;
+							}
+
+							return true;
+						});
+					});
+
+					it("should have publicKey in 32 bytes", function () {
+						var publicKey = new Buffer(sgn.asset.signature.publicKey, 'hex');
+						(publicKey.length).should.be.equal(32);
+					});
+				});
+			});
+		});
+	});
+
+	describe("slots.js", function () {
+		var slots = require("../lib/time/slots.js");
+
+		it("should be ok", function () {
+			(slots).should.be.ok;
+		});
+
+		it("should be object", function () {
+			(slots).should.be.type('object');
+		});
+
+		it("should have properties", function () {
+			var properties = ['interval', 'delegates', 'getTime', 'getRealTime', 'getSlotNumber', 'getSlotTime', 'getNextSlot', 'getLastSlot'];
+			properties.forEach(function (property) {
+				(slots).should.have.property(property);
+			});
+		});
+
+		describe(".interval", function () {
+			var interval = slots.interval;
+
 			it("should be ok", function () {
-				(signature).should.be.ok;
+				(interval).should.be.ok;
 			});
 
-			it("should be object", function () {
-				(signature).should.be.type('object');
+			it("should be number and not NaN", function () {
+				(interval).should.be.type('number').and.not.NaN;
+			});
+		});
+
+		describe(".delegates", function () {
+			var delegates = slots.delegates;
+
+			it("should be ok", function () {
+				(delegates).should.be.ok;
 			});
 
-			it("should have properties", function () {
-				(signature).should.have.property("createSignature");
+			it("should be number and not NaN", function () {
+				(delegates).should.be.type('number').and.not.NaN;
+			});
+		});
+
+		describe("#getTime", function () {
+			var getTime = slots.getTime;
+
+			it("should be ok", function () {
+				(getTime).should.be.ok;
 			});
 
-			describe("#createSignature", function () {
-				var createSignature = signature.createSignature;
-				var sgn = null;
+			it("should be a function", function () {
+				(getTime).should.be.type('function');
+			});
 
-				it("should be function", function () {
-					(createSignature).should.be.type("function");
+			it("should return epoch time as number, equal to 196144", function () {
+				var d = 1428733744000;
+				var time = getTime(d);
+				(time).should.be.ok;
+				(time).should.be.type('number').and.equal(196144);
+			});
+		});
+
+		describe("#getRealTime", function () {
+			var getRealTime = slots.getRealTime;
+
+			it("should be ok", function () {
+				(getRealTime).should.be.ok;
+			});
+
+			it("should be a function", function () {
+				(getRealTime).should.be.type('function');
+			});
+
+			it("should return return real time, convert 196144 to 1428733744000", function () {
+				var d = 196144;
+				var real = getRealTime(d);
+				(real).should.be.ok;
+				(real).should.be.type('number').and.equal(1428733744000);
+			});
+		});
+
+		describe("#getSlotNumber", function () {
+			var getSlotNumber = slots.getSlotNumber;
+
+			it("should be ok", function () {
+				(getSlotNumber).should.be.ok;
+			});
+
+			it("should be a function", function () {
+				(getSlotNumber).should.be.type('function');
+			});
+
+			it("should return slot number, equal to 19614", function () {
+				var d = 196144;
+				var slot = getSlotNumber(d);
+				(slot).should.be.ok;
+				(slot).should.be.type('number').and.equal(19614);
+			});
+		});
+
+		describe("#getSlotTime", function () {
+			var getSlotTime = slots.getSlotTime;
+
+			it("should be ok", function () {
+				(getSlotTime).should.be.ok;
+			});
+
+			it("should be function", function () {
+				(getSlotTime).should.be.type('function');
+			});
+
+			it("should return slot time number, equal to ", function () {
+				var slot = 19614;
+				var slotTime = getSlotTime(19614);
+				(slotTime).should.be.ok;
+				(slotTime).should.be.type('number').and.equal(196140);
+			});
+		});
+
+		describe("#getNextSlot", function () {
+			var getNextSlot = slots.getNextSlot;
+
+			it("should be ok", function () {
+				(getNextSlot).should.be.ok;
+			});
+
+			it("should be function", function () {
+				(getNextSlot).should.be.type('function');
+			});
+
+			it("should return next slot number", function () {
+				var nextSlot = getNextSlot();
+				(nextSlot).should.be.ok;
+				(nextSlot).should.be.type('number').and.not.NaN;
+			});
+		});
+
+		describe("#getLastSlot", function () {
+			var getLastSlot = slots.getLastSlot;
+
+			it("should be ok", function () {
+				(getLastSlot).should.be.ok;
+			});
+
+			it("should be function", function () {
+				(getLastSlot).should.be.type('function');
+			});
+
+			it("should return last slot number", function () {
+				var lastSlot = getLastSlot(slots.getNextSlot());
+				(lastSlot).should.be.ok;
+				(lastSlot).should.be.type('number').and.not.NaN;
+			});
+		});
+	});
+
+	describe("delegate.js", function () {
+		var delegate = lisk.delegate;
+
+		it("should be ok", function () {
+			(delegate).should.be.ok;
+		});
+
+		it("should be function", function () {
+			(delegate).should.be.type('object');
+		});
+
+		it("should have property createDelegate", function () {
+			(delegate).should.have.property("createDelegate");
+		});
+
+		describe("#createDelegate", function () {
+			var createDelegate = delegate.createDelegate;
+			var dlg = null;
+
+			it("should be ok", function () {
+				(createDelegate).should.be.ok;
+			});
+
+			it("should be function", function () {
+				(createDelegate).should.be.type('function');
+			});
+
+			it("should create delegate", function () {
+				dlg = createDelegate("secret", "delegate", "secret 2");
+			});
+
+			describe("returned delegate", function () {
+				var keys = lisk.crypto.getKeys("secret");
+				var secondKeys = lisk.crypto.getKeys("secret 2");
+
+				it("should be ok", function () {
+					(dlg).should.be.ok;
 				});
 
-				it("should create signature transaction", function () {
-					sgn = createSignature("secret", "second secret");
-					(sgn).should.be.ok;
-					(sgn).should.be.type('object');
+				it("should be object", function () {
+					(dlg).should.be.type('object');
 				});
 
-				describe("returned signature transaction", function () {
-					it("should have empty recipientId", function () {
-						(sgn).should.have.property('recipientId').equal(null);
+				it("should have recipientId equal null", function () {
+					(dlg).should.have.property('recipientId').and.type('object').and.be.empty;
+				})
+
+				it("shoud have amount equal 0", function () {
+					(dlg).should.have.property('amount').and.type('number').and.equal(0);
+				})
+
+				it("should have type equal 0", function () {
+					(dlg).should.have.property('type').and.type('number').and.equal(2);
+				});
+
+				it("should have timestamp number", function () {
+					(dlg).should.have.property('timestamp').and.type('number');
+				});
+
+				it("should have senderPublicKey in hex", function () {
+					(dlg).should.have.property('senderPublicKey').and.type('string').and.match(function () {
+						try {
+							new Buffer(dlg.senderPublicKey, 'hex');
+						} catch (e) {
+							return false;
+						}
+
+						return true;
+					}).and.equal(keys.publicKey);
+				});
+
+				it("should have signature in hex", function () {
+					(dlg).should.have.property('signature').and.type('string').and.match(function () {
+						try {
+							new Buffer(dlg.signature, 'hex');
+						} catch (e) {
+							return false;
+						}
+
+						return true;
+					});
+				});
+
+				it("should have second signature in hex", function () {
+					(dlg).should.have.property('signSignature').and.type('string').and.match(function () {
+						try {
+							new Buffer(dlg.signSignature, 'hex');
+						} catch (e) {
+							return false;
+						}
+
+						return true;
+					});
+				});
+
+				it("should have delegate asset", function () {
+					(dlg).should.have.property('asset').and.type('object').and.not.empty.and.have.property('delegate');
+				})
+
+				it("should be signed correctly", function () {
+					var result = lisk.crypto.verify(dlg, keys.publicKey);
+					(result).should.be.ok;
+				});
+
+				it("should be second signed correctly", function () {
+					var result = lisk.crypto.verifySecondSignature(dlg, secondKeys.publicKey);
+					(result).should.be.ok;
+				});
+
+
+				it("should be signed not correctly right now", function () {
+					dlg.amount = 100;
+					var result = lisk.crypto.verify(dlg, keys.publicKey);
+					(result).should.be.not.ok;
+				});
+
+				it("should be second signed not correctly right now", function () {
+					dlg.amount = 100;
+					var result = lisk.crypto.verify(dlg, secondKeys.publicKey);
+					(result).should.be.not.ok;
+				});
+
+				describe("delegate asset", function () {
+					it("should be ok", function () {
+						(dlg.asset.delegate).should.be.ok;
 					});
 
-					it("should have amount equal 0", function () {
-						(sgn.amount).should.be.type('number').equal(0);
+					it("should be object", function () {
+						(dlg.asset.delegate).should.be.type('object');
 					});
 
-					it("should have asset", function () {
-						(sgn.asset).should.be.type('object');
-						(sgn.asset).should.be.not.empty;
+					it("should be have property username", function () {
+						(dlg.asset.delegate).should.have.property('username').and.be.type('string').and.equal('delegate');
+					});
+				});
+			});
+		});
+	});
+
+	describe("vote.js", function () {
+		var vote = lisk.vote;
+
+		it("should be ok", function () {
+			(vote).should.be.ok;
+		});
+
+		it("should be object", function () {
+			(vote).should.be.type('object');
+		});
+
+		it("should have createVote property", function () {
+			(vote).should.have.property('createVote');
+		});
+
+		describe("#createVote", function () {
+			var createVote = vote.createVote,
+				vt = null,
+				publicKey = lisk.crypto.getKeys("secret").publicKey,
+				publicKeys = ["+" + publicKey];
+
+			it("should be ok", function () {
+				(createVote).should.be.ok;
+			});
+
+			it("should be function", function () {
+				(createVote).should.be.type('function');
+			});
+
+			it("should create vote", function () {
+				vt = createVote("secret", publicKeys, "second secret");
+			});
+
+			describe("created vote", function () {
+				it("should be ok", function () {
+					(vt).should.be.ok;
+				});
+
+				it("should be object", function () {
+					(vt).should.be.type('object');
+				});
+
+				it("should have recipientId string equal to sender", function () {
+					(vt).should.have.property('recipientId').and.be.type('string').and.equal(lisk.crypto.getAddress(publicKey))
+				});
+
+				it("should have amount number eaul to 0", function () {
+					(vt).should.have.property('amount').and.be.type('number').and.equal(0);
+				});
+
+				it("should have type number equal to 3", function () {
+					(vt).should.have.property('type').and.be.type('number').and.equal(3);
+				});
+
+				it("should have timestamp number", function () {
+					(vt).should.have.property('timestamp').and.be.type('number');
+				});
+
+				it("should have senderPublicKey hex string equal to sender public key", function () {
+					(vt).should.have.property('senderPublicKey').and.be.type('string').and.match(function () {
+						try {
+							new Buffer(vt.senderPublicKey, 'hex');
+						} catch (e) {
+							return false;
+						}
+
+						return true;
+					}).and.equal(publicKey);
+				});
+
+				it("should have signature hex string", function () {
+					(vt).should.have.property("signature").and.be.type('string').and.match(function () {
+						try {
+							new Buffer(vt.signature, 'hex');
+						} catch (e) {
+							return false;
+						}
+
+						return true;
+					});
+				});
+
+				it("should have second signature hex string", function () {
+					(vt).should.have.property("signSignature").and.be.type('string').and.match(function () {
+						try {
+							new Buffer(vt.signSignature, 'hex');
+						} catch (e) {
+							return false;
+						}
+
+						return true;
+					});
+				});
+
+				it("should be signed correctly", function () {
+					var result = lisk.crypto.verify(vt);
+					(result).should.be.ok;
+				});
+
+				it("should be signed second signature correctly", function () {
+					var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys("second secret").publicKey);
+					(result).should.be.ok;
+				});
+
+				it("should be signed not correctly right now", function () {
+					vt.amount = 100;
+					var result = lisk.crypto.verify(vt);
+					(result).should.be.not.ok;
+				});
+
+				it("should be signed second signature not correctly right now", function () {
+					vt.amount = 100;
+					var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys("second secret").publicKey);
+					(result).should.be.not.ok;
+				});
+
+				it("should have asset", function () {
+					(vt).should.have.property("asset").and.not.empty;
+				});
+
+				describe("vote asset", function () {
+					it("should be ok", function () {
+						(vt.asset).should.have.property('votes').and.be.ok;
 					});
 
-					it("should have signature inside asset", function () {
-						(sgn.asset).should.have.property('signature');
+					it("should be object", function () {
+						(vt.asset.votes).should.be.type('object');
 					});
 
-					describe("signature in transaction", function () {
-						it("should be ok", function () {
-							(sgn.asset.signature).should.be.ok;
-						})
+					it("should be not empty", function () {
+						(vt.asset.votes).should.be.not.empty;
+					});
 
-						it("should be object", function () {
-							(sgn.asset.signature).should.be.type('object');
-						});
+					it("should contains one element", function () {
+						(vt.asset.votes.length).should.be.equal(1);
+					});
 
-						it("should have publicKey property", function () {
-							(sgn.asset.signature).should.have.property('publicKey');
-						});
-
-						it("should have publicKey in hex", function () {
-							(sgn.asset.signature.publicKey).should.be.type('string').and.match(function () {
+					it("should have public keys in hex", function () {
+						vt.asset.votes.forEach(function (v) {
+							(v).should.be.type('string').startWith("+").and.match(function () {
 								try {
-									new Buffer(sgn.asset.signature.publicKey);
+									new Buffer(v.substring(1, v.length), 'hex');
 								} catch (e) {
 									return false;
 								}
@@ -703,468 +1157,15 @@ describe("Lisk JS", function () {
 								return true;
 							});
 						});
-
-						it("should have publicKey in 32 bytes", function () {
-							var publicKey = new Buffer(sgn.asset.signature.publicKey, 'hex');
-							(publicKey.length).should.be.equal(32);
-						});
-					});
-				});
-			});
-		});
-
-		describe("slots.js", function () {
-			var slots = require("../lib/time/slots.js");
-
-			it("should be ok", function () {
-				(slots).should.be.ok;
-			});
-
-			it("should be object", function () {
-				(slots).should.be.type('object');
-			});
-
-			it("should have properties", function () {
-				var properties = ['interval', 'delegates', 'getTime', 'getRealTime', 'getSlotNumber', 'getSlotTime', 'getNextSlot', 'getLastSlot'];
-				properties.forEach(function (property) {
-					(slots).should.have.property(property);
-				});
-			});
-
-			describe(".interval", function () {
-				var interval = slots.interval;
-
-				it("should be ok", function () {
-					(interval).should.be.ok;
-				});
-
-				it("should be number and not NaN", function () {
-					(interval).should.be.type('number').and.not.NaN;
-				});
-			});
-
-			describe(".delegates", function () {
-				var delegates = slots.delegates;
-
-				it("should be ok", function () {
-					(delegates).should.be.ok;
-				});
-
-				it("should be number and not NaN", function () {
-					(delegates).should.be.type('number').and.not.NaN;
-				});
-			});
-
-			describe("#getTime", function () {
-				var getTime = slots.getTime;
-
-				it("should be ok", function () {
-					(getTime).should.be.ok;
-				});
-
-				it("should be a function", function () {
-					(getTime).should.be.type('function');
-				});
-
-				it("should return epoch time as number, equal to 196144", function () {
-					var d = 1428733744000;
-					var time = getTime(d);
-					(time).should.be.ok;
-					(time).should.be.type('number').and.equal(196144);
-				});
-			});
-
-			describe("#getRealTime", function () {
-				var getRealTime = slots.getRealTime;
-
-				it("should be ok", function () {
-					(getRealTime).should.be.ok;
-				});
-
-				it("should be a function", function () {
-					(getRealTime).should.be.type('function');
-				});
-
-				it("should return return real time, convert 196144 to 1428733744000", function () {
-					var d = 196144;
-					var real = getRealTime(d);
-					(real).should.be.ok;
-					(real).should.be.type('number').and.equal(1428733744000);
-				});
-			});
-
-			describe("#getSlotNumber", function () {
-				var getSlotNumber = slots.getSlotNumber;
-
-				it("should be ok", function () {
-					(getSlotNumber).should.be.ok;
-				});
-
-				it("should be a function", function () {
-					(getSlotNumber).should.be.type('function');
-				});
-
-				it("should return slot number, equal to 19614", function () {
-					var d = 196144;
-					var slot = getSlotNumber(d);
-					(slot).should.be.ok;
-					(slot).should.be.type('number').and.equal(19614);
-				});
-			});
-
-			describe("#getSlotTime", function () {
-				var getSlotTime = slots.getSlotTime;
-
-				it("should be ok", function () {
-					(getSlotTime).should.be.ok;
-				});
-
-				it("should be function", function () {
-					(getSlotTime).should.be.type('function');
-				});
-
-				it("should return slot time number, equal to ", function () {
-					var slot = 19614;
-					var slotTime = getSlotTime(19614);
-					(slotTime).should.be.ok;
-					(slotTime).should.be.type('number').and.equal(196140);
-				});
-			});
-
-			describe("#getNextSlot", function () {
-				var getNextSlot = slots.getNextSlot;
-
-				it("should be ok", function () {
-					(getNextSlot).should.be.ok;
-				});
-
-				it("should be function", function () {
-					(getNextSlot).should.be.type('function');
-				});
-
-				it("should return next slot number", function () {
-					var nextSlot = getNextSlot();
-					(nextSlot).should.be.ok;
-					(nextSlot).should.be.type('number').and.not.NaN;
-				});
-			});
-
-			describe("#getLastSlot", function () {
-				var getLastSlot = slots.getLastSlot;
-
-				it("should be ok", function () {
-					(getLastSlot).should.be.ok;
-				});
-
-				it("should be function", function () {
-					(getLastSlot).should.be.type('function');
-				});
-
-				it("should return last slot number", function () {
-					var lastSlot = getLastSlot(slots.getNextSlot());
-					(lastSlot).should.be.ok;
-					(lastSlot).should.be.type('number').and.not.NaN;
-				});
-			});
-		});
-
-		describe("delegate.js", function () {
-			var delegate = lisk.delegate;
-
-			it("should be ok", function () {
-				(delegate).should.be.ok;
-			});
-
-			it("should be function", function () {
-				(delegate).should.be.type('object');
-			});
-
-			it("should have property createDelegate", function () {
-				(delegate).should.have.property("createDelegate");
-			});
-
-			describe("#createDelegate", function () {
-				var createDelegate = delegate.createDelegate;
-				var dlg = null;
-
-				it("should be ok", function () {
-					(createDelegate).should.be.ok;
-				});
-
-				it("should be function", function () {
-					(createDelegate).should.be.type('function');
-				});
-
-				it("should create delegate", function () {
-					dlg = createDelegate("secret", "delegate", "secret 2");
-				});
-
-				describe("returned delegate", function () {
-					var keys = lisk.crypto.getKeys("secret");
-					var secondKeys = lisk.crypto.getKeys("secret 2");
-
-					it("should be ok", function () {
-						(dlg).should.be.ok;
 					});
 
-					it("should be object", function () {
-						(dlg).should.be.type('object');
+					it("should be equal to sender public key", function () {
+						var v = vt.asset.votes[0];
+						(v.substring(1, v.length)).should.be.equal(publicKey);
 					});
-
-					it("should have recipientId equal null", function () {
-						(dlg).should.have.property('recipientId').and.type('object').and.be.empty;
-					})
-
-					it("shoud have amount equal 0", function () {
-						(dlg).should.have.property('amount').and.type('number').and.equal(0);
-					})
-
-					it("should have type equal 0", function () {
-						(dlg).should.have.property('type').and.type('number').and.equal(2);
-					});
-
-					it("should have timestamp number", function () {
-						(dlg).should.have.property('timestamp').and.type('number');
-					});
-
-					it("should have senderPublicKey in hex", function () {
-						(dlg).should.have.property('senderPublicKey').and.type('string').and.match(function () {
-							try {
-								new Buffer(dlg.senderPublicKey, 'hex');
-							} catch (e) {
-								return false;
-							}
-
-							return true;
-						}).and.equal(keys.publicKey);
-					});
-
-					it("should have signature in hex", function () {
-						(dlg).should.have.property('signature').and.type('string').and.match(function () {
-							try {
-								new Buffer(dlg.signature, 'hex');
-							} catch (e) {
-								return false;
-							}
-
-							return true;
-						});
-					});
-
-					it("should have second signature in hex", function () {
-						(dlg).should.have.property('signSignature').and.type('string').and.match(function () {
-							try {
-								new Buffer(dlg.signSignature, 'hex');
-							} catch (e) {
-								return false;
-							}
-
-							return true;
-						});
-					});
-
-					it("should have delegate asset", function () {
-						(dlg).should.have.property('asset').and.type('object').and.not.empty.and.have.property('delegate');
-					})
-
-					it("should be signed correctly", function () {
-						var result = lisk.crypto.verify(dlg, keys.publicKey);
-						(result).should.be.ok;
-					});
-
-					it("should be second signed correctly", function () {
-						var result = lisk.crypto.verifySecondSignature(dlg, secondKeys.publicKey);
-						(result).should.be.ok;
-					});
-
-
-					it("should be signed not correctly right now", function () {
-						dlg.amount = 100;
-						var result = lisk.crypto.verify(dlg, keys.publicKey);
-						(result).should.be.not.ok;
-					});
-
-					it("should be second signed not correctly right now", function () {
-						dlg.amount = 100;
-						var result = lisk.crypto.verify(dlg, secondKeys.publicKey);
-						(result).should.be.not.ok;
-					});
-
-					describe("delegate asset", function () {
-						it("should be ok", function () {
-							(dlg.asset.delegate).should.be.ok;
-						});
-
-						it("should be object", function () {
-							(dlg.asset.delegate).should.be.type('object');
-						});
-
-						it("should be have property username", function () {
-							(dlg.asset.delegate).should.have.property('username').and.be.type('string').and.equal('delegate');
-						});
-					});
-				});
-			});
-		});
-
-		describe("vote.js", function () {
-			var vote = lisk.vote;
-
-			it("should be ok", function () {
-				(vote).should.be.ok;
-			});
-
-			it("should be object", function () {
-				(vote).should.be.type('object');
-			});
-
-			it("should have createVote property", function () {
-				(vote).should.have.property('createVote');
-			});
-
-			describe("#createVote", function () {
-				var createVote = vote.createVote,
-					vt = null,
-					publicKey = lisk.crypto.getKeys("secret").publicKey,
-					publicKeys = ["+" + publicKey];
-
-				it("should be ok", function () {
-					(createVote).should.be.ok;
-				});
-
-				it("should be function", function () {
-					(createVote).should.be.type('function');
-				});
-
-				it("should create vote", function () {
-					vt = createVote("secret", publicKeys, "second secret");
-				});
-
-				describe("created vote", function () {
-					it("should be ok", function () {
-						(vt).should.be.ok;
-					});
-
-					it("should be object", function () {
-						(vt).should.be.type('object');
-					});
-
-					it("should have recipientId string equal to sender", function () {
-						(vt).should.have.property('recipientId').and.be.type('string').and.equal(lisk.crypto.getAddress(publicKey))
-					});
-
-					it("should have amount number eaul to 0", function () {
-						(vt).should.have.property('amount').and.be.type('number').and.equal(0);
-					});
-
-					it("should have type number equal to 3", function () {
-						(vt).should.have.property('type').and.be.type('number').and.equal(3);
-					});
-
-					it("should have timestamp number", function () {
-						(vt).should.have.property('timestamp').and.be.type('number');
-					});
-
-					it("should have senderPublicKey hex string equal to sender public key", function () {
-						(vt).should.have.property('senderPublicKey').and.be.type('string').and.match(function () {
-							try {
-								new Buffer(vt.senderPublicKey, 'hex');
-							} catch (e) {
-								return false;
-							}
-
-							return true;
-						}).and.equal(publicKey);
-					});
-
-					it("should have signature hex string", function () {
-						(vt).should.have.property("signature").and.be.type('string').and.match(function () {
-							try {
-								new Buffer(vt.signature, 'hex');
-							} catch (e) {
-								return false;
-							}
-
-							return true;
-						});
-					});
-
-					it("should have second signature hex string", function () {
-						(vt).should.have.property("signSignature").and.be.type('string').and.match(function () {
-							try {
-								new Buffer(vt.signSignature, 'hex');
-							} catch (e) {
-								return false;
-							}
-
-							return true;
-						});
-					});
-
-					it("should be signed correctly", function () {
-						var result = lisk.crypto.verify(vt);
-						(result).should.be.ok;
-					});
-
-					it("should be signed second signature correctly", function () {
-						var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys("second secret").publicKey);
-						(result).should.be.ok;
-					});
-
-					it("should be signed not correctly right now", function () {
-						vt.amount = 100;
-						var result = lisk.crypto.verify(vt);
-						(result).should.be.not.ok;
-					});
-
-					it("should be signed second signature not correctly right now", function () {
-						vt.amount = 100;
-						var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys("second secret").publicKey);
-						(result).should.be.not.ok;
-					});
-
-					it("should have asset", function () {
-						(vt).should.have.property("asset").and.not.empty;
-					});
-
-					describe("vote asset", function () {
-						it("should be ok", function () {
-							(vt.asset).should.have.property('votes').and.be.ok;
-						});
-
-						it("should be object", function () {
-							(vt.asset.votes).should.be.type('object');
-						});
-
-						it("should be not empty", function () {
-							(vt.asset.votes).should.be.not.empty;
-						});
-
-						it("should contains one element", function () {
-							(vt.asset.votes.length).should.be.equal(1);
-						});
-
-						it("should have public keys in hex", function () {
-							vt.asset.votes.forEach(function (v) {
-								(v).should.be.type('string').startWith("+").and.match(function () {
-									try {
-										new Buffer(v.substring(1, v.length), 'hex');
-									} catch (e) {
-										return false;
-									}
-
-									return true;
-								});
-							});
-						});
-
-						it("should be equal to sender public key", function () {
-							var v = vt.asset.votes[0];
-							(v.substring(1, v.length)).should.be.equal(publicKey);
-						});
-					})
-				});
+				})
 			});
 		});
 	});
+
 });
