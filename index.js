@@ -5,7 +5,8 @@ lisk = {
 	vote : require("./lib/transactions/vote.js"),
 	crypto : require("./lib/transactions/crypto.js"),
 	username: require('./lib/transactions/username.js'),
-	contact: require('./lib/transactions/contact.js')
+	contact: require('./lib/transactions/contact.js'),
+	dapp: require('./lib/transactions/dapp.js')
 }
 
 module.exports = lisk;
