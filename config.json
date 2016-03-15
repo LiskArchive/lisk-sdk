@@ -133,12 +133,6 @@
         "verifyOnLoading": false,
         "loadPerIteration": 5000
     },
-    "sia": {
-        "peer": {
-            "ip": "127.0.0.1",
-            "port": 9980
-        }
-    },
     "ssl": {
         "enabled": false,
         "options": {
@@ -150,7 +144,7 @@
     },
     "dapp": {
         "masterrequired": true,
-        "masterpassword": "",
+        "masterpassword": "q87NkDWo91cd",
         "autoexec": []
     }
 }

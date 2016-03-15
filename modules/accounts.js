@@ -822,7 +822,7 @@ shared.addDelegates = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb("Invalid account");
+						return cb("Account not found");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
@@ -966,7 +966,7 @@ shared.addUsername = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb("Invalid account");
+						return cb("Account not found");
 					}
 
 					if (account.secondSignature && !body.secondSecret) {

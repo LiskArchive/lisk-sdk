@@ -314,7 +314,7 @@ shared.addSignature = function (req, cb) {
 						return cb(err.toString());
 					}
 					if (!account || !account.publicKey) {
-						return cb("Invalid account");
+						return cb("Account not found");
 					}
 
 					if (account.secondSignature || account.u_secondSignature) {

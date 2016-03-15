@@ -59,9 +59,7 @@ private.blocksDataFields = {
 	'dapp_description': String,
 	'dapp_tags': String,
 	'dapp_type': Number,
-	'dapp_siaAscii': String,
-	'dapp_siaIcon': String,
-	'dapp_git': String,
+	'dapp_link': String,
 	'dapp_category': Number,
 	'dapp_icon': String,
 	'in_dappId': String,
@@ -536,7 +534,7 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"c.address, " +
 				"u.username, " +
 				"m.min, m.lifetime, m.keysgroup, " +
-				"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.siaAscii, dapp.siaIcon, dapp.git, dapp.category, dapp.icon, " +
+				"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 				"it.dappId, " +
 				"ot.dappId, ot.outTransactionId, " +
 				"lower(hex(t.requesterPublicKey)), t.signatures " +
@@ -590,7 +588,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			"c.address, " +
 			"u.username, " +
 			"m.min, m.lifetime, m.keysgroup, " +
-			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.siaAscii, dapp.siaIcon, dapp.git, dapp.category, dapp.icon, " +
+			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 			"it.dappId, " +
 			"ot.dappId, ot.outTransactionId, " +
 			"lower(hex(t.requesterPublicKey)), t.signatures " +
@@ -748,7 +746,7 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			"c.address, " +
 			"u.username, " +
 			"m.min, m.lifetime, m.keysgroup, " +
-			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.siaAscii, dapp.siaIcon, dapp.git, dapp.category, dapp.icon, " +
+			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 			"it.dappId, " +
 			"ot.dappId, ot.outTransactionId, " +
 			"lower(hex(t.requesterPublicKey)), t.signatures " +
