@@ -21,6 +21,9 @@ describe("Lisk JS", function () {
 		});
 	});
 
+	describe("contact.js", function () {
+	});
+
 	describe("crypto.js", function () {
 		var crypto = lisk.crypto;
 
@@ -618,6 +621,9 @@ describe("Lisk JS", function () {
 		});
 	});
 
+	describe("multisignature.js", function () {
+	});
+
 	describe("transaction.js", function () {
 		var transaction = lisk.transaction;
 
@@ -819,6 +825,9 @@ describe("Lisk JS", function () {
 				});
 			});
 		});
+	});
+
+	describe("transfer.js", function () {
 	});
 
 	describe("signature.js", function () {
@@ -1054,6 +1063,9 @@ describe("Lisk JS", function () {
 				(lastSlot).should.be.type("number").and.not.NaN;
 			});
 		});
+	});
+
+	describe("username.js", function () {
 	});
 
 	describe("vote.js", function () {
