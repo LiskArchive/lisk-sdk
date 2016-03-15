@@ -343,7 +343,15 @@ describe("Lisk JS", function () {
 				(trs).should.be.ok;
 			});
 
+			it("should create delegate with second signature", function () {
+				trs = createDapp("secret", "secret 2", options);
+				(trs).should.be.ok;
+			});
+
 			describe("returned dapp", function () {
+				var keys = lisk.crypto.getKeys("secret");
+				var secondKeys = lisk.crypto.getKeys("secret 2");
+
 				it("should be object", function () {
 					(trs).should.be.type('object');
 				});
@@ -417,6 +425,18 @@ describe("Lisk JS", function () {
 					})
 				});
 
+				it("should have second signature in hex", function () {
+					(trs).should.have.property('signSignature').and.type('string').and.match(function () {
+						try {
+							new Buffer(trs.signSignature, 'hex');
+						} catch (e) {
+							return false;
+						}
+
+						return true;
+					});
+				});
+
 				it("should be signed correctly", function () {
 					var result = lisk.crypto.verify(trs);
 					(result).should.be.ok;
@@ -425,6 +445,18 @@ describe("Lisk JS", function () {
 				it("should not be signed correctly now", function () {
 					trs.amount = 10000;
 					var result = lisk.crypto.verify(trs);
+					(result).should.be.not.ok;
+				});
+
+				it('should be signed second time correctly', function () {
+					trs.amount = 0;
+					var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
+					(result).should.be.ok;
+				});
+
+				it("should not be signed second correctly now", function () {
+					trs.amount = 10000;
+					var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
 					(result).should.be.not.ok;
 				});
 			});
@@ -977,7 +1009,6 @@ describe("Lisk JS", function () {
 					var result = lisk.crypto.verifySecondSignature(dlg, secondKeys.publicKey);
 					(result).should.be.ok;
 				});
-
 
 				it("should be signed not correctly right now", function () {
 					dlg.amount = 100;
