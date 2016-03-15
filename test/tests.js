@@ -867,7 +867,7 @@ describe("Lisk JS", function () {
 					(sgn.asset).should.have.property("signature");
 				});
 
-				describe("signature in transaction", function () {
+				describe("signature asset", function () {
 					it("should be ok", function () {
 						(sgn.asset.signature).should.be.ok;
 					})
