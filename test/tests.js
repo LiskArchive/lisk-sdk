@@ -14,7 +14,7 @@ describe("Lisk JS", function () {
 	});
 
 	it("should have properties", function () {
-		var properties = ['transaction', 'signature', 'vote', 'delegate', 'crypto'];
+		var properties = ['transaction', 'signature', 'vote', 'delegate', 'dapp', 'crypto'];
 
 		properties.forEach(function (property) {
 			(lisk).should.have.property(property);
