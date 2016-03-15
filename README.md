@@ -186,6 +186,22 @@ var transaction = lisk.transaction.createTransaction("secret", "secondSecret");
 var transaction = lisk.transaction.createDelegate("secret", "username", "secondSecret");
 ```
 
+#### Creating a dapp transaction
+
+```js
+var options = {
+	category: 0,
+	name: "Lisk Guestbook",
+	description: "The official Lisk guestbook",
+	tags: "guestbook message sidechain",
+	type: 0,
+	link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip",
+	icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png"
+};
+
+var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
+```
+
 #### Creating a vote transaction
 
 ```js
