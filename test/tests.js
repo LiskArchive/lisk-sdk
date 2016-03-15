@@ -448,13 +448,13 @@ describe("Lisk JS", function () {
 					(result).should.be.not.ok;
 				});
 
-				it('should be signed second time correctly', function () {
+				it('should be second signed correctly', function () {
 					trs.amount = 0;
 					var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
 					(result).should.be.ok;
 				});
 
-				it("should not be signed second correctly now", function () {
+				it("should not be second signed correctly now", function () {
 					trs.amount = 10000;
 					var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
 					(result).should.be.not.ok;
@@ -572,13 +572,13 @@ describe("Lisk JS", function () {
 					(result).should.be.ok;
 				});
 
-				it("should be signed not correctly right now", function () {
+				it("should not be signed correctly now", function () {
 					dlg.amount = 100;
 					var result = lisk.crypto.verify(dlg, keys.publicKey);
 					(result).should.be.not.ok;
 				});
 
-				it("should be second signed not correctly right now", function () {
+				it("should not be second signed correctly now", function () {
 					dlg.amount = 100;
 					var result = lisk.crypto.verify(dlg, secondKeys.publicKey);
 					(result).should.be.not.ok;
@@ -784,7 +784,7 @@ describe("Lisk JS", function () {
 					(result).should.be.ok;
 				});
 
-				it('should be sign second time correctly', function () {
+				it('should be second signed correctly', function () {
 					var result = lisk.crypto.verifySecondSignature(trs, keys.publicKey);
 					(result).should.be.ok;
 				});
@@ -795,7 +795,7 @@ describe("Lisk JS", function () {
 					(result).should.be.not.ok;
 				});
 
-				it("should not be signed second correctly now", function () {
+				it("should not be second signed correctly now", function () {
 					trs.amount = 10000;
 					var result = lisk.crypto.verifySecondSignature(trs, keys.publicKey);
 					(result).should.be.not.ok;
@@ -1138,18 +1138,18 @@ describe("Lisk JS", function () {
 					(result).should.be.ok;
 				});
 
-				it("should be signed second signature correctly", function () {
+				it("should be second signed correctly", function () {
 					var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys("second secret").publicKey);
 					(result).should.be.ok;
 				});
 
-				it("should be signed not correctly right now", function () {
+				it("should not be signed correctly now", function () {
 					vt.amount = 100;
 					var result = lisk.crypto.verify(vt);
 					(result).should.be.not.ok;
 				});
 
-				it("should be signed second signature not correctly right now", function () {
+				it("should not be second signed correctly now", function () {
 					vt.amount = 100;
 					var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys("second secret").publicKey);
 					(result).should.be.not.ok;
