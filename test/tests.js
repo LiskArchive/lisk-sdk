@@ -480,7 +480,7 @@ describe("Lisk JS", function () {
 
 		describe("#createDelegate", function () {
 			var createDelegate = delegate.createDelegate;
-			var dlg = null;
+			var trs = null;
 
 			it("should be ok", function () {
 				(createDelegate).should.be.ok;
@@ -491,7 +491,7 @@ describe("Lisk JS", function () {
 			});
 
 			it("should create delegate", function () {
-				dlg = createDelegate("secret", "delegate", "secret 2");
+				trs = createDelegate("secret", "delegate", "secret 2");
 			});
 
 			describe("returned delegate", function () {
@@ -499,33 +499,33 @@ describe("Lisk JS", function () {
 				var secondKeys = lisk.crypto.getKeys("secret 2");
 
 				it("should be ok", function () {
-					(dlg).should.be.ok;
+					(trs).should.be.ok;
 				});
 
 				it("should be object", function () {
-					(dlg).should.be.type('object');
+					(trs).should.be.type('object');
 				});
 
 				it("should have recipientId equal null", function () {
-					(dlg).should.have.property('recipientId').and.type('object').and.be.empty;
+					(trs).should.have.property('recipientId').and.type('object').and.be.empty;
 				})
 
 				it("shoud have amount equal 0", function () {
-					(dlg).should.have.property('amount').and.type('number').and.equal(0);
+					(trs).should.have.property('amount').and.type('number').and.equal(0);
 				})
 
 				it("should have type equal 0", function () {
-					(dlg).should.have.property('type').and.type('number').and.equal(2);
+					(trs).should.have.property('type').and.type('number').and.equal(2);
 				});
 
 				it("should have timestamp number", function () {
-					(dlg).should.have.property('timestamp').and.type('number');
+					(trs).should.have.property('timestamp').and.type('number');
 				});
 
 				it("should have senderPublicKey in hex", function () {
-					(dlg).should.have.property('senderPublicKey').and.type('string').and.match(function () {
+					(trs).should.have.property('senderPublicKey').and.type('string').and.match(function () {
 						try {
-							new Buffer(dlg.senderPublicKey, 'hex');
+							new Buffer(trs.senderPublicKey, 'hex');
 						} catch (e) {
 							return false;
 						}
@@ -535,9 +535,9 @@ describe("Lisk JS", function () {
 				});
 
 				it("should have signature in hex", function () {
-					(dlg).should.have.property('signature').and.type('string').and.match(function () {
+					(trs).should.have.property('signature').and.type('string').and.match(function () {
 						try {
-							new Buffer(dlg.signature, 'hex');
+							new Buffer(trs.signature, 'hex');
 						} catch (e) {
 							return false;
 						}
@@ -547,9 +547,9 @@ describe("Lisk JS", function () {
 				});
 
 				it("should have second signature in hex", function () {
-					(dlg).should.have.property('signSignature').and.type('string').and.match(function () {
+					(trs).should.have.property('signSignature').and.type('string').and.match(function () {
 						try {
-							new Buffer(dlg.signSignature, 'hex');
+							new Buffer(trs.signSignature, 'hex');
 						} catch (e) {
 							return false;
 						}
@@ -559,42 +559,42 @@ describe("Lisk JS", function () {
 				});
 
 				it("should have delegate asset", function () {
-					(dlg).should.have.property('asset').and.type('object').and.not.empty.and.have.property('delegate');
+					(trs).should.have.property('asset').and.type('object').and.not.empty.and.have.property('delegate');
 				})
 
 				it("should be signed correctly", function () {
-					var result = lisk.crypto.verify(dlg, keys.publicKey);
+					var result = lisk.crypto.verify(trs, keys.publicKey);
 					(result).should.be.ok;
 				});
 
 				it("should be second signed correctly", function () {
-					var result = lisk.crypto.verifySecondSignature(dlg, secondKeys.publicKey);
+					var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
 					(result).should.be.ok;
 				});
 
 				it("should not be signed correctly now", function () {
-					dlg.amount = 100;
-					var result = lisk.crypto.verify(dlg, keys.publicKey);
+					trs.amount = 100;
+					var result = lisk.crypto.verify(trs, keys.publicKey);
 					(result).should.be.not.ok;
 				});
 
 				it("should not be second signed correctly now", function () {
-					dlg.amount = 100;
-					var result = lisk.crypto.verify(dlg, secondKeys.publicKey);
+					trs.amount = 100;
+					var result = lisk.crypto.verify(trs, secondKeys.publicKey);
 					(result).should.be.not.ok;
 				});
 
 				describe("delegate asset", function () {
 					it("should be ok", function () {
-						(dlg.asset.delegate).should.be.ok;
+						(trs.asset.delegate).should.be.ok;
 					});
 
 					it("should be object", function () {
-						(dlg.asset.delegate).should.be.type('object');
+						(trs.asset.delegate).should.be.type('object');
 					});
 
 					it("should be have property username", function () {
-						(dlg.asset.delegate).should.have.property('username').and.be.type('string').and.equal('delegate');
+						(trs.asset.delegate).should.have.property('username').and.be.type('string').and.equal('delegate');
 					});
 				});
 			});
