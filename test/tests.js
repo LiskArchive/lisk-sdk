@@ -392,25 +392,42 @@ describe("Lisk JS", function () {
 					(trs.timestamp).should.be.type("number").and.not.NaN;
 				});
 
-				it("should have asset", function () {
-					(trs.asset).should.be.type("object");
-					(trs.asset).should.be.not.empty;
-				});
-
 				it("should have dapp inside asset", function () {
 					(trs.asset).should.have.property("dapp");
-					(trs.asset.dapp).should.have.property("category");
-					(trs.asset.dapp.category).should.equal(options.category);
-					(trs.asset.dapp).should.have.property("name");
-					(trs.asset.dapp.name).should.equal(options.name);
-					(trs.asset.dapp).should.have.property("tags");
-					(trs.asset.dapp.tags).should.equal(options.tags);
-					(trs.asset.dapp).should.have.property("type");
-					(trs.asset.dapp.type).should.equal(options.type);
-					(trs.asset.dapp).should.have.property("link");
-					(trs.asset.dapp.link).should.equal(options.link);
-					(trs.asset.dapp).should.have.property("icon");
-					(trs.asset.dapp.icon).should.equal(options.icon);
+				});
+
+				describe("dapp asset", function () {
+					it("should be ok", function () {
+						(trs.asset.dapp).should.be.ok;
+					})
+
+					it("should be object", function () {
+						(trs.asset.dapp).should.be.type("object");
+					});
+
+					it("should have category property", function () {
+						(trs.asset.dapp).should.have.property("category").and.equal(options.category);
+					});
+
+					it("should have name property", function () {
+						(trs.asset.dapp).should.have.property("name").and.equal(options.name);
+					});
+
+					it("should have tags property", function () {
+						(trs.asset.dapp).should.have.property("tags").and.equal(options.tags);
+					});
+
+					it("should have type property", function () {
+						(trs.asset.dapp).should.have.property("type").and.equal(options.type);
+					});
+
+					it("should have link property", function () {
+						(trs.asset.dapp).should.have.property("link").and.equal(options.link);
+					});
+
+					it("should have icon property", function () {
+						(trs.asset.dapp).should.have.property("icon").and.equal(options.icon);
+					});
 				});
 
 				it("should have signature as hex string", function () {
