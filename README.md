@@ -174,12 +174,6 @@ If the transaction is deemed invalid, or an error is encountered, the receiving 
 
 ### Other transaction types
 
-#### Creating a delegate transaction
-
-```js
-var transaction = lisk.transaction.createDelegate("secret", "username", "secondSecret");
-```
-
 #### Creating a dapp transaction
 
 ```js
@@ -194,6 +188,12 @@ var options = {
 };
 
 var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
+```
+
+#### Creating a delegate transaction
+
+```js
+var transaction = lisk.transaction.createDelegate("secret", "username", "secondSecret");
 ```
 
 #### Creating a second signature transaction
