@@ -1041,7 +1041,7 @@ describe("Lisk JS", function () {
 				vt = createVote("secret", publicKeys, "second secret");
 			});
 
-			describe("created vote", function () {
+			describe("returned vote", function () {
 				it("should be ok", function () {
 					(vt).should.be.ok;
 				});
