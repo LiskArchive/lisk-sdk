@@ -517,7 +517,7 @@ describe("Lisk JS", function () {
 					(result).should.be.ok;
 				});
 
-				it("should not be signed correctyle now", function () {
+				it("should not be signed correctly now", function () {
 					trs.amount = 10000;
 					var result = lisk.crypto.verify(trs);
 					(result).should.be.not.ok;
@@ -619,7 +619,7 @@ describe("Lisk JS", function () {
 					(result).should.be.ok;
 				});
 
-				it("should not be signed correctyle now", function () {
+				it("should not be signed correctly now", function () {
 					trs.amount = 10000;
 					var result = lisk.crypto.verify(trs);
 					(result).should.be.not.ok;
