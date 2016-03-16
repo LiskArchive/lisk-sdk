@@ -4,6 +4,7 @@ var crypto = require('crypto'),
 	slots = require('../helpers/slots.js'),
 	Router = require('../helpers/router.js'),
 	util = require('util'),
+	blockStatus = require("../helpers/blockStatus.js"),
 	constants = require('../helpers/constants.js'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	Diff = require('../helpers/diff.js'),
@@ -13,6 +14,8 @@ var crypto = require('crypto'),
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
+
+private.blockStatus = new blockStatus();
 
 function Vote() {
 	this.create = function (data, trs) {
@@ -699,8 +702,12 @@ shared.getDelegates = function (req, cb) {
 					var length = Math.min(limit, count);
 					var realLimit = Math.min(offset + limit, count);
 
+					var lastBlock   = modules.blocks.getLastBlock(),
+					    totalSupply = private.blockStatus.calcSupply(lastBlock.height);
+
 					for (var i = 0; i < delegates.length; i++) {
 						delegates[i].rate = i + 1;
+						delegates[i].approval = ((delegates[i].vote / totalSupply) * 100).toFixed(2);
 
 						var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
 						percent = percent || 0;
