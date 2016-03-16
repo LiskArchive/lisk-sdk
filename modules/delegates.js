@@ -783,9 +783,9 @@ shared.getDelegate = function (req, cb) {
 			}
 
 			var limit = query.limit || 101,
-				offset = query.offset || 0,
-				orderField = query.orderBy,
-				active = query.active;
+			    offset = query.offset || 0,
+			    orderField = query.orderBy,
+			    active = query.active;
 
 			orderField = orderField ? orderField.split(':') : null;
 			limit = limit > 101 ? 101 : limit;
@@ -908,9 +908,9 @@ shared.getDelegates = function (req, cb) {
 			}
 
 			var limit = query.limit || 101,
-				offset = query.offset || 0,
-				orderField = query.orderBy,
-				active = query.active;
+			    offset = query.offset || 0,
+			    orderField = query.orderBy,
+			    active = query.active;
 
 			orderField = orderField ? orderField.split(':') : null;
 			limit = limit > 101 ? 101 : limit;
