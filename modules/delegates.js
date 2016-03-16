@@ -7,6 +7,7 @@ var crypto = require('crypto'),
 	slots = require('../helpers/slots.js'),
 	schedule = require('node-schedule'),
 	util = require('util'),
+	blockStatus = require("../helpers/blockStatus.js"),
 	constants = require('../helpers/constants.js'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	MilestoneBlocks = require("../helpers/milestoneBlocks.js"),
@@ -18,7 +19,7 @@ require('array.prototype.find'); // Old node fix
 var modules, library, self, private = {}, shared = {};
 
 private.loaded = false;
-
+private.blockStatus = new blockStatus();
 private.keypairs = {};
 
 function Delegate() {
@@ -794,8 +795,12 @@ shared.getDelegate = function (req, cb) {
 			var length = Math.min(limit, count);
 			var realLimit = Math.min(offset + limit, count);
 
+			var lastBlock   = modules.blocks.getLastBlock(),
+			    totalSupply = private.blockStatus.calcSupply(lastBlock.height);
+
 			for (var i = 0; i < delegates.length; i++) {
 				delegates[i].rate = i + 1;
+				delegates[i].approval = ((delegates[i].vote / totalSupply) * 100).toFixed(2);
 
 				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
 				percent = percent || 0;
@@ -913,8 +918,12 @@ shared.getDelegates = function (req, cb) {
 			var length = Math.min(limit, count);
 			var realLimit = Math.min(offset + limit, count);
 
+			var lastBlock   = modules.blocks.getLastBlock(),
+			    totalSupply = private.blockStatus.calcSupply(lastBlock.height);
+
 			for (var i = 0; i < delegates.length; i++) {
 				delegates[i].rate = i + 1;
+				delegates[i].approval = ((delegates[i].vote / totalSupply) * 100).toFixed(2);
 
 				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
 				percent = percent || 0;
