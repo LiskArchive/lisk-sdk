@@ -789,6 +789,7 @@ shared.getDelegate = function (req, cb) {
 
 			orderField = orderField ? orderField.split(':') : null;
 			limit = limit > 101 ? 101 : limit;
+
 			var orderBy = orderField ? orderField[0] : null;
 			var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
 			var count = delegates.length;
@@ -804,8 +805,9 @@ shared.getDelegate = function (req, cb) {
 
 				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
 				percent = percent || 0;
+
 				var outsider = i + 1 > slots.delegates && delegates[i].virgin;
-				delegates[i].productivity = !outsider ? delegates[i].virgin ? 0 : parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : null
+				delegates[i].productivity = !outsider ? delegates[i].virgin ? 0 : parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : null;
 			}
 
 			var delegate = delegates.find(function (delegate) {
@@ -912,6 +914,7 @@ shared.getDelegates = function (req, cb) {
 
 			orderField = orderField ? orderField.split(':') : null;
 			limit = limit > 101 ? 101 : limit;
+
 			var orderBy = orderField ? orderField[0] : null;
 			var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
 			var count = delegates.length;
@@ -927,8 +930,9 @@ shared.getDelegates = function (req, cb) {
 
 				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
 				percent = percent || 0;
+
 				var outsider = i + 1 > slots.delegates && delegates[i].virgin;
-				delegates[i].productivity = !outsider ? delegates[i].virgin ? 0 : parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : null
+				delegates[i].productivity = !outsider ? delegates[i].virgin ? 0 : parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : null;
 			}
 
 			delegates.sort(function compare(a, b) {
