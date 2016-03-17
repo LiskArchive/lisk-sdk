@@ -3,7 +3,6 @@ module.exports = {
 	SIGNATURE : 1,
 	DELEGATE : 2,
 	VOTE : 3,
-	FOLLOW : 5,
 	MESSAGE : 6,
 	AVATAR : 7,
 	MULTI: 8,
