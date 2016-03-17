@@ -3,8 +3,8 @@ module.exports = {
 	SIGNATURE : 1,
 	DELEGATE : 2,
 	VOTE : 3,
-	MULTI: 8,
-	DAPP: 9,
-	IN_TRANSFER: 10,
-	OUT_TRANSFER: 11
+	MULTI: 4,
+	DAPP: 5,
+	IN_TRANSFER: 6,
+	OUT_TRANSFER: 7
 }
