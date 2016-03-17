@@ -41,8 +41,6 @@ private.blocksDataFields = {
 	't_senderPublicKey': String,
 	't_senderId': String,
 	't_recipientId': String,
-	't_senderUsername': String,
-	't_recipientUsername': String,
 	't_amount': String,
 	't_fee': String,
 	't_signature': String,
@@ -527,7 +525,7 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 
 			library.dbLite[method]("SELECT " +
 				"b.id, b.version, b.timestamp, b.height, b.previousBlock, b.numberOfTransactions, b.totalAmount, b.totalFee, b.reward, b.payloadLength, lower(hex(b.payloadHash)), lower(hex(b.generatorPublicKey)), lower(hex(b.blockSignature)), " +
-				"t.id, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.senderUsername, t.recipientUsername, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), " +
+				"t.id, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), " +
 				"lower(hex(s.publicKey)), " +
 				"d.username, " +
 				"v.votes, " +
@@ -544,7 +542,6 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"left outer join votes as v on v.transactionId=t.id " +
 				"left outer join signatures as s on s.transactionId=t.id " +
 				"left outer join contacts as c on c.transactionId=t.id " +
-				"left outer join usernames as u on u.transactionId=t.id " +
 				"left outer join multisignatures as m on m.transactionId=t.id " +
 				"left outer join dapps as dapp on dapp.transactionId=t.id " +
 				"left outer join intransfer it on it.transactionId=t.id " +
@@ -581,7 +578,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	library.dbSequence.add(function (cb) {
 		library.dbLite.query("SELECT " +
 			"b.id, b.version, b.timestamp, b.height, b.previousBlock, b.numberOfTransactions, b.totalAmount, b.totalFee, b.reward, b.payloadLength, lower(hex(b.payloadHash)), lower(hex(b.generatorPublicKey)), lower(hex(b.blockSignature)), " +
-			"t.id, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.senderUsername, t.recipientUsername, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), " +
+			"t.id, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), " +
 			"lower(hex(s.publicKey)), " +
 			"d.username, " +
 			"v.votes, " +
@@ -598,7 +595,6 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			"left outer join votes as v on v.transactionId=t.id " +
 			"left outer join signatures as s on s.transactionId=t.id " +
 			"left outer join contacts as c on c.transactionId=t.id " +
-			"left outer join usernames as u on u.transactionId=t.id " +
 			"left outer join multisignatures as m on m.transactionId=t.id " +
 			"left outer join dapps as dapp on dapp.transactionId=t.id " +
 			"left outer join intransfer it on it.transactionId=t.id " +
@@ -739,7 +735,7 @@ Blocks.prototype.loadLastBlock = function (cb) {
 	library.dbSequence.add(function (cb) {
 		library.dbLite.query("SELECT " +
 			"b.id, b.version, b.timestamp, b.height, b.previousBlock, b.numberOfTransactions, b.totalAmount, b.totalFee, b.reward, b.payloadLength, lower(hex(b.payloadHash)), lower(hex(b.generatorPublicKey)), lower(hex(b.blockSignature)), " +
-			"t.id, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.senderUsername, t.recipientUsername, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), " +
+			"t.id, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), " +
 			"lower(hex(s.publicKey)), " +
 			"d.username, " +
 			"v.votes, " +
@@ -756,7 +752,6 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			"left outer join votes as v on v.transactionId=t.id " +
 			"left outer join signatures as s on s.transactionId=t.id " +
 			"left outer join contacts as c on c.transactionId=t.id " +
-			"left outer join usernames as u on u.transactionId=t.id " +
 			"left outer join multisignatures as m on m.transactionId=t.id " +
 			"left outer join dapps as dapp on dapp.transactionId=t.id " +
 			"left outer join intransfer it on it.transactionId=t.id " +
