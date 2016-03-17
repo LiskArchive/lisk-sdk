@@ -27,7 +27,7 @@ function Delegate() {
 		trs.recipientId = null;
 		trs.amount = 0;
 		trs.asset.delegate = {
-			username: data.username || data.sender.username,
+			username: data.username,
 			publicKey: data.sender.publicKey
 		};
 
@@ -47,40 +47,8 @@ function Delegate() {
 			return setImmediate(cb, "Invalid transaction amount");
 		}
 
-		if (!sender.username) {
-			if (!trs.asset.delegate.username) {
-				return setImmediate(cb, "Invalid transaction asset");
-			}
-
-			var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
-			if (!allowSymbols.test(trs.asset.delegate.username.toLowerCase())) {
-				return setImmediate(cb, "Username contains invalid characters");
-			}
-
-			var isAddress = /^[0-9]+[L|l]$/g;
-			if (isAddress.test(trs.asset.delegate.username)) {
-				return setImmediate(cb, "Username cannot be a potential address");
-			}
-
-			if (trs.asset.delegate.username.length < 1) {
-				return setImmediate(cb, "Username is too short. Minimum is 1 character");
-			}
-
-			if (trs.asset.delegate.username.length > 20) {
-				return setImmediate(cb, "Username is too long. Maximum is 20 characters");
-			}
-		} else {
-			if (trs.asset.delegate.username && trs.asset.delegate.username != sender.username) {
-				return cb("Account already has a username");
-			}
-		}
-
 		if (sender.isDelegate) {
 			return cb("Account is already a delegate");
-		}
-
-		if (sender.username) {
-			return cb(null, trs);
 		}
 
 		modules.accounts.getAccount({
@@ -123,7 +91,7 @@ function Delegate() {
 			vote: 0
 		}
 
-		if (!sender.nameexist && trs.asset.delegate.username) {
+		if (trs.asset.delegate.username) {
 			data.u_username = null;
 			data.username = trs.asset.delegate.username;
 		}
@@ -148,10 +116,6 @@ function Delegate() {
 	}
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
-		if (sender.u_username && trs.asset.delegate.username && trs.asset.delegate.username != sender.u_username) {
-			return cb("Account already has a username");
-		}
-
 		if (sender.u_isDelegate) {
 			return cb("Account is already a delegate");
 		}
@@ -163,16 +127,12 @@ function Delegate() {
 				isDelegate: 0
 			}
 
-			if (!sender.nameexist && trs.asset.delegate.username) {
+			if (trs.asset.delegate.username) {
 				data.username = null;
 				data.u_username = trs.asset.delegate.username;
 			}
 
 			modules.accounts.setAccountAndGet(data, cb);
-		}
-
-		if (sender.username) {
-			return done();
 		}
 
 		modules.accounts.getAccount({
@@ -197,7 +157,7 @@ function Delegate() {
 			isDelegate: 0
 		}
 
-		if (!sender.nameexist && trs.asset.delegate.username) {
+		if (trs.asset.delegate.username) {
 			data.username = null;
 			data.u_username = null;
 		}
