@@ -67,8 +67,6 @@ var TxTypes = {
   SIGNATURE : 1,
   DELEGATE : 2,
   VOTE : 3,
-  MESSAGE : 6,
-  AVATAR : 7,
   MULTI: 8,
   DAPP: 9
 };
