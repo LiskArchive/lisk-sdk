@@ -30,7 +30,6 @@ var version = "0.1.1" // Node version
 // Holds Fee amounts for different transaction types
 var Fees = {
   voteFee: 100000000,
-  followFee: 100000000,
   transactionFee: 10000000,
   secondPasswordFee: 10000000000,
   delegateRegistrationFee: 10000000000,
@@ -68,7 +67,6 @@ var TxTypes = {
   SIGNATURE : 1,
   DELEGATE : 2,
   VOTE : 3,
-  FOLLOW : 5,
   MESSAGE : 6,
   AVATAR : 7,
   MULTI: 8,
