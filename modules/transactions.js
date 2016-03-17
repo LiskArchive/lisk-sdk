@@ -22,7 +22,6 @@ private.doubleSpendingTransactions = {};
 function Transfer() {
 	this.create = function (data, trs) {
 		trs.recipientId = data.recipientId;
-		trs.recipientUsername = data.recipientUsername;
 		trs.amount = data.amount;
 
 		return trs;
@@ -166,7 +165,7 @@ private.attachApi = function () {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = ['t.id', 't.blockId', 't.amount', 't.fee', 't.type', 't.timestamp', 't.senderPublicKey', 't.senderId', 't.recipientId', 't.senderUsername', 't.recipientUsername', 't.confirmations', 'b.height'];
+	var sortFields = ['t.id', 't.blockId', 't.amount', 't.fee', 't.type', 't.timestamp', 't.senderPublicKey', 't.senderId', 't.recipientId', 't.confirmations', 'b.height'];
 	var params = {}, fields_or = [], owner = "";
 	if (filter.blockId) {
 		fields_or.push('blockId = $blockId')
@@ -183,14 +182,6 @@ private.list = function (filter, cb) {
 	if (filter.recipientId) {
 		fields_or.push('recipientId = $recipientId')
 		params.recipientId = filter.recipientId;
-	}
-	if (filter.senderUsername) {
-		fields_or.push('senderUsername = $senderUsername');
-		params.senderUsername = filter.senderUsername;
-	}
-	if (filter.recipientUsername) {
-		fields_or.push('recipientUsername = $recipientUsername');
-		params.recipientUsername = filter.recipientUsername;
 	}
 	if (filter.ownerAddress && filter.ownerPublicKey) {
 		owner = '(lower(hex(senderPublicKey)) = $ownerPublicKey or recipientId = $ownerAddress)';
@@ -241,14 +232,14 @@ private.list = function (filter, cb) {
 		var count = rows.length ? rows[0].count : 0;
 
 		// Need to fix 'or' or 'and' in query
-		library.dbLite.query("select t.id, b.height, t.blockId, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.senderUsername, t.recipientUsername, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), t.signatures, (select max(height) + 1 from blocks) - b.height " +
+		library.dbLite.query("select t.id, b.height, t.blockId, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), t.signatures, (select max(height) + 1 from blocks) - b.height " +
 			"from trs t " +
 			"inner join blocks b on t.blockId = b.id " +
 			(fields_or.length || owner ? "where " : "") + " " +
 			(fields_or.length ? "(" + fields_or.join(' or ') + ") " : "") + (fields_or.length && owner ? " and " + owner : owner) + " " +
 			(filter.orderBy ? 'order by ' + sortBy + ' ' + sortMethod : '') + " " +
 			(filter.limit ? 'limit $limit' : '') + " " +
-			(filter.offset ? 'offset $offset' : ''), params, ['t_id', 'b_height', 't_blockId', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 't_senderUsername', 't_recipientUsername', 't_amount', 't_fee', 't_signature', 't_signSignature', 't_signatures', 'confirmations'], function (err, rows) {
+			(filter.offset ? 'offset $offset' : ''), params, ['t_id', 'b_height', 't_blockId', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 't_amount', 't_fee', 't_signature', 't_signSignature', 't_signatures', 'confirmations'], function (err, rows) {
 			if (err) {
 				return cb(err);
 			}
@@ -267,10 +258,10 @@ private.list = function (filter, cb) {
 }
 
 private.getById = function (id, cb) {
-	library.dbLite.query("select t.id, b.height, t.blockId, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.senderUsername, t.recipientUsername, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), (select max(height) + 1 from blocks) - b.height " +
+	library.dbLite.query("select t.id, b.height, t.blockId, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), (select max(height) + 1 from blocks) - b.height " +
 		"from trs t " +
 		"inner join blocks b on t.blockId = b.id " +
-		"where t.id = $id", {id: id}, ['t_id', 'b_height', 't_blockId', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 't_senderUsername', 't_recipientUsername', 't_amount', 't_fee', 't_signature', 't_signSignature', 'confirmations'], function (err, rows) {
+		"where t.id = $id", {id: id}, ['t_id', 'b_height', 't_blockId', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 't_amount', 't_fee', 't_signature', 't_signSignature', 'confirmations'], function (err, rows) {
 		if (err || !rows.length) {
 			return cb(err || "Can't find transaction: " + id);
 		}
@@ -529,12 +520,6 @@ shared.getTransactions = function (req, cb) {
 			recipientId: {
 				type: "string"
 			},
-			senderUsername: {
-				type: "string"
-			},
-			recipientUsername: {
-				type: "string"
-			},
 			amount: {
 				type: "integer",
 				minimum: 0,
@@ -697,25 +682,17 @@ shared.addTransactions = function (req, cb) {
 			}
 		}
 
-		var query = {};
-
-		var isAddress = /^[0-9]+[L|l]$/g;
-		if (isAddress.test(body.recipientId)) {
-			query.address = body.recipientId;
-		} else {
-			query.username = body.recipientId;
-		}
+		var query = { address: body.recipientId };
 
 		library.balancesSequence.add(function (cb) {
 			modules.accounts.getAccount(query, function (err, recipient) {
 				if (err) {
 					return cb(err.toString());
 				}
-				if (!recipient && query.username) {
+				if (!recipient) {
 					return cb("Recipient not found");
 				}
 				var recipientId = recipient ? recipient.address : body.recipientId;
-				var recipientUsername = recipient ? recipient.username : null;
 
 				if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString('hex')) {
 					modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
@@ -765,7 +742,6 @@ shared.addTransactions = function (req, cb) {
 									amount: body.amount,
 									sender: account,
 									recipientId: recipientId,
-									recipientUsername: recipientUsername,
 									keypair: keypair,
 									requester: keypair,
 									secondKeypair: secondKeypair
@@ -802,7 +778,6 @@ shared.addTransactions = function (req, cb) {
 								amount: body.amount,
 								sender: account,
 								recipientId: recipientId,
-								recipientUsername: recipientUsername,
 								keypair: keypair,
 								secondKeypair: secondKeypair
 							});

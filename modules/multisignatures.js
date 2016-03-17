@@ -388,7 +388,7 @@ shared.getAccounts = function (req, cb) {
 
 					modules.accounts.getAccounts({
 						address: {$in: addresses}
-					}, ['address', 'publicKey', 'balance', 'username'], function (err, multisigaccounts) {
+					}, ['address', 'publicKey', 'balance'], function (err, multisigaccounts) {
 						if (err) {
 							return cb(err);
 						}

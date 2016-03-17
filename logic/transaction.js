@@ -593,7 +593,7 @@ Transaction.prototype.dbSave = function (trs, cb) {
 		return cb(e.toString())
 	}
 
-	this.scope.dbLite.query("INSERT INTO trs(id, blockId, type, timestamp, senderPublicKey, requesterPublicKey, senderId, recipientId, senderUsername, recipientUsername, amount, fee, signature, signSignature, signatures) VALUES($id, $blockId, $type, $timestamp, $senderPublicKey, $requesterPublicKey, $senderId, $recipientId, $senderUsername, $recipientUsername, $amount, $fee, $signature, $signSignature, $signatures)", {
+	this.scope.dbLite.query("INSERT INTO trs(id, blockId, type, timestamp, senderPublicKey, requesterPublicKey, senderId, recipientId, amount, fee, signature, signSignature, signatures) VALUES($id, $blockId, $type, $timestamp, $senderPublicKey, $requesterPublicKey, $senderId, $recipientId, $amount, $fee, $signature, $signSignature, $signatures)", {
 		id: trs.id,
 		blockId: trs.blockId,
 		type: trs.type,
@@ -602,8 +602,6 @@ Transaction.prototype.dbSave = function (trs, cb) {
 		requesterPublicKey: requesterPublicKey,
 		senderId: trs.senderId,
 		recipientId: trs.recipientId || null,
-		senderUsername: trs.senderUsername || null,
-		recipientUsername: trs.recipientUsername || null,
 		amount: trs.amount,
 		fee: trs.fee,
 		signature: signature,
@@ -662,12 +660,6 @@ Transaction.prototype.objectNormalize = function (trs) {
 			recipientId: {
 				type: "string"
 			},
-			senderUsername: {
-				type: "string"
-			},
-			recipientUsername: {
-				type: "string"
-			},
 			amount: {
 				type: "integer",
 				minimum: 0,
@@ -720,8 +712,6 @@ Transaction.prototype.dbRead = function (raw) {
 			requesterPublicKey: raw.t_requesterPublicKey,
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
-			senderUsername: raw.t_senderUsername,
-			recipientUsername: raw.t_recipientUsername,
 			amount: parseInt(raw.t_amount),
 			fee: parseInt(raw.t_fee),
 			signature: raw.t_signature,
