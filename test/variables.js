@@ -63,10 +63,10 @@ var Eaccount = {
 
 // List of all transaction types codes
 var TxTypes = {
-  SEND : 0,
-  SIGNATURE : 1,
-  DELEGATE : 2,
-  VOTE : 3,
+  SEND: 0,
+  SIGNATURE: 1,
+  DELEGATE: 2,
+  VOTE: 3,
   MULTI: 4,
   DAPP: 5,
   IN_TRANSFER: 6,
