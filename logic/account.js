@@ -165,27 +165,6 @@ function Account(scope, cb) {
 			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2delegates where accountId = a.address)"
 		},
 		{
-			name: "contacts",
-			type: "Text",
-			filter: {
-				type: "array",
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2contacts where accountId = a.address)"
-		},
-		{
-			name: "followers",
-			type: "Text",
-			filter: {
-				type: "array",
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: "(select GROUP_CONCAT(accountId) from " + this.table + "2contacts where dependentId = a.address)",
-			readonly: true
-		},
-		{
 			name: "u_delegates",
 			type: "Text",
 			filter: {
@@ -194,27 +173,6 @@ function Account(scope, cb) {
 			},
 			conv: Array,
 			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2u_delegates where accountId = a.address)"
-		},
-		{
-			name: "u_contacts",
-			type: "Text",
-			filter: {
-				type: "array",
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2u_contacts where accountId = a.address)"
-		},
-		{
-			name: "u_followers",
-			type: "Text",
-			filter: {
-				type: "array",
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: "(select GROUP_CONCAT(accountId) from " + this.table + "2u_contacts where dependentId = a.address)",
-			readonly: true
 		},
 		{
 			name: "multisignatures",
@@ -480,61 +438,7 @@ Account.prototype.createTables = function (cb) {
 
 	var sql = jsonSql.build({
 		type: 'create',
-		table: this.table + "2contacts",
-		tableFields: [
-			{
-				name: "accountId",
-				type: "String",
-				length: 21,
-				not_null: true
-			}, {
-				name: "dependentId",
-				type: "String",
-				length: 21,
-				not_null: true
-			}
-		],
-		foreignKeys: [
-			{
-				field: "accountId",
-				table: this.table,
-				table_field: "address",
-				on_delete: "cascade"
-			}
-		]
-	});
-	sqles.push(sql.query);
-
-	var sql = jsonSql.build({
-		type: 'create',
 		table: this.table + "2u_delegates",
-		tableFields: [
-			{
-				name: "accountId",
-				type: "String",
-				length: 21,
-				not_null: true
-			}, {
-				name: "dependentId",
-				type: "String",
-				length: 21,
-				not_null: true
-			}
-		],
-		foreignKeys: [
-			{
-				field: "accountId",
-				table: this.table,
-				table_field: "address",
-				on_delete: "cascade"
-			}
-		]
-	});
-	sqles.push(sql.query);
-
-	var sql = jsonSql.build({
-		type: 'create',
-		table: this.table + "2u_contacts",
 		tableFields: [
 			{
 				name: "accountId",
@@ -613,10 +517,8 @@ Account.prototype.createTables = function (cb) {
 	});
 	sqles.push(sql.query);
 
-	sqles.push("delete from mem_accounts2u_contacts;");
 	sqles.push("delete from mem_accounts2u_delegates;");
 	// sqles.push("delete from mem_accounts2u_multisignatures;");
-	sqles.push("INSERT INTO mem_accounts2u_contacts SELECT * FROM mem_accounts2contacts;");
 	sqles.push("INSERT INTO mem_accounts2u_delegates SELECT * FROM mem_accounts2delegates;");
 	// sqles.push("INSERT INTO mem_accounts2u_multisignatures SELECT * FROM mem_accounts2multisignatures;");
 

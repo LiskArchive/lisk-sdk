@@ -428,7 +428,7 @@ private.loadBlockChain = function () {
 						load(count);
 					} else {
 						library.dbLite.query(
-							"UPDATE mem_accounts SET u_isDelegate=isDelegate,u_secondSignature=secondSignature,u_username=username,u_balance=balance,u_delegates=delegates,u_contacts=contacts,u_followers=followers,u_multisignatures=multisignatures"
+							"UPDATE mem_accounts SET u_isDelegate=isDelegate,u_secondSignature=secondSignature,u_username=username,u_balance=balance,u_delegates=delegates,u_multisignatures=multisignatures"
 							, function (err, updated) {
 								if (err) {
 									library.logger.error(err);

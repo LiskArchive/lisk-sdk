@@ -529,7 +529,6 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"lower(hex(s.publicKey)), " +
 				"d.username, " +
 				"v.votes, " +
-				"c.address, " +
 				"m.min, m.lifetime, m.keysgroup, " +
 				"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 				"it.dappId, " +
@@ -540,7 +539,6 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"left outer join delegates as d on d.transactionId=t.id " +
 				"left outer join votes as v on v.transactionId=t.id " +
 				"left outer join signatures as s on s.transactionId=t.id " +
-				"left outer join contacts as c on c.transactionId=t.id " +
 				"left outer join multisignatures as m on m.transactionId=t.id " +
 				"left outer join dapps as dapp on dapp.transactionId=t.id " +
 				"left outer join intransfer it on it.transactionId=t.id " +
@@ -581,7 +579,6 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			"lower(hex(s.publicKey)), " +
 			"d.username, " +
 			"v.votes, " +
-			"c.address, " +
 			"m.min, m.lifetime, m.keysgroup, " +
 			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 			"it.dappId, " +
@@ -592,7 +589,6 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			"left outer join delegates as d on d.transactionId=t.id " +
 			"left outer join votes as v on v.transactionId=t.id " +
 			"left outer join signatures as s on s.transactionId=t.id " +
-			"left outer join contacts as c on c.transactionId=t.id " +
 			"left outer join multisignatures as m on m.transactionId=t.id " +
 			"left outer join dapps as dapp on dapp.transactionId=t.id " +
 			"left outer join intransfer it on it.transactionId=t.id " +
@@ -737,7 +733,6 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			"lower(hex(s.publicKey)), " +
 			"d.username, " +
 			"v.votes, " +
-			"c.address, " +
 			"m.min, m.lifetime, m.keysgroup, " +
 			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 			"it.dappId, " +
@@ -748,7 +743,6 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			"left outer join delegates as d on d.transactionId=t.id " +
 			"left outer join votes as v on v.transactionId=t.id " +
 			"left outer join signatures as s on s.transactionId=t.id " +
-			"left outer join contacts as c on c.transactionId=t.id " +
 			"left outer join multisignatures as m on m.transactionId=t.id " +
 			"left outer join dapps as dapp on dapp.transactionId=t.id " +
 			"left outer join intransfer it on it.transactionId=t.id " +
