@@ -30,7 +30,6 @@ var version = "0.1.1" // Node version
 // Holds Fee amounts for different transaction types
 var Fees = {
   voteFee: 100000000,
-  usernameFee: 10000000000,
   followFee: 100000000,
   transactionFee: 10000000,
   secondPasswordFee: 10000000000,
@@ -52,7 +51,6 @@ var Daccount = {
   "secondPassword": "12345",
   "balance": 0,
   "delegateName": "sebastian",
-  "username": "bdevelle"
 };
 
 // Existing delegate account in blockchain
@@ -70,7 +68,6 @@ var TxTypes = {
   SIGNATURE : 1,
   DELEGATE : 2,
   VOTE : 3,
-  USERNAME : 4,
   FOLLOW : 5,
   MESSAGE : 6,
   AVATAR : 7,
@@ -279,14 +276,12 @@ function randomAccount() {
     "password" : "",
     "secondPassword": "",
     "delegateName" : "",
-    "username":"",
     "balance": 0
   };
 
   account.password = randomPassword();
   account.secondPassword = randomPassword();
   account.delegateName = randomDelegateName();
-  account.username =  randomUsername();
 
   return account;
 }

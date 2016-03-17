@@ -13,7 +13,6 @@ var Saccount = {
     "publicKey" : "fbd20d4975e53916488791477dd38274c1b4ec23ad322a65adb171ec2ab6a0dc",
     "password" : "sebastian",
     "name" : "sebastian",
-    "username": "bdevelle",
     "balance": 0
 };
 
