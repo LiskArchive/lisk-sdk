@@ -530,7 +530,6 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"d.username, " +
 				"v.votes, " +
 				"c.address, " +
-				"u.username, " +
 				"m.min, m.lifetime, m.keysgroup, " +
 				"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 				"it.dappId, " +
@@ -583,7 +582,6 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			"d.username, " +
 			"v.votes, " +
 			"c.address, " +
-			"u.username, " +
 			"m.min, m.lifetime, m.keysgroup, " +
 			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 			"it.dappId, " +
@@ -740,7 +738,6 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			"d.username, " +
 			"v.votes, " +
 			"c.address, " +
-			"u.username, " +
 			"m.min, m.lifetime, m.keysgroup, " +
 			"dapp.name, dapp.description, dapp.tags, dapp.type, dapp.link, dapp.category, dapp.icon, " +
 			"it.dappId, " +
