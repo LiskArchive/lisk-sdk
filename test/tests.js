@@ -361,7 +361,7 @@ describe("Lisk JS", function () {
 				});
 
 				it("should have type as number and equal 9", function () {
-					(trs.type).should.be.type("number").and.equal(9);
+					(trs.type).should.be.type("number").and.equal(5);
 				});
 
 				it("should have amount as number and eqaul 0", function () {
