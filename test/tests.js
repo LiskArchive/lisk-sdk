@@ -21,9 +21,6 @@ describe("Lisk JS", function () {
 		});
 	});
 
-	describe("contact.js", function () {
-	});
-
 	describe("crypto.js", function () {
 		var crypto = lisk.crypto;
 
@@ -1063,9 +1060,6 @@ describe("Lisk JS", function () {
 	});
 
 	describe("transfer.js", function () {
-	});
-
-	describe("username.js", function () {
 	});
 
 	describe("vote.js", function () {
