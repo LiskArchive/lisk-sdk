@@ -189,7 +189,7 @@ function OutTransfer() {
 		});
 
 		if (!report) {
-			throw Error("Unable to verify dapp out transaction, incorrect parameters: " + library.scheme.getLastError());
+			throw Error("Unable to verify dapp out transaction, invalid parameters: " + library.scheme.getLastError());
 		}
 
 		return trs;
@@ -353,7 +353,7 @@ function InTransfer() {
 		});
 
 		if (!report) {
-			throw Error("Unable to verify dapp transaction, incorrect parameters: " + library.scheme.getLastError());
+			throw Error("Unable to verify dapp transaction, invalid parameters: " + library.scheme.getLastError());
 		}
 
 		return trs;
@@ -640,7 +640,7 @@ function DApp() {
 		});
 
 		if (!report) {
-			throw Error("Unable to verify dapp transaction, incorrect parameters: " + library.scheme.getLastError());
+			throw Error("Unable to verify dapp transaction, invalid parameters: " + library.scheme.getLastError());
 		}
 
 		return trs;
@@ -1088,7 +1088,7 @@ private.attachApi = function () {
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
 			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: "Incorrect master password"});
+				return res.json({success: false, error: "Invalid master password"});
 			}
 
 			private.get(body.id, function (err, dapp) {
@@ -1210,7 +1210,7 @@ private.attachApi = function () {
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
 			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: "Incorrect master password"});
+				return res.json({success: false, error: "Invalid master password"});
 			}
 
 			private.get(body.id, function (err, dapp) {
@@ -1264,7 +1264,7 @@ private.attachApi = function () {
 
 	router.post("/launch", function (req, res, next) {
 		if (library.config.dapp.masterpassword && req.body.master !== library.config.dapp.masterpassword) {
-			return res.json({success: false, error: "Incorrect master password"});
+			return res.json({success: false, error: "Invalid master password"});
 		}
 
 		private.launch(req.body, function (err) {
@@ -1337,7 +1337,7 @@ private.attachApi = function () {
 			}
 
 			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: "Incorrect master password"});
+				return res.json({success: false, error: "Invalid master password"});
 			}
 
 			private.get(body.id, function (err, dapp) {
@@ -1728,7 +1728,7 @@ private.apiHandler = function (message, callback) {
 		var module = strs[0], call = strs[1];
 
 		if (!modules[module]) {
-			return setImmediate(callback, "Incorrect module in call: " + message.call);
+			return setImmediate(callback, "Invalid module in call: " + message.call);
 		}
 
 		if (!modules[module].sandboxApi) {
@@ -1737,7 +1737,7 @@ private.apiHandler = function (message, callback) {
 
 		modules[module].sandboxApi(call, {"body": message.args, "dappid": message.dappid}, callback);
 	} catch (e) {
-		return setImmediate(callback, "Incorrect call " + e.toString());
+		return setImmediate(callback, "Invalid call " + e.toString());
 	}
 }
 
@@ -2053,7 +2053,7 @@ private.addTransactions = function (req, cb) {
 						}
 
 						if (requester.publicKey == account.publicKey) {
-							return cb("Incorrect requester");
+							return cb("Invalid requester");
 						}
 
 						var secondKeypair = null;
@@ -2290,7 +2290,7 @@ shared.sendWithdrawal = function (req, cb) {
 
 		var isAddress = /^[0-9]+[L|l]$/g;
 		if (!isAddress.test(body.recipientId)) {
-			return cb("Incorrect address");
+			return cb("Invalid recipient");
 		}
 
 		library.balancesSequence.add(function (cb) {
@@ -2326,7 +2326,7 @@ shared.sendWithdrawal = function (req, cb) {
 						}
 
 						if (requester.publicKey == account.publicKey) {
-							return cb("Incorrect requester");
+							return cb("Invalid requester");
 						}
 
 						var secondKeypair = null;
