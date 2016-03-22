@@ -23,6 +23,26 @@ describe("Peers transactions", function () {
       });
   });
 
+  it("create transaction with undefined recipientId. should return not ok", function (done) {
+    var transaction = node.lisk.transaction.createTransaction(undefined, 1, node.peers_config.account);
+    node.peer.post("/transactions")
+      .set("Accept", "application/json")
+      .set("version",node.version)
+      .set("share-port",1)
+      .set("port",node.config.port)
+      .send({
+        transaction: transaction
+      })
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .end(function (err, res) {
+        console.log(JSON.stringify(res.body));
+        node.expect(res.body).to.have.property("success").to.be.false;
+        node.expect(res.body).to.have.property("message");
+        done();
+      });
+  });
+
   it("create transaction with negative amount. should return not ok", function (done) {
     var transaction = node.lisk.transaction.createTransaction("1C", -1, node.peers_config.account);
     node.peer.post('/transactions')
