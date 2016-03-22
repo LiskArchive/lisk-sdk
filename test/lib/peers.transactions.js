@@ -5,7 +5,7 @@ var genesisblock = require("../../genesisBlock.json");
 
 describe("Peers transactions", function () {
   it("create transaction. should return ok", function (done) {
-    var transaction = node.lisk.transaction.createTransaction("1C", 1, node.peers_config.account);
+    var transaction = node.lisk.transaction.createTransaction("1L", 1, node.peers_config.account);
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
@@ -44,7 +44,7 @@ describe("Peers transactions", function () {
   });
 
   it("create transaction with negative amount. should return not ok", function (done) {
-    var transaction = node.lisk.transaction.createTransaction("1C", -1, node.peers_config.account);
+    var transaction = node.lisk.transaction.createTransaction("1L", -1, node.peers_config.account);
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
@@ -65,7 +65,7 @@ describe("Peers transactions", function () {
 
   it("create transaction with recipient and then change it to verify signature. should return not ok", function (done) {
     var transaction = node.lisk.transaction.createTransaction("12C", 1, node.peers_config.account);
-    transaction.recipientId = "1C";
+    transaction.recipientId = "1L";
     transaction.id = node.lisk.crypto.getId(transaction);
     node.peer.post("/transactions")
       .set("Accept", "application/json")
@@ -86,7 +86,7 @@ describe("Peers transactions", function () {
   });
 
   it("create transaction with no balance on sender. should return not ok", function (done) {
-    var transaction = node.lisk.transaction.createTransaction("1C", 1, "randomstring");
+    var transaction = node.lisk.transaction.createTransaction("1L", 1, "randomstring");
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
