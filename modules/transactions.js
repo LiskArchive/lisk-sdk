@@ -34,7 +34,7 @@ function Transfer() {
 
 	this.verify = function (trs, sender, cb) {
 		var isAddress = /^[0-9]+[L|l]$/g;
-		if (!isAddress.test(trs.recipientId.toLowerCase())) {
+		if (!trs.recipientId || !isAddress.test(trs.recipientId)) {
 			return cb("Invalid recipient");
 		}
 
