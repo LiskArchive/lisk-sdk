@@ -48,8 +48,6 @@ private.blocksDataFields = {
 	's_publicKey': String,
 	'd_username': String,
 	'v_votes': String,
-	'c_address': String,
-	'u_alias': String,
 	'm_min': Number,
 	'm_lifetime': Number,
 	'm_keysgroup': String,
