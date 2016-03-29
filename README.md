@@ -193,19 +193,19 @@ var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
 #### Creating a delegate transaction
 
 ```js
-var transaction = lisk.transaction.createDelegate("secret", "username", "secondSecret");
+var transaction = lisk.delegate.createDelegate("secret", "username", "secondSecret");
 ```
 
 #### Creating a second signature transaction
 
 ```js
-var transaction = lisk.transaction.createTransaction("secret", "secondSecret");
+var transaction = lisk.signature.createTransaction("secret", "secondSecret");
 ```
 
 #### Creating a vote transaction
 
 ```js
-var transaction = lisk.transaction.createVote("secret", ["+58199578191950019299181920120128129"], "secondSecret");
+var transaction = lisk.vote.createVote("secret", ["+58199578191950019299181920120128129"], "secondSecret");
 ```
 
 ***
