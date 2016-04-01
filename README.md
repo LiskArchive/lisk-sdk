@@ -42,7 +42,7 @@ sudo npm install bower -g
 Install node modules:
 
 ```
-npm install
+sudo npm install
 ```
 
 Load git submodules ([lisk-ui](https://github.com/LiskHQ/lisk-ui) and [lisk-js](https://github.com/LiskHQ/lisk-js)):
@@ -58,7 +58,7 @@ Build the user-interface:
 cd public
 npm install
 bower install
-grunt
+grunt release
 ```
 
 ## Launch
