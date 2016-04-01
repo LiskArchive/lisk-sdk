@@ -42,7 +42,7 @@ sudo npm install bower -g
 Install node modules:
 
 ```
-npm install
+sudo npm install
 ```
 
 Install Lisk Node, a specialized version of Node.js used to execute dapps within a virtual machine:
