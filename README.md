@@ -42,7 +42,7 @@ sudo npm install bower -g
 Install node modules:
 
 ```
-sudo npm install
+npm install
 ```
 
 Load git submodules ([lisk-ui](https://github.com/LiskHQ/lisk-ui) and [lisk-js](https://github.com/LiskHQ/lisk-js)):
