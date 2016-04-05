@@ -305,6 +305,20 @@ d.run(function () {
 				var parts = req.url.split('/');
 				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
+				/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
+				 *
+				 * RFC -> https://tools.ietf.org/html/rfc7034
+				 */
+				res.setHeader('X-Frame-Options', 'DENY');
+
+				/* Set Content-Security-Policy headers.
+				 *
+				 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
+				 *
+				 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
+				 */
+				res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
+
 				if (parts.length > 1) {
 					if (parts[1] == 'api') {
 						if (scope.config.api.access.whiteList.length > 0) {
