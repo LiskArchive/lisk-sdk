@@ -86,7 +86,7 @@ node app.js -p [port] -a [address] -c [config-path]
 
 ## Passphrases
 
-The master passphrase for the genesis account is as follows: `2GgPLLVtafukQWqCPgwRzpn9)irWCZZczkfrKYasG)RLTsvKDB`
+The master passphrase for the configured testnet genesis account is as follows: `wagon stock borrow episode laundry kitten salute link globe zero feed marble`
 
 This passphrase will grant you access to the entire initial supply, and can be used for development and testing of the network within a local environment.
 
