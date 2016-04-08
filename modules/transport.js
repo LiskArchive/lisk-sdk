@@ -320,11 +320,12 @@ private.attachApi = function () {
 			required: ['port']
 		});
 
+		var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+		var peerStr = peerIp ? peerIp + ":" + (isNaN(req.headers['port']) ? 'unknown' : req.headers['port']) : 'unknown';
+
 		try {
 			var transaction = library.logic.transaction.objectNormalize(req.body.transaction);
 		} catch (e) {
-			var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-			var peerStr = peerIp ? peerIp + ":" + (isNaN(req.headers['port']) ? 'unknown' : req.headers['port']) : 'unknown';
 			library.logger.log('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', peerStr);
 
 			if (peerIp && report) {
@@ -335,9 +336,11 @@ private.attachApi = function () {
 		}
 
 		library.balancesSequence.add(function (cb) {
+			library.logger.log('Received transaction ' + transaction.id + ' from peer ' + peerStr);
 			modules.transactions.receiveTransactions([transaction], cb);
 		}, function (err) {
 			if (err) {
+				library.logger.error(err);
 				res.status(200).json({success: false, message: err});
 			} else {
 				res.status(200).json({success: true});
@@ -525,7 +528,6 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	} else {
 		req.body = options.data;
 	}
-
 
 	return request(req, function (err, response, body) {
 		if (err || response.statusCode != 200) {
