@@ -373,7 +373,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 					// Check in confirmed transactions
 					if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-						return cb("Confirmed transaction " + transaction.id + " already exists");
+						return cb("Transaction " + transaction.id + " already exists, ignoring...");
 					}
 
 					library.logic.transaction.verify(transaction, sender, done);
@@ -387,7 +387,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 				// Check in confirmed transactions
 				if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-					return cb("Confirmed transaction " + transaction.id + " already exists");
+					return cb("Transaction " + transaction.id + " already exists, ignoring...");
 				}
 
 				library.logic.transaction.verify(transaction, sender, done);
