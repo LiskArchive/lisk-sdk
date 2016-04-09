@@ -335,6 +335,11 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 }
 
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
+	// Check transaction indexes
+	if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
+		return cb("Transaction " + transaction.id + " already exists, ignoring...");
+	}
+
 	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 		function done(err) {
 			if (err) {
@@ -371,11 +376,6 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 						return done(err);
 					}
 
-					// Check in confirmed transactions
-					if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-						return cb("Transaction " + transaction.id + " already exists, ignoring...");
-					}
-
 					library.logic.transaction.verify(transaction, sender, done);
 				});
 			});
@@ -383,11 +383,6 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 			library.logic.transaction.process(transaction, sender, function (err, transaction) {
 				if (err) {
 					return done(err);
-				}
-
-				// Check in confirmed transactions
-				if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-					return cb("Transaction " + transaction.id + " already exists, ignoring...");
 				}
 
 				library.logic.transaction.verify(transaction, sender, done);
