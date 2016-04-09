@@ -510,7 +510,7 @@ Loader.prototype.onPeerReady = function () {
 	});
 
 	setImmediate(function nextLoadUnconfirmedTransactions() {
-		if (!private.loaded) return;
+		if (!private.loaded || self.syncing()) return;
 		private.loadUnconfirmedTransactions(function (err) {
 			err && library.logger.error('loadUnconfirmedTransactions timer:', err);
 			setTimeout(nextLoadUnconfirmedTransactions, 14 * 1000)

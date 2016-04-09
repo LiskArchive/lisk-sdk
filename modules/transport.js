@@ -323,6 +323,10 @@ private.attachApi = function () {
 		var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 		var peerStr = peerIp ? peerIp + ":" + (isNaN(req.headers['port']) ? 'unknown' : req.headers['port']) : 'unknown';
 
+		if (modules.loader.syncing() || !private.loaded) {
+			return res.status(200).json({success: false, message: "Peer is not ready to receive transaction"});
+		}
+
 		try {
 			var transaction = library.logic.transaction.objectNormalize(req.body.transaction);
 		} catch (e) {
@@ -456,6 +460,9 @@ private.hashsum = function (obj) {
 
 // Public methods
 Transport.prototype.broadcast = function (config, options, cb) {
+	if (modules.loader.syncing() || !private.loaded) {
+		return cb && setImmediate(cb);
+	}
 	config.limit = config.limit || 1;
 	modules.peer.list(config, function (err, peers) {
 		if (!err) {

@@ -1077,7 +1077,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 						} catch (e) {
 							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
-							return setImmediate(cb, e);
+							return cb(e);
 						}
 						self.processBlock(block, false, function (err) {
 							if (!err) {
@@ -1089,7 +1089,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 								modules.peer.state(peer.ip, peer.port, 0, 3600);
 							}
 
-							setImmediate(cb, err);
+							return cb(err);
 						});
 					}, next);
 				}
