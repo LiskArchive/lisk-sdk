@@ -883,7 +883,6 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 					}
 
 					// Check payload hash, transaction, number of confirmations
-
 					var totalAmount = 0, totalFee = 0, payloadHash = crypto.createHash('sha256'), appliedTransactions = {}, acceptedRequests = {}, acceptedConfirmations = {};
 
 					async.eachSeries(block.transactions, function (transaction, cb) {
@@ -1069,11 +1068,13 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 					loaded = true;
 					next();
 				} else {
+					var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
+					library.logger.log('Loading ' + blocks.length + ' blocks from', peerStr);
+
 					async.eachSeries(blocks, function (block, cb) {
 						try {
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
-							var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
 							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 							return setImmediate(cb, e);
@@ -1082,8 +1083,8 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 							if (!err) {
 								lastCommonBlockId = block.id;
 								lastValidBlock = block;
+								library.logger.log('Block ' + block.id + ' loaded from ' + peerStr + ' at', block.height);
 							} else {
-								var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
 								library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 								modules.peer.state(peer.ip, peer.port, 0, 3600);
 							}
