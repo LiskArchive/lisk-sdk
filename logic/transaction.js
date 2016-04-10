@@ -240,7 +240,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 			var res = rows.length && rows[0];
 
 			if (res.count) {
-				return cb("Failed to process already confirmed transaction");
+				return cb("Ignoring already confirmed transaction");
 			}
 
 			cb(null, trs);
