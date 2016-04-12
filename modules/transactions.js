@@ -317,15 +317,22 @@ Transactions.prototype.deleteHiddenTransaction = function () {
 	private.hiddenTransactions = [];
 }
 
-Transactions.prototype.getUnconfirmedTransactionList = function (reverse) {
+Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit) {
 	var a = [];
+
 	for (var i = 0; i < private.unconfirmedTransactions.length; i++) {
 		if (private.unconfirmedTransactions[i] !== false) {
 			a.push(private.unconfirmedTransactions[i]);
 		}
 	}
 
-	return reverse ? a.reverse() : a;
+	a = reverse ? a.reverse() : a;
+
+	if (limit) {
+		a.splice(limit);
+	}
+
+	return a;
 }
 
 Transactions.prototype.removeUnconfirmedTransaction = function (id) {
