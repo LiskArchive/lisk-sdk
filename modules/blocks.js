@@ -860,7 +860,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 						return done("Can't verify payload length of block: " + block.id);
 					}
 
-					if (block.transactions.length != block.numberOfTransactions || block.transactions.length > 100) {
+					if (block.transactions.length != block.numberOfTransactions || block.transactions.length > constants.maxTxsPerBlock) {
 						return done("Invalid amount of block assets: " + block.id);
 					}
 
@@ -1104,7 +1104,7 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 }
 
 Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
-	var transactions = modules.transactions.getUnconfirmedTransactionList();
+	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	var ready = [];
 
 	async.eachSeries(transactions, function (transaction, cb) {
