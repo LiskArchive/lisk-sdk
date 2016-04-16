@@ -129,21 +129,24 @@ function Signature() {
 		}
 	}
 
-	this.dbSave = function (trs, cb) {
+	this.dbSave = function (trs) {
 		try {
 			var publicKey = new Buffer(trs.asset.signature.publicKey, 'hex')
 		} catch (e) {
-			return cb(e.toString())
+			throw e.toString();
 		}
 
-		library.dbLite.query("INSERT INTO signatures(transactionId, publicKey) VALUES($transactionId, $publicKey)", {
-			transactionId: trs.id,
-			publicKey: publicKey
-		}, cb);
+		return {
+			query: "INSERT INTO signatures(\"transactionId\", \"publicKey\") VALUES(${transactionId}, DECODE(${publicKey}, 'hex'))",
+			values: {
+				transactionId: trs.id,
+				publicKey: publicKey
+			}
+		};
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures.length) {
+		if (sender.multisignatures && sender.multisignatures.length) {
 			if (!trs.signatures) {
 				return false;
 			}
@@ -337,7 +340,6 @@ shared.addSignature = function (req, cb) {
 					modules.transactions.receiveTransactions([transaction], cb);
 				});
 			}
-
 
 		}, function (err, transaction) {
 			if (err) {
