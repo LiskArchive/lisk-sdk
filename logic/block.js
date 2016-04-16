@@ -168,30 +168,33 @@ Block.prototype.verifySignature = function (block) {
 	return res;
 }
 
-Block.prototype.dbSave = function (block, cb) {
+Block.prototype.dbSave = function (block) {
 	try {
 		var payloadHash = new Buffer(block.payloadHash, 'hex');
 		var generatorPublicKey = new Buffer(block.generatorPublicKey, 'hex');
 		var blockSignature = new Buffer(block.blockSignature, 'hex');
 	} catch (e) {
-		return cb(e.toString())
+		throw e.toString();
 	}
 
-	this.scope.dbLite.query("INSERT INTO blocks(id, version, timestamp, height, previousBlock,  numberOfTransactions, totalAmount, totalFee, reward, payloadLength, payloadHash, generatorPublicKey, blockSignature) VALUES($id, $version, $timestamp, $height, $previousBlock, $numberOfTransactions, $totalAmount, $totalFee, $reward, $payloadLength,  $payloadHash, $generatorPublicKey, $blockSignature)", {
-		id: block.id,
-		version: block.version,
-		timestamp: block.timestamp,
-		height: block.height,
-		previousBlock: block.previousBlock || null,
-		numberOfTransactions: block.numberOfTransactions,
-		totalAmount: block.totalAmount,
-		totalFee: block.totalFee,
-		reward: block.reward || 0,
-		payloadLength: block.payloadLength,
-		payloadHash: payloadHash,
-		generatorPublicKey: generatorPublicKey,
-		blockSignature: blockSignature
-	}, cb);
+	return {
+		query: "INSERT INTO blocks(\"id\", \"version\", \"timestamp\", \"height\", \"previousBlock\", \"numberOfTransactions\", \"totalAmount\", \"totalFee\", \"reward\", \"payloadLength\", \"payloadHash\", \"generatorPublicKey\", \"blockSignature\") VALUES(${id}, ${version}, ${timestamp}, ${height}, ${previousBlock}, ${numberOfTransactions}, ${totalAmount}, ${totalFee}, ${reward}, ${payloadLength}, ${payloadHash}, ${generatorPublicKey}, ${blockSignature})",
+		values: {
+			id: block.id,
+			version: block.version,
+			timestamp: block.timestamp,
+			height: block.height,
+			previousBlock: block.previousBlock || null,
+			numberOfTransactions: block.numberOfTransactions,
+			totalAmount: block.totalAmount,
+			totalFee: block.totalFee,
+			reward: block.reward || 0,
+			payloadLength: block.payloadLength,
+			payloadHash: payloadHash,
+			generatorPublicKey: generatorPublicKey,
+			blockSignature: blockSignature
+		}
+	};
 }
 
 Block.prototype.objectNormalize = function (block) {
