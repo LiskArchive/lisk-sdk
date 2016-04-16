@@ -198,11 +198,14 @@ function Delegate() {
 		}
 	}
 
-	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO delegates(username, transactionId) VALUES($username, $transactionId)", {
-			username: trs.asset.delegate.username,
-			transactionId: trs.id
-		}, cb);
+	this.dbSave = function (trs) {
+		return {
+			query: "INSERT INTO delegates(\"username\", \"transactionId\") VALUES(${username}, ${transactionId})",
+			values: {
+				username: trs.asset.delegate.username,
+				transactionId: trs.id
+			}
+		};
 	}
 
 	this.ready = function (trs, sender) {
@@ -316,8 +319,8 @@ private.attachApi = function () {
 				}
 				if (account && account.isDelegate) {
 					private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					return res.json({success: true, address: account.address});
 					library.logger.info("Forging enabled on account: " + account.address);
+					return res.json({success: true, address: account.address});
 				} else {
 					return res.json({success: false, error: "Delegate not found"});
 				}
@@ -456,7 +459,7 @@ private.loop = function (cb) {
 	}
 
 	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded()) {
-		// library.logger.log('Loop', 'exit: syncing');
+		// library.logger.log('Loop', 'exit: not ready');
 		return setImmediate(cb);
 	}
 
@@ -470,7 +473,7 @@ private.loop = function (cb) {
 
 	private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.log('Loop', 'skiping slot');
+			library.logger.log('Loop', 'skipping slot');
 			return setImmediate(cb);
 		}
 
@@ -580,7 +583,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 					return cb("Failed to remove vote, account has not voted for this delegate");
 				}
 
-				modules.accounts.getAccount({publicKey: publicKey, isDelegate: 1}, function (err, account) {
+				modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
 					if (err) {
 						return cb(err);
 					}
@@ -631,7 +634,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 					return cb("Failed to remove vote, account has not voted for this delegate");
 				}
 
-				modules.accounts.getAccount({publicKey: publicKey, isDelegate: 1}, function (err, account) {
+				modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
 					if (err) {
 						return cb(err);
 					}
@@ -652,11 +655,11 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 Delegates.prototype.fork = function (block, cause) {
 	library.logger.info('Fork', {
 		delegate: block.generatorPublicKey,
-		block: {id: block.id, timestamp: block.timestamp, height: block.height, previousBlock: block.previousBlock},
+		block: { id: block.id, timestamp: block.timestamp, height: block.height, previousBlock: block.previousBlock },
 		cause: cause
 	});
-	library.dbLite.query("INSERT INTO forks_stat (delegatePublicKey, blockTimestamp, blockId, blockHeight, previousBlock, cause) " +
-		"VALUES ($delegatePublicKey, $blockTimestamp, $blockId, $blockHeight, $previousBlock, $cause);", {
+	library.db.none("INSERT INTO forks_stat (\"delegatePublicKey\", \"blockTimestamp\", \"blockId\", \"blockHeight\", \"previousBlock\", \"cause\") " +
+		"VALUES (${delegatePublicKey}, ${blockTimestamp}, ${blockId}, ${blockHeight}, ${previousBlock}, ${cause});", {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
@@ -698,6 +701,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	private.loadMyDelegates(function nextLoop(err) {
 		if (err) {
+			console.log(err);
 			library.logger.error("Failed to load delegates", err);
 		}
 
@@ -736,7 +740,7 @@ shared.getDelegate = function (req, cb) {
 
 		modules.accounts.getAccounts({
 			isDelegate: 1,
-			sort: {"vote": -1, "publicKey": 1}
+			sort: { "vote": -1, "publicKey": 1 }
 		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks", "virgin"], function (err, delegates) {
 			if (err) {
 				return cb(err.toString());
@@ -809,27 +813,23 @@ shared.getVoters = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		library.dbLite.query("select GROUP_CONCAT(accountId) from mem_accounts2delegates where dependentId = $publicKey", {
-			publicKey: query.publicKey
-		}, ['accountId'], function (err, rows) {
-			if (err) {
-				library.logger.error(err);
-				return cb("Database error");
-			}
-
+		library.db.query("SELECT STRING_AGG(\"accountId\", ',') FROM mem_accounts2delegates WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (rows) {
 			var addresses = rows[0].accountId.split(',');
 
 			modules.accounts.getAccounts({
-				address: {$in: addresses},
+				address: { $in: addresses },
 				sort: 'balance'
 			}, ['address', 'balance'], function (err, rows) {
 				if (err) {
 					library.logger.error(err);
-					return cb("Database error");
+					return cb("Delegates#getVoters error");
 				}
 
-				return cb(null, {accounts: rows});
+				return cb(null, { accounts: rows });
 			});
+		}).catch(function (err) {
+			library.logger.error(err);
+			return cb("Delegates#getVoters error");
 		});
 	});
 }
@@ -861,7 +861,7 @@ shared.getDelegates = function (req, cb) {
 			isDelegate: 1,
 			// limit: query.limit > 101 ? 101 : query.limit,
 			// offset: query.offset,
-			sort: {"vote": -1, "publicKey": 1}
+			sort: { "vote": -1, "publicKey": 1 }
 		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks", "virgin"], function (err, delegates) {
 			if (err) {
 				return cb(err.toString());
