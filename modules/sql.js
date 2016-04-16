@@ -1,6 +1,6 @@
 var async = require('async');
 var jsonSql = require('json-sql')();
-jsonSql.setDialect("sqlite")
+jsonSql.setDialect('postgresql');
 var extend = require('extend');
 var sandboxHelper = require('../helpers/sandbox.js')
 
@@ -82,7 +82,7 @@ private.pass = function (obj, dappid) {
 private.query = function (action, config, cb) {
 	var sql = null;
 
-	function done(err, data) {
+	function done (err, data) {
 		if (err) {
 			err = err.toString();
 		}
@@ -100,15 +100,15 @@ private.query = function (action, config, cb) {
 		try {
 			sql = jsonSql.build(extend({}, config, defaultConfig));
 		} catch (e) {
-			return done(e.toString());
+			return done(e);
 		}
 
-		if (action == "select") {
-			// console.log(sql.query, sql.values)
-			library.dbLite.query(sql.query, sql.values, null, done);
-		} else {
-			library.dbLite.query(sql.query, sql.values, done);
-		}
+		library.db.query(sql.query, sql.values).then(function (rows) {
+			return done(null, rows);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return done("Sql#query error");
+		});
 	} else {
 		var batchPack = [];
 		async.until(
@@ -127,10 +127,15 @@ private.query = function (action, config, cb) {
 					for (var i = 0; i < currentRow.length; i++) {
 						fields.push(private.escape(currentRow[i]));
 					}
-					rows.push("select " + fields.join(","));
+					rows.push("SELECT " + fields.join(","));
 				});
 				sql = sql + " " + rows.join(" UNION ");
-				library.dbLite.query(sql, {}, cb);
+				library.db.none(sql).then(function () {
+					return cb();
+				}).catch(function (err) {
+					library.logger.error(err.toString());
+					return cb("Sql#query error");
+				});
 			}, done);
 	}
 }
@@ -162,33 +167,38 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 	}
 
 	async.eachSeries(sqles, function (command, cb) {
-		library.dbLite.query(command, function (err, data) {
-			cb(err, data);
+		library.db.none(command).then(function () {
+			return cb();
+		}).then(function (err) {
+			return cb(err);
 		});
 	}, function (err) {
-		setImmediate(cb, err, self);
+		library.logger.error(err.toString());
+		setImmediate(cb, "Sql#createTables error", self);
 	});
 }
 
-/*
- Drop tables functional
- */
 Sql.prototype.dropTables = function (dappid, config, cb) {
 	var tables = [];
 	for (var i = 0; i < config.length; i++) {
-		config[i].table = "dapp_" + dappid + "_" + config[i].table;
 		tables.push({name: config[i].table.replace(/[^\w_]/gi, ''), type: config[i].type});
 	}
 
 	async.eachSeries(tables, function (table, cb) {
 		if (table.type == "create") {
-			library.dbLite.query("DROP TABLE IF EXISTS " + table.name, function (err, rows) {
-				setImmediate(cb, err);
+			library.db.none("DROP TABLE IF EXISTS " + table.name + " CASCADE").then(function () {
+				setImmediate(cb, null);
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				setImmediate(cb, "Sql#dropTables error");
 			});
 		} else if (table.type == "index") {
-			library.dbLite.query("DROP INDEX IF EXISTS " + table.name, function (err, rows) {
-				setImmediate(cb, err);
-			})
+			library.db.none("DROP INDEX IF EXISTS " + table.name).then(function () {
+				setImmediate(cb, null);
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				setImmediate(cb, "Sql#dropTables error");
+			});
 		} else {
 			setImmediate(cb);
 		}
