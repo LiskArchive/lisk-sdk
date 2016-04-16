@@ -63,7 +63,7 @@ private.syncTrigger = function (turnOn) {
 }
 
 private.loadFullDb = function (peer, cb) {
-	var peerStr = peer ? ip.fromLong(peer.ip) + ":" + peer.port : 'unknown';
+	var peerStr = peer ? peer.ip + ":" + peer.port : 'unknown';
 
 	var commonBlockId = private.genesisBlock.block.id;
 
@@ -73,7 +73,7 @@ private.loadFullDb = function (peer, cb) {
 }
 
 private.findUpdate = function (lastBlock, peer, cb) {
-	var peerStr = peer ? ip.fromLong(peer.ip) + ":" + peer.port : 'unknown';
+	var peerStr = peer ? peer.ip + ":" + peer.port : 'unknown';
 
 	library.logger.info("Looking for common block with " + peerStr);
 
@@ -227,7 +227,7 @@ private.loadBlocks = function (lastBlock, cb) {
 		api: '/height',
 		method: 'GET'
 	}, function (err, data) {
-		var peerStr = data && data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
+		var peerStr = data && data.peer ? data.peer.ip + ":" + data.peer.port : 'unknown';
 		if (err || !data.body) {
 			library.logger.log("Failed to get height from peer: " + peerStr);
 			return cb();
@@ -336,7 +336,7 @@ private.loadUnconfirmedTransactions = function (cb) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
-				var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
+				var peerStr = data.peer ? data.peer.ip + ":" + data.peer.port : 'unknown';
 				library.logger.log('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peerStr);
 				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
 				return setImmediate(cb);

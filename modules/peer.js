@@ -76,6 +76,7 @@ private.updatePeerList = function (cb) {
 			var peers = data.body.peers;
 
 			async.eachLimit(peers, 2, function (peer, cb) {
+
 				library.scheme.validate(peer, {
 					type: "object",
 					properties: {
@@ -107,17 +108,10 @@ private.updatePeerList = function (cb) {
 					required: ['ip', 'port', 'state']
 				}, function (err) {
 					if (err) {
-						console.log(err, peer);
-						return setImmediate(cb, "Invalid peer: " + err);
+						return setImmediate(cb, "Invalid peer");
 					}
 
-					peer.ip = parseInt(peer.ip);
-
-					if (isNaN(peer.ip)) {
-						return setImmediate(cb);
-					}
-
-					if (ip.toLong("127.0.0.1") == peer.ip || peer.port == 0 || peer.port > 65535) {
+					if (peer.ip == "127.0.0.1" || peer.port == 0 || peer.port > 65535) {
 						return setImmediate(cb);
 					}
 
@@ -129,18 +123,22 @@ private.updatePeerList = function (cb) {
 }
 
 private.count = function (cb) {
-	library.dbLite.query("select count(*) from peers", {"count": Number}, function (err, rows) {
-		if (err) {
-			library.logger.error('Peer#count', err);
-			return cb(err);
-		}
+	library.db.query("SELECT COUNT(*) FROM peers").then(function (rows) {
 		var res = rows.length && rows[0].count;
 		cb(null, res)
-	})
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Peer#count error");
+	});
 }
 
 private.banManager = function (cb) {
-	library.dbLite.query("UPDATE peers SET state = 1, clock = null where (state = 0 and clock - $now < 0)", {now: Date.now()}, cb);
+	library.db.query("UPDATE peers SET \"state\" = 1, \"clock\" = null WHERE (\"state\" = 0 AND \"clock\" - ${now} < 0)", { now: Date.now() }).then(function (res) {
+		return cb(null, res);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Peer#banManager error");
+	});
 }
 
 private.getByFilter = function (filter, cb) {
@@ -155,32 +153,32 @@ private.getByFilter = function (filter, cb) {
 	var params = {};
 
 	if (filter.hasOwnProperty('state') && filter.state !== null) {
-		where.push("state = $state");
+		where.push("\"state\" = ${state}");
 		params.state = filter.state;
 	}
 
 	if (filter.hasOwnProperty('os') && filter.os !== null) {
-		where.push("os = $os");
+		where.push("\"os\" = ${os}");
 		params.os = filter.os;
 	}
 
 	if (filter.hasOwnProperty('version') && filter.version !== null) {
-		where.push("version = $version");
+		where.push("\"version\" = ${version}");
 		params.version = filter.version;
 	}
 
 	if (filter.hasOwnProperty('shared') && filter.shared !== null) {
-		where.push("sharePort = $sharePort");
+		where.push("\"sharePort\" = ${sharePort}");
 		params.sharePort = filter.shared;
 	}
 
 	if (filter.hasOwnProperty('ip') && filter.ip !== null) {
-		where.push("ip = $ip");
+		where.push("\"ip\" = ${ip}");
 		params.ip = filter.ip;
 	}
 
 	if (filter.hasOwnProperty('port') && filter.port !== null) {
-		where.push("port = $port");
+		where.push("\"port\" = ${port}");
 		params.port = filter.port;
 	}
 
@@ -188,15 +186,17 @@ private.getByFilter = function (filter, cb) {
 		var sort = filter.orderBy.split(':');
 		sortBy = sort[0].replace(/[^\w\s]/gi, '');
 		if (sort.length == 2) {
-			sortMethod = sort[1] == 'desc' ? 'desc' : 'asc'
+			sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
 		} else {
-			sortMethod = 'desc';
+			sortMethod = 'DESC';
 		}
 	}
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
 			return cb("Invalid sort field");
+		} else {
+			sortBy = '"' + sortBy + '"';
 		}
 	}
 
@@ -211,20 +211,15 @@ private.getByFilter = function (filter, cb) {
 		params['offset'] = offset;
 	}
 
-	library.dbLite.query("select ip, port, state, os, sharePort, version from peers" +
-		(where.length ? (' where ' + where.join(' and ')) : '') +
-		(sortBy ? ' order by ' + sortBy + ' ' + sortMethod : '') + " " +
-		(limit ? ' limit $limit' : '') +
-		(offset ? ' offset $offset ' : ''),
-		params, {
-			"ip": String,
-			"port": Number,
-			"state": Number,
-			"os": String,
-			"sharePort": Number,
-			"version": String
-		}, function (err, rows) {
-			cb(err, rows);
+	library.db.query("SELECT \"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\" FROM peers" +
+		(where.length ? (" WHERE " + where.join(" AND ")) : "") +
+		(sortBy ? " ORDER BY " + sortBy + " " + sortMethod : "") + " " +
+		(limit ? " LIMIT ${limit}" : "") +
+		(offset ? " OFFSET ${offset} " : ""), params).then(function (rows) {
+			cb(null, rows);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return cb("Peer#getByFilter error");
 		});
 }
 
@@ -232,21 +227,17 @@ private.getByFilter = function (filter, cb) {
 Peer.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
-	library.dbLite.query("select p.ip, p.port, p.state, p.os, p.sharePort, p.version from peers p " + (options.dappid ? " inner join peers_dapp pd on p.id = pd.peerId and pd.dappid = $dappid " : "") + " where p.state > 0 and p.sharePort = 1 ORDER BY RANDOM() LIMIT $limit", options, {
-		"ip": String,
-		"port": Number,
-		"state": Number,
-		"os": String,
-		"sharePort": Number,
-		"version": String
-	}, function (err, rows) {
-		cb(err, rows);
+	library.db.query("SELECT p.\"ip\", p.\"port\", p.\"state\", p.\"os\", p.\"sharePort\", p.\"version\" FROM peers p " + (options.dappid ? " INNER JOIN peers_dapp AS pd ON p.\"id\" = pd.\"peerId\" AND pd.\"dappid\" = ${dappid} " : "") + " WHERE p.\"state\" > 0 AND p.\"sharePort\" = 1 ORDER BY RANDOM() LIMIT ${limit}", options).then(function (rows) {
+		cb(null, rows);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Peer#list error");
 	});
 }
 
 Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	var isFrozenList = library.config.peers.list.find(function (peer) {
-		return peer.ip == ip.fromLong(pip) && peer.port == port;
+		return peer.ip == pip && peer.port == port;
 	});
 	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
 	if (state == 0) {
@@ -255,50 +246,57 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	} else {
 		clock = null;
 	}
-	library.dbLite.query("UPDATE peers SET state = $state, clock = $clock WHERE ip = $ip and port = $port;", {
+	library.db.query("UPDATE peers SET \"state\" = ${state}, \"clock\" = ${clock} WHERE \"ip\" = ${ip} AND \"port\" = ${port};", {
 		state: state,
 		clock: clock,
 		ip: pip,
 		port: port
-	}, function (err) {
-		err && library.logger.error('Peer#state', err);
-
-		cb && cb()
+	}).then(function (res) {
+		return cb && cb(null, res);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb && cb();
 	});
 }
 
 Peer.prototype.remove = function (pip, port, cb) {
 	var isFrozenList = library.config.peers.list.find(function (peer) {
-		return peer.ip == ip.fromLong(pip) && peer.port == port;
+		return peer.ip == pip && peer.port == port;
 	});
 	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
-	library.dbLite.query("DELETE FROM peers WHERE ip = $ip and port = $port;", {
+	library.db.query("DELETE FROM peers WHERE \"ip\" = ${ip} AND \"port\" = ${port};", {
 		ip: pip,
 		port: port
-	}, function (err) {
-		err && library.logger.error('Peer#delete', err);
-
-		cb && cb(err)
+	}).then(function (res) {
+		return cb && cb(null, res);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb && cb();
 	});
 }
 
 Peer.prototype.addDapp = function (config, cb) {
-	library.dbLite.query("SELECT id from peers where ip = $ip and port = $port", {
+	library.db.query("SELECT \"id\" FROM peers WHERE \"ip\" = ${ip} AND \"port\" = ${port}", {
 		ip: config.ip,
 		port: config.port
-	}, ["id"], function (err, data) {
-		if (err) {
-			return cb(err);
-		}
-		if (!data.length) {
+	}).then(function (rows) {
+		if (!rows.length) {
 			return cb();
 		}
-		var peerId = data[0].id;
+		var peerId = rows[0].id;
 
-		library.dbLite.query("INSERT OR IGNORE INTO peers_dapp (peerId, dappId) VALUES ($peerId, $dappId);", {
+		library.db.query("INSERT INTO peers_dapp (\"peerId\", \"dappId\") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING;", {
 			dappId: config.dappid,
 			peerId: peerId
-		}, cb);
+		}).then(function (res) {
+			return cb(null, res);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return cb("Peer#addDapp error");
+		});
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Peer#addDapp error");
 	});
 }
 
@@ -313,13 +311,23 @@ Peer.prototype.update = function (peer, cb) {
 	}
 	async.series([
 		function (cb) {
-			library.dbLite.query("INSERT OR IGNORE INTO peers (ip, port, state, os, sharePort, version) VALUES ($ip, $port, $state, $os, $sharePort, $version);", extend({}, params, {state: 1}), cb);
+			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
+				return cb(null, res);
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				return cb("Peer#update error");
+			});
 		},
 		function (cb) {
 			if (peer.state !== undefined) {
 				params.state = peer.state;
 			}
-			library.dbLite.query("UPDATE peers SET os = $os, sharePort = $sharePort, version = $version" + (peer.state !== undefined ? ", state = CASE WHEN state = 0 THEN state ELSE $state END " : "") + " WHERE ip = $ip and port = $port;", params, cb);
+			library.db.query("UPDATE peers SET \"os\" = ${os}, \"sharePort\" = ${sharePort}, \"version\" = ${version}" + (peer.state !== undefined ? ", \"state\" = CASE WHEN \"state\" = 0 THEN \"state\" ELSE ${state} END " : "") + " WHERE \"ip\" = ${ip} and \"port\" = ${port};", params).then(function (res) {
+				return cb(null, res);
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				return cb("Peer#update error");
+			});
 		},
 		function (cb) {
 			if (dappid) {
@@ -346,15 +354,20 @@ Peer.prototype.onBind = function (scope) {
 
 Peer.prototype.onBlockchainReady = function () {
 	async.eachSeries(library.config.peers.list, function (peer, cb) {
-		library.dbLite.query("INSERT OR IGNORE INTO peers(ip, port, state, sharePort) VALUES($ip, $port, $state, $sharePort)", {
-			ip: ip.toLong(peer.ip),
+		library.db.query("INSERT INTO peers(\"ip\", \"port\", \"state\", \"sharePort\") VALUES(${ip}, ${port}, ${state}, ${sharePort}) ON CONFLICT DO NOTHING;", {
+			ip: peer.ip,
 			port: peer.port,
 			state: 2,
 			sharePort: Number(true)
-		}, cb);
+		}).then(function (res) {
+			return cb(null, res);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return cb("Peer#onBlockchainReady error");
+		});
 	}, function (err) {
 		if (err) {
-			library.logger.error('onBlockchainReady', err);
+			library.logger.error(err);
 		}
 
 		private.count(function (err, count) {
@@ -394,7 +407,7 @@ shared.getPeers = function (req, cb) {
 		type: "object",
 		properties: {
 			state: {
-				type: "integer",
+				type: "string",
 				minimum: 0,
 				maximum: 3
 			},
@@ -441,10 +454,6 @@ shared.getPeers = function (req, cb) {
 				return cb("Peer not found");
 			}
 
-			for (var i = 0; i < peers.length; i++) {
-				peers[i].ip = ip.fromLong(peers[i].ip);
-			}
-
 			cb(null, {peers: peers});
 		});
 	});
@@ -471,14 +480,8 @@ shared.getPeer = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		try {
-			var ip_str = ip.toLong(query.ip_str);
-		} catch (e) {
-			return cb("Invalid peer");
-		}
-
 		private.getByFilter({
-			ip: ip_str,
+			ip: query.ip_str,
 			port: port
 		}, function (err, peers) {
 			if (err) {
@@ -486,10 +489,6 @@ shared.getPeer = function (req, cb) {
 			}
 
 			var peer = peers.length ? peers[0] : null;
-
-			if (peer) {
-				peer.ip = ip.fromLong(peer.ip);
-			}
 
 			cb(null, {peer: peer || {}});
 		});

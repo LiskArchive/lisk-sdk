@@ -524,7 +524,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	}
 
 	var req = {
-		url: 'http://' + ip.fromLong(peer.ip) + ':' + peer.port + url,
+		url: 'http://' + peer.ip + ':' + peer.port + url,
 		method: options.method,
 		json: true,
 		headers: _.extend({}, private.headers, options.headers),

@@ -1063,7 +1063,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 					loaded = true;
 					next();
 				} else {
-					var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
+					var peerStr = data.peer ? data.peer.ip + ":" + data.peer.port : 'unknown';
 					library.logger.log('Loading ' + blocks.length + ' blocks from', peerStr);
 
 					async.eachSeries(blocks, function (block, cb) {
