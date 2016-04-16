@@ -406,77 +406,71 @@ private.loadBlockChain = function () {
 	}
 
 	library.logic.account.createTables(function (err) {
+		function reload (count, message) {
+			library.logger.error(message);
+			library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
+			load(count);
+		}
+
 		if (err) {
 			throw err;
-		} else {
-			library.dbLite.query("select count(*) from mem_accounts where blockId = (select id from blocks where numberOfTransactions > 0 order by height desc limit 1)", {'count': Number}, function (err, rows) {
+		}
+
+		library.db.query('SELECT COUNT(*) FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" WHERE "numberOfTransactions" > 0 ORDER BY "height" DESC LIMIT 1)').then(function (rows) {
+			var reject = !(rows[0].count);
+
+			modules.blocks.count(function (err, count) {
 				if (err) {
-					throw err;
+					return library.logger.error('Failed to count blocks', err)
 				}
 
-				var reject = !(rows[0].count);
+				library.logger.info('Blocks ' + count);
 
-				modules.blocks.count(function (err, count) {
-					if (err) {
-						return library.logger.error('Failed to count blocks', err)
-					}
+				// Check if previous loading missed
+				if (reject || verify || count == 1) {
+					return load(count);
+				}
 
-					library.logger.info('Blocks ' + count);
+				library.db.none('UPDATE mem_accounts SET "u_isDelegate" = "isDelegate", "u_secondSignature" = "secondSignature", "u_username" = "username", "u_balance" = "balance", "u_delegates" = "delegates", "u_multisignatures" = "multisignatures"').then(function () {
+					library.db.query('SELECT a."blockId", b."id" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b."id" = a."blockId" WHERE b."id" IS NULL').then(function (rows) {
+						if (rows.length > 0) {
+							return load(count);
+						}
 
-					// Check if previous loading missed
-					if (reject || verify || count == 1) {
-						load(count);
-					} else {
-						library.dbLite.query(
-							"UPDATE mem_accounts SET u_isDelegate=isDelegate,u_secondSignature=secondSignature,u_username=username,u_balance=balance,u_delegates=delegates,u_multisignatures=multisignatures"
-							, function (err, updated) {
-								if (err) {
-									library.logger.error(err);
-									library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-									load(count);
-								} else {
-									library.dbLite.query("select a.blockId, b.id from mem_accounts a left outer join blocks b on b.id = a.blockId where b.id is null", {}, ['a_blockId', 'b_id'], function (err, rows) {
-										if (err || rows.length > 0) {
-											library.logger.error(err || "Encountered missing block, looks like node went down during block processing");
-											library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-											load(count);
-										} else {
-											// Load delegates
-											library.dbLite.query("SELECT lower(hex(publicKey)) FROM mem_accounts WHERE isDelegate=1", ['publicKey'], function (err, delegates) {
-												if (err || delegates.length == 0) {
-													library.logger.error(err || "No delegates, reload database");
-													library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-													load(count);
-												} else {
-													modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
-														if (err) {
-															library.logger.error(err || "Unable to load last block");
-															library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-															load(count);
-														} else {
-															modules.blocks.loadLastBlock(function (err, block) {
-																if (err) {
-																	return load(count);
-																}
-																private.lastBlock = block;
-																library.logger.info('Blockchain ready');
-																library.bus.message('blockchainReady');
-															});
-														}
-													});
-												}
-											});
-										}
-									});
-								}
-							});
-					}
-
+						// Load delegates
+						library.db.query("SELECT ENCODE(\"publicKey\", 'hex') FROM mem_accounts WHERE \"isDelegate\" = 1").then(function (delegates) {
+							if (delegates.length == 0) {
+								reload(count, "No delegates, reload database");
+							} else {
+								modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
+									if (err) {
+										reload(count, err || "Unable to load last block");
+									} else {
+										modules.blocks.loadLastBlock(function (err, block) {
+											if (err) {
+												return load(count);
+											}
+											private.lastBlock = block;
+											library.logger.info('Blockchain ready');
+											library.bus.message('blockchainReady');
+										});
+									}
+								});
+							}
+						}).catch(function (err) {
+							reload(count, err);
+						});
+					}).catch(function (err) {
+						reload(count, err);
+					});
+				}).catch(function (err) {
+					reload(count, err);
 				});
 			});
-		}
+		}).catch(function (err) {
+			throw err;
+		});
 	});
-
 }
 
 // Public methods
