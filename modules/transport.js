@@ -162,21 +162,12 @@ private.attachApi = function () {
 				return res.json({success: false, error: "Invalid block id sequence"});
 			}
 
-			library.dbLite.query("select max(height), id, previousBlock, timestamp from blocks where id in (" + escapedIds.join(',') + ") and height >= $min and height <= $max", {
-				"max": max,
-				"min": min
-			}, {
-				"height": Number,
-				"id": String,
-				"previousBlock": String,
-				"timestamp": Number
-			}, function (err, rows) {
-				if (err) {
-					return res.json({success: false, error: "Database error"});
-				}
-
+			library.db.query("SELECT MAX(\"height\"), \"id\", \"previousBlock\", \"timestamp\" FROM blocks WHERE \"id\" IN (" + escapedIds.join(',') + ") and \"height\" >= ${min} AND \"height\" <= ${max}", { "max": max, "min": min }).then(function (rows) {
 				var commonBlock = rows.length ? rows[0] : null;
-				return res.json({success: true, common: commonBlock});
+				return res.json({ success: true, common: commonBlock });
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				return res.json({ success: false, error: "Failed to get common block" });
 			});
 		});
 	});
@@ -323,17 +314,13 @@ private.attachApi = function () {
 		var peerIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 		var peerStr = peerIp ? peerIp + ":" + (isNaN(req.headers['port']) ? 'unknown' : req.headers['port']) : 'unknown';
 
-		if (modules.loader.syncing() || !private.loaded) {
-			return res.status(200).json({success: false, message: "Peer is not ready to receive transaction"});
-		}
-
 		try {
 			var transaction = library.logic.transaction.objectNormalize(req.body.transaction);
 		} catch (e) {
 			library.logger.log('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', peerStr);
 
 			if (peerIp && report) {
-				modules.peer.state(ip.toLong(peerIp), req.headers['port'], 0, 3600);
+				modules.peer.state(peerIp, req.headers['port'], 0, 3600);
 			}
 
 			return res.status(200).json({success: false, message: "Invalid transaction body"});
