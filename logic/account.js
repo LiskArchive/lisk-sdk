@@ -1,6 +1,6 @@
 var async = require('async');
 var jsonSql = require('json-sql')();
-jsonSql.setDialect("sqlite")
+jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 var genesisBlock = null;
@@ -29,7 +29,7 @@ function Account(scope, cb) {
 		},
 		{
 			name: "isDelegate",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "boolean"
 			},
@@ -38,7 +38,7 @@ function Account(scope, cb) {
 		},
 		{
 			name: "u_isDelegate",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "boolean"
 			},
@@ -47,7 +47,7 @@ function Account(scope, cb) {
 		},
 		{
 			name: "secondSignature",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "boolean"
 			},
@@ -56,7 +56,7 @@ function Account(scope, cb) {
 		},
 		{
 			name: "u_secondSignature",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "boolean"
 			},
@@ -77,7 +77,7 @@ function Account(scope, cb) {
 		{
 			name: "address",
 			type: "String",
-			length: 21,
+			length: 22,
 			not_null: true,
 			unique: true,
 			primary_key: true,
@@ -85,7 +85,7 @@ function Account(scope, cb) {
 				required: true,
 				type: "string",
 				minLength: 1,
-				maxLength: 21
+				maxLength: 22
 			},
 			conv: String,
 			constante: true
@@ -93,24 +93,24 @@ function Account(scope, cb) {
 		{
 			name: "publicKey",
 			type: "Binary",
-			length: 32,
 			filter: {
 				type: "string",
 				format: "publicKey"
 			},
 			conv: String,
-			constante: true
+			constante: true,
+			expression: "ENCODE(\"publicKey\", 'hex')"
 		},
 		{
 			name: "secondPublicKey",
 			type: "Binary",
-			length: 32,
 			filter: {
 				type: "string",
 				format: "publicKey"
 			},
 			conv: String,
-			constante: true
+			constante: true,
+			expression: "ENCODE(\"secondPublicKey\", 'hex')"
 		},
 		{
 			name: "balance",
@@ -162,7 +162,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2delegates where accountId = a.address)"
+			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2delegates WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "u_delegates",
@@ -172,7 +172,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2u_delegates where accountId = a.address)"
+			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2u_delegates WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "multisignatures",
@@ -182,7 +182,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2multisignatures where accountId = a.address)"
+			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2multisignatures WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "u_multisignatures",
@@ -192,7 +192,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(select GROUP_CONCAT(dependentId) from " + this.table + "2u_multisignatures where accountId = a.address)"
+			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2u_multisignatures WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "multimin",
@@ -252,7 +252,7 @@ function Account(scope, cb) {
 		},
 		{
 			name: "nameexist",
-			type: "Boolean",
+			type: "SmallInt",
 			filter: {
 				type: "boolean"
 			},
@@ -261,7 +261,7 @@ function Account(scope, cb) {
 		},
 		{
 			name: "u_nameexist",
-			type: "Boolean",
+			type: "SmallInt",
 			filter: {
 				type: "boolean"
 			},
@@ -292,12 +292,12 @@ function Account(scope, cb) {
 		},
 		{
 			name: "virgin",
-			type: "Boolean",
+			type: "SmallInt",
 			filter: {
 				type: "boolean"
 			},
 			conv: Boolean,
-			expression: "0"
+			default: 0
 		},
 		{
 			name: "fees",
@@ -321,9 +321,6 @@ function Account(scope, cb) {
 
 	this.fields = this.model.map(function (field) {
 		var _tmp = {};
-		if (field.type == "Binary") {
-			_tmp.expression = ['lower', 'hex'];
-		}
 
 		if (field.expression) {
 			_tmp.expression = field.expression;
@@ -385,7 +382,7 @@ Account.prototype.createTables = function (cb) {
 			{
 				"name": "address",
 				"type": "String",
-				"length": 21
+				"length": 22
 			},
 			{
 				"name": "amount",
@@ -416,12 +413,12 @@ Account.prototype.createTables = function (cb) {
 			{
 				name: "accountId",
 				type: "String",
-				length: 21,
+				length: 22,
 				not_null: true
 			}, {
 				name: "dependentId",
 				type: "String",
-				length: 21,
+				length: 64,
 				not_null: true
 			}
 		],
@@ -443,12 +440,12 @@ Account.prototype.createTables = function (cb) {
 			{
 				name: "accountId",
 				type: "String",
-				length: 21,
+				length: 22,
 				not_null: true
 			}, {
 				name: "dependentId",
 				type: "String",
-				length: 21,
+				length: 64,
 				not_null: true
 			}
 		],
@@ -470,12 +467,12 @@ Account.prototype.createTables = function (cb) {
 			{
 				name: "accountId",
 				type: "String",
-				length: 21,
+				length: 22,
 				not_null: true
 			}, {
 				name: "dependentId",
 				type: "String",
-				length: 21,
+				length: 64,
 				not_null: true
 			}
 		],
@@ -497,12 +494,12 @@ Account.prototype.createTables = function (cb) {
 			{
 				name: "accountId",
 				type: "String",
-				length: 21,
+				length: 22,
 				not_null: true
 			}, {
 				name: "dependentId",
 				type: "String",
-				length: 21,
+				length: 64,
 				not_null: true
 			}
 		],
@@ -517,14 +514,17 @@ Account.prototype.createTables = function (cb) {
 	});
 	sqles.push(sql.query);
 
-	sqles.push("delete from mem_accounts2u_delegates;");
-	// sqles.push("delete from mem_accounts2u_multisignatures;");
+	sqles.push("DELETE FROM mem_accounts2u_delegates;");
+	// sqles.push("DELETE FROM mem_accounts2u_multisignatures;");
 	sqles.push("INSERT INTO mem_accounts2u_delegates SELECT * FROM mem_accounts2delegates;");
 	// sqles.push("INSERT INTO mem_accounts2u_multisignatures SELECT * FROM mem_accounts2multisignatures;");
 
 	async.eachSeries(sqles, function (command, cb) {
-		scope.dbLite.query(command, function (err, data) {
-			cb(err, data);
+		scope.db.query(command).then(function (data) {
+			cb(null, data);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			cb("Account#createTables error");
 		});
 	}.bind(this), function (err) {
 		setImmediate(cb, err, this);
@@ -542,8 +542,11 @@ Account.prototype.removeTables = function (cb) {
 	sqles.push(sql.query);
 
 	async.eachSeries(sqles, function (command, cb) {
-		scope.dbLite.query(command, function (err, data) {
-			cb(err, data);
+		scope.db.query(command).then(function (data) {
+			cb(null, data);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			cb("Account#removeTables error");
 		});
 	}.bind(this), function (err) {
 		setImmediate(cb, err, this);
@@ -631,13 +634,12 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		fields: realFields
 	});
 
-	this.scope.dbLite.query(sql.query, sql.values, realConv, function (err, data) {
-		if (err) {
-			return cb(err);
-		}
-
-		cb(null, data || []);
-	}.bind(this));
+	this.scope.db.query(sql.query, sql.values).then(function (rows) {
+		return cb(null, rows);
+	}).catch(function (err ) {
+		library.logger.error(err.toString());
+		cb("Account#getAll error");
+	});
 }
 
 Account.prototype.set = function (address, fields, cb) {
@@ -652,12 +654,10 @@ Account.prototype.set = function (address, fields, cb) {
 	var sqles = []
 
 	var sql = jsonSql.build({
-		type: 'insert',
-		or: "ignore",
+		type: 'insertornothing',
 		table: this.table,
 		values: this.toDB(account)
 	});
-
 	sqles.push(sql);
 
 	var sql = jsonSql.build({
@@ -672,8 +672,11 @@ Account.prototype.set = function (address, fields, cb) {
 	sqles.push(sql);
 
 	async.eachSeries(sqles, function (sql, cb) {
-		self.scope.dbLite.query(sql.query, sql.values, function (err, data) {
-			cb(err, data);
+		self.scope.db.query(sql.query, sql.values).then(function (rows) {
+			cb(null, rows);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			cb("Account#set error");
 		});
 	}, cb);
 }
@@ -688,7 +691,7 @@ Account.prototype.merge = function (address, diff, cb) {
 	}
 
 	this.editable.forEach(function (value) {
-		if (diff[value]) {
+		if (diff[value] !== undefined) {
 			var trueValue = diff[value];
 			switch (self.conv[value]) {
 				case String:
@@ -700,7 +703,7 @@ Account.prototype.merge = function (address, diff, cb) {
 						update.$inc[value] = trueValue;
 						if (value == "balance") {
 							round.push({
-								query: "insert into mem_round (address, amount, delegate, blockId, round) select $address, $amount, dependentId, $blockId, $round from mem_accounts2delegates where accountId = $address",
+								query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, ${amount}, \"dependentId\", ${blockId}, ${round} FROM mem_accounts2delegates WHERE \"accountId\" = ${address}",
 								values: {
 									address: address,
 									amount: trueValue,
@@ -715,7 +718,7 @@ Account.prototype.merge = function (address, diff, cb) {
 						update.$dec[value] = Math.abs(trueValue);
 						if (value == "balance") {
 							round.push({
-								query: "insert into mem_round (address, amount, delegate, blockId, round) select $address, $amount, dependentId, $blockId, $round from mem_accounts2delegates where accountId = $address",
+								query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, ${amount}, \"dependentId\", ${blockId}, ${round} FROM mem_accounts2delegates WHERE \"accountId\" = ${address}",
 								values: {
 									address: address,
 									amount: trueValue,
@@ -754,7 +757,7 @@ Account.prototype.merge = function (address, diff, cb) {
 								remove[value].push(val);
 								if (value == "delegates") {
 									round.push({
-										query: "insert into mem_round (address, amount, delegate, blockId, round) select $address, -balance, $delegate, $blockId, $round from mem_accounts where address = $address",
+										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, -balance, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
 										values: {
 											address: address,
 											delegate: val,
@@ -769,7 +772,7 @@ Account.prototype.merge = function (address, diff, cb) {
 								insert[value].push(val)
 								if (value == "delegates") {
 									round.push({
-										query: "insert into mem_round (address, amount, delegate, blockId, round) select $address, balance, $delegate, $blockId, $round from mem_accounts where address = $address",
+										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, balance, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
 										values: {
 											address: address,
 											delegate: val,
@@ -784,7 +787,7 @@ Account.prototype.merge = function (address, diff, cb) {
 								insert[value].push(val)
 								if (value == "delegates") {
 									round.push({
-										query: "insert into mem_round (address, amount, delegate, blockId, round) select $address, balance, $delegate, $blockId, $round from mem_accounts where address = $address",
+										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, balance, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
 										values: {
 											address: address,
 											delegate: val,
@@ -878,63 +881,53 @@ Account.prototype.merge = function (address, diff, cb) {
 			if (err) {
 				return cb(err);
 			}
-			self.get({address: address}, cb);
+			self.get({ address: address }, cb);
 		}
 	}
 
 	async.series([
 		function (cb) {
-			if (sqles.length > 1) {
-				self.scope.dbLite.query('BEGIN TRANSACTION;');
+			if (sqles.length < 1) {
+				return cb();
 			}
 
-			async.eachSeries(sqles, function (sql, cb) {
-				self.scope.dbLite.query(sql.query, sql.values, function (err, data) {
-					cb(err, data);
-				});
-			}, function (err) {
-				if (err) {
-					if (sqles.length > 1) {
-						self.scope.dbLite.query('ROLLBACK;', function (rollbackErr) {
-							cb(rollbackErr || err);
-						});
-					} else {
-						cb(err);
-					}
-					return;
+			self.scope.db.tx(function (t) {
+				var promises = [];
+
+				for (var i = 0; i < sqles.length; i++) {
+					var sql = sqles[i];
+
+					promises.push(this.none(sql.query, sql.values));
 				}
-				if (sqles.length > 1) {
-					self.scope.dbLite.query('COMMIT;', cb);
-				} else {
-					cb();
-				}
+
+				return this.batch(promises);
+			}).then(function () {
+				return cb();
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				cb("Account#merge error");
 			});
 		},
 		function (cb) {
-			if (round.length > 1) {
-				self.scope.dbLite.query('BEGIN TRANSACTION;');
+			if (round.length < 1) {
+				return cb();
 			}
 
-			async.eachSeries(round, function (sql, cb) {
-				self.scope.dbLite.query(sql.query, sql.values, function (err, data) {
-					cb(err, data);
-				});
-			}, function (err) {
-				if (err) {
-					if (round.length > 1) {
-						self.scope.dbLite.query('ROLLBACK;', function (rollbackErr) {
-							cb(rollbackErr || err);
-						});
-					} else {
-						cb(err);
-					}
-					return;
+			self.scope.db.tx(function (t) {
+				var promises = [];
+
+				for (var i = 0; i < round.length; i++) {
+					var sql = round[i];
+
+					promises.push(this.none(sql.query, sql.values));
 				}
-				if (round.length > 1) {
-					self.scope.dbLite.query('COMMIT;', cb);
-				} else {
-					cb();
-				}
+
+				return this.batch(promises);
+			}).then(function () {
+				return cb();
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				cb("Account#merge error");
 			});
 		}
 	], done);
@@ -948,8 +941,11 @@ Account.prototype.remove = function (address, cb) {
 			address: address
 		}
 	});
-	this.scope.dbLite.query(sql.query, sql.values, function (err, data) {
-		cb(err, address);
+	this.scope.db.none(sql.query, sql.values).then(function () {
+		cb(null, address);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		cb("Account#remove error");
 	});
 }
 
