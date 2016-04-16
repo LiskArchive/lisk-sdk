@@ -69,7 +69,7 @@ process.on('uncaughtException', function (err) {
 });
 
 var config = {
-	"db": program.blockchain || "./blockchain.db",
+	"db": appConfig.db,
 	"modules": {
 		"server": "./modules/server.js",
 		"accounts": "./modules/accounts.js",
@@ -386,12 +386,12 @@ d.run(function () {
 			cb(null, new bus)
 		},
 
-		dbLite: function (cb) {
-			var dbLite = require('./helpers/dbLite.js');
-			dbLite.connect(config.db, cb);
+		db: function (cb) {
+			var db = require('./helpers/database.js');
+			db.connect(config.db, cb);
 		},
 
-		logic: ['dbLite', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
+		logic: ['db', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
@@ -400,8 +400,8 @@ d.run(function () {
 				bus: function (cb) {
 					cb(null, scope.bus);
 				},
-				dbLite: function (cb) {
-					cb(null, scope.dbLite);
+				db: function (cb) {
+					cb(null, scope.db);
 				},
 				scheme: function (cb) {
 					cb(null, scope.scheme);
@@ -411,19 +411,19 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ["dbLite", "bus", "scheme", 'genesisblock', function (cb, scope) {
+				account: ["db", "bus", "scheme", 'genesisblock', function (cb, scope) {
 					new Account(scope, cb);
 				}],
-				transaction: ["dbLite", "bus", "scheme", 'genesisblock', "account", function (cb, scope) {
+				transaction: ["db", "bus", "scheme", 'genesisblock', "account", function (cb, scope) {
 					new Transaction(scope, cb);
 				}],
-				block: ["dbLite", "bus", "scheme", 'genesisblock', "account", "transaction", function (cb, scope) {
+				block: ["db", "bus", "scheme", 'genesisblock', "account", "transaction", function (cb, scope) {
 					new Block(scope, cb);
 				}]
 			}, cb);
 		}],
 
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'dbLite', 'logic', function (cb, scope) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (cb, scope) {
 			var tasks = {};
 			Object.keys(config.modules).forEach(function (name) {
 				tasks[name] = function (cb) {
