@@ -209,7 +209,7 @@ function Delegate() {
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures.length) {
+		if (util.isArray(sender.multisignatures) && sender.multisignatures.length) {
 			if (!trs.signatures) {
 				return false;
 			}
