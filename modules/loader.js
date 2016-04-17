@@ -228,8 +228,12 @@ private.loadBlocks = function (lastBlock, cb) {
 		method: 'GET'
 	}, function (err, data) {
 		var peerStr = data && data.peer ? data.peer.ip + ":" + data.peer.port : 'unknown';
-		if (err || !data.body) {
-			library.logger.log("Failed to get height from peer: " + peerStr);
+
+		if (err) {
+			library.logger.error(err);
+			return cb();
+		} else if (peerStr == 'unknown') {
+			library.logger.log("Failed to get height from peer:", peerStr);
 			return cb();
 		}
 
