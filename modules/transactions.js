@@ -105,8 +105,8 @@ function Transfer() {
 		return null;
 	}
 
-	this.dbSave = function (trs, cb) {
-		setImmediate(cb);
+	this.dbSave = function (trs) {
+		return null;
 	}
 
 	this.ready = function (trs, sender) {
@@ -165,54 +165,64 @@ private.attachApi = function () {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = ['t.id', 't.blockId', 't.amount', 't.fee', 't.type', 't.timestamp', 't.senderPublicKey', 't.senderId', 't.recipientId', 't.confirmations', 'b.height'];
+	var sortFields = ['t_id', 'b_blockId', 't_amount', 't_fee', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 'b_confirmations', 'b_height'];
 	var params = {}, fields_or = [], owner = "";
+
 	if (filter.blockId) {
-		fields_or.push('blockId = $blockId')
+		fields_or.push("\"blockId\" = ${blockId}");
 		params.blockId = filter.blockId;
 	}
+
 	if (filter.senderPublicKey) {
-		fields_or.push('lower(hex(senderPublicKey)) = $senderPublicKey')
+		fields_or.push("ENCODE(\"senderPublicKey\", 'hex') = ${senderPublicKey}")
 		params.senderPublicKey = filter.senderPublicKey;
 	}
+
 	if (filter.senderId) {
-		fields_or.push('senderId = $senderId');
+		fields_or.push("\"senderId\" = ${senderId}");
 		params.senderId = filter.senderId;
 	}
+
 	if (filter.recipientId) {
-		fields_or.push('recipientId = $recipientId')
+		fields_or.push("\"recipientId\" = ${recipientId}");
 		params.recipientId = filter.recipientId;
 	}
+
 	if (filter.ownerAddress && filter.ownerPublicKey) {
-		owner = '(lower(hex(senderPublicKey)) = $ownerPublicKey or recipientId = $ownerAddress)';
+		owner = "(ENCODE(\"senderPublicKey\", 'hex') = ${ownerPublicKey} OR \"recipientId\" = ${ownerAddress})";
 		params.ownerPublicKey = filter.ownerPublicKey;
 		params.ownerAddress = filter.ownerAddress;
 	}
+
 	if (filter.type >= 0) {
-		fields_or.push('type = $type');
+		fields_or.push("\"type\" = ${type}");
 		params.type = filter.type;
 	}
 
 	if (filter.limit >= 0) {
 		params.limit = filter.limit;
 	}
+
 	if (filter.offset >= 0) {
 		params.offset = filter.offset;
 	}
 
 	if (filter.orderBy) {
 		var sort = filter.orderBy.split(':');
-		var sortBy = sort[0].replace(/[^\w_]/gi, '').replace('_', '.');
+		var sortBy = sort[0].replace(/[^\w_]/gi, '');
+
 		if (sort.length == 2) {
-			var sortMethod = sort[1] == 'desc' ? 'desc' : 'asc'
+			var sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
 		} else {
-			sortMethod = "desc";
+			sortMethod = 'DESC';
 		}
 	}
 
 	if (sortBy) {
 		if (sortFields.indexOf(sortBy) < 0) {
 			return cb("Invalid sort field");
+		} else {
+			sortBy = '"' + sortBy + '"';
 		}
 	}
 
@@ -220,29 +230,22 @@ private.list = function (filter, cb) {
 		return cb("Invalid limit. Maximum is 100");
 	}
 
-	library.dbLite.query("select count(t.id) " +
-		"from trs t " +
-		"inner join blocks b on t.blockId = b.id " +
-		(fields_or.length || owner ? "where " : "") + " " +
-		(fields_or.length ? "(" + fields_or.join(' or ') + ") " : "") + (fields_or.length && owner ? " and " + owner : owner), params, {"count": Number}, function (err, rows) {
-		if (err) {
-			return cb(err);
-		}
-
+	library.db.query("SELECT COUNT(t.\"id\") " +
+		"FROM trs t " +
+		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
+		(fields_or.length || owner ? "WHERE " : "") + " " +
+		(fields_or.length ? "(" + fields_or.join(' OR ') + ") " : "") + (fields_or.length && owner ? " AND " + owner : owner), params).then(function (rows) {
 		var count = rows.length ? rows[0].count : 0;
 
 		// Need to fix 'or' or 'and' in query
-		library.dbLite.query("select t.id, b.height, t.blockId, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), t.signatures, (select max(height) + 1 from blocks) - b.height " +
-			"from trs t " +
-			"inner join blocks b on t.blockId = b.id " +
-			(fields_or.length || owner ? "where " : "") + " " +
-			(fields_or.length ? "(" + fields_or.join(' or ') + ") " : "") + (fields_or.length && owner ? " and " + owner : owner) + " " +
-			(filter.orderBy ? 'order by ' + sortBy + ' ' + sortMethod : '') + " " +
-			(filter.limit ? 'limit $limit' : '') + " " +
-			(filter.offset ? 'offset $offset' : ''), params, ['t_id', 'b_height', 't_blockId', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 't_amount', 't_fee', 't_signature', 't_signSignature', 't_signatures', 'confirmations'], function (err, rows) {
-			if (err) {
-				return cb(err);
-			}
+		library.db.query("SELECT t.\"id\" AS \"t_id\", b.\"height\" AS \"b_height\", t.\"blockId\" AS \"t_blockId\", t.\"type\" AS \"t_type\", t.\"timestamp\" AS \"t_timestamp\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"t_senderPublicKey\", t.\"senderId\" AS \"t_senderId\", t.\"recipientId\" AS \"t_recipientId\", t.\"amount\" AS \"t_amount\", t.\"fee\" AS \"t_fee\", ENCODE(t.\"signature\", 'hex') AS \"t_signature\", ENCODE(t.\"signSignature\", 'hex') AS \"t_SignSignature\", t.\"signatures\" AS \"t_signatures\", (SELECT MAX(\"height\") + 1 FROM blocks) - b.\"height\" AS \"confirmations\" " +
+			"FROM trs t " +
+			"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
+			(fields_or.length || owner ? "WHERE " : "") + " " +
+			(fields_or.length ? "(" + fields_or.join(' or ') + ") " : "") + (fields_or.length && owner ? " AND " + owner : owner) + " " +
+			(filter.orderBy ? "ORDER BY " + sortBy + " " + sortMethod : "") + " " +
+			(filter.limit ? "LIMIT ${limit}" : "") + " " +
+			(filter.offset ? "OFFSET ${offset}" : ""), params).then(function (rows) {
 
 			var transactions = [];
 			for (var i = 0; i < rows.length; i++) {
@@ -253,21 +256,30 @@ private.list = function (filter, cb) {
 				count: count
 			}
 			cb(null, data);
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return cb("Transactions#list error");
 		});
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Transactions#list error");
 	});
 }
 
 private.getById = function (id, cb) {
-	library.dbLite.query("select t.id, b.height, t.blockId, t.type, t.timestamp, lower(hex(t.senderPublicKey)), t.senderId, t.recipientId, t.amount, t.fee, lower(hex(t.signature)), lower(hex(t.signSignature)), (select max(height) + 1 from blocks) - b.height " +
-		"from trs t " +
-		"inner join blocks b on t.blockId = b.id " +
-		"where t.id = $id", {id: id}, ['t_id', 'b_height', 't_blockId', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 't_amount', 't_fee', 't_signature', 't_signSignature', 'confirmations'], function (err, rows) {
-		if (err || !rows.length) {
-			return cb(err || "Can't find transaction: " + id);
+	library.db.query("SELECT t.\"id\" AS \"t_id\", b.\"height\" AS \"b_height\", t.\"blockId\" AS \"t_blockId\", t.\"type\" AS \"t_type\", t.\"timestamp\" AS \"t_timestamp\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"t_senderPublicKey\", t.\"senderId\" AS \"t_senderId\", t.\"recipientId\" AS \"t_recipientId\", t.\"amount\" AS \"t_amount\", t.\"fee\" AS \"t_fee\", ENCODE(t.\"signature\", 'hex') AS \"t_signature\", ENCODE(t.\"signSignature\", 'hex') AS \"t_SignSignature\", t.\"signatures\" AS \"t_signatures\", (SELECT MAX(\"height\") + 1 FROM blocks) - b.\"height\" AS \"confirmations\" " +
+		"FROM trs t " +
+		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
+		"WHERE t.\"id\" = ${id}", { id: id }).then(function (rows) {
+		if (!rows.length) {
+			return cb("Can't find transaction: " + id);
 		}
 
 		var transacton = library.logic.transaction.dbRead(rows[0]);
 		cb(null, transacton);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Transactions#getById error");
 	});
 }
 
