@@ -142,11 +142,14 @@ function Vote() {
 		}
 	}
 
-	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO votes(votes, transactionId) VALUES($votes, $transactionId)", {
-			votes: util.isArray(trs.asset.votes) ? trs.asset.votes.join(',') : null,
-			transactionId: trs.id
-		}, cb);
+	this.dbSave = function (trs) {
+		return {
+			query: "INSERT INTO votes(\"votes\", \"transactionId\") VALUES(${votes}, ${transactionId})",
+			values: {
+				votes: util.isArray(trs.asset.votes) ? trs.asset.votes.join(',') : null,
+				transactionId: trs.id
+			}
+		};
 	}
 
 	this.ready = function (trs, sender) {
@@ -261,7 +264,7 @@ private.openAccount = function (secret, cb) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
 	var keypair = ed.MakeKeypair(hash);
 
-	self.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, cb);
+	self.setAccountAndGet({ publicKey: keypair.publicKey.toString('hex') }, cb);
 }
 
 // Public methods
@@ -308,7 +311,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		if (err) {
 			return cb(err);
 		}
-		library.logic.account.get({address: address}, cb);
+		library.logic.account.get({ address: address }, cb);
 	});
 }
 
@@ -398,7 +401,7 @@ shared.getBalance = function (req, cb) {
 			return cb("Invalid address");
 		}
 
-		self.getAccount({address: query.address}, function (err, account) {
+		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
 				return cb(err.toString());
 			}
@@ -426,7 +429,7 @@ shared.getPublickey = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		self.getAccount({address: query.address}, function (err, account) {
+		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
 				return cb(err.toString());
 			}
@@ -482,7 +485,7 @@ shared.getDelegates = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		self.getAccount({address: query.address}, function (err, account) {
+		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
 				return cb(err.toString());
 			}
@@ -493,7 +496,7 @@ shared.getDelegates = function (req, cb) {
 			if (account.delegates) {
 				self.getAccounts({
 					isDelegate: 1,
-					sort: {"vote": -1, "publicKey": 1}
+					sort: { "vote": -1, "publicKey": 1 }
 				}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks", "virgin"], function (err, delegates) {
 					if (err) {
 						return cb(err.toString());
@@ -579,7 +582,7 @@ shared.addDelegates = function (req, cb) {
 
 		library.balancesSequence.add(function (cb) {
 			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
+				modules.accounts.getAccount({ publicKey: body.multisigAccountPublicKey }, function (err, account) {
 					if (err) {
 						return cb(err.toString());
 					}
@@ -596,7 +599,7 @@ shared.addDelegates = function (req, cb) {
 						return cb("Account does not belong to multisignature group");
 					}
 
-					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
+					modules.accounts.getAccount({ publicKey: keypair.publicKey }, function (err, requester) {
 						if (err) {
 							return cb(err.toString());
 						}
@@ -636,7 +639,7 @@ shared.addDelegates = function (req, cb) {
 					});
 				});
 			} else {
-				self.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				self.getAccount({ publicKey: keypair.publicKey.toString('hex') }, function (err, account) {
 					if (err) {
 						return cb(err.toString());
 					}
@@ -695,7 +698,7 @@ shared.getAccount = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		self.getAccount({address: query.address}, function (err, account) {
+		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
 				return cb(err.toString());
 			}
@@ -712,8 +715,8 @@ shared.getAccount = function (req, cb) {
 					unconfirmedSignature: account.u_secondSignature,
 					secondSignature: account.secondSignature,
 					secondPublicKey: account.secondPublicKey,
-					multisignatures: account.multisignatures,
-					u_multisignatures: account.u_multisignatures
+					multisignatures: account.multisignatures || [],
+					u_multisignatures: account.u_multisignatures || []
 				}
 			});
 		});
