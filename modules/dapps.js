@@ -73,15 +73,10 @@ function OutTransfer() {
 	}
 
 	this.process = function (trs, sender, cb) {
-		library.dbLite.query("SELECT count(*) FROM dapps WHERE transactionId=$id", {
+		library.db.one("SELECT COUNT(*)::int AS \"count\" FROM dapps WHERE \"transactionId\" = ${id}", {
 			id: trs.asset.outTransfer.dappId
-		}, ["count"], function (err, rows) {
-			if (err) {
-				library.logger.error(err.toString());
-				return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
-			}
-
-			var count = rows[0].count;
+		}).then(function (row) {
+			var count = row.count;
 
 			if (count == 0) {
 				return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
@@ -91,22 +86,23 @@ function OutTransfer() {
 				return cb("Transaction is already processing: " + trs.asset.outTransfer.transactionId);
 			}
 
-			library.dbLite.query("SELECT count(*) FROM outtransfer WHERE outTransactionId = $transactionId", {
+			library.db.one("SELECT COUNT(*)::int AS \"count\" FROM outtransfer WHERE \"outTransactionId\" = ${transactionId}", {
 				transactionId: trs.asset.outTransfer.transactionId
-			}, {"count": Number}, function (err, rows) {
-				if (err) {
-					library.logger.error(err.toString());
-					return cb("Transaction is already confirmed: " + trs.asset.outTransfer.transactionId);
-				} else {
-					var count = rows[0].count;
+			}).then(function (row) {
+					var count = row.count;
 
 					if (count) {
 						return cb("Transaction is already confirmed");
 					} else {
 						return cb(null, trs);
 					}
-				}
-			})
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				return cb("Transaction is already confirmed: " + trs.asset.outTransfer.transactionId);
+			});
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
 		});
 	}
 
@@ -208,27 +204,28 @@ function OutTransfer() {
 		}
 	}
 
-	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO outtransfer(dappId, transactionId, outTransactionId) VALUES($dappId, $transactionId, $outTransactionId)", {
-			dappId: trs.asset.outTransfer.dappId,
-			outTransactionId: trs.asset.outTransfer.transactionId,
-			transactionId: trs.id
-		}, function (err) {
-			if (err) {
-				return cb(err);
+	this.dbSave = function (trs) {
+		return {
+			query: "INSERT INTO outtransfer(\"dappId\", \"transactionId\", \"outTransactionId\") VALUES(${dappId}, ${transactionId}, ${outTransactionId})",
+			values: {
+				dappId: trs.asset.outTransfer.dappId,
+				outTransactionId: trs.asset.outTransfer.transactionId,
+				transactionId: trs.id
 			}
+		};
+	}
 
-			self.message(trs.asset.outTransfer.dappId, {
-				topic: "withdrawal",
-				message: {
-					transactionId: trs.id
-				}
-			}, cb);
-		});
+	this.afterSave = function (trs, cb) {
+		self.message(trs.asset.outTransfer.dappId, {
+			topic: "withdrawal",
+			message: {
+				transactionId: trs.id
+			}
+		}, cb);
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures.length) {
+		if (sender.multisignatures && sender.multisignatures.length) {
 			if (!trs.signatures) {
 				return false;
 			}
@@ -264,22 +261,20 @@ function InTransfer() {
 			return setImmediate(cb, "Invalid transaction amount");
 		}
 
-		library.dbLite.query("SELECT count(*) FROM dapps WHERE transactionId=$id", {
+		library.db.one("SELECT COUNT(*)::int AS \"count\" FROM dapps WHERE \"transactionId\" = ${id}", {
 			id: trs.asset.inTransfer.dappId
-		}, ["count"], function (err, rows) {
-			if (err) {
-				library.logger.error(err.toString());
-				return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
-			}
+		}).then(function (row) {
+			var count = row.count;
 
-			var count = rows[0].count;
 			if (count == 0) {
 				return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
+			} else {
+				return setImmediate(cb);
 			}
-
-			setImmediate(cb);
+		}).catch(function () {
+			library.logger.error(err.toString());
+			return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
 		});
-
 	}
 
 	this.process = function (trs, sender, cb) {
@@ -371,15 +366,22 @@ function InTransfer() {
 		}
 	}
 
-	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO intransfer(dappId, transactionId) VALUES($dappId, $transactionId)", {
-			dappId: trs.asset.inTransfer.dappId,
-			transactionId: trs.id
-		}, cb);
+	this.dbSave = function (trs) {
+		return {
+			query: "INSERT INTO intransfer(\"dappId\", \"transactionId\") VALUES(${dappId}, ${transactionId})",
+			values: {
+				dappId: trs.asset.inTransfer.dappId,
+				transactionId: trs.id
+			}
+		};
+	}
+
+	this.afterSave = function (trs, cb) {
+		return cb();
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures.length) {
+		if (sender.multisignatures && sender.multisignatures.length) {
 			if (!trs.signatures) {
 				return false;
 			}
@@ -559,18 +561,14 @@ function DApp() {
 		private.unconfirmedNames[trs.asset.dapp.name] = true;
 		private.unconfirmedLinks[trs.asset.dapp.link] = true;
 
-		library.dbLite.query("SELECT name, link FROM dapps WHERE (name = $name or link = $link) and transactionId != $transactionId", {
+		library.db.query("SELECT \"name\", \"link\" FROM dapps WHERE (\"name\" = ${name} OR \"link\" = ${link}) AND \"transactionId\" != ${transactionId}", {
 			name: trs.asset.dapp.name,
 			link: trs.asset.dapp.link || null,
 			transactionId: trs.id
-		}, ["name", "link"], function (err, rows) {
-			if (err) {
-				return setImmediate(cb, "Database error");
-			}
+		}).then(function (rows) {
+			var dapp = rows[0];
 
-			if (rows.length > 0) {
-				var dapp = rows[0];
-
+			if (dapp) {
 				if (dapp.name == trs.asset.dapp.name) {
 					return setImmediate(cb, "Dapp name already exists: " + dapp.name);
 				} else if (dapp.link == trs.asset.dapp.link) {
@@ -581,6 +579,9 @@ function DApp() {
 			} else {
 				return setImmediate(cb, null, trs);
 			}
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return setImmediate(cb, "DApp#applyUnconfirmed error");
 		});
 	}
 
@@ -664,29 +665,29 @@ function DApp() {
 		}
 	}
 
-	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO dapps(type, name, description, tags, link, category, icon, transactionId) VALUES($type, $name, $description, $tags, $link, $category, $icon, $transactionId)", {
-			type: trs.asset.dapp.type,
-			name: trs.asset.dapp.name,
-			description: trs.asset.dapp.description || null,
-			tags: trs.asset.dapp.tags || null,
-			link: trs.asset.dapp.link || null,
-			icon: trs.asset.dapp.icon || null,
-			category: trs.asset.dapp.category,
-			transactionId: trs.id
-		}, function (err) {
-			if (err) {
-				return setImmediate(cb, err);
-			} else {
-				// Broadcast
-				library.network.io.sockets.emit("dapps/change", {});
-				return setImmediate(cb);
+	this.dbSave = function (trs) {
+		return {
+			query: "INSERT INTO dapps(\"type\", \"name\", \"description\", \"tags\", \"link\", \"category\", \"icon\", \"transactionId\") VALUES(${type}, ${name}, ${description}, ${tags}, ${link}, ${category}, ${icon}, ${transactionId})",
+			values: {
+				type: trs.asset.dapp.type,
+				name: trs.asset.dapp.name,
+				description: trs.asset.dapp.description || null,
+				tags: trs.asset.dapp.tags || null,
+				link: trs.asset.dapp.link || null,
+				icon: trs.asset.dapp.icon || null,
+				category: trs.asset.dapp.category,
+				transactionId: trs.id
 			}
-		});
+		};
+	}
+
+	this.afterSave = function (trs, cb) {
+		library.network.io.sockets.emit("dapps/change", {});
+		return cb();
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures.length) {
+		if (sender.multisignatures && sender.multisignatures.length) {
 			if (!trs.signatures) {
 				return false;
 			}
@@ -821,7 +822,7 @@ private.attachApi = function () {
 			library.balancesSequence.add(function (cb) {
 				modules.accounts.getAccount({publicKey: keypair.publicKey.toString("hex")}, function (err, account) {
 					if (err) {
-						return cb("Database error");
+						return cb("Failed to get account");
 					}
 
 					if (!account || !account.publicKey) {
@@ -996,7 +997,7 @@ private.attachApi = function () {
 									var categorySql = "";
 
 									if (category === 0 || category > 0) {
-										categorySql = " AND category = $category"
+										categorySql = " AND category = ${category}"
 									}
 
 									var rowids = rows.map(function (row) {
@@ -1375,12 +1376,15 @@ private.attachApi = function () {
 
 // Private methods
 private.get = function (id, cb) {
-	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId = $id", {id: id}, ["name", "description", "tags", "link", "type", "category", "icon", "transactionId"], function (err, rows) {
-		if (err || rows.length == 0) {
-			return setImmediate(cb, err ? "Database error" : "Dapp not found");
+	library.db.query("SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\" FROM dapps WHERE \"transactionId\" = ${id}", { id: id }).then(function (rows) {
+		if (rows.length == 0) {
+			return setImmediate(cb, "Dapp not found");
+		} else {
+			return setImmediate(cb, null, rows[0]);
 		}
-
-		return setImmediate(cb, null, rows[0]);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return setImmediate(cb, "DApp#get error");
 	});
 }
 
@@ -1389,12 +1393,11 @@ private.getByIds = function (ids, cb) {
 		ids[i] = "'" + ids[i] + "'";
 	}
 
-	library.dbLite.query("SELECT name, description, tags, link, type, category, icon, transactionId FROM dapps WHERE transactionId IN (" + ids.join(",") + ")", {}, ["name", "description", "tags", "link", "type", "category", "icon", "transactionId"], function (err, rows) {
-		if (err) {
-			return setImmediate(cb, err ? "Database error" : "Dapp not found");
-		}
-
+	library.db.query("SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\" FROM dapps WHERE \"transactionId\" IN (" + ids.join(",") + ")", function (rows) {
 		return setImmediate(cb, null, rows);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return setImmediate(cb, "DApp#getByIds error");
 	});
 }
 
@@ -1403,26 +1406,26 @@ private.list = function (filter, cb) {
 	var params = {}, fields = [];
 
 	if (filter.type >= 0) {
-		fields.push("type = $type");
+		fields.push("\"type\" = ${type}");
 		params.type = filter.type;
 	}
 
 	if (filter.name) {
-		fields.push("name = $name");
+		fields.push("\"name\" = ${name}");
 		params.name = filter.name;
 	}
 	if (filter.category) {
 		var category = dappCategory[filter.category];
 
 		if (category !== null && category !== undefined) {
-			fields.push("category = $category");
+			fields.push("\"category\" = ${category}");
 			params.category = category;
 		} else {
 			return setImmediate(cb, "Invalid dapp category");
 		}
 	}
 	if (filter.link) {
-		fields.push("link = $link");
+		fields.push("\"link\" = ${link}");
 		params.link = filter.link;
 	}
 
@@ -1446,9 +1449,9 @@ private.list = function (filter, cb) {
 		var sort = filter.orderBy.split(":");
 		var sortBy = sort[0].replace(/[^\w_]/gi, "");
 		if (sort.length == 2) {
-			var sortMethod = sort[1] == "desc" ? "desc" : "asc"
+			var sortMethod = sort[1] == "desc" ? "DESC" : "ASC"
 		} else {
-			sortMethod = "desc";
+			sortMethod = "DESC";
 		}
 	}
 
@@ -1459,27 +1462,18 @@ private.list = function (filter, cb) {
 	}
 
 	// Need to fix "or" or "and" in query
-	library.dbLite.query("select name, description, tags, link, type, category, icon, transactionId " +
-		"from dapps " +
-		(fields.length ? "where " + fields.join(" or ") + " " : "") +
-		(filter.orderBy ? "order by " + sortBy + " " + sortMethod : "") + " " +
-		(filter.limit ? "limit $limit" : "") + " " +
-		(filter.offset ? "offset $offset" : ""), params, {
-		name: String,
-		description: String,
-		tags: String,
-		link: String,
-		type: Number,
-		category: Number,
-		icon: String,
-		transactionId: String
-	}, function (err, rows) {
-		if (err) {
-			return cb(err);
-		}
-
-		cb(null, rows);
+	library.db.query("SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\" " +
+		"FROM dapps " +
+		(fields.length ? "WHERE " + fields.join(" or ") + " " : "") +
+		(filter.orderBy ? "ORDER BY " + sortBy + " " + sortMethod : "") + " " +
+		(filter.limit ? "LIMIT ${limit}" : "") + " " +
+		(filter.offset ? "OFFSET ${offset}" : ""), params).then(function (rows) {
+		return cb(null, rows);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb(err);
 	});
+
 }
 
 private.createBasePathes = function (cb) {
@@ -2197,25 +2191,25 @@ DApps.prototype.onNewBlock = function (block, broadcast) {
 
 // Shared
 shared.getGenesis = function (req, cb) {
-	library.dbLite.query("SELECT b.height, b.id, GROUP_CONCAT(m.dependentId), t.senderId FROM trs t " +
-		"inner join blocks b on t.blockId = b.id and t.id = $id " +
-		"left outer join mem_accounts2multisignatures m on m.accountId = t.senderId and t.id = $id", {id: req.dappid}, {
-		height: Number,
-		id: String,
-		multisignature: String,
-		authorId: String
-	}, function (err, rows) {
-		if (err || rows.length == 0) {
-			return cb("Database error");
-		}
+	library.db.query("SELECT b.\"height\" AS \"height\", b.\"id\" AS \"id\", STRING_AGG(m.\"dependentId\") AS \"multisignature\", t.\"senderId\" AS \"authorId\" FROM trs t " +
+		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"id\" = ${id} " +
+		"LEFT OUTER JOIN mem_accounts2multisignatures m on m.\"accountId\" = t.\"senderId\" AND t.\"id\" = ${id}", { id: req.dappid }).then(function (rows) {
+		if (rows.length == 0) {
+			return cb("Dapp genesis not found");
+		} else {
+			var row = rows[0];
 
-		cb(null, {
-			pointId: rows[0].id,
-			pointHeight: rows[0].height,
-			authorId: rows[0].authorId,
-			dappid: req.dappid,
-			associate: rows[0].multisignature ? rows[0].multisignature.split(",") : []
-		});
+			return cb(null, {
+				pointId: row.id,
+				pointHeight: row.height,
+				authorId: row.authorId,
+				dappid: req.dappid,
+				associate: row.multisignature ? row.multisignature.split(",") : []
+			});
+		}
+	}).catch(function () {
+		library.logger.error(err.toString());
+		return cb("DApp#getGenesis error");
 	});
 }
 
@@ -2225,21 +2219,16 @@ shared.setReady = function (req, cb) {
 }
 
 shared.getCommonBlock = function (req, cb) {
-	library.dbLite.query("SELECT b.height, t.id, t.senderId, t.amount FROM trs t " +
-		"inner join blocks b on t.blockId = b.id and t.id = $id and t.type = $type" +
-		"inner join intransfer dt on dt.transactionId = t.id and dt.dappid = $dappid", {
+	library.db.query("SELECT b.\"height\" AS \"height\", t.\"id\" AS \"id\", t.\"senderId\" AS \"senderId\", t.\"amount\" AS \"amount\" FROM trs t " +
+		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"id\" = ${id} AND t.\"type\" = ${type}" +
+		"INNER JOIN intransfer dt ON dt.\"transactionId\" = t.\"id\" AND dt.\"dappid\" = ${dappid}", {
 		dappid: req.dappid,
 		type: TransactionTypes.IN_TRANSFER
-	}, {
-		height: Number,
-		id: String,
-		senderId: String,
-		amount: String
-	}, function (err, rows) {
-		if (err) {
-			return cb("Database error");
-		}
-		cb(null, rows);
+	}).then(function (rows) {
+		return cb(null, rows);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("DApp#getCommonBlock error");
 	});
 }
 
@@ -2403,40 +2392,34 @@ shared.sendWithdrawal = function (req, cb) {
 }
 
 shared.getWithdrawalLastTransaction = function (req, cb) {
-	library.dbLite.query("SELECT ot.outTransactionId FROM trs t " +
-		"inner join blocks b on t.blockId = b.id and t.type = $type " +
-		"inner join outtransfer ot on ot.transactionId = t.id and ot.dappid = $dappid " +
-		"order by b.height desc limit 1", {
+	library.db.query("SELECT ot.\"outTransactionId\" FROM trs t " +
+		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"type\" = ${type} " +
+		"INNER JOIN outtransfer ot ON ot.\"transactionId\" = t.\"id\" AND ot.\"dappid\" = ${dappid} " +
+		"ORDER BY b.\"height\" DESC LIMIT 1", {
 		dappid: req.dappid,
 		type: TransactionTypes.OUT_TRANSFER
-	}, {
-		id: String
-	}, function (err, rows) {
-		if (err) {
-			return cb("Database error");
-		}
-		cb(null, rows[0]);
+	}).then(function (rows) {
+		return cb(null, rows[0]);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("DApp#getWithdrawalLastTransaction error");
 	});
 }
 
 shared.getBalanceTransactions = function (req, cb) {
-	library.dbLite.query("SELECT t.id, lower(hex(t.senderPublicKey)), t.amount FROM trs t " +
-		"inner join blocks b on t.blockId = b.id and t.type = $type " +
-		"inner join intransfer dt on dt.transactionId = t.id and dt.dappid = $dappid " +
-		(req.body.lastTransactionId ? "where b.height > (select height from blocks ib inner join trs it on ib.id = it.blockId and it.id = $lastId) " : "") +
-		"order by b.height", {
+	library.db.query("SELECT t.\"id\" AS \"id\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"senderPublicKey\", t.\"amount\" AS \"amount\" FROM trs t " +
+		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"type\" = ${type} " +
+		"INNER JOIN intransfer dt ON dt.\"transactionId\" = t.\"id\" AND dt.\"dappid\" = ${dappid} " +
+		(req.body.lastTransactionId ? "WHERE b.\"height\" > (SELECT \"height\" FROM blocks ib INNER JOIN trs it ON ib.\"id\" = it.\"blockId\" AND it.\"id\" = ${lastId}) " : "") +
+		"ORDER BY b.\"height\"", {
 		dappid: req.dappid,
 		type: TransactionTypes.IN_TRANSFER,
 		lastId: req.body.lastTransactionId
-	}, {
-		id: String,
-		senderPublicKey: String,
-		amount: Number
-	}, function (err, rows) {
-		if (err) {
-			return cb("Database error");
-		}
-		cb(null, rows);
+	}).then(function (rows) {
+		return cb(null, rows);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("DApp#getBalanceTransaction error");
 	});
 }
 
