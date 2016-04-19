@@ -2198,9 +2198,9 @@ DApps.prototype.onNewBlock = function (block, broadcast) {
 
 // Shared
 shared.getGenesis = function (req, cb) {
-	library.db.query("SELECT b.\"height\" AS \"height\", b.\"id\" AS \"id\", STRING_AGG(m.\"dependentId\") AS \"multisignature\", t.\"senderId\" AS \"authorId\" FROM trs t " +
-		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"id\" = ${id} " +
-		"LEFT OUTER JOIN mem_accounts2multisignatures m on m.\"accountId\" = t.\"senderId\" AND t.\"id\" = ${id}", { id: req.dappid }).then(function (rows) {
+	library.db.query("SELECT b.\"height\" AS \"height\", b.\"id\" AS \"id\", t.\"senderId\" AS \"authorId\" FROM trs t " +
+		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
+		"WHERE t.\"id\" = ${id}", { id: req.dappid }).then(function (rows) {
 		if (rows.length == 0) {
 			return cb("Dapp genesis not found");
 		} else {
@@ -2210,11 +2210,10 @@ shared.getGenesis = function (req, cb) {
 				pointId: row.id,
 				pointHeight: row.height,
 				authorId: row.authorId,
-				dappid: req.dappid,
-				associate: row.multisignature ? row.multisignature.split(",") : []
+				dappid: req.dappid
 			});
 		}
-	}).catch(function () {
+	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("DApp#getGenesis error");
 	});
