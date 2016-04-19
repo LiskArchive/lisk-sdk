@@ -285,7 +285,7 @@ Peer.prototype.addDapp = function (config, cb) {
 		}
 		var peerId = rows[0].id;
 
-		library.db.query("INSERT INTO peers_dapp (\"peerId\", \"dappId\") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING;", {
+		library.db.query("INSERT INTO peers_dapp (\"peerId\", \"dappid\") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING;", {
 			dappId: config.dappid,
 			peerId: peerId
 		}).then(function (res) {
