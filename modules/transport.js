@@ -78,7 +78,7 @@ private.attachApi = function () {
 			if (!report.isValid) return res.status(500).send({status: false, error: report.issues});
 
 			var peer = {
-				ip: ip.toLong(peerIp),
+				ip: peerIp,
 				port: headers.port,
 				state: 2,
 				os: headers.os,
@@ -156,7 +156,7 @@ private.attachApi = function () {
 				library.logger.log('Invalid common block request, ban 60 min', peerStr);
 
 				if (report) {
-					modules.peer.state(ip.toLong(peerIp), RequestSanitizer.int(req.headers['port']), 0, 3600);
+					modules.peer.state(peerIp, RequestSanitizer.int(req.headers['port']), 0, 3600);
 				}
 
 				return res.json({success: false, error: "Invalid block id sequence"});
@@ -223,7 +223,7 @@ private.attachApi = function () {
 			library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
 
 			if (peerIp && report) {
-				modules.peer.state(ip.toLong(peerIp), parseInt(req.headers['port']), 0, 3600);
+				modules.peer.state(peerIp, parseInt(req.headers['port']), 0, 3600);
 			}
 
 			return res.sendStatus(200);

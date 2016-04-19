@@ -1886,7 +1886,7 @@ private.launchApp = function (dapp, params, cb) {
 	// dappConfig.db
 	async.eachSeries(dappConfig.peers, function (peer, cb) {
 		modules.peer.addDapp({
-			ip: ip.toLong(peer.ip),
+			ip: peer.ip,
 			port: peer.port,
 			dappid: dapp.transactionId
 		}, cb);
