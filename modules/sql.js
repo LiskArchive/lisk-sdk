@@ -43,7 +43,7 @@ private.escape = function (what) {
 		case 'number':
 			if (isFinite(what)) return '' + what;
 	}
-	throw new Error('unsupported data', typeof what);
+	throw new Error('Unsupported data', typeof what);
 }
 
 private.pass = function (obj, dappid) {
@@ -102,6 +102,8 @@ private.query = function (action, config, cb) {
 		} catch (e) {
 			return done(e);
 		}
+
+		// console.log(sql.query, sql.values);
 
 		library.db.query(sql.query, sql.values).then(function (rows) {
 			return done(null, rows);
@@ -173,8 +175,12 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 			return cb(err);
 		});
 	}, function (err) {
-		library.logger.error(err.toString());
-		setImmediate(cb, "Sql#createTables error", self);
+		if (err) {
+			library.logger.error(err.toString());
+			setImmediate(cb, "Sql#createTables error", self);
+		} else {
+			setImmediate(cb);
+		}
 	});
 }
 
