@@ -2149,7 +2149,9 @@ DApps.prototype.onBind = function (scope) {
 }
 
 DApps.prototype.onBlockchainReady = function () {
-	if (library.config.dapp) {
+	setTimeout(function () {
+		if (!library.config.dapp) { return; }
+
 		async.eachSeries(library.config.dapp.autoexec || [], function (dapp, cb) {
 			private.launch({
 				params: dapp.params,
@@ -2165,7 +2167,7 @@ DApps.prototype.onBlockchainReady = function () {
 				return cb();
 			});
 		});
-	}
+	}, 1000);
 }
 
 DApps.prototype.onDeleteBlocksBefore = function (block) {
