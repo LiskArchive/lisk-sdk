@@ -1820,7 +1820,7 @@ private.launch = function (body, cb) {
 			if (err) {
 				private.launched[body.id] = false;
 				library.logger.error(err);
-				return cb("Failed to find dapp");
+				return cb("Dapp not found");
 			} else {
 				private.getInstalledIds(function (err, files) {
 					if (err) {
@@ -2156,8 +2156,13 @@ DApps.prototype.onBlockchainReady = function () {
 				id: dapp.dappid,
 				master: library.config.dapp.masterpassword
 			}, function (err) {
-				console.log("Launched " + dapp.dappid, err || "successfully")
-				cb();
+				if (err) {
+					console.log("Failed to launch dapp", dapp.dappid + ":", err);
+				} else {
+					console.log("Launched dapp", dapp.dappid, "successfully")
+				}
+
+				return cb();
 			});
 		});
 	}
@@ -2183,7 +2188,7 @@ DApps.prototype.onNewBlock = function (block, broadcast) {
 			message: {id: block.id, height: block.height}
 		}, function (err) {
 			if (err) {
-				library.logger.error("onNewBlock message", err)
+				library.logger.error("DApps#onNewBlock error:", err)
 			}
 		});
 	});

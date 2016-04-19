@@ -373,7 +373,7 @@ Peer.prototype.onBlockchainReady = function () {
 		private.count(function (err, count) {
 			if (count) {
 				private.updatePeerList(function (err) {
-					err && library.logger.error('updatePeerList', err);
+					err && library.logger.error('Peer#updatePeerList error', err);
 					library.bus.message('peerReady');
 				})
 				library.logger.info('Peers ready, stored ' + count);
