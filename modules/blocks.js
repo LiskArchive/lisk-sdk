@@ -6,12 +6,14 @@ var crypto = require('crypto'),
 	genesisblock = null,
 	blockStatus = require("../helpers/blockStatus.js"),
 	constants = require('../helpers/constants.js'),
+	Inserts = require('../helpers/inserts.js'),
 	Router = require('../helpers/router.js'),
 	slots = require('../helpers/slots.js'),
 	util = require('util'),
 	async = require('async'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
-	sandboxHelper = require('../helpers/sandbox.js');
+	sandboxHelper = require('../helpers/sandbox.js'),
+	_ = require('underscore');
 
 require('array.prototype.findindex'); // Old node fix
 
@@ -263,34 +265,72 @@ private.getById = function (id, cb) {
 }
 
 private.saveBlock = function (block, cb) {
-	library.db.task(function (t) {
-		var promise, promises, transaction, i, p;
+	library.db.tx(function (t) {
+		var promise = library.logic.block.dbSave(block);
+		var inserts = new Inserts(promise, promise.values);
 
-		promise = library.logic.block.dbSave(block);
-		t.none(promise.query, promise.values);
+		var promises = [
+			t.none(inserts.template(), promise.values)
+		];
 
-		for (i = 0; i < block.transactions.length; i++) {
-			transaction = block.transactions[i];
-			transaction.blockId = block.id;
-
-			promises = library.logic.transaction.dbSave(transaction);
-			for (p = 0; p < promises.length; p++) {
-				promise = promises[p];
-
-				if (promise) {
-					t.none(promise.query, promise.values);
-				}
-			}
-		}
+		t = private.promiseTransactions(t, block, promises);
+		t.batch(promises);
 	}).then(function () {
-		async.eachSeries(block.transactions, function (transaction, cb) {
-			return library.logic.transaction.afterSave(transaction, cb);
-		}, function (err) {
-			return cb(err);
-		});
+		return private.afterSave(block, cb);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Blocks#saveBlock error");
+	});
+}
+
+private.promiseTransactions = function (t, block, blockPromises) {
+	if (_.isEmpty(block.transactions)) {
+		return t;
+	}
+
+	var promises = [];
+
+	var transactionIterator = function (transaction) {
+		transaction.blockId = block.id;
+		promises = promises.concat(
+			library.logic.transaction.dbSave(transaction)
+		);
+	};
+
+	var promiseGrouper = function (promise) {
+		if (promise && promise.table) {
+			return promise.table;
+		} else {
+			throw new Error("Invalid promise");
+		}
+	};
+
+	var typeIterator = function (type) {
+		var values = [];
+
+		_.each(type, function (promise) {
+			if (promise && promise.values) {
+				values = values.concat(promise.values);
+			} else {
+				throw new Error("Invalid promise");
+			}
+		});
+
+		var inserts = new Inserts(type[0], values, true);
+		t.none(inserts.template(), inserts);
+	}
+
+	_.each(block.transactions, transactionIterator);
+	_.each(_.groupBy(promises, promiseGrouper), typeIterator);
+
+	return t;
+}
+
+private.afterSave = function (block, cb) {
+	async.eachSeries(block.transactions, function (transaction, cb) {
+		return library.logic.transaction.afterSave(transaction, cb);
+	}, function (err) {
+		return cb(err);
 	});
 }
 

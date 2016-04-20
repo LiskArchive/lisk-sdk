@@ -129,6 +129,13 @@ function Signature() {
 		}
 	}
 
+	this.dbTable = "signatures";
+
+	this.dbFields = [
+		"transactionId",
+		"publicKey"
+	];
+
 	this.dbSave = function (trs) {
 		try {
 			var publicKey = new Buffer(trs.asset.signature.publicKey, 'hex')
@@ -137,7 +144,8 @@ function Signature() {
 		}
 
 		return {
-			query: "INSERT INTO signatures(\"transactionId\", \"publicKey\") VALUES(${transactionId}, DECODE(${publicKey}, 'hex'))",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
 				transactionId: trs.id,
 				publicKey: publicKey

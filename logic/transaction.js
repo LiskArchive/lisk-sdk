@@ -574,6 +574,24 @@ Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	}.bind(this));
 }
 
+Transaction.prototype.dbTable = "trs";
+
+Transaction.prototype.dbFields = [
+	"id",
+	"blockId",
+	"type",
+	"timestamp",
+	"senderPublicKey",
+	"requesterPublicKey",
+	"senderId",
+	"recipientId",
+	"amount",
+	"fee",
+	"signature",
+	"signSignature",
+	"signatures"
+];
+
 Transaction.prototype.dbSave = function (trs) {
 	if (!private.types[trs.type]) {
 		throw Error("Unknown transaction type: " + trs.type);
@@ -588,9 +606,10 @@ Transaction.prototype.dbSave = function (trs) {
 		throw e.toString();
 	}
 
-	return [
+	var promises = [
 		{
-			query: "INSERT INTO trs(\"id\", \"blockId\", \"type\", \"timestamp\", \"senderPublicKey\", \"requesterPublicKey\", \"senderId\", \"recipientId\", \"amount\", \"fee\", \"signature\", \"signSignature\", \"signatures\") VALUES(${id}, ${blockId}, ${type}, ${timestamp}, ${senderPublicKey}, ${requesterPublicKey}, ${senderId}, ${recipientId}, ${amount}, ${fee}, ${signature}, ${signSignature}, ${signatures})",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
 				id: trs.id,
 				blockId: trs.blockId,
@@ -606,9 +625,16 @@ Transaction.prototype.dbSave = function (trs) {
 				signSignature: signSignature,
 				signatures: trs.signatures ? trs.signatures.join(",") : null,
 			}
-		},
-		private.types[trs.type].dbSave.call(this, trs)
+		}
 	];
+
+	var promise = private.types[trs.type].dbSave(trs);
+
+	if (promise) {
+		promises.push(promise);
+	}
+
+	return promises;
 }
 
 Transaction.prototype.afterSave = function (trs, cb) {

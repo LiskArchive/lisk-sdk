@@ -198,9 +198,17 @@ function Delegate() {
 		}
 	}
 
+	this.dbTable = "delegates";
+
+	this.dbFields = [
+		"username",
+		"transactionId"
+	];
+
 	this.dbSave = function (trs) {
 		return {
-			query: "INSERT INTO delegates(\"username\", \"transactionId\") VALUES(${username}, ${transactionId})",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
 				username: trs.asset.delegate.username,
 				transactionId: trs.id

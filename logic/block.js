@@ -168,6 +168,24 @@ Block.prototype.verifySignature = function (block) {
 	return res;
 }
 
+Block.prototype.dbTable = "blocks";
+
+Block.prototype.dbFields = [
+	"id",
+	"version",
+	"timestamp",
+	"height",
+	"previousBlock",
+	"numberOfTransactions",
+	"totalAmount",
+	"totalFee",
+	"reward",
+	"payloadLength",
+	"payloadHash",
+	"generatorPublicKey",
+	"blockSignature"
+];
+
 Block.prototype.dbSave = function (block) {
 	try {
 		var payloadHash = new Buffer(block.payloadHash, 'hex');
@@ -178,7 +196,8 @@ Block.prototype.dbSave = function (block) {
 	}
 
 	return {
-		query: "INSERT INTO blocks(\"id\", \"version\", \"timestamp\", \"height\", \"previousBlock\", \"numberOfTransactions\", \"totalAmount\", \"totalFee\", \"reward\", \"payloadLength\", \"payloadHash\", \"generatorPublicKey\", \"blockSignature\") VALUES(${id}, ${version}, ${timestamp}, ${height}, ${previousBlock}, ${numberOfTransactions}, ${totalAmount}, ${totalFee}, ${reward}, ${payloadLength}, ${payloadHash}, ${generatorPublicKey}, ${blockSignature})",
+		table: this.dbTable,
+		fields: this.dbFields,
 		values: {
 			id: block.id,
 			version: block.version,

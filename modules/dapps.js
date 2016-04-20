@@ -205,9 +205,18 @@ function OutTransfer() {
 		}
 	}
 
+	this.dbTable = "outtransfer";
+
+	this.dbFields = [
+		"dappId",
+		"transactionId",
+		"outTransactionId"
+	];
+
 	this.dbSave = function (trs) {
 		return {
-			query: "INSERT INTO outtransfer(\"dappId\", \"transactionId\", \"outTransactionId\") VALUES(${dappId}, ${transactionId}, ${outTransactionId})",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
 				dappId: trs.asset.outTransfer.dappId,
 				outTransactionId: trs.asset.outTransfer.transactionId,
@@ -367,9 +376,17 @@ function InTransfer() {
 		}
 	}
 
+	this.dbTable = "intransfer";
+
+	this.dbFields = [
+		"dappId",
+		"transactionId"
+	];
+
 	this.dbSave = function (trs) {
 		return {
-			query: "INSERT INTO intransfer(\"dappId\", \"transactionId\") VALUES(${dappId}, ${transactionId})",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
 				dappId: trs.asset.inTransfer.dappId,
 				transactionId: trs.id
@@ -666,9 +683,23 @@ function DApp() {
 		}
 	}
 
+	this.dbTable = "dapps";
+
+	this.dbFields = [
+		"type",
+		"name",
+		"description",
+		"tags",
+		"link",
+		"category",
+		"icon",
+		"transactionId"
+	];
+
 	this.dbSave = function (trs) {
 		return {
-			query: "INSERT INTO dapps(\"type\", \"name\", \"description\", \"tags\", \"link\", \"category\", \"icon\", \"transactionId\") VALUES(${type}, ${name}, ${description}, ${tags}, ${link}, ${category}, ${icon}, ${transactionId})",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
 				type: trs.asset.dapp.type,
 				name: trs.asset.dapp.name,

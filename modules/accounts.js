@@ -142,11 +142,19 @@ function Vote() {
 		}
 	}
 
+	this.dbTable = "votes";
+
+	this.dbFields = [
+		"votes",
+		"transactionId"
+	];
+
 	this.dbSave = function (trs) {
 		return {
-			query: "INSERT INTO votes(\"votes\", \"transactionId\") VALUES(${votes}, ${transactionId})",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
-				votes: util.isArray(trs.asset.votes) ? trs.asset.votes.join(',') : null,
+				votes: util.isArray(trs.asset.votes) ? trs.asset.votes.join(",") : null,
 				transactionId: trs.id
 			}
 		};

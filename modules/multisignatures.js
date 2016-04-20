@@ -264,9 +264,19 @@ function Multisignature() {
 		}
 	}
 
+	this.dbTable = "multisignatures";
+
+	this.dbFields = [
+		"min",
+		"lifetime",
+		"keysgroup",
+		"transactionId"
+	];
+
 	this.dbSave = function (trs) {
 		return {
-			query: "INSERT INTO multisignatures(\"min\", \"lifetime\", \"keysgroup\", \"transactionId\") VALUES(${min}, ${lifetime}, ${keysgroup}, ${transactionId})",
+			table: this.dbTable,
+			fields: this.dbFields,
 			values: {
 				min: trs.asset.multisignature.min,
 				lifetime: trs.asset.multisignature.lifetime,
