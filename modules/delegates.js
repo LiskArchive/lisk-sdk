@@ -701,7 +701,6 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	private.loadMyDelegates(function nextLoop(err) {
 		if (err) {
-			console.log(err);
 			library.logger.error("Failed to load delegates", err);
 		}
 
