@@ -504,14 +504,6 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 	filter.id && !filter.lastId && (params['id'] = filter.id);
 
 	var fields = private.blocksDataFields;
-	var method;
-
-	if (options.plain) {
-		method = 'plain';
-		fields = false;
-	} else {
-		method = 'query';
-	}
 
 	library.dbSequence.add(function (cb) {
 		library.db.query("SELECT \"height\" FROM blocks WHERE \"id\" = ${lastId}", { lastId: filter.lastId || null }).then(function (rows) {
@@ -1044,19 +1036,14 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 
 				var blocks = data.body.blocks;
 
-				if (typeof blocks === "string") {
-					blocks = library.dbLite.parseCSV(blocks);
-				}
-
 				var report = library.scheme.validate(blocks, {
 					type: "array"
 				});
 
 				if (!report) {
-					return next("Error, can't parse blocks...");
+					return next("Received invalid blocks data");
 				}
 
-				blocks = blocks.map(library.dbLite.row2parsed, library.dbLite.parseFields(private.blocksDataFields));
 				blocks = private.readDbRows(blocks);
 
 				if (blocks.length == 0) {

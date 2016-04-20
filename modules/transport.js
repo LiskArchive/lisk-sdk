@@ -188,14 +188,14 @@ private.attachApi = function () {
 			modules.blocks.loadBlocksData({
 				limit: blocksLimit,
 				lastId: query.lastBlockId
-			}, {plain: true}, function (err, data) {
+			}, function (err, data) {
 				res.status(200);
+
 				if (err) {
-					return res.json({blocks: ""});
+					return res.json({blocks: []});
 				}
 
 				res.json({blocks: data});
-
 			});
 		});
 	});
