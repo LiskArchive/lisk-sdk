@@ -122,8 +122,6 @@ private.saveGenesisBlock = function (cb) {
 		if (!blockId) {
 			private.saveBlock(genesisblock.block, function (err) {
 				if (err) {
-					library.logger.error('Failed to save genesis block...');
-					library.logger.error('saveBlock', err);
 				}
 
 				return cb(err);
@@ -132,8 +130,8 @@ private.saveGenesisBlock = function (cb) {
 			return cb();
 		}
 	}).catch(function (err) {
-		library.logger.error(err.toString());
-		return cb("Blocks#saveGenesisBlock error");
+		library.logger.error("Blocks#saveGenesisBlock error: " + err.toString());
+		return cb("Failed to save genesis block...");
 	});
 }
 
