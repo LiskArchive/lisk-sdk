@@ -971,101 +971,69 @@ private.attachApi = function () {
 			if (err) return next(err);
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
-			var category = null;
+			var params = { q: "%" + query.q + "%", limit: 50 };
+
+			var categorySql = "";
 
 			if (query.category) {
-				category = query.category;
+				if (query.category === 0 || query.category > 0) {
+					params.category = query.category;
+					categorySql = " AND \"category\" = ${category}";
+				}
 			}
 
-			library.dbLite.query("CREATE VIRTUAL TABLE IF NOT EXISTS dapps_search USING fts4(content=dapps, name, description, tags)", function (err, rows) {
-				if (err) {
-					library.logger.error(err);
-					return res.json({success: false, error: "Database error, check logs"});
-				} else {
-					// INSERT INTO t3(docid, b, c) SELECT id, b, c FROM t2;
+			var sql = [
+				"SELECT \"transactionId\", \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\"",
+				"FROM dapps WHERE to_tsvector(\"name\" || ' ' || \"description\" || ' ' || \"tags\") @@ to_tsquery(${q})",
+				categorySql + "LIMIT ${limit}"
+			];
 
-					library.dbLite.query("INSERT OR IGNORE INTO dapps_search(docid, name, description, tags) SELECT rowid, name, description, tags FROM dapps", function (err, rows) {
+			library.db.query(sql.join(" "), params).then(function (rows) {
+				if (rows.length == 0) {
+					return res.json({success: true, dapps: rows});
+				}
+
+				if (query.installed === null || typeof query.installed === "undefined") {
+					return res.json({success: true, dapps: rows});
+				} else if (query.installed == 1) {
+					private.getInstalledIds(function (err, installed) {
 						if (err) {
-							library.logger.error(err);
-							return res.json({success: false, error: "Database error, check logs"})
-						} else {
-							library.dbLite.query("SELECT rowid FROM dapps_search WHERE dapps_search MATCH $q", {q: query.q + "*"}, ["rowid"], function (err, rows) {
-								if (err) {
-									library.logger.error(err);
-									return res.json({success: false, error: "Database error, check logs"});
-								} else if (rows.length > 0) {
-									var categorySql = "";
-
-									if (category === 0 || category > 0) {
-										categorySql = " AND category = ${category}"
-									}
-
-									var rowids = rows.map(function (row) {
-										return row.rowid;
-									});
-
-									library.dbLite.query("SELECT transactionId, name, description, tags, link, type, category, icon FROM dapps WHERE rowid IN (" + rowids.join(",") + ")" + categorySql, {category: category}, {
-										"transactionId": String,
-										"name": String,
-										"description": String,
-										"tags": String,
-										"link": String,
-										"type": Number,
-										"category": Number,
-										"icon": String
-									}, function (err, rows) {
-										if (err) {
-											library.logger.error(err);
-											return res.json({success: false, error: "Database error, check logs"});
-										} else {
-											if (query.installed === null || typeof query.installed === "undefined") {
-												return res.json({success: true, dapps: rows});
-											} else if (query.installed == 1) {
-												private.getInstalledIds(function (err, installed) {
-													if (err) {
-														return res.json({
-															success: false,
-															error: "Failed to obtain installed dapps ids"
-														});
-													}
-
-													var dapps = [];
-													rows.forEach(function (dapp) {
-														if (installed.indexOf(dapp.transactionId) >= 0) {
-															dapps.push(dapp);
-														}
-													});
-
-													return res.json({success: true, dapps: dapps});
-												});
-											} else {
-												private.getInstalledIds(function (err, installed) {
-													if (err) {
-														return res.json({
-															success: false,
-															error: "Failed to obtain installed dapps ids"
-														});
-													}
-
-													var dapps = [];
-													rows.forEach(function (dapp) {
-														if (installed.indexOf(dapp.transactionId) < 0) {
-															dapps.push(dapp);
-														}
-													});
-
-													return res.json({success: true, dapps: dapps});
-												});
-											}
-										}
-									});
-								} else {
-									return res.json({success: true, dapps: []});
-								}
-							})
+							return res.json({
+								success: false,
+								error: "Failed to obtain installed dapps ids"
+							});
 						}
+							var dapps = [];
+							rows.forEach(function (dapp) {
+								if (installed.indexOf(dapp.transactionId) >= 0) {
+									dapps.push(dapp);
+								}
+							});
+
+							return res.json({success: true, dapps: dapps});
+					});
+				} else {
+					private.getInstalledIds(function (err, installed) {
+						if (err) {
+							return res.json({
+								success: false,
+								error: "Failed to obtain installed dapps ids"
+							});
+						}
+
+						var dapps = [];
+						rows.forEach(function (dapp) {
+							if (installed.indexOf(dapp.transactionId) < 0) {
+								dapps.push(dapp);
+							}
+						});
+
+						return res.json({success: true, dapps: dapps});
 					});
 				}
+			}).catch(function (err) {
+				library.logger.error("DApps#search error: " + err.toString());
+				return res.json({success: false, error: "Database search failed"});
 			});
 		});
 	});
