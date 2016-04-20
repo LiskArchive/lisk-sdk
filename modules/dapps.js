@@ -18,7 +18,8 @@ var async = require("async"),
     extend = require("extend"),
     ip = require("ip"),
     valid_url = require("valid-url"),
-    sandboxHelper = require("../helpers/sandbox.js");
+    sandboxHelper = require("../helpers/sandbox.js"),
+    _ = require("underscore");
 
 var modules, library, self, private = {}, shared = {};
 
@@ -1514,9 +1515,15 @@ private.getInstalledIds = function (cb) {
 	fs.readdir(private.dappsPath, function (err, files) {
 		if (err) {
 			return setImmediate(cb, err);
-		}
+		} else {
+			var regExp = new RegExp(/[0-9]{18,20}/);
 
-		setImmediate(cb, null, files);
+			files = _.filter(files, function (f) {
+				return regExp.test(f.toString());
+			});
+
+			return setImmediate(cb, null, files);
+		}
 	});
 }
 
