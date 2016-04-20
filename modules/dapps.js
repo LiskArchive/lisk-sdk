@@ -1362,7 +1362,12 @@ private.getByIds = function (ids, cb) {
 		ids[i] = "'" + ids[i] + "'";
 	}
 
-	library.db.query("SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\" FROM dapps WHERE \"transactionId\" IN (" + ids.join(",") + ")", function (rows) {
+	var sql = [
+		"SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\"",
+		"FROM dapps WHERE \"transactionId\" IN (" + ids.join(",") + ");"
+	];
+
+	library.db.query(sql.join(" ")).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
