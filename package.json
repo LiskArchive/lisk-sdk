@@ -20,7 +20,6 @@
     "colors": "*",
     "commander": "~2.6.0",
     "cycle": "^1.0.3",
-    "dblite": "https://github.com/LiskHQ/dblite/tarball/master",
     "decompress-zip": "https://github.com/LiskHQ/decompress-zip/tarball/master",
     "ed25519": "0.0.4",
     "ed2curve": "^0.1.3",
