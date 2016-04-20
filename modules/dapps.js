@@ -24,7 +24,7 @@ var modules, library, self, private = {}, shared = {};
 
 private.launched = {};
 private.loading = {};
-private.removing = {};
+private.uninstalling = {};
 private.unconfirmedNames = {};
 private.unconfirmedLinks = {};
 private.unconfirmedAscii = {};
@@ -1074,7 +1074,7 @@ private.attachApi = function () {
 						return res.json({success: false, error: "Dapp is already installed"});
 					}
 
-					if (private.removing[body.id] || private.loading[body.id]) {
+					if (private.uninstalling[body.id] || private.loading[body.id]) {
 						return res.json({success: false, error: "Dapp is already being downloaded or uninstalled"});
 					}
 
@@ -1089,9 +1089,9 @@ private.attachApi = function () {
 								private.installDependencies(dapp, function (err) {
 									if (err) {
 										library.logger.error(err);
-										private.removing[body.id] = true;
+										private.uninstalling[body.id] = true;
 										private.removeDApp(dapp, function (err) {
-											private.removing[body.id] = false;
+											private.uninstalling[body.id] = false;
 
 											if (err) {
 												library.logger.error(err);
@@ -1187,11 +1187,11 @@ private.attachApi = function () {
 					return res.json({success: false, error: err});
 				}
 
-				if (private.removing[body.id] || private.loading[body.id]) {
+				if (private.uninstalling[body.id] || private.loading[body.id]) {
 					return res.json({success: true, error: "Dapp is already being installed / uninstalled"});
 				}
 
-				private.removing[body.id] = true;
+				private.uninstalling[body.id] = true;
 
 				if (private.launched[body.id]) {
 					// Stop dapp first
@@ -1202,7 +1202,7 @@ private.attachApi = function () {
 						} else {
 							private.launched[body.id] = false;
 							private.removeDApp(dapp, function (err) {
-								private.removing[body.id] = false;
+								private.uninstalling[body.id] = false;
 
 								if (err) {
 									return res.json({success: false, error: err});
@@ -1216,7 +1216,7 @@ private.attachApi = function () {
 					});
 				} else {
 					private.removeDApp(dapp, function (err) {
-						private.removing[body.id] = false;
+						private.uninstalling[body.id] = false;
 
 						if (err) {
 							return res.json({success: false, error: err});
@@ -1257,15 +1257,15 @@ private.attachApi = function () {
 		return res.json({success: true, installing: ids});
 	});
 
-	router.get("/removing", function (req, res, next) {
+	router.get("/uninstalling", function (req, res, next) {
 		var ids = [];
-		for (var i in private.removing) {
-			if (private.removing[i]) {
+		for (var i in private.uninstalling) {
+			if (private.uninstalling[i]) {
 				ids.push(i);
 			}
 		}
 
-		return res.json({success: true, removing: ids});
+		return res.json({success: true, uninstalling: ids});
 	});
 
 	router.get("/launched", function (req, res, next) {
