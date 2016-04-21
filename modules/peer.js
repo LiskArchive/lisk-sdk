@@ -108,7 +108,11 @@ private.updatePeerList = function (cb) {
 					required: ['ip', 'port', 'state']
 				}, function (err) {
 					if (err) {
-						return setImmediate(cb, "Invalid peer");
+						err.forEach(function (e) {
+							library.logger.error("Rejecting invalid peer: " + peer.ip + " " + e.path + " " + e.message);
+						});
+
+						return setImmediate(cb);
 					}
 
 					if (peer.ip == "127.0.0.1" || peer.port == 0 || peer.port > 65535) {
