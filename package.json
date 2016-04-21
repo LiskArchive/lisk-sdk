@@ -34,7 +34,6 @@
     "js-nacl": "^0.6.0",
     "json-schema": "~0.2.2",
     "json-sql": "https://github.com/LiskHQ/json-sql/tarball/master",
-    "jsonschema": "^1.0.0",
     "knuth-shuffle": "~1.0.1",
     "lisk-sandbox": "https://github.com/LiskHQ/lisk-sandbox/tarball/master",
     "long": "^1.1.5",
