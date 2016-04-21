@@ -4,7 +4,7 @@ var crypto = require('crypto'),
 	slots = require('../helpers/slots.js'),
 	Router = require('../helpers/router.js'),
 	util = require('util'),
-	blockStatus = require("../helpers/blockStatus.js"),
+	blockReward = require("../helpers/blockReward.js"),
 	constants = require('../helpers/constants.js'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	Diff = require('../helpers/diff.js'),
@@ -15,7 +15,7 @@ var crypto = require('crypto'),
 // Private fields
 var modules, library, self, private = {}, shared = {};
 
-private.blockStatus = new blockStatus();
+private.blockReward = new blockReward();
 
 function Vote() {
 	this.create = function (data, trs) {
@@ -525,7 +525,7 @@ shared.getDelegates = function (req, cb) {
 					var realLimit = Math.min(offset + limit, count);
 
 					var lastBlock   = modules.blocks.getLastBlock(),
-					    totalSupply = private.blockStatus.calcSupply(lastBlock.height);
+					    totalSupply = private.blockReward.calcSupply(lastBlock.height);
 
 					for (var i = 0; i < delegates.length; i++) {
 						delegates[i].rate = i + 1;

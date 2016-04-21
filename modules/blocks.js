@@ -4,7 +4,7 @@ var crypto = require('crypto'),
 	ByteBuffer = require("bytebuffer"),
 	constants = require("../helpers/constants.js"),
 	genesisblock = null,
-	blockStatus = require("../helpers/blockStatus.js"),
+	blockReward = require("../helpers/blockReward.js"),
 	constants = require('../helpers/constants.js'),
 	Inserts = require('../helpers/inserts.js'),
 	Router = require('../helpers/router.js'),
@@ -21,7 +21,7 @@ require('array.prototype.findindex'); // Old node fix
 var modules, library, self, private = {}, shared = {};
 
 private.lastBlock = {};
-private.blockStatus = new blockStatus();
+private.blockReward = new blockReward();
 
 // @formatter:off
 private.blocksDataFields = {
@@ -834,7 +834,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 				return setImmediate(done, "Invalid previous block");
 			}
 
-			var expectedReward = private.blockStatus.calcReward(block.height);
+			var expectedReward = private.blockReward.calcReward(block.height);
 
 			if (block.height != 1 && expectedReward !== block.reward) {
 				return setImmediate(done, "Invalid block reward");
@@ -1322,7 +1322,7 @@ shared.getMilestone = function (req, cb) {
 		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
-	cb(null, {milestone: private.blockStatus.calcMilestone(height)});
+	cb(null, {milestone: private.blockReward.calcMilestone(height)});
 }
 
 shared.getReward = function (req, cb) {
@@ -1330,7 +1330,7 @@ shared.getReward = function (req, cb) {
 		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
-	cb(null, {reward: private.blockStatus.calcReward(height)});
+	cb(null, {reward: private.blockReward.calcReward(height)});
 }
 
 shared.getSupply = function (req, cb) {
@@ -1338,7 +1338,7 @@ shared.getSupply = function (req, cb) {
 		cb("Blockchain is loading")
 	}
 	var query = req.body, height = private.lastBlock.height;
-	cb(null, {supply: private.blockStatus.calcSupply(height)});
+	cb(null, {supply: private.blockReward.calcSupply(height)});
 }
 
 shared.getStatus = function (req, cb) {
@@ -1349,9 +1349,9 @@ shared.getStatus = function (req, cb) {
 	cb(null, {
 		height:    height,
 		fee:       library.logic.block.calculateFee(),
-		milestone: private.blockStatus.calcMilestone(height),
-		reward:    private.blockStatus.calcReward(height),
-		supply:    private.blockStatus.calcSupply(height)
+		milestone: private.blockReward.calcMilestone(height),
+		reward:    private.blockReward.calcReward(height),
+		supply:    private.blockReward.calcSupply(height)
 	});
 }
 

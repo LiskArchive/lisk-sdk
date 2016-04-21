@@ -4,7 +4,7 @@ var slots = require('../helpers/slots.js'),
 	genesisblock = null,
 	bignum = require('../helpers/bignum.js'),
 	ByteBuffer = require("bytebuffer"),
-	blockStatus = require("../helpers/blockStatus.js"),
+	blockReward = require("../helpers/blockReward.js"),
 	constants = require('../helpers/constants.js');
 
 // Constructor
@@ -16,7 +16,7 @@ function Block(scope, cb) {
 
 // Private methods
 var private = {};
-private.blockStatus = new blockStatus();
+private.blockReward = new blockReward();
 private.getAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
 	var temp = new Buffer(8);
@@ -40,7 +40,7 @@ Block.prototype.create = function (data) {
 
 	var nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1;
 
-	var reward = private.blockStatus.calcReward(nextHeight),
+	var reward = private.blockReward.calcReward(nextHeight),
 	    totalFee = 0, totalAmount = 0, size = 0;
 
 	var blockTransactions = [];

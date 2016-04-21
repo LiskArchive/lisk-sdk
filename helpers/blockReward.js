@@ -1,6 +1,6 @@
 var constants = require('./constants.js');
 
-function BlockStatus() {
+function BlockReward() {
 	var milestones = [
 		500000000, // Initial Reward
 		400000000, // Milestone 1
@@ -91,4 +91,4 @@ function BlockStatus() {
 }
 
 // Exports
-module.exports = BlockStatus;
+module.exports = BlockReward;

@@ -7,7 +7,7 @@ var crypto = require('crypto'),
 	slots = require('../helpers/slots.js'),
 	schedule = require('node-schedule'),
 	util = require('util'),
-	blockStatus = require("../helpers/blockStatus.js"),
+	blockReward = require("../helpers/blockReward.js"),
 	constants = require('../helpers/constants.js'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	MilestoneBlocks = require("../helpers/milestoneBlocks.js"),
@@ -19,7 +19,7 @@ require('array.prototype.find'); // Old node fix
 var modules, library, self, private = {}, shared = {};
 
 private.loaded = false;
-private.blockStatus = new blockStatus();
+private.blockReward = new blockReward();
 private.keypairs = {};
 
 function Delegate() {
@@ -768,7 +768,7 @@ shared.getDelegate = function (req, cb) {
 			var realLimit = Math.min(offset + limit, count);
 
 			var lastBlock   = modules.blocks.getLastBlock(),
-			    totalSupply = private.blockStatus.calcSupply(lastBlock.height);
+			    totalSupply = private.blockReward.calcSupply(lastBlock.height);
 
 			for (var i = 0; i < delegates.length; i++) {
 				delegates[i].rate = i + 1;
@@ -888,7 +888,7 @@ shared.getDelegates = function (req, cb) {
 			var realLimit = Math.min(offset + limit, count);
 
 			var lastBlock   = modules.blocks.getLastBlock(),
-			    totalSupply = private.blockStatus.calcSupply(lastBlock.height);
+			    totalSupply = private.blockReward.calcSupply(lastBlock.height);
 
 			for (var i = 0; i < delegates.length; i++) {
 				delegates[i].rate = i + 1;
