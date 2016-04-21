@@ -496,7 +496,7 @@ Loader.prototype.onPeerReady = function () {
 			var lastBlock = modules.blocks.getLastBlock();
 			private.loadBlocks(lastBlock, cb);
 		}, function (err) {
-			err && library.logger.error('loadBlocks timer:', err);
+			err && library.logger.error('loadBlocks timer:', err.toString());
 			private.syncTrigger(false);
 			private.blocksToSync = 0;
 
@@ -510,7 +510,7 @@ Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadUnconfirmedTransactions() {
 		if (!private.loaded || self.syncing()) return;
 		private.loadUnconfirmedTransactions(function (err) {
-			err && library.logger.error('loadUnconfirmedTransactions timer:', err);
+			err && library.logger.error('loadUnconfirmedTransactions timer:', err.toString());
 			setTimeout(nextLoadUnconfirmedTransactions, 14 * 1000)
 		});
 
@@ -519,7 +519,7 @@ Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadSignatures() {
 		if (!private.loaded) return;
 		private.loadSignatures(function (err) {
-			err && library.logger.error('loadSignatures timer:', err);
+			err && library.logger.error('loadSignatures timer:', err.toString());
 
 			setTimeout(nextLoadSignatures, 14 * 1000)
 		});

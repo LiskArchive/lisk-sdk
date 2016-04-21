@@ -377,14 +377,14 @@ Peer.prototype.onBlockchainReady = function () {
 Peer.prototype.onPeerReady = function () {
 	setImmediate(function nextUpdatePeerList() {
 		private.updatePeerList(function (err) {
-			err && library.logger.error('updatePeerList timer', err);
+			err && library.logger.error('updatePeerList timer:', err.toString());
 			setTimeout(nextUpdatePeerList, 60 * 1000);
 		})
 	});
 
 	setImmediate(function nextBanManager() {
 		private.banManager(function (err) {
-			err && library.logger.error('banManager timer', err);
+			err && library.logger.error('banManager timer:', err.toString());
 			setTimeout(nextBanManager, 65 * 1000)
 		});
 	});
