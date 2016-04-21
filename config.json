@@ -12,7 +12,10 @@
         "port": 5432,
         "database": "lisk_test",
         "user": "lisk",
-        "password": "password"
+        "password": "password",
+        "logEvents": [
+            "error"
+        ]
     },
     "api": {
         "access": {

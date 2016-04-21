@@ -1,12 +1,21 @@
-var pgp = require('pg-promise')({ pgNative: true  });
 var async = require('async');
 var path = require('path');
 
 var isWin = /^win/.test(process.platform);
 var isMac = /^darwin/.test(process.platform);
 
-module.exports.connect = function (connectString, cb) {
-	var db = pgp(connectString);
+module.exports.connect = function (config, cb) {
+	var pgOptions = {
+		pgNative: true
+	};
+
+	var pgp = require('pg-promise')(pgOptions);
+	var monitor = require('pg-monitor');
+
+	monitor.attach(pgOptions, config.logEvents);
+	monitor.setTheme('matrix');
+
+	var db = pgp(config);
 
 	var sql = [
 		'CREATE TABLE IF NOT EXISTS "blocks"("id" VARCHAR(20) PRIMARY KEY, "version" INT NOT NULL, "timestamp" INT NOT NULL, "height" INT NOT NULL, "previousBlock" VARCHAR(20), "numberOfTransactions" INT NOT NULL, "totalAmount" BIGINT NOT NULL, "totalFee" BIGINT NOT NULL, "reward" BIGINT NOT NULL, "payloadLength" INT NOT NULL, "payloadHash" bytea NOT NULL, "generatorPublicKey" bytea NOT NULL, "blockSignature" bytea NOT NULL, FOREIGN KEY("previousBlock") REFERENCES "blocks"("id") ON DELETE SET NULL)',

@@ -41,6 +41,7 @@
     "method-override": "*",
     "node-schedule": "~0.1.16",
     "npm": "^2.12.1",
+    "pg-monitor": "^0.5.2",
     "pg-native": "^1.10.0",
     "pg-promise": "^3.8.1",
     "pkginfo": "^0.3.0",
