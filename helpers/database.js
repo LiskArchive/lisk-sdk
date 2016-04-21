@@ -1,8 +1,8 @@
 var async = require('async');
 var path = require('path');
 
-var isWin = /^win/.test(process.platform);
-var isMac = /^darwin/.test(process.platform);
+// var isWin = /^win/.test(process.platform);
+// var isMac = /^darwin/.test(process.platform);
 
 module.exports.connect = function (config, cb) {
 	var pgOptions = {
