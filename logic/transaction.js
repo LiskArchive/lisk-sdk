@@ -238,7 +238,6 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 
 			cb(null, trs);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return cb("Transaction#process error");
 		});
 	}.bind(this));

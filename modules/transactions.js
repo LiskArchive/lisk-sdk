@@ -257,11 +257,9 @@ private.list = function (filter, cb) {
 			}
 			cb(null, data);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return cb("Transactions#list error");
 		});
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Transactions#list error");
 	});
 }
@@ -278,7 +276,6 @@ private.getById = function (id, cb) {
 		var transacton = library.logic.transaction.dbRead(rows[0]);
 		cb(null, transacton);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Transactions#getById error");
 	});
 }

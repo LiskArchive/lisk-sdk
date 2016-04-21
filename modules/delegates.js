@@ -835,7 +835,6 @@ shared.getVoters = function (req, cb) {
 				return cb(null, { accounts: rows });
 			});
 		}).catch(function (err) {
-			library.logger.error(err);
 			return cb("Delegates#getVoters error");
 		});
 	});

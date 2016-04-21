@@ -166,7 +166,6 @@ private.attachApi = function () {
 				var commonBlock = rows.length ? rows[0] : null;
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {
-				library.logger.error(err.toString());
 				return res.json({ success: false, error: "Failed to get common block" });
 			});
 		});

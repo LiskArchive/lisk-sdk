@@ -523,7 +523,6 @@ Account.prototype.createTables = function (cb) {
 		scope.db.query(command).then(function (data) {
 			cb(null, data);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			cb("Account#createTables error");
 		});
 	}.bind(this), function (err) {
@@ -545,7 +544,6 @@ Account.prototype.removeTables = function (cb) {
 		scope.db.query(command).then(function (data) {
 			cb(null, data);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			cb("Account#removeTables error");
 		});
 	}.bind(this), function (err) {
@@ -637,7 +635,6 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err ) {
-		library.logger.error(err.toString());
 		cb("Account#getAll error");
 	});
 }
@@ -675,7 +672,6 @@ Account.prototype.set = function (address, fields, cb) {
 		self.scope.db.query(sql.query, sql.values).then(function (rows) {
 			cb(null, rows);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			cb("Account#set error");
 		});
 	}, cb);
@@ -904,7 +900,6 @@ Account.prototype.merge = function (address, diff, cb) {
 			}).then(function () {
 				return cb();
 			}).catch(function (err) {
-				library.logger.error(err.toString());
 				cb("Account#merge error");
 			});
 		},
@@ -926,7 +921,6 @@ Account.prototype.merge = function (address, diff, cb) {
 			}).then(function () {
 				return cb();
 			}).catch(function (err) {
-				library.logger.error(err.toString());
 				cb("Account#merge error");
 			});
 		}
@@ -944,7 +938,6 @@ Account.prototype.remove = function (address, cb) {
 	this.scope.db.none(sql.query, sql.values).then(function () {
 		cb(null, address);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		cb("Account#remove error");
 	});
 }

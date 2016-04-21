@@ -132,8 +132,7 @@ private.saveGenesisBlock = function (cb) {
 			return cb();
 		}
 	}).catch(function (err) {
-		library.logger.error("Blocks#saveGenesisBlock error: " + err.toString());
-		return cb("Failed to save genesis block...");
+		return cb("Blocks#saveGenesisBlock error");
 	});
 }
 
@@ -141,7 +140,6 @@ private.deleteBlock = function (blockId, cb) {
 	library.db.none("DELETE FROM blocks WHERE \"id\" = ${id}", { id: blockId }).then(function () {
 		return cb();
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Blocks#deleteBlock error");
 	});
 }
@@ -239,11 +237,9 @@ private.list = function (filter, cb) {
 
 				cb(null, data);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return cb("Blocks#list error");
 		});
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Blocks#list error");
 	});
 }
@@ -259,7 +255,6 @@ private.getById = function (id, cb) {
 			var block = library.logic.block.dbRead(rows[0]);
 			cb(null, block);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return cb("Blocks#getById error");
 		});
 }
@@ -278,7 +273,6 @@ private.saveBlock = function (block, cb) {
 	}).then(function () {
 		return private.afterSave(block, cb);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Blocks#saveBlock error");
 	});
 }
@@ -395,7 +389,6 @@ private.getIdSequence = function (height, cb) {
 
 		cb(null, rows[0]);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Blocks#getIdSequence error");
 	});
 }
@@ -502,7 +495,6 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 						}
 						next();
 					}).catch(function (err) {
-						library.logger.error(err.toString());
 						return next("Blocks#getCommonBlock error");
 					});
 				});
@@ -520,7 +512,6 @@ Blocks.prototype.count = function (cb) {
 
 		return cb(null, res);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Blocks#count error");
 	});
 }
@@ -581,12 +572,10 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				(filter.id ? " b.\"id\" = ${id} " : "") + (filter.id && filter.lastId ? " AND " : "") + (filter.lastId ? " b.\"height\" > ${height} AND b.\"height\" < ${limit} " : "") + limitPart + "ORDER BY b.\"height\"", params).then(function (rows) {
 				return cb(null, rows);
 			}).catch(function (err) {
-				library.logger.error(err.toString());
 				return cb("Blocks#loadBlockData error");
 			});
 
 		}).catch(function (err ) {
-			library.logger.error(err.toString());
 			return cb("Blocks#loadBlockData error");
 		});
 	}, cb);
@@ -757,7 +746,6 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 		}).catch(function (err) {
 			// Notes:
 			// If while loading we encounter an error, for example, an invalid signature on a block & transaction, then we need to stop loading and remove all blocks after the last good block. We also need to process all transactions within the block.
-			library.logger.error(err.toString());
 			return cb("Blocks#loadBlocksOffset error");
 		});
 	}, cb);
@@ -806,7 +794,6 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			cb(null, block);
 
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return cb("Blocks#loadLastBlock error");
 		});
 	}, cb);
@@ -964,7 +951,6 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 								}
 							}
 						).catch(function (err) {
-							library.logger.error(err.toString());
 							return cb("Blocks#processBlock error");
 						});
 					}, function (err) {
@@ -1037,7 +1023,6 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 					});
 				});
 			}).catch(function (err) {
-				library.logger.error(err.toString());
 				return done("Blocks#processBlock error");
 			});
 		});
@@ -1048,7 +1033,6 @@ Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 	library.db.query("DELETE FROM blocks WHERE \"height\" >= (SELECT \"height\" FROM blocks WHERE \"id\" = ${id})", { id: blockId }).then(function (res) {
 		return cb(null, res);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Blocks#simpleDeleteAfterBlock error");
 	});
 }

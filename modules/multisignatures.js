@@ -409,7 +409,6 @@ shared.getAccounts = function (req, cb) {
 				});
 			});
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return cb("Multisignature#getAccounts error");
 		});
 	});

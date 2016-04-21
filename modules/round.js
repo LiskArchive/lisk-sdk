@@ -59,7 +59,6 @@ Round.prototype.getVotes = function (round, cb) {
 		") AS d WHERE \"round\" = ${round}", { round: round }).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Round#getVotes error");
 	});
 }
@@ -68,7 +67,6 @@ Round.prototype.flush = function (round, cb) {
 	library.db.none("DELETE FROM mem_round WHERE \"round\" = ${round}", { round: round }).then(function () {
 		return cb();
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Round#flush error");
 	});
 }
@@ -146,7 +144,6 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 						library.db.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN (" + escaped.join(",") + ")").then(function () {
 							return cb();
 						}).catch(function (err) {
-							library.logger.error(err.toString());
 							return cb("Round#backwardTick error");
 						});
 					},
@@ -162,7 +159,6 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
-									library.logger.error(err.toString());
 									return cb("Round#backwardTick error");
 								});
 							}, function (err) {
@@ -217,7 +213,6 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
-									library.logger.error(err.toString());
 									return cb("Round#backwardTick error");
 								});
 							}, function (err) {
@@ -301,7 +296,6 @@ Round.prototype.tick = function (block, cb) {
 						library.db.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN (" + escaped.join(",") + ")").then(function () {
 							return cb();
 						}).catch(function (err) {
-							library.logger.error(err.toString());
 							return cb("Round#tick error");
 						});
 					},
@@ -317,7 +311,6 @@ Round.prototype.tick = function (block, cb) {
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
-									library.logger.error(err.toString());
 									return cb("Round#tick error");
 								});
 							}, function (err) {
@@ -372,7 +365,6 @@ Round.prototype.tick = function (block, cb) {
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
-									library.logger.error(err.toString());
 									return cb("Round#tick error");
 								});
 							}, function (err) {
@@ -423,7 +415,6 @@ Round.prototype.onBlockchainReady = function () {
 		private.loaded = true;
 
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("Round#onBlockchainReady error");
 	});
 }

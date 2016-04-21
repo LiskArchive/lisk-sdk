@@ -98,11 +98,9 @@ function OutTransfer() {
 						return cb(null, trs);
 					}
 			}).catch(function (err) {
-				library.logger.error(err.toString());
 				return cb("Transaction is already confirmed: " + trs.asset.outTransfer.transactionId);
 			});
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
 		});
 	}
@@ -282,7 +280,6 @@ function InTransfer() {
 				return setImmediate(cb);
 			}
 		}).catch(function () {
-			library.logger.error(err.toString());
 			return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
 		});
 	}
@@ -598,7 +595,6 @@ function DApp() {
 				return setImmediate(cb, null, trs);
 			}
 		}).catch(function (err) {
-			library.logger.error(err.toString());
 			return setImmediate(cb, "DApp#applyUnconfirmed error");
 		});
 	}
@@ -1064,7 +1060,6 @@ private.attachApi = function () {
 					});
 				}
 			}).catch(function (err) {
-				library.logger.error("DApps#search error: " + err.toString());
 				return res.json({success: false, error: "Database search failed"});
 			});
 		});
@@ -1383,7 +1378,6 @@ private.get = function (id, cb) {
 			return setImmediate(cb, null, rows[0]);
 		}
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return setImmediate(cb, "DApp#get error");
 	});
 }
@@ -1401,7 +1395,6 @@ private.getByIds = function (ids, cb) {
 	library.db.query(sql.join(" ")).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return setImmediate(cb, "DApp#getByIds error");
 	});
 }
@@ -1475,7 +1468,6 @@ private.list = function (filter, cb) {
 		(filter.offset ? "OFFSET ${offset}" : ""), params).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb(err);
 	});
 
@@ -2225,7 +2217,6 @@ shared.getGenesis = function (req, cb) {
 			});
 		}
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("DApp#getGenesis error");
 	});
 }
@@ -2244,7 +2235,6 @@ shared.getCommonBlock = function (req, cb) {
 	}).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("DApp#getCommonBlock error");
 	});
 }
@@ -2418,7 +2408,6 @@ shared.getWithdrawalLastTransaction = function (req, cb) {
 	}).then(function (rows) {
 		return cb(null, rows[0]);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("DApp#getWithdrawalLastTransaction error");
 	});
 }
@@ -2435,7 +2424,6 @@ shared.getBalanceTransactions = function (req, cb) {
 	}).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
 		return cb("DApp#getBalanceTransaction error");
 	});
 }
