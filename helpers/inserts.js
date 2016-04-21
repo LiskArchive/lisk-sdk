@@ -7,12 +7,12 @@ function Inserts(record, values, concat) {
 
 	var self = this;
 
-	if (!record) {
-		throw "Missing record argument";
+	if (!record || !record.table || !record.values) {
+		throw "Inserts: Invalid record argument";
 	}
 
 	if (!values) {
-		throw "Missing values argument";
+		throw "Inserts: Invalid values argument";
 	}
 
 	this.namedTemplate = function () {
