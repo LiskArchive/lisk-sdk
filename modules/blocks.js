@@ -368,26 +368,26 @@ private.popLastBlock = function (oldLastBlock, cb) {
 }
 
 private.getIdSequence = function (height, cb) {
-	library.db.query("SELECT s.\"height\" AS \"firstHeight\", STRING_AGG(s.\"id\", ',') AS \"ids\" FROM ( " +
+	library.db.one("SELECT s.\"height\" AS \"firstHeight\", STRING_AGG(s.\"id\", ',') AS \"ids\" FROM ( " +
 		"SELECT \"id\", MAX(\"height\") AS \"height\" " +
 		"FROM blocks " +
-		"GROUP BY (CAST(\"height\" / ${delegates} AS INTEGER) + (CASE WHEN \"height\" % ${delegates} > 0 THEN 1 ELSE 0 END)) HAVING \"height\" <= ${height} " +
+		"GROUP BY (\"id\", CAST(\"height\" / 101 AS INTEGER) + (CASE WHEN \"height\" % 101 > 0 THEN 1 ELSE 0 END)) HAVING \"height\" <= ${height} " +
 		"UNION " +
 		"SELECT \"id\", 1 AS \"height\" " +
 		"FROM blocks WHERE \"height\" = 1 " +
 		"ORDER BY \"height\" DESC " +
 		"LIMIT ${limit} " +
-		') s', {
+		') s GROUP BY s.\"height\" LIMIT 1', {
 		height: height,
 		limit: 1000,
 		delegates: slots.delegates
-	}).then(function (rows) {
-		if (!rows.length) {
+	}).then(function (row) {
+		if (!row) {
 			cb("Can't get sequence before: " + height);
 			return;
 		}
 
-		cb(null, rows[0]);
+		cb(null, row);
 	}).catch(function (err) {
 		return cb("Blocks#getIdSequence error");
 	});
