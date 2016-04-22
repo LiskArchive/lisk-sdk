@@ -63,30 +63,30 @@ private.syncTrigger = function (turnOn) {
 }
 
 private.loadFullDb = function (peer, cb) {
-	var peerStr = peer ? peer.ip + ":" + peer.port : 'unknown';
+	peer = modules.peer.inspect(peer);
 
 	var commonBlockId = private.genesisBlock.block.id;
 
-	library.logger.debug("Loading blocks from genesis from " + peerStr);
+	library.logger.debug("Loading blocks from genesis from " + peer.string);
 
 	modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
 }
 
 private.findUpdate = function (lastBlock, peer, cb) {
-	var peerStr = peer ? peer.ip + ":" + peer.port : 'unknown';
+	peer = modules.peer.inspect(peer);
 
-	library.logger.info("Looking for common block with " + peerStr);
+	library.logger.info("Looking for common block with " + peer.string);
 
 	modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 		if (err || !commonBlock) {
 			return cb(err);
 		}
 
-		library.logger.info("Found common block " + commonBlock.id + " (at " + commonBlock.height + ")" + " with peer " + peerStr);
+		library.logger.info("Found common block " + commonBlock.id + " (at " + commonBlock.height + ")" + " with peer " + peer.string);
 		var toRemove = lastBlock.height - commonBlock.height;
 
 		if (toRemove > 1010) {
-			library.logger.log("long fork, ban 60 min", peerStr);
+			library.logger.log("Long fork, ban 60 min", peer.string);
 			modules.peer.state(peer.ip, peer.port, 0, 3600);
 			return cb();
 		}
@@ -124,13 +124,13 @@ private.findUpdate = function (lastBlock, peer, cb) {
 					}
 				},
 				function (cb) {
-					library.logger.debug("Loading blocks from peer " + peerStr);
+					library.logger.debug("Loading blocks from peer " + peer.string);
 
 					modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, function (err, lastValidBlock) {
 						if (err) {
 							modules.transactions.deleteHiddenTransaction();
 							library.logger.error(err);
-							library.logger.log("Failed to load blocks, ban 60 min", peerStr);
+							library.logger.log("Failed to load blocks, ban 60 min", peer.string);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 
 							if (lastValidBlock) {
@@ -227,17 +227,13 @@ private.loadBlocks = function (lastBlock, cb) {
 		api: '/height',
 		method: 'GET'
 	}, function (err, data) {
-		var peerStr = data && data.peer ? data.peer.ip + ":" + data.peer.port : 'unknown';
-
 		if (err) {
-			library.logger.error(err);
-			return cb();
-		} else if (peerStr == 'unknown') {
-			library.logger.log("Failed to get height from peer:", peerStr);
 			return cb();
 		}
 
-		library.logger.info("Check blockchain on " + peerStr);
+		data.peer = modules.peer.inspect(data.peer);
+
+		library.logger.info("Check blockchain on " + data.peer.string);
 
 		data.body.height = parseInt(data.body.height);
 
@@ -252,7 +248,7 @@ private.loadBlocks = function (lastBlock, cb) {
 		});
 
 		if (!report) {
-			library.logger.log("Failed to parse blockchain height: " + peerStr + "\n" + library.scheme.getLastError());
+			library.logger.log("Failed to parse blockchain height: " + data.peer.string + "\n" + library.scheme.getLastError());
 			return cb();
 		}
 
@@ -316,7 +312,7 @@ private.loadUnconfirmedTransactions = function (cb) {
 		method: 'GET'
 	}, function (err, data) {
 		if (err) {
-			return cb()
+			return cb();
 		}
 
 		var report = library.scheme.validate(data.body, {
@@ -334,19 +330,19 @@ private.loadUnconfirmedTransactions = function (cb) {
 			return cb();
 		}
 
+		data.peer = modules.peer.inspect(data.peer);
+
 		var transactions = data.body.transactions;
 
 		for (var i = 0; i < transactions.length; i++) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
-				var peerStr = data.peer ? data.peer.ip + ":" + data.peer.port : 'unknown';
-				library.logger.log('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peerStr);
+				library.logger.log('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
 				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
 		}
-
 
 		library.balancesSequence.add(function (cb) {
 			modules.transactions.receiveTransactions(transactions, cb);

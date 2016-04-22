@@ -113,13 +113,9 @@ private.updatePeerList = function (cb) {
 						});
 
 						return setImmediate(cb);
+					} else {
+						return self.update(peer, cb);
 					}
-
-					if (peer.ip == "127.0.0.1" || peer.port == 0 || peer.port > 65535) {
-						return setImmediate(cb);
-					}
-
-					self.update(peer, cb);
 				});
 			}, cb);
 		});
@@ -225,6 +221,36 @@ private.getByFilter = function (filter, cb) {
 }
 
 // Public methods
+Peer.prototype.inspect = function (peer) {
+	if (peer.ip) {
+		peer.string = (peer.ip + ":" + peer.port || "unknown");
+	} else {
+		peer.string = 'unknown';
+	}
+	return peer;
+}
+
+Peer.prototype.accept = function (peer) {
+	peer.port = parseInt(peer.port);
+
+	if (!peer || !peer.ip || !peer.port) {
+		throw "Rejecting invalid peer data: " + JSON.stringify(peer);
+	} else if (!ip.isV4Format(peer.ip) && ip.isV6Format(peer.ip)) {
+		throw "Rejecting peer with invalid ip address: " + peer.ip;
+	} else if (isNaN(peer.port) || peer.port == 0 || peer.port > 65535) {
+		throw "Rejecting peer with invalid port: " + peer.port;
+	} else {
+		peer = this.inspect(peer);
+		peer.loopback = (["0.0.0.0", "127.0.0.1"].indexOf(peer.ip) >= 0);
+
+		if (peer.port != library.config.port) {
+			throw "Rejecting peer on different port: " + peer.string;
+		}
+
+		return peer;
+	}
+}
+
 Peer.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
@@ -305,6 +331,7 @@ Peer.prototype.update = function (peer, cb) {
 		sharePort: peer.sharePort,
 		version: peer.version || null
 	}
+
 	async.series([
 		function (cb) {
 			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
@@ -330,7 +357,6 @@ Peer.prototype.update = function (peer, cb) {
 			} else {
 				setImmediate(cb);
 			}
-
 		}
 	], function (err) {
 		err && library.logger.error('Peer#update', err);
@@ -395,6 +421,7 @@ Peer.prototype.onPeerReady = function () {
 }
 
 // Shared
+
 shared.getPeers = function (req, cb) {
 	var query = req.body;
 	library.scheme.validate(query, {

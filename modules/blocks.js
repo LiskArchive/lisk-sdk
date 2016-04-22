@@ -1042,6 +1042,8 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 	var count = 0;
 	var lastValidBlock = null;
 
+	peer = modules.peer.inspect(peer);
+
 	async.whilst(
 		function () {
 			return !loaded && count < 30;
@@ -1072,14 +1074,13 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 					loaded = true;
 					next();
 				} else {
-					var peerStr = data.peer ? data.peer.ip + ":" + data.peer.port : 'unknown';
-					library.logger.log('Loading ' + blocks.length + ' blocks from', peerStr);
+					library.logger.log('Loading ' + blocks.length + ' blocks from', peer.string);
 
 					async.eachSeries(blocks, function (block, cb) {
 						try {
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
-							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
+							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 							return cb(e);
 						}
@@ -1087,9 +1088,9 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 							if (!err) {
 								lastCommonBlockId = block.id;
 								lastValidBlock = block;
-								library.logger.log('Block ' + block.id + ' loaded from ' + peerStr + ' at', block.height);
+								library.logger.log('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
 							} else {
-								library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peerStr);
+								library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
 								modules.peer.state(peer.ip, peer.port, 0, 3600);
 							}
 
