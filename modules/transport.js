@@ -132,15 +132,17 @@ private.attachApi = function () {
 			required: ['max', 'min', 'ids']
 		}, function (err, report, query) {
 			if (err) return next(err);
-			if (!report.isValid) return res.json({success: false, error: report.issue});
+			if (!report.isValid) return res.json({success: false, error: report.issues});
 
 			var max = query.max;
 			var min = query.min;
+
 			var ids = query.ids.split(",").filter(function (id) {
-				return /^\d+$/.test(id);
+				return /^["0-9]+$/.test(id);
 			});
+
 			var escapedIds = ids.map(function (id) {
-				return "'" + id + "'";
+				return "'" + id.replace(/"/g, '') + "'";
 			});
 
 			if (!escapedIds.length) {
@@ -165,7 +167,12 @@ private.attachApi = function () {
 				return res.json({success: false, error: "Invalid block id sequence"});
 			}
 
-			library.db.query("SELECT MAX(\"height\"), \"id\", \"previousBlock\", \"timestamp\" FROM blocks WHERE \"id\" IN (" + escapedIds.join(',') + ") and \"height\" >= ${min} AND \"height\" <= ${max}", { "max": max, "min": min }).then(function (rows) {
+			var sql = "SELECT MAX(\"height\") AS \"height\", \"id\", \"previousBlock\", \"timestamp\" FROM blocks " +
+			          "WHERE \"id\" IN (" + escapedIds.join(",") + ") " +
+			          "AND \"height\" >= ${min} AND \"height\" <= ${max} " +
+			          "GROUP BY \"id\"";
+
+			library.db.query(sql, { max: max, min: min }).then(function (rows) {
 				var commonBlock = rows.length ? rows[0] : null;
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {

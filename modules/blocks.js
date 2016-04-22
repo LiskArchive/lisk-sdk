@@ -368,26 +368,22 @@ private.popLastBlock = function (oldLastBlock, cb) {
 }
 
 private.getIdSequence = function (height, cb) {
-	library.db.one("SELECT s.\"height\" AS \"firstHeight\", STRING_AGG(s.\"id\", ',') AS \"ids\" FROM ( " +
-		"SELECT \"id\", MAX(\"height\") AS \"height\" " +
-		"FROM blocks " +
-		"GROUP BY (\"id\", CAST(\"height\" / 101 AS INTEGER) + (CASE WHEN \"height\" % 101 > 0 THEN 1 ELSE 0 END)) HAVING \"height\" <= ${height} " +
-		"UNION " +
-		"SELECT \"id\", 1 AS \"height\" " +
-		"FROM blocks WHERE \"height\" = 1 " +
-		"ORDER BY \"height\" DESC " +
-		"LIMIT ${limit} " +
-		') s GROUP BY s.\"height\" LIMIT 1', {
-		height: height,
-		limit: 1000,
-		delegates: slots.delegates
-	}).then(function (row) {
-		if (!row) {
-			cb("Can't get sequence before: " + height);
-			return;
+	var sql = "SELECT (ARRAY_AGG(\"id\" ORDER BY \"height\" ASC))[1] AS \"id\", MIN(\"height\") AS \"height\", "
+	        + "CAST(\"height\" / ${delegates} AS INTEGER) AS \"round\" FROM blocks "
+	        + "WHERE \"height\" <= ${height} GROUP BY \"round\" ORDER BY \"height\" DESC LIMIT ${limit};"
+
+	library.db.query(sql, { height: height, limit: 5, delegates: slots.delegates }).then(function (rows) {
+		if (rows.length == 0) {
+			return cb("Failed to get id sequence before: " + height);
 		}
 
-		cb(null, row);
+		var ids = [];
+
+		rows.forEach(function (row) {
+			ids.push("\"" + row.id + "\"");
+		});
+
+		cb(null, { firstHeight: rows[0].height, ids: ids.join(",") });
 	}).catch(function (err) {
 		return cb("Blocks#getIdSequence error");
 	});
@@ -467,8 +463,10 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 				if (err) {
 					return next(err)
 				}
+
 				var max = lastBlockHeight;
 				lastBlockHeight = data.firstHeight;
+
 				modules.transport.getFromPeer(peer, {
 					api: "/blocks/common?ids=" + data.ids + '&max=' + max + '&min=' + lastBlockHeight,
 					method: "GET"
@@ -481,19 +479,20 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 						return next();
 					}
 
-					library.db.query("SELECT COUNT(*)::int FROM blocks WHERE \"id\" = ${id} " + (data.body.common.previousBlock ? "AND \"previousBlock\" = ${previousBlock}" : "") + " AND \"height\" = ${height}", {
+					library.db.query("SELECT COUNT(\"id\")::int FROM blocks WHERE \"id\" = ${id} " + (data.body.common.previousBlock ? "AND \"previousBlock\" = ${previousBlock}" : "") + " AND \"height\" = ${height}", {
 						id: data.body.common.id,
 						previousBlock: data.body.common.previousBlock,
 						height: data.body.common.height
 					}).then(function (rows) {
 						if (!rows.length) {
-							return next("Can't compare blocks");
+							return next("Chain comparison failed with peer: " + peer.string);
 						}
 
 						if (rows[0].count) {
 							commonBlock = data.body.common;
 						}
-						next();
+
+						return next();
 					}).catch(function (err) {
 						return next("Blocks#getCommonBlock error");
 					});
