@@ -355,17 +355,17 @@ private.attachApi = function () {
 
 		try {
 			if (!req.body.dappid) {
-				return res.status(200).json({success: false, message: "missed dappid"});
+				return res.status(200).json({success: false, message: "Missing dappid"});
 			}
 			if (!req.body.timestamp || !req.body.hash) {
 				return res.status(200).json({
 					success: false,
-					message: "missed hash sum"
+					message: "Missing hash sum"
 				});
 			}
 			var newHash = private.hashsum(req.body.body, req.body.timestamp);
 			if (newHash !== req.body.hash) {
-				return res.status(200).json({success: false, message: "wrong hash sum"});
+				return res.status(200).json({success: false, message: "Invalid hash sum"});
 			}
 		} catch (e) {
 			return res.status(200).json({success: false, message: e.toString()});
@@ -396,17 +396,17 @@ private.attachApi = function () {
 
 		try {
 			if (!req.body.dappid) {
-				return res.status(200).json({success: false, message: "missed dappid"});
+				return res.status(200).json({success: false, message: "Missing dappid"});
 			}
 			if (!req.body.timestamp || !req.body.hash) {
 				return res.status(200).json({
 					success: false,
-					message: "missed hash sum"
+					message: "Missing hash sum"
 				});
 			}
 			var newHash = private.hashsum(req.body.body, req.body.timestamp);
 			if (newHash !== req.body.hash) {
-				return res.status(200).json({success: false, message: "wrong hash sum"});
+				return res.status(200).json({success: false, message: "Invalid hash sum"});
 			}
 		} catch (e) {
 			return res.status(200).json({success: false, message: e.toString()});
