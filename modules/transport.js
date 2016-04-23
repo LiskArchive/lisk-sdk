@@ -554,7 +554,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 					}
 				}
 			}
-			cb && cb(err || ('request status code' + response.statusCode));
+			cb && cb(err || ('Request status code: ' + response.statusCode));
 			return;
 		}
 
