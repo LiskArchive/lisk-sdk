@@ -123,7 +123,7 @@ private.updatePeerList = function (cb) {
 }
 
 private.count = function (cb) {
-	library.db.query("SELECT COUNT(*) FROM peers").then(function (rows) {
+	library.db.query("SELECT COUNT(*)::int FROM peers").then(function (rows) {
 		var res = rows.length && rows[0].count;
 		cb(null, res)
 	}).catch(function (err) {
