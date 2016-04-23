@@ -340,8 +340,8 @@ private.attachApi = function () {
 	library.network.app.use('/api/multisignatures', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -380,7 +380,7 @@ shared.getAccounts = function (req, cb) {
 				sort: 'balance'
 			}, ['address', 'balance', 'multisignatures', 'multilifetime', 'multimin'], function (err, rows) {
 				if (err) {
-					library.logger.error(err.toString());
+					library.logger.error(err);
 					return cb("Multisignature#getAccounts error");
 				}
 
@@ -653,7 +653,7 @@ shared.sign = function (req, cb) {
 				cb();
 			}, function (err) {
 				if (err) {
-					return cb(err.toString());
+					return cb(err);
 				}
 
 				cb(null, {transactionId: transaction.id});
@@ -753,7 +753,7 @@ shared.addMultisignature = function (req, cb) {
 		library.balancesSequence.add(function (cb) {
 			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 				if (err) {
-					return cb(err.toString());
+					return cb(err);
 				}
 				if (!account || !account.publicKey) {
 					return cb("Account not found");
@@ -788,7 +788,7 @@ shared.addMultisignature = function (req, cb) {
 			});
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 
 			library.network.io.sockets.emit('mutlsigiantures/change', {});

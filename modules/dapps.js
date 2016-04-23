@@ -890,7 +890,7 @@ private.attachApi = function () {
 				});
 			}, function (err, transaction) {
 				if (err) {
-					return res.json({success: false, error: err.toString()});
+					return res.json({success: false, error: err});
 				}
 				res.json({success: true, transaction: transaction[0]});
 			});
@@ -1364,8 +1364,8 @@ private.attachApi = function () {
 	library.network.app.use("/api/dapps", router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -1761,7 +1761,7 @@ private.dappRoutes = function (dapp, cb) {
 								err = body.error;
 							}
 							if (err) {
-								body = {error: err.toString()}
+								body = {error: err}
 							}
 							body.success = !err
 							res.json(body);
@@ -1773,8 +1773,8 @@ private.dappRoutes = function (dapp, cb) {
 			library.network.app.use("/api/dapps/" + dapp.transactionId + "/api/", private.routes[dapp.transactionId]);
 			library.network.app.use(function (err, req, res, next) {
 				if (!err) return next();
-				library.logger.error(req.url, err.toString());
-				res.status(500).send({success: false, error: err.toString()});
+				library.logger.error(req.url, err);
+				res.status(500).send({success: false, error: err});
 			});
 
 			return setImmediate(cb);
@@ -1921,7 +1921,7 @@ private.launchApp = function (dapp, params, cb) {
 			});
 
 			sandbox.on("error", function (err) {
-				library.logger.info("Encountered error in dapp " + dapp.transactionId + " " + err.toString());
+				library.logger.info("Encountered error in dapp " + dapp.transactionId + " " + err);
 				private.stop(dapp, function (err) {
 					if (err) {
 						library.logger.error("Encountered error while stopping dapp: " + err);
@@ -2021,7 +2021,7 @@ private.addTransactions = function (req, cb) {
 			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString("hex")) {
 				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 
 					if (!account || !account.publicKey) {
@@ -2038,7 +2038,7 @@ private.addTransactions = function (req, cb) {
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
 						if (err) {
-							return cb(err.toString());
+							return cb(err);
 						}
 
 						if (!requester || !requester.publicKey) {
@@ -2080,7 +2080,7 @@ private.addTransactions = function (req, cb) {
 			} else {
 				modules.accounts.getAccount({publicKey: keypair.publicKey.toString("hex")}, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 					if (!account || !account.publicKey) {
 						return cb("Account not found");
@@ -2115,7 +2115,7 @@ private.addTransactions = function (req, cb) {
 			}
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 
 			cb(null, {transactionId: transaction[0].id});
@@ -2293,7 +2293,7 @@ shared.sendWithdrawal = function (req, cb) {
 			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString("hex")) {
 				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 
 					if (!account || !account.publicKey) {
@@ -2310,7 +2310,7 @@ shared.sendWithdrawal = function (req, cb) {
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
 						if (err) {
-							return cb(err.toString());
+							return cb(err);
 						}
 
 						if (!requester || !requester.publicKey) {
@@ -2353,7 +2353,7 @@ shared.sendWithdrawal = function (req, cb) {
 			} else {
 				modules.accounts.getAccount({publicKey: keypair.publicKey.toString("hex")}, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 					if (!account || !account.publicKey) {
 						return cb("Account not found");
@@ -2390,7 +2390,7 @@ shared.sendWithdrawal = function (req, cb) {
 			}
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 
 			cb(null, {transactionId: transaction[0].id});

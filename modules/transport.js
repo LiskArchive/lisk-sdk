@@ -335,7 +335,7 @@ private.attachApi = function () {
 			modules.transactions.receiveTransactions([transaction], cb);
 		}, function (err) {
 			if (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err);
 				res.status(200).json({success: false, message: err});
 			} else {
 				res.status(200).json({success: true});
@@ -433,8 +433,8 @@ private.attachApi = function () {
 
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 

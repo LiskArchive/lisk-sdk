@@ -236,7 +236,7 @@ private.attachApi = function () {
 					limit: query.limit
 				}, function (err, raw) {
 					if (err) {
-						return res.json({success: false, error: err.toString()});
+						return res.json({success: false, error: err});
 					}
 					var accounts = raw.map(function (fullAccount) {
 						return {
@@ -263,8 +263,8 @@ private.attachApi = function () {
 	library.network.app.use('/api/accounts', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -411,7 +411,7 @@ shared.getBalance = function (req, cb) {
 
 		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 			var balance = account ? account.balance : 0;
 			var unconfirmedBalance = account ? account.u_balance : 0;
@@ -439,7 +439,7 @@ shared.getPublickey = function (req, cb) {
 
 		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 			if (!account || !account.publicKey) {
 				return cb("Account does not have a public key");
@@ -495,7 +495,7 @@ shared.getDelegates = function (req, cb) {
 
 		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 			if (!account) {
 				return cb("Account not found");
@@ -507,7 +507,7 @@ shared.getDelegates = function (req, cb) {
 					sort: { "vote": -1, "publicKey": 1 }
 				}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks", "virgin"], function (err, delegates) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 
 					var limit = query.limit || 101,
@@ -592,7 +592,7 @@ shared.addDelegates = function (req, cb) {
 			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString('hex')) {
 				modules.accounts.getAccount({ publicKey: body.multisigAccountPublicKey }, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 
 					if (!account || !account.publicKey) {
@@ -609,7 +609,7 @@ shared.addDelegates = function (req, cb) {
 
 					modules.accounts.getAccount({ publicKey: keypair.publicKey }, function (err, requester) {
 						if (err) {
-							return cb(err.toString());
+							return cb(err);
 						}
 
 						if (!requester || !requester.publicKey) {
@@ -649,7 +649,7 @@ shared.addDelegates = function (req, cb) {
 			} else {
 				self.getAccount({ publicKey: keypair.publicKey.toString('hex') }, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 					if (!account || !account.publicKey) {
 						return cb("Account not found");
@@ -682,7 +682,7 @@ shared.addDelegates = function (req, cb) {
 			}
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 
 			cb(null, {transaction: transaction[0]});
@@ -708,7 +708,7 @@ shared.getAccount = function (req, cb) {
 
 		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 			if (!account) {
 				return cb("Account not found");

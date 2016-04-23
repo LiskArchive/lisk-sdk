@@ -84,7 +84,7 @@ private.query = function (action, config, cb) {
 
 	function done (err, data) {
 		if (err) {
-			err = err.toString();
+			err = err;
 		}
 
 		cb(err, data);
@@ -174,7 +174,7 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 		});
 	}, function (err) {
 		if (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err);
 			setImmediate(cb, "Sql#createTables error", self);
 		} else {
 			setImmediate(cb);

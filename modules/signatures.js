@@ -199,8 +199,8 @@ private.attachApi = function () {
 	library.network.app.use('/api/signatures', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -264,7 +264,7 @@ shared.addSignature = function (req, cb) {
 			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString('hex')) {
 				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 
 					if (!account || !account.publicKey) {
@@ -285,7 +285,7 @@ shared.addSignature = function (req, cb) {
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
 						if (err) {
-							return cb(err.toString());
+							return cb(err);
 						}
 
 						if (!requester || !requester.publicKey) {
@@ -322,7 +322,7 @@ shared.addSignature = function (req, cb) {
 			} else {
 				modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 					if (err) {
-						return cb(err.toString());
+						return cb(err);
 					}
 					if (!account || !account.publicKey) {
 						return cb("Account not found");
@@ -351,7 +351,7 @@ shared.addSignature = function (req, cb) {
 
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 			cb(null, {transaction: transaction[0]});
 		});

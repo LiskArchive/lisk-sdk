@@ -41,8 +41,8 @@ private.attachApi = function () {
 	library.network.app.use('/api/loader', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -492,7 +492,7 @@ Loader.prototype.onPeerReady = function () {
 			var lastBlock = modules.blocks.getLastBlock();
 			private.loadBlocks(lastBlock, cb);
 		}, function (err) {
-			err && library.logger.error('loadBlocks timer:', err.toString());
+			err && library.logger.error('loadBlocks timer:', err);
 			private.syncTrigger(false);
 			private.blocksToSync = 0;
 
@@ -506,7 +506,7 @@ Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadUnconfirmedTransactions() {
 		if (!private.loaded || self.syncing()) return;
 		private.loadUnconfirmedTransactions(function (err) {
-			err && library.logger.error('loadUnconfirmedTransactions timer:', err.toString());
+			err && library.logger.error('loadUnconfirmedTransactions timer:', err);
 			setTimeout(nextLoadUnconfirmedTransactions, 14 * 1000)
 		});
 
@@ -515,7 +515,7 @@ Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadSignatures() {
 		if (!private.loaded) return;
 		private.loadSignatures(function (err) {
-			err && library.logger.error('loadSignatures timer:', err.toString());
+			err && library.logger.error('loadSignatures timer:', err);
 
 			setTimeout(nextLoadSignatures, 14 * 1000)
 		});

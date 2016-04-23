@@ -44,8 +44,8 @@ private.attachApi = function () {
 	library.network.app.use('/api/peers', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -337,7 +337,7 @@ Peer.prototype.update = function (peer, cb) {
 			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err);
 				return cb("Peer#update error");
 			});
 		},
@@ -407,14 +407,14 @@ Peer.prototype.onBlockchainReady = function () {
 Peer.prototype.onPeerReady = function () {
 	setImmediate(function nextUpdatePeerList() {
 		private.updatePeerList(function (err) {
-			err && library.logger.error('updatePeerList timer:', err.toString());
+			err && library.logger.error('updatePeerList timer:', err);
 			setTimeout(nextUpdatePeerList, 60 * 1000);
 		})
 	});
 
 	setImmediate(function nextBanManager() {
 		private.banManager(function (err) {
-			err && library.logger.error('banManager timer:', err.toString());
+			err && library.logger.error('banManager timer:', err);
 			setTimeout(nextBanManager, 65 * 1000)
 		});
 	});
