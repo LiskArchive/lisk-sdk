@@ -337,7 +337,6 @@ Peer.prototype.update = function (peer, cb) {
 			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
-				library.logger.error(err);
 				return cb("Peer#update error");
 			});
 		},
@@ -359,8 +358,8 @@ Peer.prototype.update = function (peer, cb) {
 			}
 		}
 	], function (err) {
-		err && library.logger.error('Peer#update', err);
-		cb && cb()
+		err && library.logger.error("Peer#update error:", err.toString());
+		cb && cb();
 	})
 }
 

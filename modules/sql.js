@@ -174,7 +174,6 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 		});
 	}, function (err) {
 		if (err) {
-			library.logger.error(err);
 			setImmediate(cb, "Sql#createTables error", self);
 		} else {
 			setImmediate(cb);

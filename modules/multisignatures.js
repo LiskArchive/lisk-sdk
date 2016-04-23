@@ -380,8 +380,7 @@ shared.getAccounts = function (req, cb) {
 				sort: 'balance'
 			}, ['address', 'balance', 'multisignatures', 'multilifetime', 'multimin'], function (err, rows) {
 				if (err) {
-					library.logger.error(err);
-					return cb("Multisignature#getAccounts error");
+					return cb(err);
 				}
 
 				async.eachSeries(rows, function (account, cb) {

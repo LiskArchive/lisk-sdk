@@ -1007,7 +1007,6 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 								private.saveBlock(block, function (err) {
 									if (err) {
 										library.logger.error("Failed to save block...");
-										library.logger.error(err);
 										process.exit(0);
 									}
 

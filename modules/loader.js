@@ -129,7 +129,6 @@ private.findUpdate = function (lastBlock, peer, cb) {
 					modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, function (err, lastValidBlock) {
 						if (err) {
 							modules.transactions.deleteHiddenTransaction();
-							library.logger.error(err);
 							library.logger.log("Failed to load blocks, ban 60 min", peer.string);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 
@@ -385,7 +384,7 @@ private.loadBlockChain = function () {
 								})
 							}, function (err) {
 								if (err) {
-									library.logger.error('loadBlocksOffset', err);
+									library.logger.error(err);
 									if (err.block) {
 										library.logger.error('Blockchain failed at ', err.block.height)
 										modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {

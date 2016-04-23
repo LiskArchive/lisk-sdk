@@ -709,7 +709,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	private.loadMyDelegates(function nextLoop(err) {
 		if (err) {
-			library.logger.error("Failed to load delegates", err);
+			library.logger.error("Failed to load delegates:", err.toString());
 		}
 
 		private.loop(function () {
@@ -828,14 +828,12 @@ shared.getVoters = function (req, cb) {
 				sort: 'balance'
 			}, ['address', 'balance'], function (err, rows) {
 				if (err) {
-					library.logger.error(err);
 					return cb("Delegates#getVoters error");
 				}
 
 				return cb(null, { accounts: rows });
 			});
 		}).catch(function (err) {
-			library.logger.error(err);
 			return cb("Delegates#getVoters error");
 		});
 	});
