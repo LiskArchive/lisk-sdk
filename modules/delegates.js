@@ -462,12 +462,12 @@ private.getBlockSlotData = function (slot, height, cb) {
 
 private.loop = function (cb) {
 	if (!Object.keys(private.keypairs).length) {
-		library.logger.debug('Loop', 'exit: no delegates');
+		library.logger.debug('Loop:', 'no delegates');
 		return setImmediate(cb);
 	}
 
 	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded()) {
-		// library.logger.log('Loop', 'exit: not ready');
+		library.logger.debug('Loop:', 'node not ready');
 		return setImmediate(cb);
 	}
 
@@ -475,31 +475,31 @@ private.loop = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (currentSlot == slots.getSlotNumber(lastBlock.timestamp)) {
-		// library.logger.log('Loop', 'exit: lastBlock is in the same slot');
+		library.logger.debug('Loop:', 'lastBlock is in the same slot');
 		return setImmediate(cb);
 	}
 
 	private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.log('Loop', 'skipping slot');
+			library.logger.debug('Loop:', 'skipping slot');
 			return setImmediate(cb);
 		}
 
 		library.sequence.add(function (cb) {
 			if (slots.getSlotNumber(currentBlockData.time) == slots.getSlotNumber()) {
 				modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
-					library.logger.log('Round ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' new block id: ' + modules.blocks.getLastBlock().id + ' height: ' + modules.blocks.getLastBlock().height + ' slot: ' + slots.getSlotNumber(currentBlockData.time) + ' reward: ' + modules.blocks.getLastBlock().reward)
-					cb(err);
+					library.logger.log('Forged new block id: ' + modules.blocks.getLastBlock().id + ' height: ' + modules.blocks.getLastBlock().height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(currentBlockData.time) + ' reward: ' + modules.blocks.getLastBlock().reward);
+					return cb(err);
 				});
 			} else {
-				// library.logger.log('Loop', 'exit: ' + _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
-				setImmediate(cb);
+				// library.logger.debug('Loop:', _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
+				return setImmediate(cb);
 			}
 		}, function (err) {
 			if (err) {
-				library.logger.error("Failed to get block slot data", err);
+				library.logger.error("Failed generate block within slot:", err);
 			}
-			setImmediate(cb);
+			return setImmediate(cb);
 		});
 	});
 }
