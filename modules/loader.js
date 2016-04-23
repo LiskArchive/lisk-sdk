@@ -415,7 +415,7 @@ private.loadBlockChain = function () {
 			throw err;
 		}
 
-		library.db.query('SELECT COUNT(*) FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" WHERE "numberOfTransactions" > 0 ORDER BY "height" DESC LIMIT 1)').then(function (rows) {
+		library.db.query('SELECT COUNT(*)::int FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" WHERE "numberOfTransactions" > 0 ORDER BY "height" DESC LIMIT 1)').then(function (rows) {
 			var reject = !(rows[0].count);
 
 			modules.blocks.count(function (err, count) {
