@@ -358,7 +358,7 @@ Peer.prototype.update = function (peer, cb) {
 			}
 		}
 	], function (err) {
-		err && library.logger.error("Peer#update error:", err.toString());
+		err && library.logger.error(err);
 		cb && cb();
 	})
 }
