@@ -820,8 +820,8 @@ shared.getVoters = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		library.db.query("SELECT STRING_AGG(\"accountId\", ',') FROM mem_accounts2delegates WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (rows) {
-			var addresses = rows[0].accountId.split(',');
+		library.db.query("SELECT ARRAY_AGG(\"accountId\") AS \"accountIds\" FROM mem_accounts2delegates WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (rows) {
+			var addresses = (rows.length) ? rows[0].accountIds : [];
 
 			modules.accounts.getAccounts({
 				address: { $in: addresses },
@@ -835,6 +835,7 @@ shared.getVoters = function (req, cb) {
 				return cb(null, { accounts: rows });
 			});
 		}).catch(function (err) {
+			library.logger.error(err);
 			return cb("Delegates#getVoters error");
 		});
 	});
