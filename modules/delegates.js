@@ -828,7 +828,7 @@ shared.getVoters = function (req, cb) {
 				sort: 'balance'
 			}, ['address', 'balance'], function (err, rows) {
 				if (err) {
-					return cb("Delegates#getVoters error");
+					return cb(err);
 				}
 
 				return cb(null, { accounts: rows });
