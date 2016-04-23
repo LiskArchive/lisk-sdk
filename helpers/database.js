@@ -4,7 +4,7 @@ var path = require('path');
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
 
-module.exports.connect = function (config, cb) {
+module.exports.connect = function (config, logger, cb) {
 	var pgOptions = {
 		pgNative: true
 	};
@@ -14,6 +14,11 @@ module.exports.connect = function (config, cb) {
 
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
+
+	monitor.log = function(msg, info){
+		logger.log(info.event, info.text);
+		info.display = false;
+	};
 
 	var db = pgp(config);
 

@@ -388,7 +388,7 @@ d.run(function () {
 
 		db: function (cb) {
 			var db = require('./helpers/database.js');
-			db.connect(config.db, cb);
+			db.connect(config.db, logger, cb);
 		},
 
 		logic: ['db', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
