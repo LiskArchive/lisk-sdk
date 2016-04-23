@@ -699,7 +699,7 @@ Account.prototype.merge = function (address, diff, cb) {
 						update.$inc[value] = trueValue;
 						if (value == "balance") {
 							round.push({
-								query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, ${amount}, \"dependentId\", ${blockId}, ${round} FROM mem_accounts2delegates WHERE \"accountId\" = ${address}",
+								query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (${amount})::bigint, \"dependentId\", ${blockId}, ${round} FROM mem_accounts2delegates WHERE \"accountId\" = ${address}",
 								values: {
 									address: address,
 									amount: trueValue,
@@ -714,7 +714,7 @@ Account.prototype.merge = function (address, diff, cb) {
 						update.$dec[value] = Math.abs(trueValue);
 						if (value == "balance") {
 							round.push({
-								query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, ${amount}, \"dependentId\", ${blockId}, ${round} FROM mem_accounts2delegates WHERE \"accountId\" = ${address}",
+								query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (${amount})::bigint, \"dependentId\", ${blockId}, ${round} FROM mem_accounts2delegates WHERE \"accountId\" = ${address}",
 								values: {
 									address: address,
 									amount: trueValue,
@@ -753,7 +753,7 @@ Account.prototype.merge = function (address, diff, cb) {
 								remove[value].push(val);
 								if (value == "delegates") {
 									round.push({
-										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, -balance, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
+										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (-balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
 										values: {
 											address: address,
 											delegate: val,
@@ -768,7 +768,7 @@ Account.prototype.merge = function (address, diff, cb) {
 								insert[value].push(val)
 								if (value == "delegates") {
 									round.push({
-										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, balance, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
+										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
 										values: {
 											address: address,
 											delegate: val,
@@ -783,7 +783,7 @@ Account.prototype.merge = function (address, diff, cb) {
 								insert[value].push(val)
 								if (value == "delegates") {
 									round.push({
-										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, balance, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
+										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address}",
 										values: {
 											address: address,
 											delegate: val,
