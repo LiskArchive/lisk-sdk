@@ -369,7 +369,7 @@ private.loadBlockChain = function () {
 							function () {
 								return count < offset
 							}, function (cb) {
-								library.logger.info('Current ' + offset);
+								library.logger.info("Current " + offset);
 								setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
 										if (err) {
@@ -420,18 +420,18 @@ private.loadBlockChain = function () {
 
 			modules.blocks.count(function (err, count) {
 				if (err) {
-					return library.logger.error('Failed to count blocks', err)
+					return library.logger.error("Failed to count blocks", err);
 				}
 
-				library.logger.info('Blocks ' + count);
+				library.logger.info("Blocks " + count);
 
 				// Check if previous loading missed
 				if (reject || verify || count == 1) {
 					return load(count);
 				}
 
-				library.db.none('UPDATE mem_accounts SET "u_isDelegate" = "isDelegate", "u_secondSignature" = "secondSignature", "u_username" = "username", "u_balance" = "balance", "u_delegates" = "delegates", "u_multisignatures" = "multisignatures"').then(function () {
-					library.db.query('SELECT a."blockId", b."id" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b."id" = a."blockId" WHERE b."id" IS NULL').then(function (rows) {
+				library.db.none("UPDATE mem_accounts SET \"u_isDelegate\" = \"isDelegate\", \"u_secondSignature\" = \"secondSignature\", \"u_username\" = \"username\", \"u_balance\" = \"balance\", \"u_delegates\" = \"delegates\", \"u_multisignatures\" = \"multisignatures\"").then(function () {
+					library.db.query("SELECT a.\"blockId\", b.\"id\" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b.\"id\" = a.\"blockId\" WHERE b.\"id\" IS NULL").then(function (rows) {
 						if (rows.length > 0) {
 							return load(count);
 						}
