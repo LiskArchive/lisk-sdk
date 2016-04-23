@@ -369,7 +369,7 @@ private.popLastBlock = function (oldLastBlock, cb) {
 
 private.getIdSequence = function (height, cb) {
 	var sql = "SELECT (ARRAY_AGG(\"id\" ORDER BY \"height\" ASC))[1] AS \"id\", MIN(\"height\") AS \"height\", "
-	        + "CAST(\"height\" / ${delegates} AS INTEGER) AS \"round\" FROM blocks "
+	        + "CAST(\"height\" / ${delegates} AS INTEGER) + (CASE WHEN \"height\" % 101 > 0 THEN 1 ELSE 0 END) AS \"round\" FROM blocks "
 	        + "WHERE \"height\" <= ${height} GROUP BY \"round\" ORDER BY \"height\" DESC LIMIT ${limit};"
 
 	library.db.query(sql, { height: height, limit: 5, delegates: slots.delegates }).then(function (rows) {
@@ -379,12 +379,22 @@ private.getIdSequence = function (height, cb) {
 
 		var ids = [];
 
+		var __genesisblock = {
+			id: genesisblock.id,
+			height: genesisblock.height
+		};
+
+		if (!_.contains(rows, __genesisblock.id)) {
+			rows.push(__genesisblock);
+		}
+
 		rows.forEach(function (row) {
 			ids.push("\"" + row.id + "\"");
 		});
 
 		cb(null, { firstHeight: rows[0].height, ids: ids.join(",") });
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb("Blocks#getIdSequence error");
 	});
 }
