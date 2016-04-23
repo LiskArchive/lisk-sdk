@@ -1171,7 +1171,7 @@ Blocks.prototype.onReceiveBlock = function (block) {
 
 	library.sequence.add(function (cb) {
 		if (block.previousBlock == private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
-			library.logger.log('Received new block id: ' + block.id + ' height: ' + block.height + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
+			library.logger.log('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
 			self.processBlock(block, true, cb);
 		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			// Fork right height and different previous block
