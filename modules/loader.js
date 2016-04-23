@@ -67,7 +67,7 @@ private.loadFullDb = function (peer, cb) {
 
 	var commonBlockId = private.genesisBlock.block.id;
 
-	library.logger.debug("Loading blocks from genesis from " + peer.string);
+	library.logger.info("Loading blocks from genesis from " + peer.string);
 
 	modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
 }
@@ -137,7 +137,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 								var uploaded = lastValidBlock.height - commonBlock.height;
 
 								if (toRemove < uploaded) {
-									library.logger.info("Remove blocks again until " + lastValidBlock.id + " (at " + lastValidBlock.height + ")");
+									library.logger.info("Removing blocks again until " + lastValidBlock.id + " (at " + lastValidBlock.height + ")");
 
 									async.series([
 										function (cb) {
@@ -166,7 +166,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 									], cb);
 
 								} else {
-									library.logger.info("Remove blocks again until common " + commonBlock.id + " (at " + commonBlock.height + ")");
+									library.logger.info("Removing blocks again until common " + commonBlock.id + " (at " + commonBlock.height + ")");
 
 									async.series([
 										function (cb) {
@@ -233,7 +233,7 @@ private.loadBlocks = function (lastBlock, cb) {
 
 		data.peer = modules.peer.inspect(data.peer);
 
-		library.logger.info("Check blockchain on " + data.peer.string);
+		library.logger.info("Checking blockchain on " + data.peer.string);
 
 		data.body.height = parseInt(data.body.height);
 
