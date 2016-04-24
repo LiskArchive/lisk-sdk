@@ -83,14 +83,10 @@ private.attachApi = function () {
 			if (err) return next(err);
 			if (!report.isValid) return res.status(500).send({status: false, error: report.issues});
 
-			req.peer = {
-				ip: req.peer.ip,
-				port: req.peer.port,
-				state: 2,
-				os: headers.os,
-				sharePort: Number(headers['share-port']),
-				version: headers.version
-			};
+			req.peer.state = 2;
+			req.peer.os = headers.os;
+			req.peer.sharePort = Number(headers['share-port']);
+			req.peer.version = headers.version;
 
 			if (req.body && req.body.dappid) {
 				req.peer.dappid = req.body.dappid;
