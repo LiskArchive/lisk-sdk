@@ -820,8 +820,8 @@ shared.getVoters = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		library.db.query("SELECT ARRAY_AGG(\"accountId\") AS \"accountIds\" FROM mem_accounts2delegates WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (rows) {
-			var addresses = (rows.length) ? rows[0].accountIds : [];
+		library.db.one("SELECT ARRAY_AGG(\"accountId\") AS \"accountIds\" FROM mem_accounts2delegates WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (row) {
+			var addresses = (row.accountIds) ? row.accountIds : [];
 
 			modules.accounts.getAccounts({
 				address: { $in: addresses },
@@ -834,7 +834,8 @@ shared.getVoters = function (req, cb) {
 				return cb(null, { accounts: rows });
 			});
 		}).catch(function (err) {
-			return cb("Delegates#getVoters error");
+			library.logger.error(err.toString());
+			return cb("Failed to get voters for public key: " + query.publicKey);
 		});
 	});
 }
