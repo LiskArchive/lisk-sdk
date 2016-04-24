@@ -46,7 +46,7 @@ private.attachApi = function () {
 			);
 		} catch (err) {
 			library.logger.error(err);
-			return res.status(500).send({success: false, error: "Invalid request headers"});
+			return res.status(406).send({success: false, error: "Invalid request headers"});
 		}
 
 		if (req.peer.loopback) {
