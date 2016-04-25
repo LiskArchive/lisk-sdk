@@ -45,7 +45,7 @@ private.attachApi = function () {
 				}
 			);
 		} catch (err) {
-			library.logger.error(err);
+			library.logger.debug(err);
 			return res.status(406).send({success: false, error: "Invalid request headers"});
 		}
 
@@ -327,7 +327,7 @@ private.attachApi = function () {
 		}
 
 		library.balancesSequence.add(function (cb) {
-			library.logger.log('Received transaction ' + transaction.id + ' from peer ' + req.peer.string);
+			library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + req.peer.string);
 			modules.transactions.receiveTransactions([transaction], cb);
 		}, function (err) {
 			if (err) {

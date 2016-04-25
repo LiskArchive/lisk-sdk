@@ -344,7 +344,8 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
 	// Check transaction indexes
 	if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
-		return cb("Transaction " + transaction.id + " already exists, ignoring...");
+		library.logger.debug("Transaction " + transaction.id + " already exists, ignoring...")
+		return cb();
 	}
 
 	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
