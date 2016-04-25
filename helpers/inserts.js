@@ -36,7 +36,7 @@ function Inserts(record, values, concat) {
 			values = "("+ this.namedTemplate() + ")";
 		}
 
-		return "INSERT INTO " + record.table + "(" + fields.join(",") + ") VALUES" + values;
+		return "INSERT INTO " + record.table + "(" + fields.join(",") + ") VALUES" + values + ";";
 	};
 
 	this._rawDBType = true;
