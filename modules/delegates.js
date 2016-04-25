@@ -835,7 +835,7 @@ shared.getVoters = function (req, cb) {
 			});
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return cb("Failed to get voters for public key: " + query.publicKey);
+			return cb("Failed to get voters for delegate: " + query.publicKey);
 		});
 	});
 }
