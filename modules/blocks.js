@@ -516,7 +516,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 }
 
 Blocks.prototype.count = function (cb) {
-	library.db.query("SELECT COUNT(\"id\")::int FROM blocks").then(function (rows) {
+	library.db.query("SELECT COUNT(\"rowId\")::int FROM blocks").then(function (rows) {
 		var res = rows.length ? rows[0].count : 0;
 
 		return cb(null, res);
@@ -578,7 +578,7 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"LEFT OUTER JOIN intransfer AS it ON it.\"transactionId\" = t.\"id\" " +
 				"LEFT OUTER JOIN outtransfer AS ot ON ot.\"transactionId\" = t.\"id\" " +
 				(filter.id || filter.lastId ? "WHERE " : "") + " " +
-				(filter.id ? " b.\"id\" = ${id} " : "") + (filter.id && filter.lastId ? " AND " : "") + (filter.lastId ? " b.\"height\" > ${height} AND b.\"height\" < ${limit} " : "") + limitPart + "ORDER BY b.\"height\"", params).then(function (rows) {
+				(filter.id ? " b.\"id\" = ${id} " : "") + (filter.id && filter.lastId ? " AND " : "") + (filter.lastId ? " b.\"height\" > ${height} AND b.\"height\" < ${limit} " : "") + limitPart + "ORDER BY b.\"height\", t.\"rowId\"", params).then(function (rows) {
 				return cb(null, rows);
 			}).catch(function (err) {
 				return cb("Blocks#loadBlockData error");
@@ -631,7 +631,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			"LEFT OUTER JOIN intransfer AS it ON it.\"transactionId\" = t.\"id\" " +
 			"LEFT OUTER JOIN outtransfer AS ot ON ot.\"transactionId\" = t.\"id\" " +
 			"WHERE b.\"height\" >= ${offset} AND b.\"height\" < ${limit} " +
-			"ORDER BY b.\"height\""
+			"ORDER BY b.\"height\", t.\"rowId\""
 			, params).then(function (rows) {
 				var blocks = private.readDbRows(rows);
 
@@ -783,7 +783,7 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			"LEFT OUTER JOIN intransfer AS it ON it.\"transactionId\" = t.\"id\" " +
 			"LEFT OUTER JOIN outtransfer AS ot ON ot.\"transactionId\" = t.\"id\" " +
 			"WHERE b.\"height\" = (SELECT MAX(\"height\") FROM blocks) " +
-			"ORDER BY b.\"height\"").then(function (rows) {
+			"ORDER BY b.\"height\", t.\"rowId\"").then(function (rows) {
 
 			var block = private.readDbRows(rows)[0];
 
