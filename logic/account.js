@@ -1,4 +1,5 @@
 var async = require('async');
+var pgp = require("pg-promise");
 var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
@@ -365,7 +366,6 @@ function Account(scope, cb) {
 }
 
 Account.prototype.createTables = function (cb) {
-	var scope = this.scope;
 	var sqles = [];
 
 	var sql = jsonSql.build({
@@ -519,19 +519,20 @@ Account.prototype.createTables = function (cb) {
 	sqles.push("INSERT INTO mem_accounts2u_delegates SELECT * FROM mem_accounts2delegates;");
 	// sqles.push("INSERT INTO mem_accounts2u_multisignatures SELECT * FROM mem_accounts2multisignatures;");
 
-	async.eachSeries(sqles, function (command, cb) {
-		scope.db.query(command).then(function (data) {
-			cb(null, data);
-		}).catch(function (err) {
-			cb("Account#createTables error");
-		});
-	}.bind(this), function (err) {
-		setImmediate(cb, err, this);
-	}.bind(this));
+	var i, concatenated = "";
+
+	for (i = 0; i < sqles.length; i++) {
+		concatenated += sqles[i];
+	}
+
+	this.scope.db.query(concatenated).then(function () {
+		return cb();
+	}).catch(function (err) {
+		return cb("Account#createTables error");
+	});
 }
 
 Account.prototype.removeTables = function (cb) {
-	var scope = this.scope;
 	var sqles = [];
 
 	var sql = jsonSql.build({
@@ -540,15 +541,17 @@ Account.prototype.removeTables = function (cb) {
 	});
 	sqles.push(sql.query);
 
-	async.eachSeries(sqles, function (command, cb) {
-		scope.db.query(command).then(function (data) {
-			cb(null, data);
-		}).catch(function (err) {
-			cb("Account#removeTables error");
-		});
-	}.bind(this), function (err) {
-		setImmediate(cb, err, this);
-	}.bind(this));
+	var i, concatenated = "";
+
+	for (i = 0; i < sqles.length; i++) {
+		concatenated += sqles[i];
+	}
+
+	this.scope.db.query(concatenated).then(function () {
+		return cb();
+	}).catch(function (err) {
+		return cb("Account#removeTables error");
+	});
 }
 
 Account.prototype.objectNormalize = function (account) {
@@ -635,13 +638,11 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err ) {
-		cb("Account#getAll error");
+		return cb("Account#getAll error");
 	});
 }
 
 Account.prototype.set = function (address, fields, cb) {
-	var self = this;
-
 	if (fields.publicKey !== undefined && !fields.publicKey){
 		console.log("!!!!!!!!!!!!!!!!!!!!!!!", address, diff)
 	}
@@ -668,13 +669,18 @@ Account.prototype.set = function (address, fields, cb) {
 
 	sqles.push(sql);
 
-	async.eachSeries(sqles, function (sql, cb) {
-		self.scope.db.query(sql.query, sql.values).then(function (rows) {
-			cb(null, rows);
-		}).catch(function (err) {
-			cb("Account#set error");
-		});
-	}, cb);
+	var i, sql, concatenated = "";
+
+	for (i = 0; i < sqles.length; i++) {
+		sql = sqles[i];
+		concatenated += pgp.as.format(sql.query, sql.values);
+	}
+
+	this.scope.db.query(concatenated).then(function () {
+		return cb();
+	}).catch(function (err) {
+		return cb("Account#set error");
+	});
 }
 
 Account.prototype.merge = function (address, diff, cb) {
@@ -888,19 +894,19 @@ Account.prototype.merge = function (address, diff, cb) {
 			}
 
 			self.scope.db.tx(function (t) {
-				var promises = [];
+				var i, sql, concatenated = "", promises = [];
 
-				for (var i = 0; i < sqles.length; i++) {
-					var sql = sqles[i];
-
-					promises.push(this.none(sql.query, sql.values));
+				for (i = 0; i < sqles.length; i++) {
+					sql = sqles[i];
+					concatenated += pgp.as.format(sql.query, sql.values);
 				}
 
+				promises.push(this.none(concatenated));
 				return this.batch(promises);
 			}).then(function () {
 				return cb();
 			}).catch(function (err) {
-				cb("Account#merge error");
+				return cb("Account#merge error");
 			});
 		},
 		function (cb) {
@@ -909,19 +915,19 @@ Account.prototype.merge = function (address, diff, cb) {
 			}
 
 			self.scope.db.tx(function (t) {
-				var promises = [];
+				var i, sql, concatenated = "", promises = [];
 
-				for (var i = 0; i < round.length; i++) {
-					var sql = round[i];
-
-					promises.push(this.none(sql.query, sql.values));
+				for (i = 0; i < round.length; i++) {
+					sql = round[i];
+					concatenated += pgp.as.format(sql.query, sql.values);
 				}
 
+				promises.push(this.none(concatenated));
 				return this.batch(promises);
 			}).then(function () {
 				return cb();
 			}).catch(function (err) {
-				cb("Account#merge error");
+				return cb("Account#merge error");
 			});
 		}
 	], done);
