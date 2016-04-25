@@ -1089,6 +1089,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
 							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
+							library.logger.error(e.toString());
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 							return cb(e);
 						}
@@ -1099,6 +1100,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 								library.logger.log('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
 							} else {
 								library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
+								library.logger.error(err.toString());
 								modules.peer.state(peer.ip, peer.port, 0, 3600);
 							}
 
