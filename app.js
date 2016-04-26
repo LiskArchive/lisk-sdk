@@ -16,6 +16,12 @@ process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
+if (typeof gc !== 'undefined') {
+	setInterval(function () {
+		gc();
+	}, 60000);
+}
+
 program
 	.version(packageJson.version)
 	.option('-c, --config <path>', 'Config file path')
@@ -25,12 +31,6 @@ program
 	.option('-x, --peers [peers...]', 'Peers list')
 	.option('-l, --log <level>', 'Log level')
 	.parse(process.argv);
-
-if (typeof gc !== 'undefined') {
-	setInterval(function () {
-		gc();
-	}, 60000);
-}
 
 if (program.config) {
 	appConfig = require(path.resolve(process.cwd(), program.config));
