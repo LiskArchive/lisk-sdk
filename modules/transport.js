@@ -114,24 +114,15 @@ private.attachApi = function () {
 		req.sanitize(req.query, {
 			type: "object",
 			properties: {
-				max: {
-					type: 'integer'
-				},
-				min: {
-					type: 'integer'
-				},
 				ids: {
 					type: 'string',
 					format: 'splitarray'
 				}
 			},
-			required: ['max', 'min', 'ids']
+			required: ['ids']
 		}, function (err, report, query) {
 			if (err) return next(err);
 			if (!report.isValid) return res.json({success: false, error: report.issues});
-
-			var max = query.max;
-			var min = query.min;
 
 			var ids = query.ids.split(",").filter(function (id) {
 				return /^["0-9]+$/.test(id);
@@ -164,11 +155,9 @@ private.attachApi = function () {
 			}
 
 			var sql = "SELECT MAX(\"height\") AS \"height\", \"id\", \"previousBlock\", \"timestamp\" FROM blocks " +
-			          "WHERE \"id\" IN (" + escapedIds.join(",") + ") " +
-			          "AND \"height\" >= ${min} AND \"height\" <= ${max} " +
-			          "GROUP BY \"id\"";
+			          "WHERE \"id\" IN (" + escapedIds.join(",") + ") GROUP BY \"id\"";
 
-			library.db.query(sql, { max: max, min: min }).then(function (rows) {
+			library.db.query(sql).then(function (rows) {
 				var commonBlock = rows.length ? rows[0] : null;
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {
