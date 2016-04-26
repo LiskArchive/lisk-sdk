@@ -568,11 +568,20 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				return cb("Account not found");
 			}
 
+			var existing_votes = account.delegates ? account.delegates.split(',').length : 0;
+			var additions = 0, removals = 0;
+
 			async.eachSeries(votes, function (action, cb) {
 				var math = action[0];
 
 				if (math !== '+' && math !== '-') {
 					return cb("Invalid math operator");
+				}
+
+				if (math == '+') {
+					additions += 1;
+				} else if (math == '+') {
+					removals += 1;
 				}
 
 				var publicKey = action.slice(1);
@@ -601,7 +610,21 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 
 					cb();
 				});
-			}, cb)
+			}, function (err) {
+				if (err) {
+					return cb(err);
+				}
+
+				var total_votes = (existing_votes + additions) - removals;
+
+				if (total_votes > 101) {
+					var exceeded = total_votes - 101;
+
+					return cb("Maximum number of 101 votes exceeded (" + exceeded + " too many).");
+				} else {
+					return cb();
+				}
+			});
 		});
 	} else {
 		setImmediate(cb, "Please provide an array of votes");
