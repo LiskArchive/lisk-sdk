@@ -483,7 +483,7 @@ shared.getPeer = function (req, cb) {
 	library.scheme.validate(query, {
 		type: "object",
 		properties: {
-			ip_str: {
+			ip: {
 				type: "string",
 				minLength: 1
 			},
@@ -493,15 +493,15 @@ shared.getPeer = function (req, cb) {
 				maximum: 65535
 			}
 		},
-		required: ['ip_str', 'port']
+		required: ['ip', 'port']
 	}, function (err) {
 		if (err) {
 			return cb(err[0].message);
 		}
 
 		private.getByFilter({
-			ip: query.ip_str,
-			port: port
+			ip: query.ip,
+			port: query.port
 		}, function (err, peers) {
 			if (err) {
 				return cb("Peer not found");
