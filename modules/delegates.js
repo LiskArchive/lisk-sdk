@@ -825,7 +825,7 @@ shared.getVoters = function (req, cb) {
 			modules.accounts.getAccounts({
 				address: { $in: addresses },
 				sort: 'balance'
-			}, ['address', 'balance'], function (err, rows) {
+			}, ['address', 'balance', 'username', 'publicKey'], function (err, rows) {
 				if (err) {
 					return cb(err);
 				}
