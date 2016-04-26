@@ -747,7 +747,7 @@ shared.getDelegate = function (req, cb) {
 		modules.accounts.getAccounts({
 			isDelegate: 1,
 			sort: { "vote": -1, "publicKey": 1 }
-		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks", "virgin"], function (err, delegates) {
+		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks"], function (err, delegates) {
 			if (err) {
 				return cb(err);
 			}
@@ -776,8 +776,8 @@ shared.getDelegate = function (req, cb) {
 				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
 				percent = percent || 0;
 
-				var outsider = i + 1 > slots.delegates && delegates[i].virgin;
-				delegates[i].productivity = !outsider ? delegates[i].virgin ? 0 : parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : null;
+				var outsider = i + 1 > slots.delegates;
+				delegates[i].productivity = (!outsider) ? parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : 0;
 			}
 
 			var delegate = _.find(delegates, function (delegate) {
@@ -867,7 +867,7 @@ shared.getDelegates = function (req, cb) {
 			// limit: query.limit > 101 ? 101 : query.limit,
 			// offset: query.offset,
 			sort: { "vote": -1, "publicKey": 1 }
-		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks", "virgin"], function (err, delegates) {
+		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks"], function (err, delegates) {
 			if (err) {
 				return cb(err);
 			}
@@ -896,8 +896,8 @@ shared.getDelegates = function (req, cb) {
 				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
 				percent = percent || 0;
 
-				var outsider = i + 1 > slots.delegates && delegates[i].virgin;
-				delegates[i].productivity = !outsider ? delegates[i].virgin ? 0 : parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : null;
+				var outsider = i + 1 > slots.delegates;
+				delegates[i].productivity = (!outsider) ? parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : 0;
 			}
 
 			delegates.sort(function compare(a, b) {

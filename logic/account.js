@@ -292,15 +292,6 @@ function Account(scope, cb) {
 			default: 0
 		},
 		{
-			name: "virgin",
-			type: "SmallInt",
-			filter: {
-				type: "boolean"
-			},
-			conv: Boolean,
-			default: 0
-		},
-		{
 			name: "fees",
 			type: "BigInt",
 			filter: {
