@@ -63,7 +63,7 @@ if (program.log) {
 }
 
 process.on('uncaughtException', function (err) {
-	// handle the error safely
+	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup');
 });
@@ -92,10 +92,12 @@ var config = {
 var logger = new Logger({echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel});
 
 var d = require('domain').create();
+
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
+
 d.run(function () {
 	var modules = [];
 	async.auto({
