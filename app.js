@@ -282,8 +282,8 @@ d.run(function () {
 			scope.network.app.set('view engine', 'ejs');
 			scope.network.app.set('views', path.join(__dirname, 'public'));
 			scope.network.app.use(scope.network.express.static(path.join(__dirname, 'public')));
-			scope.network.app.use(bodyParser.urlencoded({extended: true, parameterLimit: 5000}));
-			scope.network.app.use(bodyParser.json());
+			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
+			scope.network.app.use(bodyParser.json({limit: '2mb'}));
 			scope.network.app.use(methodOverride());
 
 			var ignore = ['id', 'name', 'lastBlockId', 'blockId', 'transactionId', 'address', 'recipientId', 'senderId', 'previousBlock'];
@@ -306,6 +306,9 @@ d.run(function () {
 			scope.network.app.use(function (req, res, next) {
 				var parts = req.url.split('/');
 				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+				// Log client connections
+				logger.log(req.method + " " + req.url + " from " + ip);
 
 				/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
 				 *
