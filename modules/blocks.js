@@ -388,8 +388,17 @@ private.getIdSequence = function (height, cb) {
 			rows.push(__genesisblock);
 		}
 
+		if (private.lastBlock && !_.contains(rows, private.lastBlock.id)) {
+			rows.unshift({
+				id: private.lastBlock.id,
+				height: private.lastBlock.height
+			});
+		}
+
 		rows.forEach(function (row) {
-			ids.push("\"" + row.id + "\"");
+			if (!_.contains(ids, row.id)) {
+				ids.push("\"" + row.id + "\"");
+			}
 		});
 
 		cb(null, { firstHeight: rows[0].height, ids: ids.join(",") });
