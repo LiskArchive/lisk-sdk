@@ -558,7 +558,7 @@ shared.status = function (req, cb) {
 
 shared.sync = function (req, cb) {
 	cb(null, {
-		sync: self.syncing(),
+		syncing: self.syncing(),
 		blocks: private.blocksToSync,
 		height: modules.blocks.getLastBlock().height
 	});
