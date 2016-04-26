@@ -12,8 +12,7 @@ var crypto = require('crypto'),
 	TransactionTypes = require('../helpers/transaction-types.js'),
 	MilestoneBlocks = require("../helpers/milestoneBlocks.js"),
 	sandboxHelper = require('../helpers/sandbox.js');
-
-require('array.prototype.find'); // Old node fix
+	_ = require('underscore');
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -781,7 +780,7 @@ shared.getDelegate = function (req, cb) {
 				delegates[i].productivity = !outsider ? delegates[i].virgin ? 0 : parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : null;
 			}
 
-			var delegate = delegates.find(function (delegate) {
+			var delegate = _.find(delegates, function (delegate) {
 				if (query.transactionId) {
 					// TODO: Store transactionId
 				}

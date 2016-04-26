@@ -9,8 +9,6 @@
   },
   "author": "Boris Povod <boris@crypti.me>, Pavel Nekrasov <landgraf.paul@gmail.com>",
   "dependencies": {
-    "array.prototype.find": "=1.0.0",
-    "array.prototype.findindex": "*",
     "async": "=1.5.2",
     "basic-auth": "=1.0.3",
     "basic-auth-connect": "=1.0.0",

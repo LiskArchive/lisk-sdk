@@ -15,8 +15,6 @@ var crypto = require('crypto'),
 	sandboxHelper = require('../helpers/sandbox.js'),
 	_ = require('underscore');
 
-require('array.prototype.findindex'); // Old node fix
-
 // Private fields
 var modules, library, self, private = {}, shared = {};
 
@@ -729,7 +727,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 							}, function (err) {
 								if (err) {
 									library.logger.error(err);
-									var lastValidTransaction = block.transactions.findIndex(function (trs) {
+									var lastValidTransaction = _.findIndex(block.transactions, function (trs) {
 										return trs.id == err.transaction.id;
 									});
 									var transactions = block.transactions.slice(0, lastValidTransaction + 1);

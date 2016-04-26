@@ -6,8 +6,7 @@ var async = require('async'),
 	fs = require('fs'),
 	path = require('path'),
 	sandboxHelper = require('../helpers/sandbox.js');
-
-require('array.prototype.find'); // Old node fix
+	_ = require('underscore');
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -262,7 +261,7 @@ Peer.prototype.list = function (options, cb) {
 }
 
 Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
-	var isFrozenList = library.config.peers.list.find(function (peer) {
+	var isFrozenList = _.find(library.config.peers, function (peer) {
 		return peer.ip == pip && peer.port == port;
 	});
 	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
@@ -285,7 +284,7 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 }
 
 Peer.prototype.remove = function (pip, port, cb) {
-	var isFrozenList = library.config.peers.list.find(function (peer) {
+	var isFrozenList = _.find(library.config.peers.list, function (peer) {
 		return peer.ip == pip && peer.port == port;
 	});
 	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
