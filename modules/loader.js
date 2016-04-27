@@ -86,7 +86,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 		var toRemove = lastBlock.height - commonBlock.height;
 
 		if (toRemove > 1010) {
-			library.logger.log("Long fork, ban 60 min", peer.string);
+			library.logger.warn("Long fork, ban 60 min", peer.string);
 			modules.peer.state(peer.ip, peer.port, 0, 3600);
 			return cb();
 		}
@@ -129,7 +129,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 					modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, function (err, lastValidBlock) {
 						if (err) {
 							modules.transactions.deleteHiddenTransaction();
-							library.logger.log("Failed to load blocks, ban 60 min", peer.string);
+							library.logger.warn("Failed to load blocks, ban 60 min", peer.string);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 
 							if (lastValidBlock) {
@@ -247,7 +247,7 @@ private.loadBlocks = function (lastBlock, cb) {
 		});
 
 		if (!report) {
-			library.logger.log("Failed to parse blockchain height: " + data.peer.string + "\n" + library.scheme.getLastError());
+			library.logger.warn("Failed to parse blockchain height: " + data.peer.string + "\n" + library.scheme.getLastError());
 			return cb();
 		}
 
@@ -337,8 +337,8 @@ private.loadUnconfirmedTransactions = function (cb) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
-				library.logger.log('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
-				library.logger.error(e.toString());
+				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
+				library.logger.warn(e.toString());
 				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
 				return setImmediate(cb);
 			}

@@ -145,7 +145,7 @@ private.attachApi = function () {
 					required: ['port']
 				});
 
-				library.logger.log('Invalid common block request, ban 60 min', req.peer.string);
+				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
 
 				if (report) {
 					modules.peer.state(req.peer.ip, RequestSanitizer.int(req.peer.port), 0, 3600);
@@ -212,8 +212,8 @@ private.attachApi = function () {
 		try {
 			var block = library.logic.block.objectNormalize(req.body.block);
 		} catch (err) {
-			library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
-			library.logger.error(err.toString());
+			library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
+			library.logger.warn(err.toString());
 
 			if (req.peer && report) {
 				modules.peer.state(peer.ip, peer.port, 0, 3600);
@@ -307,8 +307,8 @@ private.attachApi = function () {
 		try {
 			var transaction = library.logic.transaction.objectNormalize(req.body.transaction);
 		} catch (e) {
-			library.logger.log('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
-			library.logger.error(e.toString());
+			library.logger.warn('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
+			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
 				modules.peer.state(req.peer.ip, req.port, 0, 3600);

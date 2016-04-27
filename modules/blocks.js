@@ -1088,14 +1088,14 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 					loaded = true;
 					next();
 				} else {
-					library.logger.log('Loading ' + blocks.length + ' blocks from', peer.string);
+					library.logger.info('Loading ' + blocks.length + ' blocks from', peer.string);
 
 					async.eachSeries(blocks, function (block, cb) {
 						try {
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
-							library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
-							library.logger.error(e.toString());
+							library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
+							library.logger.warn(e.toString());
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 							return cb(e);
 						}
@@ -1103,10 +1103,10 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 							if (!err) {
 								lastCommonBlockId = block.id;
 								lastValidBlock = block;
-								library.logger.log('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
+								library.logger.info('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
 							} else {
-								library.logger.log('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
-								library.logger.error(err.toString());
+								library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
+								library.logger.warn(err.toString());
 								modules.peer.state(peer.ip, peer.port, 0, 3600);
 							}
 
@@ -1189,7 +1189,7 @@ Blocks.prototype.onReceiveBlock = function (block) {
 
 	library.sequence.add(function (cb) {
 		if (block.previousBlock == private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
-			library.logger.log('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
+			library.logger.info('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
 			self.processBlock(block, true, cb);
 		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			// Fork right height and different previous block
