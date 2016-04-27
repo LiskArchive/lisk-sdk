@@ -691,7 +691,11 @@ Account.prototype.merge = function (address, diff, cb) {
 					update[value] = trueValue;
 					break;
 				case Number:
-					if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
+					if (isNaN(trueValue) || trueValue === Infinity) {
+						console.log(diff);
+						return cb("Encountered unsane number: " + trueValue);
+					}
+					else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
 						update.$inc[value] = Math.floor(trueValue);
 						if (value == "balance") {
