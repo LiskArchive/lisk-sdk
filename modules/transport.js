@@ -45,7 +45,7 @@ private.attachApi = function () {
 				}
 			);
 		} catch (err) {
-			library.logger.debug(err);
+			library.logger.debug(err.toString());
 			return res.status(406).send({success: false, error: "Invalid request headers"});
 		}
 
@@ -323,7 +323,7 @@ private.attachApi = function () {
 		}, function (err) {
 			if (err) {
 				library.logger.error(err);
-				res.status(200).json({success: false, message: err});
+				res.status(200).json({success: false, message: err.toString()});
 			} else {
 				res.status(200).json({success: true});
 			}
@@ -370,7 +370,7 @@ private.attachApi = function () {
 			}
 
 			if (err) {
-				return res.status(200).json({success: false, message: err});
+				return res.status(200).json({success: false, message: err.toString()});
 			}
 
 			library.bus.message('message', req.body, true);
@@ -420,8 +420,8 @@ private.attachApi = function () {
 
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err);
-		res.status(500).send({success: false, error: err});
+		library.logger.error(req.url, err.toString());
+		res.status(500).send({success: false, error: err.toString()});
 	});
 }
 
@@ -521,7 +521,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			library.logger.debug('Request', {
 				url: req.url,
 				statusCode: response ? response.statusCode : 'unknown',
-				err: err
+				err: err.toString()
 			});
 
 			if (peer) {
