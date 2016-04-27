@@ -693,7 +693,7 @@ Account.prototype.merge = function (address, diff, cb) {
 				case Number:
 					if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
-						update.$inc[value] = Math.floor(Math.abs(trueValue));
+						update.$inc[value] = Math.floor(trueValue);
 						if (value == "balance") {
 							round.push({
 								query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (${amount})::bigint, \"dependentId\", ${blockId}, ${round} FROM mem_accounts2delegates WHERE \"accountId\" = ${address};",
