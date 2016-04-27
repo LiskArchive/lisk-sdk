@@ -26,13 +26,13 @@ function Round(cb, scope) {
 
 // Round changes
 function RoundChanges (round) {
-  var roundFees = parseInt(private.feesByRound[round]) || 0;
+  var roundFees = Math.floor(private.feesByRound[round]) || 0;
   var roundRewards = (private.rewardsByRound[round] || []);
 
   this.at = function (index) {
     var fees = Math.floor(roundFees / slots.delegates),
         feesRemaining = roundFees - (fees * slots.delegates),
-        rewards = parseInt(roundRewards[index]) || 0;
+        rewards = Math.floor(roundRewards[index]) || 0;
 
     return {
       fees : fees,
@@ -253,8 +253,8 @@ Round.prototype.tick = function (block, cb) {
 		}
 		var round = self.calc(block.height);
 
-		private.feesByRound[round] = (private.feesByRound[round] || 0);
-		private.feesByRound[round] += block.totalFee;
+		private.feesByRound[round] = Math.floor(private.feesByRound[round]) || 0;
+		private.feesByRound[round] += Math.floor(block.totalFee);
 
 		private.rewardsByRound[round] = (private.rewardsByRound[round] || []);
 		private.rewardsByRound[round].push(block.reward);
@@ -401,15 +401,16 @@ Round.prototype.onBind = function (scope) {
 
 Round.prototype.onBlockchainReady = function () {
 	var round = self.calc(modules.blocks.getLastBlock().height);
-	library.db.query("SELECT SUM(b.\"totalFee\") AS \"fees\", ARRAY_AGG(b.\"reward\") AS \"rewards\", ARRAY_AGG(ENCODE(b.\"generatorPublicKey\", 'hex')) AS \"delegates\" " +
+	library.db.query("SELECT SUM(b.\"totalFee\")::bigint AS \"fees\", ARRAY_AGG(b.\"reward\") AS \"rewards\", ARRAY_AGG(ENCODE(b.\"generatorPublicKey\", 'hex')) AS \"delegates\" " +
 		"FROM blocks b WHERE (SELECT (CAST(b.\"height\" / 101 AS INTEGER) + (CASE WHEN b.\"height\" % 101 > 0 THEN 1 ELSE 0 END))) = ${round}", { round: round }).then(function (rows) {
 
 		var rewards = [];
+
 		rows[0].rewards.forEach(function (reward) {
-			rewards.push(parseInt(reward));
+			rewards.push(Math.floor(reward));
 		});
 
-		private.feesByRound[round] = rows[0].fees;
+		private.feesByRound[round] = Math.floor(rows[0].fees);
 		private.rewardsByRound[round] = rewards;
 		private.delegatesByRound[round] = rows[0].delegates;
 		private.loaded = true;
