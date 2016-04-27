@@ -377,13 +377,15 @@ private.getIdSequence = function (height, cb) {
 
 		var ids = [];
 
-		var __genesisblock = {
-			id: genesisblock.id,
-			height: genesisblock.height
-		};
+		if (genesisblock && genesisblock.block) {
+			var __genesisblock = {
+				id: genesisblock.block.id,
+				height: genesisblock.block.height
+			};
 
-		if (!_.contains(rows, __genesisblock.id)) {
-			rows.push(__genesisblock);
+			if (!_.contains(rows, __genesisblock.id)) {
+				rows.push(__genesisblock);
+			}
 		}
 
 		if (private.lastBlock && !_.contains(rows, private.lastBlock.id)) {
