@@ -20,6 +20,8 @@ module.exports.connect = function (config, logger, cb) {
 		info.display = false;
 	};
 
+	config.user = config.user || process.env['USER'];
+
 	var db = pgp(config);
 
 	var sql = [
