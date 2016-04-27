@@ -17,6 +17,7 @@
     "change-case": "=2.3.1",
     "colors": "=1.1.2",
     "commander": "=2.9.0",
+    "compression": "^1.6.1",
     "cycle": "=1.0.3",
     "decompress-zip": "https://github.com/LiskHQ/decompress-zip/tarball/master",
     "ed25519": "=0.0.4",

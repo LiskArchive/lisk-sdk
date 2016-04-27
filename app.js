@@ -214,7 +214,9 @@ d.run(function () {
 
 		network: ['config', function (cb, scope) {
 			var express = require('express');
+			var compression = require('compression');
 			var app = express();
+			app.use(compression({ level: 6 }))
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
 
