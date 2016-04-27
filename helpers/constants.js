@@ -16,5 +16,6 @@ module.exports = {
 	confirmationLength: 77,
 	fixedPoint : Math.pow(10, 8),
 	totalAmount: 10000000000000000,
+	rewardOffset: 60480,
 	maxTxsPerBlock: 25
 }
