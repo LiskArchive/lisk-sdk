@@ -155,7 +155,7 @@ private.attachApi = function () {
 			}
 
 			var sql = "SELECT MAX(\"height\") AS \"height\", \"id\", \"previousBlock\", \"timestamp\" FROM blocks " +
-			          "WHERE \"id\" IN (" + escapedIds.join(",") + ") GROUP BY \"id\"";
+			          "WHERE \"id\" IN (" + escapedIds.join(",") + ") GROUP BY \"id\" ORDER BY \"height\" DESC";
 
 			library.db.query(sql).then(function (rows) {
 				var commonBlock = rows.length ? rows[0] : null;
