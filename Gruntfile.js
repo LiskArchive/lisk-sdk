@@ -71,7 +71,9 @@ module.exports = function (grunt) {
 		compress: {
 			main: {
 				options: {
-					archive: version_dir + '.zip'
+					archive: version_dir + '.tar.gz',
+					mode: 'tgz',
+					level: 6
 				},
 				files: [
 					{ expand: true, cwd: release_dir, src: [config.version + '/**'], dest: './' }
