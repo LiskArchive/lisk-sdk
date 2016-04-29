@@ -233,7 +233,7 @@ Peer.prototype.accept = function (peer) {
 	peer.port = parseInt(peer.port);
 
 	if (!peer || !peer.ip || !peer.port) {
-		throw "Rejecting invalid peer data: " + JSON.stringify(peer);
+		throw "Rejecting invalid peer data: " + util.inspect(peer);
 	} else if (!ip.isV4Format(peer.ip) && ip.isV6Format(peer.ip)) {
 		throw "Rejecting peer with invalid ip address: " + peer.ip;
 	} else if (isNaN(peer.port) || peer.port == 0 || peer.port > 65535) {
