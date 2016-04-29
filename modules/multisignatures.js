@@ -192,7 +192,7 @@ function Multisignature() {
 			return setImmediate(cb, "Signature on this account is pending confirmation");
 		}
 
-		if (sender.multisignatures.length) {
+		if (sender.multisignatures && sender.multisignatures.length) {
 			return setImmediate(cb, "Account already has multisignatures enabled");
 		}
 
@@ -264,20 +264,31 @@ function Multisignature() {
 		}
 	}
 
-	this.dbSave = function (trs, cb) {
-		library.dbLite.query("INSERT INTO multisignatures(min, lifetime, keysgroup, transactionId) VALUES($min, $lifetime, $keysgroup, $transactionId)", {
-			min: trs.asset.multisignature.min,
-			lifetime: trs.asset.multisignature.lifetime,
-			keysgroup: trs.asset.multisignature.keysgroup.join(','),
-			transactionId: trs.id
-		}, function (err, rows) {
-			if (err) {
-				return cb(err);
-			} else {
-				library.network.io.sockets.emit('mutlsigiantures/change', {});
-				return cb();
+	this.dbTable = "multisignatures";
+
+	this.dbFields = [
+		"min",
+		"lifetime",
+		"keysgroup",
+		"transactionId"
+	];
+
+	this.dbSave = function (trs) {
+		return {
+			table: this.dbTable,
+			fields: this.dbFields,
+			values: {
+				min: trs.asset.multisignature.min,
+				lifetime: trs.asset.multisignature.lifetime,
+				keysgroup: trs.asset.multisignature.keysgroup.join(','),
+				transactionId: trs.id
 			}
-		});
+		};
+	}
+
+	this.afterSave = function (trs, cb) {
+		library.network.io.sockets.emit('mutlsigiantures/change', {});
+		return cb();
 	}
 
 	this.ready = function (trs, sender) {
@@ -329,8 +340,8 @@ private.attachApi = function () {
 	library.network.app.use('/api/multisignatures', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -361,23 +372,15 @@ shared.getAccounts = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		library.dbLite.query("select GROUP_CONCAT(accountId) from mem_accounts2multisignatures where dependentId = $publicKey", {
-			publicKey: query.publicKey
-		}, ['accountId'], function (err, rows) {
-			if (err) {
-				library.logger.error(err.toString());
-				return cb("Database error");
-			}
-
-			var addresses = rows[0].accountId.split(',');
+		library.db.one("SELECT STRING_AGG(\"accountId\", ',') AS \"accountId\" FROM mem_accounts2multisignatures WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (row) {
+			var addresses = (row.accountId) ? row.accountId.split(',') : [];
 
 			modules.accounts.getAccounts({
-				address: {$in: addresses},
+				address: { $in: addresses },
 				sort: 'balance'
 			}, ['address', 'balance', 'multisignatures', 'multilifetime', 'multimin'], function (err, rows) {
 				if (err) {
-					library.logger.error(err);
-					return cb("Database error");
+					return cb(err);
 				}
 
 				async.eachSeries(rows, function (account, cb) {
@@ -387,8 +390,8 @@ shared.getAccounts = function (req, cb) {
 					}
 
 					modules.accounts.getAccounts({
-						address: {$in: addresses}
-					}, ['address', 'publicKey', 'balance', 'username'], function (err, multisigaccounts) {
+						address: { $in: addresses }
+					}, ['address', 'publicKey', 'balance'], function (err, multisigaccounts) {
 						if (err) {
 							return cb(err);
 						}
@@ -401,9 +404,11 @@ shared.getAccounts = function (req, cb) {
 						return cb(err);
 					}
 
-					return cb(null, {accounts: rows});
+					return cb(null, { accounts: rows });
 				});
 			});
+		}).catch(function (err) {
+			return cb("Multisignature#getAccounts error");
 		});
 	});
 }
@@ -647,7 +652,7 @@ shared.sign = function (req, cb) {
 				cb();
 			}, function (err) {
 				if (err) {
-					return cb(err.toString());
+					return cb(err);
 				}
 
 				cb(null, {transactionId: transaction.id});
@@ -747,10 +752,10 @@ shared.addMultisignature = function (req, cb) {
 		library.balancesSequence.add(function (cb) {
 			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 				if (err) {
-					return cb(err.toString());
+					return cb(err);
 				}
 				if (!account || !account.publicKey) {
-					return cb("Invalid account");
+					return cb("Account not found");
 				}
 
 				if (account.secondSignature && !body.secondSecret) {
@@ -782,7 +787,7 @@ shared.addMultisignature = function (req, cb) {
 			});
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err.toString());
+				return cb(err);
 			}
 
 			library.network.io.sockets.emit('mutlsigiantures/change', {});

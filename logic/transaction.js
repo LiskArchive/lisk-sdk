@@ -226,24 +226,19 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		}
 	}
 
-
 	private.types[trs.type].process.call(this, trs, sender, function (err, trs) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		this.scope.dbLite.query("SELECT count(id) FROM trs WHERE id=$id", {id: trs.id}, {"count": Number}, function (err, rows) {
-			if (err) {
-				return cb("Database error");
-			}
-
-			var res = rows.length && rows[0];
-
-			if (res.count) {
+		this.scope.db.one("SELECT COUNT(\"id\")::int AS \"count\" FROM trs WHERE \"id\" = ${id}", { id: trs.id }).then(function (row) {
+			if (row.count > 0) {
 				return cb("Ignoring already confirmed transaction");
 			}
 
 			cb(null, trs);
+		}).catch(function (err) {
+			return cb("Transaction#process error");
 		});
 	}.bind(this));
 }
@@ -322,8 +317,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 		}
 	}
 
-	var multisignatures = sender.multisignatures || sender.u_multisignatures;
-
+	var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
 	if (multisignatures.length == 0) {
 		if (trs.asset && trs.asset.multisignature && trs.asset.multisignature.keysgroup) {
 
@@ -579,53 +573,90 @@ Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	}.bind(this));
 }
 
-Transaction.prototype.dbSave = function (trs, cb) {
+Transaction.prototype.dbTable = "trs";
+
+Transaction.prototype.dbFields = [
+	"id",
+	"blockId",
+	"type",
+	"timestamp",
+	"senderPublicKey",
+	"requesterPublicKey",
+	"senderId",
+	"recipientId",
+	"amount",
+	"fee",
+	"signature",
+	"signSignature",
+	"signatures"
+];
+
+Transaction.prototype.dbSave = function (trs) {
 	if (!private.types[trs.type]) {
-		return cb("Unknown transaction type: " + trs.type);
+		throw Error("Unknown transaction type: " + trs.type);
 	}
 
 	try {
-		var senderPublicKey = new Buffer(trs.senderPublicKey, 'hex');
-		var signature = new Buffer(trs.signature, 'hex');
-		var signSignature = trs.signSignature ? new Buffer(trs.signSignature, 'hex') : null;
-		var requesterPublicKey = trs.requesterPublicKey ? new Buffer(trs.requesterPublicKey, 'hex') : null;
+		var senderPublicKey = new Buffer(trs.senderPublicKey, "hex");
+		var signature = new Buffer(trs.signature, "hex");
+		var signSignature = trs.signSignature ? new Buffer(trs.signSignature, "hex") : null;
+		var requesterPublicKey = trs.requesterPublicKey ? new Buffer(trs.requesterPublicKey, "hex") : null;
 	} catch (e) {
-		return cb(e.toString())
+		throw e.toString();
 	}
 
-	this.scope.dbLite.query("INSERT INTO trs(id, blockId, type, timestamp, senderPublicKey, requesterPublicKey, senderId, recipientId, senderUsername, recipientUsername, amount, fee, signature, signSignature, signatures) VALUES($id, $blockId, $type, $timestamp, $senderPublicKey, $requesterPublicKey, $senderId, $recipientId, $senderUsername, $recipientUsername, $amount, $fee, $signature, $signSignature, $signatures)", {
-		id: trs.id,
-		blockId: trs.blockId,
-		type: trs.type,
-		timestamp: trs.timestamp,
-		senderPublicKey: senderPublicKey,
-		requesterPublicKey: requesterPublicKey,
-		senderId: trs.senderId,
-		recipientId: trs.recipientId || null,
-		senderUsername: trs.senderUsername || null,
-		recipientUsername: trs.recipientUsername || null,
-		amount: trs.amount,
-		fee: trs.fee,
-		signature: signature,
-		signSignature: signSignature,
-		signatures: trs.signatures ? trs.signatures.join(',') : null
-	}, function (err) {
-		if (err) {
-			return cb(err);
+	var promises = [
+		{
+			table: this.dbTable,
+			fields: this.dbFields,
+			values: {
+				id: trs.id,
+				blockId: trs.blockId,
+				type: trs.type,
+				timestamp: trs.timestamp,
+				senderPublicKey: senderPublicKey,
+				requesterPublicKey: requesterPublicKey,
+				senderId: trs.senderId,
+				recipientId: trs.recipientId || null,
+				amount: trs.amount,
+				fee: trs.fee,
+				signature: signature,
+				signSignature: signSignature,
+				signatures: trs.signatures ? trs.signatures.join(",") : null,
+			}
 		}
+	];
 
-		private.types[trs.type].dbSave.call(this, trs, cb);
-	}.bind(this));
+	var promise = private.types[trs.type].dbSave(trs);
 
+	if (promise) {
+		promises.push(promise);
+	}
+
+	return promises;
+}
+
+Transaction.prototype.afterSave = function (trs, cb) {
+	var tx_type = private.types[trs.type];
+
+	if (!tx_type) {
+		return cb("Unknown transaction type: " + trs.type);
+	} else {
+		if (typeof tx_type.afterSave == "function") {
+			return tx_type.afterSave.call(this, trs, cb);
+		} else {
+			return cb();
+		}
+	}
 }
 
 Transaction.prototype.objectNormalize = function (trs) {
 	if (!private.types[trs.type]) {
-		throw Error('Unknown transaction type ' + trs.type);
+		throw Error("Unknown transaction type " + trs.type);
 	}
 
 	for (var i in trs) {
-		if (trs[i] === null || typeof trs[i] === 'undefined') {
+		if (trs[i] === null || typeof trs[i] === "undefined") {
 			delete trs[i];
 		}
 	}
@@ -660,12 +691,6 @@ Transaction.prototype.objectNormalize = function (trs) {
 				type: "string"
 			},
 			recipientId: {
-				type: "string"
-			},
-			senderUsername: {
-				type: "string"
-			},
-			recipientUsername: {
 				type: "string"
 			},
 			amount: {
@@ -708,7 +733,7 @@ Transaction.prototype.objectNormalize = function (trs) {
 
 Transaction.prototype.dbRead = function (raw) {
 	if (!raw.t_id) {
-		return null
+		return null;
 	} else {
 		var tx = {
 			id: raw.t_id,
@@ -720,8 +745,6 @@ Transaction.prototype.dbRead = function (raw) {
 			requesterPublicKey: raw.t_requesterPublicKey,
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
-			senderUsername: raw.t_senderUsername,
-			recipientUsername: raw.t_recipientUsername,
 			amount: parseInt(raw.t_amount),
 			fee: parseInt(raw.t_fee),
 			signature: raw.t_signature,

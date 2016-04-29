@@ -41,8 +41,8 @@ private.attachApi = function () {
 	library.network.app.use('/api/loader', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) return next();
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 }
 
@@ -63,30 +63,30 @@ private.syncTrigger = function (turnOn) {
 }
 
 private.loadFullDb = function (peer, cb) {
-	var peerStr = peer ? ip.fromLong(peer.ip) + ":" + peer.port : 'unknown';
+	peer = modules.peer.inspect(peer);
 
 	var commonBlockId = private.genesisBlock.block.id;
 
-	library.logger.debug("Loading blocks from genesis from " + peerStr);
+	library.logger.info("Loading blocks from genesis from " + peer.string);
 
 	modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
 }
 
 private.findUpdate = function (lastBlock, peer, cb) {
-	var peerStr = peer ? ip.fromLong(peer.ip) + ":" + peer.port : 'unknown';
+	peer = modules.peer.inspect(peer);
 
-	library.logger.info("Looking for common block with " + peerStr);
+	library.logger.info("Looking for common block with " + peer.string);
 
 	modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 		if (err || !commonBlock) {
 			return cb(err);
 		}
 
-		library.logger.info("Found common block " + commonBlock.id + " (at " + commonBlock.height + ")" + " with peer " + peerStr);
+		library.logger.info("Found common block " + commonBlock.id + " (at " + commonBlock.height + ")" + " with peer " + peer.string);
 		var toRemove = lastBlock.height - commonBlock.height;
 
 		if (toRemove > 1010) {
-			library.logger.log("long fork, ban 60 min", peerStr);
+			library.logger.warn("Long fork, ban 60 min", peer.string);
 			modules.peer.state(peer.ip, peer.port, 0, 3600);
 			return cb();
 		}
@@ -124,20 +124,19 @@ private.findUpdate = function (lastBlock, peer, cb) {
 					}
 				},
 				function (cb) {
-					library.logger.debug("Loading blocks from peer " + peerStr);
+					library.logger.debug("Loading blocks from peer " + peer.string);
 
 					modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, function (err, lastValidBlock) {
 						if (err) {
 							modules.transactions.deleteHiddenTransaction();
-							library.logger.error(err);
-							library.logger.log("Failed to load blocks, ban 60 min", peerStr);
+							library.logger.warn("Failed to load blocks, ban 60 min", peer.string);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
 
 							if (lastValidBlock) {
 								var uploaded = lastValidBlock.height - commonBlock.height;
 
 								if (toRemove < uploaded) {
-									library.logger.info("Remove blocks again until " + lastValidBlock.id + " (at " + lastValidBlock.height + ")");
+									library.logger.info("Removing blocks again until " + lastValidBlock.id + " (at " + lastValidBlock.height + ")");
 
 									async.series([
 										function (cb) {
@@ -166,7 +165,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 									], cb);
 
 								} else {
-									library.logger.info("Remove blocks again until common " + commonBlock.id + " (at " + commonBlock.height + ")");
+									library.logger.info("Removing blocks again until common " + commonBlock.id + " (at " + commonBlock.height + ")");
 
 									async.series([
 										function (cb) {
@@ -227,13 +226,13 @@ private.loadBlocks = function (lastBlock, cb) {
 		api: '/height',
 		method: 'GET'
 	}, function (err, data) {
-		var peerStr = data && data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
-		if (err || !data.body) {
-			library.logger.log("Failed to get height from peer: " + peerStr);
+		if (err) {
 			return cb();
 		}
 
-		library.logger.info("Check blockchain on " + peerStr);
+		data.peer = modules.peer.inspect(data.peer);
+
+		library.logger.info("Checking blockchain on " + data.peer.string);
 
 		data.body.height = parseInt(data.body.height);
 
@@ -248,7 +247,7 @@ private.loadBlocks = function (lastBlock, cb) {
 		});
 
 		if (!report) {
-			library.logger.log("Failed to parse blockchain height: " + peerStr + "\n" + library.scheme.getLastError());
+			library.logger.warn("Failed to parse blockchain height: " + data.peer.string + "\n" + library.scheme.getLastError());
 			return cb();
 		}
 
@@ -312,7 +311,7 @@ private.loadUnconfirmedTransactions = function (cb) {
 		method: 'GET'
 	}, function (err, data) {
 		if (err) {
-			return cb()
+			return cb();
 		}
 
 		var report = library.scheme.validate(data.body, {
@@ -330,19 +329,20 @@ private.loadUnconfirmedTransactions = function (cb) {
 			return cb();
 		}
 
+		data.peer = modules.peer.inspect(data.peer);
+
 		var transactions = data.body.transactions;
 
 		for (var i = 0; i < transactions.length; i++) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
-				var peerStr = data.peer ? ip.fromLong(data.peer.ip) + ":" + data.peer.port : 'unknown';
-				library.logger.log('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peerStr);
+				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
+				library.logger.warn(e.toString());
 				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
 		}
-
 
 		library.balancesSequence.add(function (cb) {
 			modules.transactions.receiveTransactions(transactions, cb);
@@ -370,7 +370,7 @@ private.loadBlockChain = function () {
 							function () {
 								return count < offset
 							}, function (cb) {
-								library.logger.info('Current ' + offset);
+								library.logger.info("Current " + offset);
 								setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
 										if (err) {
@@ -385,7 +385,7 @@ private.loadBlockChain = function () {
 								})
 							}, function (err) {
 								if (err) {
-									library.logger.error('loadBlocksOffset', err);
+									library.logger.error(err);
 									if (err.block) {
 										library.logger.error('Blockchain failed at ', err.block.height)
 										modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {
@@ -406,77 +406,71 @@ private.loadBlockChain = function () {
 	}
 
 	library.logic.account.createTables(function (err) {
+		function reload (count, message) {
+			library.logger.error(message);
+			library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
+			load(count);
+		}
+
 		if (err) {
 			throw err;
-		} else {
-			library.dbLite.query("select count(*) from mem_accounts where blockId = (select id from blocks where numberOfTransactions > 0 order by height desc limit 1)", {'count': Number}, function (err, rows) {
+		}
+
+		library.db.query('SELECT COUNT(*)::int FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" WHERE "numberOfTransactions" > 0 ORDER BY "height" DESC LIMIT 1)').then(function (rows) {
+			var reject = !(rows[0].count);
+
+			modules.blocks.count(function (err, count) {
 				if (err) {
-					throw err;
+					return library.logger.error("Failed to count blocks", err);
 				}
 
-				var reject = !(rows[0].count);
+				library.logger.info("Blocks " + count);
 
-				modules.blocks.count(function (err, count) {
-					if (err) {
-						return library.logger.error('Failed to count blocks', err)
-					}
+				// Check if previous loading missed
+				if (reject || verify || count == 1) {
+					return load(count);
+				}
 
-					library.logger.info('Blocks ' + count);
+				library.db.none("UPDATE mem_accounts SET \"u_isDelegate\" = \"isDelegate\", \"u_secondSignature\" = \"secondSignature\", \"u_username\" = \"username\", \"u_balance\" = \"balance\", \"u_delegates\" = \"delegates\", \"u_multisignatures\" = \"multisignatures\"").then(function () {
+					library.db.query("SELECT a.\"blockId\", b.\"id\" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b.\"id\" = a.\"blockId\" WHERE b.\"id\" IS NULL").then(function (rows) {
+						if (rows.length > 0) {
+							return load(count);
+						}
 
-					// Check if previous loading missed
-					if (reject || verify || count == 1) {
-						load(count);
-					} else {
-						library.dbLite.query(
-							"UPDATE mem_accounts SET u_isDelegate=isDelegate,u_secondSignature=secondSignature,u_username=username,u_balance=balance,u_delegates=delegates,u_contacts=contacts,u_followers=followers,u_multisignatures=multisignatures"
-							, function (err, updated) {
-								if (err) {
-									library.logger.error(err);
-									library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-									load(count);
-								} else {
-									library.dbLite.query("select a.blockId, b.id from mem_accounts a left outer join blocks b on b.id = a.blockId where b.id is null", {}, ['a_blockId', 'b_id'], function (err, rows) {
-										if (err || rows.length > 0) {
-											library.logger.error(err || "Encountered missing block, looks like node went down during block processing");
-											library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-											load(count);
-										} else {
-											// Load delegates
-											library.dbLite.query("SELECT lower(hex(publicKey)) FROM mem_accounts WHERE isDelegate=1", ['publicKey'], function (err, delegates) {
-												if (err || delegates.length == 0) {
-													library.logger.error(err || "No delegates, reload database");
-													library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-													load(count);
-												} else {
-													modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
-														if (err) {
-															library.logger.error(err || "Unable to load last block");
-															library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
-															load(count);
-														} else {
-															modules.blocks.loadLastBlock(function (err, block) {
-																if (err) {
-																	return load(count);
-																}
-																private.lastBlock = block;
-																library.logger.info('Blockchain ready');
-																library.bus.message('blockchainReady');
-															});
-														}
-													});
-												}
-											});
-										}
-									});
-								}
-							});
-					}
-
+						// Load delegates
+						library.db.query("SELECT ENCODE(\"publicKey\", 'hex') FROM mem_accounts WHERE \"isDelegate\" = 1").then(function (delegates) {
+							if (delegates.length == 0) {
+								reload(count, "No delegates, reload database");
+							} else {
+								modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
+									if (err) {
+										reload(count, err || "Unable to load last block");
+									} else {
+										modules.blocks.loadLastBlock(function (err, block) {
+											if (err) {
+												return load(count);
+											}
+											private.lastBlock = block;
+											library.logger.info('Blockchain ready');
+											library.bus.message('blockchainReady');
+										});
+									}
+								});
+							}
+						}).catch(function (err) {
+							reload(count, err);
+						});
+					}).catch(function (err) {
+						reload(count, err);
+					});
+				}).catch(function (err) {
+					reload(count, err);
 				});
 			});
-		}
+		}).catch(function (err) {
+			throw err;
+		});
 	});
-
 }
 
 // Public methods
@@ -498,7 +492,7 @@ Loader.prototype.onPeerReady = function () {
 			var lastBlock = modules.blocks.getLastBlock();
 			private.loadBlocks(lastBlock, cb);
 		}, function (err) {
-			err && library.logger.error('loadBlocks timer:', err);
+			err && library.logger.error('Blocks timer:', err);
 			private.syncTrigger(false);
 			private.blocksToSync = 0;
 
@@ -512,7 +506,7 @@ Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadUnconfirmedTransactions() {
 		if (!private.loaded || self.syncing()) return;
 		private.loadUnconfirmedTransactions(function (err) {
-			err && library.logger.error('loadUnconfirmedTransactions timer:', err);
+			err && library.logger.error('Unconfirmed transactions timer:', err);
 			setTimeout(nextLoadUnconfirmedTransactions, 14 * 1000)
 		});
 
@@ -521,7 +515,7 @@ Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadSignatures() {
 		if (!private.loaded) return;
 		private.loadSignatures(function (err) {
-			err && library.logger.error('loadSignatures timer:', err);
+			err && library.logger.error('Signatures timer:', err);
 
 			setTimeout(nextLoadSignatures, 14 * 1000)
 		});
@@ -564,7 +558,7 @@ shared.status = function (req, cb) {
 
 shared.sync = function (req, cb) {
 	cb(null, {
-		sync: self.syncing(),
+		syncing: self.syncing(),
 		blocks: private.blocksToSync,
 		height: modules.blocks.getLastBlock().height
 	});

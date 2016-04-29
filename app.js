@@ -16,6 +16,12 @@ process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
+if (typeof gc !== 'undefined') {
+	setInterval(function () {
+		gc();
+	}, 60000);
+}
+
 program
 	.version(packageJson.version)
 	.option('-c, --config <path>', 'Config file path')
@@ -25,12 +31,6 @@ program
 	.option('-x, --peers [peers...]', 'Peers list')
 	.option('-l, --log <level>', 'Log level')
 	.parse(process.argv);
-
-if (typeof gc !== 'undefined') {
-	setInterval(function () {
-		gc();
-	}, 60000);
-}
 
 if (program.config) {
 	appConfig = require(path.resolve(process.cwd(), program.config));
@@ -63,13 +63,13 @@ if (program.log) {
 }
 
 process.on('uncaughtException', function (err) {
-	// handle the error safely
+	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup');
 });
 
 var config = {
-	"db": program.blockchain || "./blockchain.db",
+	"db": appConfig.db,
 	"modules": {
 		"server": "./modules/server.js",
 		"accounts": "./modules/accounts.js",
@@ -82,10 +82,8 @@ var config = {
 		"peer": "./modules/peer.js",
 		"delegates": "./modules/delegates.js",
 		"round": "./modules/round.js",
-		"contacts": "./modules/contacts.js",
 		"multisignatures": "./modules/multisignatures.js",
 		"dapps": "./modules/dapps.js",
-		"sia": "./modules/sia.js",
 		"crypto": "./modules/crypto.js",
 		"sql": "./modules/sql.js"
 	}
@@ -94,10 +92,12 @@ var config = {
 var logger = new Logger({echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel});
 
 var d = require('domain').create();
+
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
+
 d.run(function () {
 	var modules = [];
 	async.auto({
@@ -214,7 +214,9 @@ d.run(function () {
 
 		network: ['config', function (cb, scope) {
 			var express = require('express');
+			var compression = require('compression');
 			var app = express();
+			app.use(compression({ level: 6 }))
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
 
@@ -282,11 +284,11 @@ d.run(function () {
 			scope.network.app.set('view engine', 'ejs');
 			scope.network.app.set('views', path.join(__dirname, 'public'));
 			scope.network.app.use(scope.network.express.static(path.join(__dirname, 'public')));
-			scope.network.app.use(bodyParser.urlencoded({extended: true, parameterLimit: 5000}));
-			scope.network.app.use(bodyParser.json());
+			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
+			scope.network.app.use(bodyParser.json({limit: '2mb'}));
 			scope.network.app.use(methodOverride());
 
-			var ignore = ['id', 'name', 'lastBlockId', 'blockId', 'username', 'transactionId', 'address', 'recipientId', 'senderId', 'senderUsername', 'recipientUsername', 'previousBlock'];
+			var ignore = ['id', 'name', 'lastBlockId', 'blockId', 'transactionId', 'address', 'recipientId', 'senderId', 'previousBlock'];
 			scope.network.app.use(queryParser({
 				parser: function (value, radix, name) {
 					if (ignore.indexOf(name) >= 0) {
@@ -306,6 +308,9 @@ d.run(function () {
 			scope.network.app.use(function (req, res, next) {
 				var parts = req.url.split('/');
 				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+				// Log client connections
+				logger.log(req.method + " " + req.url + " from " + ip);
 
 				/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
 				 *
@@ -351,12 +356,12 @@ d.run(function () {
 			});
 
 			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
-				scope.logger.log("Lisk started: " + scope.config.address + ":" + scope.config.port);
+				scope.logger.info("Lisk started: " + scope.config.address + ":" + scope.config.port);
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {
 						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
-							scope.logger.log("Lisk https started: " + scope.config.ssl.options.address + ":" + scope.config.ssl.options.port);
+							scope.logger.info("Lisk https started: " + scope.config.ssl.options.address + ":" + scope.config.ssl.options.port);
 
 							cb(err, scope.network);
 						});
@@ -388,12 +393,12 @@ d.run(function () {
 			cb(null, new bus)
 		},
 
-		dbLite: function (cb) {
-			var dbLite = require('./helpers/dbLite.js');
-			dbLite.connect(config.db, cb);
+		db: function (cb) {
+			var db = require('./helpers/database.js');
+			db.connect(config.db, logger, cb);
 		},
 
-		logic: ['dbLite', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
+		logic: ['db', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
@@ -402,8 +407,8 @@ d.run(function () {
 				bus: function (cb) {
 					cb(null, scope.bus);
 				},
-				dbLite: function (cb) {
-					cb(null, scope.dbLite);
+				db: function (cb) {
+					cb(null, scope.db);
 				},
 				scheme: function (cb) {
 					cb(null, scope.scheme);
@@ -413,19 +418,19 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ["dbLite", "bus", "scheme", 'genesisblock', function (cb, scope) {
+				account: ["db", "bus", "scheme", 'genesisblock', function (cb, scope) {
 					new Account(scope, cb);
 				}],
-				transaction: ["dbLite", "bus", "scheme", 'genesisblock', "account", function (cb, scope) {
+				transaction: ["db", "bus", "scheme", 'genesisblock', "account", function (cb, scope) {
 					new Transaction(scope, cb);
 				}],
-				block: ["dbLite", "bus", "scheme", 'genesisblock', "account", "transaction", function (cb, scope) {
+				block: ["db", "bus", "scheme", 'genesisblock', "account", "transaction", function (cb, scope) {
 					new Block(scope, cb);
 				}]
 			}, cb);
 		}],
 
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'dbLite', 'logic', function (cb, scope) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (cb, scope) {
 			var tasks = {};
 			Object.keys(config.modules).forEach(function (name) {
 				tasks[name] = function (cb) {

@@ -1,4 +1,4 @@
-blockchain.*
+blockchain.db
 dapps/
 .DS_Store
 .ed25519-node
