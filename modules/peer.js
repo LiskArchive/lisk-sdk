@@ -227,6 +227,7 @@ Peer.prototype.inspect = function (peer) {
 	} else {
 		peer.string = 'unknown';
 	}
+	peer.loopback = (private.loopback.indexOf(peer.ip) >= 0);
 	return peer;
 }
 
@@ -241,7 +242,6 @@ Peer.prototype.accept = function (peer) {
 		throw "Rejecting peer with invalid port: " + peer.port;
 	} else {
 		peer = this.inspect(peer);
-		peer.loopback = (private.loopback.indexOf(peer.ip) >= 0);
 
 		if (peer.port != library.config.port) {
 			throw "Rejecting peer on different port: " + peer.string;
