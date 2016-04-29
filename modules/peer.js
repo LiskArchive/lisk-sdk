@@ -242,11 +242,6 @@ Peer.prototype.accept = function (peer) {
 		throw "Rejecting peer with invalid port: " + peer.port;
 	} else {
 		peer = this.inspect(peer);
-
-		if (peer.port != library.config.port) {
-			throw "Rejecting peer on different port: " + peer.string;
-		}
-
 		return peer;
 	}
 }
