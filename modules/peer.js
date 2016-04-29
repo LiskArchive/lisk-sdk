@@ -10,6 +10,7 @@ var async = require('async'),
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
+private.loopback = ["0.0.0.0", "127.0.0.1"];
 
 // Constructor
 function Peer(cb, scope) {
@@ -240,7 +241,7 @@ Peer.prototype.accept = function (peer) {
 		throw "Rejecting peer with invalid port: " + peer.port;
 	} else {
 		peer = this.inspect(peer);
-		peer.loopback = (["0.0.0.0", "127.0.0.1"].indexOf(peer.ip) >= 0);
+		peer.loopback = (private.loopback.indexOf(peer.ip) >= 0);
 
 		if (peer.port != library.config.port) {
 			throw "Rejecting peer on different port: " + peer.string;
