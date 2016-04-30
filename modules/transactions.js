@@ -701,10 +701,10 @@ shared.addTransactions = function (req, cb) {
 				if (err) {
 					return cb(err);
 				}
-				if (!recipient) {
+				var recipientId = recipient ? recipient.address : body.recipientId;
+				if (!recipientId) {
 					return cb("Recipient not found");
 				}
-				var recipientId = recipient ? recipient.address : body.recipientId;
 
 				if (body.multisigAccountPublicKey && body.multisigAccountPublicKey != keypair.publicKey.toString('hex')) {
 					modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
