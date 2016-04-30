@@ -53,10 +53,11 @@ Round.prototype.calc = function (height) {
 }
 
 Round.prototype.getVotes = function (round, cb) {
-	library.db.query("SELECT d.\"delegate\", d.\"amount\" FROM ( " +
-		"SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
-		"GROUP BY m.\"delegate\", m.\"round\" " +
-		") AS d WHERE \"round\" = ${round}", { round: round }).then(function (rows) {
+	var sql = "SELECT d.\"delegate\", d.\"amount\" FROM " +
+	          "(SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
+	          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = ${round}";
+
+	library.db.query(sql, { round: round }).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
 		return cb("Round#getVotes error");
@@ -401,9 +402,11 @@ Round.prototype.onBind = function (scope) {
 
 Round.prototype.onBlockchainReady = function () {
 	var round = self.calc(modules.blocks.getLastBlock().height);
-	library.db.query("SELECT SUM(b.\"totalFee\")::bigint AS \"fees\", ARRAY_AGG(b.\"reward\") AS \"rewards\", ARRAY_AGG(ENCODE(b.\"generatorPublicKey\", 'hex')) AS \"delegates\" " +
-		"FROM blocks b WHERE (SELECT (CAST(b.\"height\" / 101 AS INTEGER) + (CASE WHEN b.\"height\" % 101 > 0 THEN 1 ELSE 0 END))) = ${round}", { round: round }).then(function (rows) {
 
+	var sql = "SELECT SUM(b.\"totalFee\")::bigint AS \"fees\", ARRAY_AGG(b.\"reward\") AS \"rewards\", ARRAY_AGG(ENCODE(b.\"generatorPublicKey\", 'hex')) AS \"delegates\" " +
+	          "FROM blocks b WHERE (SELECT (CAST(b.\"height\" / 101 AS INTEGER) + (CASE WHEN b.\"height\" % 101 > 0 THEN 1 ELSE 0 END))) = ${round}";
+
+	library.db.query(sql, { round: round }).then(function (rows) {
 		var rewards = [];
 
 		rows[0].rewards.forEach(function (reward) {
