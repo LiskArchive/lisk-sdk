@@ -154,9 +154,9 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
@@ -208,9 +208,9 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
@@ -306,9 +306,9 @@ Round.prototype.tick = function (block, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
@@ -360,9 +360,9 @@ Round.prototype.tick = function (block, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
