@@ -50,6 +50,31 @@ function Delegate() {
 			return cb("Account is already a delegate");
 		}
 
+		if (!trs.asset || !trs.asset.delegate) {
+			return cb("Invalid transaction asset");
+		}
+
+		if (!trs.asset.delegate.username) {
+			return cb("Username is undefined");
+		}
+
+		var isAddress = /^[0-9]+[L|l]$/g;
+		var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
+
+		var username = String(trs.asset.delegate.username).toLowerCase().trim();
+
+		if (username == "") {
+			return cb("Empty username");
+		}
+
+		if (isAddress.test(username)) {
+			return cb("Username can not be a potential address");
+		}
+
+		if (!allowSymbols.test(username)) {
+			return cb("Username can only contain alphanumeric characters with the exception of !@$&_.");
+		}
+
 		modules.accounts.getAccount({
 			username: trs.asset.delegate.username
 		}, function (err, account) {
