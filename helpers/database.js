@@ -25,7 +25,6 @@ module.exports.connect = function (config, logger, cb) {
 	var db = pgp(config);
 
 	var files = ['schema.sql'];
-	var post = [];
 
 	async.eachSeries(files, function (file, cb) {
 		var sql = new pgp.QueryFile(path.join('sql', file), { minify: true });
@@ -36,42 +35,6 @@ module.exports.connect = function (config, logger, cb) {
 			cb(err);
 		});
 	}, function (err) {
-		if (err) {
-			return cb(err);
-		}
-
-		var migration = {};
-
-		var currentVersion = 0;
-
-		var nextVersions = Object.keys(migration).sort().filter(function (ver) {
-			return ver > currentVersion;
-		});
-
-		async.eachSeries(nextVersions, function (ver, cb) {
-			async.eachSeries(migration[ver], function (command, cb) {
-				db.query(command).then(function (data) {
-					cb(null, data);
-				}).catch(function (err) {
-					cb(err);
-				});
-			}, function (err) {
-				return cb(err);
-			});
-		}, function (err) {
-			if (err) {
-				return cb(err);
-			}
-
-			async.eachSeries(post, function (command, cb) {
-				db.query(command).then(function (data) {
-					cb(null, data);
-				}).catch(function (err) {
-					cb(err);
-				});
-			}, function (err) {
-				cb(err, db);
-			});
-		});
+		return cb(err, db);
 	});
 }
