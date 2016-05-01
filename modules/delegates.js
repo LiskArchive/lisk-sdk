@@ -652,7 +652,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 			});
 		});
 	} else {
-		setImmediate(cb, "Please provide an array of votes");
+		setImmediate(cb, "Votes must be an array");
 	}
 }
 
