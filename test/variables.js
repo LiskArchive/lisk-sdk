@@ -273,13 +273,13 @@ function randomAccount() {
     "publicKey" : "",
     "password" : "",
     "secondPassword": "",
-    "delegateName" : "",
+    "username" : "",
     "balance": 0
   };
 
   account.password = randomPassword();
   account.secondPassword = randomPassword();
-  account.delegateName = randomDelegateName();
+  account.username = randomDelegateName();
 
   return account;
 }
