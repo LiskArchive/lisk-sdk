@@ -1,9 +1,170 @@
 {
-	"mocha": {
-		"peers": {
-			"account": "",
-			"address": "",
-			"publicKey": ""
-		}
-	}
+    "port": 4000,
+    "address": "0.0.0.0",
+    "serveHttpAPI": true,
+    "serveHttpWallet": true,
+    "version": "0.2.0",
+    "fileLogLevel": "info",
+    "consoleLogLevel": "log",
+    "sharePort": true,
+    "db": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "lisk_test",
+        "user": null,
+        "password": "password",
+        "poolSize": 20,
+        "poolIdleTimeout": 30000,
+        "reapIntervalMillis": 1000,
+        "logEvents": [
+            "error"
+        ]
+    },
+    "api": {
+        "access": {
+            "whiteList": []
+        }
+    },
+    "peers": {
+        "list": [],
+        "blackList": [],
+        "options": {
+            "timeout": 4000
+        }
+    },
+    "forging": {
+        "secret": [
+            "crucial report time bench judge order together buzz brand stone present group",
+            "hurry have prosper turtle raccoon master viable flame race card speed nice",
+            "merry robot aunt mechanic ladder action dry antique moment pulp flash dinosaur",
+            "blur picnic reveal cost reduce wash brand rival garden victory prepare pelican",
+            "used wolf food agent plate blouse phone segment time silver pride acoustic",
+            "clump ridge captain metal hip history pizza day theory say letter curious",
+            "truly tragic force bachelor hurry lucky curve parrot toe weasel sunset find",
+            "behave hen hill husband already lend expose female coral student company wood",
+            "narrow gym because thunder stumble valid thank nose federal dove scatter crush",
+            "fan wreck prosper trial host retreat armor ill lawn bounce whip jealous",
+            "toilet thought above prepare ceiling dizzy common fitness reward license target coconut",
+            "oyster ring floor chest smart recall fiscal buddy angry conduct sand garage",
+            "ecology rely shaft apology clarify boring more bus arrest display token physical",
+            "board thank length speak entry one replace anger aerobic quiz person piece",
+            "gasp memory borrow remember hammer harbor garden train flat sleep human portion",
+            "vital sense group cream nephew oval unhappy useless junior catch enhance flame",
+            "embrace uncle ensure audit flame middle visit shrimp spy false erode secret",
+            "return meat artefact hockey avoid antenna equip shrimp thank cancel produce burden",
+            "scrap text man arrest ahead zebra sausage butter scene melody local height",
+            "couch devote rebel pretty grit lonely domain glass sustain shy admit vast",
+            "cotton fiscal nurse onion broom agree shallow journey world diesel foster awake",
+            "birth armor emerge pear basket beef miracle riot general radar glue boring",
+            "taxi dial initial airport extra before equal ball dinner taxi glass canyon",
+            "embrace grunt build sign clerk object unable fiction word spice permit pizza",
+            "thank donkey gym try hat upper quarter gadget put guide old treat",
+            "town risk hurdle castle symbol injury poet usage share wink there surprise",
+            "quit warfare honey master there uphold slogan skill ball arena sibling assume",
+            "turkey grocery tent connect hello broken into pause train illness wine market",
+            "travel pond fix input wisdom first deer horror frost spoil strong sauce",
+            "pride rough february ill dismiss strong cube submit rough smoke crucial just",
+            "tuition second edit coach scale defense print palm cage recall cradle drum",
+            "path zoo reveal muscle road dumb logic crash planet trash staff aisle",
+            "bracket scissors lion able rescue version dilemma inch lamp priority urge vintage",
+            "glide craft useful capital ketchup pelican joke aunt goose bulb turkey minute",
+            "increase need camp brisk pupil cause oven spatial wool word execute era",
+            "weapon umbrella post carbon exhibit file theme grain elite effort spoon era",
+            "session round fan table core claw pause brave canyon violin spider wrist",
+            "arch pony paper slow shoe garment credit pole transfer attitude couch palace",
+            "smile filter patrol hamster trouble travel tonight brother paddle design ostrich destroy",
+            "evidence cable light alter roof coffee scene over client paddle goose bonus",
+            "extra prize allow pulse solution satisfy dove faculty okay social satisfy army",
+            "cook lock swap approve enough defense letter approve shove youth pony beauty",
+            "security make legal nephew garlic volume essay salute fog excite someone scatter",
+            "pool supreme obscure average leaf opera lumber cram diary ordinary virtual giraffe",
+            "repeat early mechanic spawn eyebrow jungle seven body slot want road talk",
+            "manage genuine believe print absent use spring couch cable knee exercise turkey",
+            "father fat like ritual wire ribbon wife mistake face essay come use",
+            "arctic sheriff torch city odor middle dentist harbor song stand muffin anger",
+            "magic fox small enrich goddess drive planet now tray tide kiwi swear",
+            "coach original unable uncle flavor wife cool ready rent mansion focus more",
+            "isolate safe hamster expect social boss cloud senior breeze cram pond giant",
+            "pet transfer stick tail will scout arrive unit ask color among keen",
+            "useless orient bag ribbon lesson trophy toward ribbon youth syrup thrive come",
+            "light rally spend quit top neglect drop similar slow ocean wedding kitchen",
+            "primary soft face rigid over finger menu depend also excite soul assume",
+            "entire lake celery immense journey renew stuff early replace often quarter remove",
+            "edit fruit prison record damage raven found lens congress sheriff labor liberty",
+            "onion bicycle flock scrub order rabbit oppose scare three forget elite clerk",
+            "oven consider use riot urge try rib tool hawk motion excuse feature",
+            "elephant verb link gun spray million amateur action foster sleep above spatial",
+            "donor panic stay ball object scatter crucial essay tornado velvet wisdom please",
+            "peace ready already dutch spider enact rain various biology quality can swing",
+            "hole critic choose practice awkward direct veteran post ketchup maximum oppose minor",
+            "sugar surface vacuum argue stereo bacon whisper catch loan mushroom warrior deal",
+            "mention pelican social orange agree panel expire east neutral noble figure fox",
+            "picture also mouse frequent bar mix shine vendor suggest width crouch balcony",
+            "ribbon initial step leopard cactus dial olympic wash galaxy cabbage dilemma elder",
+            "history noble spatial desk learn source quantum marble cigar unable opinion planet",
+            "nerve nothing letter rather edit increase gas issue defy moral raw trust",
+            "child grape amazing blood fox food garbage entry luggage clay cover end",
+            "ring reason social impact solve light hello screen end top peasant pause",
+            "slice finish insane script jazz certain load snake junk skate dad attend",
+            "address like abandon magic involve equal electric never onion size humor push",
+            "patient system border film child become turn release brisk hazard verb cost",
+            "fresh neither ship love luggage oppose math diagram fix actual bubble submit",
+            "penalty company river clinic screen spray avocado water loud metal cage lesson",
+            "shine near display spend diamond youth vessel glue sea occur sphere body",
+            "alien turn earth scissors express damage sample pulp blind kiwi island leisure",
+            "actual miss book company kite start speak divert slight online faith rice",
+            "health host exclude this game quarter month nose punch grid bottom system",
+            "peasant tape edit tennis problem sail tool toward glare little runway grief",
+            "innocent boy hammer target notable cereal person tuition photo orphan pair two",
+            "debris decade output night weasel wisdom atom occur unable casino speed fame",
+            "disorder scene valve auction arena general special find praise drama execute short",
+            "robot empower silent symptom furnace stem vague gentle awkward ready dumb second",
+            "door sniff detail congress bag muscle shiver smile library invite hope carpet",
+            "unaware system economy damage unveil biology miss ready invest frost organ express",
+            "lesson swap work cross leaf cereal session mass power utility follow unit",
+            "cluster win teach supreme despair list certain card pudding staff need swamp",
+            "fatal menu crush universe elegant million door wage fabric travel elbow answer",
+            "family truly join credit candy robot educate piano improve install boss model",
+            "cool shallow patient firm enable exact fall family display boy awful equal",
+            "twin feature dad treat bridge mean random service candy eight search cloud",
+            "slender bike usage blanket deliver broom tennis rebuild damp zero unusual unhappy",
+            "cattle coffee glance clarify ostrich impulse burger client index waste inform oak",
+            "inmate summer drastic wheel garden expect skate clown pool gospel chunk kit",
+            "cargo nerve tree inhale extra stadium nice north extra decorate inherit oppose",
+            "frog craft chapter lyrics turkey melody strong decide easy lake volcano chunk",
+            "ostrich rude giraffe raccoon zoo eyebrow river token eagle height input border",
+            "length reunion two motor spy shine copper elite culture lift pet organ",
+            "casual vacant calm rhythm smooth gym manage warrior tongue usage choose host"
+        ],
+        "access": {
+            "whiteList": [
+                "127.0.0.1"
+            ]
+        }
+    },
+    "loading": {
+        "verifyOnLoading": false,
+        "loadPerIteration": 5000
+    },
+    "ssl": {
+        "enabled": false,
+        "options": {
+            "port": 443,
+            "address": "0.0.0.0",
+            "key": "./ssl/lisk.key",
+            "cert": "./ssl/lisk.crt"
+        }
+    },
+    "dapp": {
+        "masterrequired": true,
+        "masterpassword": "",
+        "autoexec": []
+    },
+    "mocha": {
+        "peers": {
+            "account": "",
+            "address": "",
+            "publicKey": ""
+        }
+    }
 }
