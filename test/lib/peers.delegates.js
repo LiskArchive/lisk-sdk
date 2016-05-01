@@ -1,16 +1,16 @@
 var node = require("./../variables.js"),
-  crypto = require("crypto");
+    crypto = require("crypto");
 
 var account = node.randomAccount();
 var account2 = node.randomAccount();
 
 describe("Peers delegates transactions", function () {
-  it("Create delegate with incorrect username. Should return not ok", function (done) {
+  it("Creating a delegate with an invalid username. Should not be ok", function (done) {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
-      .set("version",node.version)
-      .set("share-port",1)
-      .set("port",node.config.port)
+      .set("version", node.version)
+      .set("share-port", 1)
+      .set("port", node.config.port)
       .send({
         secret: account.password
       })
@@ -20,9 +20,9 @@ describe("Peers delegates transactions", function () {
         account.address = res.body.account.address;
         node.api.put("/transactions")
           .set("Accept", "application/json")
-          .set("version",node.version)
-          .set("share-port",1)
-          .set("port",node.config.port)
+          .set("version", node.version)
+          .set("share-port", 1)
+          .set("port", node.config.port)
           .send({
             secret: node.peers_config.account,
             amount: node.Fees.delegateRegistrationFee,
@@ -39,8 +39,8 @@ describe("Peers delegates transactions", function () {
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version",node.version)
-                .set("share-port",1)
-                .set("port",node.config.port)
+                .set("share-port", 1)
+                .set("port", node.config.port)
                 .send({
                   transaction: transaction
                 })
@@ -56,15 +56,15 @@ describe("Peers delegates transactions", function () {
       });
   });
 
-  it("Create delegate from account with no funds. Should return not ok", function (done) {
+  it("Creating a delegate from an account with no funds. Should not be ok", function (done) {
     var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
     transaction.fee = node.Fees.delegateRegistrationFee;
 
     node.peer.post("/transactions")
       .set("Accept", "application/json")
-      .set("version",node.version)
-      .set("share-port",1)
-      .set("port",node.config.port)
+      .set("version", node.version)
+      .set("share-port", 1)
+      .set("port", node.config.port)
       .send({
         transaction: transaction
       })
@@ -77,16 +77,16 @@ describe("Peers delegates transactions", function () {
       });
   });
 
-  it("Create delegate on acccount. Should return ok", function (done) {
+  it("Creating a delegate from an account with funds. Should be ok", function (done) {
     account.username = node.randomDelegateName();
     var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
     transaction.fee = node.Fees.delegateRegistrationFee;
 
     node.peer.post("/transactions")
       .set("Accept", "application/json")
-      .set("version",node.version)
-      .set("share-port",1)
-      .set("port",node.config.port)
+      .set("version", node.version)
+      .set("share-port", 1)
+      .set("port", node.config.port)
       .send({
         transaction: transaction
       })
@@ -99,12 +99,12 @@ describe("Peers delegates transactions", function () {
       });
   });
 
-  it("Create delegate on new account and then create it again in one block", function (done) {
+  it("Creating a delegate twice within the same block. Should not be ok", function (done) {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
-      .set("version",node.version)
-      .set("share-port",1)
-      .set("port",node.config.port)
+      .set("version", node.version)
+      .set("share-port", 1)
+      .set("port", node.config.port)
       .send({
         secret: account2.password
       })
@@ -114,9 +114,9 @@ describe("Peers delegates transactions", function () {
         account2.address = res.body.account.address;
         node.api.put("/transactions")
           .set("Accept", "application/json")
-          .set("version",node.version)
-          .set("share-port",1)
-          .set("port",node.config.port)
+          .set("version", node.version)
+          .set("share-port", 1)
+          .set("port", node.config.port)
           .send({
             secret: node.peers_config.account,
             amount: node.Fees.delegateRegistrationFee,
@@ -133,9 +133,9 @@ describe("Peers delegates transactions", function () {
 
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
-                .set("version",node.version)
-                .set("share-port",1)
-                .set("port",node.config.port)
+                .set("version", node.version)
+                .set("share-port", 1)
+                .set("port", node.config.port)
                 .send({
                   transaction: transaction
                 })
@@ -150,9 +150,9 @@ describe("Peers delegates transactions", function () {
 
                   node.peer.post("/transactions")
                     .set("Accept", "application/json")
-                    .set("version",node.version)
-                    .set("share-port",1)
-                    .set("port",node.config.port)
+                    .set("version", node.version)
+                    .set("share-port", 1)
+                    .set("port", node.config.port)
                     .send({
                       transaction: transaction2
                     })
