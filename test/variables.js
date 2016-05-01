@@ -16,16 +16,16 @@ var config = require("../config.json"),
 
 config.mocha = {
   "peers": {
-    "account": "F3DP835EBuZMAhiuYn2AzhJh1lz8glLolghCMD4X8lRh5v2GlcBWws7plIDUuPjf3GUTOnyYEfXQx7cH",
-    "address": "2334212999465599568C",
-    "publicKey": "631b91fa537f74e23addccd30555fbc7729ea267c7e0517cbf1bfcc46354abc3"
+    "account": "",
+    "address": "",
+    "publicKey": ""
   }
 }
 
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
 var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-var version = "0.1.1" // Node version
+var version = "0.2.1" // Node version
 
 // Holds Fee amounts for different transaction types
 var Fees = {
@@ -39,24 +39,24 @@ var Fees = {
 
 var guestbookDapp = {
   icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png",
-	link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip"
+  link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip"
 };
 
 // Account info for delegate to register manually
 var Daccount = {
-  "address": "9946841100442405851L",
-  "publicKey": "caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc",
-  "password": "1234",
-  "secondPassword": "12345",
+  "address": "4180149793392527131L",
+  "publicKey": "fe16b09612ca50a6cbcc0a95bdf30bfa11e12c1aded819916cadb0c1e769b4bf",
+  "password": "demise hidden width hand solid deal doll party danger pencil foil oven",
+  "secondPassword": "brother maid replace hard scorpion clinic sentence bridge goose gun mass next",
   "balance": 0,
-  "delegateName": "sebastian",
+  "delegateName": "ManualDelegate",
 };
 
 // Existing delegate account in blockchain
 var Eaccount = {
-  "address": "11210991311698004616L",
-  "publicKey": "9f7c5f9c5096c5de59a8514c64386960e3b7116938254a4359e104fc12227ff7",
-  "password": "Eta3SAounYFXxAeDcCmiQLKS1KKiuKxtD1xgEjE71FaVLxciSK",
+  "address": "16109618324961077899L",
+  "publicKey": "53ccfe3f10e135781db6346ce726c0f0e050775e3e6438395da0f81bed14dde4",
+  "password": "length reunion two motor spy shine copper elite culture lift pet organ",
   "balance": 0,
   "delegateName": "genesisDelegate100"
 };
@@ -92,9 +92,9 @@ var DappCategory = {
 
 // Account info for genesis account - Needed for voting, registrations and Tx
 var Gaccount = {
-  "address": "14837479272589364523L",
-  "publicKey": "3ed4d689ced148a97017e2f611b5c4aa28de1564a92fca8234d32290319dbdb3",
-  "password": "2GgPLLVtafukQWqCPgwRzpn9)irWCZZczkfrKYasG)RLTsvKDB",
+  "address": "16313739661670634666L",
+  "publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+  "password": "wagon stock borrow episode laundry kitten salute link globe zero feed marble",
   "balance": 10000000000000000
 };
 
