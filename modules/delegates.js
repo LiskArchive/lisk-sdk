@@ -67,6 +67,10 @@ function Delegate() {
 			return cb("Empty username");
 		}
 
+		if (username.length > 20) {
+			return cb("Username is too long. Maximum is 20 characters");
+		}
+
 		if (isAddress.test(username)) {
 			return cb("Username can not be a potential address");
 		}
