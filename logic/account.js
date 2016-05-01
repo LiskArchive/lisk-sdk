@@ -123,6 +123,7 @@ function Account(scope, cb) {
 				maximum: constants.totalAmount
 			},
 			conv: Number,
+			expression: "(\"balance\")::bigint",
 			default: 0
 		},
 		{
@@ -135,6 +136,7 @@ function Account(scope, cb) {
 				maximum: constants.totalAMount
 			},
 			conv: Number,
+			expression: "(\"u_balance\")::bigint",
 			default: 0
 		},
 		{
@@ -144,6 +146,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
+			expression: "(\"vote\")::bigint",
 			default: 0
 		},
 		{
@@ -153,6 +156,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
+			expression: "(\"rate\")::bigint",
 			default: 0
 		},
 		{
@@ -204,6 +208,7 @@ function Account(scope, cb) {
 				maximum: 17
 			},
 			conv: Number,
+			expression: "(\"multimin\")::bigint",
 			default: 0
 		},
 		{
@@ -215,6 +220,7 @@ function Account(scope, cb) {
 				maximum: 17
 			},
 			conv: Number,
+			expression: "(\"u_multimin\")::bigint",
 			default: 0
 		},
 		{
@@ -226,6 +232,7 @@ function Account(scope, cb) {
 				maximum: 72
 			},
 			conv: Number,
+			expression: "(\"multilifetime\")::bigint",
 			default: 0
 		},
 		{
@@ -237,6 +244,7 @@ function Account(scope, cb) {
 				maximum: 72
 			},
 			conv: Number,
+			expression: "(\"u_multilifetime\")::bigint",
 			default: 0
 		},
 		{
@@ -278,6 +286,7 @@ function Account(scope, cb) {
 				maximum: 1
 			},
 			conv: Number,
+			expression: "(\"producedblocks\")::bigint",
 			default: 0
 		},
 		{
@@ -289,6 +298,7 @@ function Account(scope, cb) {
 				maximum: 1
 			},
 			conv: Number,
+			expression: "(\"missedblocks\")::bigint",
 			default: 0
 		},
 		{
@@ -298,6 +308,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
+			expression: "(\"fees\")::bigint",
 			default: 0
 		},
 		{
@@ -307,6 +318,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
+			expression: "(\"rewards\")::bigint",
 			default: 0
 		}
 	];
