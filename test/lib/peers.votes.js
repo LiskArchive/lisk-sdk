@@ -1,6 +1,5 @@
-
 var node = require("./../variables.js"),
-  crypto = require("crypto");
+    crypto = require("crypto");
 
 var test = 0;
 var account = node.randomAccount();
@@ -9,7 +8,6 @@ var alreadyRemoved = 1;
 node.chai.config.includeStack = true;
 
 describe("Peers votes", function () {
-
   before(function (done) {
     node.api.get("/delegates/voters?publicKey=" + node.peers_config.publicKey)
       .expect("Content-Type", /json/)
@@ -46,7 +44,7 @@ describe("Peers votes", function () {
         else if (alreadyRemoved == 0) {
           var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"]);
         }
-        if (alreadyVoted == 1 || alreadyRemoved == 0){
+        if (alreadyVoted == 1 || alreadyRemoved == 0) {
           node.peer.post("/transactions")
             .set("Accept", "application/json")
             .set("version", node.version)
@@ -58,7 +56,7 @@ describe("Peers votes", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-              console.log("Sent Vote Fix for delegates. Sent: " + JSON.stringify(transaction) + "Got reply: " + JSON.stringify(res.body));
+              console.log("Sent vote fix for delegates. Sent: " + JSON.stringify(transaction) + "Got reply: " + JSON.stringify(res.body));
               node.expect(res.body).to.have.property("success").to.be.true;
               done();
             });
@@ -70,7 +68,7 @@ describe("Peers votes", function () {
   });
 
   test = test + 1;
-  it("Double vote for delegate. Should be not ok", function (done) {
+  it("Voting twice for a delegate. Should not be ok", function (done) {
     node.onNewBlock(function (err) {
       var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+badf44a77df894ccad87fa62bac892e63e5e39fd972f6a3e6e850ed1a1708e98"]);
       node.peer.post("/transactions")
@@ -84,7 +82,7 @@ describe("Peers votes", function () {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log("Sending POST /transactions with data: " + JSON.stringify(transaction) + " Got Reply: " + JSON.stringify(res.body));
+          console.log("Sending POST /transactions with data: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           done();
         });
@@ -92,7 +90,7 @@ describe("Peers votes", function () {
   });
 
   test = test + 1;
-  it("Remove votes from delegate. Should be ok", function (done) {
+  it("Removing votes from a delegate. Should be ok", function (done) {
     var transaction = node.lisk.vote.createVote(node.peers_config.account, ["-badf44a77df894ccad87fa62bac892e63e5e39fd972f6a3e6e850ed1a1708e98"]);
     node.peer.post("/transactions")
       .set("Accept", "application/json")
@@ -112,7 +110,7 @@ describe("Peers votes", function () {
   });
 
   test = test + 1;
-  it("Remove votes from delegate and then vote again. Should be not ok", function (done) {
+  it("Removing votes from a delegate and then voting again. Should not be ok", function (done) {
     node.onNewBlock(function (err) {
       var transaction = node.lisk.vote.createVote(node.peers_config.account, ["-9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"]);
       node.peer.post("/transactions")
@@ -148,8 +146,8 @@ describe("Peers votes", function () {
     });
   });
 
-  // Not right test, because sometimes new block came and we don"t have time to vote
-  it("Create new delegate. Should return be ok.", function (done) {
+  // Not right test, because sometimes new block comes and we don't have time to vote
+  it("Creating a new delegate. Should be ok.", function (done) {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
       .set("version",node.version)
@@ -208,7 +206,7 @@ describe("Peers votes", function () {
   });
 
   test = test + 1;
-  it("Vote for created delegate. Should return not ok", function (done) {
+  it("Voting for a delegate. Should be ok", function (done) {
     var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+" + account.publicKey]);
     node.onNewBlock(function (err) {
       node.expect(err).to.be.not.ok;
