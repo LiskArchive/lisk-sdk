@@ -672,7 +672,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 									modules.delegates.validateBlockSlot(block, function (err) {
 										if (err) {
 											return cb({
-												message: "Can't verify slot",
+												message: err,
 												block: block
 											});
 										}
@@ -892,7 +892,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 					if (err) {
 						// Fork: Invalid generatorPublicKey for block slot
 						modules.delegates.fork(block, 3);
-						return done("Can't verify slot: " + block.id);
+						return done(err);
 					}
 					if (block.payloadLength > constants.maxPayloadLength) {
 						return done("Can't verify payload length of block: " + block.id);

@@ -742,9 +742,10 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 
 		if (delegate_id && block.generatorPublicKey == delegate_id) {
 			return cb();
+		} else {
+			library.logger.error("Expected generator: " + delegate_id + " Received generator: " + block.generatorPublicKey);
+			return cb("Failed to verify slot: " + currentSlot);
 		}
-
-		cb("Failed to verify slot");
 	});
 }
 
