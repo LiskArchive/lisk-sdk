@@ -335,7 +335,7 @@ Block.prototype.dbRead = function (raw) {
 			blockSignature: raw.b_blockSignature,
 			confirmations: raw.b_confirmations
 		}
-		block.totalForged  = (block.totalFee + block.reward);
+		block.totalForged = bignum(block.totalFee).plus(bignum(block.reward)).toString();
 		return block;
 	}
 }
