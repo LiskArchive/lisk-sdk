@@ -24,15 +24,15 @@ private.blockReward = new blockReward();
 // @formatter:off
 private.blocksDataFields = {
 	'b_id': String,
-	'b_version': String,
+	'b_version': Number,
 	'b_timestamp': Number,
 	'b_height': Number,
 	'b_previousBlock': String,
-	'b_numberOfTransactions': String,
+	'b_numberOfTransactions': Number,
 	'b_totalAmount': String,
 	'b_totalFee': String,
 	'b_reward': String,
-	'b_payloadLength': String,
+	'b_payloadLength': Number,
 	'b_payloadHash': String,
 	'b_generatorPublicKey': String,
 	'b_blockSignature': String,
