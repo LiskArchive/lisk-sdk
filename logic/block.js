@@ -4,7 +4,7 @@ var slots = require('../helpers/slots.js'),
 	genesisblock = null,
 	bignum = require('../helpers/bignum.js'),
 	ByteBuffer = require("bytebuffer"),
-	blockStatus = require("../helpers/blockStatus.js"),
+	blockReward = require("../helpers/blockReward.js"),
 	constants = require('../helpers/constants.js');
 
 // Constructor
@@ -16,7 +16,7 @@ function Block(scope, cb) {
 
 // Private methods
 var private = {};
-private.blockStatus = new blockStatus();
+private.blockReward = new blockReward();
 private.getAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
 	var temp = new Buffer(8);
@@ -40,7 +40,7 @@ Block.prototype.create = function (data) {
 
 	var nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1;
 
-	var reward = private.blockStatus.calcReward(nextHeight),
+	var reward = private.blockReward.calcReward(nextHeight),
 	    totalFee = 0, totalAmount = 0, size = 0;
 
 	var blockTransactions = [];
@@ -168,30 +168,52 @@ Block.prototype.verifySignature = function (block) {
 	return res;
 }
 
-Block.prototype.dbSave = function (block, cb) {
+Block.prototype.dbTable = "blocks";
+
+Block.prototype.dbFields = [
+	"id",
+	"version",
+	"timestamp",
+	"height",
+	"previousBlock",
+	"numberOfTransactions",
+	"totalAmount",
+	"totalFee",
+	"reward",
+	"payloadLength",
+	"payloadHash",
+	"generatorPublicKey",
+	"blockSignature"
+];
+
+Block.prototype.dbSave = function (block) {
 	try {
 		var payloadHash = new Buffer(block.payloadHash, 'hex');
 		var generatorPublicKey = new Buffer(block.generatorPublicKey, 'hex');
 		var blockSignature = new Buffer(block.blockSignature, 'hex');
 	} catch (e) {
-		return cb(e.toString())
+		throw e.toString();
 	}
 
-	this.scope.dbLite.query("INSERT INTO blocks(id, version, timestamp, height, previousBlock,  numberOfTransactions, totalAmount, totalFee, reward, payloadLength, payloadHash, generatorPublicKey, blockSignature) VALUES($id, $version, $timestamp, $height, $previousBlock, $numberOfTransactions, $totalAmount, $totalFee, $reward, $payloadLength,  $payloadHash, $generatorPublicKey, $blockSignature)", {
-		id: block.id,
-		version: block.version,
-		timestamp: block.timestamp,
-		height: block.height,
-		previousBlock: block.previousBlock || null,
-		numberOfTransactions: block.numberOfTransactions,
-		totalAmount: block.totalAmount,
-		totalFee: block.totalFee,
-		reward: block.reward || 0,
-		payloadLength: block.payloadLength,
-		payloadHash: payloadHash,
-		generatorPublicKey: generatorPublicKey,
-		blockSignature: blockSignature
-	}, cb);
+	return {
+		table: this.dbTable,
+		fields: this.dbFields,
+		values: {
+			id: block.id,
+			version: block.version,
+			timestamp: block.timestamp,
+			height: block.height,
+			previousBlock: block.previousBlock || null,
+			numberOfTransactions: block.numberOfTransactions,
+			totalAmount: block.totalAmount,
+			totalFee: block.totalFee,
+			reward: block.reward || 0,
+			payloadLength: block.payloadLength,
+			payloadHash: payloadHash,
+			generatorPublicKey: generatorPublicKey,
+			blockSignature: blockSignature
+		}
+	};
 }
 
 Block.prototype.objectNormalize = function (block) {
