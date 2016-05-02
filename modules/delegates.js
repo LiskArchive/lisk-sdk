@@ -734,10 +734,11 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 		if (err) {
 			return cb(err);
 		}
+
 		var currentSlot = slots.getSlotNumber(block.timestamp);
 		var delegate_id = activeDelegates[currentSlot % slots.delegates];
-		var nextDelegate_id = activeDelegates[(currentSlot + 1) % slots.delegates];
-		var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
+		// var nextDelegate_id = activeDelegates[(currentSlot + 1) % slots.delegates];
+		// var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
 
 		if (delegate_id && block.generatorPublicKey == delegate_id) {
 			return cb();
