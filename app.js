@@ -89,7 +89,7 @@ var config = {
 	}
 }
 
-var logger = new Logger({echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel});
+var logger = new Logger({echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, filename: appConfig.logFileName });
 
 var d = require('domain').create();
 
