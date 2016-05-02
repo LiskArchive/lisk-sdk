@@ -55,7 +55,7 @@ Round.prototype.calc = function (height) {
 Round.prototype.getVotes = function (round, cb) {
 	var sql = "SELECT d.\"delegate\", d.\"amount\" FROM " +
 	          "(SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
-	          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = ${round}";
+	          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = (${round})::bigint";
 
 	library.db.query(sql, { round: round }).then(function (rows) {
 		return cb(null, rows);
@@ -65,7 +65,7 @@ Round.prototype.getVotes = function (round, cb) {
 }
 
 Round.prototype.flush = function (round, cb) {
-	library.db.none("DELETE FROM mem_round WHERE \"round\" = ${round}", { round: round }).then(function () {
+	library.db.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: round }).then(function () {
 		return cb();
 	}).catch(function (err) {
 		return cb("Round#flush error");
