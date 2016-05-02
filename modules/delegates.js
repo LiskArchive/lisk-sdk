@@ -3,6 +3,7 @@ var crypto = require('crypto'),
 	ed = require('ed25519'),
 	async = require('async'),
 	shuffle = require('knuth-shuffle').knuthShuffle,
+	bignum = require('../helpers/bignum.js'),
 	Router = require('../helpers/router.js'),
 	slots = require('../helpers/slots.js'),
 	schedule = require('node-schedule'),
@@ -1003,7 +1004,8 @@ shared.getForgedByAccount = function (req, cb) {
 			if (err || !account) {
 				return cb(err || "Account not found")
 			}
-			cb(null, {fees: account.fees, rewards: account.rewards, forged: account.fees + account.rewards});
+			var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
+			cb(null, {fees: account.fees, rewards: account.rewards, forged: forged});
 		});
 	});
 }
