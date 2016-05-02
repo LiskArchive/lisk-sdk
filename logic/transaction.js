@@ -750,7 +750,7 @@ Transaction.prototype.dbRead = function (raw) {
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : null,
-			confirmations: raw.confirmations,
+			confirmations: parseInt(raw.confirmations),
 			asset: {}
 		}
 
