@@ -16,7 +16,7 @@ sudo apt-get install curl build-essential python
 Install PostgreSQL (version 9.5.2):
 
 ```
-curl -sL "https://downloads.lisk.io/scripts/setup_postgres.Linux" | bash -
+curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
 sudo -u postgres createuser --createdb --password $USER
 createdb lisk_test
 ```
@@ -87,7 +87,19 @@ node app.js -p [port] -a [address] -c [config-path]
 
 ## Tests
 
-Before running any tests, please ensure Lisk is configured to run on the testnet (this is the default), and not the mainnet.
+Before running any tests, please ensure Lisk is configured to run on the same testnet as used by the test-suite.
+
+Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test** directory:
+
+```
+cp test/config.json test/genesisBlock.json .
+```
+
+**NOTE:** The master passphrase for this genesis block is as follows:
+
+```
+wagon stock borrow episode laundry kitten salute link globe zero feed marble
+```
 
 Install mocha (globally):
 
