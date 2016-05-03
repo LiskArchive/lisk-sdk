@@ -31,7 +31,7 @@ function Inserts(record, values, concat) {
         } else {
             values = "(" + this.namedTemplate() + ")";
         }
-        return pgp.as.format("INSERT INTO $1~($2^) VALUES($3^)", [record.table, fields, values]);
+        return pgp.as.format("INSERT INTO $1~($2^) VALUES $3^", [record.table, fields, values]);
     };
 
     this._rawDBType = true;
