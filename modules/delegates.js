@@ -3,6 +3,7 @@ var crypto = require('crypto'),
 	ed = require('ed25519'),
 	async = require('async'),
 	shuffle = require('knuth-shuffle').knuthShuffle,
+	bignum = require('../helpers/bignum.js'),
 	Router = require('../helpers/router.js'),
 	slots = require('../helpers/slots.js'),
 	schedule = require('node-schedule'),
@@ -733,16 +734,18 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 		if (err) {
 			return cb(err);
 		}
+
 		var currentSlot = slots.getSlotNumber(block.timestamp);
 		var delegate_id = activeDelegates[currentSlot % slots.delegates];
-		var nextDelegate_id = activeDelegates[(currentSlot + 1) % slots.delegates];
-		var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
+		// var nextDelegate_id = activeDelegates[(currentSlot + 1) % slots.delegates];
+		// var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
 
 		if (delegate_id && block.generatorPublicKey == delegate_id) {
 			return cb();
+		} else {
+			library.logger.error("Expected generator: " + delegate_id + " Received generator: " + block.generatorPublicKey);
+			return cb("Failed to verify slot: " + currentSlot);
 		}
-
-		cb("Failed to verify slot");
 	});
 }
 
@@ -1003,7 +1006,8 @@ shared.getForgedByAccount = function (req, cb) {
 			if (err || !account) {
 				return cb(err || "Account not found")
 			}
-			cb(null, {fees: account.fees, rewards: account.rewards, forged: account.fees + account.rewards});
+			var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
+			cb(null, {fees: account.fees, rewards: account.rewards, forged: forged});
 		});
 	});
 }

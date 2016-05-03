@@ -4,25 +4,25 @@
  * @returns {number}
  */
 
-function beginEpochTime() {
+function beginEpochTime () {
 	var d = new Date(Date.UTC(2015, 3, 9, 0, 0, 0, 0));
 
 	return d;
 }
 
-function getEpochTime(time) {
+function getEpochTime (time) {
 	if (time === undefined) {
 		time = (new Date()).getTime();
 	}
+
 	var d = beginEpochTime();
 	var t = d.getTime();
+
 	return Math.floor((time - t) / 1000);
 }
 
 module.exports = {
-
 	interval: 10,
-
 	delegates: 101,
 
 	getTime: function (time) {
@@ -33,15 +33,18 @@ module.exports = {
 		if (epochTime === undefined) {
 			epochTime = this.getTime()
 		}
+
 		var d = beginEpochTime();
 		var t = Math.floor(d.getTime() / 1000) * 1000;
+
 		return t + epochTime * 1000;
 	},
 
 	getSlotNumber: function (epochTime) {
 		if (epochTime === undefined) {
-			epochTime = this.getTime()
+			epochTime = this.getTime();
 		}
+
 		return Math.floor(epochTime / this.interval);
 	},
 
@@ -60,6 +63,6 @@ module.exports = {
 	},
 
 	roundTime: function (date) {
-		Math.floor(date.getTime() / 1000) * 1000
+		Math.floor(date.getTime() / 1000) * 1000;
 	}
 }

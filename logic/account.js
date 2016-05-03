@@ -618,10 +618,12 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		limit = filter.limit;
 	}
 	delete filter.limit;
+
 	if (filter.offset > 0) {
 		offset = filter.offset;
 	}
 	delete filter.offset;
+
 	if (filter.sort) {
 		sort = filter.sort;
 	}
@@ -640,7 +642,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
 		return cb(null, rows);
-	}).catch(function (err ) {
+	}).catch(function (err) {
 		return cb("Account#getAll error");
 	});
 }

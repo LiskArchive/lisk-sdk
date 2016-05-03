@@ -1,6 +1,6 @@
-var strftime = require('strftime').utc();
-var fs = require('fs');
-require('colors');
+var strftime = require("strftime").utc();
+var fs = require("fs");
+require("colors");
 
 module.exports = function (config) {
 	config = config || {};
@@ -16,11 +16,11 @@ module.exports = function (config) {
 		"fatal": 6
 	}
 
-	config.filename = config.filename || __dirname + '/logs.log';
+	config.filename = config.filename || __dirname + "/logs.log";
 
 	config.errorLevel = config.errorLevel || "log";
 
-	var log_file = fs.createWriteStream(config.filename, {flags: 'a'});
+	var log_file = fs.createWriteStream(config.filename, { flags: "a" });
 
 	exports.setLevel = function (errorLevel) {
 		config.errorLevel = errorLevel;
@@ -31,17 +31,17 @@ module.exports = function (config) {
 			var log = {
 				"level": name,
 				"message": caption,
-				"timestamp": strftime('%F %T', new Date())
+				"timestamp": strftime("%F %T", new Date())
 			}
 
 			data && (log["data"] = data);
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
-				log_file.write(JSON.stringify(log) + '\n');
+				log_file.write(JSON.stringify(log) + "\n");
 			}
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
-					console.log(log.level.bgYellow.black, log.timestamp.grey, log.message, log.data ? log.data : '');
+					console.log(log.level.bgYellow.black, log.timestamp.grey, log.message, log.data ? log.data : "");
 				}catch (e){
 					console.log(e)
 				}

@@ -24,15 +24,15 @@ private.blockReward = new blockReward();
 // @formatter:off
 private.blocksDataFields = {
 	'b_id': String,
-	'b_version': String,
+	'b_version': Number,
 	'b_timestamp': Number,
 	'b_height': Number,
 	'b_previousBlock': String,
-	'b_numberOfTransactions': String,
+	'b_numberOfTransactions': Number,
 	'b_totalAmount': String,
 	'b_totalFee': String,
 	'b_reward': String,
-	'b_payloadLength': String,
+	'b_payloadLength': Number,
 	'b_payloadHash': String,
 	'b_generatorPublicKey': String,
 	'b_blockSignature': String,
@@ -672,7 +672,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 									modules.delegates.validateBlockSlot(block, function (err) {
 										if (err) {
 											return cb({
-												message: "Can't verify slot",
+												message: err,
 												block: block
 											});
 										}
@@ -872,7 +872,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 				}
 
 				if (block.previousBlock != private.lastBlock.id) {
-					// Fork same height and different previous block
+					// Fork: Same height but different previous block id
 					modules.delegates.fork(block, 1);
 					return done("Can't verify previous block: " + block.id);
 				}
@@ -890,9 +890,9 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 
 				modules.delegates.validateBlockSlot(block, function (err) {
 					if (err) {
-						// Fork another delegate's slot
+						// Fork: Invalid generatorPublicKey for block slot
 						modules.delegates.fork(block, 3);
-						return done("Can't verify slot: " + block.id);
+						return done(err);
 					}
 					if (block.payloadLength > constants.maxPayloadLength) {
 						return done("Can't verify payload length of block: " + block.id);
@@ -918,7 +918,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 								var tId = rows.length && rows[0].id;
 
 								if (tId) {
-									// Fork transactions already exist
+									// Fork: Transaction already exists
 									modules.delegates.fork(block, 2);
 									setImmediate(cb, "Transaction already exists: " + transaction.id);
 								} else {
@@ -1192,11 +1192,11 @@ Blocks.prototype.onReceiveBlock = function (block) {
 			library.logger.info('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
 			self.processBlock(block, true, cb);
 		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
-			// Fork right height and different previous block
+			// Fork: Same height but different previous block id
 			modules.delegates.fork(block, 1);
 			cb("Fork");
 		} else if (block.previousBlock == private.lastBlock.previousBlock && block.height == private.lastBlock.height && block.id != private.lastBlock.id) {
-			// Fork same height and same previous block, but different block id
+			// Fork: Same height and previous block id, but different block id
 			modules.delegates.fork(block, 5);
 			cb("Fork");
 		} else {
