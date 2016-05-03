@@ -107,6 +107,12 @@ Install mocha (globally):
 sudo npm install mocha -g
 ```
 
+Launch lisk (runs on port 4000):
+
+```
+node app.js
+```
+
 Run the test suite:
 
 ```
