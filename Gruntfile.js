@@ -42,6 +42,7 @@ module.exports = function (grunt) {
 					     + util.format('cp %s/config.json %s && ', __dirname, version_dir)
 					     + util.format('cp %s/package.json %s && ', __dirname, version_dir)
 					     + util.format('cp %s/genesisBlock.json %s && ', __dirname, version_dir)
+					     + util.format('cp -Rf %s/sql %s && ', __dirname, version_dir)
 					     + util.format('cd %s/public && mkdir -p ./static && ', __dirname)
 					     + 'npm install && bower install && grunt release && cd ../ && '
 					     + util.format('cp %s/public/wallet.html %s/public/ && ', __dirname, version_dir)
