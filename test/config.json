@@ -5,6 +5,7 @@
     "serveHttpWallet": true,
     "version": "0.2.0",
     "fileLogLevel": "info",
+    "logFileName": "logs.log",
     "consoleLogLevel": "log",
     "sharePort": true,
     "db": {
