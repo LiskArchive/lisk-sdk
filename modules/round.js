@@ -53,10 +53,11 @@ Round.prototype.calc = function (height) {
 }
 
 Round.prototype.getVotes = function (round, cb) {
-	library.db.query("SELECT d.\"delegate\", d.\"amount\" FROM ( " +
-		"SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
-		"GROUP BY m.\"delegate\", m.\"round\" " +
-		") AS d WHERE \"round\" = ${round}", { round: round }).then(function (rows) {
+	var sql = "SELECT d.\"delegate\", d.\"amount\" FROM " +
+	          "(SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
+	          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = (${round})::bigint";
+
+	library.db.query(sql, { round: round }).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
 		return cb("Round#getVotes error");
@@ -64,7 +65,7 @@ Round.prototype.getVotes = function (round, cb) {
 }
 
 Round.prototype.flush = function (round, cb) {
-	library.db.none("DELETE FROM mem_round WHERE \"round\" = ${round}", { round: round }).then(function () {
+	library.db.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: round }).then(function () {
 		return cb();
 	}).catch(function (err) {
 		return cb("Round#flush error");
@@ -104,8 +105,8 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 
 		var prevRound = self.calc(previousBlock.height);
 
-		private.unFeesByRound[round] = (private.unFeesByRound[round] || 0);
-		private.unFeesByRound[round] += block.totalFee;
+		private.unFeesByRound[round] = Math.floor(private.unFeesByRound[round]) || 0;
+		private.unFeesByRound[round] += Math.floor(block.totalFee);
 
 		private.unRewardsByRound[round] = (private.rewardsByRound[round] || []);
 		private.unRewardsByRound[round].push(block.reward);
@@ -153,9 +154,9 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
@@ -207,9 +208,9 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
@@ -305,9 +306,9 @@ Round.prototype.tick = function (block, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
@@ -359,9 +360,9 @@ Round.prototype.tick = function (block, cb) {
 								return cb(err);
 							}
 							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + ${amount} WHERE \"address\" = ${address}", {
+								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
 									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: vote.amount
+									amount: Math.floor(vote.amount)
 								}).then(function () {
 									return cb();
 								}).catch(function (err) {
@@ -401,9 +402,11 @@ Round.prototype.onBind = function (scope) {
 
 Round.prototype.onBlockchainReady = function () {
 	var round = self.calc(modules.blocks.getLastBlock().height);
-	library.db.query("SELECT SUM(b.\"totalFee\")::bigint AS \"fees\", ARRAY_AGG(b.\"reward\") AS \"rewards\", ARRAY_AGG(ENCODE(b.\"generatorPublicKey\", 'hex')) AS \"delegates\" " +
-		"FROM blocks b WHERE (SELECT (CAST(b.\"height\" / 101 AS INTEGER) + (CASE WHEN b.\"height\" % 101 > 0 THEN 1 ELSE 0 END))) = ${round}", { round: round }).then(function (rows) {
 
+	var sql = "SELECT SUM(b.\"totalFee\")::bigint AS \"fees\", ARRAY_AGG(b.\"reward\") AS \"rewards\", ARRAY_AGG(ENCODE(b.\"generatorPublicKey\", 'hex')) AS \"delegates\" " +
+	          "FROM blocks b WHERE (SELECT (CAST(b.\"height\" / 101 AS INTEGER) + (CASE WHEN b.\"height\" % 101 > 0 THEN 1 ELSE 0 END))) = ${round}";
+
+	library.db.query(sql, { round: round }).then(function (rows) {
 		var rewards = [];
 
 		rows[0].rewards.forEach(function (reward) {

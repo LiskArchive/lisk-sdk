@@ -422,7 +422,7 @@ shared.getPeers = function (req, cb) {
 		type: "object",
 		properties: {
 			state: {
-				type: "string",
+				type: "integer",
 				minimum: 0,
 				maximum: 3
 			},

@@ -3,6 +3,7 @@ var crypto = require('crypto'),
 	ed = require('ed25519'),
 	async = require('async'),
 	shuffle = require('knuth-shuffle').knuthShuffle,
+	bignum = require('../helpers/bignum.js'),
 	Router = require('../helpers/router.js'),
 	slots = require('../helpers/slots.js'),
 	schedule = require('node-schedule'),
@@ -48,6 +49,35 @@ function Delegate() {
 
 		if (sender.isDelegate) {
 			return cb("Account is already a delegate");
+		}
+
+		if (!trs.asset || !trs.asset.delegate) {
+			return cb("Invalid transaction asset");
+		}
+
+		if (!trs.asset.delegate.username) {
+			return cb("Username is undefined");
+		}
+
+		var isAddress = /^[0-9]+[L|l]$/g;
+		var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
+
+		var username = String(trs.asset.delegate.username).toLowerCase().trim();
+
+		if (username == "") {
+			return cb("Empty username");
+		}
+
+		if (username.length > 20) {
+			return cb("Username is too long. Maximum is 20 characters");
+		}
+
+		if (isAddress.test(username)) {
+			return cb("Username can not be a potential address");
+		}
+
+		if (!allowSymbols.test(username)) {
+			return cb("Username can only contain alphanumeric characters with the exception of !@$&_.");
 		}
 
 		modules.accounts.getAccount({
@@ -627,7 +657,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 			});
 		});
 	} else {
-		setImmediate(cb, "Please provide an array of votes");
+		setImmediate(cb, "Votes must be an array");
 	}
 }
 
@@ -704,16 +734,18 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 		if (err) {
 			return cb(err);
 		}
+
 		var currentSlot = slots.getSlotNumber(block.timestamp);
 		var delegate_id = activeDelegates[currentSlot % slots.delegates];
-		var nextDelegate_id = activeDelegates[(currentSlot + 1) % slots.delegates];
-		var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
+		// var nextDelegate_id = activeDelegates[(currentSlot + 1) % slots.delegates];
+		// var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
 
 		if (delegate_id && block.generatorPublicKey == delegate_id) {
 			return cb();
+		} else {
+			library.logger.error("Expected generator: " + delegate_id + " Received generator: " + block.generatorPublicKey);
+			return cb("Failed to verify slot: " + currentSlot);
 		}
-
-		cb("Failed to verify slot");
 	});
 }
 
@@ -974,7 +1006,8 @@ shared.getForgedByAccount = function (req, cb) {
 			if (err || !account) {
 				return cb(err || "Account not found")
 			}
-			cb(null, {fees: account.fees, rewards: account.rewards, forged: account.fees + account.rewards});
+			var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
+			cb(null, {fees: account.fees, rewards: account.rewards, forged: forged});
 		});
 	});
 }

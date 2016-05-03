@@ -1,0 +1,726 @@
+{
+  "accounts": [
+    {
+      "address": "16313739661670634666L",
+      "publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+      "balance": 10000000000000000,
+      "secondPublicKey": null
+    }
+  ],
+  "delegates": [
+    {
+      "secret": "crucial report time bench judge order together buzz brand stone present group",
+      "address": "6833297338539051920L",
+      "publicKey": "cd36a214fc32336f760035939b459fd434456d4e6dcf23a42c9f93d9a6753078",
+      "username": "genesisDelegate1"
+    },
+    {
+      "secret": "hurry have prosper turtle raccoon master viable flame race card speed nice",
+      "address": "18386423870548172759L",
+      "publicKey": "cd4605500c55816592a531c6e357dfe6075f9c0d5bffc961d6847ed8f6e9c190",
+      "username": "genesisDelegate2"
+    },
+    {
+      "secret": "merry robot aunt mechanic ladder action dry antique moment pulp flash dinosaur",
+      "address": "1461393987861493002L",
+      "publicKey": "70affc1ea0ac86c75baeef627caa31f1e1bffd52c7e4b4d67718f1973536b0c3",
+      "username": "genesisDelegate3"
+    },
+    {
+      "secret": "blur picnic reveal cost reduce wash brand rival garden victory prepare pelican",
+      "address": "15241590206138058374L",
+      "publicKey": "297d2810959e22e715584e1910954da6640039bd7ed91f6234dd746c218834d8",
+      "username": "genesisDelegate4"
+    },
+    {
+      "secret": "used wolf food agent plate blouse phone segment time silver pride acoustic",
+      "address": "1347960221540041346L",
+      "publicKey": "0ac9f9bf9a35ae05176121392ce308765ee8c956d3d86acf6a23959155dd35b4",
+      "username": "genesisDelegate5"
+    },
+    {
+      "secret": "clump ridge captain metal hip history pizza day theory say letter curious",
+      "address": "7978160749568508131L",
+      "publicKey": "902fad039c391115689f486acf8789889a3e8c38955e29a9c12242479b4e59b4",
+      "username": "genesisDelegate6"
+    },
+    {
+      "secret": "truly tragic force bachelor hurry lucky curve parrot toe weasel sunset find",
+      "address": "4420983441574216173L",
+      "publicKey": "d58515bef77de13c5d7162d06ae9b3e393d065e264f965ef7d341c6963764234",
+      "username": "genesisDelegate7"
+    },
+    {
+      "secret": "behave hen hill husband already lend expose female coral student company wood",
+      "address": "1438783313201588151L",
+      "publicKey": "c03045988aa6cd53f6fe899986cb461f819233537577cc185bceb79dee1ce316",
+      "username": "genesisDelegate8"
+    },
+    {
+      "secret": "narrow gym because thunder stumble valid thank nose federal dove scatter crush",
+      "address": "7538578638221848733L",
+      "publicKey": "6e93d0d83f514a67e7b63cfcb5cac7688ef5187fc2fd5c351f5cd97064b69caf",
+      "username": "genesisDelegate9"
+    },
+    {
+      "secret": "fan wreck prosper trial host retreat armor ill lawn bounce whip jealous",
+      "address": "14815451239080084441L",
+      "publicKey": "2373d7965c8081d110becff3b2822806e2d586857ddddd227ce52a1f9108c43b",
+      "username": "genesisDelegate10"
+    },
+    {
+      "secret": "toilet thought above prepare ceiling dizzy common fitness reward license target coconut",
+      "address": "8092263487037227010L",
+      "publicKey": "3ba2db08220f41d00b054b9ca6cd6f4e68f720c2c4dd5ca260eced814d7fe5d7",
+      "username": "genesisDelegate11"
+    },
+    {
+      "secret": "oyster ring floor chest smart recall fiscal buddy angry conduct sand garage",
+      "address": "10429755439777027218L",
+      "publicKey": "6bd65d07f02092ecd588dddb19be454eaa78113edaa294c9c8955ff86517e225",
+      "username": "genesisDelegate12"
+    },
+    {
+      "secret": "ecology rely shaft apology clarify boring more bus arrest display token physical",
+      "address": "9374013561759499967L",
+      "publicKey": "c6c046061e8a9e034602071b8c09e5f4ab21b3fd3e8638d9055ce46050fb3220",
+      "username": "genesisDelegate13"
+    },
+    {
+      "secret": "board thank length speak entry one replace anger aerobic quiz person piece",
+      "address": "1005621291526233499L",
+      "publicKey": "1e523cfa2a2b85c9944e62ec7e489c99b23ce0f930d6a0dedc8630698f5b8b48",
+      "username": "genesisDelegate14"
+    },
+    {
+      "secret": "gasp memory borrow remember hammer harbor garden train flat sleep human portion",
+      "address": "7451487382198940883L",
+      "publicKey": "3b6e0981209dde811cf45639a88daafed2e16e4cb0a197da3e2b0b46f1a94f8a",
+      "username": "genesisDelegate15"
+    },
+    {
+      "secret": "vital sense group cream nephew oval unhappy useless junior catch enhance flame",
+      "address": "16884520603589538237L",
+      "publicKey": "7e3d2e54f458aa7bb0a72f9f7f4f5ad9a402ea975ffd05dfcf495ae069d033ec",
+      "username": "genesisDelegate16"
+    },
+    {
+      "secret": "embrace uncle ensure audit flame middle visit shrimp spy false erode secret",
+      "address": "8850815770560428443L",
+      "publicKey": "cd9ddcb070ae06b71371b3e137e74d14f6a2b9cb52ca60b11414ef7b85502bd2",
+      "username": "genesisDelegate17"
+    },
+    {
+      "secret": "return meat artefact hockey avoid antenna equip shrimp thank cancel produce burden",
+      "address": "7921737808964509768L",
+      "publicKey": "3749d545e9901b7e9de57e724f634de1aa9cda31ddb799435e5af18de26c3707",
+      "username": "genesisDelegate18"
+    },
+    {
+      "secret": "scrap text man arrest ahead zebra sausage butter scene melody local height",
+      "address": "668344478368119938L",
+      "publicKey": "6522c746e00a1b3167dcaa5251d073ac496b9509d82c871d3e90cd60ffc834d8",
+      "username": "genesisDelegate19"
+    },
+    {
+      "secret": "couch devote rebel pretty grit lonely domain glass sustain shy admit vast",
+      "address": "11062283617298107751L",
+      "publicKey": "d8bab7537fad578f74bdbaa7051e3b87bd55d001908bb2897728550a977c488b",
+      "username": "genesisDelegate20"
+    },
+    {
+      "secret": "cotton fiscal nurse onion broom agree shallow journey world diesel foster awake",
+      "address": "7781755908510149650L",
+      "publicKey": "ca477e354a6faf71c7168070dee85a838080313f2e975e54581963c3c6e4cc43",
+      "username": "genesisDelegate21"
+    },
+    {
+      "secret": "birth armor emerge pear basket beef miracle riot general radar glue boring",
+      "address": "14514644833235277337L",
+      "publicKey": "dfd7db411104bda82f8f295356bde392b696e3b59ab004a7d613ae53246bbefa",
+      "username": "genesisDelegate22"
+    },
+    {
+      "secret": "taxi dial initial airport extra before equal ball dinner taxi glass canyon",
+      "address": "11595782686717517236L",
+      "publicKey": "a5ffd133a401fd448e50ccd0412798b27ed509c92b21f6bb1d6358126018a0ca",
+      "username": "genesisDelegate23"
+    },
+    {
+      "secret": "embrace grunt build sign clerk object unable fiction word spice permit pizza",
+      "address": "10018303224095002586L",
+      "publicKey": "6971938880e3eb0e836a5b7223f7e33cc780a814f402912ae665849ca2e9f5ed",
+      "username": "genesisDelegate24"
+    },
+    {
+      "secret": "thank donkey gym try hat upper quarter gadget put guide old treat",
+      "address": "18391336265254930577L",
+      "publicKey": "7f8e64542bfb7c8731c655fcbb9cbb24afc79ebf552362fdec1be07bba9e358e",
+      "username": "genesisDelegate25"
+    },
+    {
+      "secret": "town risk hurdle castle symbol injury poet usage share wink there surprise",
+      "address": "679778682260421648L",
+      "publicKey": "dff65b6af3002bed552905561a15a3cebda72ea3251dc1172dc71b3d2d8858d7",
+      "username": "genesisDelegate26"
+    },
+    {
+      "secret": "quit warfare honey master there uphold slogan skill ball arena sibling assume",
+      "address": "10518280670630947352L",
+      "publicKey": "52fd006add7d3a86f5b4d46f620181919988ccb3a5111fd8281d08a794340538",
+      "username": "genesisDelegate27"
+    },
+    {
+      "secret": "turkey grocery tent connect hello broken into pause train illness wine market",
+      "address": "9240860783427138492L",
+      "publicKey": "97df993880aaf7d0be329b449f48c59006e60c401a17cc3a46b4a986f2e03d87",
+      "username": "genesisDelegate28"
+    },
+    {
+      "secret": "travel pond fix input wisdom first deer horror frost spoil strong sauce",
+      "address": "7966281270221626114L",
+      "publicKey": "e07037d81f98d42ec84c19ba32408b33c5715708453d96e0c414ae2b71ff3b7c",
+      "username": "genesisDelegate29"
+    },
+    {
+      "secret": "pride rough february ill dismiss strong cube submit rough smoke crucial just",
+      "address": "13068316490619374197L",
+      "publicKey": "562212f2dce3d9ca07230664d9e8cf59292c5588e0e52e99cee44b1fac70a992",
+      "username": "genesisDelegate30"
+    },
+    {
+      "secret": "tuition second edit coach scale defense print palm cage recall cradle drum",
+      "address": "6161380736531111530L",
+      "publicKey": "7f355f45b51a4487bac65b56921aa28fef9f96789c6df74fe6f3589040acbb46",
+      "username": "genesisDelegate31"
+    },
+    {
+      "secret": "path zoo reveal muscle road dumb logic crash planet trash staff aisle",
+      "address": "8703382859691179444L",
+      "publicKey": "88301b982f17cf6671a638f39db0d05f6706d54f36a41b536b9b91302fa25621",
+      "username": "genesisDelegate32"
+    },
+    {
+      "secret": "bracket scissors lion able rescue version dilemma inch lamp priority urge vintage",
+      "address": "14929420478979076748L",
+      "publicKey": "6ad6853f890dc5ca987b03ca3b77a8d0cd49cd71182629fc35a8da78cacf6643",
+      "username": "genesisDelegate33"
+    },
+    {
+      "secret": "glide craft useful capital ketchup pelican joke aunt goose bulb turkey minute",
+      "address": "5487658678950431635L",
+      "publicKey": "903869a3c54ecc043e045147e4fe4996454947f9a6eb43dcaac1e3dfabc79b6c",
+      "username": "genesisDelegate34"
+    },
+    {
+      "secret": "increase need camp brisk pupil cause oven spatial wool word execute era",
+      "address": "13840479677631746782L",
+      "publicKey": "1f75a6900b58e585466b3fa841133128bddfbd93ced895e254245993e341e742",
+      "username": "genesisDelegate35"
+    },
+    {
+      "secret": "weapon umbrella post carbon exhibit file theme grain elite effort spoon era",
+      "address": "3926158045673573892L",
+      "publicKey": "17d65d26fce50884d15b34c50ac3125f610c3902fb4b216ab02811c40d4d6126",
+      "username": "genesisDelegate36"
+    },
+    {
+      "secret": "session round fan table core claw pause brave canyon violin spider wrist",
+      "address": "7900884125063601435L",
+      "publicKey": "f32aacda3df8745f9adccfa1e3c6f38718bc0d0ca225b2bed08e4247f1d5de17",
+      "username": "genesisDelegate37"
+    },
+    {
+      "secret": "arch pony paper slow shoe garment credit pole transfer attitude couch palace",
+      "address": "6160937256648929471L",
+      "publicKey": "e6847ff9f5bed3bf23fb571387eee927b1e0f0299a18c36e1bc23d3637fe75b4",
+      "username": "genesisDelegate38"
+    },
+    {
+      "secret": "smile filter patrol hamster trouble travel tonight brother paddle design ostrich destroy",
+      "address": "17540959380470322917L",
+      "publicKey": "23af27168644b6c8fcc30fa5d44b72ce097109d28382a961a6060c798fcdd864",
+      "username": "genesisDelegate39"
+    },
+    {
+      "secret": "evidence cable light alter roof coffee scene over client paddle goose bonus",
+      "address": "5863973009965582456L",
+      "publicKey": "ce8864bdebb745fdd87870c5a6ba4ec732f3b8352b9c23f897ff7f9a4815a6dc",
+      "username": "genesisDelegate40"
+    },
+    {
+      "secret": "extra prize allow pulse solution satisfy dove faculty okay social satisfy army",
+      "address": "10454191767276855888L",
+      "publicKey": "dccbb36dab489f7edd80ba648f17fe08e8ab24156e435a9a38e0a2d52bc6f601",
+      "username": "genesisDelegate41"
+    },
+    {
+      "secret": "cook lock swap approve enough defense letter approve shove youth pony beauty",
+      "address": "7801860667093455494L",
+      "publicKey": "15cf12c522f461af68f790dc0459d073c66af347670083ebfe1d116d7f90c2c2",
+      "username": "genesisDelegate42"
+    },
+    {
+      "secret": "security make legal nephew garlic volume essay salute fog excite someone scatter",
+      "address": "17963414975279574803L",
+      "publicKey": "7ed7fe754a949b226d7549e7a0ac6a26e37b42259598bd5399f92a59f905a42b",
+      "username": "genesisDelegate43"
+    },
+    {
+      "secret": "pool supreme obscure average leaf opera lumber cram diary ordinary virtual giraffe",
+      "address": "14542124263826624364L",
+      "publicKey": "aab722b874a1a189f0957a19288edd1542344548f23c2bb4208155d26dd49e97",
+      "username": "genesisDelegate44"
+    },
+    {
+      "secret": "repeat early mechanic spawn eyebrow jungle seven body slot want road talk",
+      "address": "1880070346508041143L",
+      "publicKey": "a30af707270696123645ecda14c2ccae8a40d708a88c42e9f6be8289043956a2",
+      "username": "genesisDelegate45"
+    },
+    {
+      "secret": "manage genuine believe print absent use spring couch cable knee exercise turkey",
+      "address": "13809660109350615470L",
+      "publicKey": "d9065c78f0bdd6725f2a5fc04f26b0136f4f59b969a2c6defbd62e2181bd519f",
+      "username": "genesisDelegate46"
+    },
+    {
+      "secret": "father fat like ritual wire ribbon wife mistake face essay come use",
+      "address": "4389033069212031060L",
+      "publicKey": "3be1689424ddf0a5447caa9958895c348cab1950e1bb59d77ed14164dc132673",
+      "username": "genesisDelegate47"
+    },
+    {
+      "secret": "arctic sheriff torch city odor middle dentist harbor song stand muffin anger",
+      "address": "17584168297240101496L",
+      "publicKey": "f50e0fcfe642b7b1e91e298614699f9a34426decbbc9c1536318a984e036e872",
+      "username": "genesisDelegate48"
+    },
+    {
+      "secret": "magic fox small enrich goddess drive planet now tray tide kiwi swear",
+      "address": "17077589321186183136L",
+      "publicKey": "23b46e6065b4040b4f83a9676c1db6b25bf8adb4747d10bd7ce170b6de143f5a",
+      "username": "genesisDelegate49"
+    },
+    {
+      "secret": "coach original unable uncle flavor wife cool ready rent mansion focus more",
+      "address": "3338482598898218364L",
+      "publicKey": "89bb8883dc2bc396d9ce81fe21a16e3c1a2506ab4dc0cff921ee0aefcab609a9",
+      "username": "genesisDelegate50"
+    },
+    {
+      "secret": "isolate safe hamster expect social boss cloud senior breeze cram pond giant",
+      "address": "246181741701112576L",
+      "publicKey": "49dde277574de515e488969164a4d3220a2e7e3c3f61d7f2640a4321438981a5",
+      "username": "genesisDelegate51"
+    },
+    {
+      "secret": "pet transfer stick tail will scout arrive unit ask color among keen",
+      "address": "4670186206858420673L",
+      "publicKey": "7374739a7d5cb569d688d42684007abd2a06daed848d21141e1b8f5c5b54f76d",
+      "username": "genesisDelegate52"
+    },
+    {
+      "secret": "useless orient bag ribbon lesson trophy toward ribbon youth syrup thrive come",
+      "address": "17592881204277443287L",
+      "publicKey": "0a87f79b5fc2299a643bb62e7effd52444cdaf0bf0963c33c1b391ec3cdc223f",
+      "username": "genesisDelegate53"
+    },
+    {
+      "secret": "light rally spend quit top neglect drop similar slow ocean wedding kitchen",
+      "address": "10024471116864413280L",
+      "publicKey": "abb00a910779611806737896295debb624c0d4149b6ac0880083ddfc742fd7a7",
+      "username": "genesisDelegate54"
+    },
+    {
+      "secret": "primary soft face rigid over finger menu depend also excite soul assume",
+      "address": "4546680635757017929L",
+      "publicKey": "fb9220a31d733e97a714d2ed032c39df83d3d6249c6810ad55baedc2fdb1d5cd",
+      "username": "genesisDelegate55"
+    },
+    {
+      "secret": "entire lake celery immense journey renew stuff early replace often quarter remove",
+      "address": "11503778881364856787L",
+      "publicKey": "d634fbdf66e94941eb1edb8dabc65f78f7cbc9098b09843214509c7457571b08",
+      "username": "genesisDelegate56"
+    },
+    {
+      "secret": "edit fruit prison record damage raven found lens congress sheriff labor liberty",
+      "address": "15813212345532953503L",
+      "publicKey": "813dfee34457cf8570c1e536c8919b6b4d4d4011f0598b60dc6519ceb87560f9",
+      "username": "genesisDelegate57"
+    },
+    {
+      "secret": "onion bicycle flock scrub order rabbit oppose scare three forget elite clerk",
+      "address": "12923354283482005766L",
+      "publicKey": "5f1eadea3a18f70eee62a6ad87b6e9e59cc2d9d1d03d8500865f3a935c966f51",
+      "username": "genesisDelegate58"
+    },
+    {
+      "secret": "oven consider use riot urge try rib tool hawk motion excuse feature",
+      "address": "15636490990886868212L",
+      "publicKey": "75939084f873e8b220d5c728572b6b47a6b1cea08a6f0ddc75d854982bee6bac",
+      "username": "genesisDelegate59"
+    },
+    {
+      "secret": "elephant verb link gun spray million amateur action foster sleep above spatial",
+      "address": "18294833968381550320L",
+      "publicKey": "c8ba5eb900aa0332642dbfb72b540eecafdadc456ad033fd755d4eab6be598b6",
+      "username": "genesisDelegate60"
+    },
+    {
+      "secret": "donor panic stay ball object scatter crucial essay tornado velvet wisdom please",
+      "address": "16948687564397471504L",
+      "publicKey": "87ed3eec3b298c69345614cb1880c8c560527cb69f762419dfe594487f0e5e2d",
+      "username": "genesisDelegate61"
+    },
+    {
+      "secret": "peace ready already dutch spider enact rain various biology quality can swing",
+      "address": "11823808200947697000L",
+      "publicKey": "bab38da2bc61935444f528f34702ccc6c32f3347db7ea79a1ac94d8aac01bd81",
+      "username": "genesisDelegate62"
+    },
+    {
+      "secret": "hole critic choose practice awkward direct veteran post ketchup maximum oppose minor",
+      "address": "15876748437455336748L",
+      "publicKey": "c7937fba8a0e4a69ef1070a0f81670d41bf4127d50449f3207d56dc27fc8bfd5",
+      "username": "genesisDelegate63"
+    },
+    {
+      "secret": "sugar surface vacuum argue stereo bacon whisper catch loan mushroom warrior deal",
+      "address": "6667928388519484839L",
+      "publicKey": "6321afd6c149f29eef8682cd0b83c9fada55cd805ca48ec5861af09ee276604a",
+      "username": "genesisDelegate64"
+    },
+    {
+      "secret": "mention pelican social orange agree panel expire east neutral noble figure fox",
+      "address": "3788474736380165887L",
+      "publicKey": "d962f68ffdf0e70b17a8de1cf8cd1430e3c90159d089e76515b34a31679a6779",
+      "username": "genesisDelegate65"
+    },
+    {
+      "secret": "picture also mouse frequent bar mix shine vendor suggest width crouch balcony",
+      "address": "3439641937368161857L",
+      "publicKey": "5fc4befd1e042773549deafb7216d0c86801d662124992e42d17e594bb5fddb7",
+      "username": "genesisDelegate66"
+    },
+    {
+      "secret": "ribbon initial step leopard cactus dial olympic wash galaxy cabbage dilemma elder",
+      "address": "3535528892895802329L",
+      "publicKey": "8d3ec6c5320fb26af62b3cd1693eba2382f68ee3ba5c18c4388d40d330de9625",
+      "username": "genesisDelegate67"
+    },
+    {
+      "secret": "history noble spatial desk learn source quantum marble cigar unable opinion planet",
+      "address": "6397792902990265242L",
+      "publicKey": "e328fa7b79684f1d8ef6df2c8c8172f301ebac0bb9e23598d635100a189ba7c7",
+      "username": "genesisDelegate68"
+    },
+    {
+      "secret": "nerve nothing letter rather edit increase gas issue defy moral raw trust",
+      "address": "957810270885182597L",
+      "publicKey": "80e888e056fe6d0394791162b3c5f21eaeb2ee4bf19f9efd141dc893c94feade",
+      "username": "genesisDelegate69"
+    },
+    {
+      "secret": "child grape amazing blood fox food garbage entry luggage clay cover end",
+      "address": "2077709032943654139L",
+      "publicKey": "f3091a2e2f0c2126a91a3a2f8375b7b4ff1cd5695ad90c01b32d56f13ecc98a5",
+      "username": "genesisDelegate70"
+    },
+    {
+      "secret": "ring reason social impact solve light hello screen end top peasant pause",
+      "address": "16424294839716286539L",
+      "publicKey": "7b2ec88dac90b1081fe7b1161604dfa36e7319c05aca89c868117cb3096a5752",
+      "username": "genesisDelegate71"
+    },
+    {
+      "secret": "slice finish insane script jazz certain load snake junk skate dad attend",
+      "address": "12200372254055156652L",
+      "publicKey": "9c978550f1c0205b9206bafd0f8a25d95805a0d80f69df9fe159698efa1753e4",
+      "username": "genesisDelegate72"
+    },
+    {
+      "secret": "address like abandon magic involve equal electric never onion size humor push",
+      "address": "6288286180324052971L",
+      "publicKey": "61579327dce47a94a450d9fd666fead758399ca5ca1f235a08bf53fa89e65456",
+      "username": "genesisDelegate73"
+    },
+    {
+      "secret": "patient system border film child become turn release brisk hazard verb cost",
+      "address": "11620270144827950290L",
+      "publicKey": "8fe8388e321064552f809f57124db38dbbd83262fee57a13904c8ef970b1a54a",
+      "username": "genesisDelegate74"
+    },
+    {
+      "secret": "fresh neither ship love luggage oppose math diagram fix actual bubble submit",
+      "address": "16159567223505374276L",
+      "publicKey": "cd7791ceb4148a70d861f8286ed6fb01b79d47f884ec8ebf99490c070fa4c61b",
+      "username": "genesisDelegate75"
+    },
+    {
+      "secret": "penalty company river clinic screen spray avocado water loud metal cage lesson",
+      "address": "13761648970987472791L",
+      "publicKey": "9b4d70e6f24c6017c3cab84b7e972d16ccda802f62fbd0a65dc9438ac3a83a63",
+      "username": "genesisDelegate76"
+    },
+    {
+      "secret": "shine near display spend diamond youth vessel glue sea occur sphere body",
+      "address": "6896423513583965065L",
+      "publicKey": "a723b7df720d612be3b955ee482ff8593af71471b20b6cb7f8ef2826ae222598",
+      "username": "genesisDelegate77"
+    },
+    {
+      "secret": "alien turn earth scissors express damage sample pulp blind kiwi island leisure",
+      "address": "9495060325702184597L",
+      "publicKey": "74c6185a6ad6d9fe692568c616a7859db3fcf8c50b79a1061ec87666d7fb1785",
+      "username": "genesisDelegate78"
+    },
+    {
+      "secret": "actual miss book company kite start speak divert slight online faith rice",
+      "address": "6264998290835683873L",
+      "publicKey": "d30fab5ab12debe0de82a9c98812b89d8ba73847f21f4c8459538925b8f9a884",
+      "username": "genesisDelegate79"
+    },
+    {
+      "secret": "health host exclude this game quarter month nose punch grid bottom system",
+      "address": "11160135603360947376L",
+      "publicKey": "9ea8b7a4d29da24fce1b4836fa4184a5e164861d33a8666959105809389cc2af",
+      "username": "genesisDelegate80"
+    },
+    {
+      "secret": "peasant tape edit tennis problem sail tool toward glare little runway grief",
+      "address": "469039846278407351L",
+      "publicKey": "cf275d555658345ee98a03ff597fd5ab24f9a46fe1baa508e29593294d3cc77f",
+      "username": "genesisDelegate81"
+    },
+    {
+      "secret": "innocent boy hammer target notable cereal person tuition photo orphan pair two",
+      "address": "9264567916366840852L",
+      "publicKey": "58932c490a22288abd1a6c2a491c44a74c68f971ae0310ddf6cd0f6a0c674202",
+      "username": "genesisDelegate82"
+    },
+    {
+      "secret": "debris decade output night weasel wisdom atom occur unable casino speed fame",
+      "address": "14780117351501688393L",
+      "publicKey": "5ae50ec9dff2eff4fa613c728f011216163ed65aeab58587e844b74f50e9f6f2",
+      "username": "genesisDelegate83"
+    },
+    {
+      "secret": "disorder scene valve auction arena general special find praise drama execute short",
+      "address": "352502526991844834L",
+      "publicKey": "320e42e729d4b7d39ec292405b0f1ad49915d98a8b34e833189bacc6eabaaafa",
+      "username": "genesisDelegate84"
+    },
+    {
+      "secret": "robot empower silent symptom furnace stem vague gentle awkward ready dumb second",
+      "address": "17504487707214058311L",
+      "publicKey": "8f7513b4dc5909b6ac486996da4013645f713d11f53a65104a8df1f862ea447f",
+      "username": "genesisDelegate85"
+    },
+    {
+      "secret": "door sniff detail congress bag muscle shiver smile library invite hope carpet",
+      "address": "4923493562526358337L",
+      "publicKey": "cd6621f6cd6e17df19fb4a499b9f531906076f519a2312773d848f71cdd714c4",
+      "username": "genesisDelegate86"
+    },
+    {
+      "secret": "unaware system economy damage unveil biology miss ready invest frost organ express",
+      "address": "6222422923092197907L",
+      "publicKey": "5bc5baa3bb695f6fe305c61334a9536b85dfa73e94f672cc291b026741052a16",
+      "username": "genesisDelegate87"
+    },
+    {
+      "secret": "lesson swap work cross leaf cereal session mass power utility follow unit",
+      "address": "7342346495498840968L",
+      "publicKey": "e50214a82a97fce140429c39dc0e24b83e9c443dda64256d4a8e6eb9bbe6e148",
+      "username": "genesisDelegate88"
+    },
+    {
+      "secret": "cluster win teach supreme despair list certain card pudding staff need swamp",
+      "address": "18002911309384504275L",
+      "publicKey": "df68b9c186af58e18a8c76db2eae5064df54854307edf0c43c71a2ae6de81d77",
+      "username": "genesisDelegate89"
+    },
+    {
+      "secret": "fatal menu crush universe elegant million door wage fabric travel elbow answer",
+      "address": "5426792642413241313L",
+      "publicKey": "52a9aebdf0555a495f539f1e91183c22c4e4a1a0ca7c94c67529742cfbc6565a",
+      "username": "genesisDelegate90"
+    },
+    {
+      "secret": "family truly join credit candy robot educate piano improve install boss model",
+      "address": "7518560795877123611L",
+      "publicKey": "e3415db49cefe638916418f27deb3b91b601ec51477b89fdb84dc34f11bb0561",
+      "username": "genesisDelegate91"
+    },
+    {
+      "secret": "cool shallow patient firm enable exact fall family display boy awful equal",
+      "address": "17438749551865298428L",
+      "publicKey": "01a1a7a12935661c90d53071cc54fc76658f85cecc7277c754afc6666ea425b1",
+      "username": "genesisDelegate92"
+    },
+    {
+      "secret": "twin feature dad treat bridge mean random service candy eight search cloud",
+      "address": "4761885218088650354L",
+      "publicKey": "17f96890f8163a283832775b8ef1fe64b82ea2671efb04c58791b96e3a86e56d",
+      "username": "genesisDelegate93"
+    },
+    {
+      "secret": "slender bike usage blanket deliver broom tennis rebuild damp zero unusual unhappy",
+      "address": "998528192877019127L",
+      "publicKey": "d3ffdf819653004b47fb78bd5f1a4aeb646325ed70c2d4e3e37bfed440b4d264",
+      "username": "genesisDelegate94"
+    },
+    {
+      "secret": "cattle coffee glance clarify ostrich impulse burger client index waste inform oak",
+      "address": "8432986682683870451L",
+      "publicKey": "f9d1e54d5a64880c74b07416293b076c6f75ecb20fe914f8d4c8b4a3b1b860b9",
+      "username": "genesisDelegate95"
+    },
+    {
+      "secret": "inmate summer drastic wheel garden expect skate clown pool gospel chunk kit",
+      "address": "3055474236091498888L",
+      "publicKey": "93bb1fd37a3498f68f0bd4edad5f5711acada2354bf3427cc22009e099e3945e",
+      "username": "genesisDelegate96"
+    },
+    {
+      "secret": "cargo nerve tree inhale extra stadium nice north extra decorate inherit oppose",
+      "address": "10156098384905421191L",
+      "publicKey": "88a2dfa2770d913c52c0a93342426eac7db9f424a42e104b56040aa3856a4770",
+      "username": "genesisDelegate97"
+    },
+    {
+      "secret": "frog craft chapter lyrics turkey melody strong decide easy lake volcano chunk",
+      "address": "17024735153916374284L",
+      "publicKey": "700092b49beb128508317b346647df635b51ae77f35d471f97e408ebe05c5174",
+      "username": "genesisDelegate98"
+    },
+    {
+      "secret": "ostrich rude giraffe raccoon zoo eyebrow river token eagle height input border",
+      "address": "13698497967075940475L",
+      "publicKey": "fa79c5fdbe1939e4e36b63563bc048d447bdbfc4e9a0b5cf0a58b16e64df1cb9",
+      "username": "genesisDelegate99"
+    },
+    {
+      "secret": "length reunion two motor spy shine copper elite culture lift pet organ",
+      "address": "16109618324961077899L",
+      "publicKey": "53ccfe3f10e135781db6346ce726c0f0e050775e3e6438395da0f81bed14dde4",
+      "username": "genesisDelegate100"
+    },
+    {
+      "secret": "casual vacant calm rhythm smooth gym manage warrior tongue usage choose host",
+      "address": "753547665229217752L",
+      "publicKey": "0bdb3340e794065b832289505cca758472b442293181718a884d5220f9a7c6dc",
+      "username": "genesisDelegate101"
+    }
+  ],
+  "votes": {
+    "publicKeys": [
+      "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f"
+    ],
+    "votes": [
+      "+cd36a214fc32336f760035939b459fd434456d4e6dcf23a42c9f93d9a6753078",
+      "+cd4605500c55816592a531c6e357dfe6075f9c0d5bffc961d6847ed8f6e9c190",
+      "+70affc1ea0ac86c75baeef627caa31f1e1bffd52c7e4b4d67718f1973536b0c3",
+      "+297d2810959e22e715584e1910954da6640039bd7ed91f6234dd746c218834d8",
+      "+0ac9f9bf9a35ae05176121392ce308765ee8c956d3d86acf6a23959155dd35b4",
+      "+902fad039c391115689f486acf8789889a3e8c38955e29a9c12242479b4e59b4",
+      "+d58515bef77de13c5d7162d06ae9b3e393d065e264f965ef7d341c6963764234",
+      "+c03045988aa6cd53f6fe899986cb461f819233537577cc185bceb79dee1ce316",
+      "+6e93d0d83f514a67e7b63cfcb5cac7688ef5187fc2fd5c351f5cd97064b69caf",
+      "+2373d7965c8081d110becff3b2822806e2d586857ddddd227ce52a1f9108c43b",
+      "+3ba2db08220f41d00b054b9ca6cd6f4e68f720c2c4dd5ca260eced814d7fe5d7",
+      "+6bd65d07f02092ecd588dddb19be454eaa78113edaa294c9c8955ff86517e225",
+      "+c6c046061e8a9e034602071b8c09e5f4ab21b3fd3e8638d9055ce46050fb3220",
+      "+1e523cfa2a2b85c9944e62ec7e489c99b23ce0f930d6a0dedc8630698f5b8b48",
+      "+3b6e0981209dde811cf45639a88daafed2e16e4cb0a197da3e2b0b46f1a94f8a",
+      "+7e3d2e54f458aa7bb0a72f9f7f4f5ad9a402ea975ffd05dfcf495ae069d033ec",
+      "+cd9ddcb070ae06b71371b3e137e74d14f6a2b9cb52ca60b11414ef7b85502bd2",
+      "+3749d545e9901b7e9de57e724f634de1aa9cda31ddb799435e5af18de26c3707",
+      "+6522c746e00a1b3167dcaa5251d073ac496b9509d82c871d3e90cd60ffc834d8",
+      "+d8bab7537fad578f74bdbaa7051e3b87bd55d001908bb2897728550a977c488b",
+      "+ca477e354a6faf71c7168070dee85a838080313f2e975e54581963c3c6e4cc43",
+      "+dfd7db411104bda82f8f295356bde392b696e3b59ab004a7d613ae53246bbefa",
+      "+a5ffd133a401fd448e50ccd0412798b27ed509c92b21f6bb1d6358126018a0ca",
+      "+6971938880e3eb0e836a5b7223f7e33cc780a814f402912ae665849ca2e9f5ed",
+      "+7f8e64542bfb7c8731c655fcbb9cbb24afc79ebf552362fdec1be07bba9e358e",
+      "+dff65b6af3002bed552905561a15a3cebda72ea3251dc1172dc71b3d2d8858d7",
+      "+52fd006add7d3a86f5b4d46f620181919988ccb3a5111fd8281d08a794340538",
+      "+97df993880aaf7d0be329b449f48c59006e60c401a17cc3a46b4a986f2e03d87",
+      "+e07037d81f98d42ec84c19ba32408b33c5715708453d96e0c414ae2b71ff3b7c",
+      "+562212f2dce3d9ca07230664d9e8cf59292c5588e0e52e99cee44b1fac70a992",
+      "+7f355f45b51a4487bac65b56921aa28fef9f96789c6df74fe6f3589040acbb46",
+      "+88301b982f17cf6671a638f39db0d05f6706d54f36a41b536b9b91302fa25621",
+      "+6ad6853f890dc5ca987b03ca3b77a8d0cd49cd71182629fc35a8da78cacf6643",
+      "+903869a3c54ecc043e045147e4fe4996454947f9a6eb43dcaac1e3dfabc79b6c",
+      "+1f75a6900b58e585466b3fa841133128bddfbd93ced895e254245993e341e742",
+      "+17d65d26fce50884d15b34c50ac3125f610c3902fb4b216ab02811c40d4d6126",
+      "+f32aacda3df8745f9adccfa1e3c6f38718bc0d0ca225b2bed08e4247f1d5de17",
+      "+e6847ff9f5bed3bf23fb571387eee927b1e0f0299a18c36e1bc23d3637fe75b4",
+      "+23af27168644b6c8fcc30fa5d44b72ce097109d28382a961a6060c798fcdd864",
+      "+ce8864bdebb745fdd87870c5a6ba4ec732f3b8352b9c23f897ff7f9a4815a6dc",
+      "+dccbb36dab489f7edd80ba648f17fe08e8ab24156e435a9a38e0a2d52bc6f601",
+      "+15cf12c522f461af68f790dc0459d073c66af347670083ebfe1d116d7f90c2c2",
+      "+7ed7fe754a949b226d7549e7a0ac6a26e37b42259598bd5399f92a59f905a42b",
+      "+aab722b874a1a189f0957a19288edd1542344548f23c2bb4208155d26dd49e97",
+      "+a30af707270696123645ecda14c2ccae8a40d708a88c42e9f6be8289043956a2",
+      "+d9065c78f0bdd6725f2a5fc04f26b0136f4f59b969a2c6defbd62e2181bd519f",
+      "+3be1689424ddf0a5447caa9958895c348cab1950e1bb59d77ed14164dc132673",
+      "+f50e0fcfe642b7b1e91e298614699f9a34426decbbc9c1536318a984e036e872",
+      "+23b46e6065b4040b4f83a9676c1db6b25bf8adb4747d10bd7ce170b6de143f5a",
+      "+89bb8883dc2bc396d9ce81fe21a16e3c1a2506ab4dc0cff921ee0aefcab609a9",
+      "+49dde277574de515e488969164a4d3220a2e7e3c3f61d7f2640a4321438981a5",
+      "+7374739a7d5cb569d688d42684007abd2a06daed848d21141e1b8f5c5b54f76d",
+      "+0a87f79b5fc2299a643bb62e7effd52444cdaf0bf0963c33c1b391ec3cdc223f",
+      "+abb00a910779611806737896295debb624c0d4149b6ac0880083ddfc742fd7a7",
+      "+fb9220a31d733e97a714d2ed032c39df83d3d6249c6810ad55baedc2fdb1d5cd",
+      "+d634fbdf66e94941eb1edb8dabc65f78f7cbc9098b09843214509c7457571b08",
+      "+813dfee34457cf8570c1e536c8919b6b4d4d4011f0598b60dc6519ceb87560f9",
+      "+5f1eadea3a18f70eee62a6ad87b6e9e59cc2d9d1d03d8500865f3a935c966f51",
+      "+75939084f873e8b220d5c728572b6b47a6b1cea08a6f0ddc75d854982bee6bac",
+      "+c8ba5eb900aa0332642dbfb72b540eecafdadc456ad033fd755d4eab6be598b6",
+      "+87ed3eec3b298c69345614cb1880c8c560527cb69f762419dfe594487f0e5e2d",
+      "+bab38da2bc61935444f528f34702ccc6c32f3347db7ea79a1ac94d8aac01bd81",
+      "+c7937fba8a0e4a69ef1070a0f81670d41bf4127d50449f3207d56dc27fc8bfd5",
+      "+6321afd6c149f29eef8682cd0b83c9fada55cd805ca48ec5861af09ee276604a",
+      "+d962f68ffdf0e70b17a8de1cf8cd1430e3c90159d089e76515b34a31679a6779",
+      "+5fc4befd1e042773549deafb7216d0c86801d662124992e42d17e594bb5fddb7",
+      "+8d3ec6c5320fb26af62b3cd1693eba2382f68ee3ba5c18c4388d40d330de9625",
+      "+e328fa7b79684f1d8ef6df2c8c8172f301ebac0bb9e23598d635100a189ba7c7",
+      "+80e888e056fe6d0394791162b3c5f21eaeb2ee4bf19f9efd141dc893c94feade",
+      "+f3091a2e2f0c2126a91a3a2f8375b7b4ff1cd5695ad90c01b32d56f13ecc98a5",
+      "+7b2ec88dac90b1081fe7b1161604dfa36e7319c05aca89c868117cb3096a5752",
+      "+9c978550f1c0205b9206bafd0f8a25d95805a0d80f69df9fe159698efa1753e4",
+      "+61579327dce47a94a450d9fd666fead758399ca5ca1f235a08bf53fa89e65456",
+      "+8fe8388e321064552f809f57124db38dbbd83262fee57a13904c8ef970b1a54a",
+      "+cd7791ceb4148a70d861f8286ed6fb01b79d47f884ec8ebf99490c070fa4c61b",
+      "+9b4d70e6f24c6017c3cab84b7e972d16ccda802f62fbd0a65dc9438ac3a83a63",
+      "+a723b7df720d612be3b955ee482ff8593af71471b20b6cb7f8ef2826ae222598",
+      "+74c6185a6ad6d9fe692568c616a7859db3fcf8c50b79a1061ec87666d7fb1785",
+      "+d30fab5ab12debe0de82a9c98812b89d8ba73847f21f4c8459538925b8f9a884",
+      "+9ea8b7a4d29da24fce1b4836fa4184a5e164861d33a8666959105809389cc2af",
+      "+cf275d555658345ee98a03ff597fd5ab24f9a46fe1baa508e29593294d3cc77f",
+      "+58932c490a22288abd1a6c2a491c44a74c68f971ae0310ddf6cd0f6a0c674202",
+      "+5ae50ec9dff2eff4fa613c728f011216163ed65aeab58587e844b74f50e9f6f2",
+      "+320e42e729d4b7d39ec292405b0f1ad49915d98a8b34e833189bacc6eabaaafa",
+      "+8f7513b4dc5909b6ac486996da4013645f713d11f53a65104a8df1f862ea447f",
+      "+cd6621f6cd6e17df19fb4a499b9f531906076f519a2312773d848f71cdd714c4",
+      "+5bc5baa3bb695f6fe305c61334a9536b85dfa73e94f672cc291b026741052a16",
+      "+e50214a82a97fce140429c39dc0e24b83e9c443dda64256d4a8e6eb9bbe6e148",
+      "+df68b9c186af58e18a8c76db2eae5064df54854307edf0c43c71a2ae6de81d77",
+      "+52a9aebdf0555a495f539f1e91183c22c4e4a1a0ca7c94c67529742cfbc6565a",
+      "+e3415db49cefe638916418f27deb3b91b601ec51477b89fdb84dc34f11bb0561",
+      "+01a1a7a12935661c90d53071cc54fc76658f85cecc7277c754afc6666ea425b1",
+      "+17f96890f8163a283832775b8ef1fe64b82ea2671efb04c58791b96e3a86e56d",
+      "+d3ffdf819653004b47fb78bd5f1a4aeb646325ed70c2d4e3e37bfed440b4d264",
+      "+f9d1e54d5a64880c74b07416293b076c6f75ecb20fe914f8d4c8b4a3b1b860b9",
+      "+93bb1fd37a3498f68f0bd4edad5f5711acada2354bf3427cc22009e099e3945e",
+      "+88a2dfa2770d913c52c0a93342426eac7db9f424a42e104b56040aa3856a4770",
+      "+700092b49beb128508317b346647df635b51ae77f35d471f97e408ebe05c5174",
+      "+fa79c5fdbe1939e4e36b63563bc048d447bdbfc4e9a0b5cf0a58b16e64df1cb9",
+      "+53ccfe3f10e135781db6346ce726c0f0e050775e3e6438395da0f81bed14dde4",
+      "+0bdb3340e794065b832289505cca758472b442293181718a884d5220f9a7c6dc"
+    ]
+  }
+}
