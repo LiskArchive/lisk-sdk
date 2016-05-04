@@ -1,4 +1,4 @@
-blockchain.db
+blockchain.db.gz
 dapps/
 .DS_Store
 .ed25519-node
@@ -15,3 +15,6 @@ sqlite/
 ssl/
 stacktrace*
 tmp
+deldb.sh
+genesisBlock.json.my
+config.json.my
