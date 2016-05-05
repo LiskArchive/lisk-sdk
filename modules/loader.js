@@ -370,7 +370,9 @@ private.loadBlockChain = function () {
 							function () {
 								return count < offset
 							}, function (cb) {
-								library.logger.info("Current " + offset);
+								if (count > 1) {
+									library.logger.info("Current " + offset);
+								}
 								setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
 										if (err) {
@@ -407,8 +409,8 @@ private.loadBlockChain = function () {
 
 	library.logic.account.createTables(function (err) {
 		function reload (count, message) {
-			library.logger.error(message);
-			library.logger.info("Unable to load without verifying, clearing accounts from database and loading");
+			library.logger.info(message);
+			library.logger.info("Clearing mem_accounts and processing blocks");
 			load(count);
 		}
 
@@ -426,9 +428,10 @@ private.loadBlockChain = function () {
 
 				library.logger.info("Blocks " + count);
 
-				// Check if previous loading missed
-				if (reject || verify || count == 1) {
-					return load(count);
+				if (verify) {
+					return reload(count, "Blocks verification enabled");
+				} else if (reject || count == 1) {
+					return reload(count, "Found missing blocks in mem_accounts");
 				}
 
 				library.db.none("UPDATE mem_accounts SET \"u_isDelegate\" = \"isDelegate\", \"u_secondSignature\" = \"secondSignature\", \"u_username\" = \"username\", \"u_balance\" = \"balance\", \"u_delegates\" = \"delegates\", \"u_multisignatures\" = \"multisignatures\"").then(function () {
@@ -440,11 +443,11 @@ private.loadBlockChain = function () {
 						// Load delegates
 						library.db.query("SELECT ENCODE(\"publicKey\", 'hex') FROM mem_accounts WHERE \"isDelegate\" = 1").then(function (delegates) {
 							if (delegates.length == 0) {
-								reload(count, "No delegates, reload database");
+								reload(count, "No delegates found");
 							} else {
 								modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
 									if (err) {
-										reload(count, err || "Unable to load last block");
+										reload(count, err || "Failed to load blocks offset");
 									} else {
 										modules.blocks.loadLastBlock(function (err, block) {
 											if (err) {
