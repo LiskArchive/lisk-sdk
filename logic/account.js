@@ -674,11 +674,11 @@ Account.prototype.set = function (address, fields, cb) {
 
 	sqles.push(sql);
 
-	var concatenated = sqles.map(function (sql) {
+	var queries = sqles.map(function (sql) {
 		return pgp.as.format(sql.query, sql.values);
 	}).join('');
 
-	this.scope.db.query(concatenated).then(function () {
+	this.scope.db.query(queries).then(function () {
 		return cb();
 	}).catch(function (err) {
 		return cb("Account#set error");
