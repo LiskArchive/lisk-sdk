@@ -674,8 +674,8 @@ Account.prototype.set = function (address, fields, cb) {
 
 	sqles.push(sql);
 
-	var concatenated = sqles.map(function(sql){
-    		return pgp.as.format(sql.query, sql.values);
+	var concatenated = sqles.map(function (sql) {
+		return pgp.as.format(sql.query, sql.values);
 	}).join('');
 
 	this.scope.db.query(concatenated).then(function () {
@@ -900,8 +900,8 @@ Account.prototype.merge = function (address, diff, cb) {
 			}
 
 			self.scope.db.tx(function (t) {
-				var queries = sqles.map(function(sql){
-    				return pgp.as.format(sql.query, sql.values);
+				var queries = sqles.map(function (sql) {
+					return pgp.as.format(sql.query, sql.values);
 				}).join('');
 				return t.none(queries);
 			}).then(function () {
