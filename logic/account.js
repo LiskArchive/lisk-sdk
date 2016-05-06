@@ -674,14 +674,11 @@ Account.prototype.set = function (address, fields, cb) {
 
 	sqles.push(sql);
 
-	var i, sql, concatenated = "";
+	var queries = sqles.map(function (sql) {
+		return pgp.as.format(sql.query, sql.values);
+	}).join('');
 
-	for (i = 0; i < sqles.length; i++) {
-		sql = sqles[i];
-		concatenated += pgp.as.format(sql.query, sql.values);
-	}
-
-	this.scope.db.query(concatenated).then(function () {
+	this.scope.db.query(queries).then(function () {
 		return cb();
 	}).catch(function (err) {
 		return cb("Account#set error");
@@ -903,15 +900,10 @@ Account.prototype.merge = function (address, diff, cb) {
 			}
 
 			self.scope.db.tx(function (t) {
-				var i, sql, concatenated = "", promises = [];
-
-				for (i = 0; i < sqles.length; i++) {
-					sql = sqles[i];
-					concatenated += pgp.as.format(sql.query, sql.values);
-				}
-
-				promises.push(this.none(concatenated));
-				return this.batch(promises);
+				var queries = sqles.map(function (sql) {
+					return pgp.as.format(sql.query, sql.values);
+				}).join('');
+				return t.none(queries);
 			}).then(function () {
 				return cb();
 			}).catch(function (err) {
