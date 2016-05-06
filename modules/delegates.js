@@ -332,7 +332,7 @@ private.attachApi = function () {
 				return res.json({success: false, error: err[0].message});
 			}
 
-			var ip = req.connection.remoteAddress;
+			var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
 			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
 				return res.json({success: false, error: "Access denied"});
@@ -386,7 +386,7 @@ private.attachApi = function () {
 				return res.json({success: false, error: err[0].message});
 			}
 
-			var ip = req.connection.remoteAddress;
+			var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
 			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
 				return res.json({success: false, error: "Access denied"});
