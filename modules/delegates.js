@@ -585,7 +585,59 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
 
 		cb(null, truncDelegateList);
 	});
+}
 
+Delegates.prototype.getDelegates = function (query, cb) {
+	if (!query) {
+		throw "Missing query argument";
+	}
+	modules.accounts.getAccounts({
+		isDelegate: 1,
+		sort: { "vote": -1, "publicKey": 1 }
+	}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks"], function (err, delegates) {
+		if (err) {
+			return cb(err);
+		}
+
+		var limit = query.limit || 101,
+		    offset = query.offset || 0,
+		    orderField = query.orderBy,
+		    active = query.active;
+
+		orderField = orderField ? orderField.split(':') : null;
+		limit = limit > 101 ? 101 : limit;
+
+		var orderBy = orderField ? orderField[0] : null;
+		var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
+
+		var count = delegates.length;
+		var length = Math.min(limit, count);
+		var realLimit = Math.min(offset + limit, count);
+
+		var lastBlock   = modules.blocks.getLastBlock(),
+		    totalSupply = private.blockReward.calcSupply(lastBlock.height);
+
+		for (var i = 0; i < delegates.length; i++) {
+			delegates[i].rate = i + 1;
+			delegates[i].approval = (delegates[i].vote / totalSupply) * 100;
+			delegates[i].approval = Math.round(delegates[i].approval * 1e2) / 1e2;
+
+			var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
+			percent = percent || 0;
+
+			var outsider = i + 1 > slots.delegates;
+			delegates[i].productivity = (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0;
+		}
+
+		return cb(null, {
+			delegates: delegates,
+			sortMode: sortMode,
+			orderBy: orderBy,
+			count: count,
+			offset: offset,
+			limit: realLimit
+		});
+	});
 }
 
 Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
@@ -781,6 +833,7 @@ Delegates.prototype.cleanup = function (cb) {
 // Shared
 shared.getDelegate = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: "object",
 		properties: {
@@ -799,46 +852,15 @@ shared.getDelegate = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		modules.accounts.getAccounts({
-			isDelegate: 1,
-			sort: { "vote": -1, "publicKey": 1 }
-		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks"], function (err, delegates) {
+		modules.delegates.getDelegates(query, function (err, result) {
 			if (err) {
 				return cb(err);
 			}
 
-			var limit = query.limit || 101,
-			    offset = query.offset || 0,
-			    orderField = query.orderBy,
-			    active = query.active;
-
-			orderField = orderField ? orderField.split(':') : null;
-			limit = limit > 101 ? 101 : limit;
-
-			var orderBy = orderField ? orderField[0] : null;
-			var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
-			var count = delegates.length;
-			var length = Math.min(limit, count);
-			var realLimit = Math.min(offset + limit, count);
-
-			var lastBlock   = modules.blocks.getLastBlock(),
-			    totalSupply = private.blockReward.calcSupply(lastBlock.height);
-
-			for (var i = 0; i < delegates.length; i++) {
-				delegates[i].rate = i + 1;
-				delegates[i].approval = ((delegates[i].vote / totalSupply) * 100).toFixed(2);
-
-				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
-				percent = percent || 0;
-
-				var outsider = i + 1 > slots.delegates;
-				delegates[i].productivity = (!outsider) ? parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : 0;
-			}
-
-			var delegate = _.find(delegates, function (delegate) {
-				if (query.transactionId) {
+			var delegate = _.find(result.delegates, function (delegate) {
+				// if (query.transactionId) {
 					// TODO: Store transactionId
-				}
+				// }
 				if (query.publicKey) {
 					return delegate.publicKey == query.publicKey;
 				}
@@ -896,6 +918,7 @@ shared.getVoters = function (req, cb) {
 
 shared.getDelegates = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -917,62 +940,29 @@ shared.getDelegates = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		modules.accounts.getAccounts({
-			isDelegate: 1,
-			// limit: query.limit > 101 ? 101 : query.limit,
-			// offset: query.offset,
-			sort: { "vote": -1, "publicKey": 1 }
-		}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks"], function (err, delegates) {
+		modules.delegates.getDelegates(query, function (err, result) {
 			if (err) {
 				return cb(err);
 			}
 
-			var limit = query.limit || 101,
-			    offset = query.offset || 0,
-			    orderField = query.orderBy,
-			    active = query.active;
-
-			orderField = orderField ? orderField.split(':') : null;
-			limit = limit > 101 ? 101 : limit;
-
-			var orderBy = orderField ? orderField[0] : null;
-			var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
-			var count = delegates.length;
-			var length = Math.min(limit, count);
-			var realLimit = Math.min(offset + limit, count);
-
-			var lastBlock   = modules.blocks.getLastBlock(),
-			    totalSupply = private.blockReward.calcSupply(lastBlock.height);
-
-			for (var i = 0; i < delegates.length; i++) {
-				delegates[i].rate = i + 1;
-				delegates[i].approval = ((delegates[i].vote / totalSupply) * 100).toFixed(2);
-
-				var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
-				percent = percent || 0;
-
-				var outsider = i + 1 > slots.delegates;
-				delegates[i].productivity = (!outsider) ? parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : 0;
-			}
-
-			delegates.sort(function compare(a, b) {
-				if (sortMode == 'asc') {
-					if (a[orderBy] < b[orderBy])
+			result.delegates.sort(function compare(a, b) {
+				if (result.sortMode == 'asc') {
+					if (a[result.orderBy] < b[result.orderBy])
 						return -1;
-					if (a[orderBy] > b[orderBy])
+					if (a[result.orderBy] > b[result.orderBy])
 						return 1;
-				} else if (sortMode == 'desc') {
-					if (a[orderBy] > b[orderBy])
+				} else if (result.sortMode == 'desc') {
+					if (a[result.orderBy] > b[result.orderBy])
 						return -1;
-					if (a[orderBy] < b[orderBy])
+					if (a[result.orderBy] < b[result.orderBy])
 						return 1;
 				}
 				return 0;
 			});
 
-			var result = delegates.slice(offset, realLimit);
+			var delegates = result.delegates.slice(result.offset, result.limit);
 
-			cb(null, {delegates: result, totalCount: count});
+			cb(null, {delegates: delegates, totalCount: result.count});
 		});
 	});
 }

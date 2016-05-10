@@ -479,6 +479,7 @@ shared.generatePublickey = function (req, cb) {
 
 shared.getDelegates = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: "object",
 		properties: {
@@ -502,47 +503,12 @@ shared.getDelegates = function (req, cb) {
 			}
 
 			if (account.delegates) {
-				self.getAccounts({
-					isDelegate: 1,
-					sort: { "vote": -1, "publicKey": 1 }
-				}, ["username", "address", "publicKey", "vote", "missedblocks", "producedblocks"], function (err, delegates) {
-					if (err) {
-						return cb(err);
-					}
-
-					var limit = query.limit || 101,
-					    offset = query.offset || 0,
-					    orderField = query.orderBy,
-					    active = query.active;
-
-					orderField = orderField ? orderField.split(':') : null;
-					limit = limit > 101 ? 101 : limit;
-
-					var orderBy = orderField ? orderField[0] : null;
-					var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
-					var count = delegates.length;
-					var length = Math.min(limit, count);
-					var realLimit = Math.min(offset + limit, count);
-
-					var lastBlock   = modules.blocks.getLastBlock(),
-					    totalSupply = private.blockReward.calcSupply(lastBlock.height);
-
-					for (var i = 0; i < delegates.length; i++) {
-						delegates[i].rate = i + 1;
-						delegates[i].approval = ((delegates[i].vote / totalSupply) * 100).toFixed(2);
-
-						var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
-						percent = percent || 0;
-
-						var outsider = i + 1 > slots.delegates;
-						delegates[i].productivity = (!outsider) ? parseFloat(Math.floor(percent * 100) / 100).toFixed(2) : 0;
-					}
-
-					var result = delegates.filter(function (delegate) {
+				modules.delegates.getDelegates(query, function (err, result) {
+					var delegates = result.delegates.filter(function (delegate) {
 						return account.delegates.indexOf(delegate.publicKey) != -1;
 					});
 
-					cb(null, {delegates: result});
+					cb(null, {delegates: delegates});
 				});
 			} else {
 				cb(null, {delegates: []});
