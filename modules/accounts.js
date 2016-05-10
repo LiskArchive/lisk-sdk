@@ -21,11 +21,6 @@ function Vote() {
 	this.create = function (data, trs) {
 		trs.recipientId = data.sender.address;
 		trs.asset.votes = data.votes;
-		// we are case unsensitive
-		if(trs.recipientUsername){
-			trs.recipientUsername=trs.recipientUsername.toLowerCase();
-		}
-		return trs;
 	}
 
 	this.calculateFee = function (trs, sender) {
@@ -34,7 +29,7 @@ function Vote() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId != trs.senderId) {
-			return setImmediate(cb, "Recipient is identical to sender");
+			return setImmediate(cb, "Recipient is not identical to sender");
 		}
 
 		if (!trs.asset.votes || !trs.asset.votes.length) {
@@ -42,7 +37,7 @@ function Vote() {
 		}
 
 		if (trs.asset.votes && trs.asset.votes.length > 33) {
-			return setImmediate(cb, "Voting limited exceeded. Maxmium is 33 per transaction");
+			return setImmediate(cb, "Voting limited exceeded. Maximum is 33 per transaction");
 		}
 
 		modules.delegates.checkDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
