@@ -409,8 +409,10 @@ private.loadBlockChain = function () {
 
 	library.logic.account.createTables(function (err) {
 		function reload (count, message) {
-			library.logger.info(message);
-			library.logger.info("Clearing mem_accounts and processing blocks");
+			if (message) {
+				library.logger.info(message);
+				library.logger.info("Clearing mem_accounts and processing blocks");
+			}
 			load(count);
 		}
 
@@ -428,9 +430,11 @@ private.loadBlockChain = function () {
 
 				library.logger.info("Blocks " + count);
 
-				if (verify) {
+				if (count == 1) {
+					return reload(count);
+				} else if (verify) {
 					return reload(count, "Blocks verification enabled");
-				} else if (reject || count == 1) {
+				} else if (reject) {
 					return reload(count, "Found missing blocks in mem_accounts");
 				}
 
