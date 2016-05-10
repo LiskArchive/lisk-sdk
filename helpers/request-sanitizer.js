@@ -25,14 +25,6 @@ RequestSanitizer.addRule("empty", {
     }
 });
 
-RequestSanitizer.addRule("string", {
-    filter : function(accept, value, field){
-        if (field.isEmpty() && field.rules.empty) return null;
-
-        return String(value||'');
-    }
-});
-
 RequestSanitizer.addRule("regexp", {
     message : "value should match template",
     validate : function(accept, value) {
@@ -186,6 +178,23 @@ RequestSanitizer.addRule("minLength", {
     message : "minimum length is ${accept}.",
     validate : function(accept, value) {
         return value.length >= accept;
+    }
+});
+
+RequestSanitizer.addRule("case", {
+    message : "case is ${accept}.",
+    validate : function(accept, value) {
+        return typeof value === "string" && ((accept==="lower" && value===value.toLowerCase())||(accept==="upper" && value===value.toUpperCase());
+    },
+    filter : function(accept, value, field){
+        if (field.isEmpty() && field.rules.empty) return null;
+
+        if(accept==="lower"){
+          return String(value||'').toLowerCase();
+        }
+        else if(accept==="upper"){
+          return String(value||'').toUpperCase();
+        }
     }
 });
 

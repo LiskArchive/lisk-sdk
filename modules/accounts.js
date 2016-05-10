@@ -19,7 +19,10 @@ function Vote() {
 		trs.recipientId = data.sender.address;
 		trs.recipientUsername = data.sender.username;
 		trs.asset.votes = data.votes;
-
+		// we are case unsensitive
+		if(trs.recipientUsername){
+			trs.recipientUsername=trs.recipientUsername.toLowerCase();
+		}
 		return trs;
 	}
 
@@ -167,7 +170,9 @@ function Username() {
 			alias: data.username,
 			publicKey: data.sender.publicKey
 		};
-
+		if(trs.asset.username){
+			trs.asset.username=trs.asset.username.toLowerCase();
+		}
 		return trs;
 	}
 
@@ -860,11 +865,15 @@ shared.addDelegates = function (req, cb) {
 	});
 }
 
+
+//TODO to migrate to Dapp
 shared.getUsernameFee = function (req, cb) {
 	var query = req.body;
 	cb(null, {fee: 1 * constants.fixedPoint});
 }
 
+
+//TODO to migrate to Dapp
 shared.addUsername = function (req, cb) {
 	var body = req.body;
 	library.scheme.validate(body, {
@@ -943,6 +952,10 @@ shared.addUsername = function (req, cb) {
 						if (requester.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
 							secondKeypair = ed.MakeKeypair(secondHash);
+						}
+
+						if(body.username){
+							body.username=body.username.toLowerCase();
 						}
 
 						try {
@@ -1047,6 +1060,7 @@ shared.getAccount = function (req, cb) {
 	});
 }
 
+//TODO to migrate to Dapp
 shared.getUsername = function (req, cb) {
 	var query = req.body;
 	library.scheme.validate(query, {
@@ -1062,8 +1076,12 @@ shared.getUsername = function (req, cb) {
 			return cb(err[0].message);
 		}
 
+		if(query.username){
+			query.username=query.username.toLowerCase();
+		}
+
 		self.getAccount({
-			username: {$like: query.username.toLowerCase()}
+			username: {$like: query.username}
 		}, function (err, account) {
 			if (err || !account) {
 				return cb("Account not found");

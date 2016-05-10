@@ -21,6 +21,7 @@ function Account(scope, cb) {
 			length: 20,
 			filter: {
 				type: "string",
+				case: "lower",
 				maxLength: 20,
 				minLength: 1
 			},
@@ -69,6 +70,7 @@ function Account(scope, cb) {
 			length: 20,
 			filter: {
 				type: "string",
+				case: "lower",
 				maxLength: 20
 			},
 			conv: String,

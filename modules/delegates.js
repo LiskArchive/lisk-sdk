@@ -30,6 +30,10 @@ function Delegate() {
 			publicKey: data.sender.publicKey
 		};
 
+		if(trs.asset.username){
+			trs.asset.username=trs.asset.username.toLowerCase();
+		}
+
 		return trs;
 	}
 
