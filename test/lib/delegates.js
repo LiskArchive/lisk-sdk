@@ -7,11 +7,11 @@ var node = require("./../variables.js");
 var Raccount = node.randomAccount();
 // second RANDOM account  - 0 LISK amount | Will test registration with same delegate name, changing case
 var R2account = node.randomAccount();
-R2account.delegateName=Raccount.delegateName.toUpperCase();
+R2account.username=Raccount.username.toUpperCase();
 
-//bad luck Raccount.delegateName is already upper case
-if(R2account.delegateName==Raccount.delegateName){
-  R2account.delegateName=Raccount.delegateName.toLowerCase();
+//bad luck Raccount.username is already upper case
+if(R2account.username==Raccount.username){
+  R2account.username=Raccount.username.toLowerCase();
 }
 var test = 0;
 
@@ -629,7 +629,7 @@ describe("Delegates", function() {
                 .set('Accept', 'application/json')
                 .send({
                     secret: Raccount.password,
-                    username: Raccount.delegateName.toUpperCase()
+                    username: Raccount.username.toUpperCase()
                 })
                 .expect("Content-Type", /json/)
                 .expect(200)
@@ -639,7 +639,7 @@ describe("Delegates", function() {
                     node.expect(res.body).to.have.property("transaction").that.is.an("object");
                     if (res.body.success == true && res.body.transaction != null){
                         node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
-                        node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.delegateName.toLowerCase());
+                        node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.username.toLowerCase());
                         node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(Raccount.publicKey);
                         node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
                         node.expect(res.body.transaction.amount).to.equal(0);
@@ -661,7 +661,7 @@ describe("Delegates", function() {
                     .set("Accept", "application/json")
                     .send({
                         secret: Raccount.password,
-                        username: Raccount.delegateName.toUppercase()
+                        username: Raccount.username.toUppercase()
                     })
                     .expect('Content-Type', /json/)
                     .expect(200)
@@ -682,7 +682,7 @@ describe("Delegates", function() {
                     .set('Accept', 'application/json')
                     .send({
                         secret: R2account.password,
-                        username: R2account.delegateName
+                        username: R2account.username
                     })
                     .expect("Content-Type", /json/)
                     .expect(200)

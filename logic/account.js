@@ -72,7 +72,8 @@ function Account(scope, cb) {
 			filter: {
 				type: "string",
 				case: "lower",
-				maxLength: 20
+				maxLength: 20,
+				minLength: 1
 			},
 			conv: String,
 			constante: true
