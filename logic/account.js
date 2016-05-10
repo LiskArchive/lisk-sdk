@@ -279,26 +279,24 @@ function Account(scope, cb) {
 		},
 		{
 			name: "producedblocks",
-			type: "BigInt",
+			type: "Number",
 			filter: {
 				type: "integer",
 				minimum: -1,
 				maximum: 1
 			},
 			conv: Number,
-			expression: "(\"producedblocks\")::bigint",
 			default: 0
 		},
 		{
 			name: "missedblocks",
-			type: "BigInt",
+			type: "Number",
 			filter: {
 				type: "integer",
 				minimum: -1,
 				maximum: 1
 			},
 			conv: Number,
-			expression: "(\"missedblocks\")::bigint",
 			default: 0
 		},
 		{
