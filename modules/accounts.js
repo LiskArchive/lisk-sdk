@@ -35,7 +35,7 @@ function Vote() {
 		}
 
 		if (!trs.asset.votes || !trs.asset.votes.length) {
-			return setImmediate(cb, "Not enough spare votes available");
+			return setImmediate(cb, "No votes sent");
 		}
 
 		if (trs.asset.votes && trs.asset.votes.length > 33) {
