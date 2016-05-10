@@ -25,6 +25,14 @@ RequestSanitizer.addRule("empty", {
     }
 });
 
+RequestSanitizer.addRule("string", {
+    filter : function(accept, value, field){
+        if (field.isEmpty() && field.rules.empty) return null;
+
+        return String(value||'');
+    }
+});
+
 RequestSanitizer.addRule("regexp", {
     message : "value should match template",
     validate : function(accept, value) {
