@@ -21,6 +21,8 @@ function Vote() {
 	this.create = function (data, trs) {
 		trs.recipientId = data.sender.address;
 		trs.asset.votes = data.votes;
+
+		return trs;
 	}
 
 	this.calculateFee = function (trs, sender) {
