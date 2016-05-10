@@ -5,7 +5,14 @@ var node = require('./../variables.js');
 
 // Account info for a RANDOM account (which we create later) - 0 LISK amount | Will act as delegate
 var Raccount = node.randomAccount();
+// second RANDOM account  - 0 LISK amount | Will test registration with same delegate name, changing case
+var R2account = node.randomAccount();
+R2account.delegateName=Raccount.delegateName.toUpperCase();
 
+//bad luck Raccount.delegateName is already upper case
+if(R2account.delegateName==Raccount.delegateName){
+  R2account.delegateName=Raccount.delegateName.toLowerCase();
+}
 var test = 0;
 
 // Print data to console
@@ -457,6 +464,63 @@ describe('Delegates', function() {
 
     describe('Delegate Registration attempts',function() {
 
+      before(function(done){
+          // Send random LISK amount from foundation account to second Random account
+          node.api.put('/transactions')
+              .set('Accept', 'application/json')
+              .send({
+                  secret: node.Faccount.password,
+                  amount: node.LISK,
+                  recipientId: R2account.address
+              })
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function (err, res) {
+                  console.log(JSON.stringify(res.body));
+                  node.expect(res.body).to.have.property("success").to.be.true;
+                  node.expect(res.body).to.have.property("transactionId");
+                  if (res.body.success == true && res.body.transactionId != null){
+                      node.expect(res.body.transactionId).to.be.above(1);
+                      R2account.amount += node.LISK;
+                  }
+                  else{
+                      console.log("Transaction failed or transactionId is null");
+                      console.log("Sent: secret: " + node.Faccount.password + ", amount: " + node.LISK + ", recipientId: " + R2account.address);
+                      node.expect("TEST").to.equal("FAILED");
+                  }
+                  done();
+              });
+      });
+
+      before(function (done) {
+          // Check that R2account has the LISK we sent
+
+          node.onNewBlock(function(err){
+      node.expect(err).to.be.not.ok;
+
+              node.api.post('/accounts/open')
+                  .set('Accept', 'application/json')
+                  .send({
+                      secret: R2account.password
+                  })
+                  .expect('Content-Type', /json/)
+                  .expect(200)
+                  .end(function (err, res) {
+                      console.log(JSON.stringify(res.body));
+                      node.expect(res.body).to.have.property("success").to.be.true;
+                      if (res.body.success == true && res.body.account != null){
+                          node.expect(res.body.account.balance).to.be.equal(node.LISK);
+                      }
+                      else{
+                          console.log("Failed to open account or account object is null");
+                          console.log("Sent: secret: " + R2account.password);
+                          node.expect("TEST").to.equal("FAILED");
+                      }
+                      done();
+                  });
+          });
+      });
+
         test += 1;
         it(test + '. We attempt to register as delegate from the random account, but we DO NOT SEND SECRET. We expect error',function(done){
             node.api.put('/delegates')
@@ -560,12 +624,12 @@ describe('Delegates', function() {
         });
 
         test += 1;
-        it(test + '. We attempt to register as delegate from random account: ' + Raccount.password + '. We expect success',function(done){
+        it(test + '. We attempt to register as delegate from random account with uppercase: ' + Raccount.password + '. We expect success and delegate registered in lower case',function(done){
             node.api.put('/delegates')
                 .set('Accept', 'application/json')
                 .send({
                     secret: Raccount.password,
-                    username: Raccount.delegateName
+                    username: Raccount.delegateName.toUpperCase()
                 })
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -575,7 +639,7 @@ describe('Delegates', function() {
                     node.expect(res.body).to.have.property("transaction").that.is.an('object');
                     if (res.body.success == true && res.body.transaction != null){
                         node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
-                        node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.delegateName);
+                        node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.delegateName.toLowerCase());
                         node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(Raccount.publicKey);
                         node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
                         node.expect(res.body.transaction.amount).to.equal(0);
@@ -597,7 +661,28 @@ describe('Delegates', function() {
                     .set('Accept', 'application/json')
                     .send({
                         secret: Raccount.password,
-                        username: Raccount.delegateName
+                        username: Raccount.delegateName.toUppercase()
+                    })
+                    .expect('Content-Type', /json/)
+                    .expect(200)
+                    .end(function (err, res) {
+                        console.log(JSON.stringify(res.body));
+                        node.expect(res.body).to.have.property("success").to.be.false;
+                        node.expect(res.body).to.have.property("error");
+                        done();
+                    });
+            });
+        });
+
+        test += 1;
+        it(test + '. We attempt to register another random account with an existing delegate name, with different case: ' + R2account.password + '. We expect error',function(done){
+            node.onNewBlock(function(err){
+        node.expect(err).to.be.not.ok;
+                node.api.put('/delegates')
+                    .set('Accept', 'application/json')
+                    .send({
+                        secret: R2account.password,
+                        username: R2account.delegateName
                     })
                     .expect('Content-Type', /json/)
                     .expect(200)
