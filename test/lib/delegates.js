@@ -661,7 +661,6 @@ describe("Delegates", function() {
                     .set("Accept", "application/json")
                     .send({
                         secret: Raccount.password,
-<<<<<<< HEAD
                         username: Raccount.delegateName.toUppercase()
                     })
                     .expect('Content-Type', /json/)
