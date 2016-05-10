@@ -19,7 +19,7 @@ describe("Peers second signature transactions", function () {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.false;
         done();
       });
@@ -40,7 +40,7 @@ describe("Peers second signature transactions", function () {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.false;
         done();
       });
@@ -72,7 +72,7 @@ describe("Peers second signature transactions", function () {
           .expect("Content-Type", /json/)
           .expect(200)
           .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
+            //console.log(JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.true;
 
             node.onNewBlock(function (err) {
@@ -91,8 +91,8 @@ describe("Peers second signature transactions", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                  console.log(transaction.recipientId);
-                  console.log(account.address);
+                  //console.log(transaction.recipientId);
+                  //console.log(account.address);
                   node.expect(res.body).to.have.property("success").to.be.true;
                   node.onNewBlock(done);
                 });
@@ -114,7 +114,7 @@ describe("Peers second signature transactions", function () {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.true;
         done();
       });
@@ -133,7 +133,7 @@ describe("Peers second signature transactions", function () {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.false;
         done();
       });
@@ -154,7 +154,7 @@ describe("Peers second signature transactions", function () {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.false;
         done();
       });
@@ -172,7 +172,7 @@ describe("Peers second signature transactions", function () {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.true;
         account2.address = res.body.account.address;
         node.api.put("/transactions")
@@ -188,7 +188,7 @@ describe("Peers second signature transactions", function () {
           .expect("Content-Type", /json/)
           .expect(200)
           .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
+            //console.log(JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.true;
             node.onNewBlock(function (err) {
               node.expect(err).to.be.not.ok;
@@ -218,7 +218,7 @@ describe("Peers second signature transactions", function () {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                      console.log(JSON.stringify(res.body));
+                      //console.log(JSON.stringify(res.body));
                       node.expect(res.body).to.have.property("success").to.be.false;
                       done();
                     });

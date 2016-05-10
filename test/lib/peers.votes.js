@@ -56,7 +56,7 @@ describe("Peers votes", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-              console.log("Sent vote fix for delegates. Sent: " + JSON.stringify(transaction) + "Got reply: " + JSON.stringify(res.body));
+              //console.log("Sent vote fix for delegates. Sent: " + JSON.stringify(transaction) + "Got reply: " + JSON.stringify(res.body));
               node.expect(res.body).to.have.property("success").to.be.true;
               done();
             });
@@ -82,7 +82,7 @@ describe("Peers votes", function () {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log("Sending POST /transactions with data: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
+          //console.log("Sending POST /transactions with data: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           done();
         });
@@ -124,7 +124,7 @@ describe("Peers votes", function () {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log("Sent POST /transactions with data:" + JSON.stringify(transaction) + "! Got reply:" + JSON.stringify(res.body));
+          //console.log("Sent POST /transactions with data:" + JSON.stringify(transaction) + "! Got reply:" + JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           var transaction2 = node.lisk.vote.createVote(node.peers_config.account, ["+9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"]);
           node.peer.post("/transactions")
@@ -138,7 +138,7 @@ describe("Peers votes", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-              console.log("Sent POST /transactions with data: " + JSON.stringify(transaction2) + "!. Got reply: " + res.body);
+              //console.log("Sent POST /transactions with data: " + JSON.stringify(transaction2) + "!. Got reply: " + res.body);
               node.expect(res.body).to.have.property("success").to.be.false;
               done();
             });
@@ -164,7 +164,7 @@ describe("Peers votes", function () {
           account.publicKey = res.body.account.publicKey;
         }
         else {
-          console.log("Open account failed or account object is null");
+          //console.log("Open account failed or account object is null");
           node.expect(true).to.equal(false);
           done();
         }

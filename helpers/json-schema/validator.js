@@ -57,6 +57,20 @@ JsonSchema.addRule("enum", {
 
 // String rules
 
+JsonSchema.addRule("case", {
+    validate : function(accept, value) {
+      if(accept==="lower"){
+        return String(value).toLowerCase() === String(value);
+      }
+      else if(accept==="upper"){
+        return String(value).toUpperCase() === String(value);
+      }
+      else{
+        return true;
+      }
+    }
+});
+
 JsonSchema.addRule("minLength", {
     validate : function(accept, value) {
         return String(value).length >= accept;

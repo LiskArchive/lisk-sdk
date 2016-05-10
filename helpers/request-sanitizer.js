@@ -192,7 +192,7 @@ RequestSanitizer.addRule("minLength", {
 RequestSanitizer.addRule("case", {
     message : "case is ${accept}.",
     validate : function(accept, value) {
-        return typeof value === "string" && ((accept==="lower" && value===value.toLowerCase())||(accept==="upper" && value===value.toUpperCase());
+        return typeof value === "string" && ((accept==="lower" && value===value.toLowerCase())||(accept==="upper" && value===value.toUpperCase()));
     },
     filter : function(accept, value, field){
         if (field.isEmpty() && field.rules.empty) return null;
