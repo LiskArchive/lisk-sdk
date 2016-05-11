@@ -410,8 +410,8 @@ private.loadBlockChain = function () {
 	library.logic.account.createTables(function (err) {
 		function reload (count, message) {
 			if (message) {
-				library.logger.info(message);
-				library.logger.info("Clearing mem_accounts and processing blocks");
+				library.logger.warn(message);
+				library.logger.warn("Recreating memory tables");
 			}
 			load(count);
 		}
@@ -420,62 +420,83 @@ private.loadBlockChain = function () {
 			throw err;
 		}
 
-		library.db.query('SELECT COUNT(*)::int FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" WHERE "numberOfTransactions" > 0 ORDER BY "height" DESC LIMIT 1)').then(function (rows) {
-			var reject = !(rows[0].count);
+		if (verify) {
+			return reload(count, "Blocks verification enabled");
+		}
 
-			modules.blocks.count(function (err, count) {
-				if (err) {
-					return library.logger.error("Failed to count blocks", err);
+		function checkMemTables (t) {
+			var promises = [
+				t.one("SELECT COUNT(\"rowId\")::int FROM blocks"),
+				t.one("SELECT COUNT(*)::int FROM mem_accounts WHERE \"blockId\" = (SELECT \"id\" FROM \"blocks\" WHERE \"numberOfTransactions\" > 0 ORDER BY \"height\" DESC LIMIT 1)"),
+				t.one("SELECT COUNT(*)::int FROM mem_round WHERE \"blockId\" = (SELECT \"id\" FROM \"blocks\" WHERE \"numberOfTransactions\" > 0 ORDER BY \"height\" DESC LIMIT 1)"),
+				t.query("SELECT \"round\" FROM mem_round GROUP BY \"round\"")
+			];
+
+			return t.batch(promises);
+		}
+
+		library.db.task(checkMemTables).then(function (results) {
+			var count = results[0].count,
+			    missedAccounts = !(results[1].count),
+			    missedRound = !(results[2].count);
+
+			library.logger.info("Blocks " + count);
+
+			if (count == 1) {
+				return reload(count);
+			}
+
+			if (missedAccounts) {
+				return reload(count, "Detected missed blocks in mem_accounts");
+			} else if (missedRound) {
+				return reload(count, "Detected missed blocks in mem_round");
+			}
+
+			var round = modules.round.calc(count);
+			var unapplied = results[3].filter(function (row) {
+				return (row.round != round);
+			});
+
+			if (unapplied.length > 0) {
+				return reload(count, "Detected unapplied rounds in mem_round");
+			}
+
+			function updateMemAccounts (t) {
+				var promises = [
+					t.none("UPDATE mem_accounts SET \"u_isDelegate\" = \"isDelegate\", \"u_secondSignature\" = \"secondSignature\", \"u_username\" = \"username\", \"u_balance\" = \"balance\", \"u_delegates\" = \"delegates\", \"u_multisignatures\" = \"multisignatures\""),
+					t.query("SELECT a.\"blockId\", b.\"id\" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b.\"id\" = a.\"blockId\" WHERE b.\"id\" IS NULL"),
+					t.query("SELECT ENCODE(\"publicKey\", 'hex') FROM mem_accounts WHERE \"isDelegate\" = 1")
+				];
+
+				return t.batch(promises);
+			}
+
+			library.db.task(updateMemAccounts).then(function (results) {
+				if (results[1].length > 0) {
+					return load(count);
 				}
 
-				library.logger.info("Blocks " + count);
-
-				if (count == 1) {
-					return reload(count);
-				} else if (verify) {
-					return reload(count, "Blocks verification enabled");
-				} else if (reject) {
-					return reload(count, "Found missing blocks in mem_accounts");
+				if (results[2].length == 0) {
+					return reload(count, "No delegates found");
 				}
 
-				library.db.none("UPDATE mem_accounts SET \"u_isDelegate\" = \"isDelegate\", \"u_secondSignature\" = \"secondSignature\", \"u_username\" = \"username\", \"u_balance\" = \"balance\", \"u_delegates\" = \"delegates\", \"u_multisignatures\" = \"multisignatures\"").then(function () {
-					library.db.query("SELECT a.\"blockId\", b.\"id\" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b.\"id\" = a.\"blockId\" WHERE b.\"id\" IS NULL").then(function (rows) {
-						if (rows.length > 0) {
-							return load(count);
-						}
-
-						// Load delegates
-						library.db.query("SELECT ENCODE(\"publicKey\", 'hex') FROM mem_accounts WHERE \"isDelegate\" = 1").then(function (delegates) {
-							if (delegates.length == 0) {
-								reload(count, "No delegates found");
-							} else {
-								modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
-									if (err) {
-										reload(count, err || "Failed to load blocks offset");
-									} else {
-										modules.blocks.loadLastBlock(function (err, block) {
-											if (err) {
-												return load(count);
-											}
-											private.lastBlock = block;
-											library.logger.info('Blockchain ready');
-											library.bus.message('blockchainReady');
-										});
-									}
-								});
+				modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
+					if (err) {
+						return reload(count, err || "Failed to load blocks offset");
+					} else {
+						modules.blocks.loadLastBlock(function (err, block) {
+							if (err) {
+								return load(count);
 							}
-						}).catch(function (err) {
-							reload(count, err);
+							private.lastBlock = block;
+							library.logger.info('Blockchain ready');
+							library.bus.message('blockchainReady');
 						});
-					}).catch(function (err) {
-						reload(count, err);
-					});
-				}).catch(function (err) {
-					reload(count, err);
+					}
 				});
 			});
-		}).catch(function (err) {
-			throw err;
+		}).catch(function (error) {
+			return reload(count, err);
 		});
 	});
 }
