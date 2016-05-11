@@ -30,6 +30,10 @@ function Delegate() {
 			username: data.username,
 			publicKey: data.sender.publicKey
 		};
+		//we want to be fail proof by giving a chance to register a clean lowercase username
+		if(trs.asset.delegate.username){
+			trs.asset.delegate.username=trs.asset.delegate.username.toLowerCase().trim();
+		}
 
 		return trs;
 	}
@@ -59,6 +63,10 @@ function Delegate() {
 			return cb("Username is undefined");
 		}
 
+		if (trs.asset.delegate.username!==trs.asset.delegate.username.toLowerCase()) {
+ 			return cb("Username should be lowercase");
+ 		}
+
 		var isAddress = /^[0-9]+[L|l]$/g;
 		var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
 
@@ -81,7 +89,7 @@ function Delegate() {
 		}
 
 		modules.accounts.getAccount({
-			username: trs.asset.delegate.username
+			username: username
 		}, function (err, account) {
 			if (err) {
 				return cb(err);

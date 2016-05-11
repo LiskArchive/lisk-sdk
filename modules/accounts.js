@@ -31,7 +31,7 @@ function Vote() {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId != trs.senderId) {
-			return setImmediate(cb, "Recipient is identical to sender");
+			return setImmediate(cb, "Recipient is not identical to sender");
 		}
 
 		if (!trs.asset.votes || !trs.asset.votes.length) {
@@ -39,7 +39,7 @@ function Vote() {
 		}
 
 		if (trs.asset.votes && trs.asset.votes.length > 33) {
-			return setImmediate(cb, "Voting limited exceeded. Maxmium is 33 per transaction");
+			return setImmediate(cb, "Voting limit exceeded. Maximum is 33 votes per transaction");
 		}
 
 		modules.delegates.checkDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
