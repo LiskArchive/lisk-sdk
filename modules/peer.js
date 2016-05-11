@@ -332,11 +332,16 @@ Peer.prototype.update = function (peer, cb) {
 
 	async.series([
 		function (cb) {
-			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
-				return cb(null, res);
-			}).catch(function (err) {
+			if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)) {
+				library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
+					return cb(null, res);
+				}).catch(function (err) {
+					return cb("Peer#update error");
+				});
+			}
+			else {
 				return cb("Peer#update error");
-			});
+			}
 		},
 		function (cb) {
 			if (peer.state !== undefined) {
