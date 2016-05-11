@@ -501,7 +501,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		url = options.url;
 	}
 
-	peer = modules.peer.inspect(peer);
+	peer = modules.peer.accept(peer);
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,

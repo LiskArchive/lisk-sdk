@@ -232,6 +232,9 @@ Peer.prototype.inspect = function (peer) {
 }
 
 Peer.prototype.accept = function (peer) {
+	if (/^[0-9]+$/.test(peer.ip)) {
+		peer.ip = ip.fromLong(peer.ip);
+	}
 	peer.port = parseInt(peer.port);
 
 	if (!peer || !peer.ip || !peer.port) {
