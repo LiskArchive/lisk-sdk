@@ -128,7 +128,7 @@ describe("Peers transactions", function () {
   });
 
   it("create transaction with no hex data for bytes values (public key/signature). should return not ok", function (done) {
-    var transaction = node.lisk.transaction.createTransaction("12L", 1, node.peers_config.account);
+    var transaction = node.lisk.transaction.createTransaction("12L", 1, node.Gaccount.password);
     transaction.signature = node.randomPassword();
     transaction.senderPublicKey = node.randomPassword();
     node.peer.post("/transactions")

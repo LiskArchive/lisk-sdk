@@ -331,7 +331,6 @@ module.exports = {
   randomCapitalUsername: randomCapitalUsername,
   expectedFee:expectedFee,
   addPeers:addPeers,
-  peers_config: config.mocha.peers,
   config: config,
   waitForNewBlock: waitForNewBlock,
   getHeight: getHeight,
