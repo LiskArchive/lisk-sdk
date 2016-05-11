@@ -24,6 +24,9 @@ function Transfer() {
 		trs.recipientId = data.recipientId;
 		trs.amount = data.amount;
 
+		if(trs.recipientUsername){
+			trs.recipientUsername=trs.recipientUsername.toLowerCase();
+		}
 		return trs;
 	}
 

@@ -432,6 +432,9 @@ shared.pending = function (req, cb) {
 		}
 
 		var transactions = modules.transactions.getUnconfirmedTransactionList();
+		transactions=transactions.filter(function(transaction){
+			return transaction.senderPublicKey===query.publicKey;
+		});
 
 		var pendings = [];
 		async.eachSeries(transactions, function (item, cb) {

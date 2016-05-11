@@ -31,6 +31,10 @@ function Delegate() {
 			publicKey: data.sender.publicKey
 		};
 
+		if(trs.asset.delegate.username){
+			trs.asset.delegate.username=trs.asset.delegate.username.toLowerCase();
+		}
+
 		return trs;
 	}
 
@@ -57,6 +61,10 @@ function Delegate() {
 
 		if (!trs.asset.delegate.username) {
 			return cb("Username is undefined");
+		}
+
+		if (trs.asset.delegate.username!==trs.asset.delegate.username.toLowerCase()) {
+			return cb("Username is not lowercase");
 		}
 
 		var isAddress = /^[0-9]+[L|l]$/g;

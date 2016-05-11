@@ -189,6 +189,23 @@ RequestSanitizer.addRule("minLength", {
     }
 });
 
+RequestSanitizer.addRule("case", {
+    message : "case is ${accept}.",
+    validate : function(accept, value) {
+        return typeof value === "string" && ((accept==="lower" && value===value.toLowerCase())||(accept==="upper" && value===value.toUpperCase()));
+    },
+    filter : function(accept, value, field){
+        if (field.isEmpty() && field.rules.empty) return null;
+
+        if(accept==="lower"){
+          return String(value||'').toLowerCase();
+        }
+        else if(accept==="upper"){
+          return String(value||'').toUpperCase();
+        }
+    }
+});
+
 RequestSanitizer.addRule("maxLength", {
     message : "maximum length is ${accept}.",
     validate : function(accept, value) {
