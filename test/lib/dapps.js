@@ -36,7 +36,7 @@ describe("Dapps", function() {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         console.log("Opening Account 1 with password: " + Account1.password);
         node.expect(res.body).to.have.property("success").to.be.true;
         if (res.body.success == true && res.body.account != null){
@@ -63,7 +63,7 @@ describe("Dapps", function() {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log("register second password");
+        //console.log("register second password");
         console.log("Opening Account 2 with password: " + Account2.password);
         node.expect(res.body).to.have.property("success").to.be.true;
         if (res.body.success == true && res.body.account != null) {
@@ -90,7 +90,7 @@ describe("Dapps", function() {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         console.log("Opening Account 3 with password: " + Account3.password);
         node.expect(res.body).to.have.property("success").to.be.true;
         if (res.body.success == true && res.body.account != null) {
@@ -121,10 +121,10 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           if (res.body.success == true && res.body.transactionId != null) {
-            console.log("Sent to " + Account1.address + " " + (randomLISK / node.normalizer) + " LISK");
+            //console.log("Sent to " + Account1.address + " " + (randomLISK / node.normalizer) + " LISK");
             transactionCount += 1;
             Account1.transactions.push(transactionCount);
             Account1.balance += randomLISK;
@@ -153,10 +153,10 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
-          console.log("We send the LISK from genesis account to account. Recipient is: " + Account2.address);
+          //console.log(JSON.stringify(res.body));
+          //console.log("We send the LISK from genesis account to account. Recipient is: " + Account2.address);
           console.log("Sent to " + Account2.address + " " + (randomLISK / node.normalizer) + " LISK");
-          console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
+          //console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
           node.expect(res.body).to.have.property("success").to.be.true;
           if (res.body.success == true && res.body.transactionId != null) {
             Account2.transactions.push(transactionCount);
@@ -196,15 +196,15 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("transaction").that.is.an("object");
           done();
         });
     });
-    console.log("ACCOUNT 1: " + Account1.address);
-    console.log("ACCOUNT 2: " + Account2.address);
-    console.log("ACCOUNT 3: " + Account3.address);
+    //console.log("ACCOUNT 1: " + Account1.address);
+    //console.log("ACCOUNT 2: " + Account2.address);
+    //console.log("ACCOUNT 3: " + Account3.address);
 
   });
 
@@ -227,7 +227,7 @@ describe("Dapps", function() {
           .expect("Content-Type", /json/)
           .expect(200)
           .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
+            //console.log(JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.false;
             node.expect(res.body).to.have.property("error");
             done();
@@ -252,7 +252,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -275,7 +275,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -298,7 +298,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -322,7 +322,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -346,7 +346,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -368,7 +368,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -392,7 +392,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.error;
           done();
         });
@@ -415,7 +415,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           done();
         });
@@ -439,7 +439,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           done();
         });
@@ -464,7 +464,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+          //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           done();
         });
@@ -516,7 +516,7 @@ describe("Dapps", function() {
           .expect("Content-Type", /json/)
           .expect(200)
           .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
+            //console.log(JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.false;
             done();
           });
@@ -541,7 +541,7 @@ describe("Dapps", function() {
           .expect("Content-Type", /json/)
           .expect(200)
           .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
+            //console.log(JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.false;
             node.expect(res.body).to.have.property("error");
             done();
@@ -562,7 +562,7 @@ describe("Dapps", function() {
           .expect("Content-Type", /json/)
           .expect(200)
           .end(function (err, res) {
-            console.log(JSON.stringify(res.body));
+            //console.log(JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.true;
             node.expect(res.body).to.have.property("dapps").that.is.an("array");
             if (res.body.success == true && res.body.dapps != null){
@@ -572,7 +572,7 @@ describe("Dapps", function() {
               }
             }
             else {
-              console.log(JSON.stringify(res.body));
+             //console.log(JSON.stringify(res.body));
               console.log("Request failed or dapps array is null");
             }
             done();
@@ -587,7 +587,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -601,7 +601,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null) {
@@ -614,7 +614,7 @@ describe("Dapps", function() {
             }
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -628,7 +628,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
@@ -641,7 +641,7 @@ describe("Dapps", function() {
             }
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -655,14 +655,14 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
             node.expect((res.body.dapps).length).to.be.at.most(limit);
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -676,7 +676,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
@@ -685,7 +685,7 @@ describe("Dapps", function() {
             }
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -705,7 +705,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           if (name == "test"){
             node.expect(res.body).to.have.property("success");
           }
@@ -717,7 +717,7 @@ describe("Dapps", function() {
               node.expect(res.body.dapps[0].name).to.equal(name);
             }
             else {
-              console.log(JSON.stringify(res.body));
+             //console.log(JSON.stringify(res.body));
               console.log("Request failed or dapps array is null");
             }
           }
@@ -732,7 +732,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
@@ -743,7 +743,7 @@ describe("Dapps", function() {
             }
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -757,7 +757,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
@@ -768,7 +768,7 @@ describe("Dapps", function() {
             }
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -782,7 +782,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
@@ -795,7 +795,7 @@ describe("Dapps", function() {
             }
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -810,7 +810,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
@@ -821,7 +821,7 @@ describe("Dapps", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                  console.log(JSON.stringify(res.body));
+                 //console.log(JSON.stringify(res.body));
                   node.expect(res.body).to.have.property("success").to.be.true;
                   if (res.body.success == true && res.body.dapps != null){
                     node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
@@ -829,12 +829,12 @@ describe("Dapps", function() {
                 });
             }
             else {
-              console.log(JSON.stringify(res.body));
+             //console.log(JSON.stringify(res.body));
               console.log("Only 1 dapp or something went wrong. cannot check offset");
             }
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -851,7 +851,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -864,7 +864,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -878,14 +878,14 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapp");
           if (res.body.success == true && res.body.dapp != null){
             node.expect(res.body.dapp.transactionId).to.equal(dappId);
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -906,7 +906,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -924,7 +924,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -954,11 +954,11 @@ describe("Dapps", function() {
                 node.expect(res.body.installing[0]).to.equal(dappId);
               }
               else {
-                console.log(JSON.stringify(res.body));
+               //console.log(JSON.stringify(res.body));
                 console.log("Request failed or installing array is null");
               }
             });
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("path");
           if (res.body.success == true){
@@ -979,7 +979,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           if (res.body.success == true && res.body.dapps != null){
@@ -993,7 +993,7 @@ describe("Dapps", function() {
             node.expect(flag).to.equal(1);
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -1007,7 +1007,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("ids").that.is.an("array");
           if (res.body.success == true && res.body.ids != null){
@@ -1021,7 +1021,7 @@ describe("Dapps", function() {
             node.expect(flag).to.equal(1);
           }
           else {
-            console.log(JSON.stringify(res.body));
+           //console.log(JSON.stringify(res.body));
             console.log("Request failed or dapps array is null");
           }
           done();
@@ -1039,7 +1039,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -1048,12 +1048,14 @@ describe("Dapps", function() {
 
     test += 1;
     it(test + ". Search for Installed Dapps. We expect success",function(done){
-      var q = "SELECT * DAPPS WHERE ID > 0"; var category = node.randomProperty(node.DappCategory, true); var installed = 1;
-      node.api.get("/dapps/search?q=" + q + "&installed"+ installed)
+      var q = "a";
+      var category = node.randomProperty(node.DappCategory, true);
+      var installed = 1;
+      node.api.get("/dapps/search?q=" + q + "&installed="+ installed + "&category=" + category)
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           done();
@@ -1062,15 +1064,15 @@ describe("Dapps", function() {
 
     test += 1;
     it(test + ". Search for Dapps that are not installed. We expect success",function(done){
-      var q = "SELECT * DAPPS WHERE ID > 0";
+      var q = "s";
       var category = node.randomProperty(node.DappCategory);
       var installed = 0;
 
-      node.api.get("/dapps/search?q=" + q + "&installed"+ installed + "&category=" + category)
+      node.api.get("/dapps/search?q=" + q + "&installed="+ installed + "&category=" + category)
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("dapps").that.is.an("array");
           done();
@@ -1091,7 +1093,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -1110,7 +1112,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -1119,7 +1121,7 @@ describe("Dapps", function() {
 
     test += 1;
     it(test + ".Attempting to launch Dapp. Valid ID. We expect success",function(done){
-      var dappId = installedDapp.transactionId;
+      var dappId = DappToInstall.transactionId;
       node.api.post("/dapps/launch")
         .set("Accept", "application/json")
         .send({
@@ -1129,13 +1131,13 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.api.get("/dapps/launched")
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-              console.log(JSON.stringify(res.body));
+             //console.log(JSON.stringify(res.body));
               node.expect(res.body).to.have.property("success").to.be.true;
               node.expect(res.body).to.have.property("launched").that.is.an("array");
               if(res.body.success == true && res.body.launched != null){
@@ -1150,7 +1152,7 @@ describe("Dapps", function() {
                 node.expect(flag).to.equal(1);
               }
               else {
-                console.log(JSON.stringify(res.body));
+               //console.log(JSON.stringify(res.body));
                 console.log("Request failed or launched array is null");
               }
             });
@@ -1172,7 +1174,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -1191,7 +1193,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -1226,7 +1228,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           node.expect(res.body).to.have.property("categories").that.is.an("object");
           for (var i in node.DappCategory) {
@@ -1251,7 +1253,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -1269,7 +1271,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           node.expect(res.body).to.have.property("error");
           done();
@@ -1288,7 +1290,7 @@ describe("Dapps", function() {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log(JSON.stringify(res.body));
+         //console.log(JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
           done();
         });
