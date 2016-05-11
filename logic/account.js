@@ -534,13 +534,15 @@ Account.prototype.createTables = function (cb) {
 }
 
 Account.prototype.removeTables = function (cb) {
-	var sqles = [];
+	var sqles = [], sql;
 
-	var sql = jsonSql.build({
-		type: 'remove',
-		table: this.table
+	[this.table, "mem_round"].forEach(function (table) {
+		sql = jsonSql.build({
+			type: "remove",
+			table: table
+		});
+		sqles.push(sql.query);
 	});
-	sqles.push(sql.query);
 
 	var i, concatenated = "";
 
