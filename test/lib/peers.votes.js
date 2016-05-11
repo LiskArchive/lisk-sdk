@@ -3,27 +3,31 @@ var node = require("./../variables.js"),
 
 var test = 0;
 var account = node.randomAccount();
-var alreadyVoted = 0;
-var alreadyRemoved = 1;
+var delegate1Voted = false;
+var delegate2Voted = false;
+
+var delegate1="cd4605500c55816592a531c6e357dfe6075f9c0d5bffc961d6847ed8f6e9c190";
+var delegate2="0ac9f9bf9a35ae05176121392ce308765ee8c956d3d86acf6a23959155dd35b4";
 node.chai.config.includeStack = true;
 
 describe("Peers votes", function () {
   before(function (done) {
-    node.api.get("/delegates/voters?publicKey=" + node.peers_config.publicKey)
+    node.api.get("/accounts/delegates/?address=" + node.Gaccount.address)
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        var transaction=null;
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.true;
         if (res.body.success == true){
-          node.expect(res.body).to.have.property("accounts").that.is.an("array");
-          if (res.body.accounts != null) {
-            for (var i = 0; i < res.body.accounts.length; i++) {
-              if (res.body.accounts[i].publicKey == "badf44a77df894ccad87fa62bac892e63e5e39fd972f6a3e6e850ed1a1708e98") {
-                alreadyVoted = 1;
+          node.expect(res.body).to.have.property("delegates").that.is.an("array");
+          if (res.body.delagates !== null) {
+            for (var i = 0; i < res.body.delegates.length; i++) {
+              if (res.body.delegates[i].publicKey == delegate1) {
+                delegate1Voted = true;
               }
-              else if (res.body.accounts[i].publicKey == "9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"){
-                alreadyRemoved = 0;
+              else if (res.body.delegates[i].publicKey == delegate2){
+                delegate2Voted = true;
               }
             }
           }
@@ -35,16 +39,16 @@ describe("Peers votes", function () {
           console.log("Check if already voted request failed or account array null");
           done();
         }
-        if (alreadyVoted == 1 && alreadyRemoved == 0) {
-          var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+badf44a77df894ccad87fa62bac892e63e5e39fd972f6a3e6e850ed1a1708e98", "+9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"]);
+        if (!delegate1Voted && !delegate2Voted) {
+          transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1, "+"+delegate2]);
         }
-        else if (alreadyVoted == 1) {
-          var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+badf44a77df894ccad87fa62bac892e63e5e39fd972f6a3e6e850ed1a1708e98"]);
+        else if (delegate1Voted && !delegate2Voted) {
+          transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate2]);
         }
-        else if (alreadyRemoved == 0) {
-          var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"]);
+        else if (delegate2Voted && !delegate1Voted) {
+          transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1]);
         }
-        if (alreadyVoted == 1 || alreadyRemoved == 0) {
+        if (transaction!==null) {
           node.peer.post("/transactions")
             .set("Accept", "application/json")
             .set("version", node.version)
@@ -56,7 +60,8 @@ describe("Peers votes", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-              console.log("Sent vote fix for delegates. Sent: " + JSON.stringify(transaction) + "Got reply: " + JSON.stringify(res.body));
+              console.log("Sent vote fix for delegates");
+              //console.log("Sent: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
               node.expect(res.body).to.have.property("success").to.be.true;
               done();
             });
@@ -70,7 +75,7 @@ describe("Peers votes", function () {
   test = test + 1;
   it("Voting twice for a delegate. Should not be ok", function (done) {
     node.onNewBlock(function (err) {
-      var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+badf44a77df894ccad87fa62bac892e63e5e39fd972f6a3e6e850ed1a1708e98"]);
+      var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1]);
       node.peer.post("/transactions")
         .set("Accept", "application/json")
         .set("version", node.version)
@@ -82,7 +87,7 @@ describe("Peers votes", function () {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log("Sending POST /transactions with data: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
+          //console.log("Sending POST /transactions with data: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.false;
           done();
         });
@@ -91,7 +96,7 @@ describe("Peers votes", function () {
 
   test = test + 1;
   it("Removing votes from a delegate. Should be ok", function (done) {
-    var transaction = node.lisk.vote.createVote(node.peers_config.account, ["-badf44a77df894ccad87fa62bac892e63e5e39fd972f6a3e6e850ed1a1708e98"]);
+    var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-"+delegate1]);
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
@@ -103,7 +108,7 @@ describe("Peers votes", function () {
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        console.log(JSON.stringify(res.body));
+        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.true;
         done();
       });
@@ -112,7 +117,7 @@ describe("Peers votes", function () {
   test = test + 1;
   it("Removing votes from a delegate and then voting again. Should not be ok", function (done) {
     node.onNewBlock(function (err) {
-      var transaction = node.lisk.vote.createVote(node.peers_config.account, ["-9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"]);
+      var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-"+delegate2]);
       node.peer.post("/transactions")
         .set("Accept", "application/json")
         .set("version", node.version)
@@ -124,9 +129,9 @@ describe("Peers votes", function () {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-          console.log("Sent POST /transactions with data:" + JSON.stringify(transaction) + "! Got reply:" + JSON.stringify(res.body));
+          //console.log("Sent POST /transactions with data:" + JSON.stringify(transaction) + "! Got reply:" + JSON.stringify(res.body));
           node.expect(res.body).to.have.property("success").to.be.true;
-          var transaction2 = node.lisk.vote.createVote(node.peers_config.account, ["+9062a3b2d585be13b66e705af3f40657a97d0e4a27ec56664e05cdb5c953b0f6"]);
+          var transaction2 = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate2]);
           node.peer.post("/transactions")
             .set("Accept", "application/json")
             .set("version", node.version)
@@ -138,7 +143,7 @@ describe("Peers votes", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-              console.log("Sent POST /transactions with data: " + JSON.stringify(transaction2) + "!. Got reply: " + res.body);
+              //console.log("Sent POST /transactions with data: " + JSON.stringify(transaction2) + "!. Got reply: " + res.body);
               node.expect(res.body).to.have.property("success").to.be.false;
               done();
             });
@@ -164,7 +169,7 @@ describe("Peers votes", function () {
           account.publicKey = res.body.account.publicKey;
         }
         else {
-          console.log("Open account failed or account object is null");
+          //console.log("Open account failed or account object is null");
           node.expect(true).to.equal(false);
           done();
         }
@@ -174,8 +179,8 @@ describe("Peers votes", function () {
           .set("share-port",1)
           .set("port",node.config.port)
           .send({
-            secret: node.peers_config.account,
-            amount: node.Fees.delegateRegistrationFee,
+            secret: node.Gaccount.password,
+            amount: node.Fees.delegateRegistrationFee+node.Fees.voteFee,
             recipientId: account.address
           })
           .expect("Content-Type", /json/)
@@ -183,9 +188,8 @@ describe("Peers votes", function () {
           .end(function (err, res) {
             node.onNewBlock(function (err) {
               node.expect(err).to.be.not.ok;
-              account.username = node.randomDelegateName();
+              account.username = node.randomDelegateName().toLowerCase();
               var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
-              transaction.fee = node.Fees.delegateRegistrationFee;
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version",node.version)
@@ -207,7 +211,7 @@ describe("Peers votes", function () {
 
   test = test + 1;
   it("Voting for a delegate. Should be ok", function (done) {
-    var transaction = node.lisk.vote.createVote(node.peers_config.account, ["+" + account.publicKey]);
+    var transaction = node.lisk.vote.createVote(account.password, ["+" + account.publicKey]);
     node.onNewBlock(function (err) {
       node.expect(err).to.be.not.ok;
       node.peer.post("/transactions")

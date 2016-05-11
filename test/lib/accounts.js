@@ -30,7 +30,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("account").that.is.an("object");
                 node.expect(res.body.account.address).to.equal(Saccount.address);
@@ -49,7 +49,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide secret key of account");
@@ -67,7 +67,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide secret key of account");
@@ -83,7 +83,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide secret key of account");
@@ -98,7 +98,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("balance");
                 node.expect(res.body.balance).to.equal(Saccount.balance);
@@ -113,7 +113,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // expect(res.body.error).to.contain("Provide valid Lisk address");
@@ -128,7 +128,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide address in url");
@@ -143,7 +143,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("publicKey");
                 node.expect(res.body.publicKey).to.equal(Saccount.publicKey);
@@ -158,7 +158,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // expect(res.body.error).to.contain("Provide valid Lisk address");
@@ -173,7 +173,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // expect(res.body.error).to.contain("Provide valid Lisk address");
@@ -191,7 +191,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("publicKey");
                 node.expect(res.body.publicKey).to.equal(Saccount.publicKey);
@@ -209,7 +209,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide secret key");
@@ -226,7 +226,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide secret key");
@@ -242,7 +242,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide secret key");
@@ -258,7 +258,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide secret key");
@@ -273,7 +273,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("account").that.is.an("object");
                 node.expect(res.body.account.address).to.equal(Saccount.address);
@@ -290,7 +290,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // expect(res.body.error).to.contain("Provide valid Lisk address");
@@ -305,7 +305,7 @@ describe("Account", function() {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res){
-                console.log(JSON.stringify(res.body));
+                //console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 // node.expect(res.body.error).to.contain("Provide address in url");

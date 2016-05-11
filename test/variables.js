@@ -31,7 +31,7 @@ var version = "0.2.1" // Node version
 var Fees = {
   voteFee: 100000000,
   transactionFee: 10000000,
-  secondPasswordFee: 10000000000,
+  secondPasswordFee: 500000000,
   delegateRegistrationFee: 10000000000,
   multisignatureRegistrationFee: 500000000,
   dappAddFee: 50000000000
@@ -146,7 +146,7 @@ function getHeight(cb) {
 
 function onNewBlock(cb) {
   getHeight(function(err, height) {
-    console.log("Height: " + height);
+    //console.log("Height: " + height);
     if (err) {
       return cb(err);
     } else {
@@ -331,7 +331,6 @@ module.exports = {
   randomCapitalUsername: randomCapitalUsername,
   expectedFee:expectedFee,
   addPeers:addPeers,
-  peers_config: config.mocha.peers,
   config: config,
   waitForNewBlock: waitForNewBlock,
   getHeight: getHeight,

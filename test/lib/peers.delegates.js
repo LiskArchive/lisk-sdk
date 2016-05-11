@@ -24,7 +24,7 @@ describe("Peers delegates transactions", function () {
           .set("share-port", 1)
           .set("port", node.config.port)
           .send({
-            secret: node.peers_config.account,
+            secret: node.Gaccount.password,
             amount: node.Fees.delegateRegistrationFee,
             recipientId: account.address
           })
@@ -47,7 +47,7 @@ describe("Peers delegates transactions", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                  console.log(JSON.stringify(res.body));
+                  //console.log(JSON.stringify(res.body));
                   node.expect(res.body).to.have.property("success").to.be.false;
                   done();
                 });
@@ -57,8 +57,29 @@ describe("Peers delegates transactions", function () {
   });
 
   it("Creating a delegate from an account with no funds. Should not be ok", function (done) {
-    var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
+    var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
     transaction.fee = node.Fees.delegateRegistrationFee;
+
+    node.peer.post("/transactions")
+      .set("Accept", "application/json")
+      .set("version", node.version)
+      .set("share-port", 1)
+      .set("port", node.config.port)
+      .send({
+        transaction: transaction
+      })
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .end(function (err, res) {
+        //console.log(JSON.stringify(res.body));
+        node.expect(res.body).to.have.property("success").to.be.false;
+        done();
+      });
+  });
+
+  it("Creating a delegate from an account with funds. Username uppercase. Should be not ok", function (done) {
+    account.username = node.randomDelegateName().toUpperCase();
+    var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
     node.peer.post("/transactions")
       .set("Accept", "application/json")
@@ -77,10 +98,9 @@ describe("Peers delegates transactions", function () {
       });
   });
 
-  it("Creating a delegate from an account with funds. Should be ok", function (done) {
-    account.username = node.randomDelegateName();
+  it("Creating a delegate from an account with funds. Username is lowercase. Should be ok", function (done) {
+    account.username = node.randomDelegateName().toLowerCase();
     var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
-    transaction.fee = node.Fees.delegateRegistrationFee;
 
     node.peer.post("/transactions")
       .set("Accept", "application/json")
@@ -112,25 +132,26 @@ describe("Peers delegates transactions", function () {
       .expect(200)
       .end(function (err, res) {
         account2.address = res.body.account.address;
+        //console.log(account2);
         node.api.put("/transactions")
           .set("Accept", "application/json")
           .set("version", node.version)
           .set("share-port", 1)
           .set("port", node.config.port)
           .send({
-            secret: node.peers_config.account,
+            secret: node.Gaccount.password,
             amount: node.Fees.delegateRegistrationFee,
             recipientId: account2.address
           })
           .expect("Content-Type", /json/)
           .expect(200)
           .end(function (err, res) {
+            //console.log(res.body);
             node.onNewBlock(function (err) {
               node.expect(err).to.be.not.ok;
-              account2.username = node.randomDelegateName();
+              account2.username = node.randomDelegateName().toLowerCase();
               var transaction = node.lisk.delegate.createDelegate(account2.password, account2.username);
-              transaction.fee = node.Fees.delegateRegistrationFee;
-
+              //console.log(transaction);
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
@@ -142,11 +163,11 @@ describe("Peers delegates transactions", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
+                  //console.log(res.body);
                   node.expect(res.body).to.have.property("success").to.be.true;
 
-                  account2.username = node.randomDelegateName();
+                  account2.username = node.randomDelegateName().toLowerCase();
                   var transaction2 = node.lisk.delegate.createDelegate(account2.password, account2.username);
-                  transaction2.fee = node.Fees.delegateRegistrationFee;
 
                   node.peer.post("/transactions")
                     .set("Accept", "application/json")
@@ -159,7 +180,7 @@ describe("Peers delegates transactions", function () {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                      console.log(JSON.stringify(res.body));
+                      //console.log(JSON.stringify(res.body));
                       node.expect(res.body).to.have.property("success").to.be.false;
                       done();
                     });
@@ -168,4 +189,25 @@ describe("Peers delegates transactions", function () {
           });
       });
   });
+
+  it("Creating a delegate on next block from an account with funds. Username is uppercase, and lowercas is already registered. Should be not ok", function (done) {
+    var transaction = node.lisk.delegate.createDelegate(account2.password, account.username.toUpperCase());
+
+    node.peer.post("/transactions")
+      .set("Accept", "application/json")
+      .set("version", node.version)
+      .set("share-port", 1)
+      .set("port", node.config.port)
+      .send({
+        transaction: transaction
+      })
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .end(function (err, res) {
+        //console.log(JSON.stringify(res.body));
+        node.expect(res.body).to.have.property("success").to.be.false;
+        done();
+      });
+  });
+
 });
