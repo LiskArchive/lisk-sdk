@@ -190,7 +190,7 @@ describe("Peers delegates transactions", function () {
       });
   });
 
-  it("Creating a delegate on next block from an account with funds. Username is uppercase, and lowercas is already registered. Should be not ok", function (done) {
+  it("Creating a delegate on next block from an account with funds. Username is uppercase, and lowercase is already registered. Should be not ok", function (done) {
     var transaction = node.lisk.delegate.createDelegate(account2.password, account.username.toUpperCase());
 
     node.peer.post("/transactions")
