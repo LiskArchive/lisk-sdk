@@ -286,24 +286,11 @@ d.run(function () {
 			scope.network.app.set("view engine", "ejs");
 			scope.network.app.set("views", path.join(__dirname, "public"));
 			scope.network.app.use(scope.network.express.static(path.join(__dirname, "public")));
-			scope.network.app.use(function (req, res, next) {
-			  getRawBody(req, {
-			    length: req.headers['content-length'],
-			    limit: '2mb'
-			  }, function (err, string) {
-
-			    if(err){
-						//logging sensible information to help reducing attack such as banning ip
-						scope.logger.info("From "+ req.ip +" sent a request too large, length="+(err.length/1000000).toFixed(2) + "MB");
-						return next(err.message + " length="+err.length+ " limit="+err.limit);
-					}
-			    req.text = string;
-			    next();
-			  })
-			});
+			scope.network.app.use(bodyParser.raw({limit: "2mb"}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: "2mb", parameterLimit: 5000}));
 			scope.network.app.use(bodyParser.json({limit: "2mb"}));
 			scope.network.app.use(methodOverride());
+
 
 			var ignore = ["id", "name", "lastBlockId", "blockId", "transactionId", "address", "recipientId", "senderId", "previousBlock"];
 			scope.network.app.use(queryParser({

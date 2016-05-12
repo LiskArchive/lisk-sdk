@@ -13,9 +13,32 @@ var block = {
 
 var testBlocksUnder101 = 0;
 
-console.log("Starting miscellaneous tests");
 
 describe("Miscellaneous tests (peers, blocks, etc)", function () {
+
+    describe("Load Testing",function(){
+        test = test + 1;
+        it(test + ". We attempt to send a payload of just over 2Mb, should fail",function(done){
+            var data="qs";
+            for (var i = 0; i < 20; i++) {
+              data += data;
+            }
+            node.api.post("/accounts/open")
+                .set("Accept", "application/json")
+                .send({
+                    payload: data
+                })
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    //console.log(JSON.stringify(res.body));
+                    node.expect(res.body).to.have.property("success").to.be.false;
+                    node.expect(res.body).to.have.property("error").that.is.an("object");
+                    node.expect(res.body.error).to.have.property("limit").to.equal(2097152);
+                    done();
+                });
+        });
+    });
 
     describe("/peers tests", function () {
 
