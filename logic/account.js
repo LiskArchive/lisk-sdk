@@ -681,7 +681,7 @@ Account.prototype.set = function (address, fields, cb) {
 		return pgp.as.format(sql.query, sql.values);
 	}).join('');
 
-	this.scope.db.query(queries).then(function () {
+	this.scope.db.none(queries).then(function () {
 		return cb();
 	}).catch(function (err) {
 		return cb("Account#set error");
