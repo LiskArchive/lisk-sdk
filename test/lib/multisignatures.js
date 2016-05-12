@@ -28,32 +28,30 @@ var MultiSigTX = {
 var accountOpenTurn = 0;
 
 function openAccount (account, i){
-        node.api.post("/accounts/open")
-            .set("Accept", "application/json")
-            .send({
-                secret: account.password,
-                secondSecret: account.secondPassword
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                if (i != null){
-                    console.log("Opening Account " + i + " with password: " + account.password);
-                }
-                node.expect(res.body).to.have.property("success").to.be.true;
-                if (res.body.account != null && i != null) {
-                    Accounts[i].address = res.body.account.address;
-                    Accounts[i].publicKey = res.body.account.publicKey;
-                }
-                else if (account.name == "nolisk"){
-                    NoLISKAccount.address = res.body.account.address;
-                    NoLISKAccount.publicKey = res.body.account.publicKey;
-                }
-                else if (account.name == "multi"){
-                    MultisigAccount.address = res.body.account.address;
-                    MultisigAccount.publicKey = res.body.account.publicKey;
-                }
-            });
+    node.api.post("/accounts/open")
+        .set("Accept", "application/json")
+        .send({
+            secret: account.password,
+            secondSecret: account.secondPassword
+        })
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            if (i != null){
+                console.log("Opening Account " + i + " with password: " + account.password);
+            }
+            node.expect(res.body).to.have.property("success").to.be.true;
+            if (res.body.account != null && i != null) {
+                  Accounts[i].address = res.body.account.address;
+                  Accounts[i].publicKey = res.body.account.publicKey;
+            } else if (account.name == "nolisk") {
+                NoLISKAccount.address = res.body.account.address;
+                NoLISKAccount.publicKey = res.body.account.publicKey;
+            } else if (account.name == "multi") {
+                MultisigAccount.address = res.body.account.address;
+                MultisigAccount.publicKey = res.body.account.publicKey;
+            }
+          });
 }
 
 // Used for sending LISK to accounts
@@ -103,27 +101,26 @@ function sendLISKfromMultisigAccount (amount, recipient){
 }
 
 function confirmTransaction (account, id){
-        node.api.put("/multisignatures/sign")
-            .set("Accept", "application/json")
-            .send({
-                secret: account.password,
-                transactionId: id
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                //console.log("Signing Tx ID = " + id + " from account with password = " + account.password + " Got reply: " + JSON.stringify(res.body));
-                node.expect(res.body).to.have.property("success").to.be.true;
-            });
+    node.api.put("/multisignatures/sign")
+        .set("Accept", "application/json")
+        .send({
+            secret: account.password,
+            transactionId: id
+        })
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            //console.log("Signing Tx ID = " + id + " from account with password = " + account.password + " Got reply: " + JSON.stringify(res.body));
+            node.expect(res.body).to.have.property("success").to.be.true;
+        });
 }
-
 
 // Used for KeysGroup
 var Keys;
 
 function makeKeysGroup (){
     var keysgroup = [];
-    for (var i=0; i < totalMembers; i++){
+    for (var i = 0; i < totalMembers; i++){
         var member = "+" + Accounts[i].publicKey;
         keysgroup.push(member);
     }
