@@ -5,6 +5,13 @@ var node = require("./../variables.js");
 
 // Account info for a RANDOM account (which we create later) - 0 LISK amount | Will act as delegate
 var Raccount = node.randomAccount();
+while(Raccount.username===Raccount.username.toUpperCase()){
+  Raccount = node.randomAccount();
+}
+// second RANDOM account  - 0 LISK amount | Will test registration with same delegate name, changing case
+var R2account = node.randomAccount();
+R2account.username=Raccount.username.toUpperCase();
+//console.log(JSON.stringify(R2account));
 
 var test = 0;
 
@@ -16,7 +23,7 @@ console.log("Random delegate username is: " + Raccount.username);
 
 // Starting tests //
 
-describe("Delegates", function() {
+  describe("Delegates", function() {
 
     describe("Voting and delegate registrations from an account with 0 LISK", function() {
 
@@ -30,7 +37,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("account").that.is.an("object");
                     Raccount.address = res.body.account.address;
@@ -48,7 +55,7 @@ describe("Delegates", function() {
                             .expect("Content-Type", /json/)
                             .expect(200)
                             .end(function (err, res) {
-                                console.log(JSON.stringify(res.body));
+                                //console.log(JSON.stringify(res.body));
                                 node.expect(res.body).to.have.property("success").to.be.false;
                                 node.expect(res.body).to.have.property("error");
                                 node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
@@ -70,7 +77,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         node.expect(res.body.error).to.contain("Failed to remove vote");
@@ -90,15 +97,15 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     if (res.body.success == false && res.body.error != null){
                         node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
                     }
                     else{
-                        console.log("Expected error and got success");
-                        console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
+                        //console.log("Expected error and got success");
+                        //console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -107,7 +114,7 @@ describe("Delegates", function() {
 
     });
 
-    describe("Upvoting and downvoting",function() {
+     describe("Upvoting and downvoting",function() {
 
         before(function(done){
             // Send random LISK amount from genesis account to Random account
@@ -122,7 +129,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transactionId");
                     if (res.body.success == true && res.body.transactionId != null){
@@ -130,8 +137,8 @@ describe("Delegates", function() {
                         Raccount.amount += node.LISK;
                     }
                     else{
-                        console.log("Transaction failed or transactionId is null");
-                        console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + node.LISK + ", recipientId: " + Raccount.address);
+                        //console.log("Transaction failed or transactionId is null");
+                        //console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + node.LISK + ", recipientId: " + Raccount.address);
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -142,7 +149,7 @@ describe("Delegates", function() {
             // Check that Raccount has the LISK we sent
 
             node.onNewBlock(function(err){
-            node.expect(err).to.be.not.ok;
+                node.expect(err).to.be.not.ok;
 
                 node.api.post("/accounts/open")
                     .set("Accept", "application/json")
@@ -152,14 +159,14 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         if (res.body.success == true && res.body.account != null){
                             node.expect(res.body.account.balance).to.be.equal(String(node.LISK));
                         }
                         else{
-                            console.log("Failed to open account or account object is null");
-                            console.log("Sent: secret: " + Raccount.password);
+                            //console.log("Failed to open account or account object is null");
+                            //console.log("Sent: secret: " + Raccount.password);
                             node.expect("TEST").to.equal("FAILED");
                         }
                         done();
@@ -180,11 +187,11 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         if (res.body.success == true){
-                            console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
+                            //console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
                         }
                         done();
                     });
@@ -204,11 +211,11 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         if (res.body.success == true){
-                            console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
+                            //console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
                         }
                         done();
                     });
@@ -228,11 +235,11 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         if (res.body.success == true){
-                            console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate) + "]";
+                            //console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate) + "]";
                         }
                         done();
                     });
@@ -250,7 +257,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transaction").that.is.an("object");
                     if (res.body.success == true && res.body.transaction != null){
@@ -260,8 +267,8 @@ describe("Delegates", function() {
                         node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
                     }
                     else {
-                        console.log("Transaction failed or transaction object is null");
-                        console.log("Sent: secret: " + Raccount.password + ", delegates: [+" + node.Eaccount.publicKey + "]");
+                        //console.log("Transaction failed or transaction object is null");
+                        //console.log("Sent: secret: " + Raccount.password + ", delegates: [+" + node.Eaccount.publicKey + "]");
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -280,15 +287,15 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         if (res.body.success == false && res.body.error != null){
                             node.expect(res.body.error.toLowerCase()).to.contain("already voted");
                         }
                         else{
-                            console.log("Expected error but got success");
-                            console.log("Sent: secret: " + Raccount.password + ", delegates: [+" + node.Eaccount.publicKey + "]");
+                            //console.log("Expected error but got success");
+                            //console.log("Sent: secret: " + Raccount.password + ", delegates: [+" + node.Eaccount.publicKey + "]");
                             node.expect("TEST").to.equal("FAILED");
                         }
                         done();
@@ -310,7 +317,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("transaction").that.is.an("object");
                         if (res.body.success == true && res.body.transaction != null){
@@ -320,8 +327,8 @@ describe("Delegates", function() {
                             node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
                         }
                         else{
-                            console.log("Expected success but got error");
-                            console.log("Sent: secret: " + Raccount.password + ", delegates: [-" + node.Eaccount.publicKey + "]");
+                            //console.log("Expected success but got error");
+                            //console.log("Sent: secret: " + Raccount.password + ", delegates: [-" + node.Eaccount.publicKey + "]");
                             node.expect("TEST").to.equal("FAILED");
                         }
                         done();
@@ -341,15 +348,15 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         if (res.body.success == false && res.body.error != null) {
                             node.expect(res.body.error.toLowerCase()).to.contain("not voted");
                         }
                         else{
-                            console.log("Expected error but got success");
-                            console.log("Sent: secret: " + Raccount.password + ", delegates: [-" + node.Eaccount.publicKey + "]");
+                            //console.log("Expected error but got success");
+                            //console.log("Sent: secret: " + Raccount.password + ", delegates: [-" + node.Eaccount.publicKey + "]");
                             node.expect("TEST").to.equal("FAILED");
                         }
                         done();
@@ -368,7 +375,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -386,7 +393,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -405,7 +412,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -425,7 +432,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         done();
@@ -446,16 +453,94 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
                 });
             }, 3000);
         });
-    });
+     });
 
     describe("Delegate registrations",function() {
+
+      before(function(done){
+          // Send random LISK amount from foundation account to second Random account
+          node.api.post("/accounts/open")
+            .set("Accept", "application/json")
+            .send({
+                secret: R2account.password
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                //console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("account").that.is.an("object");
+                R2account.address = res.body.account.address;
+                R2account.publicKey = res.body.account.publicKey;
+                R2account.balance = res.body.account.balance;
+
+                node.onNewBlock(function(err) {
+                    node.expect(err).to.be.not.ok;
+                    node.api.put('/transactions')
+                        .set('Accept', 'application/json')
+                        .send({
+                            secret: node.Gaccount.password,
+                            amount: node.LISK,
+                            recipientId: R2account.address
+                        })
+                        .expect('Content-Type', /json/)
+                        .expect(200)
+                        .end(function (err, res) {
+                            //console.log(JSON.stringify(res.body));
+                            node.expect(res.body).to.have.property("success").to.be.true;
+                            node.expect(res.body).to.have.property("transactionId");
+                            if (res.body.success == true && res.body.transactionId != null){
+                                node.expect(res.body.transactionId).to.be.above(1);
+                                R2account.amount += node.LISK;
+                            }
+                            else{
+                                //console.log("Transaction failed or transactionId is null");
+                                //console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + node.LISK + ", recipientId: " + R2account.address);
+                                node.expect("TEST").to.equal("FAILED");
+                            }
+                            done();
+                        });
+                });
+          });
+
+      });
+
+      before(function (done) {
+          // Check that R2account has the LISK we sent
+
+          node.onNewBlock(function(err){
+
+            node.expect(err).to.be.not.ok;
+
+            node.api.post('/accounts/open')
+                .set('Accept', 'application/json')
+                .send({
+                    secret: R2account.password
+                })
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    //console.log(JSON.stringify(res.body));
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    if (res.body.success == true && res.body.account != null){
+                        node.expect(res.body.account.balance).to.be.equal(''+node.LISK);
+                    }
+                    else{
+                        //console.log("Failed to open account or account object is null");
+                        //console.log("Sent: secret: " + R2account.password);
+                        node.expect("TEST").to.equal("FAILED");
+                    }
+                    done();
+                });
+          });
+      });
 
         test += 1;
         it(test + ". We attempt to register a delegate with a blank secret. We expect error",function(done){
@@ -468,7 +553,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -488,7 +573,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         done();
@@ -509,7 +594,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         done();
@@ -530,7 +615,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         done();
@@ -551,7 +636,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         done();
@@ -560,49 +645,76 @@ describe("Delegates", function() {
         });
 
         test += 1;
-        it(test + ". We attempt to register a delegate using valid parameters. We expect success",function(done){
-            node.api.put("/delegates")
-                .set("Accept", "application/json")
-                .send({
-                    secret: Raccount.password,
-                    username: Raccount.username
-                })
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                    if (res.body.success == true && res.body.transaction != null){
-                        node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
-                        node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.username);
-                        node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(Raccount.publicKey);
-                        node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
-                        node.expect(res.body.transaction.amount).to.equal(0);
-                    }
-                    else {
-                        console.log("Transaction failed or transaction object is null");
-                        console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
-                        node.expect("TEST").to.equal("FAILED");
-                    }
-                    done();
-                });
+        it(test + '. We attempt to register as delegate from random account with some uppercase: ' + Raccount.username + '. We expect success and delegate registered in lower case',function(done){
+            node.onNewBlock(function(err){
+              node.api.put('/delegates')
+                  .set('Accept', 'application/json')
+                  .send({
+                      secret: Raccount.password,
+                      username: Raccount.username
+                  })
+                  .expect("Content-Type", /json/)
+                  .expect(200)
+                  .end(function (err, res) {
+                      //console.log(JSON.stringify(res.body));
+                      node.expect(res.body).to.have.property("success").to.be.true;
+                      node.expect(res.body).to.have.property("transaction").that.is.an("object");
+                      if (res.body.success == true && res.body.transaction != null){
+                          node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
+                          node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.username.toLowerCase());
+                          node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(Raccount.publicKey);
+                          node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
+                          node.expect(res.body.transaction.amount).to.equal(0);
+                      }
+                      else {
+                          //console.log("Transaction failed or transaction object is null");
+                          //console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
+                          node.expect("TEST").to.equal("FAILED");
+                      }
+                      done();
+                  });
+            });
         });
 
         test += 1;
         it(test + ". We attempt to re-register a delegate using the same account. We expect error",function(done){
             node.onNewBlock(function(err){
-        node.expect(err).to.be.not.ok;
+                node.expect(err).to.be.not.ok;
                 node.api.put("/delegates")
                     .set("Accept", "application/json")
                     .send({
                         secret: Raccount.password,
                         username: Raccount.username
                     })
+                    .expect('Content-Type', /json/)
+                    .expect(200)
+                    .end(function (err, res) {
+                        //console.log(JSON.stringify(res.body));
+                        node.expect(res.body).to.have.property("success").to.be.false;
+                        node.expect(res.body).to.have.property("error");
+                        done();
+                    });
+            });
+        });
+
+        test += 1;
+        it(test + '. We attempt to register another random account with an existing delegate name, with different case: ' + R2account.username + '. We expect error',function(done){
+            node.onNewBlock(function(err){
+                node.expect(err).to.be.not.ok;
+                //console.log(JSON.stringify({
+                //    secret: R2account.password,
+                //    username: R2account.username
+                //}));
+                node.api.put('/delegates')
+                    .set('Accept', 'application/json')
+                    .send({
+                        secret: R2account.password,
+                        username: R2account.username
+                    })
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.false;
                         node.expect(res.body).to.have.property("error");
                         done();
@@ -622,14 +734,14 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("delegates").that.is.an("array");
                     node.expect(res.body).to.have.property("totalCount").that.is.at.least(0);
                     node.expect(res.body.delegates).to.have.length.of.at.most(limit);
                     var num_of_delegates = res.body.delegates.length;
-                    console.log("Limit is " + limit + ". Number of delegates returned is: " + num_of_delegates);
-                    console.log("Total Number of delegates returned is: " + res.body.totalCount);
+                    //console.log("Limit is " + limit + ". Number of delegates returned is: " + num_of_delegates);
+                    //console.log("Total Number of delegates returned is: " + res.body.totalCount);
                     if (num_of_delegates >= 1) {
                         for (var i = 0; i < num_of_delegates; i++) {
                             if (res.body.delegates[i + 1] != null) {
@@ -644,7 +756,7 @@ describe("Delegates", function() {
                         }
                     }
                     else {
-                        console.log("Got 0 delegates");
+                        //console.log("Got 0 delegates");
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -660,14 +772,14 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("delegates").that.is.an("array");
                     node.expect(res.body).to.have.property("totalCount").that.is.at.least(0);
                     node.expect(res.body.delegates).to.have.length.of.at.most(limit);
                     var num_of_delegates = res.body.delegates.length;
-                    console.log("Limit is: " + limit + ". Number of delegates returned is: " + num_of_delegates);
-                    console.log("Total Number of delegates returned is: " + res.body.totalCount);
+                    //console.log("Limit is: " + limit + ". Number of delegates returned is: " + num_of_delegates);
+                    //console.log("Total Number of delegates returned is: " + res.body.totalCount);
                     if (num_of_delegates >= 1) {
                         for (var i = 0; i < num_of_delegates; i++) {
                             if (res.body.delegates[i + 1] != null) {
@@ -676,7 +788,7 @@ describe("Delegates", function() {
                         }
                     }
                     else {
-                        console.log("Got 0 delegates");
+                        //console.log("Got 0 delegates");
                         node.expect("TEST").to.equal("FAILED");
                     }
                     done();
@@ -694,7 +806,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -708,7 +820,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("delegates").that.is.an("array");
                         node.expect(res.body.delegates).to.have.length.of.at.least(1);
@@ -729,7 +841,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -741,6 +853,10 @@ describe("Delegates", function() {
     describe("Get voters",function() {
 
         before(function (done) {
+          //console.log(JSON.stringify({
+          //    secret: Raccount.password,
+          //    delegates: ["+" + node.Eaccount.publicKey]
+          //}));
             node.onNewBlock(function(err){
                 node.expect(err).to.be.not.ok;
                 node.api.put("/accounts/delegates")
@@ -752,7 +868,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         done();
                     });
@@ -767,7 +883,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success");
                     if(res.body.success == false){
                         node.expect(res.body).to.have.property("error");
@@ -788,7 +904,7 @@ describe("Delegates", function() {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -803,7 +919,7 @@ describe("Delegates", function() {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("accounts").that.is.an("array");
                         var flag = 0;

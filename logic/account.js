@@ -22,6 +22,7 @@ function Account(scope, cb) {
 			length: 20,
 			filter: {
 				type: "string",
+				case: "lower",
 				maxLength: 20,
 				minLength: 1
 			},
@@ -70,7 +71,9 @@ function Account(scope, cb) {
 			length: 20,
 			filter: {
 				type: "string",
-				maxLength: 20
+				case: "lower",
+				maxLength: 20,
+				minLength: 1
 			},
 			conv: String,
 			constante: true
@@ -534,13 +537,15 @@ Account.prototype.createTables = function (cb) {
 }
 
 Account.prototype.removeTables = function (cb) {
-	var sqles = [];
+	var sqles = [], sql;
 
-	var sql = jsonSql.build({
-		type: 'remove',
-		table: this.table
+	[this.table, "mem_round"].forEach(function (table) {
+		sql = jsonSql.build({
+			type: "remove",
+			table: table
+		});
+		sqles.push(sql.query);
 	});
-	sqles.push(sql.query);
 
 	var i, concatenated = "";
 

@@ -26,7 +26,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("build").to.be.a("string");
                     node.expect(res.body).to.have.property("version").to.be.a("string");
@@ -42,7 +42,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -57,7 +57,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("peers").that.is.an("array");
                     if (res.body.peers.length > 0) {
@@ -77,7 +77,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("peers").that.is.an("array");
                     if (res.body.peers.length > 0) {
@@ -97,7 +97,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("peers").that.is.an("array");
 
@@ -115,7 +115,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("peers").that.is.an("array");
 
@@ -139,7 +139,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -154,7 +154,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -171,7 +171,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     if (res.body.success == true && res.body.height != null) {
                         node.expect(res.body).to.have.property("height").to.be.above(0);
@@ -195,7 +195,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     if (res.body.success == true && res.body.fee != null) {
                         node.expect(res.body).to.have.property("fee");
@@ -215,7 +215,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     if (res.body.success == true && res.body.blocks != null) {
                         node.expect(res.body).to.have.property("blocks").that.is.an("array");
@@ -249,7 +249,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        console.log(JSON.stringify(res.body));
+                        //console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         if (res.body.success == true && res.body.blocks != null) {
                             node.expect(res.body).to.have.property("count");
@@ -285,7 +285,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {
@@ -303,7 +303,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {
@@ -321,7 +321,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {
@@ -342,7 +342,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                         .expect("Content-Type", /json/)
                         .expect(200)
                         .end(function (err, res) {
-                            console.log(JSON.stringify(res.body));
+                            //console.log(JSON.stringify(res.body));
                             node.expect(res.body).to.have.property("success").to.be.true;
                             node.expect(res.body).to.have.property("blocks").that.is.an("array");
                             node.expect(res.body.blocks).to.have.length(1);
@@ -361,7 +361,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    //console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {

@@ -232,11 +232,14 @@ Peer.prototype.inspect = function (peer) {
 }
 
 Peer.prototype.accept = function (peer) {
+	if (/^[0-9]+$/.test(peer.ip)) {
+		peer.ip = ip.fromLong(peer.ip);
+	}
 	peer.port = parseInt(peer.port);
 
 	if (!peer || !peer.ip || !peer.port) {
 		throw "Rejecting invalid peer data: " + util.inspect(peer);
-	} else if (!ip.isV4Format(peer.ip) && ip.isV6Format(peer.ip)) {
+	} else if (!ip.isV4Format(peer.ip) && !ip.isV6Format(peer.ip)) {
 		throw "Rejecting peer with invalid ip address: " + peer.ip;
 	} else if (isNaN(peer.port) || peer.port == 0 || peer.port > 65535) {
 		throw "Rejecting peer with invalid port: " + peer.port;
