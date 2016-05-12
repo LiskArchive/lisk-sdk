@@ -14,14 +14,6 @@ var config = require("../config.json"),
     api = supertest(baseUrl + "/api"),
     peer = supertest(baseUrl + "/peer");
 
-config.mocha = {
-  "peers": {
-    "account": "",
-    "address": "",
-    "publicKey": ""
-  }
-}
-
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
 var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
@@ -331,7 +323,6 @@ module.exports = {
   randomCapitalUsername: randomCapitalUsername,
   expectedFee:expectedFee,
   addPeers:addPeers,
-  peers_config: config.mocha.peers,
   config: config,
   waitForNewBlock: waitForNewBlock,
   getHeight: getHeight,
