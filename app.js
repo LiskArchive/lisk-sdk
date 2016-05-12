@@ -278,7 +278,6 @@ d.run(function () {
 			var methodOverride = require("method-override");
 			var requestSanitizer = require("./helpers/request-sanitizer");
 			var queryParser = require("express-query-int");
-			var getRawBody = require('raw-body');
 
 
 			scope.network.app.engine("html", require("ejs").renderFile);
