@@ -902,12 +902,11 @@ Account.prototype.merge = function (address, diff, cb) {
 				return cb();
 			}
 
-			self.scope.db.tx(function (t) {
-				var queries = sqles.map(function (sql) {
-					return pgp.as.format(sql.query, sql.values);
-				}).join('');
-				return t.none(queries);
-			}).then(function () {
+			var queries = sqles.map(function (sql) {
+				return pgp.as.format(sql.query, sql.values);
+			}).join('');
+
+			self.scope.db.none(queries).then(function () {
 				return cb();
 			}).catch(function (err) {
 				return cb("Account#merge error");
@@ -918,17 +917,11 @@ Account.prototype.merge = function (address, diff, cb) {
 				return cb();
 			}
 
-			self.scope.db.tx(function (t) {
-				var i, sql, concatenated = "", promises = [];
+			var queries = round.map(function (sql) {
+				return pgp.as.format(sql.query, sql.values);
+			}).join('');
 
-				for (i = 0; i < round.length; i++) {
-					sql = round[i];
-					concatenated += pgp.as.format(sql.query, sql.values);
-				}
-
-				promises.push(this.none(concatenated));
-				return this.batch(promises);
-			}).then(function () {
+			self.scope.db.none(queries).then(function () {
 				return cb();
 			}).catch(function (err) {
 				return cb("Account#merge error");
