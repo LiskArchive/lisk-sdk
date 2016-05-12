@@ -24,7 +24,7 @@ var Account3 = node.randomTxAccount();
 
 console.log("Starting Dapps test suite");
 
-describe("Dapps", function() {
+describe("Dapps", function () {
 
    before(function (done) {
       node.api.post("/accounts/open")
@@ -39,12 +39,11 @@ describe("Dapps", function() {
             //console.log(JSON.stringify(res.body));
             console.log("Opening Account 1 with password: " + Account1.password);
             node.expect(res.body).to.have.property("success").to.be.true;
-            if (res.body.success == true && res.body.account != null){
+            if (res.body.success == true && res.body.account != null) {
                Account1.address = res.body.account.address;
                Account1.publicKey = res.body.account.publicKey;
                Account1.balance = res.body.account.balance;
-            }
-            else {
+            } else {
                console.log("Unable to open account1, tests will fail");
                console.log("Data sent: secret: " + Account1.password + " , secondSecret: " + Account1.secondPassword );
                node.expect("TEST").to.equal("FAILED");
@@ -70,8 +69,7 @@ describe("Dapps", function() {
                Account2.address = res.body.account.address;
                Account2.publicKey = res.body.account.publicKey;
                Account2.balance = res.body.account.balance;
-            }
-            else{
+            } else {
                console.log("Unable to open account2, tests will fail");
                console.log("Data sent: secret: " + Account2.password + " , secondSecret: " + Account2.secondPassword );
                node.expect("TEST").to.equal("FAILED");
@@ -97,8 +95,7 @@ describe("Dapps", function() {
                Account3.address = res.body.account.address;
                Account3.publicKey = res.body.account.publicKey;
                Account3.balance = res.body.account.balance;
-            }
-            else{
+            } else {
                console.log("Unable to open account3, tests will fail");
                console.log("Data sent: secret: " + Account3.password + " , secondSecret: " + Account3.secondPassword );
                node.expect("TEST").to.equal("FAILED");
@@ -109,7 +106,7 @@ describe("Dapps", function() {
 
    before(function (done) {
       // Send to LISK to account 1 address
-      setTimeout(function() {
+      setTimeout(function () {
          randomLISK = node.randomLISK();
          node.api.put("/transactions")
             .set("Accept", "application/json")
@@ -128,8 +125,7 @@ describe("Dapps", function() {
                   transactionCount += 1;
                   Account1.transactions.push(transactionCount);
                   Account1.balance += randomLISK;
-               }
-               else{
+               } else {
                   console.log("Sending LISK to Account1 failed.");
                   console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
                   node.expect("TEST").to.equal("FAILED");
@@ -140,7 +136,7 @@ describe("Dapps", function() {
    });
 
    before(function (done) {
-      setTimeout(function() {
+      setTimeout(function () {
          randomLISK = node.randomLISK();
          expectedFee = node.expectedFee(randomLISK);
          node.api.put("/transactions")
@@ -172,8 +168,7 @@ describe("Dapps", function() {
                      "txId": res.body.transactionId,
                      "type":node.TxTypes.SEND
                   }
-               }
-               else{
+               } else {
                   console.log("Sending LISK to Account2 failed.");
                   console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
                   node.expect("TEST").to.equal("FAILED");
@@ -185,7 +180,7 @@ describe("Dapps", function() {
 
    before(function (done) {
       // Wait for new block to ensure all data has been received
-      node.onNewBlock(function(err) {
+      node.onNewBlock(function (err) {
          // Add 2nd password for Account 2
          node.api.put("/signatures")
             .set("Accept", "application/json")
@@ -208,7 +203,7 @@ describe("Dapps", function() {
 
    });
 
-   describe("Add Dapp", function() {
+   describe("Add Dapp", function () {
       node.onNewBlock(function () {
          test += 1;
          it(test + ".Attempting to add Dapp. Invalid secret. We expect error", function (done) {
@@ -236,7 +231,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Invalid Category. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Invalid Category. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -260,7 +255,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. No Dapp name. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. No Dapp name. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -283,7 +278,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Very long description. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Very long description. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -306,7 +301,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Very long tag. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Very long tag. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -330,7 +325,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Very long name. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Very long name. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -354,7 +349,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. No link. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. No link. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -376,7 +371,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Invalid Field type. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Invalid Field type. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -399,7 +394,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Via Link. 0 LISK account. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Via Link. 0 LISK account. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -422,7 +417,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Via Link. Invalid 2nd password. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Via Link. Invalid 2nd password. We expect error", function (done) {
          node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
@@ -446,7 +441,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Via Link. Invalid Type. We expect error",function(done){
+      it(test + ".Attempting to add Dapp. Via Link. Invalid Type. We expect error", function (done) {
          DappName = node.randomDelegateName();
          node.api.put("/dapps")
             .set("Accept", "application/json")
@@ -471,7 +466,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Valid Link. We expect success",function(done){
+      it(test + ".Attempting to add Dapp. Valid Link. We expect success", function (done) {
          node.onNewBlock(function () {
             DappName = node.randomDelegateName();
             node.api.put("/dapps")
@@ -499,8 +494,8 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Existing Dapp name. We expect error",function(done){
-         node.onNewBlock(function(err) {
+      it(test + ".Attempting to add Dapp. Existing Dapp name. We expect error", function (done) {
+         node.onNewBlock(function (err) {
             node.api.put("/dapps")
                .set("Accept", "application/json")
                .send({
@@ -524,8 +519,8 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to add Dapp. Existing dapp link. We expect error",function(done){
-         node.onNewBlock(function(err) {
+      it(test + ".Attempting to add Dapp. Existing dapp link. We expect error", function (done) {
+         node.onNewBlock(function (err) {
             node.api.put("/dapps")
                .set("Accept", "application/json")
                .send({
@@ -551,13 +546,13 @@ describe("Dapps", function() {
 
    });
 
-   describe("Get Dapp", function() {
+   describe("Get Dapp", function () {
 
       test += 1;
-      it(test + ". Get all Dapps. No limit. We expect success",function(done){
+      it(test + ". Get all Dapps. No limit. We expect success", function (done) {
          var category = ""; var name = ""; var type = ""; var link = "";
          var icon = ""; var limit = ""; var offset = ""; var orderBy = "";
-         node.onNewBlock(function(err) {
+         node.onNewBlock(function (err) {
             node.api.get("/dapps")
                .expect("Content-Type", /json/)
                .expect(200)
@@ -565,13 +560,12 @@ describe("Dapps", function() {
                   //console.log(JSON.stringify(res.body));
                   node.expect(res.body).to.have.property("success").to.be.true;
                   node.expect(res.body).to.have.property("dapps").that.is.an("array");
-                  if (res.body.success == true && res.body.dapps != null){
-                     if((res.body.dapps).length > 0){
+                  if (res.body.success == true && res.body.dapps != null) {
+                     if((res.body.dapps).length > 0) {
                         Dapp = res.body.dapps[0];
                         DappToInstall = Dapp;
                      }
-                  }
-                  else {
+                  } else {
                      //console.log(JSON.stringify(res.body));
                      console.log("Request failed or dapps array is null");
                   }
@@ -581,7 +575,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get all Dapps. Invalid Parameter types (link). We expect error",function(done){
+      it(test + ". Get all Dapps. Invalid Parameter types (link). We expect error", function (done) {
          var category = "a category"; var name = 1234; var type = "type"; var link = 1234; var icon = 1234;
          node.api.get("/dapps?category=" + category + "&name=" + name + "&type=" + type + "&link=" + link + "&icon=" + icon)
             .expect("Content-Type", /json/)
@@ -595,7 +589,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get all Dapps. Ascending order (category). We expect success",function(done){
+      it(test + ". Get all Dapps. Ascending order (category). We expect success", function (done) {
          var orderBy = "category:asc";
          node.api.get("/dapps?orderBy=" + orderBy)
             .expect("Content-Type", /json/)
@@ -607,13 +601,12 @@ describe("Dapps", function() {
                if (res.body.success == true && res.body.dapps != null) {
                   if (res.body.dapps[0] != null) {
                      for (var i = 0; i < res.body.dapps.length; i++) {
-                        if (res.body.dapps[i+1] != null){
+                        if (res.body.dapps[i+1] != null) {
                            node.expect(res.body.dapps[i].category).to.be.at.most(res.body.dapps[i+1].category);
                         }
                      }
                   }
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -622,7 +615,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get all Dapps. Descending order (category). We expect success",function(done){
+      it(test + ". Get all Dapps. Descending order (category). We expect success", function (done) {
          var orderBy = "category:desc";
          node.api.get("/dapps?orderBy=" + orderBy)
             .expect("Content-Type", /json/)
@@ -631,16 +624,15 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
-                  if (res.body.dapps[0] != null){
-                     for( var i = 0; i < res.body.dapps.length; i++){
-                        if (res.body.dapps[i+1] != null){
+               if (res.body.success == true && res.body.dapps != null) {
+                  if (res.body.dapps[0] != null) {
+                     for( var i = 0; i < res.body.dapps.length; i++) {
+                        if (res.body.dapps[i+1] != null) {
                            node.expect(res.body.dapps[i].category).to.be.at.least(res.body.dapps[i+1].category);
                         }
                      }
                   }
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -649,7 +641,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get Dapps. Limited. We expect success",function(done){
+      it(test + ". Get Dapps. Limited. We expect success", function (done) {
          var limit = 3;
          node.api.get("/dapps?limit=" + limit)
             .expect("Content-Type", /json/)
@@ -658,10 +650,9 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
+               if (res.body.success == true && res.body.dapps != null) {
                   node.expect((res.body.dapps).length).to.be.at.most(limit);
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -670,7 +661,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get Dapps by category. We expect success",function(done){
+      it(test + ". Get Dapps by category. We expect success", function (done) {
          var randomCategory = node.randomProperty(node.DappCategory, true);
          node.api.get("/dapps?category=" + randomCategory)
             .expect("Content-Type", /json/)
@@ -679,12 +670,11 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
-                  if((res.body.dapps).length > 0){
+               if (res.body.success == true && res.body.dapps != null) {
+                  if((res.body.dapps).length > 0) {
                      node.expect(res.body.dapps[0].category).to.equal(node.DappCategory[randomCategory]);
                   }
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -693,12 +683,11 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get Dapps by name. We expect success",function(done){
+      it(test + ". Get Dapps by name. We expect success", function (done) {
          var name = "";
-         if (Dapp != {} && Dapp != null){
+         if (Dapp != {} && Dapp != null) {
             name = Dapp.name;
-         }
-         else {
+         } else {
             name = "test";
          }
          node.api.get("/dapps?name=" + name)
@@ -706,17 +695,15 @@ describe("Dapps", function() {
             .expect(200)
             .end(function (err, res) {
                //console.log(JSON.stringify(res.body));
-               if (name == "test"){
+               if (name == "test") {
                   node.expect(res.body).to.have.property("success");
-               }
-               else {
+               } else {
                   node.expect(res.body).to.have.property("success").to.be.true;
                   node.expect(res.body).to.have.property("dapps").that.is.an("array");
                   node.expect(res.body.dapps.length).to.equal(1);
-                  if (res.body.success == true && res.body.dapps != null){
+                  if (res.body.success == true && res.body.dapps != null) {
                      node.expect(res.body.dapps[0].name).to.equal(name);
-                  }
-                  else {
+                  } else {
                      //console.log(JSON.stringify(res.body));
                      console.log("Request failed or dapps array is null");
                   }
@@ -726,7 +713,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get Dapps by type. We expect success",function(done){
+      it(test + ". Get Dapps by type. We expect success", function (done) {
          var type = node.randomProperty(node.DappType);
          node.api.get("/dapps?type=" + type)
             .expect("Content-Type", /json/)
@@ -735,14 +722,13 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
-                  for( var i = 0; i < res.body.dapps.length; i++){
-                     if (res.body.dapps[i] != null){
+               if (res.body.success == true && res.body.dapps != null) {
+                  for( var i = 0; i < res.body.dapps.length; i++) {
+                     if (res.body.dapps[i] != null) {
                         node.expect(res.body.dapps[i].type).to.equal(type);
                      }
                   }
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -751,7 +737,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get dapps by link. We expect success",function(done){
+      it(test + ". Get dapps by link. We expect success", function (done) {
          var link = node.guestbookDapp.link;
          node.api.get("/dapps?link=" + link)
             .expect("Content-Type", /json/)
@@ -760,14 +746,13 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
-                  for( var i = 0; i < res.body.dapps.length; i++){
-                     if (res.body.dapps[i] != null){
+               if (res.body.success == true && res.body.dapps != null) {
+                  for( var i = 0; i < res.body.dapps.length; i++) {
+                     if (res.body.dapps[i] != null) {
                         node.expect(res.body.dapps[i].link).to.equal(link);
                      }
                   }
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -776,7 +761,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get dapps by link. We expect success",function(done){
+      it(test + ". Get dapps by link. We expect success", function (done) {
          var link = node.guestbookDapp.link;
          node.api.get("/dapps?link=" + link)
             .expect("Content-Type", /json/)
@@ -785,16 +770,15 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
+               if (res.body.success == true && res.body.dapps != null) {
                   var length = res.body.dapps.length;
                   node.expect(length).to.be.at.most(1);
-                  for( var i = 0; i < length; i++){
-                     if (res.body.dapps[i] != null){
+                  for( var i = 0; i < length; i++) {
+                     if (res.body.dapps[i] != null) {
                         node.expect(res.body.dapps[i].link).to.equal(link);
                      }
                   }
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -803,7 +787,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get dapps using offset. We expect success",function(done){
+      it(test + ". Get dapps using offset. We expect success", function (done) {
          var offset = 1;
          var secondDapp;
          node.api.get("/dapps")
@@ -813,8 +797,8 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
-                  if (res.body.dapps[1] != null){
+               if (res.body.success == true && res.body.dapps != null) {
+                  if (res.body.dapps[1] != null) {
                      secondDapp = res.body.dapps[1];
                      console.log(offset);
                      node.api.get("/dapps?offset=" + offset )
@@ -823,17 +807,15 @@ describe("Dapps", function() {
                         .end(function (err, res) {
                            //console.log(JSON.stringify(res.body));
                            node.expect(res.body).to.have.property("success").to.be.true;
-                           if (res.body.success == true && res.body.dapps != null){
+                           if (res.body.success == true && res.body.dapps != null) {
                               node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
                            }
                         });
-                  }
-                  else {
+                  } else {
                      //console.log(JSON.stringify(res.body));
                      console.log("Only 1 dapp or something went wrong. cannot check offset");
                   }
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -842,10 +824,10 @@ describe("Dapps", function() {
       });
    });
 
-   describe("Get Dapp By ID", function() {
+   describe("Get Dapp By ID", function () {
 
       test += 1;
-      it(test + ". Get Dapp by Dapp ID. Unknown ID. We expect error",function(done){
+      it(test + ". Get Dapp by Dapp ID. Unknown ID. We expect error", function (done) {
          var dappId = "string";
          node.api.get("/dapps/get?id=" + dappId)
             .expect("Content-Type", /json/)
@@ -859,7 +841,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get Dapp by Dapp ID. No ID. We expect error",function(done){
+      it(test + ". Get Dapp by Dapp ID. No ID. We expect error", function (done) {
          node.api.get("/dapps/get?id=")
             .expect("Content-Type", /json/)
             .expect(200)
@@ -872,7 +854,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get Dapp by Dapp ID. Valid ID. We expect success",function(done){
+      it(test + ". Get Dapp by Dapp ID. Valid ID. We expect success", function (done) {
          var dappId = DappToInstall.transactionId;
          node.api.get("/dapps/get?id=" + dappId)
             .expect("Content-Type", /json/)
@@ -881,10 +863,9 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapp");
-               if (res.body.success == true && res.body.dapp != null){
+               if (res.body.success == true && res.body.dapp != null) {
                   node.expect(res.body.dapp.transactionId).to.equal(dappId);
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -894,10 +875,10 @@ describe("Dapps", function() {
 
    });
 
-   describe("Install Dapp", function() {
+   describe("Install Dapp", function () {
 
       test += 1;
-      it(test + ".Attempting to install Dapp. No ID. We expect error",function(done){
+      it(test + ".Attempting to install Dapp. No ID. We expect error", function (done) {
          var dappId = DappToInstall.transactionId;
          node.api.post("/dapps/install")
             .set("Accept", "application/json")
@@ -914,7 +895,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to install Dapp. Invalid Type. We expect error",function(done){
+      it(test + ".Attempting to install Dapp. Invalid Type. We expect error", function (done) {
          node.api.post("/dapps/install")
             .set("Accept", "application/json")
             .send({
@@ -933,7 +914,7 @@ describe("Dapps", function() {
 
       // Not right test, dapp can be installed before you run this test
       test += 1;
-      it(test + ".Attempting to install Dapp (and get InstallingID). Valid ID. We expect success",function(done){
+      it(test + ".Attempting to install Dapp (and get InstallingID). Valid ID. We expect success", function (done) {
          var dappId = DappToInstall.transactionId;
          node.api.post("/dapps/install")
             .set("Accept", "application/json")
@@ -950,10 +931,9 @@ describe("Dapps", function() {
                   .end(function (err, res) {
                      node.expect(res.body).to.have.property("success").to.be.true;
                      node.expect(res.body).to.have.property("installing").that.is.an("array");
-                     if (res.body.success == true && res.body.installing.length > 0){
+                     if (res.body.success == true && res.body.installing.length > 0) {
                         node.expect(res.body.installing[0]).to.equal(dappId);
-                     }
-                     else {
+                     } else {
                         //console.log(JSON.stringify(res.body));
                         console.log("Request failed or installing array is null");
                      }
@@ -961,7 +941,7 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("path");
-               if (res.body.success == true){
+               if (res.body.success == true) {
                   installedDapp = DappToInstall;
                }
                done();
@@ -970,10 +950,10 @@ describe("Dapps", function() {
 
    });
 
-   describe("Get Installed Dapps", function() {
+   describe("Get Installed Dapps", function () {
 
       test += 1;
-      it(test + ". Get all installed Dapps. We expect success",function(done){
+      it(test + ". Get all installed Dapps. We expect success", function (done) {
          var flag = 0;
          node.api.get("/dapps/installed")
             .expect("Content-Type", /json/)
@@ -982,17 +962,16 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("dapps").that.is.an("array");
-               if (res.body.success == true && res.body.dapps != null){
-                  for (var i = 0; i < res.body.dapps.length; i++){
-                     if (res.body.dapps[i] != null){
+               if (res.body.success == true && res.body.dapps != null) {
+                  for (var i = 0; i < res.body.dapps.length; i++) {
+                     if (res.body.dapps[i] != null) {
                         if (res.body.dapps[i].transactionId == DappToInstall.transactionId) {
                            flag += 1;
                         }
                      }
                   }
                   node.expect(flag).to.equal(1);
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -1001,7 +980,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Get all installed Dapps IDs. We expect success",function(done){
+      it(test + ". Get all installed Dapps IDs. We expect success", function (done) {
          var flag = 0;
          node.api.get("/dapps/installedIds")
             .expect("Content-Type", /json/)
@@ -1010,17 +989,16 @@ describe("Dapps", function() {
                //console.log(JSON.stringify(res.body));
                node.expect(res.body).to.have.property("success").to.be.true;
                node.expect(res.body).to.have.property("ids").that.is.an("array");
-               if (res.body.success == true && res.body.ids != null){
-                  for (var i = 0; i < res.body.ids.length; i++){
-                     if (res.body.ids[i] != null){
+               if (res.body.success == true && res.body.ids != null) {
+                  for (var i = 0; i < res.body.ids.length; i++) {
+                     if (res.body.ids[i] != null) {
                         if (res.body.ids[i] == DappToInstall.transactionId) {
                            flag += 1;
                         }
                      }
                   }
                   node.expect(flag).to.equal(1);
-               }
-               else {
+               } else {
                   //console.log(JSON.stringify(res.body));
                   console.log("Request failed or dapps array is null");
                }
@@ -1030,10 +1008,10 @@ describe("Dapps", function() {
 
    });
 
-   describe("Search Dapps", function() {
+   describe("Search Dapps", function () {
 
       test += 1;
-      it(test + ". Search Dapps. Invalid parameters. We expect error",function(done){
+      it(test + ". Search Dapps. Invalid parameters. We expect error", function (done) {
          var q = 1234; var category = "good"; var installed = "true";
          node.api.get("/dapps/search?q=" + q + "&category=" + category + "&installed=" + installed)
             .expect("Content-Type", /json/)
@@ -1047,7 +1025,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Search for Installed Dapps. We expect success",function(done){
+      it(test + ". Search for Installed Dapps. We expect success", function (done) {
          var q = "a";
          var category = node.randomProperty(node.DappCategory, true);
          var installed = 1;
@@ -1063,7 +1041,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ". Search for Dapps that are not installed. We expect success",function(done){
+      it(test + ". Search for Dapps that are not installed. We expect success", function (done) {
          var q = "s";
          var category = node.randomProperty(node.DappCategory);
          var installed = 0;
@@ -1080,10 +1058,10 @@ describe("Dapps", function() {
       });
    });
 
-   describe("Launch Dapp and get Launched Dapps", function() {
+   describe("Launch Dapp and get Launched Dapps", function () {
 
       test += 1;
-      it(test + ".Attempting to launch Dapp. No ID. We expect error",function(done){
+      it(test + ".Attempting to launch Dapp. No ID. We expect error", function (done) {
          var dappId = installedDapp.transactionId;
          node.api.post("/dapps/launch")
             .set("Accept", "application/json")
@@ -1101,7 +1079,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to launch Dapp. Unknown ID. We expect error",function(done){
+      it(test + ".Attempting to launch Dapp. Unknown ID. We expect error", function (done) {
          var dappId = "HELLOW";
          node.api.post("/dapps/launch")
             .set("Accept", "application/json")
@@ -1120,7 +1098,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to launch Dapp. Valid ID. We expect success",function(done){
+      it(test + ".Attempting to launch Dapp. Valid ID. We expect success", function (done) {
          var dappId = DappToInstall.transactionId;
          node.api.post("/dapps/launch")
             .set("Accept", "application/json")
@@ -1140,18 +1118,17 @@ describe("Dapps", function() {
                      //console.log(JSON.stringify(res.body));
                      node.expect(res.body).to.have.property("success").to.be.true;
                      node.expect(res.body).to.have.property("launched").that.is.an("array");
-                     if(res.body.success == true && res.body.launched != null){
+                     if(res.body.success == true && res.body.launched != null) {
                         var flag = 0;
-                        for (var i = 0; i < res.body.launched.length; i++){
-                           if (res.body.launched[i] != null){
-                              if (res.body.launched[i] == dappId){
+                        for (var i = 0; i < res.body.launched.length; i++) {
+                           if (res.body.launched[i] != null) {
+                              if (res.body.launched[i] == dappId) {
                                  flag += 1;
                               }
                            }
                         }
                         node.expect(flag).to.equal(1);
-                     }
-                     else {
+                     } else {
                         //console.log(JSON.stringify(res.body));
                         console.log("Request failed or launched array is null");
                      }
@@ -1162,10 +1139,10 @@ describe("Dapps", function() {
 
    });
 
-   describe("Stop Dapp", function() {
+   describe("Stop Dapp", function () {
 
       test += 1;
-      it(test + ".Attempting to stop Dapp. No ID. We expect error",function(done){
+      it(test + ".Attempting to stop Dapp. No ID. We expect error", function (done) {
          var dappId = installedDapp.transactionId;
          node.api.post("/dapps/stop")
             .set("Accept", "application/json")
@@ -1182,7 +1159,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to stop Dapp. Unknown ID. We expect error",function(done){
+      it(test + ".Attempting to stop Dapp. Unknown ID. We expect error", function (done) {
          var dappId = "HELLOW";
          node.api.post("/dapps/stop")
             .set("Accept", "application/json")
@@ -1201,7 +1178,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to stop Dapp. Valid ID. We expect success",function(done){
+      it(test + ".Attempting to stop Dapp. Valid ID. We expect success", function (done) {
          var dappId = installedDapp.transactionId;
          node.api.post("/dapps/stop")
             .set("Accept", "application/json")
@@ -1220,10 +1197,10 @@ describe("Dapps", function() {
 
    });
 
-   describe("Get Dapps Categories", function() {
+   describe("Get Dapps Categories", function () {
 
       test += 1;
-      it(test + ". Get Dapps categories. We expect success",function(done){
+      it(test + ". Get Dapps categories. We expect success", function (done) {
          node.api.get("/dapps/categories")
             .expect("Content-Type", /json/)
             .expect(200)
@@ -1240,10 +1217,10 @@ describe("Dapps", function() {
 
    });
 
-   describe("Uninstall Dapp", function() {
+   describe("Uninstall Dapp", function () {
 
       test += 1;
-      it(test + ".Attempting to uninstall Dapp. No ID. We expect error",function(done){
+      it(test + ".Attempting to uninstall Dapp. No ID. We expect error", function (done) {
          node.api.post("/dapps/uninstall")
             .set("Accept", "application/json")
             .send({
@@ -1261,7 +1238,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to uninstall Dapp. Unknown ID. We expect error",function(done){
+      it(test + ".Attempting to uninstall Dapp. Unknown ID. We expect error", function (done) {
          node.api.post("/dapps/uninstall")
             .set("Accept", "application/json")
             .send({
@@ -1279,7 +1256,7 @@ describe("Dapps", function() {
       });
 
       test += 1;
-      it(test + ".Attempting to uninstall Dapp (and get UninstallingID). Valid ID. We expect success", function(done) {
+      it(test + ".Attempting to uninstall Dapp (and get UninstallingID). Valid ID. We expect success", function (done) {
          var dappId = installedDapp.transactionId;
          node.api.post("/dapps/uninstall")
             .set("Accept", "application/json")
