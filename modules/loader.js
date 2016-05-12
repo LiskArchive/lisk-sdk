@@ -495,7 +495,7 @@ private.loadBlockChain = function () {
 					}
 				});
 			});
-		}).catch(function (error) {
+		}).catch(function (err) {
 			return reload(count, err);
 		});
 	});
