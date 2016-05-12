@@ -1,8 +1,8 @@
 var async = require('async'),
-	util = require('util'),
-	slots = require('../helpers/slots.js'),
-	sandboxHelper = require('../helpers/sandbox.js'),
-	constants = require('../helpers/constants.js');
+    util = require('util'),
+    slots = require('../helpers/slots.js'),
+    sandboxHelper = require('../helpers/sandbox.js'),
+    constants = require('../helpers/constants.js');
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
