@@ -278,12 +278,29 @@ d.run(function () {
 			var methodOverride = require("method-override");
 			var requestSanitizer = require("./helpers/request-sanitizer");
 			var queryParser = require("express-query-int");
+			var getRawBody = require('raw-body');
+
 
 			scope.network.app.engine("html", require("ejs").renderFile);
 			scope.network.app.use(require("express-domain-middleware"));
 			scope.network.app.set("view engine", "ejs");
 			scope.network.app.set("views", path.join(__dirname, "public"));
 			scope.network.app.use(scope.network.express.static(path.join(__dirname, "public")));
+			scope.network.app.use(function (req, res, next) {
+			  getRawBody(req, {
+			    length: req.headers['content-length'],
+			    limit: '2mb'
+			  }, function (err, string) {
+
+			    if(err){
+						//logging sensible information to help reducing attack such as banning ip
+						scope.logger.info("From "+ req.ip +" sent a request too large, length="+(err.length/1000000).toFixed(2) + "MB");
+						return next(err.message + " length="+err.length+ " limit="+err.limit);
+					}
+			    req.text = string;
+			    next();
+			  })
+			});
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: "2mb", parameterLimit: 5000}));
 			scope.network.app.use(bodyParser.json({limit: "2mb"}));
 			scope.network.app.use(methodOverride());
