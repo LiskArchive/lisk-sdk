@@ -319,7 +319,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		if (err) {
 			return cb(err);
 		}
-		library.logic.account.get({ address: address }, cb);
+		return library.logic.account.get({ address: address }, cb);
 	});
 }
 
@@ -335,7 +335,7 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	if (!address) {
 		throw cb("Invalid public key");
 	}
-	library.logic.account.merge(address, data, cb);
+	return library.logic.account.merge(address, data, cb);
 }
 
 Accounts.prototype.sandboxApi = function (call, args, cb) {

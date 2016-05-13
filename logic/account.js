@@ -900,6 +900,10 @@ Account.prototype.merge = function (address, diff, cb) {
 		return pgp.as.format(sql.query, sql.values);
 	}).join('');
 
+	if (!cb) {
+		return queries;
+	}
+
 	if (queries.length == 0) {
 		return done();
 	}

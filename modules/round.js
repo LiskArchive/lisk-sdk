@@ -1,5 +1,6 @@
 var async = require('async'),
     util = require('util'),
+    pgp = require("pg-promise"),
     slots = require('../helpers/slots.js'),
     sandboxHelper = require('../helpers/sandbox.js'),
     constants = require('../helpers/constants.js');
@@ -8,6 +9,7 @@ var async = require('async'),
 var modules, library, self, private = {}, shared = {};
 
 private.loaded = false;
+private.ticking = false;
 
 private.feesByRound = {};
 private.rewardsByRound = {};
@@ -15,6 +17,11 @@ private.delegatesByRound = {};
 private.unFeesByRound = {};
 private.unRewardsByRound = {};
 private.unDelegatesByRound = {};
+
+private.block = {};
+private.round = null;
+private.delegates = [];
+private.outsiders = [];
 
 // Constructor
 function Round(cb, scope) {
@@ -43,25 +50,121 @@ function RoundChanges (round) {
   }
 }
 
+// Round promiser
+function RoundPromiser (backwards, t) {
+	var self = this;
+
+	this.mergeBlockGenerator = function () {
+		return t.none(
+			modules.accounts.mergeAccountAndGet({
+				publicKey: private.block.generatorPublicKey,
+				producedblocks: (backwards ? -1 : 1),
+				blockId: private.block.id,
+				round: private.round
+			})
+		);
+	}
+
+	this.updateMissedBlocks = function () {
+		if (private.outsiders.length == 0) {
+			return t;
+		}
+
+		var escaped = private.outsiders.map(function (item) {
+			return "'" + item + "'";
+		});
+
+		return t.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN (" + escaped.join(",") + ")");
+	}
+
+	this.getVotes = function () {
+		var sql = "SELECT d.\"delegate\", d.\"amount\" FROM " +
+		          "(SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
+		          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = (${round})::bigint";
+
+		return t.query(sql, { round: private.round });
+	}
+
+	this.updateVotes = function () {
+		return self.getVotes(private.round).then(function (votes) {
+			var queries = votes.map(function (vote) {
+				return pgp.as.format("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address};", {
+					address: modules.accounts.generateAddressByPublicKey(vote.delegate),
+					amount: Math.floor(vote.amount)
+				});
+			}).join("");
+
+			if (queries.length > 0) {
+				return t.none(queries);
+			} else {
+				return t;
+			}
+		});
+	}
+
+	this.flushRound = function () {
+		return t.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: private.round });
+	}
+
+	this.applyRound = function () {
+		var roundChanges = new RoundChanges(private.round);
+		var queries = "";
+
+		for (var i = 0; i < private.delegates.length; i++) {
+			var delegate = private.delegates[i],
+			    changes  = roundChanges.at(i);
+
+			queries += modules.accounts.mergeAccountAndGet({
+				publicKey: delegate,
+				balance: (backwards ? -changes.balance : changes.balance),
+				u_balance: (backwards ? -changes.balance : changes.balance),
+				blockId: private.block.id,
+				round: private.round,
+				fees: (backwards ? -changes.fees : changes.fees),
+				rewards: (backwards ? -changes.rewards : changes.rewards)
+			});
+
+			if (i === private.delegates.length - 1) {
+				queries += modules.accounts.mergeAccountAndGet({
+					publicKey: delegate,
+					balance: (backwards ? -changes.feesRemaining : changes.feesRemaining),
+					u_balance: (backwards ? -changes.feesRemaining : changes.feesRemaining),
+					blockId: private.block.id,
+					round: private.round,
+					fees: (backwards ? -changes.feesRemaining : changes.feesRemaining),
+				});
+			}
+		}
+
+		return t.none(queries);
+	}
+
+	this.land = function () {
+		private.ticking = true;
+		return this.updateVotes()
+			.then(this.updateMissedBlocks)
+			.then(this.flushRound)
+			.then(this.applyRound)
+			.then(this.updateVotes)
+			.then(this.flushRound)
+			.then(function () {
+				private.ticking = false;
+				return t;
+			});
+	}
+}
+
+// Public methods
 Round.prototype.loaded = function () {
 	return private.loaded;
 }
 
-// Public methods
-Round.prototype.calc = function (height) {
-	return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
+Round.prototype.ticking = function () {
+	return private.ticking;
 }
 
-Round.prototype.getVotes = function (round, cb) {
-	var sql = "SELECT d.\"delegate\", d.\"amount\" FROM " +
-	          "(SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
-	          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = (${round})::bigint";
-
-	library.db.query(sql, { round: round }).then(function (rows) {
-		return cb(null, rows);
-	}).catch(function (err) {
-		return cb("Round#getVotes error");
-	});
+Round.prototype.calc = function (height) {
+	return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
 }
 
 Round.prototype.flush = function (round, cb) {
@@ -87,307 +190,117 @@ Round.prototype.directionSwap = function (direction, lastBlock, cb) {
 }
 
 Round.prototype.backwardTick = function (block, previousBlock, cb) {
-	function done(err) {
-		cb && cb(err);
+	function done (err) {
+		return cb && setImmediate(cb, err);
 	}
 
-	modules.accounts.mergeAccountAndGet({
-		publicKey: block.generatorPublicKey,
-		producedblocks: -1,
-		blockId: block.id,
-		round: modules.round.calc(block.height)
-	}, function (err) {
-		if (err) {
-			return done(err);
-		}
+	var round = self.calc(block.height);
+	var prevRound = self.calc(previousBlock.height);
 
-		var round = self.calc(block.height);
+	private.block = block;
+	private.round = round;
 
-		var prevRound = self.calc(previousBlock.height);
+	private.unFeesByRound[round] = Math.floor(private.unFeesByRound[round]) || 0;
+	private.unFeesByRound[round] += Math.floor(block.totalFee);
 
-		private.unFeesByRound[round] = Math.floor(private.unFeesByRound[round]) || 0;
-		private.unFeesByRound[round] += Math.floor(block.totalFee);
+	private.unRewardsByRound[round] = (private.rewardsByRound[round] || []);
+	private.unRewardsByRound[round].push(block.reward);
 
-		private.unRewardsByRound[round] = (private.rewardsByRound[round] || []);
-		private.unRewardsByRound[round].push(block.reward);
+	private.unDelegatesByRound[round] = private.unDelegatesByRound[round] || [];
+	private.unDelegatesByRound[round].push(block.generatorPublicKey);
 
-		private.unDelegatesByRound[round] = private.unDelegatesByRound[round] || [];
-		private.unDelegatesByRound[round].push(block.generatorPublicKey);
+	private.delegates = private.unDelegatesByRound[round];
 
-		if (prevRound !== round || previousBlock.height == 1) {
-			if (private.unDelegatesByRound[round].length == slots.delegates || previousBlock.height == 1) {
-				var outsiders = [];
-				async.series([
-					function (cb) {
-						if (block.height != 1) {
-							modules.delegates.generateDelegateList(block.height, function (err, roundDelegates) {
-								if (err) {
-									return cb(err);
-								}
-								for (var i = 0; i < roundDelegates.length; i++) {
-									if (private.unDelegatesByRound[round].indexOf(roundDelegates[i]) == -1) {
-										outsiders.push(modules.accounts.generateAddressByPublicKey(roundDelegates[i]));
-									}
-								}
-								cb();
-							});
-						} else {
-							cb();
-						}
-					},
-					function (cb) {
-						if (!outsiders.length) {
-							return cb();
-						}
-						var escaped = outsiders.map(function (item) {
-							return "'" + item + "'";
-						});
-						library.db.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN (" + escaped.join(",") + ")").then(function () {
-							return cb();
-						}).catch(function (err) {
-							return cb("Round#backwardTick error");
-						});
-					},
-					function (cb) {
-						self.getVotes(round, function (err, votes) {
-							if (err) {
-								return cb(err);
-							}
-							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
-									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: Math.floor(vote.amount)
-								}).then(function () {
-									return cb();
-								}).catch(function (err) {
-									return cb("Round#backwardTick error");
-								});
-							}, function (err) {
-								self.flush(round, function (err2) {
-									cb(err || err2);
-								});
-							})
-						});
-					},
-					function (cb) {
-						var roundChanges = new RoundChanges(round);
+	function BackwardTick (t) {
+		var promised = new RoundPromiser(true, t);
 
-						async.forEachOfSeries(private.unDelegatesByRound[round], function (delegate, index, cb) {
-							var changes = roundChanges.at(index);
+		return promised.mergeBlockGenerator().then(function () {
 
-							modules.accounts.mergeAccountAndGet({
-								publicKey: delegate,
-								balance: -changes.balance,
-								u_balance: -changes.balance,
-								blockId: block.id,
-								round: modules.round.calc(block.height),
-								fees: -changes.fees,
-								rewards: -changes.rewards
-							}, function (err) {
-								if (err) {
-									return cb(err);
-								}
-								if (index === 0) {
-									modules.accounts.mergeAccountAndGet({
-										publicKey: delegate,
-										balance: -changes.feesRemaining,
-										u_balance: -changes.feesRemaining,
-										blockId: block.id,
-										round: modules.round.calc(block.height),
-										fees: -changes.feesRemaining,
-									}, cb);
-								} else {
-									cb();
-								}
-							});
-						}, cb);
-					},
-					function (cb) {
-						self.getVotes(round, function (err, votes) {
-							if (err) {
-								return cb(err);
-							}
-							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
-									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: Math.floor(vote.amount)
-								}).then(function () {
-									return cb();
-								}).catch(function (err) {
-									return cb("Round#backwardTick error");
-								});
-							}, function (err) {
-								self.flush(round, function (err2) {
-									cb(err || err2);
-								});
-							})
-						});
-					}
-				], function (err) {
-					delete private.unFeesByRound[round];
-					delete private.unRewardsByRound[round];
-					delete private.unDelegatesByRound[round];
-					done(err)
-				});
-			} else {
-				done();
+			if (prevRound !== round || previousBlock.height == 1) {
+
+				if (private.unDelegatesByRound[round].length == slots.delegates || previousBlock.height == 1) {
+
+					return promised.land().then(function () {
+						delete private.unFeesByRound[round];
+						delete private.unRewardsByRound[round];
+						delete private.unDelegatesByRound[round];
+					});
+				}
 			}
-		} else {
-			done();
+		});
+	}
+
+	async.series([
+		function (cb) {
+			return private.getOutsiders(cb);
+		},
+		function (cb) {
+			library.db.tx(BackwardTick).then(function () {
+				return cb();
+			}).catch(function (err) {
+				return cb(err);
+			});
 		}
+	], function (err) {
+		return done(err);
 	});
 }
 
 Round.prototype.tick = function (block, cb) {
-	function done(err) {
-		cb && setImmediate(cb, err);
+	function done (err) {
+		return cb && setImmediate(cb, err);
 	}
 
-	modules.accounts.mergeAccountAndGet({
-		publicKey: block.generatorPublicKey,
-		producedblocks: 1,
-		blockId: block.id,
-		round: modules.round.calc(block.height)
-	}, function (err) {
-		if (err) {
-			return done(err);
-		}
-		var round = self.calc(block.height);
+	var round = self.calc(block.height);
+	var nextRound = self.calc(block.height + 1);
 
-		private.feesByRound[round] = Math.floor(private.feesByRound[round]) || 0;
-		private.feesByRound[round] += Math.floor(block.totalFee);
+	private.block = block;
+	private.round = round;
 
-		private.rewardsByRound[round] = (private.rewardsByRound[round] || []);
-		private.rewardsByRound[round].push(block.reward);
+	private.feesByRound[round] = Math.floor(private.feesByRound[round]) || 0;
+	private.feesByRound[round] += Math.floor(block.totalFee);
 
-		private.delegatesByRound[round] = private.delegatesByRound[round] || [];
-		private.delegatesByRound[round].push(block.generatorPublicKey);
+	private.rewardsByRound[round] = (private.rewardsByRound[round] || []);
+	private.rewardsByRound[round].push(block.reward);
 
-		var nextRound = self.calc(block.height + 1);
+	private.delegatesByRound[round] = private.delegatesByRound[round] || [];
+	private.delegatesByRound[round].push(block.generatorPublicKey);
 
-		if (round !== nextRound || block.height == 1) {
-			if (private.delegatesByRound[round].length == slots.delegates || block.height == 1 || block.height == 101) {
-				var outsiders = [];
+	private.delegates = private.delegatesByRound[round];
 
-				async.series([
-					function (cb) {
-						if (block.height != 1) {
-							modules.delegates.generateDelegateList(block.height, function (err, roundDelegates) {
-								if (err) {
-									return cb(err);
-								}
-								for (var i = 0; i < roundDelegates.length; i++) {
-									if (private.delegatesByRound[round].indexOf(roundDelegates[i]) == -1) {
-										outsiders.push(modules.accounts.generateAddressByPublicKey(roundDelegates[i]));
-									}
-								}
-								cb();
-							});
-						} else {
-							cb();
-						}
-					},
-					function (cb) {
-						if (!outsiders.length) {
-							return cb();
-						}
-						var escaped = outsiders.map(function (item) {
-							return "'" + item + "'";
-						});
-						library.db.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN (" + escaped.join(",") + ")").then(function () {
-							return cb();
-						}).catch(function (err) {
-							return cb("Round#tick error");
-						});
-					},
-					function (cb) {
-						self.getVotes(round, function (err, votes) {
-							if (err) {
-								return cb(err);
-							}
-							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
-									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: Math.floor(vote.amount)
-								}).then(function () {
-									return cb();
-								}).catch(function (err) {
-									return cb("Round#tick error");
-								});
-							}, function (err) {
-								self.flush(round, function (err2) {
-									cb(err || err2);
-								});
-							});
-						});
-					},
-					function (cb) {
-						var roundChanges = new RoundChanges(round);
+	function Tick (t) {
+		var promised = new RoundPromiser(false, t);
 
-						async.forEachOfSeries(private.delegatesByRound[round], function (delegate, index, cb) {
-							var changes = roundChanges.at(index);
+		return promised.mergeBlockGenerator().then(function () {
 
-							modules.accounts.mergeAccountAndGet({
-								publicKey: delegate,
-								balance: changes.balance,
-								u_balance: changes.balance,
-								blockId: block.id,
-								round: modules.round.calc(block.height),
-								fees: changes.fees,
-								rewards: changes.rewards
-							}, function (err) {
-								if (err) {
-									return cb(err);
-								}
-								if (index === private.delegatesByRound[round].length - 1) {
-									modules.accounts.mergeAccountAndGet({
-										publicKey: delegate,
-										balance: changes.feesRemaining,
-										u_balance: changes.feesRemaining,
-										blockId: block.id,
-										round: modules.round.calc(block.height),
-										fees: changes.feesRemaining
-									}, cb);
-								} else {
-									cb();
-								}
-							});
-						}, cb);
-					},
-					function (cb) {
-						self.getVotes(round, function (err, votes) {
-							if (err) {
-								return cb(err);
-							}
-							async.eachSeries(votes, function (vote, cb) {
-								library.db.none("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address}", {
-									address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-									amount: Math.floor(vote.amount)
-								}).then(function () {
-									return cb();
-								}).catch(function (err) {
-									return cb("Round#tick error");
-								});
-							}, function (err) {
-								library.bus.message('finishRound', round);
-								self.flush(round, function (err2) {
-									cb(err || err2);
-								});
-							})
-						});
-					}
-				], function (err) {
-					delete private.feesByRound[round];
-					delete private.rewardsByRound[round];
-					delete private.delegatesByRound[round];
-					done(err);
-				});
-			} else {
-				done();
+			if (round !== nextRound || block.height == 1) {
+
+				if (private.delegatesByRound[round].length == slots.delegates || block.height == 1) {
+
+					return promised.land().then(function () {
+						delete private.feesByRound[round];
+						delete private.rewardsByRound[round];
+						delete private.delegatesByRound[round];
+						library.bus.message('finishRound', round);
+					});
+				}
 			}
-		} else {
-			done();
+		});
+	}
+
+	async.series([
+		function (cb) {
+			return private.getOutsiders(cb);
+		},
+		function (cb) {
+			library.db.tx(Tick).then(function () {
+				return cb();
+			}).catch(function (err) {
+				return cb(err);
+			});
 		}
+	], function (err) {
+		return done(err);
 	});
 }
 
@@ -430,6 +343,26 @@ Round.prototype.onFinishRound = function (round) {
 Round.prototype.cleanup = function (cb) {
 	private.loaded = false;
 	cb();
+}
+
+// Private
+
+private.getOutsiders = function (cb) {
+	if (private.block.height == 1) {
+		return cb();
+	}
+	modules.delegates.generateDelegateList(private.block.height, function (err, roundDelegates) {
+		if (err) {
+			return cb(err);
+		}
+		private.outsiders = [];
+		for (var i = 0; i < roundDelegates.length; i++) {
+			if (private.delegates.indexOf(roundDelegates[i]) == -1) {
+				private.outsiders.push(modules.accounts.generateAddressByPublicKey(roundDelegates[i]));
+			}
+		}
+		return cb();
+	});
 }
 
 // Shared
