@@ -896,38 +896,19 @@ Account.prototype.merge = function (address, diff, cb) {
 		}
 	}
 
-	async.series([
-		function (cb) {
-			if (sqles.length < 1) {
-				return cb();
-			}
+	var queries = sqles.concat(round).map(function (sql) {
+		return pgp.as.format(sql.query, sql.values);
+	}).join('');
 
-			var queries = sqles.map(function (sql) {
-				return pgp.as.format(sql.query, sql.values);
-			}).join('');
+	if (queries.length == 0) {
+		return done();
+	}
 
-			self.scope.db.none(queries).then(function () {
-				return cb();
-			}).catch(function (err) {
-				return cb("Account#merge error");
-			});
-		},
-		function (cb) {
-			if (round.length < 1) {
-				return cb();
-			}
-
-			var queries = round.map(function (sql) {
-				return pgp.as.format(sql.query, sql.values);
-			}).join('');
-
-			self.scope.db.none(queries).then(function () {
-				return cb();
-			}).catch(function (err) {
-				return cb("Account#merge error");
-			});
-		}
-	], done);
+	self.scope.db.none(queries).then(function () {
+		return done();
+	}).catch(function (err) {
+		return done("Account#merge error");
+	});
 }
 
 Account.prototype.remove = function (address, cb) {
