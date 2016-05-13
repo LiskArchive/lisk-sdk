@@ -44,6 +44,7 @@
     "pg-promise": "^4.0.4",
     "pkginfo": "=0.3.1",
     "randomstring": "=1.1.4",
+    "raw-body": "=2.1.6",
     "request": "=2.72.0",
     "rimraf": "=2.5.2",
     "rmdir": "=1.1.0",
