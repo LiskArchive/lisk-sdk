@@ -504,7 +504,7 @@ private.loop = function (cb) {
 		return setImmediate(cb);
 	}
 
-	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded()) {
+	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded() || modules.round.ticking()) {
 		library.logger.debug('Loop:', 'node not ready');
 		return setImmediate(cb);
 	}
