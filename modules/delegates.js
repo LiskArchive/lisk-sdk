@@ -30,9 +30,10 @@ function Delegate() {
 			username: data.username,
 			publicKey: data.sender.publicKey
 		};
-		//we want to be fail proof by giving a chance to register a clean lowercase username
-		if(trs.asset.delegate.username){
-			trs.asset.delegate.username=trs.asset.delegate.username.toLowerCase().trim();
+
+		// We want to be fail proof by giving a chance to register a clean lowercase username
+		if (trs.asset.delegate.username) {
+			trs.asset.delegate.username = trs.asset.delegate.username.toLowerCase().trim();
 		}
 
 		return trs;
@@ -63,7 +64,7 @@ function Delegate() {
 			return cb("Username is undefined");
 		}
 
-		if (trs.asset.delegate.username!==trs.asset.delegate.username.toLowerCase()) {
+		if (trs.asset.delegate.username !== trs.asset.delegate.username.toLowerCase()) {
  			return cb("Username should be lowercase");
  		}
 
