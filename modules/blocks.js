@@ -1183,7 +1183,7 @@ Blocks.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Blocks.prototype.onReceiveBlock = function (block) {
-	if (modules.loader.syncing() || !private.loaded) {
+	if (!private.loaded || modules.loader.syncing() || modules.round.ticking()) {
 		return;
 	}
 
