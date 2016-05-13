@@ -651,8 +651,8 @@ Account.prototype.getAll = function (filter, fields, cb) {
 }
 
 Account.prototype.set = function (address, fields, cb) {
-	if (fields.publicKey !== undefined && !fields.publicKey){
-		console.log("!!!!!!!!!!!!!!!!!!!!!!!", address, diff)
+	if (fields.publicKey !== undefined && !fields.publicKey) {
+		console.log("!!!!!!!!!!!!!!!!!!!!!!!", address, diff);
 	}
 
 	fields.address = address;
@@ -693,8 +693,8 @@ Account.prototype.merge = function (address, diff, cb) {
 
 	var self = this;
 
-	if (diff.publicKey !== undefined && !diff.publicKey){
-		console.log("!!!!!!!!!!!!!!!!!!!!!!!", address, diff)
+	if (diff.publicKey !== undefined && !diff.publicKey) {
+		console.log("!!!!!!!!!!!!!!!!!!!!!!!", address, diff);
 	}
 
 	this.editable.forEach(function (value) {
@@ -885,7 +885,7 @@ Account.prototype.merge = function (address, diff, cb) {
 		sqles.push(sql);
 	}
 
-	function done(err) {
+	function done (err) {
 		if (cb.length != 2) {
 			return cb(err);
 		} else {
