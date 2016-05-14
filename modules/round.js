@@ -171,6 +171,7 @@ Round.prototype.flush = function (round, cb) {
 	library.db.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: round }).then(function () {
 		return cb();
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb("Round#flush error");
 	});
 }
@@ -238,6 +239,7 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 			library.db.tx(BackwardTick).then(function () {
 				return cb();
 			}).catch(function (err) {
+				library.logger.error(err.toString());
 				return cb(err);
 			});
 		}
@@ -296,6 +298,7 @@ Round.prototype.tick = function (block, cb) {
 			library.db.tx(Tick).then(function () {
 				return cb();
 			}).catch(function (err) {
+				library.logger.error(err.toString());
 				return cb(err);
 			});
 		}
@@ -332,6 +335,7 @@ Round.prototype.onBlockchainReady = function () {
 		private.loaded = true;
 
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb("Round#onBlockchainReady error");
 	});
 }

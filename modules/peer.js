@@ -127,6 +127,7 @@ private.count = function (cb) {
 		var res = rows.length && rows[0].count;
 		cb(null, res)
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb("Peer#count error");
 	});
 }
@@ -135,6 +136,7 @@ private.banManager = function (cb) {
 	library.db.query("UPDATE peers SET \"state\" = 1, \"clock\" = null WHERE (\"state\" = 0 AND \"clock\" - ${now} < 0)", { now: Date.now() }).then(function (res) {
 		return cb(null, res);
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb("Peer#banManager error");
 	});
 }
@@ -216,6 +218,7 @@ private.getByFilter = function (filter, cb) {
 		(offset ? " OFFSET ${offset} " : ""), params).then(function (rows) {
 			cb(null, rows);
 		}).catch(function (err) {
+			library.logger.error(err.toString());
 			return cb("Peer#getByFilter error");
 		});
 }
@@ -255,6 +258,7 @@ Peer.prototype.list = function (options, cb) {
 	library.db.query("SELECT p.\"ip\", p.\"port\", p.\"state\", p.\"os\", p.\"sharePort\", p.\"version\" FROM peers p " + (options.dappid ? " INNER JOIN peers_dapp AS pd ON p.\"id\" = pd.\"peerId\" AND pd.\"dappid\" = ${dappid} " : "") + " WHERE p.\"state\" > 0 AND p.\"sharePort\" = 1 ORDER BY RANDOM() LIMIT ${limit}", options).then(function (rows) {
 		cb(null, rows);
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb("Peer#list error");
 	});
 }
@@ -278,6 +282,7 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	}).then(function (res) {
 		return cb && cb(null, res);
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb && cb();
 	});
 }
@@ -293,6 +298,7 @@ Peer.prototype.remove = function (pip, port, cb) {
 	}).then(function (res) {
 		return cb && cb(null, res);
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb && cb();
 	});
 }
@@ -313,9 +319,11 @@ Peer.prototype.addDapp = function (config, cb) {
 		}).then(function (res) {
 			return cb(null, res);
 		}).catch(function (err) {
+			library.logger.error(err.toString());
 			return cb("Peer#addDapp error");
 		});
 	}).catch(function (err) {
+		library.logger.error(err.toString());
 		return cb("Peer#addDapp error");
 	});
 }
@@ -335,6 +343,7 @@ Peer.prototype.update = function (peer, cb) {
 			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
+				library.logger.error(err.toString());
 				return cb("Peer#update error");
 			});
 		},
@@ -345,6 +354,7 @@ Peer.prototype.update = function (peer, cb) {
 			library.db.query("UPDATE peers SET \"os\" = ${os}, \"sharePort\" = ${sharePort}, \"version\" = ${version}" + (peer.state !== undefined ? ", \"state\" = CASE WHEN \"state\" = 0 THEN \"state\" ELSE ${state} END " : "") + " WHERE \"ip\" = ${ip} and \"port\" = ${port};", params).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
+				library.logger.error(err.toString());
 				return cb("Peer#update error");
 			});
 		},
@@ -380,6 +390,7 @@ Peer.prototype.onBlockchainReady = function () {
 		}).then(function (res) {
 			return cb(null, res);
 		}).catch(function (err) {
+			library.logger.error(err.toString());
 			return cb("Peer#onBlockchainReady error");
 		});
 	}, function (err) {

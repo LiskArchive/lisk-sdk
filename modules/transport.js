@@ -44,8 +44,8 @@ private.attachApi = function () {
 					port: req.headers['port']
 				}
 			);
-		} catch (err) {
-			library.logger.debug(err.toString());
+		} catch (e) {
+			library.logger.debug(e.toString());
 			return res.status(406).send({success: false, error: "Invalid request headers"});
 		}
 
@@ -161,6 +161,7 @@ private.attachApi = function () {
 				var commonBlock = rows.length ? rows[0] : null;
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {
+				library.logger.error(err.toString());
 				return res.json({ success: false, error: "Failed to get common block" });
 			});
 		});
@@ -211,9 +212,9 @@ private.attachApi = function () {
 
 		try {
 			var block = library.logic.block.objectNormalize(req.body.block);
-		} catch (err) {
+		} catch (e) {
 			library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
-			library.logger.warn(err.toString());
+			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
 				modules.peer.state(peer.ip, peer.port, 0, 3600);
@@ -355,6 +356,7 @@ private.attachApi = function () {
 				return res.status(200).json({success: false, message: "Invalid hash sum"});
 			}
 		} catch (e) {
+			library.logger.error(e.toString());
 			return res.status(200).json({success: false, message: e.toString()});
 		}
 
@@ -396,6 +398,7 @@ private.attachApi = function () {
 				return res.status(200).json({success: false, message: "Invalid hash sum"});
 			}
 		} catch (e) {
+			library.logger.error(e.toString());
 			return res.status(200).json({success: false, message: e.toString()});
 		}
 

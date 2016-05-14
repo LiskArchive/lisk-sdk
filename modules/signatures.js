@@ -41,6 +41,7 @@ function Signature() {
 				return setImmediate(cb, "Invalid signature length");
 			}
 		} catch (e) {
+			library.logger.error(e.toString());
 			return setImmediate(cb, "Invalid signature hex");
 		}
 
@@ -140,7 +141,7 @@ function Signature() {
 		try {
 			var publicKey = new Buffer(trs.asset.signature.publicKey, 'hex')
 		} catch (e) {
-			throw e.toString();
+			throw Error(e.toString());
 		}
 
 		return {

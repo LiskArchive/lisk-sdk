@@ -79,6 +79,7 @@ function Multisignature() {
 					}
 				}
 			} catch (e) {
+				library.logger.error(e.toString());
 				return setImmediate(cb, "Failed to verify multisignature: " + trs.id);
 			}
 		}
@@ -102,6 +103,7 @@ function Multisignature() {
 					return cb("Invalid public key");
 				}
 			} catch (e) {
+				library.logger.error(e.toString());
 				return cb("Invalid public key");
 			}
 
@@ -408,6 +410,7 @@ shared.getAccounts = function (req, cb) {
 				});
 			});
 		}).catch(function (err) {
+			library.logger.error(err.toString());
 			return cb("Multisignature#getAccounts error");
 		});
 	});
@@ -449,6 +452,7 @@ shared.pending = function (req, cb) {
 					try {
 						verify = library.logic.transaction.verifySignature(item, query.publicKey, item.signatures[i]);
 					} catch (e) {
+						library.logger.error(e.toString());
 						verify = false;
 					}
 
@@ -539,6 +543,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 				verify = library.logic.transaction.verifySignature(transaction, key, tx.signature);
 			}
 		} catch (e) {
+			library.logger.error(e.toString());
 			return cb("Failed to verify signature");
 		}
 
@@ -578,6 +583,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 					verify = library.logic.transaction.verifySignature(transaction, multisignatures[i], tx.signature);
 				}
 			} catch (e) {
+				library.logger.error(e.toString());
 				return cb("Failed to verify signature");
 			}
 

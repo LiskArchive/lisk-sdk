@@ -108,6 +108,7 @@ private.query = function (action, config, cb) {
 		library.db.query(sql.query, sql.values).then(function (rows) {
 			return done(null, rows);
 		}).catch(function (err) {
+			library.logger.error(err.toString());
 			return done("Sql#query error");
 		});
 	} else {
@@ -134,6 +135,7 @@ private.query = function (action, config, cb) {
 				library.db.none(sql).then(function () {
 					return cb();
 				}).catch(function (err) {
+					library.logger.error(err.toString());
 					return cb("Sql#query error");
 				});
 			}, done);
@@ -192,12 +194,14 @@ Sql.prototype.dropTables = function (dappid, config, cb) {
 			library.db.none("DROP TABLE IF EXISTS " + table.name + " CASCADE").then(function () {
 				setImmediate(cb, null);
 			}).catch(function (err) {
+				library.logger.error(err.toString());
 				setImmediate(cb, "Sql#dropTables error");
 			});
 		} else if (table.type == "index") {
 			library.db.none("DROP INDEX IF EXISTS " + table.name).then(function () {
 				setImmediate(cb, null);
 			}).catch(function (err) {
+				library.logger.error(err.toString());
 				setImmediate(cb, "Sql#dropTables error");
 			});
 		} else {

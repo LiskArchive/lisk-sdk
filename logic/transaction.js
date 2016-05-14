@@ -194,8 +194,10 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	try {
 		var txId = this.getId(trs);
 	} catch (e) {
+		library.logger.error(e.toString());
 		return setImmediate(cb, "Invalid transaction id");
 	}
+
 	if (trs.id && trs.id != txId) {
 		return setImmediate(cb, "Invalid transaction id");
 	} else {
@@ -238,6 +240,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 
 			cb(null, trs);
 		}).catch(function (err) {
+			library.logger.error(err.toString());
 			return cb("Transaction#process error");
 		});
 	}.bind(this));
@@ -277,6 +280,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 			valid = this.verifySignature(trs, trs.senderPublicKey, trs.signature);
 		}
 	} catch (e) {
+		library.logger.error(e.toString());
 		return setImmediate(cb, e.toString());
 	}
 
@@ -602,7 +606,7 @@ Transaction.prototype.dbSave = function (trs) {
 		var signSignature = trs.signSignature ? new Buffer(trs.signSignature, "hex") : null;
 		var requesterPublicKey = trs.requesterPublicKey ? new Buffer(trs.requesterPublicKey, "hex") : null;
 	} catch (e) {
-		throw e.toString();
+		throw Error(e.toString());
 	}
 
 	var promises = [

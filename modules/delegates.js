@@ -680,6 +680,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				try {
 					new Buffer(publicKey, "hex");
 				} catch (e) {
+					library.logger.error(e.toString());
 					return cb("Invalid public key");
 				}
 
@@ -745,6 +746,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 				try {
 					new Buffer(publicKey, "hex");
 				} catch (e) {
+					library.logger.error(e.toString());
 					return cb("Invalid public key");
 				}
 
