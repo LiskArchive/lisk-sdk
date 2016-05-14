@@ -428,7 +428,6 @@ private.loadBlockChain = function () {
 			var promises = [
 				t.one("SELECT COUNT(\"rowId\")::int FROM blocks"),
 				t.one("SELECT COUNT(*)::int FROM mem_accounts WHERE \"blockId\" = (SELECT \"id\" FROM \"blocks\" WHERE \"numberOfTransactions\" > 0 ORDER BY \"height\" DESC LIMIT 1)"),
-				t.one("SELECT COUNT(*)::int FROM mem_round WHERE \"blockId\" = (SELECT \"id\" FROM \"blocks\" WHERE \"numberOfTransactions\" > 0 ORDER BY \"height\" DESC LIMIT 1)"),
 				t.query("SELECT \"round\" FROM mem_round GROUP BY \"round\"")
 			];
 
@@ -437,8 +436,7 @@ private.loadBlockChain = function () {
 
 		library.db.task(checkMemTables).then(function (results) {
 			var count = results[0].count,
-			    missedAccounts = !(results[1].count),
-			    missedRound = !(results[2].count);
+			    missed = !(results[1].count);
 
 			library.logger.info("Blocks " + count);
 
@@ -446,14 +444,12 @@ private.loadBlockChain = function () {
 				return reload(count);
 			}
 
-			if (missedAccounts) {
+			if (missed) {
 				return reload(count, "Detected missed blocks in mem_accounts");
-			} else if (missedRound) {
-				return reload(count, "Detected missed blocks in mem_round");
 			}
 
 			var round = modules.round.calc(count);
-			var unapplied = results[3].filter(function (row) {
+			var unapplied = results[2].filter(function (row) {
 				return (row.round != round);
 			});
 
