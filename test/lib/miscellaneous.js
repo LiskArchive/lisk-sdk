@@ -16,10 +16,10 @@ var testBlocksUnder101 = 0;
 
 describe("Miscellaneous tests (peers, blocks, etc)", function () {
 
-    describe("Load Testing",function(){
+    describe("Load testing", function () {
         test = test + 1;
-        it(test + ". We attempt to send a payload of just over 2Mb, should fail",function(done){
-            var data="qs";
+        it(test + ". We attempt to send a payload of just over 2Mb. Should not be ok", function (done) {
+            var data = "qs";
             for (var i = 0; i < 20; i++) {
               data += data;
             }
