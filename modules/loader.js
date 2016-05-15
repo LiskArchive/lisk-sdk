@@ -420,10 +420,6 @@ private.loadBlockChain = function () {
 			throw err;
 		}
 
-		if (verify) {
-			return reload(count, "Blocks verification enabled");
-		}
-
 		function checkMemTables (t) {
 			var promises = [
 				t.one("SELECT COUNT(\"rowId\")::int FROM blocks"),
@@ -442,6 +438,10 @@ private.loadBlockChain = function () {
 
 			if (count == 1) {
 				return reload(count);
+			}
+
+			if (verify) {
+				return reload(count, "Blocks verification enabled");
 			}
 
 			if (missed) {
