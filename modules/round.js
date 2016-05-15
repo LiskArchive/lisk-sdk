@@ -219,7 +219,7 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 
 			if (prevRound !== round || previousBlock.height == 1) {
 
-				if (private.unDelegatesByRound[round].length == slots.delegates || previousBlock.height == 1) {
+				if (private.unDelegatesByRound[round].length == slots.delegates) {
 
 					return promised.land().then(function () {
 						delete private.unFeesByRound[round];
@@ -277,7 +277,7 @@ Round.prototype.tick = function (block, cb) {
 
 			if (round !== nextRound || block.height == 1) {
 
-				if (private.delegatesByRound[round].length == slots.delegates || block.height == 1) {
+				if (private.delegatesByRound[round].length == slots.delegates) {
 
 					return promised.land().then(function () {
 						delete private.feesByRound[round];
