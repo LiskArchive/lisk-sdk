@@ -485,8 +485,8 @@ private.loadBlockChain = function () {
 								return load(count);
 							}
 							private.lastBlock = block;
-							library.logger.info('Blockchain ready');
-							library.bus.message('blockchainReady');
+							library.logger.info("Blockchain ready");
+							library.bus.message("blockchainReady");
 						});
 					}
 				});
