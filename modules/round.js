@@ -49,8 +49,6 @@ function RoundChanges (round) {
 function RoundPromiser (scope, t) {
 	var self = this;
 
-	scope.outsiders = [];
-
 	this.mergeBlockGenerator = function () {
 		return t.none(
 			modules.accounts.mergeAccountAndGet({
@@ -341,6 +339,8 @@ Round.prototype.cleanup = function (cb) {
 // Private
 
 private.getOutsiders = function (scope, cb) {
+	scope.outsiders = [];
+
 	if (scope.block.height == 1) {
 		return cb();
 	}
@@ -348,12 +348,14 @@ private.getOutsiders = function (scope, cb) {
 		if (err) {
 			return cb(err);
 		}
-		for (var i = 0; i < roundDelegates.length; i++) {
-			if (scope.delegates.indexOf(roundDelegates[i]) == -1) {
-				scope.outsiders.push(modules.accounts.generateAddressByPublicKey(roundDelegates[i]));
+		async.eachSeries(roundDelegates, function (delegate, eachCb) {
+			if (scope.delegates.indexOf(delegate) == -1) {
+				scope.outsiders.push(modules.accounts.generateAddressByPublicKey(delegate));
 			}
-		}
-		return cb();
+			return eachCb();
+		}, function (err) {
+			return cb(err);
+		});
 	});
 }
 
