@@ -345,8 +345,8 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 }
 
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	//if no transaction we raise an error
-	if(!transaction){
+	// If no transaction we raise an error
+	if (!transaction) {
 		return cb("No transaction to process!");
 	}
 
