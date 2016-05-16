@@ -186,11 +186,7 @@ Round.prototype.directionSwap = function (direction, lastBlock, cb) {
 	}
 }
 
-Round.prototype.backwardTick = function (block, previousBlock, cb) {
-	function done (err) {
-		return cb && setImmediate(cb, err);
-	}
-
+Round.prototype.backwardTick = function (block, previousBlock, done) {
 	var round = self.calc(block.height);
 	var prevRound = self.calc(previousBlock.height);
 
@@ -244,11 +240,7 @@ Round.prototype.backwardTick = function (block, previousBlock, cb) {
 	});
 }
 
-Round.prototype.tick = function (block, cb) {
-	function done (err) {
-		return cb && setImmediate(cb, err);
-	}
-
+Round.prototype.tick = function (block, done) {
 	var round = self.calc(block.height);
 	var nextRound = self.calc(block.height + 1);
 
