@@ -345,6 +345,11 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 }
 
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
+	//if no transaction we raise an error
+	if(!transaction){
+		return cb("No transaction to process!");
+	}
+
 	// Check transaction indexes
 	if (private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || private.doubleSpendingTransactions[transaction.id]) {
 		library.logger.debug("Transaction " + transaction.id + " already exists, ignoring...")
