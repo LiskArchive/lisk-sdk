@@ -88,8 +88,7 @@ private.attachApi = function () {
 			if (req.body && req.body.dappid) {
 				req.peer.dappid = req.body.dappid;
 			}
-
-			if (req.peer.version == library.config.version) {
+			if ((req.peer.version == library.config.version) && (req.headers['nethash'] == library.config.nethash)) {
 				modules.peer.update(req.peer);
 			}
 
@@ -202,10 +201,18 @@ private.attachApi = function () {
 					type: "integer",
 					minimum: 1,
 					maximum: 65535
+				},
+				nethash: {
+					type: "string",
+					maxLength: 64
 				}
 			},
-			required: ['port']
+			required: ['port','nethash']
 		});
+
+		if(req.headers['nethash']!==library.config.nethash){
+			return res.status(200).send({success: false, "message":"Request is made on the wrong network","expected":library.config.nethash, "received":req.headers['nethash']});
+		}
 
 		try {
 			var block = library.logic.block.objectNormalize(req.body.block);
@@ -297,10 +304,18 @@ private.attachApi = function () {
 					type: "integer",
 					minimum: 1,
 					maximum: 65535
+				},
+				nethash: {
+					type: "string",
+					maxLength: 64
 				}
 			},
-			required: ['port']
+			required: ['port','nethash']
 		});
+
+		if(req.headers['nethash']!==library.config.nethash){
+			return res.status(200).send({success: false, "message":"Request is made on the wrong network","expected":library.config.nethash, "received":req.headers['nethash']});
+		}
 
 		try {
 			var transaction = library.logic.transaction.objectNormalize(req.body.transaction);
@@ -545,6 +560,10 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			return;
 		}
 
+		if(response.headers['nethash'] !== library.config.nethash){
+			return cb && cb("The peer is not on the same network", null);
+		}
+
 		response.headers['port'] = parseInt(response.headers['port']);
 
 		var report = library.scheme.validate(response.headers, {
@@ -575,7 +594,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			return cb && cb(null, {body: body, peer: peer});
 		}
 
-		if (!peer.loopback && response.headers['version'] == library.config.version) {
+		if (!peer.loopback && (response.headers['version'] == library.config.version)) {
 			modules.peer.update({
 				ip: peer.ip,
 				port: response.headers['port'],
