@@ -28,21 +28,21 @@ function Round(cb, scope) {
 
 // Round changes
 function RoundChanges (round) {
-  var roundFees = Math.floor(private.feesByRound[round]) || 0;
-  var roundRewards = (private.rewardsByRound[round] || []);
+	var roundFees = Math.floor(private.feesByRound[round]) || 0;
+	var roundRewards = (private.rewardsByRound[round] || []);
 
-  this.at = function (index) {
-    var fees = Math.floor(roundFees / slots.delegates),
-        feesRemaining = roundFees - (fees * slots.delegates),
-        rewards = Math.floor(roundRewards[index]) || 0;
+	this.at = function (index) {
+		var fees = Math.floor(roundFees / slots.delegates),
+		    feesRemaining = roundFees - (fees * slots.delegates),
+		    rewards = Math.floor(roundRewards[index]) || 0;
 
-    return {
-      fees : fees,
-      feesRemaining : feesRemaining,
-      rewards : rewards,
-      balance : fees + rewards
-    };
-  }
+		return {
+			fees : fees,
+			feesRemaining : feesRemaining,
+			rewards : rewards,
+			balance : fees + rewards
+		};
+	}
 }
 
 // Round promiser
@@ -194,7 +194,7 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 	private.unDelegatesByRound[round] = private.unDelegatesByRound[round] || [];
 	private.unDelegatesByRound[round].push(block.generatorPublicKey);
 
-	var scope  = {
+	var scope = {
 		block: block,
 		round: round,
 		backwards: true,
@@ -250,7 +250,7 @@ Round.prototype.tick = function (block, done) {
 	private.delegatesByRound[round] = private.delegatesByRound[round] || [];
 	private.delegatesByRound[round].push(block.generatorPublicKey);
 
-	var scope  = {
+	var scope = {
 		block: block,
 		round: round,
 		backwards: false,
