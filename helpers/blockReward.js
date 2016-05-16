@@ -16,7 +16,7 @@ function BlockReward() {
 		height = parseInt(height);
 
 		if (isNaN(height)) {
-			throw new Error("Invalid block height");
+			throw "Invalid block height";
 		} else {
 			return Math.abs(height);
 		}
