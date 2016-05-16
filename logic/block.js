@@ -1,11 +1,11 @@
-var slots = require('../helpers/slots.js'),
-	ed = require('ed25519'),
-	crypto = require('crypto'),
-	genesisblock = null,
-	bignum = require('../helpers/bignum.js'),
-	ByteBuffer = require("bytebuffer"),
-	blockReward = require("../helpers/blockReward.js"),
-	constants = require('../helpers/constants.js');
+var slots = require("../helpers/slots.js");
+var ed = require("ed25519");
+var crypto = require("crypto");
+var genesisblock = null;
+var bignum = require("../helpers/bignum.js");
+var ByteBuffer = require("bytebuffer");
+var blockReward = require("../helpers/blockReward.js");
+var constants = require("../helpers/constants.js");
 
 // Constructor
 function Block(scope, cb) {

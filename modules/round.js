@@ -1,9 +1,9 @@
-var async = require("async"),
-    util = require("util"),
-    pgp = require("pg-promise"),
-    slots = require("../helpers/slots.js"),
-    sandboxHelper = require("../helpers/sandbox.js"),
-    constants = require("../helpers/constants.js");
+var async = require("async");
+var util = require("util");
+var pgp = require("pg-promise");
+var slots = require("../helpers/slots.js");
+var sandboxHelper = require("../helpers/sandbox.js");
+var constants = require("../helpers/constants.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

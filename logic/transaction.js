@@ -1,11 +1,11 @@
-var slots = require('../helpers/slots.js'),
-	ed = require('ed25519'),
-	crypto = require('crypto'),
-	genesisblock = null,
-	constants = require('../helpers/constants.js'),
-	ByteBuffer = require("bytebuffer"),
-	bignum = require('../helpers/bignum.js'),
-	extend = require('util-extend');
+var slots = require("../helpers/slots.js");
+var ed = require("ed25519");
+var crypto = require("crypto");
+var genesisblock = null;
+var constants = require("../helpers/constants.js");
+var ByteBuffer = require("bytebuffer");
+var bignum = require("../helpers/bignum.js");
+var extend = require("util-extend");
 
 // Constructor
 function Transaction(scope, cb) {

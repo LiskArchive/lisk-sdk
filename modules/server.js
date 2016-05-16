@@ -1,8 +1,8 @@
-var util = require('util'),
-	async = require('async'),
-	path = require('path'),
-	Router = require('../helpers/router.js'),
-	sandboxHelper = require('../helpers/sandbox.js');
+var util = require("util");
+var async = require("async");
+var path = require("path");
+var Router = require("../helpers/router.js");
+var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

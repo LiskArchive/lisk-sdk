@@ -1,16 +1,16 @@
-var crypto = require('crypto'),
-	bignum = require('../helpers/bignum.js'),
-	ed = require('ed25519'),
-	slots = require('../helpers/slots.js'),
-	Router = require('../helpers/router.js'),
-	util = require('util'),
-	blockReward = require("../helpers/blockReward.js"),
-	constants = require('../helpers/constants.js'),
-	TransactionTypes = require('../helpers/transaction-types.js'),
-	Diff = require('../helpers/diff.js'),
-	util = require('util'),
-	extend = require('extend'),
-	sandboxHelper = require('../helpers/sandbox.js');
+var crypto = require("crypto");
+var bignum = require("../helpers/bignum.js");
+var ed = require("ed25519");
+var slots = require("../helpers/slots.js");
+var Router = require("../helpers/router.js");
+var util = require("util");
+var blockReward = require("../helpers/blockReward.js");
+var constants = require("../helpers/constants.js");
+var TransactionTypes = require("../helpers/transaction-types.js");
+var Diff = require("../helpers/diff.js");
+var util = require("util");
+var extend = require("extend");
+var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

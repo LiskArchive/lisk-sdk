@@ -1,14 +1,14 @@
-var Router = require('../helpers/router.js'),
-	async = require('async'),
-	request = require('request'),
-	ip = require('ip'),
-	util = require('util'),
-	_ = require('underscore'),
-	zlib = require('zlib'),
-	extend = require('extend'),
-	crypto = require('crypto'),
-	bignum = require('../helpers/bignum.js'),
-	sandboxHelper = require('../helpers/sandbox.js');
+var Router = require("../helpers/router.js");
+var async = require("async");
+var request = require("request");
+var ip = require("ip");
+var util = require("util");
+var _ = require("underscore");
+var zlib = require("zlib");
+var extend = require("extend");
+var crypto = require("crypto");
+var bignum = require("../helpers/bignum.js");
+var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

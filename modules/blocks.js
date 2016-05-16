@@ -1,19 +1,19 @@
-var crypto = require('crypto'),
-	ed = require('ed25519'),
-	ip = require('ip'),
-	ByteBuffer = require("bytebuffer"),
-	constants = require("../helpers/constants.js"),
-	genesisblock = null,
-	blockReward = require("../helpers/blockReward.js"),
-	constants = require('../helpers/constants.js'),
-	Inserts = require('../helpers/inserts.js'),
-	Router = require('../helpers/router.js'),
-	slots = require('../helpers/slots.js'),
-	util = require('util'),
-	async = require('async'),
-	TransactionTypes = require('../helpers/transaction-types.js'),
-	sandboxHelper = require('../helpers/sandbox.js'),
-	_ = require('underscore');
+var crypto = require("crypto");
+var ed = require("ed25519");
+var ip = require("ip");
+var ByteBuffer = require("bytebuffer");
+var constants = require("../helpers/constants.js");
+var genesisblock = null;
+var blockReward = require("../helpers/blockReward.js");
+var constants = require("../helpers/constants.js");
+var Inserts = require("../helpers/inserts.js");
+var Router = require("../helpers/router.js");
+var slots = require("../helpers/slots.js");
+var util = require("util");
+var async = require("async");
+var TransactionTypes = require("../helpers/transaction-types.js");
+var sandboxHelper = require("../helpers/sandbox.js");
+var _ = require("underscore");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -218,6 +218,7 @@ private.list = function (filter, cb) {
 	library.db.query("SELECT COUNT(b.\"id\")::int " +
 		"FROM blocks b " +
 		(fields.length ? "WHERE " + fields.join(" AND ") : ""), params).then(function (rows) {
+
 		var count = rows[0].count;
 
 		library.db.query("SELECT b.\"id\" AS \"b_id\", b.\"version\" AS \"b_version\", b.\"timestamp\" AS \"b_timestamp\", b.\"height\" AS \"b_height\", b.\"previousBlock\" AS \"b_previousBlock\", b.\"numberOfTransactions\" AS \"b_numberOfTransactions\", b.\"totalAmount\" AS \"b_totalAmount\", b.\"totalFee\" AS \"b_totalFee\", b.\"reward\" AS \"b_reward\", b.\"payloadLength\" AS \"b_payloadLength\", ENCODE(b.\"payloadHash\", 'hex') AS \"b_payloadHash\", ENCODE(b.\"generatorPublicKey\", 'hex') AS \"b_generatorPublicKey\", ENCODE(b.\"blockSignature\", 'hex') AS \"b_blockSignature\", (SELECT MAX(\"height\") + 1 FROM blocks) - b.\"height\" AS \"b_confirmations\" " +

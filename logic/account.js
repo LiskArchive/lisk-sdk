@@ -1,11 +1,12 @@
-var async = require('async');
+var async = require("async");
 var pgp = require("pg-promise");
-var jsonSql = require('json-sql')();
-jsonSql.setDialect('postgresql');
-var constants = require('../helpers/constants.js');
-var slots = require('../helpers/slots.js');
+var jsonSql = require("json-sql")();
+    jsonSql.setDialect("postgresql");
+var constants = require("../helpers/constants.js");
+var slots = require("../helpers/slots.js");
 var genesisBlock = null;
 
+// Private fields
 var private = {};
 
 // Constructor

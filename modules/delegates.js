@@ -1,19 +1,19 @@
-var crypto = require('crypto'),
-	extend = require('extend'),
-	ed = require('ed25519'),
-	async = require('async'),
-	shuffle = require('knuth-shuffle').knuthShuffle,
-	bignum = require('../helpers/bignum.js'),
-	Router = require('../helpers/router.js'),
-	slots = require('../helpers/slots.js'),
-	schedule = require('node-schedule'),
-	util = require('util'),
-	blockReward = require("../helpers/blockReward.js"),
-	constants = require('../helpers/constants.js'),
-	TransactionTypes = require('../helpers/transaction-types.js'),
-	MilestoneBlocks = require("../helpers/milestoneBlocks.js"),
-	sandboxHelper = require('../helpers/sandbox.js');
-	_ = require('underscore');
+var crypto = require("crypto");
+var extend = require("extend");
+var ed = require("ed25519");
+var async = require("async");
+var shuffle = require("knuth-shuffle").knuthShuffle;
+var bignum = require("../helpers/bignum.js");
+var Router = require("../helpers/router.js");
+var slots = require("../helpers/slots.js");
+var schedule = require("node-schedule");
+var util = require("util");
+var blockReward = require("../helpers/blockReward.js");
+var constants = require("../helpers/constants.js");
+var TransactionTypes = require("../helpers/transaction-types.js");
+var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
+var sandboxHelper = require("../helpers/sandbox.js");
+var _ = require("underscore");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

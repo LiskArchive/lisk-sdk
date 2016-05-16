@@ -1,11 +1,11 @@
-var async = require('async'),
-	Router = require('../helpers/router.js'),
-	util = require('util'),
-	ip = require("ip"),
-	bignum = require('../helpers/bignum.js'),
-	sandboxHelper = require('../helpers/sandbox.js');
+var async = require("async");
+var Router = require("../helpers/router.js");
+var util = require("util");
+var ip = require("ip");
+var bignum = require("../helpers/bignum.js");
+var sandboxHelper = require("../helpers/sandbox.js");
 
-require('colors');
+require("colors");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

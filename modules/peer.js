@@ -1,15 +1,16 @@
-var async = require('async'),
-	util = require('util'),
-	ip = require('ip'),
-	Router = require('../helpers/router.js'),
-	extend = require('extend'),
-	fs = require('fs'),
-	path = require('path'),
-	sandboxHelper = require('../helpers/sandbox.js');
-	_ = require('underscore');
+var async = require('async');
+var util = require('util');
+var ip = require('ip');
+var Router = require('../helpers/router.js');
+var extend = require('extend');
+var fs = require('fs');
+var path = require('path');
+var sandboxHelper = require('../helpers/sandbox.js');
+var _ = require('underscore');
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
+
 private.loopback = ["0.0.0.0", "127.0.0.1"];
 
 // Constructor

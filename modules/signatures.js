@@ -1,13 +1,13 @@
-var ed = require('ed25519'),
-	ByteBuffer = require("bytebuffer"),
-	crypto = require('crypto'),
-	constants = require("../helpers/constants.js"),
-	slots = require('../helpers/slots.js'),
-	Router = require('../helpers/router.js'),
-	async = require('async'),
-	TransactionTypes = require('../helpers/transaction-types.js'),
-	MilestoneBlocks = require("../helpers/milestoneBlocks.js"),
-	sandboxHelper = require('../helpers/sandbox.js');
+var ed = require("ed25519");
+var ByteBuffer = require("bytebuffer");
+var crypto = require("crypto");
+var constants = require("../helpers/constants.js");
+var slots = require("../helpers/slots.js");
+var Router = require("../helpers/router.js");
+var async = require("async");
+var TransactionTypes = require("../helpers/transaction-types.js");
+var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
+var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

@@ -1,5 +1,5 @@
-var os = require("os"),
-	sandboxHelper = require('../helpers/sandbox.js');
+var os = require("os");
+var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

@@ -1,15 +1,15 @@
-var ed = require('ed25519'),
-	util = require('util'),
-	ByteBuffer = require("bytebuffer"),
-	crypto = require('crypto'),
-	genesisblock = null,
-	constants = require("../helpers/constants.js"),
-	slots = require('../helpers/slots.js'),
-	extend = require('extend'),
-	Router = require('../helpers/router.js'),
-	async = require('async'),
-	TransactionTypes = require('../helpers/transaction-types.js'),
-	sandboxHelper = require('../helpers/sandbox.js');
+var ed = require("ed25519");
+var util = require("util");
+var ByteBuffer = require("bytebuffer");
+var crypto = require("crypto");
+var genesisblock = null;
+var constants = require("../helpers/constants.js");
+var slots = require("../helpers/slots.js");
+var extend = require("extend");
+var Router = require("../helpers/router.js");
+var async = require("async");
+var TransactionTypes = require("../helpers/transaction-types.js");
+var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};

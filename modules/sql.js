@@ -1,14 +1,13 @@
-var async = require('async');
-var jsonSql = require('json-sql')();
-jsonSql.setDialect('postgresql');
-var extend = require('extend');
-var sandboxHelper = require('../helpers/sandbox.js')
+var async = require("async");
+var jsonSql = require("json-sql")();
+    jsonSql.setDialect("postgresql");
+var extend = require("extend");
+var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
 
 private.loaded = false;
-
 private.DOUBLE_DOUBLE_QUOTES = /""/g;
 private.SINGLE_QUOTES = /'/g;
 private.SINGLE_QUOTES_DOUBLED = "''";

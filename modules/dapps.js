@@ -1,26 +1,27 @@
-var async = require("async"),
-    dappTypes = require("../helpers/dappTypes.js"),
-    dappCategory = require("../helpers/dappCategory.js"),
-    TransactionTypes = require("../helpers/transaction-types.js"),
-    ByteBuffer = require("bytebuffer"),
-    fs = require("fs"),
-    request = require("request"),
-    path = require("path"),
-    npm = require("npm"),
-    slots = require("../helpers/slots.js"),
-    Router = require("../helpers/router.js"),
-    DecompressZip = require("decompress-zip"),
-    crypto = require("crypto"),
-    constants = require("../helpers/constants.js"),
-    Sandbox = require("lisk-sandbox"),
-    ed = require("ed25519"),
-    rmdir = require("rimraf"),
-    extend = require("extend"),
-    ip = require("ip"),
-    valid_url = require("valid-url"),
-    sandboxHelper = require("../helpers/sandbox.js"),
-    _ = require("underscore");
+var async = require("async");
+var dappTypes = require("../helpers/dappTypes.js");
+var dappCategory = require("../helpers/dappCategory.js");
+var TransactionTypes = require("../helpers/transaction-types.js");
+var ByteBuffer = require("bytebuffer");
+var fs = require("fs");
+var request = require("request");
+var path = require("path");
+var npm = require("npm");
+var slots = require("../helpers/slots.js");
+var Router = require("../helpers/router.js");
+var DecompressZip = require("decompress-zip");
+var crypto = require("crypto");
+var constants = require("../helpers/constants.js");
+var Sandbox = require("lisk-sandbox");
+var ed = require("ed25519");
+var rmdir = require("rimraf");
+var extend = require("extend");
+var ip = require("ip");
+var valid_url = require("valid-url");
+var sandboxHelper = require("../helpers/sandbox.js");
+var _ = require("underscore");
 
+// Private fields
 var modules, library, self, private = {}, shared = {};
 
 private.launched = {};
