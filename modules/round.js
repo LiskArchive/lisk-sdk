@@ -18,11 +18,6 @@ private.unFeesByRound = {};
 private.unRewardsByRound = {};
 private.unDelegatesByRound = {};
 
-private.block = {};
-private.round = null;
-private.delegates = [];
-private.outsiders = [];
-
 // Constructor
 function Round(cb, scope) {
 	library = scope;
@@ -51,22 +46,24 @@ function RoundChanges (round) {
 }
 
 // Round promiser
-function RoundPromiser (backwards, t) {
+function RoundPromiser (scope, t) {
 	var self = this;
+
+	scope.outsiders = [];
 
 	this.mergeBlockGenerator = function () {
 		return t.none(
 			modules.accounts.mergeAccountAndGet({
-				publicKey: private.block.generatorPublicKey,
-				producedblocks: (backwards ? -1 : 1),
-				blockId: private.block.id,
-				round: private.round
+				publicKey: scope.block.generatorPublicKey,
+				producedblocks: (scope.backwards ? -1 : 1),
+				blockId: scope.block.id,
+				round: scope.round
 			})
 		);
 	}
 
 	this.updateMissedBlocks = function () {
-		if (private.outsiders.length == 0) {
+		if (scope.outsiders.length == 0) {
 			return t;
 		}
 
@@ -78,11 +75,11 @@ function RoundPromiser (backwards, t) {
 		          "(SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
 		          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = (${round})::bigint";
 
-		return t.query(sql, { round: private.round });
+		return t.query(sql, { round: scope.round });
 	}
 
 	this.updateVotes = function () {
-		return self.getVotes(private.round).then(function (votes) {
+		return self.getVotes(scope.round).then(function (votes) {
 			var queries = votes.map(function (vote) {
 				return pgp.as.format("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address};", {
 					address: modules.accounts.generateAddressByPublicKey(vote.delegate),
@@ -99,35 +96,35 @@ function RoundPromiser (backwards, t) {
 	}
 
 	this.flushRound = function () {
-		return t.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: private.round });
+		return t.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: scope.round });
 	}
 
 	this.applyRound = function () {
-		var roundChanges = new RoundChanges(private.round);
+		var roundChanges = new RoundChanges(scope.round);
 		var queries = "";
 
-		for (var i = 0; i < private.delegates.length; i++) {
-			var delegate = private.delegates[i],
+		for (var i = 0; i < scope.delegates.length; i++) {
+			var delegate = scope.delegates[i],
 			    changes  = roundChanges.at(i);
 
 			queries += modules.accounts.mergeAccountAndGet({
 				publicKey: delegate,
-				balance: (backwards ? -changes.balance : changes.balance),
-				u_balance: (backwards ? -changes.balance : changes.balance),
-				blockId: private.block.id,
-				round: private.round,
-				fees: (backwards ? -changes.fees : changes.fees),
-				rewards: (backwards ? -changes.rewards : changes.rewards)
+				balance: (scope.backwards ? -changes.balance : changes.balance),
+				u_balance: (scope.backwards ? -changes.balance : changes.balance),
+				blockId: scope.block.id,
+				round: scope.round,
+				fees: (scope.backwards ? -changes.fees : changes.fees),
+				rewards: (scope.backwards ? -changes.rewards : changes.rewards)
 			});
 
-			if (i === private.delegates.length - 1) {
+			if (i === scope.delegates.length - 1) {
 				queries += modules.accounts.mergeAccountAndGet({
 					publicKey: delegate,
-					balance: (backwards ? -changes.feesRemaining : changes.feesRemaining),
-					u_balance: (backwards ? -changes.feesRemaining : changes.feesRemaining),
-					blockId: private.block.id,
-					round: private.round,
-					fees: (backwards ? -changes.feesRemaining : changes.feesRemaining),
+					balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
+					u_balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
+					blockId: scope.block.id,
+					round: scope.round,
+					fees: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
 				});
 			}
 		}
@@ -190,9 +187,6 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 	var round = self.calc(block.height);
 	var prevRound = self.calc(previousBlock.height);
 
-	private.block = block;
-	private.round = round;
-
 	private.unFeesByRound[round] = Math.floor(private.unFeesByRound[round]) || 0;
 	private.unFeesByRound[round] += Math.floor(block.totalFee);
 
@@ -202,10 +196,15 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 	private.unDelegatesByRound[round] = private.unDelegatesByRound[round] || [];
 	private.unDelegatesByRound[round].push(block.generatorPublicKey);
 
-	private.delegates = private.unDelegatesByRound[round];
+	var scope  = {
+		block: block,
+		round: round,
+		backwards: true,
+		delegates: private.unDelegatesByRound[round]
+	};
 
 	function BackwardTick (t) {
-		var promised = new RoundPromiser(true, t);
+		var promised = new RoundPromiser(scope, t);
 
 		return promised.mergeBlockGenerator().then(function () {
 
@@ -225,7 +224,7 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 
 	async.series([
 		function (cb) {
-			return private.getOutsiders(cb);
+			return private.getOutsiders(scope, cb);
 		},
 		function (cb) {
 			library.db.tx(BackwardTick).then(function () {
@@ -244,9 +243,6 @@ Round.prototype.tick = function (block, done) {
 	var round = self.calc(block.height);
 	var nextRound = self.calc(block.height + 1);
 
-	private.block = block;
-	private.round = round;
-
 	private.feesByRound[round] = Math.floor(private.feesByRound[round]) || 0;
 	private.feesByRound[round] += Math.floor(block.totalFee);
 
@@ -256,10 +252,15 @@ Round.prototype.tick = function (block, done) {
 	private.delegatesByRound[round] = private.delegatesByRound[round] || [];
 	private.delegatesByRound[round].push(block.generatorPublicKey);
 
-	private.delegates = private.delegatesByRound[round];
+	var scope  = {
+		block: block,
+		round: round,
+		backwards: false,
+		delegates: private.delegatesByRound[round]
+	};
 
 	function Tick (t) {
-		var promised = new RoundPromiser(false, t);
+		var promised = new RoundPromiser(scope, t);
 
 		return promised.mergeBlockGenerator().then(function () {
 
@@ -280,7 +281,7 @@ Round.prototype.tick = function (block, done) {
 
 	async.series([
 		function (cb) {
-			return private.getOutsiders(cb);
+			return private.getOutsiders(scope, cb);
 		},
 		function (cb) {
 			library.db.tx(Tick).then(function () {
@@ -339,18 +340,17 @@ Round.prototype.cleanup = function (cb) {
 
 // Private
 
-private.getOutsiders = function (cb) {
-	if (private.block.height == 1) {
+private.getOutsiders = function (scope, cb) {
+	if (scope.block.height == 1) {
 		return cb();
 	}
-	modules.delegates.generateDelegateList(private.block.height, function (err, roundDelegates) {
+	modules.delegates.generateDelegateList(scope.block.height, function (err, roundDelegates) {
 		if (err) {
 			return cb(err);
 		}
-		private.outsiders = [];
 		for (var i = 0; i < roundDelegates.length; i++) {
-			if (private.delegates.indexOf(roundDelegates[i]) == -1) {
-				private.outsiders.push(modules.accounts.generateAddressByPublicKey(roundDelegates[i]));
+			if (scope.delegates.indexOf(roundDelegates[i]) == -1) {
+				scope.outsiders.push(modules.accounts.generateAddressByPublicKey(roundDelegates[i]));
 			}
 		}
 		return cb();
