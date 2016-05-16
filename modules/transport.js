@@ -54,7 +54,6 @@ private.attachApi = function () {
 		}
 
 		req.headers['port'] = req.peer.port;
-		req.headers['share-port'] = parseInt(req.headers['share-port']);
 
 		req.sanitize(req.headers, {
 			type: "object",
@@ -68,24 +67,22 @@ private.attachApi = function () {
 					type: "string",
 					maxLength: 64
 				},
-				'share-port': {
-					type: 'integer',
-					minimum: 0,
-					maximum: 1
+				nethash: {
+					type: 'string',
+					maxLength: 64
 				},
-				'version': {
+				version: {
 					type: 'string',
 					maxLength: 11
 				}
 			},
-			required: ["port", 'share-port', 'version']
+			required: ["port", 'nethash', 'version']
 		}, function (err, report, headers) {
 			if (err) return next(err);
 			if (!report.isValid) return res.status(500).send({status: false, error: report.issues});
 
 			req.peer.state = 2;
 			req.peer.os = headers.os;
-			req.peer.sharePort = Number(headers['share-port']);
 			req.peer.version = headers.version;
 
 			if (req.body && req.body.dappid) {
@@ -549,7 +546,6 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		}
 
 		response.headers['port'] = parseInt(response.headers['port']);
-		response.headers['share-port'] = parseInt(response.headers['share-port']);
 
 		var report = library.scheme.validate(response.headers, {
 			type: "object",
@@ -563,17 +559,16 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 					minimum: 1,
 					maximum: 65535
 				},
-				'share-port': {
-					type: "integer",
-					minimum: 0,
-					maximum: 1
+				nethash: {
+					type: 'string',
+					maxLength: 64
 				},
 				version: {
 					type: "string",
 					maxLength: 11
 				}
 			},
-			required: ['port', 'share-port', 'version']
+			required: ['port', 'nethash', 'version']
 		});
 
 		if (!report) {
@@ -586,7 +581,6 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				port: response.headers['port'],
 				state: 2,
 				os: response.headers['os'],
-				sharePort: Number(!!response.headers['share-port']),
 				version: response.headers['version']
 			});
 		}
@@ -607,7 +601,7 @@ Transport.prototype.onBind = function (scope) {
 		os: modules.system.getOS(),
 		version: modules.system.getVersion(),
 		port: modules.system.getPort(),
-		'share-port': modules.system.getSharePort()
+		nethash: modules.system.getNethash()
 	}
 }
 

@@ -185,8 +185,8 @@ function waitForNewBlock(height, cb) {
 function addPeers(numOfPeers, cb) {
   var operatingSystems = ["win32","win64","ubuntu","debian", "centos"];
   var ports = [4000, 5000, 7000, 8000];
-  var sharePortOptions = [0,1];
-  var os,version,port,sharePort;
+
+  var os,version,port;
 
   var i = 0;
   async.whilst(function () {
@@ -195,7 +195,6 @@ function addPeers(numOfPeers, cb) {
     os = operatingSystems[randomizeSelection(operatingSystems.length)];
     version = config.version;
     port = ports[randomizeSelection(ports.length)];
-    // sharePort = sharePortOptions[randomizeSelection(sharePortOptions.length)];
 
     request({
       type: "GET",
@@ -204,7 +203,7 @@ function addPeers(numOfPeers, cb) {
       headers: {
         "version": version,
         "port": port,
-        "share-port": 0,
+        "nethash": config.nethash,
         "os": os
       }
     }, function (err, resp, body) {
