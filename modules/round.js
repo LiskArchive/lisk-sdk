@@ -70,11 +70,7 @@ function RoundPromiser (backwards, t) {
 			return t;
 		}
 
-		var escaped = private.outsiders.map(function (item) {
-			return "'" + item + "'";
-		});
-
-		return t.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN (" + escaped.join(",") + ")");
+		return t.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN ($1:csv)", [scope.outsiders]);
 	}
 
 	this.getVotes = function () {
