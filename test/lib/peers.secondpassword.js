@@ -5,7 +5,7 @@ var account = node.randomAccount();
 var account2 = node.randomAccount();
 var account3 = node.randomAccount();
 
-describe("Peers second signature transactions", function () {
+describe("Testing /peer/transactions API with second signature management", function () {
   it("Send second signature from account that doesn't have it. Should return not ok", function (done) {
     var transaction = node.lisk.transaction.createTransaction("1L", 1, node.Gaccount.password, account.secondPassword);
     node.peer.post("/transactions")

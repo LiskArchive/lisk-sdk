@@ -10,7 +10,7 @@ var delegate1;
 var delegate2;
 node.chai.config.includeStack = true;
 
-describe("Peers votes", function () {
+describe("Testing /peer/transactions API with votes management", function () {
   before(function (done) {
     node.api.get("/delegates/")
       .expect("Content-Type", /json/)

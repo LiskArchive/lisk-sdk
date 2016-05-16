@@ -16,7 +16,6 @@ var Saccount = {
     "balance": 0
 };
 
-console.log("Starting account-test suite");
 
 describe("Account", function() {
 
@@ -313,5 +312,4 @@ describe("Account", function() {
             });
     });
 
-    console.log("Finished Account-test suite");
 });

@@ -22,7 +22,6 @@ var Account1 = node.randomTxAccount();
 var Account2 = node.randomTxAccount();
 var Account3 = node.randomTxAccount();
 
-console.log("Starting Dapps test suite");
 
 describe("Dapps", function () {
 
@@ -1275,5 +1274,4 @@ describe("Dapps", function () {
 
    });
 
-   console.log("Finished Account-test suite");
 });
