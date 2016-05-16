@@ -1,4 +1,4 @@
-var constants = require('./constants.js');
+var constants = require("./constants.js");
 
 function BlockReward() {
 	var milestones = [
@@ -16,7 +16,7 @@ function BlockReward() {
 		height = parseInt(height);
 
 		if (isNaN(height)) {
-			throw new Error('Invalid block height');
+			throw new Error("Invalid block height");
 		} else {
 			return Math.abs(height);
 		}
