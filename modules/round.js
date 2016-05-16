@@ -1,9 +1,9 @@
-var async = require('async'),
-    util = require('util'),
+var async = require("async"),
+    util = require("util"),
     pgp = require("pg-promise"),
-    slots = require('../helpers/slots.js'),
-    sandboxHelper = require('../helpers/sandbox.js'),
-    constants = require('../helpers/constants.js');
+    slots = require("../helpers/slots.js"),
+    sandboxHelper = require("../helpers/sandbox.js"),
+    constants = require("../helpers/constants.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -168,7 +168,7 @@ Round.prototype.flush = function (round, cb) {
 }
 
 Round.prototype.directionSwap = function (direction, lastBlock, cb) {
-	if (direction == 'backward') {
+	if (direction == "backward") {
 		private.feesByRound = {};
 		private.rewardsByRound = {};
 		private.delegatesByRound = {};
@@ -270,7 +270,7 @@ Round.prototype.tick = function (block, done) {
 						delete private.feesByRound[round];
 						delete private.rewardsByRound[round];
 						delete private.delegatesByRound[round];
-						library.bus.message('finishRound', round);
+						library.bus.message("finishRound", round);
 					});
 				}
 			}
@@ -328,7 +328,7 @@ Round.prototype.onBlockchainReady = function () {
 }
 
 Round.prototype.onFinishRound = function (round) {
-	library.network.io.sockets.emit('rounds/change', {number: round});
+	library.network.io.sockets.emit("rounds/change", {number: round});
 }
 
 Round.prototype.cleanup = function (cb) {
