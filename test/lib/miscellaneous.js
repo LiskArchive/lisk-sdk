@@ -3,6 +3,7 @@
 // Requires and node configuration
 var node = require("./../variables.js");
 var test = 0;
+
 var block = {
     blockHeight : 0,
     id : 0,
@@ -13,12 +14,11 @@ var block = {
 
 var testBlocksUnder101 = 0;
 
+describe("Load Testing", function () {
 
-describe("Miscellaneous tests (peers, blocks, etc)", function () {
-
-    describe("Load testing", function () {
+    describe("POST /accounts/open", function () {
         test = test + 1;
-        it(test + ". We attempt to send a payload of just over 2Mb. Should not be ok", function (done) {
+        it(test + ". When payload is over 2Mb. Should fail", function (done) {
             var data = "qs";
             for (var i = 0; i < 20; i++) {
               data += data;
@@ -31,7 +31,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error").that.is.an("object");
                     node.expect(res.body.error).to.have.property("limit").to.equal(2097152);
@@ -40,16 +40,20 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
     });
 
-    describe("/peers tests", function () {
+});
+
+describe("Peers", function () {
+
+    describe("GET /peers/version", function () {
 
         test = test + 1;
-        it(test + ". Get version of node. Should be ok", function (done) {
+        it(test + ". Should be ok", function (done) {
             node.api.get("/peers/version")
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("build").to.be.a("string");
                     node.expect(res.body).to.have.property("version").to.be.a("string");
@@ -57,15 +61,19 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 });
         });
 
+    });
+
+    describe("GET /peers", function () {
+
         test = test + 1;
-        it(test + ". Get peers list by parameters: empty. Should not be ok", function (done) {
+        it(test + ". Using empty parameters. Should fail", function (done) {
             var state = "", os = "", shared = "", version = "", limit = "", offset = 0, orderBy = "";
             node.api.get("/peers?state="+state+"&os="+os+"&shared="+true+"&version="+version+"&limit="+limit+"&offset="+offset+"orderBy="+orderBy)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -73,14 +81,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get peers list by parameters: state. Should be ok", function (done) {
+        it(test + ". Using state. Should be ok", function (done) {
             var state = 1;
             node.api.get("/peers?state="+state)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("peers").that.is.an("array");
                     if (res.body.peers.length > 0) {
@@ -93,14 +101,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get peers list by parameters: limit. Should be ok", function (done) {
+        it(test + ". Using limit. Should be ok", function (done) {
             var limit = 3, offset = 0;
             node.api.get("/peers?&limit="+limit+"&offset="+offset)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("peers").that.is.an("array");
 
@@ -111,14 +119,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get peers list by parameters: orderBy. Should be ok", function (done) {
+        it(test + ". Using orderBy. Should be ok", function (done) {
             var orderBy = "state:desc";
             node.api.get("/peers?orderBy="+orderBy)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("peers").that.is.an("array");
 
@@ -135,14 +143,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get peers list by parameters with a limit > 100. Should not be ok", function (done) {
+        it(test + ". Using limit > 100. Should fail", function (done) {
             var limit = 101;
             node.api.get("/peers?&limit="+limit)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -150,31 +158,36 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get peers list by parameters using invalid fields. Should be ok", function (done) {
+        it(test + ". Using invalid parameters. Should fail", function (done) {
             var state = "invalid", os = "invalid", shared = "invalid", version = "invalid", limit = "invalid", offset = "invalid", orderBy = "invalid";
             node.api.get("/peers?state="+state+"&os="+os+"&shared="+shared+"&version="+version+"&limit="+limit+"&offset="+offset+"orderBy="+orderBy)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
                 });
         });
+
     });
 
-    describe("/blocks", function () {
+});
+
+describe("Blocks", function () {
+
+    describe("GET /blocks/getHeight", function () {
 
         test = test + 1;
-        it(test + ". Get block height. Should be ok", function (done) {
+        it(test + ". Should be ok", function (done) {
             node.api.get("/blocks/getHeight")
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     if (res.body.success == true && res.body.height != null) {
                         node.expect(res.body).to.have.property("height").to.be.above(0);
@@ -191,14 +204,18 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 });
         });
 
+    });
+
+    describe("GET /blocks/getFee", function () {
+
         test = test + 1;
-        it(test + ". Get current fee. Should be ok", function (done) {
+        it(test + ". Should be ok", function (done) {
             node.api.get("/blocks/getFee")
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     if (res.body.success == true && res.body.fee != null) {
                         node.expect(res.body).to.have.property("fee");
@@ -210,15 +227,19 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 });
         });
 
+    });
+
+    describe("GET /blocks", function () {
+
         test = test + 1;
-        it(test + ". Get blocks list by parameters: height. Should be ok", function (done) {
+        it(test + ". Using height. Should be ok", function (done) {
             var height = block.blockHeight, limit = 100, offset = 0;
             node.api.get("/blocks?height="+height+"&limit="+limit+"&offset="+offset)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     if (res.body.success == true && res.body.blocks != null) {
                         node.expect(res.body).to.have.property("blocks").that.is.an("array");
@@ -244,7 +265,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get blocks list by parameters: height, when height < 100. Should be ok", function (done) {
+        it(test + ". Using height < 100. Should be ok", function (done) {
             if (testBlocksUnder101) {
                 var height = 10;
                 node.api.get("/blocks?height="+height)
@@ -252,7 +273,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        //console.log(JSON.stringify(res.body));
+                        // console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         if (res.body.success == true && res.body.blocks != null) {
                             node.expect(res.body).to.have.property("count");
@@ -281,14 +302,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get blocks list by parameters: generatorPublicKey. Should be ok", function (done) {
+        it(test + ". Using generatorPublicKey. Should be ok", function (done) {
             var generatorPublicKey = block.generatorPublicKey, limit = 100, offset = 0, orderBy = "";
             node.api.get("/blocks?generatorPublicKey="+generatorPublicKey+"&limit="+limit+"&offset="+offset)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {
@@ -299,14 +320,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get blocks list by parameters: totalFee. Should be ok", function (done) {
+        it(test + ". Using totalFee. Should be ok", function (done) {
             var totalFee = block.totalFee, limit = 100, offset = 0;
             node.api.get("/blocks?totalFee="+totalFee+"&limit="+limit+"&offset="+offset)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {
@@ -317,14 +338,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get blocks list by parameters: totalAmount. Should be ok", function (done) {
+        it(test + ". Using totalAmount. Should be ok", function (done) {
             var totalAmount = block.totalAmount, limit = 100, offset = 0;
             node.api.get("/blocks?totalAmount="+totalAmount+"&limit="+limit+"&offset="+offset)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {
@@ -335,7 +356,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get blocks list by parameters: previousBlock. Should be ok", function (done) {
+        it(test + ". Using previousBlock. Should be ok", function (done) {
             if (block.id != null) {
                 var previousBlock = block.id;
                 node.onNewBlock(function (err) {
@@ -345,7 +366,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                         .expect("Content-Type", /json/)
                         .expect(200)
                         .end(function (err, res) {
-                            //console.log(JSON.stringify(res.body));
+                            // console.log(JSON.stringify(res.body));
                             node.expect(res.body).to.have.property("success").to.be.true;
                             node.expect(res.body).to.have.property("blocks").that.is.an("array");
                             node.expect(res.body.blocks).to.have.length(1);
@@ -357,14 +378,14 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get blocks list by parameters: orderBy. Should be ok", function (done) {
+        it(test + ". Using orderBy. Should be ok", function (done) {
             var orderBy = "height:desc";
             node.api.get("/blocks?orderBy="+orderBy)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("blocks").that.is.an("array");
                     for (var i = 0; i < res.body.blocks.length; i++) {

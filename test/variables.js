@@ -16,8 +16,8 @@ var TxTypes = require("../helpers/transactionTypes.js");
 var config = require("../config.json"),
     baseUrl = "http://" + config.address + ":" + config.port,
     api = supertest(baseUrl + "/api"),
-    peer = supertest(baseUrl + "/peer");
-    constants = equire("../helpers/constants.js");
+    peer = supertest(baseUrl + "/peer"),
+    constants = require("../helpers/constants.js");
 
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
