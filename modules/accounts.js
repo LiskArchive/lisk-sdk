@@ -279,14 +279,17 @@ private.openAccount = function (secret, cb) {
 Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
 	var temp = new Buffer(8);
+
 	for (var i = 0; i < 8; i++) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
 	var address = bignum.fromBuffer(temp).toString() + 'L';
+
 	if (!address) {
 		throw Error("Invalid public key: " + publicKey);
 	}
+
 	return address;
 }
 
@@ -305,6 +308,7 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
 
 Accounts.prototype.setAccountAndGet = function (data, cb) {
 	var address = data.address || null;
+
 	if (address === null) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
@@ -312,9 +316,11 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 			return cb("Missing address or public key");
 		}
 	}
+
 	if (!address) {
 		throw cb("Invalid public key");
 	}
+
 	library.logic.account.set(address, data, function (err) {
 		if (err) {
 			return cb(err);
@@ -325,6 +331,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 
 Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	var address = data.address || null;
+
 	if (address === null) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
@@ -332,9 +339,11 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 			return cb("Missing address or public key");
 		}
 	}
+
 	if (!address) {
 		throw cb("Invalid public key");
 	}
+
 	return library.logic.account.merge(address, data, cb);
 }
 
@@ -350,6 +359,7 @@ Accounts.prototype.onBind = function (scope) {
 // Shared
 shared.open = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: "object",
 		properties: {
@@ -367,6 +377,7 @@ shared.open = function (req, cb) {
 
 		private.openAccount(body.secret, function (err, account) {
 			var accountData = null;
+
 			if (!err) {
 				accountData = {
 					address: account.address,
@@ -405,6 +416,7 @@ shared.getBalance = function (req, cb) {
 		}
 
 		var isAddress = /^[0-9]+[L|l]$/g;
+
 		if (!isAddress.test(query.address)) {
 			return cb("Invalid address");
 		}
@@ -413,6 +425,7 @@ shared.getBalance = function (req, cb) {
 			if (err) {
 				return cb(err);
 			}
+
 			var balance = account ? account.balance : 0;
 			var unconfirmedBalance = account ? account.u_balance : 0;
 
@@ -441,9 +454,11 @@ shared.getPublickey = function (req, cb) {
 			if (err) {
 				return cb(err);
 			}
+
 			if (!account || !account.publicKey) {
 				return cb("Account does not have a public key");
 			}
+
 			cb(null, {publicKey: account.publicKey});
 		});
 	});
@@ -498,6 +513,7 @@ shared.getDelegates = function (req, cb) {
 			if (err) {
 				return cb(err);
 			}
+
 			if (!account) {
 				return cb("Account not found");
 			}
@@ -609,6 +625,7 @@ shared.addDelegates = function (req, cb) {
 						} catch (e) {
 							return cb(e.toString());
 						}
+
 						modules.transactions.receiveTransactions([transaction], cb);
 					});
 				});
@@ -617,6 +634,7 @@ shared.addDelegates = function (req, cb) {
 					if (err) {
 						return cb(err);
 					}
+
 					if (!account || !account.publicKey) {
 						return cb("Account not found");
 					}
@@ -643,6 +661,7 @@ shared.addDelegates = function (req, cb) {
 					} catch (e) {
 						return cb(e.toString());
 					}
+
 					modules.transactions.receiveTransactions([transaction], cb);
 				});
 			}
@@ -676,6 +695,7 @@ shared.getAccount = function (req, cb) {
 			if (err) {
 				return cb(err);
 			}
+
 			if (!account) {
 				return cb("Account not found");
 			}
