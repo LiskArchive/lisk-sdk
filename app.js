@@ -104,13 +104,15 @@ d.run(function () {
 		config: function (cb) {
 			if (appConfig.dapp.masterrequired && !appConfig.dapp.masterpassword) {
 				var randomstring = require("randomstring");
+
 				appConfig.dapp.masterpassword = randomstring.generate({
 					length: 12,
 					readable: true,
 					charset: "alphanumeric"
 				});
+
 				fs.writeFile("./config.json", JSON.stringify(appConfig, null, 4), "utf8", function (err) {
-					cb(err, appConfig)
+					cb(err, appConfig);
 				});
 			} else {
 				cb(null, appConfig);
@@ -289,7 +291,6 @@ d.run(function () {
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: "2mb", parameterLimit: 5000}));
 			scope.network.app.use(bodyParser.json({limit: "2mb"}));
 			scope.network.app.use(methodOverride());
-
 
 			var ignore = ["id", "name", "lastBlockId", "blockId", "transactionId", "address", "recipientId", "senderId", "previousBlock"];
 			scope.network.app.use(queryParser({
