@@ -93,26 +93,6 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
         });
 
         test = test + 1;
-        it(test + ". Get peers list by parameters: sharePort. Should be ok", function (done) {
-            var shared = 1, limit = 100, offset = 0;
-            node.api.get("/peers?shared="+shared+"&limit="+limit+"&offset="+offset)
-                .set("Accept", "application/json")
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("peers").that.is.an("array");
-                    if (res.body.peers.length > 0) {
-                        for (var i = 0; i < res.body.peers.length; i++) {
-                            node.expect(res.body.peers[i].sharePort).to.equal(parseInt(shared));
-                        }
-                    }
-                    done();
-                });
-        });
-
-        test = test + 1;
         it(test + ". Get peers list by parameters: limit. Should be ok", function (done) {
             var limit = 3, offset = 0;
             node.api.get("/peers?&limit="+limit+"&offset="+offset)

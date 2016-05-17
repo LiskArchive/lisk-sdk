@@ -5,13 +5,13 @@ var account = node.randomAccount();
 var account2 = node.randomAccount();
 var account3 = node.randomAccount();
 
-describe("Peers second signature transactions", function () {
+describe("Testing /peer/transactions API with second signature management", function () {
   it("Send second signature from account that doesn't have it. Should return not ok", function (done) {
     var transaction = node.lisk.transaction.createTransaction("1L", 1, node.Gaccount.password, account.secondPassword);
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -31,7 +31,7 @@ describe("Peers second signature transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -49,7 +49,7 @@ describe("Peers second signature transactions", function () {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         secret: account.password
@@ -61,7 +61,7 @@ describe("Peers second signature transactions", function () {
         node.api.put("/transactions")
           .set("Accept", "application/json")
           .set("version",node.version)
-          .set("share-port",1)
+          .set("nethash", node.config.nethash)
           .set("port",node.config.port)
           .send({
             secret: node.Gaccount.password,
@@ -82,7 +82,7 @@ describe("Peers second signature transactions", function () {
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version",node.version)
-                .set("share-port",1)
+                .set("nethash", node.config.nethash)
                 .set("port",node.config.port)
                 .send({
                   transaction: transaction
@@ -105,7 +105,7 @@ describe("Peers second signature transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -126,7 +126,7 @@ describe("Peers second signature transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -145,7 +145,7 @@ describe("Peers second signature transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -165,7 +165,7 @@ describe("Peers second signature transactions", function () {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         secret: account2.password
@@ -179,7 +179,7 @@ describe("Peers second signature transactions", function () {
         node.api.put("/transactions")
           .set("Accept", "application/json")
           .set("version",node.version)
-          .set("share-port",1)
+          .set("nethash", node.config.nethash)
           .set("port",node.config.port)
           .send({
             secret: node.Gaccount.password,
@@ -198,7 +198,7 @@ describe("Peers second signature transactions", function () {
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version",node.version)
-                .set("share-port",1)
+                .set("nethash", node.config.nethash)
                 .set("port",node.config.port)
                 .send({
                   transaction: transaction
@@ -212,7 +212,7 @@ describe("Peers second signature transactions", function () {
                     node.peer.post("/transactions")
                       .set("Accept", "application/json")
                       .set("version",node.version)
-                      .set("share-port",1)
+                      .set("nethash", node.config.nethash)
                       .set("port",node.config.port)
                       .send({
                         transaction: sendTransaction
@@ -235,7 +235,7 @@ describe("Peers second signature transactions", function () {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         secret: account3.password
@@ -261,7 +261,7 @@ describe("Peers second signature transactions", function () {
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version",node.version)
-                .set("share-port",1)
+                .set("nethash", node.config.nethash)
                 .set("port",node.config.port)
                 .send({
                   transaction: sendTransaction
@@ -275,7 +275,7 @@ describe("Peers second signature transactions", function () {
                   node.peer.post("/transactions")
                     .set("Accept", "application/json")
                     .set("version",node.version)
-                    .set("share-port",1)
+                    .set("nethash", node.config.nethash)
                     .set("port",node.config.port)
                     .send({
                       transaction: transaction
@@ -291,7 +291,7 @@ describe("Peers second signature transactions", function () {
                         node.api.get("/transactions/get?id=" + sendTransaction.id)
                           .set("Accept", "application/json")
                           .set("version",node.version)
-                          .set("share-port",1)
+                          .set("nethash", node.config.nethash)
                           .set("port",node.config.port)
                           .expect("Content-Type", /json/)
                           .expect(200)
@@ -302,7 +302,7 @@ describe("Peers second signature transactions", function () {
                             node.api.get("/transactions/get?id=" + transaction.id)
                               .set("Accept", "application/json")
                               .set("version",node.version)
-                              .set("share-port",1)
+                              .set("nethash", node.config.nethash)
                               .set("port",node.config.port)
                               .expect("Content-Type", /json/)
                               .expect(200)

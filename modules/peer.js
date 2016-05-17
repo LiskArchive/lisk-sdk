@@ -96,11 +96,6 @@ private.updatePeerList = function (cb) {
 						os: {
 							type: "string"
 						},
-						sharePort: {
-							type: "integer",
-							minimum: 0,
-							maximum: 1
-						},
 						version: {
 							type: "string"
 						}
@@ -142,7 +137,7 @@ private.banManager = function (cb) {
 }
 
 private.getByFilter = function (filter, cb) {
-	var sortFields = ["ip", "port", "state", "os", "sharePort", "version"];
+	var sortFields = ["ip", "port", "state", "os", "version"];
 	var sortMethod = '', sortBy = ''
 	var limit = filter.limit || null;
 	var offset = filter.offset || null;
@@ -165,11 +160,6 @@ private.getByFilter = function (filter, cb) {
 	if (filter.hasOwnProperty('version') && filter.version !== null) {
 		where.push("\"version\" = ${version}");
 		params.version = filter.version;
-	}
-
-	if (filter.hasOwnProperty('shared') && filter.shared !== null) {
-		where.push("\"sharePort\" = ${sharePort}");
-		params.sharePort = filter.shared;
 	}
 
 	if (filter.hasOwnProperty('ip') && filter.ip !== null) {
@@ -211,7 +201,7 @@ private.getByFilter = function (filter, cb) {
 		params['offset'] = offset;
 	}
 
-	library.db.query("SELECT \"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\" FROM peers" +
+	library.db.query("SELECT \"ip\", \"port\", \"state\", \"os\", \"version\" FROM peers" +
 		(where.length ? (" WHERE " + where.join(" AND ")) : "") +
 		(sortBy ? " ORDER BY " + sortBy + " " + sortMethod : "") + " " +
 		(limit ? " LIMIT ${limit}" : "") +
@@ -255,7 +245,7 @@ Peer.prototype.accept = function (peer) {
 Peer.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
-	library.db.query("SELECT p.\"ip\", p.\"port\", p.\"state\", p.\"os\", p.\"sharePort\", p.\"version\" FROM peers p " + (options.dappid ? " INNER JOIN peers_dapp AS pd ON p.\"id\" = pd.\"peerId\" AND pd.\"dappid\" = ${dappid} " : "") + " WHERE p.\"state\" > 0 AND p.\"sharePort\" = 1 ORDER BY RANDOM() LIMIT ${limit}", options).then(function (rows) {
+	library.db.query("SELECT p.\"ip\", p.\"port\", p.\"state\", p.\"os\", p.\"version\" FROM peers p " + (options.dappid ? " INNER JOIN peers_dapp AS pd ON p.\"id\" = pd.\"peerId\" AND pd.\"dappid\" = ${dappid} " : "") + " WHERE p.\"state\" > 0 ORDER BY RANDOM() LIMIT ${limit}", options).then(function (rows) {
 		cb(null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
@@ -334,13 +324,12 @@ Peer.prototype.update = function (peer, cb) {
 		ip: peer.ip,
 		port: peer.port,
 		os: peer.os || null,
-		sharePort: peer.sharePort,
 		version: peer.version || null
 	}
 
 	async.series([
 		function (cb) {
-			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"sharePort\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${sharePort}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
+			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
@@ -351,7 +340,7 @@ Peer.prototype.update = function (peer, cb) {
 			if (peer.state !== undefined) {
 				params.state = peer.state;
 			}
-			library.db.query("UPDATE peers SET \"os\" = ${os}, \"sharePort\" = ${sharePort}, \"version\" = ${version}" + (peer.state !== undefined ? ", \"state\" = CASE WHEN \"state\" = 0 THEN \"state\" ELSE ${state} END " : "") + " WHERE \"ip\" = ${ip} and \"port\" = ${port};", params).then(function (res) {
+			library.db.query("UPDATE peers SET \"os\" = ${os}, \"version\" = ${version}" + (peer.state !== undefined ? ", \"state\" = CASE WHEN \"state\" = 0 THEN \"state\" ELSE ${state} END " : "") + " WHERE \"ip\" = ${ip} and \"port\" = ${port};", params).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
@@ -382,11 +371,10 @@ Peer.prototype.onBind = function (scope) {
 
 Peer.prototype.onBlockchainReady = function () {
 	async.eachSeries(library.config.peers.list, function (peer, cb) {
-		library.db.query("INSERT INTO peers(\"ip\", \"port\", \"state\", \"sharePort\") VALUES(${ip}, ${port}, ${state}, ${sharePort}) ON CONFLICT DO NOTHING;", {
+		library.db.query("INSERT INTO peers(\"ip\", \"port\", \"state\") VALUES(${ip}, ${port}, ${state}) ON CONFLICT DO NOTHING;", {
 			ip: peer.ip,
 			port: peer.port,
-			state: 2,
-			sharePort: Number(true)
+			state: 2
 		}).then(function (res) {
 			return cb(null, res);
 		}).catch(function (err) {
@@ -450,11 +438,6 @@ shared.getPeers = function (req, cb) {
 				type: "integer",
 				minimum: 0,
 				maximum: 100
-			},
-			shared: {
-				type: "integer",
-				minimum: 0,
-				maximum: 1
 			},
 			orderBy: {
 				type: "string"

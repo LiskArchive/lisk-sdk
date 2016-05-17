@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS "multisignatures"("min" INT NOT NULL, "lifetime" INT 
 CREATE TABLE IF NOT EXISTS "dapps"("transactionId" VARCHAR(20) NOT NULL, "name" VARCHAR(32) NOT NULL, "description" VARCHAR(160), "tags" VARCHAR(160), "link" TEXT, "type" INT NOT NULL, "category" INT NOT NULL, "icon" TEXT, FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS "intransfer"("dappId" VARCHAR(20) NOT NULL, "transactionId" VARCHAR(20) NOT NULL, FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS "outtransfer"("transactionId" VARCHAR(20) NOT NULL, "dappId" VARCHAR(20) NOT NULL, "outTransactionId" VARCHAR(20) NOT NULL UNIQUE, FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE);
-CREATE TABLE IF NOT EXISTS "peers"("id" SERIAL NOT NULL PRIMARY KEY, "ip" INET NOT NULL, "port" SMALLINT NOT NULL, "state" SMALLINT NOT NULL, "os" VARCHAR(64), "sharePort" SMALLINT NOT NULL, "version" VARCHAR(11), "clock" BIGINT);
+CREATE TABLE IF NOT EXISTS "peers"("id" SERIAL NOT NULL PRIMARY KEY, "ip" INET NOT NULL, "port" SMALLINT NOT NULL, "state" SMALLINT NOT NULL, "os" VARCHAR(64), "version" VARCHAR(11), "clock" BIGINT);
 CREATE TABLE IF NOT EXISTS "peers_dapp"("peerId" INT NOT NULL, "dappid" VARCHAR(20) NOT NULL, FOREIGN KEY("peerId") REFERENCES "peers"("id") ON DELETE CASCADE);
 
 /* Unique Indexes */

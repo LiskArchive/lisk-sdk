@@ -4,12 +4,12 @@ var node = require("./../variables.js"),
 var account = node.randomAccount();
 var account2 = node.randomAccount();
 
-describe("Peers delegates transactions", function () {
+describe("Testing /peer/transactions API with delegates management", function () {
   it("Creating a delegate with an invalid username. Should not be ok", function (done) {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
       .set("version", node.version)
-      .set("share-port", 1)
+      .set("nethash", node.config.nethash)
       .set("port", node.config.port)
       .send({
         secret: account.password
@@ -21,7 +21,7 @@ describe("Peers delegates transactions", function () {
         node.api.put("/transactions")
           .set("Accept", "application/json")
           .set("version", node.version)
-          .set("share-port", 1)
+          .set("nethash", node.config.nethash)
           .set("port", node.config.port)
           .send({
             secret: node.Gaccount.password,
@@ -39,7 +39,7 @@ describe("Peers delegates transactions", function () {
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version",node.version)
-                .set("share-port", 1)
+                .set("nethash", node.config.nethash)
                 .set("port", node.config.port)
                 .send({
                   transaction: transaction
@@ -63,7 +63,7 @@ describe("Peers delegates transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version", node.version)
-      .set("share-port", 1)
+      .set("nethash", node.config.nethash)
       .set("port", node.config.port)
       .send({
         transaction: transaction
@@ -84,7 +84,7 @@ describe("Peers delegates transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version", node.version)
-      .set("share-port", 1)
+      .set("nethash", node.config.nethash)
       .set("port", node.config.port)
       .send({
         transaction: transaction
@@ -105,7 +105,7 @@ describe("Peers delegates transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version", node.version)
-      .set("share-port", 1)
+      .set("nethash", node.config.nethash)
       .set("port", node.config.port)
       .send({
         transaction: transaction
@@ -123,7 +123,7 @@ describe("Peers delegates transactions", function () {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
       .set("version", node.version)
-      .set("share-port", 1)
+      .set("nethash", node.config.nethash)
       .set("port", node.config.port)
       .send({
         secret: account2.password
@@ -136,7 +136,7 @@ describe("Peers delegates transactions", function () {
         node.api.put("/transactions")
           .set("Accept", "application/json")
           .set("version", node.version)
-          .set("share-port", 1)
+          .set("nethash", node.config.nethash)
           .set("port", node.config.port)
           .send({
             secret: node.Gaccount.password,
@@ -155,7 +155,7 @@ describe("Peers delegates transactions", function () {
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
-                .set("share-port", 1)
+                .set("nethash", node.config.nethash)
                 .set("port", node.config.port)
                 .send({
                   transaction: transaction
@@ -172,7 +172,7 @@ describe("Peers delegates transactions", function () {
                   node.peer.post("/transactions")
                     .set("Accept", "application/json")
                     .set("version", node.version)
-                    .set("share-port", 1)
+                    .set("nethash", node.config.nethash)
                     .set("port", node.config.port)
                     .send({
                       transaction: transaction2
@@ -196,7 +196,7 @@ describe("Peers delegates transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version", node.version)
-      .set("share-port", 1)
+      .set("nethash", node.config.nethash)
       .set("port", node.config.port)
       .send({
         transaction: transaction

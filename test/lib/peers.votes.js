@@ -6,70 +6,80 @@ var account = node.randomAccount();
 var delegate1Voted = false;
 var delegate2Voted = false;
 
-var delegate1="cd4605500c55816592a531c6e357dfe6075f9c0d5bffc961d6847ed8f6e9c190";
-var delegate2="0ac9f9bf9a35ae05176121392ce308765ee8c956d3d86acf6a23959155dd35b4";
+var delegate1;
+var delegate2;
 node.chai.config.includeStack = true;
 
-describe("Peers votes", function () {
+describe("Testing /peer/transactions API with votes management", function () {
   before(function (done) {
-    node.api.get("/accounts/delegates/?address=" + node.Gaccount.address)
+    node.api.get("/delegates/")
       .expect("Content-Type", /json/)
       .expect(200)
       .end(function (err, res) {
-        var transaction=null;
-        //console.log(JSON.stringify(res.body));
         node.expect(res.body).to.have.property("success").to.be.true;
         if (res.body.success == true){
-          node.expect(res.body).to.have.property("delegates").that.is.an("array");
-          if (res.body.delagates !== null) {
-            for (var i = 0; i < res.body.delegates.length; i++) {
-              if (res.body.delegates[i].publicKey == delegate1) {
-                delegate1Voted = true;
-              }
-              else if (res.body.delegates[i].publicKey == delegate2){
-                delegate2Voted = true;
-              }
-            }
-          }
-          else {
-            console.log("Accounts returned null. Unable to proceed with test");
-          }
-        }
-        else {
-          console.log("Check if already voted request failed or account array null");
-          done();
-        }
-        if (!delegate1Voted && !delegate2Voted) {
-          transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1, "+"+delegate2]);
-        }
-        else if (delegate1Voted && !delegate2Voted) {
-          transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate2]);
-        }
-        else if (delegate2Voted && !delegate1Voted) {
-          transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1]);
-        }
-        if (transaction!==null) {
-          node.peer.post("/transactions")
-            .set("Accept", "application/json")
-            .set("version", node.version)
-            .set("share-port", 1)
-            .set("port", node.config.port)
-            .send({
-              transaction: transaction
-            })
+          delegate1=res.body.delegates[1].publicKey;
+          delegate2=res.body.delegates[2].publicKey;
+
+          node.api.get("/accounts/delegates/?address=" + node.Gaccount.address)
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-              console.log("Sent vote fix for delegates");
-              //console.log("Sent: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
+              var transaction=null;
+              //console.log(JSON.stringify(res.body));
               node.expect(res.body).to.have.property("success").to.be.true;
-              done();
+              if (res.body.success == true){
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                if (res.body.delagates !== null) {
+                  for (var i = 0; i < res.body.delegates.length; i++) {
+                    if (res.body.delegates[i].publicKey == delegate1) {
+                      delegate1Voted = true;
+                    }
+                    else if (res.body.delegates[i].publicKey == delegate2){
+                      delegate2Voted = true;
+                    }
+                  }
+                }
+                else {
+                  console.log("Accounts returned null. Unable to proceed with test");
+                }
+              }
+              else {
+                console.log("Check if already voted request failed or account array null");
+                done();
+              }
+              if (!delegate1Voted && !delegate2Voted) {
+                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1, "+"+delegate2]);
+              }
+              else if (delegate1Voted && !delegate2Voted) {
+                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate2]);
+              }
+              else if (delegate2Voted && !delegate1Voted) {
+                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1]);
+              }
+              if (transaction!==null) {
+                node.peer.post("/transactions")
+                  .set("Accept", "application/json")
+                  .set("version", node.version)
+                  .set("port", node.config.port)
+                  .send({
+                    transaction: transaction
+                  })
+                  .expect("Content-Type", /json/)
+                  .expect(200)
+                  .end(function (err, res) {
+                    console.log("Sent vote fix for delegates");
+                    console.log("Sent: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    done();
+                  });
+              }
+              else {
+                done();
+              }
             });
-        }
-        else {
-          done();
-        }
-      });
+          }
+        });
   });
 
   test = test + 1;
@@ -79,7 +89,7 @@ describe("Peers votes", function () {
       node.peer.post("/transactions")
         .set("Accept", "application/json")
         .set("version", node.version)
-        .set("share-port", 1)
+        .set("nethash", node.config.nethash)
         .set("port", node.config.port)
         .send({
           transaction: transaction
@@ -100,7 +110,7 @@ describe("Peers votes", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -121,7 +131,7 @@ describe("Peers votes", function () {
       node.peer.post("/transactions")
         .set("Accept", "application/json")
         .set("version", node.version)
-        .set("share-port", 1)
+        .set("nethash", node.config.nethash)
         .set("port", node.config.port)
         .send({
           transaction: transaction
@@ -135,7 +145,7 @@ describe("Peers votes", function () {
           node.peer.post("/transactions")
             .set("Accept", "application/json")
             .set("version", node.version)
-            .set("share-port", 1)
+            .set("nethash", node.config.nethash)
             .set("port", node.config.port)
             .send({
               transaction: transaction2
@@ -156,7 +166,7 @@ describe("Peers votes", function () {
     node.api.post("/accounts/open")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         secret: account.password
@@ -176,7 +186,7 @@ describe("Peers votes", function () {
         node.api.put("/transactions")
           .set("Accept", "application/json")
           .set("version",node.version)
-          .set("share-port",1)
+          .set("nethash", node.config.nethash)
           .set("port",node.config.port)
           .send({
             secret: node.Gaccount.password,
@@ -193,7 +203,7 @@ describe("Peers votes", function () {
               node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version",node.version)
-                .set("share-port",1)
+                .set("nethash", node.config.nethash)
                 .set("port",node.config.port)
                 .send({
                   transaction: transaction
@@ -217,7 +227,7 @@ describe("Peers votes", function () {
       node.peer.post("/transactions")
         .set("Accept", "application/json")
         .set("version",node.version)
-        .set("share-port",1)
+        .set("nethash", node.config.nethash)
         .set("port",node.config.port)
         .send({
           transaction: transaction

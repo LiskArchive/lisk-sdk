@@ -3,13 +3,34 @@ var node = require("./../variables.js"),
 
 var genesisblock = require("../../genesisBlock.json");
 
-describe("Peers transactions", function () {
-  it("create transaction. should return ok", function (done) {
+describe("Testing /peer/transactions API with sending LISK", function () {
+
+  it("create good transaction sent with wrong nethash on header. should fail", function (done) {
     var transaction = node.lisk.transaction.createTransaction("1L", 1, node.Gaccount.password);
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", "wrongnethash")
+      .set("port",node.config.port)
+      .send({
+        transaction: transaction
+      })
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .end(function (err, res) {
+        console.log(JSON.stringify(res.body));
+        node.expect(res.body).to.have.property("success").to.be.false;
+        node.expect(res.body.expected).to.equal(node.config.nethash);
+        done();
+      });
+  });
+
+  it("create same good transaction sent with right nethash on header. should return ok", function (done) {
+    var transaction = node.lisk.transaction.createTransaction("1L", 1, node.Gaccount.password);
+    node.peer.post("/transactions")
+      .set("Accept", "application/json")
+      .set("version",node.version)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -28,7 +49,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -48,7 +69,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -70,7 +91,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -90,7 +111,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -112,7 +133,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -134,7 +155,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -155,7 +176,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -174,7 +195,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction
@@ -194,7 +215,7 @@ describe("Peers transactions", function () {
     node.peer.post("/transactions")
       .set("Accept", "application/json")
       .set("version",node.version)
-      .set("share-port",1)
+      .set("nethash", node.config.nethash)
       .set("port",node.config.port)
       .send({
         transaction: transaction

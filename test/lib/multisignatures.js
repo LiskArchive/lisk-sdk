@@ -130,9 +130,6 @@ function makeKeysGroup () {
 // Used for test labeling
 var test = 0;
 
-// Print data to console
-console.log("Starting multisignature-test suite");
-
 // Starting tests //
 
 describe("Multisignatures", function () {

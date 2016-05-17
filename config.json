@@ -7,7 +7,7 @@
     "fileLogLevel": "info",
     "logFileName": "logs.log",
     "consoleLogLevel": "log",
-    "sharePort": true,
+    "nethash": "e2f8f69ec6ab4b12550a314bd867c46e64e429961bb427514a3a534c602ff467",
     "db": {
         "host": "localhost",
         "port": 5432,

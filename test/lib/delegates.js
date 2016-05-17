@@ -15,12 +15,6 @@ R2account.username=Raccount.username.toUpperCase();
 
 var test = 0;
 
-// Print data to console
-console.log("Starting delegates test-suite");
-console.log("Password for random account is: " + Raccount.password);
-console.log("Random LISK is: " + (node.LISK / node.normalizer));
-console.log("Random delegate username is: " + Raccount.username);
-
 // Starting tests //
 
   describe("Delegates", function() {
@@ -937,5 +931,4 @@ console.log("Random delegate username is: " + Raccount.username);
         });
     });
 
-    console.log("Finished delegates-test suite");
 });

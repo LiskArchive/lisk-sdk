@@ -4,7 +4,7 @@ var os = require("os"),
 // Private fields
 var modules, library, self, private = {}, shared = {};
 
-private.version, private.osName, private.port, private.sharePort;
+private.version, private.osName, private.port, private.nethash;
 
 // Constructor
 function System(cb, scope) {
@@ -14,7 +14,7 @@ function System(cb, scope) {
 
 	private.version = library.config.version;
 	private.port = library.config.port;
-	private.sharePort = Number(!!library.config.sharePort);
+	private.nethash = library.config.nethash;
 	private.osName = os.platform() + os.release();
 
 	setImmediate(cb, null, self);
@@ -35,8 +35,8 @@ System.prototype.getPort = function () {
 	return private.port;
 }
 
-System.prototype.getSharePort = function () {
-	return private.sharePort;
+System.prototype.getNethash = function () {
+	return private.nethash;
 }
 
 System.prototype.sandboxApi = function (call, args, cb) {
