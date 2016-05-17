@@ -129,7 +129,7 @@ var nethash;
 
 request({
   url: 'https://login.lisk.io/peer/transactions',
-  json: { transaction: transaction },
+  json: { },
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
