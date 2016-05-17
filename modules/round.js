@@ -201,28 +201,32 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 		delegates: private.unDelegatesByRound[round]
 	};
 
+	scope.finishRound = (
+		(prevRound !== round || previousBlock.height == 1) &&
+		(private.unDelegatesByRound[round].length == slots.delegates)
+	);
+
 	function BackwardTick (t) {
 		var promised = new RoundPromiser(scope, t);
 
 		return promised.mergeBlockGenerator().then(function () {
-
-			if (prevRound !== round || previousBlock.height == 1) {
-
-				if (private.unDelegatesByRound[round].length == slots.delegates) {
-
-					return promised.land().then(function () {
-						delete private.unFeesByRound[round];
-						delete private.unRewardsByRound[round];
-						delete private.unDelegatesByRound[round];
-					});
-				}
+			if (scope.finishRound) {
+				return promised.land().then(function () {
+					delete private.unFeesByRound[round];
+					delete private.unRewardsByRound[round];
+					delete private.unDelegatesByRound[round];
+				});
 			}
 		});
 	}
 
 	async.series([
 		function (cb) {
-			return private.getOutsiders(scope, cb);
+			if (scope.finishRound) {
+				return private.getOutsiders(scope, cb);
+			} else {
+				return cb();
+			}
 		},
 		function (cb) {
 			library.db.tx(BackwardTick).then(function () {
@@ -257,29 +261,33 @@ Round.prototype.tick = function (block, done) {
 		delegates: private.delegatesByRound[round]
 	};
 
+	scope.finishRound = (
+		(round !== nextRound || block.height == 1) &&
+		(private.delegatesByRound[round].length == slots.delegates)
+	);
+
 	function Tick (t) {
 		var promised = new RoundPromiser(scope, t);
 
 		return promised.mergeBlockGenerator().then(function () {
-
-			if (round !== nextRound || block.height == 1) {
-
-				if (private.delegatesByRound[round].length == slots.delegates) {
-
-					return promised.land().then(function () {
-						delete private.feesByRound[round];
-						delete private.rewardsByRound[round];
-						delete private.delegatesByRound[round];
-						library.bus.message("finishRound", round);
-					});
-				}
+			if (scope.finishRound) {
+				return promised.land().then(function () {
+					delete private.feesByRound[round];
+					delete private.rewardsByRound[round];
+					delete private.delegatesByRound[round];
+					library.bus.message("finishRound", round);
+				});
 			}
 		});
 	}
 
 	async.series([
 		function (cb) {
-			return private.getOutsiders(scope, cb);
+			if (scope.finishRound) {
+				return private.getOutsiders(scope, cb);
+			} else {
+				return cb();
+			}
 		},
 		function (cb) {
 			library.db.tx(Tick).then(function () {
