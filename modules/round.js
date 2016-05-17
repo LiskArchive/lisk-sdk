@@ -202,8 +202,8 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 	};
 
 	scope.finishRound = (
-		(prevRound !== round || previousBlock.height == 1) &&
-		(private.unDelegatesByRound[round].length == slots.delegates)
+		(prevRound !== round && private.unDelegatesByRound[round].length == slots.delegates) ||
+		(previousBlock.height == 1)
 	);
 
 	function BackwardTick (t) {
@@ -262,8 +262,8 @@ Round.prototype.tick = function (block, done) {
 	};
 
 	scope.finishRound = (
-		(round !== nextRound || block.height == 1) &&
-		(private.delegatesByRound[round].length == slots.delegates)
+		(round !== nextRound && private.delegatesByRound[round].length == slots.delegates) ||
+		(block.height == 1)
 	);
 
 	function Tick (t) {
