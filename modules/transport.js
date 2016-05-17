@@ -88,6 +88,7 @@ private.attachApi = function () {
 			if (req.body && req.body.dappid) {
 				req.peer.dappid = req.body.dappid;
 			}
+
 			if ((req.peer.version == library.config.version) && (req.headers['nethash'] == library.config.nethash)) {
 				modules.peer.update(req.peer);
 			}
@@ -210,8 +211,8 @@ private.attachApi = function () {
 			required: ['port','nethash']
 		});
 
-		if(req.headers['nethash']!==library.config.nethash){
-			return res.status(200).send({success: false, "message":"Request is made on the wrong network","expected":library.config.nethash, "received":req.headers['nethash']});
+		if (req.headers['nethash'] !== library.config.nethash) {
+			return res.status(200).send({success: false, "message": "Request is made on the wrong network", "expected": library.config.nethash, "received": req.headers['nethash']});
 		}
 
 		try {
@@ -313,8 +314,8 @@ private.attachApi = function () {
 			required: ['port','nethash']
 		});
 
-		if(req.headers['nethash']!==library.config.nethash){
-			return res.status(200).send({success: false, "message":"Request is made on the wrong network","expected":library.config.nethash, "received":req.headers['nethash']});
+		if (req.headers['nethash'] !== library.config.nethash) {
+			return res.status(200).send({success: false, "message": "Request is made on the wrong network", "expected": library.config.nethash, "received": req.headers['nethash']});
 		}
 
 		try {
@@ -560,7 +561,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			return;
 		}
 
-		if(response.headers['nethash'] !== library.config.nethash){
+		if (response.headers['nethash'] !== library.config.nethash) {
 			return cb && cb("The peer is not on the same network", null);
 		}
 
