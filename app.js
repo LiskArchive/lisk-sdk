@@ -102,6 +102,13 @@ d.run(function () {
 	var modules = [];
 	async.auto({
 		config: function (cb) {
+			try {
+				appConfig.nethash = new Buffer(genesisblock.payloadHash, "hex").toString("hex");
+			} catch (e) {
+				logger.error("Failed to assign nethash from genesis block");
+				throw Error(e);
+			}
+
 			if (appConfig.dapp.masterrequired && !appConfig.dapp.masterpassword) {
 				var randomstring = require("randomstring");
 
