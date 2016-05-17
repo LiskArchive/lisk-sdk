@@ -7,7 +7,6 @@
     "fileLogLevel": "info",
     "logFileName": "logs.log",
     "consoleLogLevel": "log",
-    "nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d",
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -160,5 +159,6 @@
         "masterrequired": true,
         "masterpassword": "",
         "autoexec": []
-    }
+    },
+    "nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }
