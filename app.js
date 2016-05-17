@@ -62,12 +62,6 @@ if (program.log) {
 	appConfig.consoleLogLevel = program.log;
 }
 
-process.on("uncaughtException", function (err) {
-	// Handle error safely
-	logger.fatal("System error", { message: err.message, stack: err.stack });
-	process.emit("cleanup");
-});
-
 var config = {
 	"db": appConfig.db,
 	"modules": {
@@ -505,4 +499,10 @@ d.run(function () {
 			});
 		}
 	});
+});
+
+process.on("uncaughtException", function (err) {
+	// Handle error safely
+	logger.fatal("System error", { message: err.message, stack: err.stack });
+	process.emit("cleanup");
 });
