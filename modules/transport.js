@@ -562,7 +562,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		}
 
 		if (response.headers['nethash'] !== library.config.nethash) {
-			return cb && cb("The peer is not on the same network", null);
+			return cb && cb("Peer is not on the same network", null);
 		}
 
 		response.headers['port'] = parseInt(response.headers['port']);
