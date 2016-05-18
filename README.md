@@ -79,7 +79,7 @@ Returning:
   type: 0, // Transaction type. 0 = Normal transaction.
   amount: 100000000000, // The amount to send expressed as an integer value.
   asset: {}, // Transaction asset, dependent on tx type.
-  fee: 100000000, // 0.1 LISK expressed as an integer value.
+  fee: 100000000, // 0.1 LSK expressed as an integer value.
   id: "500224999259823996", // Transaction ID.
   recipientId: "1859190791819301L", // Recipient ID.
   senderPublicKey: "56e106a1d4a53dbe22cac52fefd8fc4123cfb4ee482f8f25a4fc72eb459b38a5", // Sender's public key.
