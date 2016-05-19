@@ -219,7 +219,7 @@ Signatures.prototype.onBind = function (scope) {
 shared.getFee = function (req, cb) {
 	var fee = null;
 
-	fee = 5 * constants.fixedPoint;
+	fee = constants.fees.secondsignature;
 
 	cb(null, {fee: fee})
 }

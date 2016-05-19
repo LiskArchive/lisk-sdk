@@ -983,7 +983,7 @@ shared.getFee = function (req, cb) {
 	var query = req.body;
 	var fee = null;
 
-	fee = 100 * constants.fixedPoint;
+	fee = constants.fees.delegate;
 
 	cb(null, {fee: fee})
 }

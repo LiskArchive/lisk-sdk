@@ -535,7 +535,7 @@ shared.getDelegates = function (req, cb) {
 
 shared.getDelegatesFee = function (req, cb) {
 	var query = req.body;
-	cb(null, {fee: 1 * constants.fixedPoint});
+	cb(null, {fee: constants.fees.delegate});
 }
 
 shared.addDelegates = function (req, cb) {
