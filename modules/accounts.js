@@ -6,7 +6,7 @@ var Router = require("../helpers/router.js");
 var util = require("util");
 var blockReward = require("../helpers/blockReward.js");
 var constants = require("../helpers/constants.js");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var Diff = require("../helpers/diff.js");
 var util = require("util");
 var extend = require("extend");
@@ -179,7 +179,7 @@ function Accounts(cb, scope) {
 	self.__private = private;
 	private.attachApi();
 
-	library.logic.transaction.attachAssetType(TransactionTypes.VOTE, new Vote());
+	library.logic.transaction.attachAssetType(transactionTypes.VOTE, new Vote());
 
 	setImmediate(cb, null, self);
 }
@@ -615,7 +615,7 @@ shared.addDelegates = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.VOTE,
+								type: transactionTypes.VOTE,
 								votes: body.delegates,
 								sender: account,
 								keypair: keypair,
@@ -652,7 +652,7 @@ shared.addDelegates = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.VOTE,
+							type: transactionTypes.VOTE,
 							votes: body.delegates,
 							sender: account,
 							keypair: keypair,

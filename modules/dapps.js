@@ -1,7 +1,7 @@
 var async = require("async");
 var dappTypes = require("../helpers/dappTypes.js");
 var dappCategories = require("../helpers/dappCategories.js");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var ByteBuffer = require("bytebuffer");
 var fs = require("fs");
 var request = require("request");
@@ -444,8 +444,8 @@ function DApp() {
 		}
 
 		var foundCategory = false;
-		for (var i in dappCategory) {
-			if (dappCategory[i] == trs.asset.dapp.category) {
+		for (var i in dappCategories) {
+			if (dappCategories[i] == trs.asset.dapp.category) {
 				foundCategory = true;
 				break;
 			}
@@ -732,9 +732,9 @@ function DApps(cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = private;
-	library.logic.transaction.attachAssetType(TransactionTypes.DAPP, new DApp());
-	library.logic.transaction.attachAssetType(TransactionTypes.IN_TRANSFER, new InTransfer());
-	library.logic.transaction.attachAssetType(TransactionTypes.OUT_TRANSFER, new OutTransfer());
+	library.logic.transaction.attachAssetType(transactionTypes.DAPP, new DApp());
+	library.logic.transaction.attachAssetType(transactionTypes.IN_TRANSFER, new InTransfer());
+	library.logic.transaction.attachAssetType(transactionTypes.OUT_TRANSFER, new OutTransfer());
 
 	private.attachApi();
 
@@ -871,7 +871,7 @@ private.attachApi = function () {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.DAPP,
+							type: transactionTypes.DAPP,
 							sender: account,
 							keypair: keypair,
 							secondKeypair: secondKeypair,
@@ -1308,7 +1308,7 @@ private.attachApi = function () {
 	});
 
 	router.get("/categories", function (req, res, next) {
-		return res.json({success: true, categories: dappCategory});
+		return res.json({success: true, categories: dappCategories});
 	})
 
 	router.post("/stop", function (req, res, next) {
@@ -1414,7 +1414,7 @@ private.list = function (filter, cb) {
 		params.name = filter.name;
 	}
 	if (filter.category) {
-		var category = dappCategory[filter.category];
+		var category = dappCategories[filter.category];
 
 		if (category !== null && category !== undefined) {
 			fields.push("\"category\" = ${category}");
@@ -2063,7 +2063,7 @@ private.addTransactions = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.IN_TRANSFER,
+								type: transactionTypes.IN_TRANSFER,
 								amount: body.amount,
 								sender: account,
 								keypair: keypair,
@@ -2100,7 +2100,7 @@ private.addTransactions = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.IN_TRANSFER,
+							type: transactionTypes.IN_TRANSFER,
 							amount: body.amount,
 							sender: account,
 							keypair: keypair,
@@ -2232,7 +2232,7 @@ shared.getCommonBlock = function (req, cb) {
 		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"id\" = ${id} AND t.\"type\" = ${type}" +
 		"INNER JOIN intransfer dt ON dt.\"transactionId\" = t.\"id\" AND dt.\"dappid\" = ${dappid}", {
 		dappid: req.dappid,
-		type: TransactionTypes.IN_TRANSFER
+		type: transactionTypes.IN_TRANSFER
 	}).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
@@ -2335,7 +2335,7 @@ shared.sendWithdrawal = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.OUT_TRANSFER,
+								type: transactionTypes.OUT_TRANSFER,
 								amount: body.amount,
 								sender: account,
 								recipientId: body.recipientId,
@@ -2373,7 +2373,7 @@ shared.sendWithdrawal = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.OUT_TRANSFER,
+							type: transactionTypes.OUT_TRANSFER,
 							amount: body.amount,
 							sender: account,
 							recipientId: body.recipientId,
@@ -2405,7 +2405,7 @@ shared.getWithdrawalLastTransaction = function (req, cb) {
 		"INNER JOIN outtransfer ot ON ot.\"transactionId\" = t.\"id\" AND ot.\"dappId\" = ${dappid} " +
 		"ORDER BY b.\"height\" DESC LIMIT 1", {
 		dappid: req.dappid,
-		type: TransactionTypes.OUT_TRANSFER
+		type: transactionTypes.OUT_TRANSFER
 	}).then(function (rows) {
 		return cb(null, rows[0]);
 	}).catch(function (err) {
@@ -2420,7 +2420,7 @@ shared.getBalanceTransactions = function (req, cb) {
 		(req.body.lastTransactionId ? "WHERE b.\"height\" > (SELECT \"height\" FROM blocks ib INNER JOIN trs it ON ib.\"id\" = it.\"blockId\" AND it.\"id\" = ${lastId}) " : "") +
 		"ORDER BY b.\"height\"", {
 		dappid: req.dappid,
-		type: TransactionTypes.IN_TRANSFER,
+		type: transactionTypes.IN_TRANSFER,
 		lastId: req.body.lastTransactionId
 	}).then(function (rows) {
 		return cb(null, rows);

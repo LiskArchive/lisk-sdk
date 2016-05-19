@@ -8,7 +8,7 @@ var slots = require("../helpers/slots.js");
 var extend = require("extend");
 var Router = require("../helpers/router.js");
 var async = require("async");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
@@ -130,7 +130,7 @@ function Transactions(cb, scope) {
 	self.__private = private;
 	private.attachApi();
 
-	library.logic.transaction.attachAssetType(TransactionTypes.SEND, new Transfer());
+	library.logic.transaction.attachAssetType(transactionTypes.SEND, new Transfer());
 
 	setImmediate(cb, null, self);
 }
@@ -758,7 +758,7 @@ shared.addTransactions = function (req, cb) {
 
 							try {
 								var transaction = library.logic.transaction.create({
-									type: TransactionTypes.SEND,
+									type: transactionTypes.SEND,
 									amount: body.amount,
 									sender: account,
 									recipientId: recipientId,
@@ -794,7 +794,7 @@ shared.addTransactions = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.SEND,
+								type: transactionTypes.SEND,
 								amount: body.amount,
 								sender: account,
 								recipientId: recipientId,

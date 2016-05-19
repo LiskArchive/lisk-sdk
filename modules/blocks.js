@@ -11,7 +11,7 @@ var Router = require("../helpers/router.js");
 var slots = require("../helpers/slots.js");
 var util = require("util");
 var async = require("async");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 var _ = require("underscore");
 
@@ -698,11 +698,11 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 						}, function (cb) {
 							block.transactions = block.transactions.sort(function (a, b) {
 								if (block.id == genesisblock.block.id) {
-									if (a.type == TransactionTypes.VOTE)
+									if (a.type == transactionTypes.VOTE)
 										return 1;
 								}
 
-								if (a.type == TransactionTypes.SIGNATURE) {
+								if (a.type == transactionTypes.SIGNATURE) {
 									return 1;
 								}
 
@@ -807,11 +807,11 @@ Blocks.prototype.loadLastBlock = function (cb) {
 
 			block.transactions = block.transactions.sort(function (a, b) {
 				if (block.id == genesisblock.block.id) {
-					if (a.type == TransactionTypes.VOTE)
+					if (a.type == transactionTypes.VOTE)
 						return 1;
 				}
 
-				if (a.type == TransactionTypes.SIGNATURE) {
+				if (a.type == transactionTypes.SIGNATURE) {
 					return 1;
 				}
 

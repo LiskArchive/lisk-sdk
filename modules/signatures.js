@@ -5,7 +5,7 @@ var constants = require("../helpers/constants.js");
 var slots = require("../helpers/slots.js");
 var Router = require("../helpers/router.js");
 var async = require("async");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 
@@ -173,7 +173,7 @@ function Signatures(cb, scope) {
 	self.__private = private;
 	private.attachApi();
 
-	library.logic.transaction.attachAssetType(TransactionTypes.SIGNATURE, new Signature());
+	library.logic.transaction.attachAssetType(transactionTypes.SIGNATURE, new Signature());
 
 	setImmediate(cb, null, self);
 }
@@ -306,7 +306,7 @@ shared.addSignature = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.SIGNATURE,
+								type: transactionTypes.SIGNATURE,
 								sender: account,
 								keypair: keypair,
 								requester: keypair,
@@ -338,7 +338,7 @@ shared.addSignature = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.SIGNATURE,
+							type: transactionTypes.SIGNATURE,
 							sender: account,
 							keypair: keypair,
 							secondKeypair: secondKeypair

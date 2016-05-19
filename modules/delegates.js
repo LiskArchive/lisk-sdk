@@ -10,7 +10,7 @@ var schedule = require("node-schedule");
 var util = require("util");
 var blockReward = require("../helpers/blockReward.js");
 var constants = require("../helpers/constants.js");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 var _ = require("underscore");
@@ -273,7 +273,7 @@ function Delegates(cb, scope) {
 	self.__private = private;
 	private.attachApi();
 
-	library.logic.transaction.attachAssetType(TransactionTypes.DELEGATE, new Delegate());
+	library.logic.transaction.attachAssetType(transactionTypes.DELEGATE, new Delegate());
 
 	setImmediate(cb, null, self);
 }
@@ -1109,7 +1109,7 @@ shared.addDelegate = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.DELEGATE,
+								type: transactionTypes.DELEGATE,
 								username: body.username,
 								sender: account,
 								keypair: keypair,
@@ -1145,7 +1145,7 @@ shared.addDelegate = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.DELEGATE,
+							type: transactionTypes.DELEGATE,
 							username: body.username,
 							sender: account,
 							keypair: keypair,
