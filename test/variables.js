@@ -8,6 +8,10 @@ var _ = require("lodash"),
     async = require("async"),
     request = require("request");
 
+var DappType = require("../helpers/dappTypes.js");
+var DappCategory = require("../helpers/dappCategories.js");
+var TxTypes = require("../helpers/transactionTypes.js");
+
 // Node configuration
 var config = require("../config.json"),
     baseUrl = "http://" + config.address + ":" + config.port,
@@ -52,35 +56,6 @@ var Eaccount = {
   "password": "length reunion two motor spy shine copper elite culture lift pet organ",
   "balance": 0,
   "delegateName": "genesisDelegate100"
-};
-
-// List of all transaction types codes
-var TxTypes = {
-  SEND: 0,
-  SIGNATURE: 1,
-  DELEGATE: 2,
-  VOTE: 3,
-  MULTI: 4,
-  DAPP: 5,
-  IN_TRANSFER: 6,
-  OUT_TRANSFER: 7
-};
-
-var DappType = {
-  DAPP : 0,
-  FILE: 1
-};
-
-var DappCategory = {
-  "Common": 0,
-  "Business": 1,
-  "Catalogs": 2,
-  "Education": 3,
-  "Entertainment": 4,
-  "Multimedia": 5,
-  "Networking": 6,
-  "Utilities": 7,
-  "Games": 8
 };
 
 // Account info for genesis account - Needed for voting, registrations and Tx
