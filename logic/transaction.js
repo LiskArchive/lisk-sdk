@@ -366,7 +366,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 		return setImmediate(cb, "Invalid transaction type/fee: " + trs.id);
 	}
 	// Check amount
-	if (trs.amount < 0 || trs.amount > 100000000 * constants.fixedPoint || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
+	if (trs.amount < 0 || trs.amount > constants.totalAmount || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
 		return setImmediate(cb, "Invalid transaction amount: " + trs.id);
 	}
 	// Check timestamp

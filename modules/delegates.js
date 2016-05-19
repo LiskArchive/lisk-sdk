@@ -40,7 +40,7 @@ function Delegate() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return 100 * constants.fixedPoint;
+		return constants.fees.delegate;
 	}
 
 	this.verify = function (trs, sender, cb) {
@@ -983,7 +983,7 @@ shared.getFee = function (req, cb) {
 	var query = req.body;
 	var fee = null;
 
-	fee = 100 * constants.fixedPoint;
+	fee = constants.fees.delegate;
 
 	cb(null, {fee: fee})
 }
