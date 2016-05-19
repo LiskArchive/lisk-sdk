@@ -448,11 +448,11 @@ private.attachApi = function () {
 		});
 	});
 
-	/*router.map(private, {
-	 "post /forging/enable": "enableForging",
-	 "post /forging/disable": "disableForging",
-	 "get /forging/status": "statusForging"
-	 });*/
+	// router.map(private, {
+	//   "post /forging/enable": "enableForging",
+	//   "post /forging/disable": "disableForging",
+	//   "get /forging/status": "statusForging"
+	// });
 
 	library.network.app.use('/api/delegates', router);
 	library.network.app.use(function (err, req, res, next) {
@@ -482,18 +482,19 @@ private.getBlockSlotData = function (slot, height, cb) {
 		if (err) {
 			return cb(err);
 		}
+
 		var currentSlot = slot;
 		var lastSlot = slots.getLastSlot(currentSlot);
 
 		for (; currentSlot < lastSlot; currentSlot += 1) {
 			var delegate_pos = currentSlot % slots.delegates;
-
 			var delegate_id = activeDelegates[delegate_pos];
 
 			if (delegate_id && private.keypairs[delegate_id]) {
 				return cb(null, {time: slots.getSlotTime(currentSlot), keypair: private.keypairs[delegate_id]});
 			}
 		}
+
 		cb(null, null);
 	});
 }
