@@ -16,6 +16,10 @@ module.exports = {
 		multisignature:500000000,
 		dapp:50000000000
 	},
+	rewards: {
+		offset: 2021,      // Start rewards at block (n)
+		distance: 3000000, // Distance between each milestone
+	},
 	maxRequests: 10000 * 12,
 	requestLength: 104,
 	signatureLength: 196,
@@ -24,7 +28,5 @@ module.exports = {
 	confirmationLength: 77,
 	fixedPoint : Math.pow(10, 8),
 	totalAmount: 10000000000000000,
-	rewardOffset: 2021,
-	distance: 3000000, // Distance between each milestone
 	maxTxsPerBlock: 25
 }
