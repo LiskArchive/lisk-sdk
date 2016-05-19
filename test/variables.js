@@ -13,6 +13,7 @@ var config = require("../config.json"),
     baseUrl = "http://" + config.address + ":" + config.port,
     api = supertest(baseUrl + "/api"),
     peer = supertest(baseUrl + "/peer");
+    constants = equire("../helpers/constants.js");
 
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
@@ -21,12 +22,12 @@ var version = "0.2.1" // Node version
 
 // Holds Fee amounts for different transaction types
 var Fees = {
-  voteFee: 100000000,
-  transactionFee: 10000000,
-  secondPasswordFee: 500000000,
-  delegateRegistrationFee: 10000000000,
-  multisignatureRegistrationFee: 500000000,
-  dappAddFee: 50000000000
+  voteFee: constants.fees.vote,
+  transactionFee: constants.fees.send,
+  secondPasswordFee: constants.fees.secondsignature,
+  delegateRegistrationFee: constants.fees.delegate,
+  multisignatureRegistrationFee: constants.fees.multisignature,
+  dappAddFee: constants.fees.dapp
 };
 
 var guestbookDapp = {

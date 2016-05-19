@@ -311,7 +311,7 @@ Block.prototype.getHash = function (block) {
 }
 
 Block.prototype.calculateFee = function (block) {
-	return 10000000;
+	return constants.fees.send;
 }
 
 Block.prototype.dbRead = function (raw) {

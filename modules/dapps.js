@@ -51,7 +51,7 @@ function OutTransfer() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return library.logic.block.calculateFee();
+		return constants.fees.send;
 	}
 
 	this.verify = function (trs, sender, cb) {
@@ -258,7 +258,7 @@ function InTransfer() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return library.logic.block.calculateFee();
+		return constants.fees.send;
 	}
 
 	this.verify = function (trs, sender, cb) {
@@ -427,7 +427,7 @@ function DApp() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return 500 * constants.fixedPoint;
+		return constants.fees.dapp;
 	}
 
 	this.verify = function (trs, sender, cb) {

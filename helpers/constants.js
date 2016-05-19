@@ -8,6 +8,14 @@ module.exports = {
 	numberLength: 100000000,
 	feeStartVolume: 10000 * 100000000,
 	feeStart: 1,
+	fees:{
+		send:10000000,
+		vote:100000000,
+		secondsignature:500000000,
+		delegate:10000000000,
+		multisignature:500000000,
+		dapp:50000000000
+	},
 	maxRequests: 10000 * 12,
 	requestLength: 104,
 	signatureLength: 196,
@@ -17,5 +25,6 @@ module.exports = {
 	fixedPoint : Math.pow(10, 8),
 	totalAmount: 10000000000000000,
 	rewardOffset: 2021,
+	distance: 3000000, // Distance between each milestone
 	maxTxsPerBlock: 25
 }

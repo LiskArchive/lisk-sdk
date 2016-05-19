@@ -24,7 +24,7 @@ function Signature() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return 5 * constants.fixedPoint;
+		return constants.fees.secondsignature;
 	}
 
 	this.verify = function (trs, sender, cb) {

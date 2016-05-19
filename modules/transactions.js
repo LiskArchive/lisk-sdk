@@ -28,7 +28,7 @@ function Transfer() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return library.logic.block.calculateFee();
+		return constants.fees.send;
 	}
 
 	this.verify = function (trs, sender, cb) {

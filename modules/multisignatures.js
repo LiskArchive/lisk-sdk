@@ -32,7 +32,7 @@ function Multisignature() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return ((trs.asset.multisignature.keysgroup.length + 1) * 5) * constants.fixedPoint;
+		return (trs.asset.multisignature.keysgroup.length + 1) * constants.fees.multisignature;
 	}
 
 	this.verify = function (trs, sender, cb) {

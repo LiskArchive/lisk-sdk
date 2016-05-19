@@ -40,7 +40,7 @@ function Delegate() {
 	}
 
 	this.calculateFee = function (trs, sender) {
-		return 100 * constants.fixedPoint;
+		return constants.fees.delegate;
 	}
 
 	this.verify = function (trs, sender, cb) {
