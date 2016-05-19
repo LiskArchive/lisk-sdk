@@ -620,7 +620,7 @@ function DApp() {
 				category: {
 					type: "integer",
 					minimum: 0,
-					maximum: 8
+					maximum: 11
 				},
 				name: {
 					type: "string",
@@ -802,7 +802,8 @@ private.attachApi = function () {
 				},
 				category: {
 					type: "integer",
-					minimum: 0
+					minimum: 0,
+					maximum: 11
 				},
 				name: {
 					type: "string",
@@ -903,8 +904,9 @@ private.attachApi = function () {
 			type: "object",
 			properties: {
 				category: {
-					type: "string",
-					minLength: 1
+					type: "integer",
+					minLength: 0,
+					maximum: 11
 				},
 				name: {
 					type: "string",
@@ -987,7 +989,7 @@ private.attachApi = function () {
 				category: {
 					type: "integer",
 					minimum: 0,
-					maximum: 8
+					maximum: 11
 				},
 				installed: {
 					type: "integer",
