@@ -24,7 +24,7 @@ module.exports.connect = function (config, logger, cb) {
 
 	var db = pgp(config);
 
-	var files = ['schema.sql'];
+	var files = ['schema.sql', 'views.sql'];
 
 	async.eachSeries(files, function (file, cb) {
 		var sql = new pgp.QueryFile(path.join('sql', file), { minify: true });
