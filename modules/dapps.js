@@ -1,6 +1,6 @@
 var async = require("async");
 var dappTypes = require("../helpers/dappTypes.js");
-var dappCategory = require("../helpers/dappCategory.js");
+var dappCategories = require("../helpers/dappCategories.js");
 var TransactionTypes = require("../helpers/transaction-types.js");
 var ByteBuffer = require("bytebuffer");
 var fs = require("fs");
