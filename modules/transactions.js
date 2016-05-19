@@ -10,6 +10,7 @@ var Router = require("../helpers/router.js");
 var async = require("async");
 var transactionTypes = require("../helpers/transactionTypes.js");
 var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/transactions.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -165,46 +166,38 @@ private.attachApi = function () {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = ['t_id', 'b_blockId', 't_amount', 't_fee', 't_type', 't_timestamp', 't_senderPublicKey', 't_senderId', 't_recipientId', 'b_confirmations', 'b_height'];
-	var params = {}, fields_or = [], owner = "";
+	var sortFields = sql.sortFields;
+	var params = {}, where = [], owner = '';
 
 	if (filter.blockId) {
-		fields_or.push("\"blockId\" = ${blockId}");
+		where.push('"t_blockId" = ${blockId}');
 		params.blockId = filter.blockId;
 	}
 
 	if (filter.senderPublicKey) {
-		fields_or.push("ENCODE(\"senderPublicKey\", 'hex') = ${senderPublicKey}")
+		where.push('"t_senderPublicKey"::bytea = ${senderPublicKey}')
 		params.senderPublicKey = filter.senderPublicKey;
 	}
 
 	if (filter.senderId) {
-		fields_or.push("\"senderId\" = ${senderId}");
+		where.push('"t_senderId" = ${senderId}');
 		params.senderId = filter.senderId;
 	}
 
 	if (filter.recipientId) {
-		fields_or.push("\"recipientId\" = ${recipientId}");
+		where.push('"t_recipientId" = ${recipientId}');
 		params.recipientId = filter.recipientId;
 	}
 
 	if (filter.ownerAddress && filter.ownerPublicKey) {
-		owner = "(ENCODE(\"senderPublicKey\", 'hex') = ${ownerPublicKey} OR \"recipientId\" = ${ownerAddress})";
+		owner = '("t_senderPublicKey"::bytea = ${ownerPublicKey} OR "t_recipientId" = ${ownerAddress})';
 		params.ownerPublicKey = filter.ownerPublicKey;
 		params.ownerAddress = filter.ownerAddress;
 	}
 
 	if (filter.type >= 0) {
-		fields_or.push("\"type\" = ${type}");
+		where.push('"t_type" = ${type}');
 		params.type = filter.type;
-	}
-
-	if (filter.limit >= 0) {
-		params.limit = filter.limit;
-	}
-
-	if (filter.offset >= 0) {
-		params.offset = filter.offset;
 	}
 
 	if (filter.orderBy) {
@@ -226,35 +219,45 @@ private.list = function (filter, cb) {
 		}
 	}
 
-	if (filter.limit > 100) {
+	if (!filter.limit) {
+		params.limit = 100;
+	} else {
+		params.limit = Math.abs(filter.limit);
+	}
+
+	if (!filter.offset) {
+		params.offset = 0;
+	} else {
+		params.offset = Math.abs(filter.offset);
+	}
+
+	if (params.limit > 100) {
 		return cb("Invalid limit. Maximum is 100");
 	}
 
-	library.db.query("SELECT COUNT(t.\"id\") " +
-		"FROM trs t " +
-		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
-		(fields_or.length || owner ? "WHERE " : "") + " " +
-		(fields_or.length ? "(" + fields_or.join(' OR ') + ") " : "") + (fields_or.length && owner ? " AND " + owner : owner), params).then(function (rows) {
+	library.db.query(sql.countList({
+		where: where,
+		owner: owner
+	}), params).then(function (rows) {
 		var count = rows.length ? rows[0].count : 0;
 
-		// Need to fix 'or' or 'and' in query
-		library.db.query("SELECT t.\"id\" AS \"t_id\", b.\"height\" AS \"b_height\", t.\"blockId\" AS \"t_blockId\", t.\"type\" AS \"t_type\", t.\"timestamp\" AS \"t_timestamp\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"t_senderPublicKey\", t.\"senderId\" AS \"t_senderId\", t.\"recipientId\" AS \"t_recipientId\", t.\"amount\" AS \"t_amount\", t.\"fee\" AS \"t_fee\", ENCODE(t.\"signature\", 'hex') AS \"t_signature\", ENCODE(t.\"signSignature\", 'hex') AS \"t_SignSignature\", t.\"signatures\" AS \"t_signatures\", (SELECT MAX(\"height\") + 1 FROM blocks) - b.\"height\" AS \"confirmations\" " +
-			"FROM trs t " +
-			"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
-			(fields_or.length || owner ? "WHERE " : "") + " " +
-			(fields_or.length ? "(" + fields_or.join(' or ') + ") " : "") + (fields_or.length && owner ? " AND " + owner : owner) + " " +
-			(filter.orderBy ? "ORDER BY " + sortBy + " " + sortMethod : "") + " " +
-			(filter.limit ? "LIMIT ${limit}" : "") + " " +
-			(filter.offset ? "OFFSET ${offset}" : ""), params).then(function (rows) {
-
+		library.db.query(sql.list({
+			where: where,
+			owner: owner,
+			sortBy: sortBy,
+			sortMethod: sortMethod
+		}), params).then(function (rows) {
 			var transactions = [];
+
 			for (var i = 0; i < rows.length; i++) {
 				transactions.push(library.logic.transaction.dbRead(rows[i]));
 			}
+
 			var data = {
 				transactions: transactions,
 				count: count
 			}
+
 			cb(null, data);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
@@ -267,15 +270,13 @@ private.list = function (filter, cb) {
 }
 
 private.getById = function (id, cb) {
-	library.db.query("SELECT t.\"id\" AS \"t_id\", b.\"height\" AS \"b_height\", t.\"blockId\" AS \"t_blockId\", t.\"type\" AS \"t_type\", t.\"timestamp\" AS \"t_timestamp\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"t_senderPublicKey\", t.\"senderId\" AS \"t_senderId\", t.\"recipientId\" AS \"t_recipientId\", t.\"amount\" AS \"t_amount\", t.\"fee\" AS \"t_fee\", ENCODE(t.\"signature\", 'hex') AS \"t_signature\", ENCODE(t.\"signSignature\", 'hex') AS \"t_SignSignature\", t.\"signatures\" AS \"t_signatures\", (SELECT MAX(\"height\") + 1 FROM blocks) - b.\"height\" AS \"confirmations\" " +
-		"FROM trs t " +
-		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
-		"WHERE t.\"id\" = ${id}", { id: id }).then(function (rows) {
+	library.db.query(sql.getById, { id: id }).then(function (rows) {
 		if (!rows.length) {
 			return cb("Can't find transaction: " + id);
 		}
 
 		var transacton = library.logic.transaction.dbRead(rows[0]);
+
 		cb(null, transacton);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
@@ -429,6 +430,7 @@ Transactions.prototype.applyUnconfirmedList = function (ids, cb) {
 
 Transactions.prototype.undoUnconfirmedList = function (cb) {
 	var ids = [];
+
 	async.eachSeries(private.unconfirmedTransactions, function (transaction, cb) {
 		if (transaction !== false) {
 			ids.push(transaction.id);
@@ -636,7 +638,7 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 		}
 
 		var transactions = self.getUnconfirmedTransactionList(true),
-			toSend = [];
+		    toSend = [];
 
 		if (query.senderPublicKey || query.address) {
 			for (var i = 0; i < transactions.length; i++) {
@@ -709,6 +711,7 @@ shared.addTransactions = function (req, cb) {
 				if (err) {
 					return cb(err);
 				}
+
 				var recipientId = recipient ? recipient.address : body.recipientId;
 				if (!recipientId) {
 					return cb("Recipient not found");
@@ -769,6 +772,7 @@ shared.addTransactions = function (req, cb) {
 							} catch (e) {
 								return cb(e.toString());
 							}
+
 							modules.transactions.receiveTransactions([transaction], cb);
 						});
 					});
@@ -777,6 +781,7 @@ shared.addTransactions = function (req, cb) {
 						if (err) {
 							return cb(err);
 						}
+
 						if (!account || !account.publicKey) {
 							return cb("Account not found");
 						}
@@ -804,6 +809,7 @@ shared.addTransactions = function (req, cb) {
 						} catch (e) {
 							return cb(e.toString());
 						}
+
 						modules.transactions.receiveTransactions([transaction], cb);
 					});
 				}

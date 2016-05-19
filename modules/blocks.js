@@ -13,6 +13,7 @@ var util = require("util");
 var async = require("async");
 var transactionTypes = require("../helpers/transactionTypes.js");
 var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/blocks.js");
 var _ = require("underscore");
 
 // Private fields
@@ -116,7 +117,7 @@ private.attachApi = function () {
 }
 
 private.saveGenesisBlock = function (cb) {
-	library.db.query("SELECT \"id\" FROM blocks WHERE \"id\" = ${id}", { id: genesisblock.block.id }).then(function (rows) {
+	library.db.query(sql.getGenesisBlockId, { id: genesisblock.block.id }).then(function (rows) {
 		var blockId = rows.length && rows[0].id;
 
 		if (!blockId) {
@@ -136,7 +137,7 @@ private.saveGenesisBlock = function (cb) {
 }
 
 private.deleteBlock = function (blockId, cb) {
-	library.db.none("DELETE FROM blocks WHERE \"id\" = ${id}", { id: blockId }).then(function () {
+	library.db.none(sql.deleteBlock, { id: blockId }).then(function () {
 		return cb();
 	}).catch(function (err) {
 		library.logger.error(err.toString());
@@ -145,48 +146,50 @@ private.deleteBlock = function (blockId, cb) {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = ['b."id"', 'b."timestamp"', 'b."height"', 'b."previousBlock"', 'b."totalAmount"', 'b."totalFee"', 'b."reward"', 'b."numberOfTransactions"', 'b."generatorPublicKey"'];
-	var params = {}, fields = [], sortMethod = '', sortBy = '';
+	var sortFields = sql.sortFields;
+	var params = {}, where = [], sortMethod = '', sortBy = '';
 
 	if (filter.generatorPublicKey) {
-		fields.push("ENCODE(\"generatorPublicKey\", 'hex') = ${generatorPublicKey}")
+		where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
 		params.generatorPublicKey = filter.generatorPublicKey;
 	}
 
 	if (filter.numberOfTransactions) {
-		fields.push('"numberOfTransactions" = ${numberOfTransactions}');
+		where.push('"b_numberOfTransactions" = ${numberOfTransactions}');
 		params.numberOfTransactions = filter.numberOfTransactions;
 	}
 
 	if (filter.previousBlock) {
-		fields.push('"previousBlock" = ${previousBlock}');
+		where.push('"b_previousBlock" = ${previousBlock}');
 		params.previousBlock = filter.previousBlock;
 	}
 
 	if (filter.height === 0 || filter.height > 0) {
-		fields.push('"height" = ${height}');
+		where.push('"b_height" = ${height}');
 		params.height = filter.height;
 	}
 
 	if (filter.totalAmount >= 0) {
-		fields.push('"totalAmount" = ${totalAmount}');
+		where.push('"b_totalAmount" = ${totalAmount}');
 		params.totalAmount = filter.totalAmount;
 	}
 
 	if (filter.totalFee >= 0) {
-		fields.push('"totalFee" = ${totalFee}');
+		where.push('"b_totalFee" = ${totalFee}');
 		params.totalFee = filter.totalFee;
 	}
 
 	if (filter.reward >= 0) {
-		fields.push('"reward" = ${reward}');
+		where.push('"b_reward" = ${reward}');
 		params.reward = filter.reward;
 	}
 
 	if (filter.orderBy) {
 		var sort = filter.orderBy.split(':');
+
 		sortBy = sort[0].replace(/[^\w\s]/gi, '');
-		sortBy = "b." + "\"" + sortBy + "\"";
+		sortBy = '"b_' + sortBy + '"';
+
 		if (sort.length == 2) {
 			sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
 		} else {
@@ -201,32 +204,33 @@ private.list = function (filter, cb) {
 	}
 
 	if (!filter.limit) {
-		filter.limit = 100;
+		params.limit = 100;
+	} else {
+		params.limit = Math.abs(filter.limit);
 	}
 
 	if (!filter.offset) {
-		filter.offset = 0;
+		params.offset = 0;
+	} else {
+		params.offset = Math.abs(filter.offset);
 	}
 
-	params.limit = filter.limit;
-	params.offset = filter.offset;
-
-	if (filter.limit > 100) {
+	if (params.limit > 100) {
 		return cb("Invalid limit. Maximum is 100");
 	}
 
-	library.db.query("SELECT COUNT(b.\"id\")::int " +
-		"FROM blocks b " +
-		(fields.length ? "WHERE " + fields.join(" AND ") : ""), params).then(function (rows) {
-
+	library.db.query(sql.countList({
+		where: where
+	}), params).then(function (rows) {
 		var count = rows[0].count;
 
-		library.db.query("SELECT b.\"id\" AS \"b_id\", b.\"version\" AS \"b_version\", b.\"timestamp\" AS \"b_timestamp\", b.\"height\" AS \"b_height\", b.\"previousBlock\" AS \"b_previousBlock\", b.\"numberOfTransactions\" AS \"b_numberOfTransactions\", b.\"totalAmount\" AS \"b_totalAmount\", b.\"totalFee\" AS \"b_totalFee\", b.\"reward\" AS \"b_reward\", b.\"payloadLength\" AS \"b_payloadLength\", ENCODE(b.\"payloadHash\", 'hex') AS \"b_payloadHash\", ENCODE(b.\"generatorPublicKey\", 'hex') AS \"b_generatorPublicKey\", ENCODE(b.\"blockSignature\", 'hex') AS \"b_blockSignature\", (SELECT MAX(\"height\") + 1 FROM blocks) - b.\"height\" AS \"b_confirmations\" " +
-			"FROM blocks b " +
-			(fields.length ? "WHERE " + fields.join(" AND ") : "") + " " +
-			(filter.orderBy ? "ORDER BY " + sortBy + " " + sortMethod : "") + " LIMIT ${limit} OFFSET ${offset} ", params).then(function (rows) {
-
+		library.db.query(sql.list({
+			where: where,
+			sortBy: sortBy,
+			sortMethod: sortMethod
+		}), params).then(function (rows) {
 				var blocks = [];
+
 				for (var i = 0; i < rows.length; i++) {
 					blocks.push(library.logic.block.dbRead(rows[i]));
 				}
@@ -248,19 +252,18 @@ private.list = function (filter, cb) {
 }
 
 private.getById = function (id, cb) {
-	library.db.query("SELECT b.\"id\" AS \"b_id\", b.\"version\" AS \"b_version\", b.\"timestamp\" AS \"b_timestamp\", b.\"height\" AS \"b_height\", b.\"previousBlock\" AS \"b_previousBlock\", b.\"numberOfTransactions\" AS \"b_numberOfTransactions\", (b.\"totalAmount\")::bigint AS \"b_totalAmount\", (b.\"totalFee\")::bigint AS \"b_totalFee\", (b.\"reward\")::bigint AS \"b_reward\", b.\"payloadLength\" AS \"b_payloadLength\", ENCODE(b.\"payloadHash\", 'hex') AS \"b_payloadHash\", ENCODE(b.\"generatorPublicKey\", 'hex') AS \"b_generatorPublicKey\", ENCODE(b.\"blockSignature\", 'hex') AS \"b_blockSignature\", (SELECT MAX(\"height\") + 1 FROM blocks) - b.\"height\" AS \"b_confirmations\" " +
-		"FROM blocks b " +
-		'WHERE b."id" = ${id}', { id: id }).then(function (rows) {
-			if (!rows.length) {
-				return cb("Block not found");
-			}
+	library.db.query(sql.getbyId, { id: id }).then(function (rows) {
+		if (!rows.length) {
+			return cb("Block not found");
+		}
 
-			var block = library.logic.block.dbRead(rows[0]);
-			cb(null, block);
-		}).catch(function (err) {
-			library.logger.error(err.toString());
-			return cb("Blocks#getById error");
-		});
+		var block = library.logic.block.dbRead(rows[0]);
+
+		cb(null, block);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Blocks#getById error");
+	});
 }
 
 private.saveBlock = function (block, cb) {
@@ -373,11 +376,7 @@ private.popLastBlock = function (oldLastBlock, cb) {
 }
 
 private.getIdSequence = function (height, cb) {
-	var sql = "SELECT (ARRAY_AGG(\"id\" ORDER BY \"height\" ASC))[1] AS \"id\", MIN(\"height\") AS \"height\", "
-	        + "CAST(\"height\" / ${delegates} AS INTEGER) + (CASE WHEN \"height\" % 101 > 0 THEN 1 ELSE 0 END) AS \"round\" FROM blocks "
-	        + "WHERE \"height\" <= ${height} GROUP BY \"round\" ORDER BY \"height\" DESC LIMIT ${limit};"
-
-	library.db.query(sql, { height: height, limit: 5, delegates: slots.delegates }).then(function (rows) {
+	library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates }).then(function (rows) {
 		if (rows.length == 0) {
 			return cb("Failed to get id sequence before: " + height);
 		}
@@ -502,7 +501,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 						return next();
 					}
 
-					library.db.query("SELECT COUNT(\"id\")::int FROM blocks WHERE \"id\" = ${id} " + (data.body.common.previousBlock ? "AND \"previousBlock\" = ${previousBlock}" : "") + " AND \"height\" = ${height}", {
+					library.db.query(sql.getCommonBlock(data.body.common.previousBlock), {
 						id: data.body.common.id,
 						previousBlock: data.body.common.previousBlock,
 						height: data.body.common.height
@@ -530,7 +529,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 }
 
 Blocks.prototype.count = function (cb) {
-	library.db.query("SELECT COUNT(\"rowId\")::int FROM blocks").then(function (rows) {
+	library.db.query(sql.countByRowId).then(function (rows) {
 		var res = rows.length ? rows[0].count : 0;
 
 		return cb(null, res);
@@ -552,54 +551,24 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 		return cb("Invalid filter");
 	}
 
-	var params = {limit: filter.limit || 1};
+	var params = { limit: filter.limit || 1 };
 	filter.lastId && (params['lastId'] = filter.lastId);
 	filter.id && !filter.lastId && (params['id'] = filter.id);
 
 	var fields = private.blocksDataFields;
 
 	library.dbSequence.add(function (cb) {
-		library.db.query("SELECT \"height\" FROM blocks WHERE \"id\" = ${lastId}", { lastId: filter.lastId || null }).then(function (rows) {
+		library.db.query(sql.getHeightByLastId, { lastId: filter.lastId || null }).then(function (rows) {
 
 			var height = rows.length ? rows[0].height : 0;
 			var realLimit = height + (parseInt(filter.limit) || 1);
+
 			params.limit = realLimit;
 			params.height = height;
 
-			var limitPart = "";
-
-			if (!filter.id && !filter.lastId) {
-				limitPart = "WHERE b.\"height\" < ${limit} ";
-			}
-
-			library.db.query("SELECT " +
-				"b.\"id\" AS \"b_id\", b.\"version\" AS \"b_version\", b.\"timestamp\" AS \"b_timestamp\", b.\"height\" AS \"b_height\", b.\"previousBlock\" AS \"b_previousBlock\", b.\"numberOfTransactions\" AS \"b_numberOfTransactions\", (b.\"totalAmount\")::bigint AS \"b_totalAmount\", (b.\"totalFee\")::bigint AS \"b_totalFee\", (b.\"reward\")::bigint AS \"b_reward\", b.\"payloadLength\" AS \"b_payloadLength\", ENCODE(b.\"payloadHash\", 'hex') AS \"b_payloadHash\", ENCODE(b.\"generatorPublicKey\", 'hex') AS \"b_generatorPublicKey\", ENCODE(b.\"blockSignature\", 'hex') AS \"b_blockSignature\", " +
-				"t.\"id\" AS \"t_id\", t.\"type\" AS \"t_type\", t.\"timestamp\" AS \"t_timestamp\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"t_senderPublicKey\", t.\"senderId\" AS \"t_senderId\", t.\"recipientId\" AS \"t_recipientId\", (t.\"amount\")::bigint AS \"t_amount\", (t.\"fee\")::bigint AS \"t_fee\", ENCODE(t.\"signature\", 'hex') AS \"t_signature\", ENCODE(t.\"signSignature\", 'hex') AS \"t_signSignature\", " +
-				"ENCODE(s.\"publicKey\", 'hex') AS \"s_publicKey\", " +
-				"d.\"username\" AS \"d_username\", " +
-				"v.\"votes\" AS \"v_votes\", " +
-				"m.\"min\" AS \"m_min\", m.\"lifetime\" AS \"m_lifetime\", m.\"keysgroup\" AS \"m_keysgroup\", " +
-				"dapp.\"name\" AS \"dapp_name\", dapp.\"description\" AS \"dapp_description\", dapp.\"tags\" AS \"dapp_tags\", dapp.\"type\" AS \"dapp_type\", dapp.\"link\" AS \"dapp_link\", dapp.\"category\" AS \"dapp_category\", dapp.\"icon\" AS \"dapp_icon\", " +
-				"it.\"dappId\" AS \"in_dappId\", " +
-				"ot.\"dappId\" AS \"ot_dappId\", ot.\"outTransactionId\" AS \"ot_outTransactionId\", " +
-				"ENCODE(t.\"requesterPublicKey\", 'hex') AS \"t_requesterPublicKey\", t.\"signatures\" AS \"t_signatures\" " +
-				"FROM blocks b " +
-				"LEFT OUTER JOIN trs AS t ON t.\"blockId\" = b.\"id\" " +
-				"LEFT OUTER JOIN delegates AS d ON d.\"transactionId\" = t.\"id\" " +
-				"LEFT OUTER JOIN votes AS v ON v.\"transactionId\" = t.\"id\" " +
-				"LEFT OUTER JOIN signatures AS s ON s.\"transactionId\" = t.\"id\" " +
-				"LEFT OUTER JOIN multisignatures AS m ON m.\"transactionId\" = t.\"id\" " +
-				"LEFT OUTER JOIN dapps AS dapp ON dapp.\"transactionId\" = t.\"id\" " +
-				"LEFT OUTER JOIN intransfer AS it ON it.\"transactionId\" = t.\"id\" " +
-				"LEFT OUTER JOIN outtransfer AS ot ON ot.\"transactionId\" = t.\"id\" " +
-				(filter.id || filter.lastId ? "WHERE " : "") + " " +
-				(filter.id ? " b.\"id\" = ${id} " : "") + (filter.id && filter.lastId ? " AND " : "") + (filter.lastId ? " b.\"height\" > ${height} AND b.\"height\" < ${limit} " : "") + limitPart + "ORDER BY b.\"height\", t.\"rowId\"", params).then(function (rows) {
+			library.db.query(sql.loadBlocksData(filter), params).then(function (rows) {
 				return cb(null, rows);
-			}).catch(function (err) {
-				library.logger.error(err.toString());
-				return cb("Blocks#loadBlockData error");
 			});
-
 		}).catch(function (err ) {
 			library.logger.error(err.toString());
 			return cb("Blocks#loadBlockData error");
@@ -627,29 +596,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var params = { limit: newLimit, offset: offset || 0 };
 
 	library.dbSequence.add(function (cb) {
-		library.db.query("SELECT " +
-			"b.\"id\" AS \"b_id\", b.\"version\" AS \"b_version\", b.\"timestamp\" AS \"b_timestamp\", b.\"height\" AS \"b_height\", b.\"previousBlock\" AS \"b_previousBlock\", b.\"numberOfTransactions\" AS \"b_numberOfTransactions\", (b.\"totalAmount\")::bigint AS \"b_totalAmount\", (b.\"totalFee\")::bigint AS \"b_totalFee\", (b.\"reward\")::bigint AS \"b_reward\", b.\"payloadLength\" AS \"b_payloadLength\", ENCODE(b.\"payloadHash\", 'hex') AS \"b_payloadHash\", ENCODE(b.\"generatorPublicKey\", 'hex') AS \"b_generatorPublicKey\", ENCODE(b.\"blockSignature\", 'hex') AS \"b_blockSignature\", " +
-			"t.\"id\" AS \"t_id\", t.\"type\" AS \"t_type\", t.\"timestamp\" AS \"t_timestamp\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"t_senderPublicKey\", t.\"senderId\" AS \"t_senderId\", t.\"recipientId\" AS \"t_recipientId\", (t.\"amount\")::bigint AS \"t_amount\", (t.\"fee\")::bigint AS \"t_fee\", ENCODE(t.\"signature\", 'hex') AS \"t_signature\", ENCODE(t.\"signSignature\", 'hex') AS \"t_signSignature\", " +
-			"ENCODE(s.\"publicKey\", 'hex') AS \"s_publicKey\", " +
-			"d.\"username\" AS \"d_username\", " +
-			"v.\"votes\" AS \"v_votes\", " +
-			"m.\"min\" AS \"m_min\", m.\"lifetime\" AS \"m_lifetime\", m.\"keysgroup\" AS \"m_keysgroup\", " +
-			"dapp.\"name\" AS \"dapp_name\", dapp.\"description\" AS \"dapp_description\", dapp.\"tags\" AS \"dapp_tags\", dapp.\"type\" AS \"dapp_type\", dapp.\"link\" AS \"dapp_link\", dapp.\"category\" AS \"dapp_category\", dapp.\"icon\" AS \"dapp_icon\", " +
-			"it.\"dappId\" AS \"in_dappId\", " +
-			"ot.\"dappId\" AS \"ot_dappId\", ot.\"outTransactionId\" AS \"ot_outTransactionId\", " +
-			"ENCODE(t.\"requesterPublicKey\", 'hex') AS \"t_requesterPublicKey\", t.\"signatures\" AS \"t_signatures\" " +
-			"FROM blocks b " +
-			"LEFT OUTER JOIN trs AS t ON t.\"blockId\" = b.\"id\" " +
-			"LEFT OUTER JOIN delegates AS d ON d.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN votes AS v ON v.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN signatures AS s ON s.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN multisignatures AS m ON m.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN dapps AS dapp ON dapp.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN intransfer AS it ON it.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN outtransfer AS ot ON ot.\"transactionId\" = t.\"id\" " +
-			"WHERE b.\"height\" >= ${offset} AND b.\"height\" < ${limit} " +
-			"ORDER BY b.\"height\", t.\"rowId\""
-			, params).then(function (rows) {
+		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
 				var blocks = private.readDbRows(rows);
 
 				async.eachSeries(blocks, function (block, cb) {
@@ -780,29 +727,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 
 Blocks.prototype.loadLastBlock = function (cb) {
 	library.dbSequence.add(function (cb) {
-		library.db.query("SELECT " +
-			"b.\"id\" AS \"b_id\", b.\"version\" AS \"b_version\", b.\"timestamp\" AS \"b_timestamp\", b.\"height\" AS \"b_height\", b.\"previousBlock\" AS \"b_previousBlock\", b.\"numberOfTransactions\" AS \"b_numberOfTransactions\", (b.\"totalAmount\")::bigint AS \"b_totalAmount\", (b.\"totalFee\")::bigint AS \"b_totalFee\", (b.\"reward\")::bigint AS \"b_reward\", b.\"payloadLength\" AS \"b_payloadLength\", ENCODE(b.\"payloadHash\", 'hex') AS \"b_payloadHash\", ENCODE(b.\"generatorPublicKey\", 'hex') AS \"b_generatorPublicKey\", ENCODE(b.\"blockSignature\", 'hex') AS \"b_blockSignature\", " +
-			"t.\"id\" AS \"t_id\", t.\"type\" AS \"t_type\", t.\"timestamp\" AS \"t_timestamp\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"t_senderPublicKey\", t.\"senderId\" AS \"t_senderId\", t.\"recipientId\" AS \"t_recipientId\", (t.\"amount\")::bigint AS \"t_amount\", (t.\"fee\")::bigint AS \"t_fee\", ENCODE(t.\"signature\", 'hex') AS \"t_signature\", ENCODE(t.\"signSignature\", 'hex') AS \"t_signSignature\", " +
-			"ENCODE(s.\"publicKey\", 'hex') AS \"s_publicKey\", " +
-			"d.\"username\" AS \"d_username\", " +
-			"v.\"votes\" AS \"v_votes\", " +
-			"m.\"min\" AS \"m_min\", m.\"lifetime\" AS \"m_lifetime\", m.\"keysgroup\" AS \"m_keysgroup\", " +
-			"dapp.\"name\" AS \"dapp_name\", dapp.\"description\" AS \"dapp_description\", dapp.\"tags\" AS \"dapp_tags\", dapp.\"type\" AS \"dapp_type\", dapp.\"link\" AS \"dapp_link\", dapp.\"category\" AS \"dapp_category\", dapp.\"icon\" AS \"dapp_icon\", " +
-			"it.\"dappId\" AS \"in_dappId\", " +
-			"ot.\"dappId\" AS \"ot_dappId\", ot.\"outTransactionId\" AS \"ot_outTransactionId\", " +
-			"ENCODE(t.\"requesterPublicKey\", 'hex') AS \"t_requesterPublicKey\", t.\"signatures\" AS \"t_signatures\" " +
-			"FROM blocks b " +
-			"LEFT OUTER JOIN trs AS t ON t.\"blockId\" = b.\"id\" " +
-			"LEFT OUTER JOIN delegates AS d ON d.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN votes AS v ON v.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN signatures AS s ON s.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN multisignatures AS m ON m.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN dapps AS dapp ON dapp.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN intransfer AS it ON it.\"transactionId\" = t.\"id\" " +
-			"LEFT OUTER JOIN outtransfer AS ot ON ot.\"transactionId\" = t.\"id\" " +
-			"WHERE b.\"height\" = (SELECT MAX(\"height\") FROM blocks) " +
-			"ORDER BY b.\"height\", t.\"rowId\"").then(function (rows) {
-
+		library.db.query(sql.loadLastBlock).then(function (rows) {
 			var block = private.readDbRows(rows)[0];
 
 			block.transactions = block.transactions.sort(function (a, b) {
@@ -819,7 +744,6 @@ Blocks.prototype.loadLastBlock = function (cb) {
 			});
 
 			cb(null, block);
-
 		}).catch(function (err) {
 			library.logger.error(err.toString());
 			return cb("Blocks#loadLastBlock error");
@@ -868,7 +792,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 				return setImmediate(done, "Invalid block reward");
 			}
 
-			library.db.query("SELECT \"id\" FROM blocks WHERE \"id\" = ${id}", { id: block.id }).then(function (rows) {
+			library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
 				var bId = rows.length && rows[0].id;
 
 				if (bId) {
@@ -927,7 +851,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 
 						transaction.blockId = block.id;
 
-						library.db.query("SELECT \"id\" FROM trs WHERE \"id\" = ${id}", { id: transaction.id }).then(function (rows) {
+						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
 								var tId = rows.length && rows[0].id;
 
 								if (tId) {
@@ -1059,7 +983,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 }
 
 Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
-	library.db.query("DELETE FROM blocks WHERE \"height\" >= (SELECT \"height\" FROM blocks WHERE \"id\" = ${id})", { id: blockId }).then(function (res) {
+	library.db.query(sql.simpleDeleteAfterBlock, { id: blockId }).then(function (res) {
 		return cb(null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());

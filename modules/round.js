@@ -2,8 +2,9 @@ var async = require("async");
 var util = require("util");
 var pgp = require("pg-promise");
 var slots = require("../helpers/slots.js");
-var sandboxHelper = require("../helpers/sandbox.js");
 var constants = require("../helpers/constants.js");
+var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/round.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -65,21 +66,17 @@ function RoundPromiser (scope, t) {
 			return t;
 		}
 
-		return t.none("UPDATE mem_accounts SET \"missedblocks\" = \"missedblocks\" + 1 WHERE \"address\" IN ($1:csv)", [scope.outsiders]);
+		return t.none(sql.updateMissedBlocks, [scope.outsiders]);
 	}
 
 	this.getVotes = function () {
-		var sql = "SELECT d.\"delegate\", d.\"amount\" FROM " +
-		          "(SELECT m.\"delegate\", SUM(m.\"amount\") AS \"amount\", \"round\" FROM mem_round m " +
-		          "GROUP BY m.\"delegate\", m.\"round\") AS d WHERE \"round\" = (${round})::bigint";
-
-		return t.query(sql, { round: scope.round });
+		return t.query(sql.getVotes, { round: scope.round });
 	}
 
 	this.updateVotes = function () {
 		return self.getVotes(scope.round).then(function (votes) {
 			var queries = votes.map(function (vote) {
-				return pgp.as.format("UPDATE mem_accounts SET \"vote\" = \"vote\" + (${amount})::bigint WHERE \"address\" = ${address};", {
+				return pgp.as.format(sql.updateVotes, {
 					address: modules.accounts.generateAddressByPublicKey(vote.delegate),
 					amount: Math.floor(vote.amount)
 				});
@@ -94,7 +91,7 @@ function RoundPromiser (scope, t) {
 	}
 
 	this.flushRound = function () {
-		return t.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: scope.round });
+		return t.none(sql.flush, { round: scope.round });
 	}
 
 	this.applyRound = function () {
@@ -159,7 +156,7 @@ Round.prototype.calc = function (height) {
 }
 
 Round.prototype.flush = function (round, cb) {
-	library.db.none("DELETE FROM mem_round WHERE \"round\" = (${round})::bigint", { round: round }).then(function () {
+	library.db.none(sql.flush, { round: round }).then(function () {
 		return cb();
 	}).catch(function (err) {
 		library.logger.error(err.toString());
@@ -314,10 +311,7 @@ Round.prototype.onBind = function (scope) {
 Round.prototype.onBlockchainReady = function () {
 	var round = self.calc(modules.blocks.getLastBlock().height);
 
-	var sql = "SELECT SUM(b.\"totalFee\")::bigint AS \"fees\", ARRAY_AGG(b.\"reward\") AS \"rewards\", ARRAY_AGG(ENCODE(b.\"generatorPublicKey\", 'hex')) AS \"delegates\" " +
-	          "FROM blocks b WHERE (SELECT (CAST(b.\"height\" / 101 AS INTEGER) + (CASE WHEN b.\"height\" % 101 > 0 THEN 1 ELSE 0 END))) = ${round}";
-
-	library.db.query(sql, { round: round }).then(function (rows) {
+	library.db.query(sql.summedRound, { round: round }).then(function (rows) {
 		var rewards = [];
 
 		rows[0].rewards.forEach(function (reward) {

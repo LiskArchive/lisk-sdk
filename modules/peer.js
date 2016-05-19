@@ -6,6 +6,7 @@ var extend = require('extend');
 var fs = require('fs');
 var path = require('path');
 var sandboxHelper = require('../helpers/sandbox.js');
+var sql = require('../sql/peer.js');
 var _ = require('underscore');
 
 // Private fields
@@ -119,7 +120,7 @@ private.updatePeerList = function (cb) {
 }
 
 private.count = function (cb) {
-	library.db.query("SELECT COUNT(*)::int FROM peers").then(function (rows) {
+	library.db.query(sql.count).then(function (rows) {
 		var res = rows.length && rows[0].count;
 		cb(null, res)
 	}).catch(function (err) {
@@ -129,7 +130,7 @@ private.count = function (cb) {
 }
 
 private.banManager = function (cb) {
-	library.db.query("UPDATE peers SET \"state\" = 1, \"clock\" = null WHERE (\"state\" = 0 AND \"clock\" - ${now} < 0)", { now: Date.now() }).then(function (res) {
+	library.db.query(sql.banManager, { now: Date.now() }).then(function (res) {
 		return cb(null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
@@ -138,44 +139,41 @@ private.banManager = function (cb) {
 }
 
 private.getByFilter = function (filter, cb) {
-	var sortFields = ["ip", "port", "state", "os", "version"];
+	var sortFields = sql.sortFields;
 	var sortMethod = '', sortBy = ''
-	var limit = filter.limit || null;
-	var offset = filter.offset || null;
-	delete filter.limit;
-	delete filter.offset;
 
-	var where = [];
+	var fields = [];
 	var params = {};
 
 	if (filter.hasOwnProperty('state') && filter.state !== null) {
-		where.push("\"state\" = ${state}");
+		fields.push('"state" = ${state}');
 		params.state = filter.state;
 	}
 
 	if (filter.hasOwnProperty('os') && filter.os !== null) {
-		where.push("\"os\" = ${os}");
+		fields.push('"os" = ${os}');
 		params.os = filter.os;
 	}
 
 	if (filter.hasOwnProperty('version') && filter.version !== null) {
-		where.push("\"version\" = ${version}");
+		fields.push('"version" = ${version}');
 		params.version = filter.version;
 	}
 
 	if (filter.hasOwnProperty('ip') && filter.ip !== null) {
-		where.push("\"ip\" = ${ip}");
+		fields.push('"ip" = ${ip}');
 		params.ip = filter.ip;
 	}
 
 	if (filter.hasOwnProperty('port') && filter.port !== null) {
-		where.push("\"port\" = ${port}");
+		fields.push('"port" = ${port}');
 		params.port = filter.port;
 	}
 
 	if (filter.hasOwnProperty('orderBy')) {
 		var sort = filter.orderBy.split(':');
 		sortBy = sort[0].replace(/[^\w\s]/gi, '');
+
 		if (sort.length == 2) {
 			sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
 		} else {
@@ -191,27 +189,32 @@ private.getByFilter = function (filter, cb) {
 		}
 	}
 
-	if (limit !== null) {
-		if (limit > 100) {
-			return cb("Invalid limit. Maximum is 100");
-		}
-		params['limit'] = limit;
+	if (!filter.limit) {
+		params.limit = 100;
+	} else {
+		params.limit = Math.abs(filter.limit);
 	}
 
-	if (offset !== null) {
-		params['offset'] = offset;
+	if (!filter.offset) {
+		params.offset = 0;
+	} else {
+		params.offset = Math.abs(filter.offset);
 	}
 
-	library.db.query("SELECT \"ip\", \"port\", \"state\", \"os\", \"version\" FROM peers" +
-		(where.length ? (" WHERE " + where.join(" AND ")) : "") +
-		(sortBy ? " ORDER BY " + sortBy + " " + sortMethod : "") + " " +
-		(limit ? " LIMIT ${limit}" : "") +
-		(offset ? " OFFSET ${offset} " : ""), params).then(function (rows) {
-			cb(null, rows);
-		}).catch(function (err) {
-			library.logger.error(err.toString());
-			return cb("Peer#getByFilter error");
-		});
+	if (params.limit > 100) {
+		return cb("Invalid limit. Maximum is 100");
+	}
+
+	library.db.query(sql.getByFilter({
+		fields: fields,
+		sortBy: sortBy,
+		sortMethod: sortMethod
+	}), params).then(function (rows) {
+		cb(null, rows);
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Peer#getByFilter error");
+	});
 }
 
 // Public methods
@@ -246,7 +249,7 @@ Peer.prototype.accept = function (peer) {
 Peer.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
-	library.db.query("SELECT p.\"ip\", p.\"port\", p.\"state\", p.\"os\", p.\"version\" FROM peers p " + (options.dappid ? " INNER JOIN peers_dapp AS pd ON p.\"id\" = pd.\"peerId\" AND pd.\"dappid\" = ${dappid} " : "") + " WHERE p.\"state\" > 0 ORDER BY RANDOM() LIMIT ${limit}", options).then(function (rows) {
+	library.db.query(sql.randomList(options), options).then(function (rows) {
 		cb(null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
@@ -265,7 +268,7 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	} else {
 		clock = null;
 	}
-	library.db.query("UPDATE peers SET \"state\" = ${state}, \"clock\" = ${clock} WHERE \"ip\" = ${ip} AND \"port\" = ${port};", {
+	library.db.query(sql.state, {
 		state: state,
 		clock: clock,
 		ip: pip,
@@ -283,7 +286,7 @@ Peer.prototype.remove = function (pip, port, cb) {
 		return peer.ip == pip && peer.port == port;
 	});
 	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
-	library.db.query("DELETE FROM peers WHERE \"ip\" = ${ip} AND \"port\" = ${port};", {
+	library.db.query(sql.remove, {
 		ip: pip,
 		port: port
 	}).then(function (res) {
@@ -295,7 +298,7 @@ Peer.prototype.remove = function (pip, port, cb) {
 }
 
 Peer.prototype.addDapp = function (config, cb) {
-	library.db.query("SELECT \"id\" FROM peers WHERE \"ip\" = ${ip} AND \"port\" = ${port}", {
+	library.db.query(sql.getByIdPort, {
 		ip: config.ip,
 		port: config.port
 	}).then(function (rows) {
@@ -304,7 +307,7 @@ Peer.prototype.addDapp = function (config, cb) {
 		}
 		var peerId = rows[0].id;
 
-		library.db.query("INSERT INTO peers_dapp (\"peerId\", \"dappid\") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING;", {
+		library.db.query(sql.addDapp, {
 			dappId: config.dappid,
 			peerId: peerId
 		}).then(function (res) {
@@ -330,7 +333,7 @@ Peer.prototype.update = function (peer, cb) {
 
 	async.series([
 		function (cb) {
-			library.db.query("INSERT INTO peers (\"ip\", \"port\", \"state\", \"os\", \"version\") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}) ON CONFLICT DO NOTHING;", extend({}, params, { state: 1 })).then(function (res) {
+			library.db.query(sql.insert, extend({}, params, { state: 1 })).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
@@ -341,7 +344,7 @@ Peer.prototype.update = function (peer, cb) {
 			if (peer.state !== undefined) {
 				params.state = peer.state;
 			}
-			library.db.query("UPDATE peers SET \"os\" = ${os}, \"version\" = ${version}" + (peer.state !== undefined ? ", \"state\" = CASE WHEN \"state\" = 0 THEN \"state\" ELSE ${state} END " : "") + " WHERE \"ip\" = ${ip} and \"port\" = ${port};", params).then(function (res) {
+			library.db.query(sql.update(params), params).then(function (res) {
 				return cb(null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
@@ -372,7 +375,7 @@ Peer.prototype.onBind = function (scope) {
 
 Peer.prototype.onBlockchainReady = function () {
 	async.eachSeries(library.config.peers.list, function (peer, cb) {
-		library.db.query("INSERT INTO peers(\"ip\", \"port\", \"state\") VALUES(${ip}, ${port}, ${state}) ON CONFLICT DO NOTHING;", {
+		library.db.query(sql.insertSeed, {
 			ip: peer.ip,
 			port: peer.port,
 			state: 2

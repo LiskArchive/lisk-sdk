@@ -12,6 +12,7 @@ var RequestSanitizer = require('../helpers/request-sanitizer.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Diff = require('../helpers/diff.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var sql = require('../sql/multisignatures.js');
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -375,7 +376,7 @@ shared.getAccounts = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		library.db.one("SELECT STRING_AGG(\"accountId\", ',') AS \"accountId\" FROM mem_accounts2multisignatures WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (row) {
+		library.db.one(sql.getAccounts, { publicKey: query.publicKey }).then(function (row) {
 			var addresses = (row.accountId) ? row.accountId.split(',') : [];
 
 			modules.accounts.getAccounts({
