@@ -3,6 +3,7 @@ var Router = require("../helpers/router.js");
 var util = require("util");
 var ip = require("ip");
 var bignum = require("../helpers/bignum.js");
+var constants = require("../helpers/constants.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 var sql = require("../sql/loader.js");
 
