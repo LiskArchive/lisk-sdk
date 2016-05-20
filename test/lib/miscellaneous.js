@@ -228,15 +228,15 @@ describe("Blocks", function () {
         });
     });
 
-    describe("GET /blocks", function () {
+    describe("GET /blocks/getFees", function () {
 
-      it(test + ". Get blockchain fees. Should be ok", function (done) {
+      it(test + ". Should be ok", function (done) {
           node.api.get("/blocks/getFees")
               .set("Accept", "application/json")
               .expect("Content-Type", /json/)
               .expect(200)
               .end(function (err, res) {
-                  //console.log(JSON.stringify(res.body));
+                  // console.log(JSON.stringify(res.body));
                   node.expect(res.body).to.have.property("success").to.be.true;
                   if (res.body.success == true && res.body.fees != null) {
                       node.expect(res.body).to.have.property("fees");
@@ -253,6 +253,9 @@ describe("Blocks", function () {
               });
       });
 
+    });
+
+    describe("GET /blocks/getNethash", function () {
 
       it(test + ". Get blockchain nethash. Should be ok", function (done) {
           node.api.get("/blocks/getNethash")
@@ -260,7 +263,7 @@ describe("Blocks", function () {
               .expect("Content-Type", /json/)
               .expect(200)
               .end(function (err, res) {
-                  //console.log(JSON.stringify(res.body));
+                  // console.log(JSON.stringify(res.body));
                   node.expect(res.body).to.have.property("success").to.be.true;
                   if (res.body.success == true && res.body.nethash != null) {
                       node.expect(res.body).to.have.property("nethash");
@@ -271,6 +274,10 @@ describe("Blocks", function () {
                   done();
               });
       });
+
+    });
+
+    describe("GET /blocks", function () {
 
         test = test + 1;
         it(test + ". Using height. Should be ok", function (done) {
