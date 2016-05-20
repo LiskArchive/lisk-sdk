@@ -226,54 +226,55 @@ describe("Blocks", function () {
                     done();
                 });
         });
+
     });
 
     describe("GET /blocks/getFees", function () {
 
-      it(test + ". Should be ok", function (done) {
-          node.api.get("/blocks/getFees")
-              .set("Accept", "application/json")
-              .expect("Content-Type", /json/)
-              .expect(200)
-              .end(function (err, res) {
-                  // console.log(JSON.stringify(res.body));
-                  node.expect(res.body).to.have.property("success").to.be.true;
-                  if (res.body.success == true && res.body.fees != null) {
-                      node.expect(res.body).to.have.property("fees");
-                      node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
-                      node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
-                      node.expect(res.body.fees.dapp).to.equal(node.Fees.dappAddFee);
-                      node.expect(res.body.fees.secondsignature).to.equal(node.Fees.secondPasswordFee);
-                      node.expect(res.body.fees.delegate).to.equal(node.Fees.delegateRegistrationFee);
-                      node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
-                  } else {
-                      console.log("Request failed or fees is null");
-                  }
-                  done();
+        it(test + ". Should be ok", function (done) {
+            node.api.get("/blocks/getFees")
+                .set("Accept", "application/json")
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                if (res.body.success == true && res.body.fees != null) {
+                    node.expect(res.body).to.have.property("fees");
+                    node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
+                    node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
+                    node.expect(res.body.fees.dapp).to.equal(node.Fees.dappAddFee);
+                    node.expect(res.body.fees.secondsignature).to.equal(node.Fees.secondPasswordFee);
+                    node.expect(res.body.fees.delegate).to.equal(node.Fees.delegateRegistrationFee);
+                    node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
+                } else {
+                  console.log("Request failed or fees is null");
+                }
+                done();
               });
-      });
+        });
 
     });
 
     describe("GET /blocks/getNethash", function () {
 
-      it(test + ". Get blockchain nethash. Should be ok", function (done) {
-          node.api.get("/blocks/getNethash")
-              .set("Accept", "application/json")
-              .expect("Content-Type", /json/)
-              .expect(200)
-              .end(function (err, res) {
-                  // console.log(JSON.stringify(res.body));
-                  node.expect(res.body).to.have.property("success").to.be.true;
-                  if (res.body.success == true && res.body.nethash != null) {
-                      node.expect(res.body).to.have.property("nethash");
-                      node.expect(res.body.nethash).to.equal(node.config.nethash);
-                  } else {
-                      console.log("Request failed or nethash is null");
-                  }
-                  done();
-              });
-      });
+        it(test + ". Get blockchain nethash. Should be ok", function (done) {
+            node.api.get("/blocks/getNethash")
+                .set("Accept", "application/json")
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    // console.log(JSON.stringify(res.body));
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    if (res.body.success == true && res.body.nethash != null) {
+                        node.expect(res.body).to.have.property("nethash");
+                        node.expect(res.body.nethash).to.equal(node.config.nethash);
+                    } else {
+                        console.log("Request failed or nethash is null");
+                    }
+                    done();
+                });
+        });
 
     });
 
@@ -444,6 +445,7 @@ describe("Blocks", function () {
                     done();
                 });
         });
+
     });
 
 });
