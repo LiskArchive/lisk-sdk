@@ -16,6 +16,7 @@ module.exports = {
 		multisignature:500000000,
 		dapp:50000000000
 	},
+	activeDelegates: 101,
 	maxRequests: 10000 * 12,
 	requestLength: 104,
 	signatureLength: 196,

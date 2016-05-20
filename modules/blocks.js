@@ -376,10 +376,10 @@ private.popLastBlock = function (oldLastBlock, cb) {
 
 private.getIdSequence = function (height, cb) {
 	var sql = "SELECT (ARRAY_AGG(\"id\" ORDER BY \"height\" ASC))[1] AS \"id\", MIN(\"height\") AS \"height\", "
-	        + "CAST(\"height\" / ${delegates} AS INTEGER) + (CASE WHEN \"height\" % 101 > 0 THEN 1 ELSE 0 END) AS \"round\" FROM blocks "
+	        + "CAST(\"height\" / ${delegates} AS INTEGER) + (CASE WHEN \"height\" % ${activeDelegates} > 0 THEN 1 ELSE 0 END) AS \"round\" FROM blocks "
 	        + "WHERE \"height\" <= ${height} GROUP BY \"round\" ORDER BY \"height\" DESC LIMIT ${limit};"
 
-	library.db.query(sql, { height: height, limit: 5, delegates: slots.delegates }).then(function (rows) {
+	library.db.query(sql, { height: height, limit: 5, delegates: slots.delegates, activeDelegates:constants.activeDelegates }).then(function (rows) {
 		if (rows.length == 0) {
 			return cb("Failed to get id sequence before: " + height);
 		}
