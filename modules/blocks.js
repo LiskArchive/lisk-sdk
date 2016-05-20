@@ -96,6 +96,7 @@ private.attachApi = function () {
 		"get /get": "getBlock",
 		"get /": "getBlocks",
 		"get /getHeight": "getHeight",
+		"get /getNethash": "getNethash",
 		"get /getFee": "getFee",
 		"get /getFees": "getFees",
 		"get /getMilestone": "getMilestone",
@@ -1358,6 +1359,14 @@ shared.getFees = function (req, cb) {
 	}
 	var query = req.body;
 	cb(null, {fees: constants.fees});
+}
+
+shared.getNethash = function (req, cb) {
+	if (!private.loaded) {
+		cb("Blockchain is loading")
+	}
+	var query = req.body;
+	cb(null, {nethash: library.config.nethash});
 }
 
 shared.getMilestone = function (req, cb) {
