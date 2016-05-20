@@ -13,7 +13,7 @@ var MultisigAccount = node.randomAccount();
 MultisigAccount.name = "multi";
 
 var Accounts = [];
-for (var i=0; i < totalMembers; i++) {
+for (var i = 0 ; i < totalMembers; i++) {
     Accounts[i] = node.randomAccount();
 }
 
@@ -70,8 +70,8 @@ function sendLISK (account, i) {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-                //console.log(JSON.stringify(res.body));
-                //console.log("Sending " + randomLISK + " LISK to " + account.address);
+                // console.log(JSON.stringify(res.body));
+                // console.log("Sending " + randomLISK + " LISK to " + account.address);
                 node.expect(res.body).to.have.property("success").to.be.true;
                 if (res.body.success == true && i != null) {
                     Accounts[i].balance = randomLISK / node.normalizer;
@@ -91,8 +91,8 @@ function sendLISKfromMultisigAccount (amount, recipient) {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-            //console.log(JSON.stringify(res.body));
-            //console.log("Sending " + amount + " LISK to " + recipient);
+            // console.log(JSON.stringify(res.body));
+            // console.log("Sending " + amount + " LISK to " + recipient);
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.success == true) {
                 node.expect(res.body).to.have.property("transactionId");
@@ -110,7 +110,7 @@ function confirmTransaction (account, id) {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-            //console.log("Signing Tx ID = " + id + " from account with password = " + account.password + " Got reply: " + JSON.stringify(res.body));
+            // console.log("Signing Tx ID = " + id + " from account with password = " + account.password + " Got reply: " + JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.true;
         });
 }
@@ -130,12 +130,10 @@ function makeKeysGroup () {
 // Used for test labeling
 var test = 0;
 
-// Starting tests //
-
 describe("Multisignatures", function () {
 
     before(function (done) {
-        for ( var i = 0; i < Accounts.length; i++) {
+        for (var i = 0; i < Accounts.length; i++) {
             if (Accounts[i] != null) {
                 openAccount(Accounts[i],i);
                 setTimeout(function () {
@@ -165,13 +163,13 @@ describe("Multisignatures", function () {
         node.onNewBlock(function (err) {
             node.onNewBlock(function (err) {
                 node.expect(err).to.be.not.ok;
-                //console.log(Accounts);
+                // console.log(Accounts);
                 done();
             });
         });
     });
 
-    describe("Create Multisignature Account", function () {
+    describe("PUT /multisignatures", function () {
 
         before(function (done) {
             Keys = makeKeysGroup();
@@ -179,7 +177,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Owner PublicKey in keysgroup. We expect error", function (done) {
+        it(test + ". When owner's public key in keysgroup. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -191,7 +189,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -199,7 +197,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Account with 0 LISK. We expect error", function (done) {
+        it(test + ". When account has 0 LISK. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -211,7 +209,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -219,7 +217,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Empty Keysgroup. We expect error", function (done) {
+        it(test + ". When keysgroup is empty. Should fail", function (done) {
             var emptyKeys = [];
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
@@ -232,7 +230,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -240,7 +238,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". No Keysgroup. We expect error", function (done) {
+        it(test + ". When no keygroup is given. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -251,7 +249,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -259,7 +257,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Invalid Keysgroup. We expect error", function (done) {
+        it(test + ". When keysgroup is a string. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -271,7 +269,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -279,7 +277,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". No Secret. We expect error", function (done) {
+        it(test + ". When no passphase is given. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -290,7 +288,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -298,7 +296,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Invalid Secret. We expect error", function (done) {
+        it(test + ". When an invalid passphrase is given. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -310,7 +308,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -318,7 +316,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". No lifetime. We expect error", function (done) {
+        it(test + ". When no lifetime is given. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -329,7 +327,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -337,7 +335,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Invalid type lifetime. We expect error", function (done) {
+        it(test + ". When lifetime is a string. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -349,7 +347,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -357,7 +355,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Lifetime greater than allowed. We expect error", function (done) {
+        it(test + ". When lifetime is greater than the maximum allowed. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -369,7 +367,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -377,7 +375,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". 0 Lifetime. We expect error", function (done) {
+        it(test + ". When lifetime is zero. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -389,7 +387,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -397,7 +395,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Negative Lifetime. We expect error", function (done) {
+        it(test + ". When lifetime is negative. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -409,7 +407,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -417,7 +415,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Lifetime as string. We expect error", function (done) {
+        it(test + ". When lifetime is a string. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -429,7 +427,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -437,7 +435,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". No Min. We expect error", function (done) {
+        it(test + ". When no min is given. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -448,7 +446,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -456,7 +454,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Invalid Min. We expect error", function (done) {
+        it(test + ". When min is invalid. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -468,7 +466,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -476,7 +474,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Min Greater than members. We expect error", function (done) {
+        it(test + ". When min is greater than the total members. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -488,7 +486,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -496,7 +494,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Min 0. We expect error", function (done) {
+        it(test + ". When min is zero. Should fail", function (done) {
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
                 .send({
@@ -508,7 +506,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -516,7 +514,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Min negative value. We expect error", function (done) {
+        it(test + ". When min is negative. Should fail", function (done) {
             var minimum = -1 * requiredSignatures;
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
@@ -529,7 +527,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -537,7 +535,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Min as string. We expect error", function (done) {
+        it(test + ". When min is a string. Should fail", function (done) {
             var minimum =  toString(requiredSignatures);
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
@@ -550,7 +548,7 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -558,7 +556,7 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Valid data. We expect success", function (done) {
+        it(test + ". When data is valid. Should be ok", function (done) {
             var life = parseInt(node.randomNumber(1,25));
             node.api.put("/multisignatures")
                 .set("Accept", "application/json")
@@ -580,7 +578,7 @@ describe("Multisignatures", function () {
                     if (res.body.error != null) {
                         console.log(res.body.error);
                     }
-                    //console.log(res.body);
+                    // console.log(res.body);
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transactionId");
                     if (res.body.success == true && res.body.transactionId != null) {
@@ -598,17 +596,17 @@ describe("Multisignatures", function () {
 
     });
 
-    describe("Get pending multisignatures", function () {
+    describe("GET /multisignatures/pending", function () {
 
         test += 1;
-        it(test + ". Get multisignature transactions. invalid publicKey. We expect error", function (done) {
+        it(test + ". Using invalid public key. Should fail", function (done) {
             var publicKey = 1234;
             node.api.get("/multisignatures/pending?publicKey=" + publicKey)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     done();
@@ -616,13 +614,13 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Get multisignature transactions. no publicKey. We expect success but no transactions return", function (done) {
+        it(test + ". Using no public key. Should be ok", function (done) {
             node.api.get("/multisignatures/pending?publicKey=")
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success");
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transactions").that.is.an("array");
@@ -632,21 +630,21 @@ describe("Multisignatures", function () {
         });
 
         test += 1;
-        it(test + ". Get multisignature transactions. valid publicKey. We expect success", function (done) {
+        it(test + ". Using valid public key. Should be ok", function (done) {
             node.onNewBlock(function (err) {
-                //console.log(JSON.stringify(MultisigAccount));
+                // console.log(JSON.stringify(MultisigAccount));
                 node.api.get("/multisignatures/pending?publicKey=" + MultisigAccount.publicKey)
                     .set("Accept", "application/json")
                     .expect("Content-Type", /json/)
                     .expect(200)
                     .end(function (err, res) {
-                        //console.log("Asked for pending multisig Transactions. Got reply: " + JSON.stringify(res.body));
+                        // console.log("Asked for pending multisig Transactions. Got reply: " + JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("transactions").that.is.an("array");
                         node.expect(res.body.transactions.length).to.be.at.least(1);
                         var flag = 0;
                         for (var i = 0; i < res.body.transactions.length; i++) {
-                            //console.log(MultisigAccount.publicKey);
+                            // console.log(MultisigAccount.publicKey);
                             if (res.body.transactions[i].transaction.senderPublicKey == MultisigAccount.publicKey) {
                                 flag += 1;
                                 node.expect(res.body.transactions[i].transaction).to.have.property("type").to.equal(node.TxTypes.MULTI);
@@ -666,10 +664,10 @@ describe("Multisignatures", function () {
         });
     });
 
-    describe("Sign Pending Multisignature", function () {
+    describe("PUT /multisignatures/sign", function () {
 
         test += 1;
-        it(test + ". Confirm Tx, sending invalid password. We expect error", function (done) {
+        it(test + ". Using invalid passphrase. Should fail", function (done) {
             node.api.put("/multisignatures/sign")
                 .set("Accept", "application/json")
                 .send({
@@ -679,14 +677,14 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     done();
                 });
         });
 
         test += 1;
-        it(test + ". Confirm Tx, send null password. We expect error", function (done) {
+        it(test + ". Using null passphrase. Should fail", function (done) {
             node.api.put("/multisignatures/sign")
                 .set("Accept", "application/json")
                 .send({
@@ -696,14 +694,14 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     done();
                 });
         });
 
         test += 1;
-        it(test + ". Confirm Tx, send undefined password. We expect error", function (done) {
+        it(test + ". Using undefined passphrase. Should fail", function (done) {
             var undefined;
             node.api.put("/multisignatures/sign")
                 .set("Accept", "application/json")
@@ -714,14 +712,14 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     done();
                 });
         });
 
         test += 1;
-        it(test + ". Confirm Tx, send a random password. We expect error (account not associated)", function (done) {
+        it(test + ". Using random passphrase. Should fail (account is not associated)", function (done) {
             node.api.put("/multisignatures/sign")
                 .set("Accept", "application/json")
                 .send({
@@ -731,18 +729,23 @@ describe("Multisignatures", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    //console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     done();
                 });
         });
+    });
+
+    describe("Sending another transaction", function () {
 
         test += 1;
-        it(test + ". Try to send LISK FROM multisignature account (confirmations still pending). We expect success", function (done) {
+        it(test + ". When other transactions are still pending. Should be ok", function (done) {
             node.onNewBlock(function (err) {
                 sendLISKfromMultisigAccount(100000000, node.Gaccount.address);
                 done();
             });
         });
+
     });
+
 });

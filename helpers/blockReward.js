@@ -9,8 +9,10 @@ function BlockReward() {
 		100000000  // Milestone 4
 	];
 
-	var distance = constants.distance, // Distance between each milestone
-	    rewardOffset = Math.floor(constants.rewardOffset); // Start rewards at block (n)
+	// Distance between each milestone
+	var distance = Math.floor(constants.rewards.distance);
+	// Start rewards at block (n)
+	var rewardOffset = Math.floor(constants.rewards.offset);
 
 	var parseHeight = function (height) {
 		height = parseInt(height);

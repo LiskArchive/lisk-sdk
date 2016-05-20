@@ -1,7 +1,7 @@
 var async = require("async");
 var dappTypes = require("../helpers/dappTypes.js");
-var dappCategory = require("../helpers/dappCategory.js");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var dappCategories = require("../helpers/dappCategories.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var ByteBuffer = require("bytebuffer");
 var fs = require("fs");
 var request = require("request");
@@ -19,6 +19,7 @@ var extend = require("extend");
 var ip = require("ip");
 var valid_url = require("valid-url");
 var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/dapps.js");
 var _ = require("underscore");
 
 // Private fields
@@ -75,7 +76,7 @@ function OutTransfer() {
 	}
 
 	this.process = function (trs, sender, cb) {
-		library.db.one("SELECT COUNT(*)::int AS \"count\" FROM dapps WHERE \"transactionId\" = ${id}", {
+		library.db.one(sql.countByTransactionId, {
 			id: trs.asset.outTransfer.dappId
 		}).then(function (row) {
 			var count = row.count;
@@ -88,7 +89,7 @@ function OutTransfer() {
 				return cb("Transaction is already processing: " + trs.asset.outTransfer.transactionId);
 			}
 
-			library.db.one("SELECT COUNT(*)::int AS \"count\" FROM outtransfer WHERE \"outTransactionId\" = ${transactionId}", {
+			library.db.one(sql.countByOutTransactionId, {
 				transactionId: trs.asset.outTransfer.transactionId
 			}).then(function (row) {
 					var count = row.count;
@@ -270,7 +271,7 @@ function InTransfer() {
 			return setImmediate(cb, "Invalid transaction amount");
 		}
 
-		library.db.one("SELECT COUNT(*)::int AS \"count\" FROM dapps WHERE \"transactionId\" = ${id}", {
+		library.db.one(sql.countByTransactionId, {
 			id: trs.asset.inTransfer.dappId
 		}).then(function (row) {
 			var count = row.count;
@@ -444,8 +445,8 @@ function DApp() {
 		}
 
 		var foundCategory = false;
-		for (var i in dappCategory) {
-			if (dappCategory[i] == trs.asset.dapp.category) {
+		for (var i in dappCategories) {
+			if (dappCategories[i] == trs.asset.dapp.category) {
 				foundCategory = true;
 				break;
 			}
@@ -577,7 +578,7 @@ function DApp() {
 		private.unconfirmedNames[trs.asset.dapp.name] = true;
 		private.unconfirmedLinks[trs.asset.dapp.link] = true;
 
-		library.db.query("SELECT \"name\", \"link\" FROM dapps WHERE (\"name\" = ${name} OR \"link\" = ${link}) AND \"transactionId\" != ${transactionId}", {
+		library.db.query(sql.getExisting, {
 			name: trs.asset.dapp.name,
 			link: trs.asset.dapp.link || null,
 			transactionId: trs.id
@@ -732,9 +733,9 @@ function DApps(cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = private;
-	library.logic.transaction.attachAssetType(TransactionTypes.DAPP, new DApp());
-	library.logic.transaction.attachAssetType(TransactionTypes.IN_TRANSFER, new InTransfer());
-	library.logic.transaction.attachAssetType(TransactionTypes.OUT_TRANSFER, new OutTransfer());
+	library.logic.transaction.attachAssetType(transactionTypes.DAPP, new DApp());
+	library.logic.transaction.attachAssetType(transactionTypes.IN_TRANSFER, new InTransfer());
+	library.logic.transaction.attachAssetType(transactionTypes.OUT_TRANSFER, new OutTransfer());
 
 	private.attachApi();
 
@@ -773,7 +774,6 @@ function DApps(cb, scope) {
 			});
 		}
 	});
-
 }
 
 private.attachApi = function () {
@@ -871,7 +871,7 @@ private.attachApi = function () {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.DAPP,
+							type: transactionTypes.DAPP,
 							sender: account,
 							keypair: keypair,
 							secondKeypair: secondKeypair,
@@ -1002,22 +1002,13 @@ private.attachApi = function () {
 
 			var params = { q: "%" + query.q + "%", limit: 50 };
 
-			var categorySql = "";
-
 			if (query.category) {
 				if (query.category === 0 || query.category > 0) {
 					params.category = query.category;
-					categorySql = " AND \"category\" = ${category}";
 				}
 			}
 
-			var sql = [
-				"SELECT \"transactionId\", \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\"",
-				"FROM dapps WHERE to_tsvector(\"name\" || ' ' || \"description\" || ' ' || \"tags\") @@ to_tsquery(${q})",
-				categorySql + "LIMIT ${limit}"
-			];
-
-			library.db.query(sql.join(" "), params).then(function (rows) {
+			library.db.query(sql.search(params), params).then(function (rows) {
 				if (rows.length == 0) {
 					return res.json({success: true, dapps: rows});
 				}
@@ -1032,14 +1023,16 @@ private.attachApi = function () {
 								error: "Failed to obtain installed dapps ids"
 							});
 						}
-							var dapps = [];
-							rows.forEach(function (dapp) {
-								if (installed.indexOf(dapp.transactionId) >= 0) {
-									dapps.push(dapp);
-								}
-							});
 
-							return res.json({success: true, dapps: dapps});
+						var dapps = [];
+
+						rows.forEach(function (dapp) {
+							if (installed.indexOf(dapp.transactionId) >= 0) {
+								dapps.push(dapp);
+							}
+						});
+
+						return res.json({success: true, dapps: dapps});
 					});
 				} else {
 					private.getInstalledIds(function (err, installed) {
@@ -1308,7 +1301,7 @@ private.attachApi = function () {
 	});
 
 	router.get("/categories", function (req, res, next) {
-		return res.json({success: true, categories: dappCategory});
+		return res.json({success: true, categories: dappCategories});
 	})
 
 	router.post("/stop", function (req, res, next) {
@@ -1372,7 +1365,7 @@ private.attachApi = function () {
 
 // Private methods
 private.get = function (id, cb) {
-	library.db.query("SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\" FROM dapps WHERE \"transactionId\" = ${id}", { id: id }).then(function (rows) {
+	library.db.query(sql.get, { id: id }).then(function (rows) {
 		if (rows.length == 0) {
 			return setImmediate(cb, "Dapp not found");
 		} else {
@@ -1384,16 +1377,7 @@ private.get = function (id, cb) {
 }
 
 private.getByIds = function (ids, cb) {
-	for (var i = 0; i < ids.length; i++) {
-		ids[i] = "'" + ids[i] + "'";
-	}
-
-	var sql = [
-		"SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\"",
-		"FROM dapps WHERE \"transactionId\" IN (" + ids.join(",") + ");"
-	];
-
-	library.db.query(sql.join(" ")).then(function (rows) {
+	library.db.query(sql.getByIds, [ids]).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		return setImmediate(cb, "DApp#getByIds error");
@@ -1401,30 +1385,32 @@ private.getByIds = function (ids, cb) {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = ["type", "name", "category", "link"];
+	var sortFields = sql.sortFields;
 	var params = {}, fields = [];
 
 	if (filter.type >= 0) {
-		fields.push("\"type\" = ${type}");
+		fields.push('"type" = ${type}');
 		params.type = filter.type;
 	}
 
 	if (filter.name) {
-		fields.push("\"name\" = ${name}");
+		fields.push('"name" = ${name}');
 		params.name = filter.name;
 	}
+
 	if (filter.category) {
-		var category = dappCategory[filter.category];
+		var category = dappCategories[filter.category];
 
 		if (category !== null && category !== undefined) {
-			fields.push("\"category\" = ${category}");
+			fields.push('"category" = ${category}');
 			params.category = category;
 		} else {
 			return setImmediate(cb, "Invalid dapp category");
 		}
 	}
+
 	if (filter.link) {
-		fields.push("\"link\" = ${link}");
+		fields.push('"link" = ${link}');
 		params.link = filter.link;
 	}
 
@@ -1447,6 +1433,7 @@ private.list = function (filter, cb) {
 	if (filter.orderBy) {
 		var sort = filter.orderBy.split(":");
 		var sortBy = sort[0].replace(/[^\w_]/gi, "");
+
 		if (sort.length == 2) {
 			var sortMethod = sort[1] == "desc" ? "DESC" : "ASC"
 		} else {
@@ -1460,18 +1447,16 @@ private.list = function (filter, cb) {
 		}
 	}
 
-	// Need to fix "or" or "and" in query
-	library.db.query("SELECT \"name\", \"description\", \"tags\", \"link\", \"type\", \"category\", \"icon\", \"transactionId\" " +
-		"FROM dapps " +
-		(fields.length ? "WHERE " + fields.join(" or ") + " " : "") +
-		(filter.orderBy ? "ORDER BY " + sortBy + " " + sortMethod : "") + " " +
-		(filter.limit ? "LIMIT ${limit}" : "") + " " +
-		(filter.offset ? "OFFSET ${offset}" : ""), params).then(function (rows) {
+	library.db.query(sql.list({
+		filter: filter,
+		fields: fields,
+		sortBy: sortBy,
+		sortMethod: sortMethod
+	}), params).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
 		return cb(err);
 	});
-
 }
 
 private.createBasePathes = function (cb) {
@@ -1887,7 +1872,6 @@ private.launchApp = function (dapp, params, cb) {
 		return setImmediate(cb, "Failed to open config.json file for: " + dapp.transactionId);
 	}
 
-	// dappConfig.db
 	async.eachSeries(dappConfig.peers, function (peer, cb) {
 		modules.peer.addDapp({
 			ip: peer.ip,
@@ -1898,6 +1882,7 @@ private.launchApp = function (dapp, params, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
+
 		try {
 			var blockchain = require(path.join(dappPath, "blockchain.json"));
 		} catch (e) {
@@ -2063,7 +2048,7 @@ private.addTransactions = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.IN_TRANSFER,
+								type: transactionTypes.IN_TRANSFER,
 								amount: body.amount,
 								sender: account,
 								keypair: keypair,
@@ -2083,6 +2068,7 @@ private.addTransactions = function (req, cb) {
 					if (err) {
 						return cb(err);
 					}
+
 					if (!account || !account.publicKey) {
 						return cb("Account not found");
 					}
@@ -2100,7 +2086,7 @@ private.addTransactions = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.IN_TRANSFER,
+							type: transactionTypes.IN_TRANSFER,
 							amount: body.amount,
 							sender: account,
 							keypair: keypair,
@@ -2202,9 +2188,7 @@ DApps.prototype.onNewBlock = function (block, broadcast) {
 
 // Shared
 shared.getGenesis = function (req, cb) {
-	library.db.query("SELECT b.\"height\" AS \"height\", b.\"id\" AS \"id\", t.\"senderId\" AS \"authorId\" FROM trs t " +
-		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" " +
-		"WHERE t.\"id\" = ${id}", { id: req.dappid }).then(function (rows) {
+	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
 		if (rows.length == 0) {
 			return cb("Dapp genesis not found");
 		} else {
@@ -2228,11 +2212,9 @@ shared.setReady = function (req, cb) {
 }
 
 shared.getCommonBlock = function (req, cb) {
-	library.db.query("SELECT b.\"height\" AS \"height\", t.\"id\" AS \"id\", t.\"senderId\" AS \"senderId\", t.\"amount\" AS \"amount\" FROM trs t " +
-		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"id\" = ${id} AND t.\"type\" = ${type}" +
-		"INNER JOIN intransfer dt ON dt.\"transactionId\" = t.\"id\" AND dt.\"dappid\" = ${dappid}", {
+	library.db.query(sql.getCommonBlock, {
 		dappid: req.dappid,
-		type: TransactionTypes.IN_TRANSFER
+		type: transactionTypes.IN_TRANSFER
 	}).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
@@ -2335,7 +2317,7 @@ shared.sendWithdrawal = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.OUT_TRANSFER,
+								type: transactionTypes.OUT_TRANSFER,
 								amount: body.amount,
 								sender: account,
 								recipientId: body.recipientId,
@@ -2348,6 +2330,7 @@ shared.sendWithdrawal = function (req, cb) {
 						} catch (e) {
 							return cb(e.toString());
 						}
+
 						modules.transactions.receiveTransactions([transaction], cb);
 					});
 				});
@@ -2356,6 +2339,7 @@ shared.sendWithdrawal = function (req, cb) {
 					if (err) {
 						return cb(err);
 					}
+
 					if (!account || !account.publicKey) {
 						return cb("Account not found");
 					}
@@ -2373,7 +2357,7 @@ shared.sendWithdrawal = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.OUT_TRANSFER,
+							type: transactionTypes.OUT_TRANSFER,
 							amount: body.amount,
 							sender: account,
 							recipientId: body.recipientId,
@@ -2400,12 +2384,9 @@ shared.sendWithdrawal = function (req, cb) {
 }
 
 shared.getWithdrawalLastTransaction = function (req, cb) {
-	library.db.query("SELECT ot.\"outTransactionId\" FROM trs t " +
-		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"type\" = ${type} " +
-		"INNER JOIN outtransfer ot ON ot.\"transactionId\" = t.\"id\" AND ot.\"dappId\" = ${dappid} " +
-		"ORDER BY b.\"height\" DESC LIMIT 1", {
+	library.db.query(sql.getWithdrawalLastTransaction, {
 		dappid: req.dappid,
-		type: TransactionTypes.OUT_TRANSFER
+		type: transactionTypes.OUT_TRANSFER
 	}).then(function (rows) {
 		return cb(null, rows[0]);
 	}).catch(function (err) {
@@ -2414,13 +2395,11 @@ shared.getWithdrawalLastTransaction = function (req, cb) {
 }
 
 shared.getBalanceTransactions = function (req, cb) {
-	library.db.query("SELECT t.\"id\" AS \"id\", ENCODE(t.\"senderPublicKey\", 'hex') AS \"senderPublicKey\", t.\"amount\" AS \"amount\" FROM trs t " +
-		"INNER JOIN blocks b ON t.\"blockId\" = b.\"id\" AND t.\"type\" = ${type} " +
-		"INNER JOIN intransfer dt ON dt.\"transactionId\" = t.\"id\" AND dt.\"dappId\" = ${dappid} " +
-		(req.body.lastTransactionId ? "WHERE b.\"height\" > (SELECT \"height\" FROM blocks ib INNER JOIN trs it ON ib.\"id\" = it.\"blockId\" AND it.\"id\" = ${lastId}) " : "") +
-		"ORDER BY b.\"height\"", {
+	library.db.query(sql.getBalanceTransactions({
+		lastId: req.body.lastTransactionId
+	}), {
 		dappid: req.dappid,
-		type: TransactionTypes.IN_TRANSFER,
+		type: transactionTypes.IN_TRANSFER,
 		lastId: req.body.lastTransactionId
 	}).then(function (rows) {
 		return cb(null, rows);

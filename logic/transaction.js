@@ -6,6 +6,7 @@ var constants = require("../helpers/constants.js");
 var ByteBuffer = require("bytebuffer");
 var bignum = require("../helpers/bignum.js");
 var extend = require("util-extend");
+var sql = require("../sql/transactions.js");
 
 // Constructor
 function Transaction(scope, cb) {
@@ -233,7 +234,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 			return setImmediate(cb, err);
 		}
 
-		this.scope.db.one("SELECT COUNT(\"id\")::int AS \"count\" FROM trs WHERE \"id\" = ${id}", { id: trs.id }).then(function (row) {
+		this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
 			if (row.count > 0) {
 				return cb("Ignoring already confirmed transaction");
 			}

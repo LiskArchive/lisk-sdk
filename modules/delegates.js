@@ -10,9 +10,10 @@ var schedule = require("node-schedule");
 var util = require("util");
 var blockReward = require("../helpers/blockReward.js");
 var constants = require("../helpers/constants.js");
-var TransactionTypes = require("../helpers/transaction-types.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
 var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
 var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/delegates.js");
 var _ = require("underscore");
 
 // Private fields
@@ -273,7 +274,7 @@ function Delegates(cb, scope) {
 	self.__private = private;
 	private.attachApi();
 
-	library.logic.transaction.attachAssetType(TransactionTypes.DELEGATE, new Delegate());
+	library.logic.transaction.attachAssetType(transactionTypes.DELEGATE, new Delegate());
 
 	setImmediate(cb, null, self);
 }
@@ -782,8 +783,7 @@ Delegates.prototype.fork = function (block, cause) {
 		block: { id: block.id, timestamp: block.timestamp, height: block.height, previousBlock: block.previousBlock },
 		cause: cause
 	});
-	library.db.none("INSERT INTO forks_stat (\"delegatePublicKey\", \"blockTimestamp\", \"blockId\", \"blockHeight\", \"previousBlock\", \"cause\") " +
-		"VALUES (${delegatePublicKey}, ${blockTimestamp}, ${blockId}, ${blockHeight}, ${previousBlock}, ${cause});", {
+	library.db.none(sql.insertFork, {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
@@ -908,7 +908,7 @@ shared.getVoters = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		library.db.one("SELECT ARRAY_AGG(\"accountId\") AS \"accountIds\" FROM mem_accounts2delegates WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (row) {
+		library.db.one(sql.getVoters, { publicKey: query.publicKey }).then(function (row) {
 			var addresses = (row.accountIds) ? row.accountIds : [];
 
 			modules.accounts.getAccounts({
@@ -1109,7 +1109,7 @@ shared.addDelegate = function (req, cb) {
 
 						try {
 							var transaction = library.logic.transaction.create({
-								type: TransactionTypes.DELEGATE,
+								type: transactionTypes.DELEGATE,
 								username: body.username,
 								sender: account,
 								keypair: keypair,
@@ -1145,7 +1145,7 @@ shared.addDelegate = function (req, cb) {
 
 					try {
 						var transaction = library.logic.transaction.create({
-							type: TransactionTypes.DELEGATE,
+							type: transactionTypes.DELEGATE,
 							username: body.username,
 							sender: account,
 							keypair: keypair,

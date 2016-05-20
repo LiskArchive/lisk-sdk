@@ -9,9 +9,10 @@ var extend = require('extend');
 var Router = require('../helpers/router.js');
 var async = require('async');
 var RequestSanitizer = require('../helpers/request-sanitizer.js');
-var TransactionTypes = require('../helpers/transaction-types.js');
+var transactionTypes = require('../helpers/transactionTypes.js');
 var Diff = require('../helpers/diff.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var sql = require('../sql/multisignatures.js');
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -315,7 +316,7 @@ function Multisignatures(cb, scope) {
 	self.__private = private;
 	private.attachApi();
 
-	library.logic.transaction.attachAssetType(TransactionTypes.MULTI, new Multisignature());
+	library.logic.transaction.attachAssetType(transactionTypes.MULTI, new Multisignature());
 
 	setImmediate(cb, null, self);
 }
@@ -375,7 +376,7 @@ shared.getAccounts = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		library.db.one("SELECT STRING_AGG(\"accountId\", ',') AS \"accountId\" FROM mem_accounts2multisignatures WHERE \"dependentId\" = ${publicKey}", { publicKey: query.publicKey }).then(function (row) {
+		library.db.one(sql.getAccounts, { publicKey: query.publicKey }).then(function (row) {
 			var addresses = (row.accountId) ? row.accountId.split(',') : [];
 
 			modules.accounts.getAccounts({
@@ -528,7 +529,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 		return cb("Transaction not found");
 	}
 
-	if (transaction.type == TransactionTypes.MULTI) {
+	if (transaction.type == transactionTypes.MULTI) {
 		transaction.signatures = transaction.signatures || [];
 
 		if (transaction.asset.multisignature.signatures || transaction.signatures.indexOf(tx.signature) != -1) {
@@ -669,7 +670,7 @@ shared.sign = function (req, cb) {
 			});
 		}
 
-		if (transaction.type == TransactionTypes.MULTI) {
+		if (transaction.type == transactionTypes.MULTI) {
 			if (transaction.asset.multisignature.keysgroup.indexOf("+" + keypair.publicKey.toString('hex')) == -1 || (transaction.signatures && transaction.signatures.indexOf(sign.toString('hex')) != -1)) {
 				return cb("Permission to sign transaction denied");
 			}
@@ -781,7 +782,7 @@ shared.addMultisignature = function (req, cb) {
 
 				try {
 					var transaction = library.logic.transaction.create({
-						type: TransactionTypes.MULTI,
+						type: transactionTypes.MULTI,
 						sender: account,
 						keypair: keypair,
 						secondKeypair: secondKeypair,

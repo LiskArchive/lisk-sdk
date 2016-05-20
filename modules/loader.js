@@ -4,6 +4,7 @@ var util = require("util");
 var ip = require("ip");
 var bignum = require("../helpers/bignum.js");
 var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/loader.js");
 
 require("colors");
 
@@ -422,9 +423,9 @@ private.loadBlockChain = function () {
 
 		function checkMemTables (t) {
 			var promises = [
-				t.one("SELECT COUNT(\"rowId\")::int FROM blocks"),
-				t.one("SELECT COUNT(*)::int FROM mem_accounts WHERE \"blockId\" = (SELECT \"id\" FROM \"blocks\" WHERE \"numberOfTransactions\" > 0 ORDER BY \"height\" DESC LIMIT 1)"),
-				t.query("SELECT \"round\" FROM mem_round GROUP BY \"round\"")
+				t.one(sql.countBlocks),
+				t.one(sql.countMemAccounts),
+				t.query(sql.getMemRounds)
 			];
 
 			return t.batch(promises);
@@ -459,9 +460,9 @@ private.loadBlockChain = function () {
 
 			function updateMemAccounts (t) {
 				var promises = [
-					t.none("UPDATE mem_accounts SET \"u_isDelegate\" = \"isDelegate\", \"u_secondSignature\" = \"secondSignature\", \"u_username\" = \"username\", \"u_balance\" = \"balance\", \"u_delegates\" = \"delegates\", \"u_multisignatures\" = \"multisignatures\""),
-					t.query("SELECT a.\"blockId\", b.\"id\" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b.\"id\" = a.\"blockId\" WHERE b.\"id\" IS NULL"),
-					t.query("SELECT ENCODE(\"publicKey\", 'hex') FROM mem_accounts WHERE \"isDelegate\" = 1")
+					t.none(sql.updateMemAccounts),
+					t.query(sql.getOrphanedMemAccounts),
+					t.query(sql.getDelegates)
 				];
 
 				return t.batch(promises);

@@ -9,6 +9,7 @@ var extend = require("extend");
 var crypto = require("crypto");
 var bignum = require("../helpers/bignum.js");
 var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/transport.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
@@ -126,7 +127,7 @@ private.attachApi = function () {
 			});
 
 			var escapedIds = ids.map(function (id) {
-				return "'" + id.replace(/"/g, '') + "'";
+				return id.replace(/"/g, '');
 			});
 
 			if (!escapedIds.length) {
@@ -151,10 +152,7 @@ private.attachApi = function () {
 				return res.json({success: false, error: "Invalid block id sequence"});
 			}
 
-			var sql = "SELECT MAX(\"height\") AS \"height\", \"id\", \"previousBlock\", \"timestamp\" FROM blocks " +
-			          "WHERE \"id\" IN (" + escapedIds.join(",") + ") GROUP BY \"id\" ORDER BY \"height\" DESC";
-
-			library.db.query(sql).then(function (rows) {
+			library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
 				var commonBlock = rows.length ? rows[0] : null;
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {
