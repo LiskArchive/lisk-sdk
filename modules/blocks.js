@@ -97,6 +97,7 @@ private.attachApi = function () {
 		"get /": "getBlocks",
 		"get /getHeight": "getHeight",
 		"get /getFee": "getFee",
+		"get /getFees": "getFees",
 		"get /getMilestone": "getMilestone",
 		"get /getReward": "getReward",
 		"get /getSupply": "getSupply",
@@ -1349,6 +1350,14 @@ shared.getFee = function (req, cb) {
 	}
 	var query = req.body;
 	cb(null, {fee: library.logic.block.calculateFee()});
+}
+
+shared.getFees = function (req, cb) {
+	if (!private.loaded) {
+		cb("Blockchain is loading")
+	}
+	var query = req.body;
+	cb(null, {fees: constants.fees});
 }
 
 shared.getMilestone = function (req, cb) {
