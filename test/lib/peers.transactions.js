@@ -9,6 +9,7 @@ describe("POST /peer/transactions", function () {
 
     it("Using valid transaction with wrong nethash in headers. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction("1L", 1, node.Gaccount.password);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
             .set("version",node.version)
@@ -29,6 +30,7 @@ describe("POST /peer/transactions", function () {
 
     it("Using same valid transaction with correct nethash in headers. Should be ok", function (done) {
         var transaction = node.lisk.transaction.createTransaction("1L", 1, node.Gaccount.password);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
             .set("version",node.version)
@@ -231,5 +233,4 @@ describe("POST /peer/transactions", function () {
                 done();
             });
     });
-
 });

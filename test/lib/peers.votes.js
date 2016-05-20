@@ -3,7 +3,6 @@
 var node = require("./../variables.js"),
     crypto = require("crypto");
 
-var test = 0;
 var account = node.randomAccount();
 var delegate1Voted = false;
 var delegate2Voted = false;
@@ -79,7 +78,6 @@ describe("POST /peer/transactions", function () {
                 });
     });
 
-    test = test + 1;
     it("Voting twice for a delegate. Should fail", function (done) {
         node.onNewBlock(function (err) {
             var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1]);
@@ -101,7 +99,6 @@ describe("POST /peer/transactions", function () {
         });
     });
 
-    test = test + 1;
     it("Removing votes from a delegate. Should be ok", function (done) {
         var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-"+delegate1]);
         node.peer.post("/transactions")
@@ -121,7 +118,6 @@ describe("POST /peer/transactions", function () {
             });
     });
 
-    test = test + 1;
     it("Removing votes from a delegate and then voting again. Should fail", function (done) {
         node.onNewBlock(function (err) {
             var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-"+delegate2]);
@@ -174,8 +170,7 @@ describe("POST /peer/transactions", function () {
                 if (res.body.success == true && res.body.account != null){
                     account.address = res.body.account.address;
                     account.publicKey = res.body.account.publicKey;
-                }
-                else {
+                } else {
                     // console.log("Open account failed or account object is null");
                     node.expect(true).to.equal(false);
                     done();
@@ -216,7 +211,6 @@ describe("POST /peer/transactions", function () {
             });
     });
 
-    test = test + 1;
     it("Voting for a delegate. Should be ok", function (done) {
         var transaction = node.lisk.vote.createVote(account.password, ["+" + account.publicKey]);
         node.onNewBlock(function (err) {
@@ -237,5 +231,4 @@ describe("POST /peer/transactions", function () {
                 });
         });
     });
-
 });

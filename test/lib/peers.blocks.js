@@ -25,7 +25,6 @@ describe("POST /peer/blocks", function () {
                 done();
             });
     });
-
 });
 
 describe("GET /peer/blocks", function () {
@@ -44,5 +43,4 @@ describe("GET /peer/blocks", function () {
                 done();
             });
     });
-
 });

@@ -212,5 +212,4 @@ describe("POST /peer/transactions", function () {
                 });
 
     });
-
 });

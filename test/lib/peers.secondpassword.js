@@ -84,7 +84,6 @@ describe("POST /peer/transactions", function () {
         });
 
     });
-
 });
 
 describe("POST /peer/transactions", function () {
@@ -170,5 +169,4 @@ describe("POST /peer/transactions", function () {
         });
 
     });
-
 });
