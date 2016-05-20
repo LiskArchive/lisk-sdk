@@ -210,7 +210,7 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 });
         });
 
-        it(test + ". Get blockchin fees. Should be ok", function (done) {
+        it(test + ". Get blockchain fees. Should be ok", function (done) {
             node.api.get("/blocks/getFees")
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
@@ -228,6 +228,25 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                         node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
                     } else {
                         console.log("Request failed or fees is null");
+                    }
+                    done();
+                });
+        });
+
+
+        it(test + ". Get blockchain nethash. Should be ok", function (done) {
+            node.api.get("/blocks/getNethash")
+                .set("Accept", "application/json")
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    //console.log(JSON.stringify(res.body));
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    if (res.body.success == true && res.body.nethash != null) {
+                        node.expect(res.body).to.have.property("nethash");
+                        node.expect(res.body.nethash).to.equal(node.config.nethash);
+                    } else {
+                        console.log("Request failed or nethash is null");
                     }
                     done();
                 });
