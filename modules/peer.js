@@ -424,6 +424,7 @@ Peer.prototype.onPeerReady = function () {
 
 shared.getPeers = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: "object",
 		properties: {
@@ -477,6 +478,7 @@ shared.getPeers = function (req, cb) {
 
 shared.getPeer = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: "object",
 		properties: {

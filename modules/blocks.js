@@ -419,8 +419,10 @@ private.getIdSequence = function (height, cb) {
 private.readDbRows = function (rows) {
 	var blocks = {};
 	var order = [];
+
 	for (var i = 0, length = rows.length; i < length; i++) {
 		var __block = library.logic.block.dbRead(rows[i]);
+
 		if (__block) {
 			if (!blocks[__block.id]) {
 				if (__block.id == genesisblock.block.id) {
@@ -433,6 +435,7 @@ private.readDbRows = function (rows) {
 
 			var __transaction = library.logic.transaction.dbRead(rows[i]);
 			blocks[__block.id].transactions = blocks[__block.id].transactions || {};
+
 			if (__transaction) {
 				if (!blocks[__block.id].transactions[__transaction.id]) {
 					blocks[__block.id].transactions[__transaction.id] = __transaction;
@@ -761,7 +764,9 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 	if (!private.loaded) {
 		return setImmediate(cb, "Blockchain is loading");
 	}
+
 	private.isActive = true;
+
 	library.balancesSequence.add(function (cb) {
 		try {
 			block.id = library.logic.block.getId(block);
@@ -769,6 +774,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 			private.isActive = false;
 			return setImmediate(cb, e.toString());
 		}
+
 		block.height = private.lastBlock.height + 1;
 
 		modules.transactions.undoUnconfirmedList(function (err, unconfirmedTransactions) {
@@ -970,7 +976,6 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 									private.lastBlock = block;
 
 									modules.round.tick(block, done);
-									// setImmediate(done);
 								});
 							});
 						}
