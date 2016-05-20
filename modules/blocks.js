@@ -378,7 +378,7 @@ private.popLastBlock = function (oldLastBlock, cb) {
 }
 
 private.getIdSequence = function (height, cb) {
-		library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates, activeDelegates:constants.activeDelegates }).then(function (rows) {
+	library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates, activeDelegates: constants.activeDelegates }).then(function (rows) {
 		if (rows.length == 0) {
 			return cb("Failed to get id sequence before: " + height);
 		}
