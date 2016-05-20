@@ -210,6 +210,29 @@ describe("Miscellaneous tests (peers, blocks, etc)", function () {
                 });
         });
 
+        it(test + ". Get blockchin fees. Should be ok", function (done) {
+            node.api.get("/blocks/getFees")
+                .set("Accept", "application/json")
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    //console.log(JSON.stringify(res.body));
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    if (res.body.success == true && res.body.fees != null) {
+                        node.expect(res.body).to.have.property("fees");
+                        node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
+                        node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
+                        node.expect(res.body.fees.dapp).to.equal(node.Fees.dappAddFee);
+                        node.expect(res.body.fees.secondsignature).to.equal(node.Fees.secondPasswordFee);
+                        node.expect(res.body.fees.delegate).to.equal(node.Fees.delegateRegistrationFee);
+                        node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
+                    } else {
+                        console.log("Request failed or fees is null");
+                    }
+                    done();
+                });
+        });
+
         test = test + 1;
         it(test + ". Get blocks list by parameters: height. Should be ok", function (done) {
             var height = block.blockHeight, limit = 100, offset = 0;
