@@ -97,7 +97,9 @@ private.attachApi = function () {
 		"get /get": "getBlock",
 		"get /": "getBlocks",
 		"get /getHeight": "getHeight",
+		"get /getNethash": "getNethash",
 		"get /getFee": "getFee",
+		"get /getFees": "getFees",
 		"get /getMilestone": "getMilestone",
 		"get /getReward": "getReward",
 		"get /getSupply": "getSupply",
@@ -376,7 +378,7 @@ private.popLastBlock = function (oldLastBlock, cb) {
 }
 
 private.getIdSequence = function (height, cb) {
-	library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates }).then(function (rows) {
+		library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates, activeDelegates:constants.activeDelegates }).then(function (rows) {
 		if (rows.length == 0) {
 			return cb("Failed to get id sequence before: " + height);
 		}
@@ -1273,6 +1275,22 @@ shared.getFee = function (req, cb) {
 	}
 	var query = req.body;
 	cb(null, {fee: library.logic.block.calculateFee()});
+}
+
+shared.getFees = function (req, cb) {
+	if (!private.loaded) {
+		cb("Blockchain is loading")
+	}
+	var query = req.body;
+	cb(null, {fees: constants.fees});
+}
+
+shared.getNethash = function (req, cb) {
+	if (!private.loaded) {
+		cb("Blockchain is loading")
+	}
+	var query = req.body;
+	cb(null, {nethash: library.config.nethash});
 }
 
 shared.getMilestone = function (req, cb) {

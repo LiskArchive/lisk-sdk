@@ -116,7 +116,7 @@ function Vote() {
 				votes: {
 					type: "array",
 					minLength: 1,
-					maxLength: 101,
+					maxLength: constants.activeDelegates,
 					uniqueItems: true
 				}
 			},

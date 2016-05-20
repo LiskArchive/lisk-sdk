@@ -610,13 +610,13 @@ Delegates.prototype.getDelegates = function (query, cb) {
 			return cb(err);
 		}
 
-		var limit = query.limit || 101,
+		var limit = query.limit || constants.activeDelegates,
 		    offset = query.offset || 0,
 		    orderField = query.orderBy,
 		    active = query.active;
 
 		orderField = orderField ? orderField.split(':') : null;
-		limit = limit > 101 ? 101 : limit;
+		limit = limit > constants.activeDelegates ? constants.activeDelegates : limit;
 
 		var orderBy = orderField ? orderField[0] : null;
 		var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
@@ -711,10 +711,10 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 
 				var total_votes = (existing_votes + additions) - removals;
 
-				if (total_votes > 101) {
-					var exceeded = total_votes - 101;
+				if (total_votes > constants.activeDelegates) {
+					var exceeded = total_votes - constants.activeDelegates;
 
-					return cb("Maximum number of 101 votes exceeded (" + exceeded + " too many).");
+					return cb("Maximum number of " + constants.activeDelegates + " votes exceeded (" + exceeded + " too many).");
 				} else {
 					return cb();
 				}
@@ -937,7 +937,7 @@ shared.getDelegates = function (req, cb) {
 			limit: {
 				type: "integer",
 				minimum: 0,
-				maximum: 101
+				maximum: constants.activeDelegates
 			},
 			offset: {
 				type: "integer",

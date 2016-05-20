@@ -311,7 +311,8 @@ Round.prototype.onBind = function (scope) {
 Round.prototype.onBlockchainReady = function () {
 	var round = self.calc(modules.blocks.getLastBlock().height);
 
-	library.db.query(sql.summedRound, { round: round }).then(function (rows) {
+	library.db.query(sql.summedRound, { round: round, activeDelegates:constants.activeDelegates }).then(function (rows) {
+
 		var rewards = [];
 
 		rows[0].rewards.forEach(function (reward) {

@@ -10,6 +10,7 @@ module.exports = {
 		multisignature: 500000000,
 		dapp: 50000000000
 	},
+	activeDelegates: 101,
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
 	fixedPoint : Math.pow(10, 8),
