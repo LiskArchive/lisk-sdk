@@ -89,14 +89,19 @@ Returning:
 }
 ```
 
-
 ### Network identification with Nethash
+
 You need to obtain the nethash in order to be sure you are posting to the right network (testnet, mainnet or others). The nethash is simply the payload hash from the genesisBlock. If no nethash or wrong nethash is provided in the headers, the request will be rejected returning the expected nethash.
+
 ```json
 { "success": false, "message": "Request is made on the wrong network", "expected":"e2f8f69ec6ab4b12550a314bd867c46e64e429961bb427514a3a534c602ff467", "received":"wrong-nethash" }
 ```
 
-The nethash is a public information you should get from https://lisk.io
+The nethash for a given network can be obtained at the following API endpoint:
+
+```
+/api/blocks/getNetHash
+```
 
 You can also get the nethash from a peer this way:
 
@@ -106,7 +111,7 @@ On the client using [jQuery](https://jquery.com/):
 var nethash;
 $.ajax({
   url: 'https://login.lisk.io/peer/transactions',
-  data: JSON.stringify({ }),
+  data: JSON.stringify({}),
   dataType: 'json',
   method: 'POST',
   headers: {
@@ -116,8 +121,8 @@ $.ajax({
     'port': 1,
     'nethash':"wrong-nethash"
   },
-  success: function(data){
-    nethash=data.body.expected;
+  success: function(data) {
+    nethash = data.body.expected;
   }
 });
 ```
@@ -126,7 +131,6 @@ From a server using [Request](https://github.com/request/request):
 
 ```js
 var nethash;
-
 request({
   url: 'https://login.lisk.io/peer/transactions',
   json: { },
@@ -139,7 +143,7 @@ request({
     'nethash': "wrong-nethash"
   }
 }, function(error, response, body) {
-    nethash=body.expected;
+    nethash = body.expected;
   });
 ```
 
