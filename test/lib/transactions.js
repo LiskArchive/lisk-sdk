@@ -489,7 +489,7 @@ describe("PUT /api/transactions", function () {
         }, 1000);
     });
 
-    it("Using postive overflown amount. Should fail", function (done) {
+    it("Using positive overflown amount. Should fail", function (done) {
         this.timeout(5000);
         setTimeout(function(){
             node.api.put("/transactions")
