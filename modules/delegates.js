@@ -1030,7 +1030,7 @@ private.disableForging = function (req, cb) {
 
 }
 
-private.statusForging = function (req, cb) {
+private.forgingStatus = function (req, cb) {
 
 }
 
