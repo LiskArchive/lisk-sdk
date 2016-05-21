@@ -7,7 +7,6 @@ var node = require("./../variables.js");
 var Dapp = {};
 var DappName = "";
 var DappToInstall = {};
-var installedDapp = {};
 var randomLISK = 0;
 var transactionCount = 0;
 var transactionList = [];
@@ -781,7 +780,7 @@ describe("GET /dapps", function () {
 describe("GET /dapps?id=", function () {
 
     it("Using unknown id. Should fail", function (done) {
-        var dappId = "string";
+        var dappId = "UNKNOWN_ID";
 
         node.api.get("/dapps/get?id=" + dappId)
             .expect("Content-Type", /json/)
@@ -877,6 +876,7 @@ describe("POST /dapps/install", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("path");
                 done();
             });
     });
@@ -963,7 +963,7 @@ describe("GET /dapps/search?q=", function () {
         var category = node.randomProperty(node.DappCategory, true);
         var installed = 1;
 
-        node.api.get("/dapps/search?q=" + q + "&installed="+ installed + "&category=" + category)
+        node.api.get("/dapps/search?q=" + q + "&installed="+ installed + "&category=" + node.DappCategory[category])
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
@@ -994,7 +994,7 @@ describe("GET /dapps/search?q=", function () {
 describe("POST /dapps/launch", function () {
 
     it("Using no id. Should fail", function (done) {
-        var dappId = installedDapp.transactionId;
+        var dappId = DappToInstall.transactionId;
 
         node.api.post("/dapps/launch")
             .set("Accept", "application/json")
@@ -1012,7 +1012,7 @@ describe("POST /dapps/launch", function () {
     });
 
     it("Using unknown id. Should fail", function (done) {
-        var dappId = "HELLOW";
+        var dappId = "UNKNOWN_ID";
 
         node.api.post("/dapps/launch")
             .set("Accept", "application/json")
@@ -1074,12 +1074,9 @@ describe("POST /dapps/launch", function () {
 describe("POST /dapps/stop", function () {
 
     it("Using no id. Should fail", function (done) {
-        var dappId = installedDapp.transactionId;
-
         node.api.post("/dapps/stop")
             .set("Accept", "application/json")
-            .send({
-            })
+            .send({})
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
@@ -1091,7 +1088,7 @@ describe("POST /dapps/stop", function () {
     });
 
     it("Using unknown id. Should fail", function (done) {
-        var dappId = "HELLOW";
+        var dappId = "UNKNOWN_ID";
 
         node.api.post("/dapps/stop")
             .set("Accept", "application/json")
@@ -1110,7 +1107,7 @@ describe("POST /dapps/stop", function () {
     });
 
     it("Using valid id. Should be ok", function (done) {
-        var dappId = installedDapp.transactionId;
+        var dappId = DappToInstall.transactionId;
 
         node.api.post("/dapps/stop")
             .set("Accept", "application/json")
@@ -1121,7 +1118,7 @@ describe("POST /dapps/stop", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-                console.log(res.body, dappId);
+                // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 done();
             });
@@ -1166,10 +1163,12 @@ describe("POST /dapps/uninstall", function () {
     });
 
     it("Using unknown id. Should fail", function (done) {
+        var dappId = "UNKNOWN_ID";
+
         node.api.post("/dapps/uninstall")
             .set("Accept", "application/json")
             .send({
-                id: "UNKNOWN_ID",
+                id: dappId,
                 master: node.config.dapp.masterpassword
             })
             .expect("Content-Type", /json/)
@@ -1183,7 +1182,7 @@ describe("POST /dapps/uninstall", function () {
     });
 
     it("Using valid id. Should be ok", function (done) {
-        var dappId = installedDapp.transactionId;
+        var dappId = DappToInstall.transactionId;
 
         node.api.post("/dapps/uninstall")
             .set("Accept", "application/json")
