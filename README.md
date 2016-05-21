@@ -117,9 +117,9 @@ $.ajax({
   headers: {
     'Content-Type': 'application/json',
     'os': 'linux3.2.0-4-amd64',
-    'version': '0.1.1',
+    'version': '0.3.0',
     'port': 1,
-    'nethash':"wrong-nethash"
+    'nethash': "wrong-nethash"
   },
   success: function(data) {
     nethash = data.body.expected;
@@ -138,7 +138,7 @@ request({
   headers: {
     'Content-Type': 'application/json',
     'os': 'linux3.2.0-4-amd64',
-    'version': '0.1.1',
+    'version': '0.3.0',
     'port': 1,
     'nethash': "wrong-nethash"
   }
@@ -181,7 +181,7 @@ $.ajax({
   headers: {
     'Content-Type': 'application/json',
     'os': 'linux3.2.0-4-amd64',
-    'version': '0.1.1',
+    'version': '0.3.0',
     'port': 1,
     'nethash':nethash
   },
@@ -208,7 +208,7 @@ request({
   headers: {
     'Content-Type': 'application/json',
     'os': 'linux3.2.0-4-amd64',
-    'version': '0.1.1',
+    'version': '0.3.0',
     'port': 1,
     'nethash': nethash
   }
