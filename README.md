@@ -220,7 +220,7 @@ request({
 Upon successfully accepting a transaction, the receiving node will respond with:
 
 ```json
-{ "success": true }
+{ "success": true, "result": "5318121831703437738" }
 ```
 
 If the transaction is deemed invalid, or an error is encountered, the receiving node will respond with:
