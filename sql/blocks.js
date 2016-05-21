@@ -60,7 +60,7 @@ const BlocksSql = {
       (params.id ? 'b_id" = ${id}' : ''),
       (params.id && params.lastId ? ' AND ' : ''),
       (params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : ''),
-      limitPart + ' ORDER BY "b_height", "t_rowId"'
+      (limitPart ? limitPart + ' ORDER BY "b_height", "t_rowId"' : '')
     ].filter(Boolean).join(' ');
   },
 
