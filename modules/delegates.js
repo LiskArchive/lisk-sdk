@@ -506,8 +506,10 @@ private.loop = function (cb) {
 		return setImmediate(cb);
 	}
 
+	// When client is not loaded, is syncing or round is ticking
+	// Do not try to forge new blocks as client is not ready
 	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded() || modules.round.ticking()) {
-		library.logger.debug('Loop:', 'node not ready');
+		library.logger.debug('Loop:', 'client not ready');
 		return setImmediate(cb);
 	}
 

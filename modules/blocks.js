@@ -1131,6 +1131,8 @@ Blocks.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Blocks.prototype.onReceiveBlock = function (block) {
+	// When client is not loaded, is syncing or round is ticking
+	// Do not receive new blocks as client is not ready to receive them
 	if (!private.loaded || modules.loader.syncing() || modules.round.ticking()) {
 		return;
 	}
