@@ -64,6 +64,7 @@ describe("POST /peer/transactions", function () {
         it("When account has no funds. Should fail", function (done) {
             var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
             transaction.fee = node.Fees.delegateRegistrationFee;
+
             node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
@@ -84,6 +85,7 @@ describe("POST /peer/transactions", function () {
         it("When account has funds. Username is uppercase. Should fail", function (done) {
             account.username = node.randomDelegateName().toUpperCase();
             var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+
             node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
@@ -103,6 +105,7 @@ describe("POST /peer/transactions", function () {
 
         it("When account has funds. Username is uppercase, Lowercase username already registered. Should fail", function (done) {
             var transaction = node.lisk.delegate.createDelegate(account2.password, account.username.toUpperCase());
+
             node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
@@ -123,6 +126,7 @@ describe("POST /peer/transactions", function () {
         it("When account has funds. Username is lowercase. Should be ok", function (done) {
             account.username = node.randomDelegateName().toLowerCase();
             var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+
             node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
@@ -173,6 +177,7 @@ describe("POST /peer/transactions", function () {
                                 account2.username = node.randomDelegateName().toLowerCase();
                                 var transaction = node.lisk.delegate.createDelegate(account2.password, account2.username);
                                 // console.log(transaction);
+
                                 node.peer.post("/transactions")
                                     .set("Accept", "application/json")
                                     .set("version", node.version)

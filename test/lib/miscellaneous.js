@@ -14,6 +14,7 @@ var block = {
 var testBlocksUnder101 = 0;
 
 describe("POST /accounts/open", function () {
+
     it("When payload is over 2Mb. Should fail", function (done) {
         var data = "qs";
         for (var i = 0; i < 20; i++) {

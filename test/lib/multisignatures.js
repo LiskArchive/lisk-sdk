@@ -60,6 +60,7 @@ var accountSendTurn = 0;
 function sendLISK (account, i) {
     node.onNewBlock(function (err) {
         var randomLISK = node.randomLISK();
+
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
@@ -211,6 +212,7 @@ describe("PUT /multisignatures", function () {
 
     it("When keysgroup is empty. Should fail", function (done) {
         var emptyKeys = [];
+
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
@@ -493,6 +495,7 @@ describe("PUT /multisignatures", function () {
 
     it("When min is negative. Should fail", function (done) {
         var minimum = -1 * requiredSignatures;
+
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
@@ -513,6 +516,7 @@ describe("PUT /multisignatures", function () {
 
     it("When min is a string. Should fail", function (done) {
         var minimum =  toString(requiredSignatures);
+
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
@@ -533,6 +537,7 @@ describe("PUT /multisignatures", function () {
 
     it("When data is valid. Should be ok", function (done) {
         var life = parseInt(node.randomNumber(1,25));
+
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
@@ -574,6 +579,7 @@ describe("GET /multisignatures/pending", function () {
 
     it("Using invalid public key. Should fail", function (done) {
         var publicKey = 1234;
+
         node.api.get("/multisignatures/pending?publicKey=" + publicKey)
             .set("Accept", "application/json")
             .expect("Content-Type", /json/)
@@ -671,6 +677,7 @@ describe("PUT /multisignatures/sign", function () {
 
     it("Using undefined passphrase. Should fail", function (done) {
         var undefined;
+
         node.api.put("/multisignatures/sign")
             .set("Accept", "application/json")
             .send({
