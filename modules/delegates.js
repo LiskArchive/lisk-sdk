@@ -20,6 +20,7 @@ var _ = require("underscore");
 var modules, library, self, private = {}, shared = {};
 
 private.loaded = false;
+private.forging = false;
 private.blockReward = new blockReward();
 private.keypairs = {};
 
@@ -507,6 +508,11 @@ private.loop = function (cb) {
 		return setImmediate(cb);
 	}
 
+	if (!private.forging) {
+		library.logger.debug('Loop:', 'forging disabled');
+		return setImmediate(cb);
+	}
+
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
 	if (!private.loaded || modules.loader.syncing() || !modules.round.loaded() || modules.round.ticking()) {
@@ -531,6 +537,7 @@ private.loop = function (cb) {
 		library.sequence.add(function (cb) {
 			if (slots.getSlotNumber(currentBlockData.time) == slots.getSlotNumber()) {
 				modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
+					modules.blocks.lastReceipt(new Date());
 					library.logger.info('Forged new block id: ' + modules.blocks.getLastBlock().id + ' height: ' + modules.blocks.getLastBlock().height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(currentBlockData.time) + ' reward: ' + modules.blocks.getLastBlock().reward);
 					return cb(err);
 				});
@@ -786,6 +793,9 @@ Delegates.prototype.fork = function (block, cause) {
 		block: { id: block.id, timestamp: block.timestamp, height: block.height, previousBlock: block.previousBlock },
 		cause: cause
 	});
+
+	self.disableForging("fork");
+
 	library.db.none(sql.insertFork, {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
@@ -833,16 +843,54 @@ Delegates.prototype.onBlockchainReady = function () {
 			library.logger.error("Failed to load delegates:", err.toString());
 		}
 
+		private.toggleForgingOnReceipt();
+
 		private.loop(function () {
 			setTimeout(nextLoop, 1000);
 		});
-
 	});
 }
 
 Delegates.prototype.cleanup = function (cb) {
 	private.loaded = false;
 	cb();
+}
+
+Delegates.prototype.enableForging = function () {
+	if (!private.forging) {
+		library.logger.debug("Enabling forging");
+		private.forging = true;
+	}
+
+	return private.forging;
+}
+
+Delegates.prototype.disableForging = function (reason) {
+	if (private.forging) {
+		library.logger.debug("Disabling forging due to:", reason);
+		private.forging = false;
+	}
+
+	return private.forging;
+}
+
+// Private
+private.toggleForgingOnReceipt = function () {
+	var lastReceipt = modules.blocks.lastReceipt();
+
+	if (lastReceipt) {
+		var timeOut = 60;
+		var timeNow = new Date();
+		var seconds = Math.floor((timeNow.getTime() - lastReceipt.getTime()) / 1000);
+
+		library.logger.debug("Last block received: " + seconds + " seconds ago");
+
+		if (seconds > timeOut) {
+			return self.disableForging("timeout");
+		} else {
+			return self.enableForging();
+		}
+	}
 }
 
 // Shared
@@ -1020,18 +1068,6 @@ shared.getForgedByAccount = function (req, cb) {
 			cb(null, {fees: account.fees, rewards: account.rewards, forged: forged});
 		});
 	});
-}
-
-private.enableForging = function (req, cb) {
-
-}
-
-private.disableForging = function (req, cb) {
-
-}
-
-private.forgingStatus = function (req, cb) {
-
 }
 
 shared.addDelegate = function (req, cb) {
