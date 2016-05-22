@@ -807,6 +807,22 @@ describe("GET /accounts/delegates?address=", function () {
     });
 });
 
+describe("GET /delegates/count", function () {
+
+    it("Should be ok", function (done) {
+        node.api.get("/delegates/count")
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("count").to.equal(101);
+                done();
+            });
+    });
+});
+
 describe("GET /delegates/voters", function () {
 
     before(function (done) {

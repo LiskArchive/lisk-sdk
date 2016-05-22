@@ -289,6 +289,7 @@ private.attachApi = function () {
 	});
 
 	router.map(shared, {
+		"get /count": "count",
 		"get /voters": "getVoters",
 		"get /get": "getDelegate",
 		"get /": "getDelegates",
@@ -891,6 +892,15 @@ shared.getDelegate = function (req, cb) {
 				cb("Delegate not found");
 			}
 		});
+	});
+}
+
+shared.count = function (req, cb) {
+	library.db.one(sql.count).then(function (row) {
+		return cb(null, { count: row.count });
+	}).catch(function (err) {
+		library.logger.error(err.toString());
+		return cb("Failed to count delegates");
 	});
 }
 
