@@ -56,11 +56,12 @@ const BlocksSql = {
 
     return [
       'SELECT * FROM full_blocks_list',
+      limitPart,
       (params.id || params.lastId ? 'WHERE' : ''),
       (params.id ? 'b_id" = ${id}' : ''),
       (params.id && params.lastId ? ' AND ' : ''),
       (params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : ''),
-      (limitPart ? limitPart + ' ORDER BY "b_height", "t_rowId"' : '')
+      'ORDER BY "b_height", "t_rowId"'
     ].filter(Boolean).join(' ');
   },
 
