@@ -1,11 +1,11 @@
 module.exports = {
-	Common: 0,
-	Business: 1,
-	Catalogs: 2,
-	Education: 3,
-	Entertainment: 4,
-	Multimedia: 5,
-	Networking: 6,
-	Utilities: 7,
-	Games: 8
+	Education: 0,
+	Entertainment: 1,
+	Finance: 2,
+	Games: 3,
+	Miscellaneous: 4,
+	Networking: 5,
+	Science: 6,
+	Social: 7,
+	Utilities: 8
 }
