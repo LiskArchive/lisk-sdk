@@ -122,8 +122,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     node.expect(res.body).to.have.property("success").to.be.true;
                     if (res.body.success == true && res.body.account != null) {
                         node.expect(res.body.account.balance).to.be.equal(String(node.LISK));
-                    }
-                    else{
+                    } else {
                         // console.log("Failed to open account or account object is null");
                         // console.log("Sent: secret: " + Raccount.password);
                         node.expect("TEST").to.equal("FAILED");
@@ -181,6 +180,7 @@ describe("PUT /accounts/delegates with funds", function () {
 
     it("When upvoting and downvoting within same request. Should fail", function (done) {
         var votedDelegate = "'+" + node.Eaccount.publicKey + "','-" + node.Eaccount.publicKey + "'";
+
         node.onNewBlock(function(err) {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
@@ -191,11 +191,11 @@ describe("PUT /accounts/delegates with funds", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    // console.log(JSON.stringify(res.body));
+                    console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     if (res.body.success == true) {
-                        // console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate) + "]";
+                        console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate) + "]";
                     }
                     done();
                 });
@@ -256,7 +256,6 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("When downvoting. Should be ok", function (done) {
-        // We wait for a new block
         node.onNewBlock(function(err) {
         node.expect(err).to.be.not.ok;
             node.api.put("/accounts/delegates")
@@ -470,8 +469,7 @@ describe("PUT /delegates with funds",function () {
                         if (res.body.success == true && res.body.transactionId != null) {
                             node.expect(res.body.transactionId).to.be.above(1);
                             R2account.amount += node.LISK;
-                        }
-                        else{
+                        } else {
                             // console.log("Transaction failed or transactionId is null");
                             // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + node.LISK + ", recipientId: " + R2account.address);
                             node.expect("TEST").to.equal("FAILED");
@@ -626,8 +624,7 @@ describe("PUT /delegates with funds",function () {
                         node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(Raccount.publicKey);
                         node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
                         node.expect(res.body.transaction.amount).to.equal(0);
-                    }
-                    else {
+                    } else {
                         // console.log("Transaction failed or transaction object is null");
                         // console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
                         node.expect("TEST").to.equal("FAILED");
