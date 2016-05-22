@@ -65,11 +65,11 @@ function OutTransfer() {
 		}
 
 		if (!trs.asset.outTransfer.dappId) {
-			return setImmediate(cb, "Invalid dapp id for out transfer");
+			return setImmediate(cb, "Invalid outTransfer dappId");
 		}
 
 		if (!trs.asset.outTransfer.transactionId) {
-			return setImmediate(cb, "Invalid dapp id for input transfer");
+			return setImmediate(cb, "Invalid outTransfer transactionId");
 		}
 
 		setImmediate(cb, null, trs);
@@ -82,7 +82,7 @@ function OutTransfer() {
 			var count = row.count;
 
 			if (count == 0) {
-				return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
+				return cb("Application not found: " + trs.asset.outTransfer.dappId);
 			}
 
 			if (private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId]) {
@@ -103,7 +103,7 @@ function OutTransfer() {
 				return cb("Transaction is already confirmed: " + trs.asset.outTransfer.transactionId);
 			});
 		}).catch(function (err) {
-			return cb("Dapp not found: " + trs.asset.outTransfer.dappId);
+			return cb("Application not found: " + trs.asset.outTransfer.dappId);
 		});
 	}
 
@@ -186,7 +186,7 @@ function OutTransfer() {
 		});
 
 		if (!report) {
-			throw Error("Unable to verify dapp out transaction, invalid parameters: " + library.scheme.getLastError());
+			throw Error("Unable to verify outTransfer, invalid parameters: " + library.scheme.getLastError());
 		}
 
 		return trs;
@@ -277,12 +277,12 @@ function InTransfer() {
 			var count = row.count;
 
 			if (count == 0) {
-				return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
+				return setImmediate(cb, "Application not found: " + trs.asset.inTransfer.dappId);
 			} else {
 				return setImmediate(cb);
 			}
 		}).catch(function () {
-			return setImmediate(cb, "Dapp not found: " + trs.asset.inTransfer.dappId);
+			return setImmediate(cb, "Application not found: " + trs.asset.inTransfer.dappId);
 		});
 	}
 
@@ -441,7 +441,7 @@ function DApp() {
 		}
 
 		if (trs.asset.dapp.category != 0 && !trs.asset.dapp.category) {
-			return setImmediate(cb, "Invalid dapp category");
+			return setImmediate(cb, "Invalid application category");
 		}
 
 		var foundCategory = false;
@@ -453,7 +453,7 @@ function DApp() {
 		}
 
 		if (!foundCategory) {
-			return setImmediate(cb, "Unknown dapp category");
+			return setImmediate(cb, "Unknown application category");
 		}
 
 		if (trs.asset.dapp.icon) {
@@ -473,31 +473,31 @@ function DApp() {
 		}
 
 		if (trs.asset.dapp.type > 1 || trs.asset.dapp.type < 0) {
-			return setImmediate(cb, "Invalid dapp type");
+			return setImmediate(cb, "Invalid application type");
 		}
 
 		if (!valid_url.isUri(trs.asset.dapp.link)) {
-			return setImmediate(cb, "Invalid dapp link");
+			return setImmediate(cb, "Invalid application link");
 		}
 
 		if (trs.asset.dapp.link.indexOf(".zip") != trs.asset.dapp.link.length - 4) {
-			return setImmediate(cb, "Invalid dapp file type")
+			return setImmediate(cb, "Invalid application file type")
 		}
 
 		if (!trs.asset.dapp.name || trs.asset.dapp.name.trim().length == 0 || trs.asset.dapp.name.trim() != trs.asset.dapp.name) {
-			return setImmediate(cb, "Dapp name must not be blank");
+			return setImmediate(cb, "Application name must not be blank");
 		}
 
 		if (trs.asset.dapp.name.length > 32) {
-			return setImmediate(cb, "Dapp name is too long. Maximum is 32 characters");
+			return setImmediate(cb, "Application name is too long. Maximum is 32 characters");
 		}
 
 		if (trs.asset.dapp.description && trs.asset.dapp.description.length > 160) {
-			return setImmediate(cb, "Dapp description is too long. Maximum is 160 characters");
+			return setImmediate(cb, "Application description is too long. Maximum is 160 characters");
 		}
 
 		if (trs.asset.dapp.tags && trs.asset.dapp.tags.length > 160) {
-			return setImmediate(cb, "Dapp tags is too long. Maximum is 160 characters");
+			return setImmediate(cb, "Application tags is too long. Maximum is 160 characters");
 		}
 
 		if (trs.asset.dapp.tags) {
@@ -568,11 +568,11 @@ function DApp() {
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		if (private.unconfirmedNames[trs.asset.dapp.name]) {
-			return setImmediate(cb, "Dapp name already exists");
+			return setImmediate(cb, "Application name already exists");
 		}
 
 		if (trs.asset.dapp.link && private.unconfirmedLinks[trs.asset.dapp.link]) {
-			return setImmediate(cb, "Dapp link already exists");
+			return setImmediate(cb, "Application link already exists");
 		}
 
 		private.unconfirmedNames[trs.asset.dapp.name] = true;
@@ -587,9 +587,9 @@ function DApp() {
 
 			if (dapp) {
 				if (dapp.name == trs.asset.dapp.name) {
-					return setImmediate(cb, "Dapp name already exists: " + dapp.name);
+					return setImmediate(cb, "Application name already exists: " + dapp.name);
 				} else if (dapp.link == trs.asset.dapp.link) {
-					return setImmediate(cb, "Dapp link already exists: " + dapp.link);
+					return setImmediate(cb, "Application link already exists: " + dapp.link);
 				} else {
 					return setImmediate(cb, "Unknown error");
 				}
@@ -944,7 +944,7 @@ private.attachApi = function () {
 
 			private.list(query, function (err, dapps) {
 				if (err) {
-					return res.json({success: false, error: "Dapp not found"});
+					return res.json({success: false, error: "Application not found"});
 				}
 
 				res.json({success: true, dapps: dapps});
@@ -1020,7 +1020,7 @@ private.attachApi = function () {
 						if (err) {
 							return res.json({
 								success: false,
-								error: "Failed to obtain installed dapps ids"
+								error: "Failed to obtain installed ids"
 							});
 						}
 
@@ -1039,7 +1039,7 @@ private.attachApi = function () {
 						if (err) {
 							return res.json({
 								success: false,
-								error: "Failed to obtain installed dapps ids"
+								error: "Failed to obtain installed ids"
 							});
 						}
 
@@ -1078,7 +1078,7 @@ private.attachApi = function () {
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
 			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: "Invalid master password"});
+				return res.json({success: false, error: "Invalid master passphrase"});
 			}
 
 			private.get(body.id, function (err, dapp) {
@@ -1092,11 +1092,11 @@ private.attachApi = function () {
 					}
 
 					if (ids.indexOf(body.id) >= 0) {
-						return res.json({success: false, error: "Dapp is already installed"});
+						return res.json({success: false, error: "Application is already installed"});
 					}
 
 					if (private.uninstalling[body.id] || private.loading[body.id]) {
-						return res.json({success: false, error: "Dapp is already being downloaded or uninstalled"});
+						return res.json({success: false, error: "Application is already being downloaded or uninstalled"});
 					}
 
 					private.loading[body.id] = true;
@@ -1121,7 +1121,7 @@ private.attachApi = function () {
 											private.loading[body.id] = false;
 											return res.json({
 												success: false,
-												error: "Failed to install dapp dependencies, check logs"
+												error: "Failed to install application dependencies, check logs"
 											});
 										});
 									} else {
@@ -1148,7 +1148,7 @@ private.attachApi = function () {
 		private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
-				return res.json({success: false, error: "Failed to obtain installed dapps id, see logs"});
+				return res.json({success: false, error: "Failed to obtain installed application ids, see logs"});
 			}
 
 			if (files.length == 0) {
@@ -1158,7 +1158,7 @@ private.attachApi = function () {
 			private.getByIds(files, function (err, dapps) {
 				if (err) {
 					library.logger.error(err);
-					return res.json({success: false, error: "Failed to obtain installed dapps, see logs"});
+					return res.json({success: false, error: "Failed to obtain installed applications, see logs"});
 				}
 
 				return res.json({success: true, dapps: dapps});
@@ -1170,7 +1170,7 @@ private.attachApi = function () {
 		private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
-				return res.json({success: false, error: "Failed to obtain installed dapps ids, see logs"});
+				return res.json({success: false, error: "Failed to obtain installed application ids, see logs"});
 			}
 
 			return res.json({success: true, ids: files});
@@ -1200,7 +1200,7 @@ private.attachApi = function () {
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
 			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: "Invalid master password"});
+				return res.json({success: false, error: "Invalid master passphrase"});
 			}
 
 			private.get(body.id, function (err, dapp) {
@@ -1209,7 +1209,7 @@ private.attachApi = function () {
 				}
 
 				if (private.uninstalling[body.id] || private.loading[body.id]) {
-					return res.json({success: true, error: "Dapp is already being installed / uninstalled"});
+					return res.json({success: true, error: "Application is already being installed / uninstalled"});
 				}
 
 				private.uninstalling[body.id] = true;
@@ -1219,7 +1219,7 @@ private.attachApi = function () {
 					private.stop(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
-							return res.json({success: false, error: "Failed to stop dapp, check logs"});
+							return res.json({success: false, error: "Failed to stop application, check logs"});
 						} else {
 							private.launched[body.id] = false;
 							private.removeDApp(dapp, function (err) {
@@ -1254,7 +1254,7 @@ private.attachApi = function () {
 
 	router.post("/launch", function (req, res, next) {
 		if (library.config.dapp.masterpassword && req.body.master !== library.config.dapp.masterpassword) {
-			return res.json({success: false, error: "Invalid master password"});
+			return res.json({success: false, error: "Invalid master passphrase"});
 		}
 
 		private.launch(req.body, function (err) {
@@ -1323,22 +1323,22 @@ private.attachApi = function () {
 			if (!report.isValid) return res.json({success: false, error: report.issues});
 
 			if (!private.launched[body.id]) {
-				return res.json({success: false, error: "Dapp not launched"});
+				return res.json({success: false, error: "Application not launched"});
 			}
 
 			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: "Invalid master password"});
+				return res.json({success: false, error: "Invalid master passphrase"});
 			}
 
 			private.get(body.id, function (err, dapp) {
 				if (err) {
 					library.logger.error(err);
-					return res.json({success: false, error: "Dapp not found"});
+					return res.json({success: false, error: "Application not found"});
 				} else {
 					private.stop(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
-							return res.json({success: false, error: "Failed to stop dapp, check logs"});
+							return res.json({success: false, error: "Failed to stop application, check logs"});
 						} else {
 
 							library.network.io.sockets.emit("dapps/change", {});
@@ -1367,7 +1367,7 @@ private.attachApi = function () {
 private.get = function (id, cb) {
 	library.db.query(sql.get, { id: id }).then(function (rows) {
 		if (rows.length == 0) {
-			return setImmediate(cb, "Dapp not found");
+			return setImmediate(cb, "Application not found");
 		} else {
 			return setImmediate(cb, null, rows[0]);
 		}
@@ -1405,7 +1405,7 @@ private.list = function (filter, cb) {
 			fields.push('"category" = ${category}');
 			params.category = category;
 		} else {
-			return setImmediate(cb, "Invalid dapp category");
+			return setImmediate(cb, "Invalid application category");
 		}
 	}
 
@@ -1546,12 +1546,12 @@ private.removeDApp = function (dapp, cb) {
 
 	function remove(err) {
 		if (err) {
-			library.logger.error("Failed to uninstall dapp: " + err);
+			library.logger.error("Failed to uninstall application: " + err);
 		}
 
 		rmdir(dappPath, function (err) {
 			if (err) {
-				return setImmediate(cb, "Failed to remove dapp folder: " + err);
+				return setImmediate(cb, "Failed to remove application folder: " + err);
 			} else {
 				return cb();
 			}
@@ -1560,7 +1560,7 @@ private.removeDApp = function (dapp, cb) {
 
 	fs.exists(dappPath, function (exists) {
 		if (!exists) {
-			return setImmediate(cb, "Dapp not found");
+			return setImmediate(cb, "Application not found");
 		} else {
 			try {
 				var blockchain = require(path.join(dappPath, "blockchain.json"));
@@ -1570,7 +1570,7 @@ private.removeDApp = function (dapp, cb) {
 
 			modules.sql.dropTables(dapp.transactionId, blockchain, function (err) {
 				if (err) {
-					library.logger.error("Failed to drop dapp tables: " + err);
+					library.logger.error("Failed to drop application tables: " + err);
 				}
 				remove(err);
 			});
@@ -1656,7 +1656,7 @@ private.installDApp = function (dapp, cb) {
 		checkInstalled: function (serialCb) {
 			fs.exists(dappPath, function (exists) {
 				if (exists) {
-					return serialCb("Dapp is already installed");
+					return serialCb("Application is already installed");
 				} else {
 					return serialCb(null);
 				}
@@ -1665,7 +1665,7 @@ private.installDApp = function (dapp, cb) {
 		makeDirectory: function (serialCb) {
 			fs.mkdir(dappPath, function (err) {
 				if (err) {
-					return serialCb("Failed to make dapp directory");
+					return serialCb("Failed to make application directory");
 				} else {
 					return serialCb(null);
 				}
@@ -1794,7 +1794,7 @@ private.launch = function (body, cb) {
 		}
 
 		if (private.launched[body.id]) {
-			return cb("Dapp already launched");
+			return cb("Application already launched");
 		}
 
 		body.params = body.params || [""];
@@ -1815,7 +1815,7 @@ private.launch = function (body, cb) {
 					if (err) {
 						private.launched[body.id] = false;
 						library.logger.error(err);
-						return cb("Failed to get installed dapps");
+						return cb("Failed to get installed applications");
 					} else {
 						if (files.indexOf(body.id) >= 0) {
 							private.symlink(dapp, function (err) {
@@ -1828,7 +1828,7 @@ private.launch = function (body, cb) {
 										if (err) {
 											private.launched[body.id] = false;
 											library.logger.error(err);
-											return cb("Failed to launch dapp, check logs: " + body.id);
+											return cb("Failed to launch application, check logs: " + body.id);
 										} else {
 											private.dappRoutes(dapp, function (err) {
 												if (err) {
@@ -1837,10 +1837,10 @@ private.launch = function (body, cb) {
 													private.stop(dapp, function (err) {
 														if (err) {
 															library.logger.error(err);
-															return cb("Failed to stop dapp, check logs: " + body.id)
+															return cb("Failed to stop application, check logs: " + body.id)
 														}
 
-														return cb("Failed to launch dapp");
+														return cb("Failed to launch application");
 													});
 												} else {
 													return cb(null);
@@ -1852,7 +1852,7 @@ private.launch = function (body, cb) {
 							});
 						} else {
 							private.launched[body.id] = false;
-							return cb("Dapp not installed");
+							return cb("Application not installed");
 						}
 					}
 				});
@@ -1901,16 +1901,16 @@ private.launchApp = function (dapp, params, cb) {
 				library.logger.info("Dapp " + dapp.transactionId + " closed ");
 				private.stop(dapp, function (err) {
 					if (err) {
-						library.logger.error("Encountered error while stopping dapp: " + err);
+						library.logger.error("Encountered error while stopping application: " + err);
 					}
 				});
 			});
 
 			sandbox.on("error", function (err) {
-				library.logger.info("Encountered error in dapp " + dapp.transactionId + " " + err);
+				library.logger.info("Encountered error in application " + dapp.transactionId + " " + err);
 				private.stop(dapp, function (err) {
 					if (err) {
-						library.logger.error("Encountered error while stopping dapp: " + err);
+						library.logger.error("Encountered error while stopping application: " + err);
 					}
 				});
 			});
@@ -2121,10 +2121,10 @@ DApps.prototype.message = function (dappid, body, cb) {
 
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!private.sandboxes[dappid]) {
-		return cb("Dapp not found");
+		return cb("Application not found");
 	}
 	if (!private.dappready[dappid]) {
-		return cb("Dapp not ready");
+		return cb("Application not ready");
 	}
 	private.sandboxes[dappid].sendMessage({
 		method: method,
@@ -2149,9 +2149,9 @@ DApps.prototype.onBlockchainReady = function () {
 				master: library.config.dapp.masterpassword
 			}, function (err) {
 				if (err) {
-					console.log("Failed to launch dapp", dapp.dappid + ":", err);
+					console.log("Failed to launch application", dapp.dappid + ":", err);
 				} else {
-					console.log("Launched dapp", dapp.dappid, "successfully")
+					console.log("Launched application", dapp.dappid, "successfully")
 				}
 
 				return cb();
@@ -2190,7 +2190,7 @@ DApps.prototype.onNewBlock = function (block, broadcast) {
 shared.getGenesis = function (req, cb) {
 	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
 		if (rows.length == 0) {
-			return cb("Dapp genesis not found");
+			return cb("Application genesis block not found");
 		} else {
 			var row = rows[0];
 
