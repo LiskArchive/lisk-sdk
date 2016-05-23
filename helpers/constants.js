@@ -6,9 +6,9 @@ module.exports = {
 		send: 10000000,
 		vote: 100000000,
 		secondsignature: 500000000,
-		delegate: 10000000000,
+		delegate: 2500000000,
 		multisignature: 500000000,
-		dapp: 50000000000
+		dapp: 2500000000
 	},
 	activeDelegates: 101,
 	feeStart: 1,
