@@ -541,7 +541,12 @@ Account.prototype.createTables = function (cb) {
 Account.prototype.removeTables = function (cb) {
 	var sqles = [], sql;
 
-	[this.table, "mem_round"].forEach(function (table) {
+	[this.table,
+	"mem_round",
+	"mem_accounts2delegates",
+	"mem_accounts2u_delegates",
+	"mem_accounts2multisignatures",
+	"mem_accounts2u_multisignatures"].forEach(function (table) {
 		sql = jsonSql.build({
 			type: "remove",
 			table: table
