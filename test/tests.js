@@ -368,8 +368,8 @@ describe("Lisk JS", function () {
 					(trs.amount).should.be.type("number").and.equal(0);
 				});
 
-				it("should have fee as number and equal 50000000000", function () {
-					(trs.fee).should.be.type("number").and.equal(50000000000);
+				it("should have fee as number and equal 2500000000", function () {
+					(trs.fee).should.be.type("number").and.equal(2500000000);
 				});
 
 				it("should have null recipientId", function () {
@@ -576,7 +576,8 @@ describe("Lisk JS", function () {
 				});
 
 				it("should have delegate asset", function () {
-					(trs).should.have.property("asset").and.type("object").and.not.empty.and.have.property("delegate");
+					(trs).should.have.property("asset").and.type("object");
+					(trs.asset).should.have.have.property("delegate");
 				})
 
 				it("should be signed correctly", function () {
