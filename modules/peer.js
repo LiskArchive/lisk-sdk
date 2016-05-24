@@ -12,6 +12,8 @@ var _ = require('underscore');
 // Private fields
 var modules, library, self, private = {}, shared = {};
 
+var removed=[];
+
 private.loopback = ["0.0.0.0", "127.0.0.1"];
 
 // Constructor
@@ -286,6 +288,7 @@ Peer.prototype.remove = function (pip, port, cb) {
 		return peer.ip == pip && peer.port == port;
 	});
 	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
+	removed.push(pip);
 	library.db.query(sql.remove, {
 		ip: pip,
 		port: port
@@ -324,6 +327,10 @@ Peer.prototype.addDapp = function (config, cb) {
 
 Peer.prototype.update = function (peer, cb) {
 	var dappid = peer.dappid;
+	if(removed.indexOf(peer.ip)>-1){
+		library.logger.info("skipping save ip "+peer.ip);
+		return cb && cb();
+	}
 	var params = {
 		ip: peer.ip,
 		port: peer.port,
