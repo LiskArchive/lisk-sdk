@@ -970,16 +970,12 @@ shared.getDelegates = function (req, cb) {
 			}
 
 			result.delegates.sort(function compare(a, b) {
+				var sorta=parseInt(a[result.orderBy]);
+				var sortb=parseInt(b[result.orderBy]);
 				if (result.sortMode == 'asc') {
-					if (a[result.orderBy] < b[result.orderBy])
-						return -1;
-					if (a[result.orderBy] > b[result.orderBy])
-						return 1;
+					return sorta < sortb ? -1 : 1;
 				} else if (result.sortMode == 'desc') {
-					if (a[result.orderBy] > b[result.orderBy])
-						return -1;
-					if (a[result.orderBy] < b[result.orderBy])
-						return 1;
+					return sorta > sortb ? -1 : 1
 				}
 				return 0;
 			});
