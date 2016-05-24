@@ -1,16 +1,16 @@
 {
-    "port": 7000,
+    "port": 8000,
     "address": "0.0.0.0",
     "serveHttpAPI": true,
     "serveHttpWallet": true,
-    "version": "0.2.3",
+    "version": "0.3.0",
     "fileLogLevel": "info",
     "logFileName": "logs.log",
     "consoleLogLevel": "log",
     "db": {
         "host": "localhost",
         "port": 5432,
-        "database": "lisk_test",
+        "database": "lisk_main",
         "user": null,
         "password": "password",
         "poolSize": 20,
@@ -26,7 +26,28 @@
         }
     },
     "peers": {
-        "list": [],
+        "list": [
+            {
+                "ip": "40.68.214.86",
+                "port": 8000
+            },
+            {
+                "ip": "13.70.207.248",
+                "port": 8000
+            },
+            {
+                "ip": "13.89.42.130",
+                "port": 8000
+            },
+            {
+                "ip": "52.160.98.183",
+                "port": 8000
+            },
+            {
+                "ip": "40.121.84.254",
+                "port": 8000
+            }
+        ],
         "blackList": [],
         "options": {
             "timeout": 4000
