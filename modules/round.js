@@ -260,7 +260,7 @@ Round.prototype.tick = function (block, done) {
 
 	scope.finishRound = (
 		(round !== nextRound && private.delegatesByRound[round].length == slots.delegates) ||
-		(block.height == 1)
+		(block.height == 1 || block.height == 101)
 	);
 
 	function Tick (t) {
