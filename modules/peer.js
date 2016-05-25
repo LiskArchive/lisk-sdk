@@ -76,8 +76,13 @@ private.updatePeerList = function (cb) {
 			if (err) {
 				return cb();
 			}
+			library.logger.debug("peers to update: "+data.body.peers.length);
+			library.logger.debug("removed peers list size: "+removed.length);
+			var peers = data.body.peers.filter(function(peer){
+					return removed.indexOf(peer.ip);
+			});
 
-			var peers = data.body.peers;
+			library.logger.debug("peers cleaned to update: "+peers.length);
 
 			async.eachLimit(peers, 2, function (peer, cb) {
 
@@ -327,10 +332,6 @@ Peer.prototype.addDapp = function (config, cb) {
 
 Peer.prototype.update = function (peer, cb) {
 	var dappid = peer.dappid;
-	if(removed.indexOf(peer.ip)>-1){
-		library.logger.info("skipping save ip "+peer.ip);
-		return cb && cb();
-	}
 	var params = {
 		ip: peer.ip,
 		port: peer.port,
