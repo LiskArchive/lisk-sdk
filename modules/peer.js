@@ -12,6 +12,10 @@ var _ = require('underscore');
 // Private fields
 var modules, library, self, private = {}, shared = {};
 
+// the list of peers not behaving well
+// reset when we restart
+var removed=[];
+
 private.loopback = ["0.0.0.0", "127.0.0.1"];
 
 // Constructor
@@ -75,7 +79,32 @@ private.updatePeerList = function (cb) {
 				return cb();
 			}
 
-			var peers = data.body.peers;
+			// Removing the nodes not working well
+			library.logger.debug("removed peers list size: "+removed.length);
+			var peers = data.body.peers.filter(function(peer){
+					return removed.indexOf(peer.ip);
+			});
+
+			// We update only a subset of the peers to decrease the noise on the network
+			// Default is 20 peers. To be fined tuned. You get checked by a peer every 3s on average
+			// Maybe increasing schedule (every 60s right now).
+			var maxUpdatePeers=library.config.peers.maxUpdatePeers || 20;
+			if(peers.length>maxUpdatePeers){
+				peers=peers.slice(0,maxUpdatePeers);
+			}
+
+			// We dropped one random peer from removed to give him a chance.
+			// This mitigate the fact that a node could be removed for ever if he was offline for long
+			// This is not harm for the node, but it prevents from network shrinking, increasing noise.
+			// To fine tune: decreasing random value threshold -> reduce noise.
+			if(Math.random()<0.5){ // every 60/0.5=120s
+				// we want to remove the first element, ie the one that have been placed first
+				removed.shift();
+				removed.pop();
+			}
+
+
+			library.logger.debug("picked only: "+peers.length);
 
 			async.eachLimit(peers, 2, function (peer, cb) {
 
@@ -286,6 +315,7 @@ Peer.prototype.remove = function (pip, port, cb) {
 		return peer.ip == pip && peer.port == port;
 	});
 	if (isFrozenList !== undefined) return cb && cb("Peer in white list");
+	removed.push(pip);
 	library.db.query(sql.remove, {
 		ip: pip,
 		port: port
