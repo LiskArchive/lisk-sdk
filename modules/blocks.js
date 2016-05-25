@@ -255,7 +255,7 @@ private.list = function (filter, cb) {
 }
 
 private.getById = function (id, cb) {
-	library.db.query(sql.getbyId, { id: id }).then(function (rows) {
+	library.db.query(sql.getById, { id: id }).then(function (rows) {
 		if (!rows.length) {
 			return cb("Block not found");
 		}
