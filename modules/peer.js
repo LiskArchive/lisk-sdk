@@ -76,13 +76,31 @@ private.updatePeerList = function (cb) {
 			if (err) {
 				return cb();
 			}
-			library.logger.debug("peers to update: "+data.body.peers.length);
-			library.logger.debug("removed peers list size: "+removed.length);
+
+			// Removing from the lists the nodes not working well
+			//library.logger.debug("removed peers list size: "+removed.length);
 			var peers = data.body.peers.filter(function(peer){
 					return removed.indexOf(peer.ip);
 			});
 
-			library.logger.debug("peers cleaned to update: "+peers.length);
+			// We update only a subset of the peers to decrease the noise on the network
+			// Default is 20 nodes. To be fined tuned. You get on average checked by a peer every 3s
+			// Maybe increasing schedule (every 60s right now).
+			var maxUpdatePeers=library.config.peers.maxUpdatePeers || 20;
+			if(peers.length>maxUpdatePeers){
+				peers=peers.slice(0,maxUpdatePeers);
+			}
+
+			// We dropped one random peer from removed to give him a chance.
+			// This mitigate the fact that a node could be removed for ever if he was offline for long
+			// This is not harm for the node, but it prevent from network shrinking, but increase noise
+			// To fine tune decreasing random value threshold to reduce noise.
+			if(Math.random()<0.5){ // every 60/0.5=120s
+				removed.pop();
+			}
+
+
+			library.logger.debug("picked only: "+peers.length);
 
 			async.eachLimit(peers, 2, function (peer, cb) {
 
