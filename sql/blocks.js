@@ -58,7 +58,7 @@ const BlocksSql = {
       'SELECT * FROM full_blocks_list',
       limitPart,
       (params.id || params.lastId ? 'WHERE' : ''),
-      (params.id ? 'b_id" = ${id}' : ''),
+      (params.id ? '"b_id" = ${id}' : ''),
       (params.id && params.lastId ? ' AND ' : ''),
       (params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : ''),
       'ORDER BY "b_height", "t_rowId"'

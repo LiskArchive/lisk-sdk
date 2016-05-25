@@ -6,9 +6,9 @@ module.exports = {
 		send: 10000000,
 		vote: 100000000,
 		secondsignature: 500000000,
-		delegate: 10000000000,
+		delegate: 2500000000,
 		multisignature: 500000000,
-		dapp: 50000000000
+		dapp: 2500000000
 	},
 	activeDelegates: 101,
 	feeStart: 1,
@@ -25,7 +25,7 @@ module.exports = {
 	numberLength: 100000000,
 	requestLength: 104,
 	rewards: {
-		offset: 2021,      // Start rewards at block (n)
+		offset: 60480,     // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
 	signatureLength: 196,
