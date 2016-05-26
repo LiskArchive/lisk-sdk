@@ -353,7 +353,7 @@ private.loadUnconfirmedTransactions = function (cb) {
 }
 
 private.loadBlockChain = function () {
-	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 5000;
+	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
 	    verify = Boolean(library.config.loading.verifyOnLoading);
 
 	function load(count) {
@@ -373,7 +373,7 @@ private.loadBlockChain = function () {
 								return count < offset
 							}, function (cb) {
 								if (count > 1) {
-									library.logger.info("Current " + offset);
+									library.logger.info("Rebuilding blockchain, current block height:" + offset);
 								}
 								setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
