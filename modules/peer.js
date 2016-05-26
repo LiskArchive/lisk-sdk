@@ -12,9 +12,9 @@ var _ = require('underscore');
 // Private fields
 var modules, library, self, private = {}, shared = {};
 
-// the list of peers not behaving well
+// List of peers not behaving well
 // reset when we restart
-var removed=[];
+var removed = [];
 
 private.loopback = ["0.0.0.0", "127.0.0.1"];
 
@@ -79,32 +79,32 @@ private.updatePeerList = function (cb) {
 				return cb();
 			}
 
-			// Removing the nodes not working well
-			library.logger.debug("removed peers list size: "+removed.length);
-			var peers = data.body.peers.filter(function(peer){
+			// Removing nodes not behaving well
+			library.logger.debug("Removed peers list size: " + removed.length);
+			var peers = data.body.peers.filter(function (peer) {
 					return removed.indexOf(peer.ip);
 			});
 
-			// We update only a subset of the peers to decrease the noise on the network
-			// Default is 20 peers. To be fined tuned. You get checked by a peer every 3s on average
+			// Update only a subset of the peers to decrease the noise on the network.
+			// Default is 20 peers. To be fined tuned. Node gets checked by a peer every 3s on average.
 			// Maybe increasing schedule (every 60s right now).
-			var maxUpdatePeers=library.config.peers.maxUpdatePeers || 20;
-			if(peers.length>maxUpdatePeers){
-				peers=peers.slice(0,maxUpdatePeers);
+			var maxUpdatePeers = library.config.peers.maxUpdatePeers || 20;
+			if (peers.length > maxUpdatePeers) {
+				peers = peers.slice(0, maxUpdatePeers);
 			}
 
-			// We dropped one random peer from removed to give him a chance.
-			// This mitigate the fact that a node could be removed for ever if he was offline for long
-			// This is not harm for the node, but it prevents from network shrinking, increasing noise.
+			// Drop one random peer from removed array to give them a chance.
+			// This mitigates the issue that a node could be removed forever if it was offline for long.
+			// This is not harmful for the node, but prevents network from shrinking, increasing noise.
 			// To fine tune: decreasing random value threshold -> reduce noise.
-			if(Math.random()<0.5){ // every 60/0.5=120s
-				// we want to remove the first element, ie the one that have been placed first
+			if (Math.random() < 0.5) { // Every 60/0.5 = 120s
+				// Remove the first element,
+				// i.e. the one that have been placed first.
 				removed.shift();
 				removed.pop();
 			}
 
-
-			library.logger.debug("picked only: "+peers.length);
+			library.logger.debug("Picked only: " + peers.length);
 
 			async.eachLimit(peers, 2, function (peer, cb) {
 
