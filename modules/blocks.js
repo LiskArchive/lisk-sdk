@@ -20,7 +20,6 @@ var _ = require("underscore");
 var modules, library, self, private = {}, shared = {};
 
 private.lastBlock = {};
-private.lastReceipt = null;
 private.blockReward = new blockReward();
 
 // @formatter:off
@@ -479,14 +478,6 @@ private.applyTransaction = function (block, transaction, sender, cb) {
 }
 
 // Public methods
-Blocks.prototype.lastReceipt = function (lastReceipt) {
-	if (lastReceipt) {
-		private.lastReceipt = lastReceipt;
-	}
-
-	return private.lastReceipt;
-}
-
 Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 	var commonBlock = null;
 	var lastBlockHeight = height;
@@ -1149,7 +1140,6 @@ Blocks.prototype.onReceiveBlock = function (block) {
 	library.sequence.add(function (cb) {
 		if (block.previousBlock == private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			library.logger.info('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
-			self.lastReceipt(new Date());
 			self.processBlock(block, true, cb);
 		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			// Fork: Same height but different previous block id

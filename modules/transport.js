@@ -91,10 +91,6 @@ private.attachApi = function () {
 			}
 
 			if ((req.peer.version == library.config.version) && (req.headers['nethash'] == library.config.nethash)) {
-				if (!modules.blocks.lastReceipt()) {
-					modules.delegates.enableForging();
-				}
-
 				modules.peer.update(req.peer);
 			}
 
