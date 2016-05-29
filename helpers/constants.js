@@ -25,7 +25,7 @@ module.exports = {
 	numberLength: 100000000,
 	requestLength: 104,
 	rewards: {
-		offset: 60480,     // Start rewards at block (n)
+		offset: 1451520,   // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
 	signatureLength: 196,
