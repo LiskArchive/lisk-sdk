@@ -33,7 +33,7 @@ function Transfer() {
 	}
 
 	this.verify = function (trs, sender, cb) {
-		var isAddress = /^[0-9]+[L|l]$/g;
+		var isAddress = /^[0-9]{1,21}[L|l]$/g
 		if (!trs.recipientId || !isAddress.test(trs.recipientId)) {
 			return cb("Invalid recipient");
 		}

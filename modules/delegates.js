@@ -70,7 +70,7 @@ function Delegate() {
  			return cb("Username should be lowercase");
  		}
 
-		var isAddress = /^[0-9]+[L|l]$/g;
+		var isAddress = /^[0-9]{1,21}[L|l]$/g
 		var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
 
 		var username = String(trs.asset.delegate.username).toLowerCase().trim();
