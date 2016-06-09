@@ -1,5 +1,5 @@
 {
-    "port": 8000,
+    "port": 7000,
     "address": "0.0.0.0",
     "version": "0.3.3",
     "fileLogLevel": "info",
@@ -8,7 +8,7 @@
     "db": {
         "host": "localhost",
         "port": 5432,
-        "database": "lisk_main",
+        "database": "lisk_test",
         "user": null,
         "password": "password",
         "poolSize": 20,
@@ -32,28 +32,7 @@
         }
     },
     "peers": {
-        "list": [
-            {
-                "ip": "40.68.214.86",
-                "port": 8000
-            },
-            {
-                "ip": "13.70.207.248",
-                "port": 8000
-            },
-            {
-                "ip": "13.89.42.130",
-                "port": 8000
-            },
-            {
-                "ip": "52.160.98.183",
-                "port": 8000
-            },
-            {
-                "ip": "40.121.84.254",
-                "port": 8000
-            }
-        ],
+        "list": [],
         "blackList": [],
         "options": {
             "limits": {
@@ -92,5 +71,5 @@
         "masterpassword": "",
         "autoexec": []
     },
-    "nethash": "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"
+    "nethash": "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"
 }
