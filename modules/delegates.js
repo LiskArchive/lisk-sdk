@@ -879,7 +879,7 @@ private.toggleForgingOnReceipt = function () {
 	var lastReceipt = modules.blocks.lastReceipt();
 
 	if (lastReceipt) {
-		var timeOut = 60;
+		var timeOut = 500; // 50 blocks
 		var timeNow = new Date();
 		var seconds = Math.floor((timeNow.getTime() - lastReceipt.getTime()) / 1000);
 
