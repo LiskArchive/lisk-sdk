@@ -26,6 +26,15 @@ module.exports = function (config) {
 		config.errorLevel = errorLevel;
 	}
 
+	function snipsecret(data){
+		for (var key in data) {
+			if (key.search(/secret/i) > -1){
+				data[key] = "XXXXXXXXXX";
+			}
+		}
+		return data;
+	};
+
 	Object.keys(config.levels).forEach(function (name) {
 		function log(caption, data) {
 			var log = {
@@ -34,7 +43,7 @@ module.exports = function (config) {
 				"timestamp": strftime("%F %T", new Date())
 			}
 
-			data && (log["data"] = data);
+			data && (log["data"] = snipsecret(data));
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
 				log_file.write(JSON.stringify(log) + "\n");

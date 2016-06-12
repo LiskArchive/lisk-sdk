@@ -291,7 +291,7 @@ function Multisignature() {
 	}
 
 	this.afterSave = function (trs, cb) {
-		library.network.io.sockets.emit('mutlsigiantures/change', {});
+		library.network.io.sockets.emit('multisignatures/change', {});
 		return cb();
 	}
 
