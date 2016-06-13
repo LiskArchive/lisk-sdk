@@ -1017,16 +1017,34 @@ shared.getDelegates = function (req, cb) {
 				return cb(err);
 			}
 
-			result.delegates.sort(function compare(a, b) {
-				var sorta=parseInt(a[result.orderBy]);
-				var sortb=parseInt(b[result.orderBy]);
+			function compareNumber(a, b) {
+        var sorta=parseFloat(a[result.orderBy]);
+        var sortb=parseFloat(b[result.orderBy]);
 				if (result.sortMode == 'asc') {
-					return sorta < sortb ? -1 : 1;
-				} else if (result.sortMode == 'desc') {
-					return sorta > sortb ? -1 : 1
+					return sorta - sortb;
+				} else {
+				 	return sortb - sorta;
 				}
-				return 0;
-			});
+			};
+
+			function compareString(a, b) {
+        var sorta=a[result.orderBy];
+        var sortb=b[result.orderBy];
+        if (result.sortMode == 'asc') {
+          return sorta.localeCompare(sortb);
+        } else {
+          return sortb.localeCompare(sorta);
+        }
+      };
+
+      if(["approval", "productivity", "rate", "vote", "missedblocks", "producedblocks"].indexOf(result.orderBy)>-1){
+        result.delegates = result.delegates.sort(compareNumber);
+      }
+      else{
+        result.delegates = result.delegates.sort(compareString);
+      }
+
+			library.logger.debug(result.delegates);
 
 			var delegates = result.delegates.slice(result.offset, result.limit);
 
