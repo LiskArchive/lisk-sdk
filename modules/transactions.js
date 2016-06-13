@@ -203,7 +203,12 @@ private.list = function (filter, cb) {
 	if (filter.orderBy) {
 		var sort = filter.orderBy.split(':');
 		var sortBy = sort[0].replace(/[^\w_]/gi, '');
-
+		if (["height","blockId","confirmations"].indexOf(sortBy)>-1){
+			sortBy = "b_" + sortBy;
+		}
+		else {
+			sortBy = "t_" + sortBy;
+		}
 		if (sort.length == 2) {
 			var sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
 		} else {
