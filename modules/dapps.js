@@ -1907,7 +1907,7 @@ private.launchApp = function (dapp, params, cb) {
 			});
 
 			sandbox.on("error", function (err) {
-				library.logger.info("Encountered error in application " + dapp.transactionId + " " + err);
+				library.logger.error("Encountered error in application " + dapp.transactionId + " " + err);
 				private.stop(dapp, function (err) {
 					if (err) {
 						library.logger.error("Encountered error while stopping application: " + err);

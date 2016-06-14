@@ -579,7 +579,7 @@ private.loadMyDelegates = function (cb) {
 				private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 				library.logger.info("Forging enabled on account: " + account.address);
 			} else {
-				library.logger.info("Delegate with this public key not found: " + keypair.publicKey.toString('hex'));
+				library.logger.warn("Delegate with this public key not found: " + keypair.publicKey.toString('hex'));
 			}
 			cb();
 		});
