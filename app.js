@@ -10,6 +10,7 @@ var https = require("https");
 var fs = require("fs");
 var z_schema = require("z-schema");
 var util = require("util");
+var checkIpInList = require("./helpers/checklist.js");
 var Sequence = require("./helpers/sequence.js");
 
 process.stdin.resume();
@@ -333,25 +334,15 @@ d.run(function () {
 
 				if (parts.length > 1) {
 					if (parts[1] == "api") {
-						if (scope.config.api.access.whiteList.length > 0) {
-							if (scope.config.api.access.whiteList.indexOf(ip) < 0) {
-								res.sendStatus(403);
-							} else {
-								next();
-							}
-						} else {
+						if (!checkIpInList(scope.config.api.access.whiteList, ip))
+							res.sendStatus(403);
+						else
 							next();
-						}
 					} else if (parts[1] == "peer") {
-						if (scope.config.peers.blackList.length > 0) {
-							if (scope.config.peers.blackList.indexOf(ip) >= 0) {
-								res.sendStatus(403);
-							} else {
-								next();
-							}
-						} else {
+						if (checkIpInList(scope.config.peers.blackList, ip))
+							res.sendStatus(403);
+						else
 							next();
-						}
 					} else {
 						next();
 					}

@@ -14,6 +14,7 @@ var transactionTypes = require("../helpers/transactionTypes.js");
 var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 var sql = require("../sql/delegates.js");
+var checkIpInList = require("../helpers/checklist.js");
 var _ = require("underscore");
 
 // Private fields
@@ -346,7 +347,7 @@ private.attachApi = function () {
 
 			var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
+			if (!checkIpInList(library.config.forging.access.whiteList, ip)) {
 				return res.json({success: false, error: "Access denied"});
 			}
 
@@ -400,7 +401,7 @@ private.attachApi = function () {
 
 			var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-			if (library.config.forging.access.whiteList.length > 0 && library.config.forging.access.whiteList.indexOf(ip) < 0) {
+			if (!checkIpInList(library.config.forging.access.whiteList, ip)) {
 				return res.json({success: false, error: "Access denied"});
 			}
 
