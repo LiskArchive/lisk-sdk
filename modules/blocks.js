@@ -785,6 +785,7 @@ Blocks.prototype.verifyBlock = function (block){
 	}
 
 	var expectedReward = private.blockReward.calcReward(block.height);
+	library.logger.debug(expectedReward);
 	if (block.height != 1 && expectedReward !== block.reward) {
 		result.errors.push("Invalid block reward");
 	}
@@ -928,17 +929,23 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 				} else {
 					//Everything is ok now we apply the unconfirmed to confirmed
 					async.eachSeries(block.transactions, function (transaction, cb) {
-					  var sender = senders[transaction.id];
 						//DATABASE: write
-						modules.transactions.apply(transaction, block, sender, function (err) {
+						modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 							if (err) {
 								library.logger.error("Failed to apply transactions: " + transaction.id);
 								process.exit(0);
 							}
-							// Transaction applied, removed from the unconfirmed list
-							// in memory list, no database access.
-							modules.transactions.removeUnconfirmedTransaction(transaction.id);
-							setImmediate(cb);
+							//DATABASE: write
+							modules.transactions.apply(transaction, block, sender, function (err) {
+								if (err) {
+									library.logger.error("Failed to apply transactions: " + transaction.id);
+									process.exit(0);
+								}
+								// Transaction applied, removed from the unconfirmed list
+								// in memory list, no database access.
+								modules.transactions.removeUnconfirmedTransaction(transaction.id);
+								setImmediate(cb);
+							});
 						});
 					}, function (err) {
 						// Save the block into the database
@@ -978,12 +985,12 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 
 	// Sanity check of the block, if values are coherent.
 	// No access to database.
-	var check=self.verifyBlock(block);
+		var check=self.verifyBlock(block);
 
-	if(!check.verified){
-		library.logger.error("Block is erroneous: ", check.errors);
-		return setImmediate(cb, check.errors[0]);
-	}
+		if(!check.verified){
+			library.logger.error("Block is erroneous: ", check.errors);
+			return setImmediate(cb, check.errors[0]);
+		}
 
 	// We cache the sender accounts
 	var senders={};
@@ -1007,6 +1014,12 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 			async.eachSeries(block.transactions, function(transaction, cb){
 				async.waterfall([
 					function(callback){
+						try {
+							transaction.id = library.logic.transaction.getId(transaction);
+						} catch (e) {
+							return callback(e.toString());
+						}
+						transaction.blockId = block.id;
 						// Check if transaction is already in database, otherwise fork 2
 						// DATABASE: read only
 						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
@@ -1023,15 +1036,9 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 							callback("Blocks#processBlock error: " + err.toString());
 						});
 					},
-
 					function(sender, callback){
+						//cache sender
 						senders[transaction.id]=sender;
-						try {
-							transaction.id = library.logic.transaction.getId(transaction);
-						} catch (e) {
-							return callback(e.toString());
-						}
-						transaction.blockId = block.id;
 
 						// Check if transaction id valid against database state (mem_* tables)
 						// DATABASE: read only
