@@ -1,12 +1,12 @@
 var ip = require('ip');
 
 /*
-	Checks if ip address is in list (e.g. whitelist, blacklist).
-	
-	@param list an array of ip addresses or ip subnets
-	@param addr the ip address to check if in array
-	@param returnListIsEmpty the return value, if list is empty (default: true)
-	@returns true if ip is in the list, false otherwise
+  Checks if ip address is in list (e.g. whitelist, blacklist).
+
+  @param list an array of ip addresses or ip subnets
+  @param addr the ip address to check if in array
+  @param returnListIsEmpty the return value, if list is empty (default: true)
+  @returns true if ip is in the list, false otherwise
 */
 function CheckIpInList (list, addr, returnListIsEmpty) {
 	returnListIsEmpty = returnListIsEmpty || true;
@@ -24,13 +24,15 @@ function CheckIpInList (list, addr, returnListIsEmpty) {
 				var subnet = ip.cidrSubnet(entry);
 				list._subNets.push(subnet);
 			} catch (err) {
-				// Entry was not a valid ip address, log an error?
+				console.error("CheckIpInList:", err.toString());
 			}
 		}
 	}
+
 	if (list._subNets.length == 0) {
 		return returnListIsEmpty;
 	}
+
 	// Check subnets
 	for (var i = 0, n = list._subNets.length; i < n; i++) {
 		if (list._subNets[i].contains(addr)) {
@@ -38,7 +40,7 @@ function CheckIpInList (list, addr, returnListIsEmpty) {
 		}
 	}
 
-	// ip not found
+	// IP address not found
 	return false;
 }
 
