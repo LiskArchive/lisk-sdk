@@ -35,10 +35,11 @@ function CheckIpInList (list, addr, returnListIsEmpty) {
 	for (var i = 0, n = list._subNets.length; i < n; i++) {
 		if (list._subNets[i].contains(addr)) {
 			return true;
-		} else {
-			return false;
 		}
 	}
+
+	// ip not found
+	return false;
 }
 
 module.exports = CheckIpInList;
