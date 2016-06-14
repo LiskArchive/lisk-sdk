@@ -1019,8 +1019,8 @@ shared.getDelegates = function (req, cb) {
 			}
 
 			function compareNumber(a, b) {
-        var sorta=parseFloat(a[result.orderBy]);
-        var sortb=parseFloat(b[result.orderBy]);
+				var sorta = parseFloat(a[result.orderBy]);
+				var sortb = parseFloat(b[result.orderBy]);
 				if (result.sortMode == 'asc') {
 					return sorta - sortb;
 				} else {
@@ -1029,21 +1029,20 @@ shared.getDelegates = function (req, cb) {
 			};
 
 			function compareString(a, b) {
-        var sorta=a[result.orderBy];
-        var sortb=b[result.orderBy];
-        if (result.sortMode == 'asc') {
-          return sorta.localeCompare(sortb);
-        } else {
-          return sortb.localeCompare(sorta);
-        }
-      };
+				var sorta = a[result.orderBy];
+				var sortb = b[result.orderBy];
+				if (result.sortMode == 'asc') {
+				  return sorta.localeCompare(sortb);
+				} else {
+				  return sortb.localeCompare(sorta);
+				}
+			};
 
-      if(["approval", "productivity", "rate", "vote", "missedblocks", "producedblocks"].indexOf(result.orderBy)>-1){
-        result.delegates = result.delegates.sort(compareNumber);
-      }
-      else{
-        result.delegates = result.delegates.sort(compareString);
-      }
+			if (["approval", "productivity", "rate", "vote", "missedblocks", "producedblocks"].indexOf(result.orderBy) >- 1) {
+				result.delegates = result.delegates.sort(compareNumber);
+			} else{
+				result.delegates = result.delegates.sort(compareString);
+			}
 
 			library.logger.debug(result.delegates);
 
