@@ -10,7 +10,7 @@ var https = require("https");
 var fs = require("fs");
 var z_schema = require("z-schema");
 var util = require("util");
-var checkIpInList = require("./helpers/checklist.js");
+var checkIpInList = require("./helpers/checkIpInList.js");
 var Sequence = require("./helpers/sequence.js");
 
 process.stdin.resume();

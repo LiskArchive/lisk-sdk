@@ -14,7 +14,7 @@ var transactionTypes = require("../helpers/transactionTypes.js");
 var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 var sql = require("../sql/delegates.js");
-var checkIpInList = require("../helpers/checklist.js");
+var checkIpInList = require("../helpers/checkIpInList.js");
 var _ = require("underscore");
 
 // Private fields
