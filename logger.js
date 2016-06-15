@@ -55,17 +55,23 @@ module.exports = function (config) {
 			}
 
 			data && (log["data"] = snipsecret(data));
+			var data_str = log.data ? log.data : "";
+			var level_str = config.level_abbr[log.level] ? config.level_abbr[log.level] : "???";
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
 				if (log.data){
-					log_file.write(util.format("[%s] %s | %s - %s\n", config.level_abbr[log.level], log.timestamp, log.message, log.data));
+					log_file.write(util.format("[%s] %s | %s - %s\n", level_str, log.timestamp, log.message, data_str));
 				} else {
-					log_file.write(util.format("[%s] %s | %s\n", config.level_abbr[log.level], log.timestamp, log.message));
+					log_file.write(util.format("[%s] %s | %s\n", level_str, log.timestamp, log.message));
 				}
 			}
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
-					console.log(log.level.bgYellow.black, log.timestamp.grey, log.message, log.data ? log.data : "");
+					if (log.data){
+						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message);
+					} else {
+						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message, "-", data_str);
+					}
 				}catch (e){
 					console.log(e)
 				}
