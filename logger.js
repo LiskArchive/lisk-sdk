@@ -17,6 +17,16 @@ module.exports = function (config) {
 		"fatal": 6
 	}
 
+	config.level_abbr = config.level_abbr || {
+		"trace" : "trc",
+		"debug" : "dbg",
+		"log": "log",
+		"info": "inf",
+		"warn": "WRN",
+		"error": "ERR",
+		"fatal": "FTL"
+	}
+
 	config.filename = config.filename || __dirname + "/logs.log";
 
 	config.errorLevel = config.errorLevel || "log";
@@ -48,9 +58,9 @@ module.exports = function (config) {
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
 				if (log.data){
-					log_file.write(util.format("[%s] %s | %s - %s\n", log.level, log.timestamp, log.message, log.data));
+					log_file.write(util.format("[%s] %s | %s - %s\n", config.level_abbr[log.level], log.timestamp, log.message, log.data));
 				} else {
-					log_file.write(util.format("[%s] %s | %s\n", log.level, log.timestamp, log.message));
+					log_file.write(util.format("[%s] %s | %s\n", config.level_abbr[log.level], log.timestamp, log.message));
 				}
 			}
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
