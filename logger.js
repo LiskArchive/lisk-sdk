@@ -1,5 +1,6 @@
 var strftime = require("strftime").utc();
 var fs = require("fs");
+var util = require('util');
 require("colors");
 
 module.exports = function (config) {
