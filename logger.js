@@ -46,7 +46,11 @@ module.exports = function (config) {
 			data && (log["data"] = snipsecret(data));
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
-				log_file.write(JSON.stringify(log) + "\n");
+				if (log.data){
+					log_file.write(util.format("[%s] %s | %s - %s\n", log.level, log.timestamp, log.message, log.data));
+				} else {
+					log_file.write(util.format("[%s] %s | %s\n", log.level, log.timestamp, log.message));
+				}
 			}
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
