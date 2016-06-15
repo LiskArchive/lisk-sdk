@@ -68,9 +68,9 @@ module.exports = function (config) {
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
 					if (log.data){
-						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message);
-					} else {
 						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message, "-", data_str);
+					} else {
+						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message);
 					}
 				}catch (e){
 					console.log(e)
