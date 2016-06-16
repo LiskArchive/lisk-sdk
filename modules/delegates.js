@@ -878,7 +878,10 @@ Delegates.prototype.disableForging = function (reason) {
 // Private
 private.toggleForgingOnReceipt = function () {
 	var lastReceipt = modules.blocks.lastReceipt();
-	if (library.config.forging.local) lastReceipt = modules.blocks.lastReceipt(new Date());
+	// enforce local forging if configured
+	if (!lastReceipt && library.config.forging.force){
+		lastReceipt = modules.blocks.lastReceipt(new Date());
+	}
 
 	if (lastReceipt) {
 		var timeOut = 500; // 50 blocks
