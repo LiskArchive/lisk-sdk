@@ -260,6 +260,22 @@ describe("GET /accounts?address=", function() {
             });
     });
 
+    it("Using lowercase address. Should be ok", function (done) {
+        node.api.get("/accounts?address=" + Saccount.address.toLowerCase())
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("account").that.is.an("object");
+                node.expect(res.body.account.address).to.equal(Saccount.address);
+                node.expect(res.body.account.publicKey).to.equal(Saccount.publicKey);
+                node.expect(res.body.account.balance).to.equal(Saccount.balance);
+                done();
+            });
+    });
+
     it("Using invalid address. Should fail",function (done) {
         node.api.get("/accounts?address=thisIsNOTAValidLiskAddress")
             .set("Accept", "application/json")
