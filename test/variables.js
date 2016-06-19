@@ -22,7 +22,7 @@ var config = require("../config.json"),
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
 var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-var version = "0.2.1" // Node version
+var version = "0.0.0" // Node version
 
 // Holds Fee amounts for different transaction types
 var Fees = {
