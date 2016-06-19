@@ -35,7 +35,7 @@ const DappsSql = {
 
   getCommonBlock: 'SELECT b."height" AS "height", t."id" AS "id", t."senderId" AS "senderId", t."amount" AS "amount" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" AND t."id" = ${id} AND t."type" = ${type} INNER JOIN intransfer dt ON dt."transactionId" = t."id" AND dt."dappid" = ${dappid}',
 
-  getWithdrawalTransaction: 'SELECT ot."outTransactionId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" AND t."type" = ${type} INNER JOIN outtransfer ot ON ot."transactionId" = t."id" AND ot."dappId" = ${dappid} ORDER BY b."height" DESC LIMIT 1',
+  getWithdrawalLastTransaction: 'SELECT ot."outTransactionId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" AND t."type" = ${type} INNER JOIN outtransfer ot ON ot."transactionId" = t."id" AND ot."dappId" = ${dappid} ORDER BY b."height" DESC LIMIT 1',
 
   getBalanceTransactions: function (params) {
     return [
