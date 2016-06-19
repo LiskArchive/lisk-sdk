@@ -12,9 +12,9 @@ describe("POST /peer/transactions", function () {
 
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", "wrongnethash")
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -33,9 +33,9 @@ describe("POST /peer/transactions", function () {
 
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -50,11 +50,12 @@ describe("POST /peer/transactions", function () {
 
     it("Using transaction with undefined recipientId. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction(undefined, 1, node.Gaccount.password);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -70,11 +71,12 @@ describe("POST /peer/transactions", function () {
 
     it("Using transaction with negative amount. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction("1L", -1, node.Gaccount.password);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -92,11 +94,12 @@ describe("POST /peer/transactions", function () {
         var transaction = node.lisk.transaction.createTransaction("12L", 1, node.Gaccount.password);
         transaction.recipientId = "1L";
         transaction.id = node.lisk.crypto.getId(transaction);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -112,11 +115,12 @@ describe("POST /peer/transactions", function () {
 
     it("When sender has no funds. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction("1L", 1, "randomstring");
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -130,15 +134,16 @@ describe("POST /peer/transactions", function () {
             });
     });
 
-    it("Usin fake signature. Should fail", function (done) {
+    it("Using fake signature. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction("12L", 1, node.Gaccount.password);
         transaction.signature = crypto.randomBytes(64).toString("hex");
         transaction.id = node.lisk.crypto.getId(transaction);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -156,11 +161,12 @@ describe("POST /peer/transactions", function () {
         var transaction = node.lisk.transaction.createTransaction("12L", 1, node.Gaccount.password);
         transaction.signature = node.randomPassword();
         transaction.senderPublicKey = node.randomPassword();
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -177,11 +183,12 @@ describe("POST /peer/transactions", function () {
     it("Using very large amount and genesis block id. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction("12L", 10000000000000000, node.Gaccount.password);
         transaction.blockId = genesisblock.id;
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -195,12 +202,14 @@ describe("POST /peer/transactions", function () {
     });
 
     it("Using overflown amount. Should fail", function (done) {
-        var transaction = node.lisk.transaction.createTransaction("12L", 184819291270000000012910218291201281920128129, node.Gaccount.password);
+        var transaction = node.lisk.transaction.createTransaction("12L", 184819291270000000012910218291201281920128129,
+        node.Gaccount.password);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -216,11 +225,12 @@ describe("POST /peer/transactions", function () {
 
     it("Using float amount. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction("12L", 1.3, node.Gaccount.password);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
