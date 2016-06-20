@@ -1,5 +1,6 @@
 var strftime = require("strftime").utc();
 var fs = require("fs");
+var util = require('util');
 require("colors");
 
 module.exports = function (config) {
@@ -14,6 +15,16 @@ module.exports = function (config) {
 		"warn": 4,
 		"error": 5,
 		"fatal": 6
+	}
+
+	config.level_abbr = config.level_abbr || {
+		"trace" : "trc",
+		"debug" : "dbg",
+		"log": "log",
+		"info": "inf",
+		"warn": "WRN",
+		"error": "ERR",
+		"fatal": "FTL"
 	}
 
 	config.filename = config.filename || __dirname + "/logs.log";
@@ -44,13 +55,23 @@ module.exports = function (config) {
 			}
 
 			data && (log["data"] = snipsecret(data));
+			var data_str = log.data ? JSON.stringify(log.data) : "";
+			var level_str = config.level_abbr[log.level] ? config.level_abbr[log.level] : "???";
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
-				log_file.write(JSON.stringify(log) + "\n");
+				if (log.data){
+					log_file.write(util.format("[%s] %s | %s - %s\n", level_str, log.timestamp, log.message, data_str));
+				} else {
+					log_file.write(util.format("[%s] %s | %s\n", level_str, log.timestamp, log.message));
+				}
 			}
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
-					console.log(log.level.bgYellow.black, log.timestamp.grey, log.message, log.data ? log.data : "");
+					if (log.data){
+						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message, "-", data_str);
+					} else {
+						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message);
+					}
 				}catch (e){
 					console.log(e)
 				}
