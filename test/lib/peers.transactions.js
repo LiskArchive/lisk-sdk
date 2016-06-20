@@ -48,6 +48,59 @@ describe("POST /peer/transactions", function () {
             });
     });
 
+    it("Using varying recipientId casing. Transactions should go to same address", function (done) {
+        var account = node.randomAccount();
+        var keys = node.lisk.crypto.getKeys(account.password);
+        var address = node.lisk.crypto.getAddress(keys.publicKey);
+
+        function postTransaction (address, done) {
+            var transaction = node.lisk.transaction.createTransaction(address, 100000000, node.Gaccount.password);
+
+            node.peer.post("/transactions")
+                .set("Accept", "application/json")
+                .set("version", node.version)
+                .set("nethash", node.config.nethash)
+                .set("port", node.config.port)
+                .send({
+                    transaction: transaction
+                })
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    done(err, res);
+                });
+        }
+
+        function getAddress (address, done) {
+            node.api.get("/accounts?address=" + address)
+                .set("Accept", "application/json")
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    // console.log(JSON.stringify(res.body));
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    node.expect(res.body).to.have.property("account").that.is.an("object");
+                    done(err, res);
+                });
+        }
+
+        postTransaction(address, function (err, res) {
+            // console.log(JSON.stringify(res.body));
+            node.onNewBlock(function () {
+                postTransaction(address.toLowerCase(), function (err, res) {
+                    // console.log(JSON.stringify(res.body));
+                    node.onNewBlock(function () {
+                        getAddress(address, function (err, res) {
+                            // console.log(JSON.stringify(res.body));
+                            node.expect(res.body.account).to.have.property("balance").to.eql("200000000");
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+    });
+
     it("Using transaction with undefined recipientId. Should fail", function (done) {
         var transaction = node.lisk.transaction.createTransaction(undefined, 1, node.Gaccount.password);
 

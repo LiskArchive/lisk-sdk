@@ -588,6 +588,9 @@ Account.prototype.toDB = function (raw) {
 		}
 	});
 
+	// Normalize address
+	raw.address = String(raw.address).toUpperCase();
+
 	return raw;
 }
 
@@ -681,6 +684,9 @@ Account.prototype.set = function (address, fields, cb) {
 	});
 	sqles.push(sql);
 
+	// Normalize address
+	address = String(address).toUpperCase();
+
 	var sql = jsonSql.build({
 		type: 'update',
 		table: this.table,
@@ -712,6 +718,9 @@ Account.prototype.merge = function (address, diff, cb) {
 	if (diff.publicKey !== undefined && !diff.publicKey) {
 		console.log("!!!!!!!!!!!!!!!!!!!!!!!", address, diff);
 	}
+
+	// Normalize address
+	address = String(address).toUpperCase();
 
 	this.editable.forEach(function (value) {
 		if (diff[value] !== undefined) {
