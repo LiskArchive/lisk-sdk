@@ -54,6 +54,7 @@
         }
     },
     "forging": {
+        "force": false,
         "secret": [],
         "access": {
             "whiteList": [
