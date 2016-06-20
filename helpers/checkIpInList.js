@@ -1,4 +1,5 @@
 var ip = require('ip');
+var _ = require('underscore');
 
 /*
   Checks if ip address is in list (e.g. whitelist, blacklist).
@@ -9,7 +10,13 @@ var ip = require('ip');
   @returns true if ip is in the list, false otherwise
 */
 function CheckIpInList (list, addr, returnListIsEmpty) {
-	returnListIsEmpty = returnListIsEmpty || true;
+	if (!_.isBoolean(returnListIsEmpty)) {
+		returnListIsEmpty = true;
+	}
+
+	if (!_.isArray(list) || list.length == 0) {
+		return returnListIsEmpty;
+	}
 
 	if (!list._subNets) { // First call, create subnet list
 		list._subNets = [];
