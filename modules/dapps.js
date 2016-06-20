@@ -1580,8 +1580,7 @@ private.removeDApp = function (dapp, cb) {
 
 private.downloadLink = function (dapp, dappPath, cb) {
 	var tmpDir = "tmp",
-	    tmpPath = path.join(private.appPath, tmpDir, dapp.transactionId + ".zip"),
-	    file = fs.createWriteStream(tmpPath);
+	    tmpPath = path.join(private.appPath, tmpDir, dapp.transactionId + ".zip");
 
 	async.series({
 		makeDirectory: function (serialCb) {
@@ -1601,6 +1600,7 @@ private.downloadLink = function (dapp, dappPath, cb) {
 		},
 		performDownload: function (serialCb) {
 			var download = request.get(dapp.link, { timeout: 12000 });
+			var file = fs.createWriteStream(tmpPath);
 
 			download.on("response", function (response) {
 				if (response.statusCode !== 200) {
