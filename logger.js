@@ -18,8 +18,8 @@ module.exports = function (config) {
 	}
 
 	config.level_abbr = config.level_abbr || {
-		"trace" : "trc",
-		"debug" : "dbg",
+		"trace": "trc",
+		"debug": "dbg",
 		"log": "log",
 		"info": "inf",
 		"warn": "WRN",
@@ -37,9 +37,9 @@ module.exports = function (config) {
 		config.errorLevel = errorLevel;
 	}
 
-	function snipsecret(data){
+	function snipsecret (data) {
 		for (var key in data) {
-			if (key.search(/secret/i) > -1){
+			if (key.search(/secret/i) > -1) {
 				data[key] = "XXXXXXXXXX";
 			}
 		}
@@ -59,7 +59,7 @@ module.exports = function (config) {
 			var level_str = config.level_abbr[log.level] ? config.level_abbr[log.level] : "???";
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
-				if (log.data){
+				if (log.data) {
 					log_file.write(util.format("[%s] %s | %s - %s\n", level_str, log.timestamp, log.message, data_str));
 				} else {
 					log_file.write(util.format("[%s] %s | %s\n", level_str, log.timestamp, log.message));
@@ -67,12 +67,12 @@ module.exports = function (config) {
 			}
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
-					if (log.data){
+					if (log.data) {
 						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message, "-", data_str);
 					} else {
 						console.log("["+level_str.bgYellow.black+"]", log.timestamp.grey, "|", log.message);
 					}
-				}catch (e){
+				} catch (e){
 					console.log(e)
 				}
 			}
