@@ -334,12 +334,12 @@ d.run(function () {
 
 				if (parts.length > 1) {
 					if (parts[1] == "api") {
-						if (!checkIpInList(scope.config.api.access.whiteList, ip))
+						if (!checkIpInList(scope.config.api.access.whiteList, ip, true))
 							res.sendStatus(403);
 						else
 							next();
 					} else if (parts[1] == "peer") {
-						if (checkIpInList(scope.config.peers.blackList, ip))
+						if (checkIpInList(scope.config.peers.blackList, ip, false))
 							res.sendStatus(403);
 						else
 							next();
