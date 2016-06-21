@@ -608,128 +608,26 @@ Blocks.prototype.loadBlocksPart = function (filter, cb) {
 Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
-
+	library.logger.debug("loadBlocksOffset",{limit:limit, offset:offset, verify:verify});
 	library.dbSequence.add(function (cb) {
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
-				var blocks = private.readDbRows(rows);
+			var blocks = private.readDbRows(rows);
+			async.eachSeries(blocks, function (block, cb){
+				library.logger.debug("processing block",block.id);
+				if (verify && block.id != genesisblock.block.id) {
+					// Sanity check of the block, if values are coherent.
+					// No access to database.
+					var check=self.verifyBlock(block);
 
-				async.eachSeries(blocks, function (block, cb) {
-					async.series([
-						function (cb) {
-							if (block.id != genesisblock.block.id) {
-								if (verify) {
-									if (block.previousBlock != private.lastBlock.id) {
-										return cb({
-											message: "Can't verify previous block",
-											block: block
-										});
-									}
-
-									try {
-										var valid = library.logic.block.verifySignature(block);
-									} catch (e) {
-										return setImmediate(cb, {
-											message: e.toString(),
-											block: block
-										});
-									}
-									if (!valid) {
-										// Need to break cycle and delete this block and blocks after this block
-										return cb({
-											message: "Can't verify signature",
-											block: block
-										});
-									}
-
-									modules.delegates.validateBlockSlot(block, function (err) {
-										if (err) {
-											return cb({
-												message: err,
-												block: block
-											});
-										}
-										cb();
-									});
-								} else {
-									setImmediate(cb);
-								}
-							} else {
-								setImmediate(cb);
-							}
-						}, function (cb) {
-							block.transactions = block.transactions.sort(function (a, b) {
-								if (block.id == genesisblock.block.id) {
-									if (a.type == transactionTypes.VOTE)
-										return 1;
-								}
-
-								if (a.type == transactionTypes.SIGNATURE) {
-									return 1;
-								}
-
-								return 0;
-							});
-
-							async.eachSeries(block.transactions, function (transaction, cb) {
-								if (verify) {
-									modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-										if (err) {
-											return cb({
-												message: err,
-												transaction: transaction,
-												block: block
-											});
-										}
-										if (verify && block.id != genesisblock.block.id) {
-											library.logic.transaction.verify(transaction, sender, function (err) {
-												if (err) {
-													return setImmediate(cb, {
-														message: err,
-														transaction: transaction,
-														block: block
-													});
-												}
-												private.applyTransaction(block, transaction, sender, cb);
-											});
-										} else {
-											private.applyTransaction(block, transaction, sender, cb);
-										}
-									});
-								} else {
-									setImmediate(cb);
-								}
-							}, function (err) {
-								if (err) {
-									library.logger.error(err);
-									var lastValidTransaction = _.findIndex(block.transactions, function (trs) {
-										return trs.id == err.transaction.id;
-									});
-									var transactions = block.transactions.slice(0, lastValidTransaction + 1);
-									async.eachSeries(transactions.reverse(), function (transaction, cb) {
-										async.series([
-											function (cb) {
-												modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-													if (err) {
-														return cb(err);
-													}
-													modules.transactions.undo(transaction, block, sender, cb);
-												});
-											}, function (cb) {
-												modules.transactions.undoUnconfirmed(transaction, cb);
-											}
-										], cb);
-									}, cb);
-								} else {
-									private.lastBlock = block;
-
-									modules.round.tick(private.lastBlock, cb);
-								}
-							});
-						}
-					], cb);
-				}, function (err) {
-					cb(err, private.lastBlock);
-				});
+					if(!check.verified){
+						library.logger.error("Block is erroneous: ", check.errors);
+						return setImmediate(cb, check.errors[0]);
+					}
+				}
+				private.applyBlock(block, false, cb, false);
+			},function(err){
+				setImmediate(cb, err);
+			});
 		}).catch(function (err) {
 			// Notes:
 			// If while loading we encounter an error, for example, an invalid signature on a block & transaction, then we need to stop loading and remove all blocks after the last good block. We also need to process all transactions within the block.
@@ -769,234 +667,333 @@ Blocks.prototype.getLastBlock = function () {
 	return private.lastBlock;
 }
 
-Blocks.prototype.processBlock = function (block, broadcast, cb) {
-	if (!private.loaded) {
-		return setImmediate(cb, "Blockchain is loading");
+// Will return all possible errors that are intrinsec to the block
+// NO DATABASE access
+Blocks.prototype.verifyBlock = function (block){
+
+
+	var result = {verified: false, errors: []};
+
+	try {
+		block.id = library.logic.block.getId(block);
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
+	block.height = private.lastBlock.height + 1;
+
+	if (!block.previousBlock && block.height != 1) {
+		result.errors.push("Invalid previous block");
+	}
+
+	var expectedReward = private.blockReward.calcReward(block.height);
+
+	if (block.height != 1 && expectedReward !== block.reward) {
+		result.errors.push("Invalid block reward");
+	}
+
+	try {
+		var valid = library.logic.block.verifySignature(block);
+	} catch (e) {
+		result.errors.push(cb, e.toString());
+	}
+	if (!valid) {
+		result.errors.push("Can't verify signature: " + block.id);
+	}
+
+	if (block.previousBlock != private.lastBlock.id) {
+		// Fork: Same height but different previous block id
+		modules.delegates.fork(block, 1);
+		result.errors.push("Can't verify previous block: " + block.id);
+	}
+
+	if (block.version > 0) {
+		result.errors.push("Invalid block version: " + block.id);
+	}
+
+	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
+	var lastBlockSlotNumber = slots.getSlotNumber(private.lastBlock.timestamp);
+
+	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
+		result.errors.push("Can't verify block timestamp: " + block.id);
+	}
+
+	if (block.payloadLength > constants.maxPayloadLength) {
+		result.errors.push("Can't verify payload length of block: " + block.id);
+	}
+
+	if (block.transactions.length != block.numberOfTransactions || block.transactions.length > constants.maxTxsPerBlock) {
+		result.errors.push("Invalid amount of block assets: " + block.id);
+	}
+
+	// checking if transactions of the block adds up to block values
+	var totalAmount = 0,
+		  totalFee = 0,
+		  payloadHash = crypto.createHash('sha256'),
+			appliedTransactions = {};
+
+	for(var i in block.transactions){
+		transaction=block.transactions[i];
+		try {
+			var bytes = library.logic.transaction.getBytes(transaction);
+		} catch (e) {
+			result.errors.push(e.toString());
+		}
+		if(appliedTransactions[transaction.id]){
+			result.errors.push("Duplicate transaction id in block " + block.id);
+		}
+		appliedTransactions[transaction.id]=transaction;
+		payloadHash.update(bytes);
+		totalAmount += transaction.amount;
+		totalFee += transaction.fee;
+	}
+
+	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
+		result.errors.push("Invalid payload hash: " + block.id);
+	}
+
+	if (totalAmount != block.totalAmount) {
+		result.errors.push("Invalid total amount: " + block.id);
+	}
+
+	if (totalFee != block.totalFee) {
+		result.errors.push("Invalid total fee: " + block.id);
+	}
+
+	result.verified = result.errors.length == 0;
+
+	return result;
+
+};
+
+
+// apply the block, provided it has been verified.
+private.applyBlock = function (block, broadcast, cb, saveBlock){
+	// Don't shut the node right now as it might kill the database state
 	private.isActive = true;
 
 	library.balancesSequence.add(function (cb) {
-		try {
-			block.id = library.logic.block.getId(block);
-		} catch (e) {
-			private.isActive = false;
-			return setImmediate(cb, e.toString());
-		}
 
-		block.height = private.lastBlock.height + 1;
-
+		// Pop current unconfirmed Transactions list before applying block
+		// To remove the applied transactions in the block if present
+		// TODO: I think it should be possible to remove this call if we could garanty that only this function is processing transactions atomically
+		// TODO: I expect then a faster function.
+		// TODO: Other possibility, when we rebuild from block chain this actiohn should be moved out of the rebuild function
+		// DATABASE write
 		modules.transactions.undoUnconfirmedList(function (err, unconfirmedTransactions) {
 			if (err) {
 				private.isActive = false;
+				// TODO: send a numbered signal to be caught by forever to trigger a rebuild.
 				return process.exit(0);
 			}
 
+			// Called later on when the process has finished (correctly or with errors)
 			function done(err) {
+				// Push back unconfirmed Transactions list (minus the one that were on the block if applied correctly)
+				// TODO: see undoUnconfirmedList discussion few lines before.
+				// DATABASE write
 				modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function () {
 					private.isActive = false;
 					setImmediate(cb, err);
 				});
 			}
 
-			if (!block.previousBlock && block.height != 1) {
-				return setImmediate(done, "Invalid previous block");
-			}
+			// Transactions to rewind in case of error
+			// TODO: when rebuilding we could get rid off this because gtransactions are all supposed to be verified
+			// TODO: No great speed improvement expected.
+			var appliedTransactions = {};
 
-			var expectedReward = private.blockReward.calcReward(block.height);
+			async.eachSeries(block.transactions, function (transaction, cb) {
 
-			if (block.height != 1 && expectedReward !== block.reward) {
-				return setImmediate(done, "Invalid block reward");
-			}
+				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 
-			library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
-				var bId = rows.length && rows[0].id;
-
-				if (bId) {
-					return done("Block already exists: " + block.id);
-				}
-
-				try {
-					var valid = library.logic.block.verifySignature(block);
-				} catch (e) {
-					return setImmediate(cb, e.toString());
-				}
-				if (!valid) {
-					return done("Can't verify signature: " + block.id);
-				}
-
-				if (block.previousBlock != private.lastBlock.id) {
-					// Fork: Same height but different previous block id
-					modules.delegates.fork(block, 1);
-					return done("Can't verify previous block: " + block.id);
-				}
-
-				if (block.version > 0) {
-					return done("Invalid block version: " + block.id)
-				}
-
-				var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-				var lastBlockSlotNumber = slots.getSlotNumber(private.lastBlock.timestamp);
-
-				if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-					return done("Can't verify block timestamp: " + block.id);
-				}
-
-				modules.delegates.validateBlockSlot(block, function (err) {
-					if (err) {
-						// Fork: Invalid generatorPublicKey for block slot
-						modules.delegates.fork(block, 3);
-						return done(err);
-					}
-					if (block.payloadLength > constants.maxPayloadLength) {
-						return done("Can't verify payload length of block: " + block.id);
-					}
-
-					if (block.transactions.length != block.numberOfTransactions || block.transactions.length > constants.maxTxsPerBlock) {
-						return done("Invalid amount of block assets: " + block.id);
-					}
-
-					// Check payload hash, transaction, number of confirmations
-					var totalAmount = 0, totalFee = 0, payloadHash = crypto.createHash('sha256'), appliedTransactions = {}, acceptedRequests = {}, acceptedConfirmations = {};
-
-					async.eachSeries(block.transactions, function (transaction, cb) {
-						try {
-							transaction.id = library.logic.transaction.getId(transaction);
-						} catch (e) {
-							return setImmediate(cb, e.toString());
-						}
-
-						transaction.blockId = block.id;
-
-						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
-								var tId = rows.length && rows[0].id;
-
-								if (tId) {
-									// Fork: Transaction already exists
-									modules.delegates.fork(block, 2);
-									setImmediate(cb, "Transaction already exists: " + transaction.id);
-								} else {
-									if (appliedTransactions[transaction.id]) {
-										return setImmediate(cb, "Duplicated transaction in block: " + transaction.id);
-									}
-
-									modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-										if (err) {
-											return cb(err);
-										}
-
-										library.logic.transaction.verify(transaction, sender, function (err) {
-											if (err) {
-												return setImmediate(cb, err);
-											}
-
-											modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
-												if (err) {
-													return setImmediate(cb, "Failed to apply transaction: " + transaction.id);
-												}
-
-												try {
-													var bytes = library.logic.transaction.getBytes(transaction);
-												} catch (e) {
-													return setImmediate(cb, e.toString());
-												}
-
-												appliedTransactions[transaction.id] = transaction;
-
-												var index = unconfirmedTransactions.indexOf(transaction.id);
-												if (index >= 0) {
-													unconfirmedTransactions.splice(index, 1);
-												}
-
-												payloadHash.update(bytes);
-
-												totalAmount += transaction.amount;
-												totalFee += transaction.fee;
-
-												setImmediate(cb);
-											});
-										});
-									});
-								}
-							}
-						).catch(function (err) {
-							library.logger.error(err.toString());
-							return cb("Blocks#processBlock error");
-						});
-					}, function (err) {
-						var errors = [];
-
+					// If it fails we need to rewind the previous applied transactions of the blocks in appliedTransactions
+					// DATABASE: write. Apply transaction to mem_accounts u_* fields
+					modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 						if (err) {
-							errors.push(err);
+							return setImmediate(cb, "Failed to apply transaction: " + transaction.id);
+						}
+						appliedTransactions[transaction.id] = transaction;
+
+						// Remove the transaction from the node queue, if it was present
+						var index = unconfirmedTransactions.indexOf(transaction.id);
+						if (index >= 0) {
+							unconfirmedTransactions.splice(index, 1);
 						}
 
-						if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-							errors.push("Invalid payload hash: " + block.id);
-						}
-
-						if (totalAmount != block.totalAmount) {
-							errors.push("Invalid total amount: " + block.id);
-						}
-
-						if (totalFee != block.totalFee) {
-							errors.push("Invalid total fee: " + block.id);
-						}
-
-						if (errors.length > 0) {
-							async.eachSeries(block.transactions, function (transaction, cb) {
-								if (appliedTransactions[transaction.id]) {
-									modules.transactions.undoUnconfirmed(transaction, cb);
-								} else {
-									setImmediate(cb);
-								}
-							}, function () {
-								done(errors[0]);
-							});
-						} else {
-							try {
-								block = library.logic.block.objectNormalize(block);
-							} catch (e) {
-								return setImmediate(done, e);
-							}
-
-							async.eachSeries(block.transactions, function (transaction, cb) {
-								modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-									if (err) {
-										library.logger.error("Failed to apply transactions: " + transaction.id);
-										process.exit(0);
-									}
-									modules.transactions.apply(transaction, block, sender, function (err) {
-										if (err) {
-											library.logger.error("Failed to apply transactions: " + transaction.id);
-											process.exit(0);
-										}
-										modules.transactions.removeUnconfirmedTransaction(transaction.id);
-										setImmediate(cb);
-									});
-								});
-							}, function (err) {
-								private.saveBlock(block, function (err) {
-									if (err) {
-										library.logger.error("Failed to save block...");
-										process.exit(0);
-									}
-
-									library.bus.message('newBlock', block, broadcast);
-									private.lastBlock = block;
-
-									modules.round.tick(block, done);
-								});
-							});
-						}
+						setImmediate(cb);
 					});
 				});
-			}).catch(function (err) {
-				library.logger.error(err.toString());
-				return done("Blocks#processBlock error");
+			}, function (err) {
+				if (err) {
+					// Rewind the already applied transactions of the block to leave the database in the state of the previous block
+					// In case of rebuilding, this should never happen. Optimising here is meaningless
+					async.eachSeries(block.transactions, function (transaction, cb) {
+						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function(sender,cb){
+
+							// The transaction has been applied?
+							if (appliedTransactions[transaction.id]) {
+								// DATABASE: write.
+								library.logic.transactions.undoUnconfirmed(transaction, sender, cb);
+							} else {
+								setImmediate(cb);
+							}
+						});
+					}, function () {
+						done(err);
+					});
+				} else {
+					//Everything is ok now we apply the unconfirmed to confirmed
+					async.eachSeries(block.transactions, function (transaction, cb) {
+						// TODO: To be optimised because even if pubkey is already present in db, the write call is done anyway.
+						// DATABASE: write
+						modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+							if (err) {
+								library.logger.error("Failed to apply transactions: " + transaction.id);
+								// TODO: send a numbered signal to be caught by forever to trigger a rebuild.
+								process.exit(0);
+							}
+							// DATABASE: write
+							modules.transactions.apply(transaction, block, sender, function (err) {
+								if (err) {
+									library.logger.error("Failed to apply transactions: " + transaction.id);
+									// TODO: send a numbered signal to be caught by forever to trigger a rebuild.
+									process.exit(0);
+								}
+								// Transaction applied, removed from the unconfirmed list
+								// In memory list, no database access.
+								modules.transactions.removeUnconfirmedTransaction(transaction.id);
+								setImmediate(cb);
+							});
+						});
+					}, function (err) {
+						// Save the block into the database
+						// DATABASE: write
+						if(saveBlock){
+							private.saveBlock(block, function (err) {
+							 if (err) {
+								 library.logger.error("Failed to save block...");
+								 // TODO: send a numbered signal to be caught by forever to trigger a normal restart (ie restarting the db).
+								 process.exit(0);
+							 }
+
+							 library.logger.debug("Block applied corrrectly with "+block.transactions.length+" transactions");
+
+							 library.bus.message('newBlock', block, broadcast);
+
+							 private.lastBlock = block;
+
+							 //DATABASE write. Update delegates accounts
+							 modules.round.tick(block, done);
+						 });
+						}
+						else{
+							library.bus.message('newBlock', block, broadcast);
+							private.lastBlock = block;
+							//DATABASE write. Update delegates accounts
+							modules.round.tick(block, done);
+						}
+					});
+				}
 			});
 		});
 	}, cb);
 }
+
+
+// Main function to process a Block.
+// * Verify the block looks ok
+// * Verify the block is compatible with database state (DATABASE readonly)
+// * Apply the block to database if both verifications are ok
+Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
+	if (!private.loaded) {
+		return setImmediate(cb, "Blockchain is loading");
+	}
+
+	try {
+		block = library.logic.block.objectNormalize(block);
+	} catch (err) {
+		return setImmediate(cb, err);
+	}
+
+	// Sanity check of the block, if values are coherent.
+	// No access to database.
+	var check=self.verifyBlock(block);
+
+	if(!check.verified){
+		library.logger.error("Block is erroneous: ", check.errors);
+		return setImmediate(cb, check.errors[0]);
+	}
+
+
+	// Check if block id is already in the database (very low probability of hash collision)
+	// TODO: in case of hash-collision, to me it would be a special autofork...
+	// DATABASE: read only
+	library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
+		if (rows.length>0) {
+			return setImmediate(cb, "Block already exists: " + block.id);
+		}
+
+		// Check if block was generated by the right active delagate. Otherwise, fork 3.
+		// DATABASE: read only to mem_accounts to extract active delegate list
+		modules.delegates.validateBlockSlot(block, function (err) {
+			if (err) {
+				modules.delegates.fork(block, 3);
+				return setImmediate(cb, err);
+			}
+
+			// Check against the mem_* tables that you can perform the transactions included in the block
+			async.eachSeries(block.transactions, function(transaction, cb){
+				async.waterfall([
+					function(callback){
+						try {
+							transaction.id = library.logic.transaction.getId(transaction);
+						} catch (e) {
+							return callback(e.toString());
+						}
+						transaction.blockId = block.id;
+						// Check if transaction is already in database, otherwise fork 2
+						// DATABASE: read only
+						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
+							if (rows.length > 0) {
+								modules.delegates.fork(block, 2);
+								callback("Transaction already exists: " + transaction.id);
+							}
+							else{
+								// Get account from database if any (otherwise cold wallet)
+								// DATABASE: read only
+								modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, callback);
+							}
+						}).catch(function (err) {
+							callback("Blocks#processBlock error: " + err.toString());
+						});
+					},
+					function(sender, callback){
+
+						// Check if transaction id valid against database state (mem_* tables)
+						// DATABASE: read only
+						library.logic.transaction.verify(transaction, sender, callback);
+					}
+				],
+				function(err){
+					cb(err);
+				})
+			},
+			function(err){
+				if(err) {
+					return setImmediate(cb, err);
+				}
+				else {
+					// The block and the transactions are OK ie:
+					// * block and transactions have valid values (signatures, block slots, etc...)
+					// * the check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
+					// We thus update the database with the transactions values, save the block and tick it.
+					private.applyBlock(block, broadcast, cb, saveBlock);
+				}
+			});
+		});
+	});
+};
 
 Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 	library.db.query(sql.simpleDeleteAfterBlock, { id: blockId }).then(function (res) {
@@ -1005,7 +1002,7 @@ Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 		library.logger.error(err.toString());
 		return cb("Blocks#simpleDeleteAfterBlock error");
 	});
-}
+};
 
 Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 	var loaded = false;
@@ -1067,7 +1064,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
 							}
 
 							return cb(err);
-						});
+						}, true);
 					}, next);
 				}
 			});
@@ -1130,7 +1127,7 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 			return setImmediate(cb, e);
 		}
 
-		self.processBlock(block, true, cb);
+		self.processBlock(block, true, cb, true);
 	});
 }
 
@@ -1150,7 +1147,7 @@ Blocks.prototype.onReceiveBlock = function (block) {
 		if (block.previousBlock == private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			library.logger.info('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
 			self.lastReceipt(new Date());
-			self.processBlock(block, true, cb);
+			self.processBlock(block, true, cb, true);
 		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
 			// Fork: Same height but different previous block id
 			modules.delegates.fork(block, 1);
