@@ -608,7 +608,6 @@ Blocks.prototype.loadBlocksPart = function (filter, cb) {
 Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
-
 	library.dbSequence.add(function (cb) {
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
 				var blocks = private.readDbRows(rows);
@@ -737,6 +736,36 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			return cb("Blocks#loadBlocksOffset error");
 		});
 	}, cb);
+
+
+			// async.eachSeries(blocks, function (block, cb){
+			// 	if (block.id == genesisblock.block.id) {
+			// 		async.eachSeries(block.transactions, function (transaction, cb) {
+			// 			//library.logger.debug("",transaction);
+			// 			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+			// 				//library.logger.debug(err);
+			// 				if (err) {
+			// 					return cb({
+			// 						message: err,
+			// 						transaction: transaction,
+			// 						block: block
+			// 					});
+			// 				}
+			// 				private.applyTransaction(block, transaction, sender, cb);
+			// 			});
+			// 		}, function (err) {
+			// 			if (err) {
+			// 				process.quit(0);
+			// 			} else {
+			// 				private.lastBlock = block;
+			// 				modules.round.tick(private.lastBlock, cb);
+			// 			}
+			// 		});
+			//
+			// 	} else {
+			// 		self.processBlock(block, false, cb);
+			// 	}
+			// });
 }
 
 Blocks.prototype.loadLastBlock = function (cb) {
@@ -882,7 +911,7 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 		// TODO: I think it should be possible to remove this call if we could garanty that only this function is processing transactions atomically
 		// TODO: I expect then a faster function.
 		// TODO: Other possibility, when we rebuild from block chain this actiohn should be moved out of the rebuild function
-		// DATABASE write 
+		// DATABASE write
 		modules.transactions.undoUnconfirmedList(function (err, unconfirmedTransactions) {
 			if (err) {
 				private.isActive = false;
@@ -907,24 +936,25 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 			var appliedTransactions = {};
 
 			async.eachSeries(block.transactions, function (transaction, cb) {
-				// Get the sender from cache
-				var sender=senders[transaction.id];
 
-				// If it fails we need to rewind the previous applied transactions of the blocks in appliedTransactions
-				// DATABASE: write. Apply transaction to mem_accounts u_* fields
-				modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
-					if (err) {
-						return setImmediate(cb, "Failed to apply transaction: " + transaction.id);
-					}
-					appliedTransactions[transaction.id] = transaction;
+				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 
-					// Remove the transaction from the node queue, if it was present
-					var index = unconfirmedTransactions.indexOf(transaction.id);
-					if (index >= 0) {
-						unconfirmedTransactions.splice(index, 1);
-					}
+					// If it fails we need to rewind the previous applied transactions of the blocks in appliedTransactions
+					// DATABASE: write. Apply transaction to mem_accounts u_* fields
+					modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
+						if (err) {
+							return setImmediate(cb, "Failed to apply transaction: " + transaction.id);
+						}
+						appliedTransactions[transaction.id] = transaction;
 
-					setImmediate(cb);
+						// Remove the transaction from the node queue, if it was present
+						var index = unconfirmedTransactions.indexOf(transaction.id);
+						if (index >= 0) {
+							unconfirmedTransactions.splice(index, 1);
+						}
+
+						setImmediate(cb);
+					});
 				});
 			}, function (err) {
 				if (err) {
