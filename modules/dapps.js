@@ -1609,7 +1609,9 @@ private.downloadLink = function (dapp, dappPath, cb) {
 			});
 
 			download.on("error", function (err) {
-				fs.unlink(file);
+				fs.exists(tmpPath, function (exists) {
+					if (exists) fs.unlink(tmpPath);
+				});
 				return serialCb(err.message);
 			});
 
