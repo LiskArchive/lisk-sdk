@@ -769,9 +769,13 @@ Blocks.prototype.getLastBlock = function () {
 	return private.lastBlock;
 }
 
+// Will return all possible errors that are intrinsec to the block
+// NO DATABASE access
 Blocks.prototype.verifyBlock = function (block){
 
+
 	var result = {verified: false, errors: []};
+
 	try {
 		block.id = library.logic.block.getId(block);
 	} catch (e) {
@@ -785,7 +789,7 @@ Blocks.prototype.verifyBlock = function (block){
 	}
 
 	var expectedReward = private.blockReward.calcReward(block.height);
-	library.logger.debug(expectedReward);
+
 	if (block.height != 1 && expectedReward !== block.reward) {
 		result.errors.push("Invalid block reward");
 	}
@@ -864,6 +868,9 @@ Blocks.prototype.verifyBlock = function (block){
 
 };
 
+
+// apply the block, provided it has been verified.
+// TODO: move to private.applyBlock?
 Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 	// Don't shut the node right now as it might kill the database state
 	private.isActive = true;
@@ -872,15 +879,22 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 
 		// Pop current unconfirmed Transactions list before applying block
 		// To remove the applied transactions in the block if present
+		// TODO: I think it should be possible to remove this call if we could garanty that only this function is processing transactions atomically
+		// TODO: I expect then a faster function.
+		// TODO: Other possibility, when we rebuild from block chain this actiohn should be moved out of the rebuild function
+		// DATABASE write 
 		modules.transactions.undoUnconfirmedList(function (err, unconfirmedTransactions) {
 			if (err) {
 				private.isActive = false;
+				// TODO: send a numbered signal to be caught by forever to trigger a rebuild.
 				return process.exit(0);
 			}
 
 			// Called later on when the process has finished (correctly or with errors)
 			function done(err) {
 				// Push back unconfirmed Transactions list (minus the one that were on the block if applied correctly)
+				// TODO: see undoUnconfirmedList discussion few lines before.
+				// DATABASE write
 				modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function () {
 					private.isActive = false;
 					setImmediate(cb, err);
@@ -888,6 +902,8 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 			}
 
 			// Transactions to rewind in case of error
+			// TODO: when rebuilding we could get rid off this because gtransactions are all supposed to be verified
+			// TODO: No great speed improvement expected.
 			var appliedTransactions = {};
 
 			async.eachSeries(block.transactions, function (transaction, cb) {
@@ -913,6 +929,7 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 			}, function (err) {
 				if (err) {
 					// Rewind the already applied transactions of the block to leave the database in the state of the previous block
+					// In case of rebuilding, this should never happen. Optimising here is meaningless
 					async.eachSeries(block.transactions, function (transaction, cb) {
 						var sender = senders[transaction.id];
 
@@ -929,20 +946,24 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 				} else {
 					//Everything is ok now we apply the unconfirmed to confirmed
 					async.eachSeries(block.transactions, function (transaction, cb) {
-						//DATABASE: write
+						// For some reason, just getting the account cache from senders is not enough, otherwise the pubkey is not written out.
+						// TODO: To be optimised because even if pubkey is already present in db, the write call is done anyway.
+						// DATABASE: write
 						modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 							if (err) {
 								library.logger.error("Failed to apply transactions: " + transaction.id);
+								// TODO: send a numbered signal to be caught by forever to trigger a rebuild.
 								process.exit(0);
 							}
-							//DATABASE: write
+							// DATABASE: write
 							modules.transactions.apply(transaction, block, sender, function (err) {
 								if (err) {
 									library.logger.error("Failed to apply transactions: " + transaction.id);
+									// TODO: send a numbered signal to be caught by forever to trigger a rebuild.
 									process.exit(0);
 								}
 								// Transaction applied, removed from the unconfirmed list
-								// in memory list, no database access.
+								// In memory list, no database access.
 								modules.transactions.removeUnconfirmedTransaction(transaction.id);
 								setImmediate(cb);
 							});
@@ -953,6 +974,7 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 						private.saveBlock(block, function (err) {
 							if (err) {
 								library.logger.error("Failed to save block...");
+								// TODO: send a numbered signal to be caught by forever to trigger a normal restart (ie restarting the db).
 								process.exit(0);
 							}
 
@@ -972,6 +994,11 @@ Blocks.prototype.applyBlock = function (block, senders, broadcast, cb){
 	}, cb);
 }
 
+
+// Main function to process a Block.
+// * Verify the block looks ok
+// * Verify the block is compatible with database state (DATABASE readonly)
+// * Apply the block to database if both verifications are ok
 Blocks.prototype.processBlock = function (block, broadcast, cb) {
 	if (!private.loaded) {
 		return setImmediate(cb, "Blockchain is loading");
@@ -985,17 +1012,18 @@ Blocks.prototype.processBlock = function (block, broadcast, cb) {
 
 	// Sanity check of the block, if values are coherent.
 	// No access to database.
-		var check=self.verifyBlock(block);
+	var check=self.verifyBlock(block);
 
-		if(!check.verified){
-			library.logger.error("Block is erroneous: ", check.errors);
-			return setImmediate(cb, check.errors[0]);
-		}
+	if(!check.verified){
+		library.logger.error("Block is erroneous: ", check.errors);
+		return setImmediate(cb, check.errors[0]);
+	}
 
 	// We cache the sender accounts
 	var senders={};
 
-	// check if block id is already in the database (very low probability of hash collision)
+	// Check if block id is already in the database (very low probability of hash collision)
+	// TODO: in case of hash-collision, to me it would be a special autofork...
 	// DATABASE: read only
 	library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
 		if (rows.length>0) {
