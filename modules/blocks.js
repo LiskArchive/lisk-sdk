@@ -733,7 +733,7 @@ Blocks.prototype.verifyBlock = function (block) {
 	    appliedTransactions = {};
 
 	for (var i in block.transactions) {
-		transaction = block.transactions[i];
+		var transaction = block.transactions[i];
 		try {
 			var bytes = library.logic.transaction.getBytes(transaction);
 		} catch (e) {
