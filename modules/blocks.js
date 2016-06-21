@@ -672,7 +672,7 @@ Blocks.prototype.getLastBlock = function () {
 // Will return all possible errors that are intrinsic to the block.
 // NO DATABASE access
 Blocks.prototype.verifyBlock = function (block) {
-	var result = {verified: false, errors: []};
+	var result = { verified: false, errors: [] };
 
 	try {
 		block.id = library.logic.block.getId(block);
@@ -734,14 +734,17 @@ Blocks.prototype.verifyBlock = function (block) {
 
 	for (var i in block.transactions) {
 		var transaction = block.transactions[i];
+
 		try {
 			var bytes = library.logic.transaction.getBytes(transaction);
 		} catch (e) {
 			result.errors.push(e.toString());
 		}
+
 		if (appliedTransactions[transaction.id]) {
 			result.errors.push("Duplicate transaction id in block " + block.id);
 		}
+
 		appliedTransactions[transaction.id] = transaction;
 		payloadHash.update(bytes);
 		totalAmount += transaction.amount;
@@ -799,7 +802,6 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 			var appliedTransactions = {};
 
 			async.eachSeries(block.transactions, function (transaction, cb) {
-
 				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 					// If it fails we need to rewind the previous applied transactions of the blocks in appliedTransactions.
 					// DATABASE: write. Apply transaction to mem_accounts u_* fields
