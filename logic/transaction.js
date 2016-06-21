@@ -446,7 +446,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 	var amount = trs.amount + trs.fee;
 
 	if (trs.blockId != genesisblock.block.id && sender.balance < amount) {
-		return setImmediate(cb, "Account has no LISK: " + sender.address +" balance="+sender.balance);
+		return setImmediate(cb, "Account has no LISK: " + sender.address + " balance=" + sender.balance);
 	}
 
 	this.scope.account.merge(sender.address, {
