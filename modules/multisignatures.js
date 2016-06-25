@@ -486,7 +486,7 @@ shared.pending = function (req, cb) {
 				if ((sender.publicKey == query.publicKey && sender.u_multisignatures.length > 0) || sender.u_multisignatures.indexOf(query.publicKey) >= 0 || sender.multisignatures.indexOf(query.publicKey) >= 0) {
 					var min = sender.u_multimin || sender.multimin;
 					var lifetime = sender.u_multilifetime || sender.multilifetime;
-					var signatures = sender.u_multisignatures.length;
+					var signatures = sender.u_multisignatures || [];
 
 					pendings.push({
 						max: signatures.length,
