@@ -468,7 +468,6 @@ shared.pending = function (req, cb) {
 				}
 			}
 
-
 			if (!signed && item.senderPublicKey == query.publicKey) {
 				signed = true;
 			}
@@ -509,7 +508,7 @@ shared.pending = function (req, cb) {
 Multisignatures.prototype.processSignature = function (tx, cb) {
 	var transaction = modules.transactions.getUnconfirmedTransaction(tx.transaction);
 
-	function done(cb) {
+	function done (cb) {
 		library.balancesSequence.add(function (cb) {
 			var transaction = modules.transactions.getUnconfirmedTransaction(tx.transaction);
 
@@ -521,7 +520,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			transaction.signatures.push(tx.signature);
 			library.bus.message('signature', transaction, true);
 
-			cb();
+			return cb();
 		}, cb);
 	}
 
@@ -553,7 +552,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			return cb("Failed to verify signature")
 		}
 
-		done(cb);
+		return done(cb);
 	} else {
 		modules.accounts.getAccount({
 			address: transaction.senderId
@@ -572,7 +571,6 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			if (!account) {
 				return cb("Account not found");
 			}
-
 
 			transaction.signatures = transaction.signatures || [];
 
@@ -645,7 +643,7 @@ shared.sign = function (req, cb) {
 
 		var sign = library.logic.transaction.multisign(keypair, transaction);
 
-		function done(cb) {
+		function done (cb) {
 			library.balancesSequence.add(function (cb) {
 				var transaction = modules.transactions.getUnconfirmedTransaction(body.transactionId);
 
@@ -660,13 +658,14 @@ shared.sign = function (req, cb) {
 					signature: sign,
 					transaction: transaction.id
 				}, true);
-				cb();
+
+				return cb();
 			}, function (err) {
 				if (err) {
 					return cb(err);
 				}
 
-				cb(null, {transactionId: transaction.id});
+				return cb(null, {transactionId: transaction.id});
 			});
 		}
 
@@ -676,7 +675,7 @@ shared.sign = function (req, cb) {
 			}
 
 			library.network.io.sockets.emit('multisignatures/signature/change', {});
-			done(cb);
+			return done(cb);
 		} else {
 			modules.accounts.getAccount({
 				address: transaction.senderId
@@ -704,7 +703,7 @@ shared.sign = function (req, cb) {
 				}
 
 				library.network.io.sockets.emit('multisignatures/signature/change', {});
-				done(cb);
+				return done(cb);
 			});
 		}
 	});
@@ -802,11 +801,10 @@ shared.addMultisignature = function (req, cb) {
 			}
 
 			library.network.io.sockets.emit('multisignatures/change', {});
-			cb(null, {transactionId: transaction[0].id});
+			return cb(null, {transactionId: transaction[0].id});
 		});
 	});
 }
-
 
 // Export
 module.exports = Multisignatures;
