@@ -1105,16 +1105,16 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
 		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
 			if (err || !sender) {
-				return cb("Invalid sender");
+				return setImmediate(cb, "Invalid sender");
 			}
 
 			if (library.logic.transaction.ready(transaction, sender)) {
 				library.logic.transaction.verify(transaction, sender, function (err) {
 					ready.push(transaction);
-					cb();
+					return setImmediate(cb);
 				});
 			} else {
-				setImmediate(cb);
+				return setImmediate(cb);
 			}
 		});
 	}, function () {

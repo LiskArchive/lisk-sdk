@@ -540,7 +540,7 @@ private.loop = function (cb) {
 				modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
 					modules.blocks.lastReceipt(new Date());
 					library.logger.info('Forged new block id: ' + modules.blocks.getLastBlock().id + ' height: ' + modules.blocks.getLastBlock().height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(currentBlockData.time) + ' reward: ' + modules.blocks.getLastBlock().reward);
-					return cb(err);
+					return setImmediate(cb, err);
 				});
 			} else {
 				// library.logger.debug('Loop:', _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
