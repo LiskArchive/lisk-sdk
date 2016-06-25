@@ -205,50 +205,46 @@ function Account(scope, cb) {
 		},
 		{
 			name: "multimin",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "integer",
 				minimum: 0,
 				maximum: 17
 			},
 			conv: Number,
-			expression: "(\"multimin\")::bigint",
 			default: 0
 		},
 		{
 			name: "u_multimin",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "integer",
 				minimum: 0,
 				maximum: 17
 			},
 			conv: Number,
-			expression: "(\"u_multimin\")::bigint",
 			default: 0
 		},
 		{
 			name: "multilifetime",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "integer",
 				minimum: 1,
 				maximum: 72
 			},
 			conv: Number,
-			expression: "(\"multilifetime\")::bigint",
 			default: 0
 		},
 		{
 			name: "u_multilifetime",
-			type: "BigInt",
+			type: "SmallInt",
 			filter: {
 				type: "integer",
 				minimum: 1,
 				maximum: 72
 			},
 			conv: Number,
-			expression: "(\"u_multilifetime\")::bigint",
 			default: 0
 		},
 		{
