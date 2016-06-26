@@ -134,7 +134,7 @@ function Vote() {
 		// console.log(raw.v_votes);
 
 		if (!raw.v_votes) {
-			return null
+			return null;
 		} else {
 			var votes = raw.v_votes.split(',');
 
