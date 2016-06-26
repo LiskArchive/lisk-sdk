@@ -641,10 +641,10 @@ describe("GET /multisignatures/pending", function () {
     });
 });
 
-describe("PUT /multisignatures/sign", function () {
+describe("POST /multisignatures/sign", function () {
 
     it("Using invalid passphrase. Should fail", function (done) {
-        node.api.put("/multisignatures/sign")
+        node.api.post("/multisignatures/sign")
             .set("Accept", "application/json")
             .send({
                 secret: 1234,
@@ -660,7 +660,7 @@ describe("PUT /multisignatures/sign", function () {
     });
 
     it("Using null passphrase. Should fail", function (done) {
-        node.api.put("/multisignatures/sign")
+        node.api.post("/multisignatures/sign")
             .set("Accept", "application/json")
             .send({
                 secret: null,
@@ -678,7 +678,7 @@ describe("PUT /multisignatures/sign", function () {
     it("Using undefined passphrase. Should fail", function (done) {
         var undefined;
 
-        node.api.put("/multisignatures/sign")
+        node.api.post("/multisignatures/sign")
             .set("Accept", "application/json")
             .send({
                 secret: undefined,
@@ -694,7 +694,7 @@ describe("PUT /multisignatures/sign", function () {
     });
 
     it("Using random passphrase. Should fail (account is not associated)", function (done) {
-        node.api.put("/multisignatures/sign")
+        node.api.post("/multisignatures/sign")
             .set("Accept", "application/json")
             .send({
                 secret: "Just 4 R4nd0m P455W0RD",
