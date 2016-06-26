@@ -672,7 +672,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				return cb("Account not found");
 			}
 
-			var existing_votes = account.delegates ? account.delegates.split(',').length : 0;
+			var existing_votes = Array.isArray(account.delegates) ? account.delegates.length : 0;
 			var additions = 0, removals = 0;
 
 			async.eachSeries(votes, function (action, cb) {
