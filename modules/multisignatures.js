@@ -599,6 +599,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 
 shared.sign = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: "object",
 		properties: {
@@ -711,6 +712,7 @@ shared.sign = function (req, cb) {
 
 shared.addMultisignature = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: "object",
 		properties: {
