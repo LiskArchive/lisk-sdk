@@ -377,7 +377,7 @@ shared.getAccounts = function (req, cb) {
 		}
 
 		library.db.one(sql.getAccounts, { publicKey: query.publicKey }).then(function (row) {
-			var addresses = (row.accountId) ? row.accountId.split(',') : [];
+			var addresses = Array.isArray(row.accountId) ? row.accountId : [];
 
 			modules.accounts.getAccounts({
 				address: { $in: addresses },
