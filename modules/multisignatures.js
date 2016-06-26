@@ -483,7 +483,23 @@ shared.pending = function (req, cb) {
 					return cb("Invalid sender");
 				}
 
-				if ((sender.publicKey == query.publicKey && sender.u_multisignatures.length > 0) || sender.u_multisignatures.indexOf(query.publicKey) >= 0 || sender.multisignatures.indexOf(query.publicKey) >= 0) {
+				var hasUnconfirmed = (
+					sender.publicKey == query.publicKey
+					&& Array.isArray(sender.u_multisignatures)
+					&& sender.u_multisignatures.length > 0
+				);
+
+				var belongsToUnconfirmed = (
+					Array.isArray(sender.u_multisignatures)
+					&& sender.u_multisignatures.indexOf(query.publicKey) >= 0
+				);
+
+				var belongsToConfirmed = (
+					Array.isArray(sender.multisignatures)
+					&& sender.multisignatures.indexOf(query.publicKey) >= 0
+				);
+
+				if (hasUnconfirmed || belongsToUnconfirmed || belongsToConfirmed) {
 					var min = sender.u_multimin || sender.multimin;
 					var lifetime = sender.u_multilifetime || sender.multilifetime;
 					var signatures = sender.u_multisignatures || [];
