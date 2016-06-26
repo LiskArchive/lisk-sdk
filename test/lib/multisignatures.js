@@ -630,8 +630,8 @@ describe("GET /multisignatures/pending", function () {
                             node.expect(res.body.transactions[i].transaction).to.have.property("fee").to.equal(node.Fees.multisignatureRegistrationFee * (Keys.length + 1));
                             node.expect(res.body.transactions[i].transaction).to.have.property("id").to.equal(MultiSigTX.txId);
                             node.expect(res.body.transactions[i].transaction).to.have.property("senderPublicKey").to.equal(MultisigAccount.publicKey);
-                            node.expect(res.body.transactions[i]).to.have.property("lifetime").to.equal(''+MultiSigTX.lifetime);
-                            node.expect(res.body.transactions[i]).to.have.property("min").to.equal(''+MultiSigTX.min);
+                            node.expect(res.body.transactions[i]).to.have.property("lifetime").to.equal(MultiSigTX.lifetime);
+                            node.expect(res.body.transactions[i]).to.have.property("min").to.equal(MultiSigTX.min);
                         }
                     }
                     node.expect(flag).to.equal(1);
