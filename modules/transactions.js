@@ -111,8 +111,8 @@ function Transfer() {
 	}
 
 	this.ready = function (trs, sender) {
-		if (util.isArray(sender.multisignatures) && sender.multisignatures.length) {
-			if (!trs.signatures) {
+		if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+			if (!Array.isArray(trs.signatures)) {
 				return false;
 			}
 
@@ -382,7 +382,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 			return done(err);
 		}
 
-		if (transaction.requesterPublicKey && sender && sender.multisignatures && sender.multisignatures.length) {
+		if (transaction.requesterPublicKey && sender && Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 			modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
 				if (err) {
 					return done(err);

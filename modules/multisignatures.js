@@ -196,7 +196,7 @@ function Multisignature() {
 			return setImmediate(cb, "Signature on this account is pending confirmation");
 		}
 
-		if (sender.multisignatures && sender.multisignatures.length) {
+		if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 			return setImmediate(cb, "Account already has multisignatures enabled");
 		}
 
@@ -296,11 +296,11 @@ function Multisignature() {
 	}
 
 	this.ready = function (trs, sender) {
-		if (!trs.signatures) {
+		if (!Array.isArray(trs.signatures)) {
 			return false;
 		}
 
-		if (!sender.multisignatures.length) {
+		if (!Array.isArray(sender.multisignatures) || !sender.multisignatures.length) {
 			return trs.signatures.length == trs.asset.multisignature.keysgroup.length;
 		} else {
 			return trs.signatures.length >= sender.multimin - 1;

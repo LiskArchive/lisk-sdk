@@ -235,8 +235,8 @@ function OutTransfer() {
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures && sender.multisignatures.length) {
-			if (!trs.signatures) {
+		if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+			if (!Array.isArray(trs.signatures)) {
 				return false;
 			}
 			return trs.signatures.length >= sender.multimin - 1;
@@ -398,8 +398,8 @@ function InTransfer() {
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures && sender.multisignatures.length) {
-			if (!trs.signatures) {
+		if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+			if (!Array.isArray(trs.signatures)) {
 				return false;
 			}
 			return trs.signatures.length >= sender.multimin - 1;
@@ -717,8 +717,8 @@ function DApp() {
 	}
 
 	this.ready = function (trs, sender) {
-		if (sender.multisignatures && sender.multisignatures.length) {
-			if (!trs.signatures) {
+		if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+			if (!Array.isArray(trs.signatures)) {
 				return false;
 			}
 			return trs.signatures.length >= sender.multimin - 1;

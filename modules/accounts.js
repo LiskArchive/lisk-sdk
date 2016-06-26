@@ -154,15 +154,15 @@ function Vote() {
 			table: this.dbTable,
 			fields: this.dbFields,
 			values: {
-				votes: util.isArray(trs.asset.votes) ? trs.asset.votes.join(",") : null,
+				votes: Array.isArray(trs.asset.votes) ? trs.asset.votes.join(",") : null,
 				transactionId: trs.id
 			}
 		};
 	}
 
 	this.ready = function (trs, sender) {
-		if (util.isArray(sender.multisignatures) && sender.multisignatures.length) {
-			if (!trs.signatures) {
+		if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+			if (!Array.isArray(trs.signatures)) {
 				return false;
 			}
 			return trs.signatures.length >= sender.multimin - 1;
