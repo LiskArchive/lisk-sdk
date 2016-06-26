@@ -171,7 +171,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2delegates WHERE \"accountId\" = a.\"address\")"
+			expression: "(SELECT ARRAY_AGG(\"dependentId\") FROM " + this.table + "2delegates WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "u_delegates",
@@ -181,7 +181,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2u_delegates WHERE \"accountId\" = a.\"address\")"
+			expression: "(SELECT ARRAY_AGG(\"dependentId\") FROM " + this.table + "2u_delegates WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "multisignatures",
@@ -191,7 +191,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2multisignatures WHERE \"accountId\" = a.\"address\")"
+			expression: "(SELECT ARRAY_AGG(\"dependentId\") FROM " + this.table + "2multisignatures WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "u_multisignatures",
@@ -201,7 +201,7 @@ function Account(scope, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: "(SELECT STRING_AGG(\"dependentId\", ',') FROM " + this.table + "2u_multisignatures WHERE \"accountId\" = a.\"address\")"
+			expression: "(SELECT ARRAY_AGG(\"dependentId\") FROM " + this.table + "2u_multisignatures WHERE \"accountId\" = a.\"address\")"
 		},
 		{
 			name: "multimin",
