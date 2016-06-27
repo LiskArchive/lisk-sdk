@@ -13,15 +13,15 @@ var MultisigAccount = node.randomAccount();
 MultisigAccount.name = "multi";
 
 var Accounts = [];
-for (var i = 0 ; i < totalMembers; i++) {
+for (var i = 0; i < totalMembers; i++) {
     Accounts[i] = node.randomAccount();
 }
 
 var MultiSigTX = {
-    lifetime : 0,
-    min : 0,
-    members : [],
-    txId : ""
+    lifetime: 0,
+    min: 0,
+    members: [],
+    txId: ""
 }
 
 // Used for opening accounts
@@ -42,8 +42,8 @@ function openAccount (account, i) {
             }
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.account != null && i != null) {
-                  Accounts[i].address = res.body.account.address;
-                  Accounts[i].publicKey = res.body.account.publicKey;
+                Accounts[i].address = res.body.account.address;
+                Accounts[i].publicKey = res.body.account.publicKey;
             } else if (account.name == "nolisk") {
                 NoLISKAccount.address = res.body.account.address;
                 NoLISKAccount.publicKey = res.body.account.publicKey;
@@ -146,7 +146,7 @@ before(function (done) {
 
 before(function (done) {
    for (var i = 0; i < (Accounts.length); i++) {
-       if(Accounts[i] != null) {
+       if (Accounts[i] != null) {
            sendLISK(Accounts[i], i);
        }
    }
