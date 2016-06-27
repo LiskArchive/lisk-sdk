@@ -37,11 +37,11 @@ function openAccount (account, i) {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-            if (i != null) {
+            if (i) {
                 console.log("Opening Account " + i + " with password: " + account.password);
             }
             node.expect(res.body).to.have.property("success").to.be.true;
-            if (res.body.account != null && i != null) {
+            if (res.body.account && i) {
                 Accounts[i].address = res.body.account.address;
                 Accounts[i].publicKey = res.body.account.publicKey;
             } else if (account.name == "nolisk") {
@@ -74,7 +74,7 @@ function sendLISK (account, i) {
                 // console.log(JSON.stringify(res.body));
                 // console.log("Sending " + randomLISK + " LISK to " + account.address);
                 node.expect(res.body).to.have.property("success").to.be.true;
-                if (res.body.success == true && i != null) {
+                if (res.body.success && i) {
                     Accounts[i].balance = randomLISK / node.normalizer;
                 }
             });
@@ -130,7 +130,7 @@ function makeKeysGroup () {
 
 before(function (done) {
     for (var i = 0; i < Accounts.length; i++) {
-        if (Accounts[i] != null) {
+        if (Accounts[i]) {
             openAccount(Accounts[i],i);
             setTimeout(function () {
                 if (accountOpenTurn < totalMembers) {
@@ -146,7 +146,7 @@ before(function (done) {
 
 before(function (done) {
    for (var i = 0; i < (Accounts.length); i++) {
-       if (Accounts[i] != null) {
+       if (Accounts[i]) {
            sendLISK(Accounts[i], i);
        }
    }
@@ -555,13 +555,13 @@ describe("PUT /multisignatures", function () {
                 //     min: requiredSignatures,
                 //     keysgroup: Keys
                 // }));
-                if (res.body.error != null) {
+                if (res.body.error) {
                     console.log(res.body.error);
                 }
                 // console.log(res.body);
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("transactionId");
-                if (res.body.success == true && res.body.transactionId != null) {
+                if (res.body.success && res.body.transactionId) {
                     MultiSigTX.txId = res.body.transactionId;
                     MultiSigTX.lifetime = life;
                     MultiSigTX.members = Keys;
