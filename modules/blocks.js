@@ -829,7 +829,7 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							// The transaction has been applied?
 							if (appliedTransactions[transaction.id]) {
 								// DATABASE: write
-								library.logic.transactions.undoUnconfirmed(transaction, sender, cb);
+								library.logic.transaction.undoUnconfirmed(transaction, sender, cb);
 							} else {
 								setImmediate(cb);
 							}
