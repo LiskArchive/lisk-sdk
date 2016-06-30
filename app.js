@@ -406,6 +406,9 @@ d.run(function () {
 				db: function (cb) {
 					cb(null, scope.db);
 				},
+				logger: function (cb) {
+					cb(null, logger);
+				},
 				scheme: function (cb) {
 					cb(null, scope.scheme);
 				},
