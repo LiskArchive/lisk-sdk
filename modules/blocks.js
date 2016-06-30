@@ -626,10 +626,9 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 						return setImmediate(cb, check.errors[0]);
 					}
 				}
-				if (block.id == genesisblock.block.id){
+				if (block.id == genesisblock.block.id) {
 					private.applyGenesisBlock(block, cb);
-				}
-				else {
+				} else {
 					private.applyBlock(block, false, cb, false);
 				}
 			}, function (err) {
@@ -870,7 +869,8 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 	}, cb);
 }
 
-// Special processing, basically shortcuting the unconfirmed/confirmed states
+// Apply the genesis block, provided it has been verified.
+// Shortcuting the unconfirmed/confirmed states.
 private.applyGenesisBlock = function (block, cb) {
 	block.transactions = block.transactions.sort(function (a, b) {
 		if (block.id == genesisblock.block.id) {
@@ -892,7 +892,7 @@ private.applyGenesisBlock = function (block, cb) {
 			});
 	}, function (err) {
 		if (err) {
-			// Well if genesis Block is wrong better to kill the node...
+			// If genesis block is invalid, kill the node...
 			return process.exit(0);
 		} else {
 			private.lastBlock = block;
@@ -900,7 +900,6 @@ private.applyGenesisBlock = function (block, cb) {
 		}
 	});
 };
-
 
 // Main function to process a Block.
 // * Verify the block looks ok
