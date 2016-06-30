@@ -825,7 +825,7 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					// Rewind the already applied transactions of the block to leave the database in the state of the previous block.
 					// In case of rebuilding, this should never happen. Optimising here is meaningless.
 					async.eachSeries(block.transactions, function (transaction, cb) {
-						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (sender,cb) {
+						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 							// The transaction has been applied?
 							if (appliedTransactions[transaction.id]) {
 								// DATABASE: write
@@ -834,7 +834,7 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 								setImmediate(cb);
 							}
 						});
-					}, function () {
+					}, function (err) {
 						done(err);
 					});
 				} else {
