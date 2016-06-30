@@ -626,7 +626,12 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 						return setImmediate(cb, check.errors[0]);
 					}
 				}
-				private.applyBlock(block, false, cb, false);
+				if (block.id == genesisblock.block.id){
+					private.applyGenesisBlock(block, cb);
+				}
+				else {
+					private.applyBlock(block, false, cb, false);
+				}
 			}, function (err) {
 				setImmediate(cb, err);
 			});
@@ -635,32 +640,6 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			// If while loading we encounter an error, for example, an invalid signature on a block & transaction, then we need to stop loading and remove all blocks after the last good block. We also need to process all transactions within the block.
 			library.logger.error(err.toString());
 			return cb("Blocks#loadBlocksOffset error");
-		});
-	}, cb);
-}
-
-Blocks.prototype.loadLastBlock = function (cb) {
-	library.dbSequence.add(function (cb) {
-		library.db.query(sql.loadLastBlock).then(function (rows) {
-			var block = private.readDbRows(rows)[0];
-
-			block.transactions = block.transactions.sort(function (a, b) {
-				if (block.id == genesisblock.block.id) {
-					if (a.type == transactionTypes.VOTE)
-						return 1;
-				}
-
-				if (a.type == transactionTypes.SIGNATURE) {
-					return 1;
-				}
-
-				return 0;
-			});
-
-			cb(null, block);
-		}).catch(function (err) {
-			library.logger.error(err.toString());
-			return cb("Blocks#loadLastBlock error");
 		});
 	}, cb);
 }
@@ -807,7 +786,8 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					// DATABASE: write. Apply transaction to mem_accounts u_* fields
 					modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 						if (err) {
-							return setImmediate(cb, "Failed to apply transaction: " + transaction.id);
+							library.logger.error( "Failed to apply transaction: " + transaction.id + " - error: " + err);
+							return setImmediate(cb, "Failed to apply transaction: " + transaction.id + " - error: " + err);
 						}
 						appliedTransactions[transaction.id] = transaction;
 
@@ -862,6 +842,7 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							});
 						});
 					}, function (err) {
+						private.lastBlock = block;
 						// Save the block into the database.
 						// DATABASE: write
 						if (saveBlock) {
@@ -874,14 +855,11 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 
 							 library.logger.debug("Block applied corrrectly with " + block.transactions.length + " transactions");
 							 library.bus.message('newBlock', block, broadcast);
-							 private.lastBlock = block;
-
 							 // DATABASE write. Update delegates accounts
 							 modules.round.tick(block, done);
 						 });
 						} else {
 							library.bus.message('newBlock', block, broadcast);
-							private.lastBlock = block;
 							// DATABASE write. Update delegates accounts
 							modules.round.tick(block, done);
 						}
@@ -891,6 +869,38 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		});
 	}, cb);
 }
+
+// Special processing, basically shortcuting the unconfirmed/confirmed states
+private.applyGenesisBlock = function (block, cb) {
+	block.transactions = block.transactions.sort(function (a, b) {
+		if (block.id == genesisblock.block.id) {
+			if (a.type == transactionTypes.VOTE)
+				return 1;
+		}
+		return 0;
+	});
+	async.eachSeries(block.transactions, function (transaction, cb) {
+			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+				if (err) {
+					return cb({
+						message: err,
+						transaction: transaction,
+						block: block
+					});
+				}
+				private.applyTransaction(block, transaction, sender, cb);
+			});
+	}, function (err) {
+		if (err) {
+			// Well if genesis Block is wrong better to kill the node...
+			return process.exit(0);
+		} else {
+			private.lastBlock = block;
+			modules.round.tick(private.lastBlock, cb);
+		}
+	});
+};
+
 
 // Main function to process a Block.
 // * Verify the block looks ok
