@@ -873,11 +873,11 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 // Shortcuting the unconfirmed/confirmed states.
 private.applyGenesisBlock = function (block, cb) {
 	block.transactions = block.transactions.sort(function (a, b) {
-		if (block.id == genesisblock.block.id) {
-			if (a.type == transactionTypes.VOTE)
-				return 1;
+		if (a.type == transactionTypes.VOTE) {
+			return 1;
+		} else {
+			return 0;
 		}
-		return 0;
 	});
 	async.eachSeries(block.transactions, function (transaction, cb) {
 			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
