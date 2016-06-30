@@ -456,13 +456,6 @@ private.hashsum = function (obj) {
 
 // Public methods
 Transport.prototype.broadcast = function (config, options, cb) {
-	// When client is not loaded, is syncing or round is ticking
-	// Skip broadcast as client is not ready to make them
-	if (!private.loaded || modules.loader.syncing() || modules.round.ticking()) {
-		library.logger.debug("Skipping broadcast, client is not ready");
-		return cb && setImmediate(cb);
-	}
-
 	config.limit = config.limit || 1;
 	modules.peer.list(config, function (err, peers) {
 		if (!err) {
