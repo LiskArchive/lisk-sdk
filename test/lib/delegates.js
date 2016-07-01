@@ -9,9 +9,9 @@ while (Raccount.username === Raccount.username.toUpperCase()) {
     Raccount = node.randomAccount();
 }
 
-// second RANDOM account - 0 LISK amount | Will test registration with same delegate name, changing case
+// Second RANDOM account - 0 LISK amount | Will test registration with same delegate name, changing case
 var R2account = node.randomAccount();
-R2account.username=Raccount.username.toUpperCase();
+R2account.username = Raccount.username.toUpperCase();
 // console.log(JSON.stringify(R2account));
 
 describe("PUT /accounts/delegates without funds", function () {
