@@ -46,16 +46,16 @@ var Daccount = {
   "password": "demise hidden width hand solid deal doll party danger pencil foil oven",
   "secondPassword": "brother maid replace hard scorpion clinic sentence bridge goose gun mass next",
   "balance": 0,
-  "delegateName": "ManualDelegate",
+  "delegateName": "test_delegate",
 };
 
 // Existing delegate account in blockchain
 var Eaccount = {
-  "address": "16109618324961077899L",
-  "publicKey": "53ccfe3f10e135781db6346ce726c0f0e050775e3e6438395da0f81bed14dde4",
-  "password": "length reunion two motor spy shine copper elite culture lift pet organ",
+  "address": "10881167371402274308L",
+  "publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+  "password": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
   "balance": 0,
-  "delegateName": "genesisDelegate100"
+  "delegateName": "genesis_100"
 };
 
 // Account info for genesis account - Needed for voting, registrations and Tx
