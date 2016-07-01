@@ -643,7 +643,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	}
 	delete filter.sort;
 
-	if (filter.address) {
+	if (typeof filter.address === 'string') {
 		filter.address = {
 			$upper: ['address', filter.address]
 		};
