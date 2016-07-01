@@ -292,6 +292,7 @@ private.attachApi = function () {
 
 	router.map(shared, {
 		"get /count": "count",
+		"get /search": "search",
 		"get /voters": "getVoters",
 		"get /get": "getDelegate",
 		"get /": "getDelegates",
@@ -945,6 +946,68 @@ shared.getDelegate = function (req, cb) {
 			} else {
 				cb("Delegate not found");
 			}
+		});
+	});
+}
+
+shared.search = function (req, cb) {
+	var query = req.body;
+
+	library.scheme.validate(query, {
+		type: "object",
+		properties: {
+			q: {
+				type: "string",
+				minLength: 1,
+				maxLength: 20
+			},
+			limit: {
+				type: "integer",
+				minimum: 1,
+				maximum: 100
+			}
+		},
+		required: ["q"]
+	}, function (err) {
+		if (err) {
+			return cb(err[0].message);
+		}
+
+		var sortFields = sql.sortFields;
+		var sortBy, sortMethod;
+
+		if (query.orderBy) {
+			var sort = query.orderBy.split(':');
+
+			sortBy = sort[0].replace(/[^\w\s]/gi, '');
+			sortBy = '"' + sortBy + '"';
+
+			if (sort.length == 2) {
+				sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
+			} else {
+				sortMethod = 'DESC';
+			}
+		} else {
+			sortBy = '"username"';
+			sortMethod = 'ASC';
+		}
+
+		if (sortBy) {
+			if (sortFields.indexOf(sortBy) < 0) {
+				return cb("Invalid sort field");
+			}
+		}
+
+		library.db.query(sql.search({
+			q: query.q,
+			limit: query.limit || 100,
+			sortBy: sortBy,
+			sortMethod: sortMethod
+		})).then(function (rows) {
+			return cb(null, { delegates: rows });
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return cb("Database search failed");
 		});
 	});
 }
