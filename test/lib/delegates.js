@@ -119,7 +119,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("transactionId");
-                if (res.body.success == true && res.body.transactionId != null) {
+                if (res.body.success && res.body.transactionId) {
                     node.expect(res.body.transactionId).to.be.above(1);
                     Raccount.amount += node.LISK;
                 } else {
@@ -147,7 +147,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 .end(function (err, res) {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    if (res.body.success == true && res.body.account != null) {
+                    if (res.body.success && res.body.account) {
                         node.expect(res.body.account.balance).to.be.equal(String(node.LISK));
                     } else {
                         // console.log("Failed to open account or account object is null");
@@ -174,7 +174,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
-                    if (res.body.success == true) {
+                    if (res.body.success) {
                         // console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
                     }
                     done();
@@ -197,7 +197,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
-                    if (res.body.success == true) {
+                    if (res.body.success) {
                         // console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
                     }
                     done();
@@ -221,7 +221,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
-                    if (res.body.success == true) {
+                    if (res.body.success) {
                         console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate) + "]";
                     }
                     done();
@@ -242,7 +242,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                if (res.body.success == true && res.body.transaction != null) {
+                if (res.body.success && res.body.transaction) {
                     node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
                     node.expect(res.body.transaction.amount).to.equal(0);
                     node.expect(res.body.transaction.senderPublicKey).to.equal(Raccount.publicKey);
@@ -297,7 +297,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                    if (res.body.success == true && res.body.transaction != null) {
+                    if (res.body.success && res.body.transaction) {
                         node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
                         node.expect(res.body.transaction.amount).to.equal(0);
                         node.expect(res.body.transaction.senderPublicKey).to.equal(Raccount.publicKey);
@@ -494,7 +494,7 @@ describe("PUT /delegates with funds",function () {
                 .end(function (err, res) {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    if (res.body.success == true && res.body.account != null) {
+                    if (res.body.success && res.body.account) {
                         node.expect(res.body.account.balance).to.be.equal(''+node.LISK);
                     } else {
                         // console.log("Failed to open account or account object is null");
@@ -618,7 +618,7 @@ describe("PUT /delegates with funds",function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                    if (res.body.success == true && res.body.transaction != null) {
+                    if (res.body.success && res.body.transaction) {
                         node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
                         node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.username.toLowerCase());
                         node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(Raccount.publicKey);
