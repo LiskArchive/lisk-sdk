@@ -466,7 +466,7 @@ describe("PUT /delegates with funds",function () {
                         // console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("transactionId");
-                        if (res.body.success == true && res.body.transactionId != null) {
+                        if (res.body.success && res.body.transactionId) {
                             node.expect(res.body.transactionId).to.be.above(1);
                             R2account.amount += node.LISK;
                         } else {
@@ -888,11 +888,9 @@ describe("GET /delegates/voters", function () {
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("accounts").that.is.an("array");
                     var flag = 0;
-                    if (res.body.success == true && res.body.accounts != null) {
-                        for (var i = 0; i < res.body.accounts.length; i++) {
-                            if (res.body.accounts[i].address == Raccount.address) {
-                                flag = 1;
-                            }
+                    for (var i = 0; i < res.body.accounts.length; i++) {
+                        if (res.body.accounts[i].address == Raccount.address) {
+                            flag = 1;
                         }
                     }
                     node.expect(flag).to.equal(1);
