@@ -191,7 +191,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     if (res.body.success == true) {
