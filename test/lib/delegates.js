@@ -814,7 +814,7 @@ describe("GET /delegates/count", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
-                node.expect(res.body).to.have.property("count").to.equal(101);
+                node.expect(res.body).to.have.property("count").to.be.at.least(101);
                 done();
             });
     });
