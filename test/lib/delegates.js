@@ -74,6 +74,33 @@ describe("PUT /accounts/delegates without funds", function () {
     });
 });
 
+describe("PUT /delegates without funds", function () {
+
+    it("Using valid parameters. Should fail", function (done) {
+        node.api.put("/delegates")
+            .set("Accept", "application/json")
+            .send({
+                secret: Raccount.password,
+                username: Raccount.username
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                if (res.body.success == false && res.body.error != null) {
+                    node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
+                } else {
+                    // console.log("Expected error and got success");
+                    // console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
+                    node.expect("TEST").to.equal("FAILED");
+                }
+                done();
+            });
+    });
+});
+
 describe("PUT /accounts/delegates with funds", function () {
 
     before(function(done) {
@@ -401,33 +428,6 @@ describe("PUT /accounts/delegates with funds", function () {
                     done();
                 });
         }, 3000);
-    });
-});
-
-describe("PUT /delegates without funds", function () {
-
-    it("Using valid parameters. Should fail", function (done) {
-        node.api.put("/delegates")
-            .set("Accept", "application/json")
-            .send({
-                secret: Raccount.password,
-                username: Raccount.username
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                // console.log(JSON.stringify(res.body));
-                node.expect(res.body).to.have.property("success").to.be.false;
-                node.expect(res.body).to.have.property("error");
-                if (res.body.success == false && res.body.error != null) {
-                    node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
-                } else {
-                    // console.log("Expected error and got success");
-                    // console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
-                    node.expect("TEST").to.equal("FAILED");
-                }
-                done();
-            });
     });
 });
 
