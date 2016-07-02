@@ -4,21 +4,17 @@ const DelegatesSql = {
   sortFields: [
     'username',
     'address',
-    'balance',
     'publicKey',
-    'rate',
     'vote',
-    'producedblocks',
     'missedblocks',
-    'fees',
-    'rewards'
+    'producedblocks'
   ],
 
   count: 'SELECT COUNT(*)::int FROM delegates',
 
   search: function (params) {
     var sql = [
-      'SELECT m."username", m."address", m."balance", ENCODE(m."publicKey", \'hex\') AS "publicKey", m."rate"::int, m."vote", m."producedblocks", m."missedblocks", m."fees", m."rewards"',
+      'SELECT m."username", m."address", ENCODE(m."publicKey", \'hex\') AS "publicKey", m."vote", m."producedblocks", m."missedblocks"',
       'FROM mem_accounts2delegates m2d',
       'INNER JOIN mem_accounts m ON(ENCODE(m."publicKey", \'hex\') = m2d."dependentId")',
       'WHERE m."username" LIKE ${q}',
