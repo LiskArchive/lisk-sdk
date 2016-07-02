@@ -566,7 +566,7 @@ shared.getTransactions = function (req, cb) {
 
 		private.list(query, function (err, data) {
 			if (err) {
-				return cb("Failed to get transactions");
+				return cb("Failed to get transactions: " + err);
 			}
 
 			cb(null, {transactions: data.transactions, count: data.count});
