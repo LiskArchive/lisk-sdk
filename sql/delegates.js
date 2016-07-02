@@ -15,9 +15,8 @@ const DelegatesSql = {
   search: function (params) {
     var sql = [
       'SELECT m."username", m."address", ENCODE(m."publicKey", \'hex\') AS "publicKey", m."vote", m."producedblocks", m."missedblocks"',
-      'FROM mem_accounts2delegates m2d',
-      'INNER JOIN mem_accounts m ON(ENCODE(m."publicKey", \'hex\') = m2d."dependentId")',
-      'WHERE m."username" LIKE ${q}',
+      'FROM mem_accounts m',
+      'WHERE m."isDelegate" = 1 AND m."username" LIKE ${q}',
       'ORDER BY ' + [params.sortField, params.sortMethod].join(' '),
       'LIMIT ${limit}'
     ].join(' ');
