@@ -18,14 +18,14 @@ const BlocksSql = {
   countList: function (params) {
     return [
       'SELECT COUNT("b_id")::int FROM blocks_list',
-      (params.where.length ? 'WHERE' + params.where.join(' AND ') : '')
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
     ].filter(Boolean).join(' ');
   },
 
   list: function (params) {
     return [
       'SELECT * FROM blocks_list',
-      (params.where.length ? 'WHERE' + params.where.join(' AND ') : ''),
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
