@@ -8,7 +8,7 @@ const PeerSql = {
   getByFilter: function (params) {
     return [
       'SELECT "ip", "port", "state", "os", "version" FROM peers',
-      (params.fields.length ? 'WHERE' + params.fields.join(' AND ') : ''),
+      (params.where.length ? 'WHERE' + params.where.join(' AND ') : ''),
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : 'ORDER BY random()'),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ')

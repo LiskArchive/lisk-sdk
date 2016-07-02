@@ -1386,15 +1386,15 @@ private.getByIds = function (ids, cb) {
 }
 
 private.list = function (filter, cb) {
-	var params = {}, fields = [];
+	var params = {}, where = [];
 
 	if (filter.type >= 0) {
-		fields.push('"type" = ${type}');
+		where.push('"type" = ${type}');
 		params.type = filter.type;
 	}
 
 	if (filter.name) {
-		fields.push('"name" = ${name}');
+		where.push('"name" = ${name}');
 		params.name = filter.name;
 	}
 
@@ -1402,7 +1402,7 @@ private.list = function (filter, cb) {
 		var category = dappCategories[filter.category];
 
 		if (category !== null && category !== undefined) {
-			fields.push('"category" = ${category}');
+			where.push('"category" = ${category}');
 			params.category = category;
 		} else {
 			return setImmediate(cb, "Invalid application category");
@@ -1410,24 +1410,24 @@ private.list = function (filter, cb) {
 	}
 
 	if (filter.link) {
-		fields.push('"link" = ${link}');
+		where.push('"link" = ${link}');
 		params.link = filter.link;
 	}
 
-	if (!filter.limit && filter.limit != 0) {
-		filter.limit = 100;
+	if (!filter.limit) {
+		params.limit = 100;
+	} else {
+		params.limit = Math.abs(filter.limit);
 	}
 
-	if (!filter.offset && filter.offset != 0) {
-		filter.offset = 0;
+	if (!filter.offset) {
+		params.offset = 0;
+	} else {
+		params.offset = Math.abs(filter.offset);
 	}
 
-	if (filter.limit >= 0) {
-		params.limit = filter.limit;
-	}
-
-	if (filter.offset >= 0) {
-		params.offset = filter.offset;
+	if (params.limit > 100) {
+		return cb("Invalid limit. Maximum is 100");
 	}
 
 	var orderBy = OrderBy(
@@ -1441,8 +1441,7 @@ private.list = function (filter, cb) {
 	}
 
 	library.db.query(sql.list({
-		filter: filter,
-		fields: fields,
+		where: where,
 		sortField: orderBy.sortField,
 		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
