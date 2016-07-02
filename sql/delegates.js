@@ -14,7 +14,7 @@ const DelegatesSql = {
     'rewards'
   ],
 
-  count: 'SELECT COUNT(*)::int FROM mem_accounts2delegates',
+  count: 'SELECT COUNT(*)::int FROM delegates',
 
   search: function (params) {
     var sql = [
