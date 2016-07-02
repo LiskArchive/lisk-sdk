@@ -152,7 +152,7 @@ private.updatePeerList = function (cb) {
 private.count = function (cb) {
 	library.db.query(sql.count).then(function (rows) {
 		var res = rows.length && rows[0].count;
-		cb(null, res)
+		return cb(null, res)
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Peer#count error");
@@ -228,7 +228,7 @@ private.getByFilter = function (filter, cb) {
 		sortField: orderBy.sortField,
 		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
-		cb(null, rows);
+		return cb(null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Peer#getByFilter error");
@@ -268,7 +268,7 @@ Peer.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
 	library.db.query(sql.randomList(options), options).then(function (rows) {
-		cb(null, rows);
+		return cb(null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Peer#list error");
@@ -379,7 +379,7 @@ Peer.prototype.update = function (peer, cb) {
 		}
 	], function (err) {
 		err && library.logger.error(err);
-		cb && cb();
+		return cb && cb();
 	})
 }
 
@@ -490,7 +490,7 @@ shared.getPeers = function (req, cb) {
 				return cb("Peer not found");
 			}
 
-			cb(null, {peers: peers});
+			return cb(null, {peers: peers});
 		});
 	});
 }
@@ -527,13 +527,13 @@ shared.getPeer = function (req, cb) {
 
 			var peer = peers.length ? peers[0] : null;
 
-			cb(null, {peer: peer || {}});
+			return cb(null, {peer: peer || {}});
 		});
 	});
 }
 
 shared.version = function (req, cb) {
-	cb(null, {version: library.config.version, build: library.build});
+	return cb(null, {version: library.config.version, build: library.build});
 }
 
 // Export
