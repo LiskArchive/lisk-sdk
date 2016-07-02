@@ -379,7 +379,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Spec
 	private.types[trs.type].verify.call(this, trs, sender, function (err) {
-		cb(err);
+		return cb(err);
 	});
 }
 
