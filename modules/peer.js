@@ -172,27 +172,27 @@ private.getByFilter = function (filter, cb) {
 	var where = [];
 	var params = {};
 
-	if (filter.hasOwnProperty('state') && filter.state !== null) {
+	if (filter.state) {
 		where.push('"state" = ${state}');
 		params.state = filter.state;
 	}
 
-	if (filter.hasOwnProperty('os') && filter.os !== null) {
+	if (filter.os) {
 		where.push('"os" = ${os}');
 		params.os = filter.os;
 	}
 
-	if (filter.hasOwnProperty('version') && filter.version !== null) {
+	if (filter.version) {
 		where.push('"version" = ${version}');
 		params.version = filter.version;
 	}
 
-	if (filter.hasOwnProperty('ip') && filter.ip !== null) {
+	if (filter.ip) {
 		where.push('"ip" = ${ip}');
 		params.ip = filter.ip;
 	}
 
-	if (filter.hasOwnProperty('port') && filter.port !== null) {
+	if (filter.port) {
 		where.push('"port" = ${port}');
 		params.port = filter.port;
 	}
