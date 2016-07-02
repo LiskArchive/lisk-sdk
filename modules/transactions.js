@@ -203,7 +203,8 @@ private.list = function (filter, cb) {
 	if (filter.orderBy) {
 		var sort = filter.orderBy.split(':');
 		var sortBy = sort[0].replace(/[^\w_]/gi, '');
-		if (["height","blockId","confirmations"].indexOf(sortBy) >-1) {
+
+		if (["height", "blockId", "confirmations"].indexOf(sortBy) > -1) {
 			sortBy = "b_" + sortBy;
 		} else {
 			sortBy = "t_" + sortBy;
@@ -506,6 +507,7 @@ Transactions.prototype.onBind = function (scope) {
 // Shared
 shared.getTransactions = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: "object",
 		properties: {
