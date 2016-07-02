@@ -25,9 +25,9 @@ const DappsSql = {
     return [
       'SELECT "name", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
       (params.fields.length ? 'WHERE' + params.fields.join(' OR ') + ' ' : ''),
-      (params.filter.orderBy ? 'ORDER BY ' + params.sortBy + ' ' + params.sortMethod : ''),
       (params.filter.limit ? 'LIMIT ${limit}' : '') + ' ',
       (params.filter.offset ? 'OFFSET ${offset}' : ''),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
     ].filter(Boolean).join(' ');
   },
 

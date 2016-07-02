@@ -8,6 +8,7 @@ var request = require("request");
 var path = require("path");
 var npm = require("npm");
 var slots = require("../helpers/slots.js");
+var OrderBy = require("../helpers/orderBy.js");
 var Router = require("../helpers/router.js");
 var DecompressZip = require("decompress-zip");
 var crypto = require("crypto");
@@ -1385,7 +1386,6 @@ private.getByIds = function (ids, cb) {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = sql.sortFields;
 	var params = {}, fields = [];
 
 	if (filter.type >= 0) {
@@ -1430,28 +1430,21 @@ private.list = function (filter, cb) {
 		params.offset = filter.offset;
 	}
 
-	if (filter.orderBy) {
-		var sort = filter.orderBy.split(":");
-		var sortBy = sort[0].replace(/[^\w_]/gi, "");
-
-		if (sort.length == 2) {
-			var sortMethod = sort[1] == "desc" ? "DESC" : "ASC"
-		} else {
-			sortMethod = "DESC";
+	var orderBy = OrderBy(
+		filter.orderBy, {
+			sortFields: sql.sortFields
 		}
-	}
+	);
 
-	if (sortBy) {
-		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid sort field");
-		}
+	if (orderBy.error) {
+		return cb(orderBy.error);
 	}
 
 	library.db.query(sql.list({
 		filter: filter,
 		fields: fields,
-		sortBy: sortBy,
-		sortMethod: sortMethod
+		sortField: orderBy.sortField,
+		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {

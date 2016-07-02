@@ -6,6 +6,7 @@ var genesisblock = null;
 var constants = require("../helpers/constants.js");
 var slots = require("../helpers/slots.js");
 var extend = require("extend");
+var OrderBy = require("../helpers/orderBy.js");
 var Router = require("../helpers/router.js");
 var async = require("async");
 var transactionTypes = require("../helpers/transactionTypes.js");
@@ -200,30 +201,6 @@ private.list = function (filter, cb) {
 		params.type = filter.type;
 	}
 
-	if (filter.orderBy) {
-		var sort = filter.orderBy.split(':');
-		var sortBy = sort[0].replace(/[^\w_]/gi, '');
-
-		if (["height", "blockId", "confirmations"].indexOf(sortBy) > -1) {
-			sortBy = "b_" + sortBy;
-		} else {
-			sortBy = "t_" + sortBy;
-		}
-		if (sort.length == 2) {
-			var sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
-		} else {
-			sortMethod = 'DESC';
-		}
-	}
-
-	if (sortBy) {
-		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid sort field");
-		} else {
-			sortBy = '"' + sortBy + '"';
-		}
-	}
-
 	if (!filter.limit) {
 		params.limit = 100;
 	} else {
@@ -240,6 +217,23 @@ private.list = function (filter, cb) {
 		return cb("Invalid limit. Maximum is 100");
 	}
 
+	var orderBy = OrderBy(
+		filter.orderBy, {
+			sortFields: sql.sortFields,
+			fieldPrefix: function (sortField) {
+				if (["height", "blockId", "confirmations"].indexOf(sortField) > -1) {
+					return "b_" + sortField;
+				} else {
+					return "t_" + sortField;
+				}
+			}
+		}
+	);
+
+	if (orderBy.error) {
+		return cb(orderBy.error);
+	}
+
 	library.db.query(sql.countList({
 		where: where,
 		owner: owner
@@ -249,8 +243,8 @@ private.list = function (filter, cb) {
 		library.db.query(sql.list({
 			where: where,
 			owner: owner,
-			sortBy: sortBy,
-			sortMethod: sortMethod
+			sortField: orderBy.sortField,
+			sortMethod: orderBy.sortMethod
 		}), params).then(function (rows) {
 			var transactions = [];
 

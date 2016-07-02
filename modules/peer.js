@@ -1,6 +1,7 @@
 var async = require('async');
 var util = require('util');
 var ip = require('ip');
+var OrderBy = require("../helpers/orderBy.js");
 var Router = require('../helpers/router.js');
 var extend = require('extend');
 var fs = require('fs');
@@ -168,9 +169,6 @@ private.banManager = function (cb) {
 }
 
 private.getByFilter = function (filter, cb) {
-	var sortFields = sql.sortFields;
-	var sortMethod = '', sortBy = ''
-
 	var fields = [];
 	var params = {};
 
@@ -199,25 +197,6 @@ private.getByFilter = function (filter, cb) {
 		params.port = filter.port;
 	}
 
-	if (filter.hasOwnProperty('orderBy')) {
-		var sort = filter.orderBy.split(':');
-		sortBy = sort[0].replace(/[^\w\s]/gi, '');
-
-		if (sort.length == 2) {
-			sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
-		} else {
-			sortMethod = 'DESC';
-		}
-	}
-
-	if (sortBy) {
-		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid sort field");
-		} else {
-			sortBy = '"' + sortBy + '"';
-		}
-	}
-
 	if (!filter.limit) {
 		params.limit = 100;
 	} else {
@@ -234,10 +213,20 @@ private.getByFilter = function (filter, cb) {
 		return cb("Invalid limit. Maximum is 100");
 	}
 
+	var orderBy = OrderBy(
+		filter.orderBy, {
+			sortFields: sql.sortFields
+		}
+	);
+
+	if (orderBy.error) {
+		return cb(orderBy.error);
+	}
+
 	library.db.query(sql.getByFilter({
 		fields: fields,
-		sortBy: sortBy,
-		sortMethod: sortMethod
+		sortField: orderBy.sortField,
+		sortMethod: orderBy.sortMethod 
 	}), params).then(function (rows) {
 		cb(null, rows);
 	}).catch(function (err) {
