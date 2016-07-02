@@ -232,18 +232,18 @@ private.list = function (filter, cb) {
 			sortBy: sortBy,
 			sortMethod: sortMethod
 		}), params).then(function (rows) {
-				var blocks = [];
+			var blocks = [];
 
-				for (var i = 0; i < rows.length; i++) {
-					blocks.push(library.logic.block.dbRead(rows[i]));
-				}
+			for (var i = 0; i < rows.length; i++) {
+				blocks.push(library.logic.block.dbRead(rows[i]));
+			}
 
-				var data = {
-					blocks: blocks,
-					count: count
-				}
+			var data = {
+				blocks: blocks,
+				count: count
+			}
 
-				cb(null, data);
+			return cb(null, data);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
 			return cb("Blocks#list error");
