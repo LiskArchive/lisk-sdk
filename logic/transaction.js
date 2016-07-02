@@ -247,7 +247,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	}.bind(this));
 }
 
-Transaction.prototype.verify = function (trs, sender, requester, cb) { //inheritance
+Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	if (typeof requester === 'function') {
 		cb = requester;
 	}
@@ -366,10 +366,12 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 	if (!fee || trs.fee != fee) {
 		return setImmediate(cb, "Invalid transaction type/fee: " + trs.id);
 	}
+
 	// Check amount
 	if (trs.amount < 0 || trs.amount > constants.totalAmount || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
 		return setImmediate(cb, "Invalid transaction amount: " + trs.id);
 	}
+
 	// Check timestamp
 	if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
 		return setImmediate(cb, "Invalid transaction timestamp");
