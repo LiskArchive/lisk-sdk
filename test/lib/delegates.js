@@ -967,7 +967,7 @@ describe("GET /delegates/search", function () {
             });
     });
 
-    it("When critera == 'genesis_1'. Should return 14 delegates", function (done) {
+    it("When critera == 'genesis_1'. Should return 13 delegates", function (done) {
         var q = "genesis_1";
 
         node.api.get("/delegates/search?q=" + q)
@@ -977,12 +977,12 @@ describe("GET /delegates/search", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("delegates").that.is.an("array");
-                node.expect(res.body.delegates).to.have.length(14);
+                node.expect(res.body.delegates).to.have.length(13);
                 done();
             });
     });
 
-    it("When critera == 'genesis_10'. Should return 4 delegates", function (done) {
+    it("When critera == 'genesis_10'. Should return 3 delegates", function (done) {
         var q = "genesis_10";
 
         node.api.get("/delegates/search?q=" + q)
@@ -992,7 +992,7 @@ describe("GET /delegates/search", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("delegates").that.is.an("array");
-                node.expect(res.body.delegates).to.have.length(4);
+                node.expect(res.body.delegates).to.have.length(3);
                 done();
             });
     });
@@ -1025,14 +1025,10 @@ describe("GET /delegates/search", function () {
                 node.expect(res.body.delegates).to.have.length(1);
                 node.expect(res.body.delegates[0]).to.have.property("username").that.is.an("string");
                 node.expect(res.body.delegates[0]).to.have.property("address").that.is.an("string");
-                node.expect(res.body.delegates[0]).to.have.property("balance").that.is.an("string");
                 node.expect(res.body.delegates[0]).to.have.property("publicKey").that.is.an("string");
-                node.expect(res.body.delegates[0]).to.have.property("rate").that.is.an("number");
                 node.expect(res.body.delegates[0]).to.have.property("vote").that.is.an("string");
                 node.expect(res.body.delegates[0]).to.have.property("producedblocks").that.is.an("number");
                 node.expect(res.body.delegates[0]).to.have.property("missedblocks").that.is.an("number");
-                node.expect(res.body.delegates[0]).to.have.property("fees").that.is.an("string");
-                node.expect(res.body.delegates[0]).to.have.property("rewards").that.is.an("string");
                 done();
             });
     });
@@ -1187,7 +1183,7 @@ describe("GET /delegates/search", function () {
                 node.expect(res.body.delegates[0]).to.have.property("username");
                 node.expect(res.body.delegates[0].username).to.equal("genesis_1");
                 node.expect(res.body.delegates[24]).to.have.property("username");
-                node.expect(res.body.delegates[24].username).to.equal("genesis_29");
+                node.expect(res.body.delegates[24].username).to.equal("genesis_3");
                 done();
             });
     });
@@ -1206,7 +1202,7 @@ describe("GET /delegates/search", function () {
                 node.expect(res.body.delegates[0]).to.have.property("username");
                 node.expect(res.body.delegates[0].username).to.equal("genesis_1");
                 node.expect(res.body.delegates[24]).to.have.property("username");
-                node.expect(res.body.delegates[24].username).to.equal("genesis_29");
+                node.expect(res.body.delegates[24].username).to.equal("genesis_3");
                 done();
             });
     });
