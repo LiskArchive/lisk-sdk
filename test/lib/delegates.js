@@ -411,7 +411,6 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("Without any delegates. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
@@ -525,7 +524,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using invalid pasphrase. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -545,7 +543,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using invalid username. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -565,7 +562,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using username longer than 20 characters. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -585,7 +581,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using blank username. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
