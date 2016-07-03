@@ -211,8 +211,8 @@ describe("GET /api/transactions", function () {
                 node.expect(res.body).to.have.property("transactions").that.is.an("array");
                 node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
                 if (res.body.transactions.length > 0) {
-                    for (var i=0; i < res.body.transactions.length; i++) {
-                        if (res.body.transactions[i+1] != null){
+                    for (var i = 0; i < res.body.transactions.length; i++) {
+                        if (res.body.transactions[i + 1]){
                             node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i+1].amount);
                         }
                     }
@@ -255,7 +255,7 @@ describe("GET /api/transactions", function () {
                     if (res.body.transactions.length > 0) {
                         var flag = 0;
                         for (var i = 0; i < res.body.transactions.length; i++) {
-                            if (res.body.transactions[i + 1] != null) {
+                            if (res.body.transactions[i + 1]) {
                                 node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
                                 if (flag == 0) {
                                     offsetTimestamp = res.body.transactions[i + 1].timestamp;
@@ -321,7 +321,7 @@ describe("GET /api/transactions", function () {
                 node.expect(res.body).to.have.property("transactions").that.is.an("array");
                 if (res.body.transactions.length > 0) {
                     for (var i = 0; i < res.body.transactions.length; i++) {
-                        if (res.body.transactions[i+1] != null){
+                        if (res.body.transactions[i + 1]) {
                             node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i+1].amount);
                         }
                     }
@@ -641,8 +641,8 @@ describe("GET /transactions", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 if (res.body.success == true && res.body.transactions != null) {
-                    for (var i=0; i < res.body.transactions.length; i++) {
-                        if (res.body.transactions[i] != null){
+                    for (var i = 0; i < res.body.transactions.length; i++) {
+                        if (res.body.transactions[i]) {
                             node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
                         }
                     }
