@@ -197,7 +197,7 @@ before(function (done) {
 describe("GET /api/transactions", function () {
 
     it("Using valid parameters. Should be ok", function (done) {
-        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 10, offset = 0, orderBy = "t_amount:asc";
+        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 10, offset = 0, orderBy = "amount:asc";
 
         // console.log(Account1);
         // console.log("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy);
@@ -225,7 +225,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using limit > 100. Should fail", function (done) {
-        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 999999, offset = 0, orderBy = "t_amount:asc";
+        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 999999, offset = 0, orderBy = "amount:asc";
 
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -240,7 +240,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Ordered by ascending timestamp. Should be ok", function (done) {
-        var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 0, orderBy = "t_timestamp:asc";
+        var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 0, orderBy = "timestamp:asc";
 
         node.onNewBlock(function(err){
             node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
@@ -273,7 +273,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using offset. Should be ok", function (done) {
-        var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 1, orderBy = "t_timestamp:asc";
+        var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 1, orderBy = "timestamp:asc";
 
         node.onNewBlock(function(err) {
             node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
@@ -294,7 +294,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using string offset. Should fail", function (done) {
-        var senderId = "", blockId = "", recipientId = "", limit = 100, offset = "ONE", orderBy = "t_timestamp:asc";
+        var senderId = "", blockId = "", recipientId = "", limit = 100, offset = "ONE", orderBy = "timestamp:asc";
 
         node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -309,7 +309,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using no limit. Should be ok", function (done) {
-        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, offset = 0, orderBy = "t_amount:desc";
+        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, offset = 0, orderBy = "amount:desc";
 
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -331,7 +331,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using completely invalid fields. Should fail", function (done) {
-        var senderId = "notAReadAddress", blockId = "about5", recipientId = "LISKLIOnair3", limit = "aLOT", offset = "Boris", orderBy = "t_blockId:asc";
+        var senderId = "notAReadAddress", blockId = "about5", recipientId = "LISKLIOnair3", limit = "aLOT", offset = "Boris", orderBy = "blockId:asc";
 
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -346,7 +346,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using partially invalid fields. Should fail", function (done) {
-        var senderId = "notAReadAddress", blockId = "about5", recipientId = Account1.address, limit = "aLOT", offset = "Boris", orderBy = "t_blockId:asc";
+        var senderId = "notAReadAddress", blockId = "about5", recipientId = Account1.address, limit = "aLOT", offset = "Boris", orderBy = "blockId:asc";
 
         node.onNewBlock(function(err){
         node.expect(err).to.be.not.ok;
