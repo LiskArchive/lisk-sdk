@@ -101,12 +101,6 @@ cp test/config.json test/genesisBlock.json .
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
 ```
 
-Install mocha (globally):
-
-```
-sudo npm install mocha -g
-```
-
 Launch lisk (runs on port 4000):
 
 ```
@@ -122,8 +116,8 @@ npm test
 Run individual tests:
 
 ```
-mocha test/lib/accounts.js
-mocha test/lib/transactions.js
+npm test -- test/lib/accounts.js
+npm test -- test/lib/transactions.js
 ```
 
 ## Authors
