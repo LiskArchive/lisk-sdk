@@ -999,75 +999,57 @@ Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 	});
 }
 
-Blocks.prototype.loadBlocksFromPeer = function (peer, lastCommonBlockId, cb) {
-	var loaded = false;
-	var count = 0;
-	var lastValidBlock = null;
+Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
+	var lastValidBlock = private.lastBlock;
 
 	peer = modules.peer.inspect(peer);
+  library.logger.info('Loading blocks from', peer.string);
 
-	async.whilst(
-		function () {
-			return !loaded && count < 30;
-		},
-		function (next) {
-			count++;
-			modules.transport.getFromPeer(peer, {
-				method: "GET",
-				api: '/blocks?lastBlockId=' + lastCommonBlockId
-			}, function (err, data) {
-				if (err || data.body.error) {
-					return next(err || data.body.error.toString());
-				}
-
-				var blocks = data.body.blocks;
-
-				var report = library.scheme.validate(blocks, {
-					type: "array"
-				});
-
-				if (!report) {
-					return next("Received invalid blocks data");
-				}
-
-				blocks = private.readDbRows(blocks);
-
-				if (blocks.length == 0) {
-					loaded = true;
-					next();
-				} else {
-					library.logger.info('Loading ' + blocks.length + ' blocks from', peer.string);
-
-					async.eachSeries(blocks, function (block, cb) {
-						try {
-							block = library.logic.block.objectNormalize(block);
-						} catch (e) {
-							library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
-							library.logger.warn(e.toString());
-							modules.peer.state(peer.ip, peer.port, 0, 3600);
-							return cb(e);
-						}
-						self.processBlock(block, false, function (err) {
-							if (!err) {
-								lastCommonBlockId = block.id;
-								lastValidBlock = block;
-								library.logger.info('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
-							} else {
-								library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
-								library.logger.warn(err.toString());
-								modules.peer.state(peer.ip, peer.port, 0, 3600);
-							}
-
-							return cb(err);
-						});
-					}, next);
-				}
-			});
-		},
-		function (err) {
-			setImmediate(cb, err, lastValidBlock);
+	modules.transport.getFromPeer(peer, {
+		method: "GET",
+		api: '/blocks?lastBlockId=' + lastValidBlock.id
+	}, function (err, data) {
+		if (err || data.body.error) {
+			return setImmediate(callback, err, lastValidBlock);
 		}
-	)
+
+		var blocks = data.body.blocks;
+
+		var report = library.scheme.validate(blocks, {
+			type: "array"
+		});
+
+		if (!report) {
+			return setImmediate(callback, "Received invalid blocks data", lastValidBlock);
+		}
+
+		blocks = private.readDbRows(blocks);
+
+		if (blocks.length == 0) {
+			return setImmediate(callback, null, lastValidBlock);
+		} else {
+
+			async.eachSeries(blocks, function (block, cb) {
+				self.processBlock(block, false, function (err) {
+					if (!err) {
+						lastCommonBlockId = block.id;
+						lastValidBlock = block;
+						library.logger.info('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
+					} else {
+						library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
+						library.logger.warn(err.toString());
+						modules.peer.state(peer.ip, peer.port, 0, 3600);
+					}
+					return cb(err);
+				});
+			}, function(err){
+				if(err){
+					return setImmediate(callback, "Error loading blocks: " + err, lastValidBlock);
+				}
+				return setImmediate(callback, null, lastValidBlock);
+			});
+		}
+	});
 }
 
 Blocks.prototype.deleteBlocksBefore = function (block, cb) {
