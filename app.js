@@ -219,8 +219,13 @@ d.run(function () {
 		network: ["config", function (cb, scope) {
 			var express = require("express");
 			var compression = require("compression");
+			var cors = require("cors");
 			var app = express();
-			app.use(compression({ level: 6 }))
+
+			app.use(compression({ level: 6 }));
+			app.use(cors());
+			app.options("*", cors());
+
 			var server = require("http").createServer(app);
 			var io = require("socket.io")(server);
 
