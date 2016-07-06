@@ -81,6 +81,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 		// toRemove > 0 means node has forked from the other peer
 		// in this case we will remove the "wrong blocks"
 		// TODO: note from fixcrypt: I think removing blocks does not work here.
+		// TODO: before removing try to confirm with other "good peers"
 		var toRemove = lastBlock.height - commonBlock.height;
 
 		if (toRemove > constants.activeDelegates * 10) {
@@ -90,6 +91,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 		}
 
 		var overTransactionList = [];
+		// removing applied transactions not yet included in a block (thus in unconfirmed state)
 		modules.transactions.undoUnconfirmedList(function (err, unconfirmedList) {
 			if (err) {
 				// Database likely messed up
@@ -101,6 +103,12 @@ private.findUpdate = function (lastBlock, peer, cb) {
 				overTransactionList.push(transaction);
 				modules.transactions.removeUnconfirmedTransaction(unconfirmedList[i]);
 			}
+
+			// Strategy:
+			// - set Round in backward mode
+			// - remove Blocks (and transactions included in thoses blocks) until the commonBlock if needed
+			// - set Round in forward mode
+			// - process Blocks sent from the peer from commonBlock
 
 			async.series([
 				function (cb) {
@@ -127,6 +135,13 @@ private.findUpdate = function (lastBlock, peer, cb) {
 
 					modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 						if (err) {
+							// Database Mess...
+							// Strategy:
+							// - set Round in backward mode
+							// - remove all "uploaded" blocks from the peers that have been applied
+							// - set Round in forward mode
+							// - apply unconfirmed transactions from the list
+							// We are supposed to be back in a correct state at commoBlock height....
 							modules.transactions.deleteHiddenTransaction();
 							library.logger.warn("Failed to load blocks, ban 60 min", peer.string);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
@@ -134,7 +149,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 							if (lastValidBlock) {
 								var uploaded = lastValidBlock.height - commonBlock.height;
 
-								if (toRemove < uploaded) {
+								if (toRemove < uploaded) { //note from fix: useless since the "else" block contains the exact same code logic imo....
 									library.logger.info("Removing blocks again until " + lastValidBlock.id + " (at " + lastValidBlock.height + ")");
 
 									async.series([
@@ -536,25 +551,29 @@ private.loadBlocksFromNetwork = function(cb) {
 // Given a list of peers with associated blockchain height (heights={peer:peer, height:height}), we find a list of good peers (likely to sync with)
 // Histogram cut removing peers far from the most common observed height (not as easy as it sounds since the histogram has likely been made accross few blocks time. Needs to aggregate).
 private.findGoodPeers = function(heights){
+	// Removing unreachable peers
 	heights = heights.filter(function(item){
 		return item != null;
 	});
-  // Ordering the peers with descending height
-  heights=heights.sort(function (a,b){
-    return b.height - a.height;
-  });
 
-  // Assuming at least > 10% of network is in good health
+  // Assuming that the node reached at least 10% of the network
   if(heights.length < 10){
     return null;
   }
   else {
+		// Ordering the peers with descending height
+	  heights = heights.sort(function (a,b){
+	    return b.height - a.height;
+	  });
 		var histogram = {};
 		var max = 0;
 		var height;
 
+		var aggregation = 2; // aggregating height by 2. TODO to be changed if node latency increases?
+
+		// Histogram calculation, together with histogram maximum
 		for(i in heights){
-			var val = parseInt(heights[i].height / 2) * 2;
+			var val = parseInt(heights[i].height / aggregation) * aggregation;
 			histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
 			if(histogram[val] > max){
 				max = histogram[val];
@@ -562,10 +581,11 @@ private.findGoodPeers = function(heights){
 			}
 		}
 
+		// Performing histogram cut of peers too far from histogram maximum
 		var peers = heights.filter(function(item){
-			return item && Math.abs(height - item.height) < 2;
+			return item && Math.abs(height - item.height) < aggregation + 1;
 		}).map(function(item){
-			// add the height info to the peer
+			// add the height info to the peer. To be removed?
 			item.peer.height=item.height;
 			return item.peer;
 		});
@@ -578,13 +598,14 @@ private.findGoodPeers = function(heights){
 // Rationale:
 // - we pick 100 random peers from a random peer (could be unreachable...),
 // - then for each of them we grab the height of their blockchain.
-// - With this list we try to get a peer with sensibly good blockchain height (see private.findGoodPeer for actual strategy)
+// - With this list we try to get a peer with sensibly good blockchain height (see private.findGoodPeers for actual strategy)
 Loader.prototype.getNetwork = function(cb) {
-	// if private.network is not so far from current node height, just return the cached one.
+	// if private.network is not so far (ie 1 round) from current node height, just return the cached one.
 	if(private.network && Math.abs(private.network.height - modules.blocks.getLastBlock().height) < 101){
 		return setImmediate(cb, null, private.network);
 	}
-	//fetch a list of 100 random peers
+	// Fetch a list of 100 random peers
+	// TODO: get the list from database?
 	modules.transport.getFromRandomPeer({
 		api: '/list',
 		method: 'GET'
@@ -592,7 +613,7 @@ Loader.prototype.getNetwork = function(cb) {
 		if (err) {
 			library.logger.info("Could not connect properly to the network", err);
 			library.logger.info("Retrying...", err);
-			return self.getNetwork(cb);
+			return self.getNetwork(cb); // TODO use setImmediate to prevent from stack overflow?
 		}
 
 		var report = library.scheme.validate(data.body.peers, {type: "array", required: true, uniqueItems: true});
@@ -612,7 +633,7 @@ Loader.prototype.getNetwork = function(cb) {
 
 			var peers = data.body.peers;
 
-			// For each peer, we will get the height and find the maximum
+			// For each peer, we will get the height
 			async.map(peers, function (peer, cb) {
 				var ispeervalid = library.scheme.validate(peer, {
 					type: "object",
@@ -701,7 +722,7 @@ Loader.prototype.onPeerReady = function () {
 			private.syncTrigger(false);
 			private.blocksToSync = 0;
 		});
-		library.logger.debug("Checking blockchain for new block in 10s");
+		library.logger.debug("Checking blockchain for new block in 10 seconds");
 		setTimeout(nextLoadBlock, 10 * 1000);
 	});
 
