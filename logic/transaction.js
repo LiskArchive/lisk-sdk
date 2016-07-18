@@ -357,7 +357,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check sender
-	if (trs.senderId != sender.address) {
+	if (String(trs.senderId).toUpperCase() != String(sender.address).toUpperCase()) {
 		return setImmediate(cb, "Invalid sender id: " + trs.id);
 	}
 
