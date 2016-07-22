@@ -93,6 +93,8 @@ module.exports = function (grunt) {
 		}
 	});
 
+	grunt.loadTasks('tasks');
+
 	grunt.loadNpmTasks('grunt-obfuscator');
 	grunt.loadNpmTasks('grunt-jsdox');
 	grunt.loadNpmTasks('grunt-exec');
