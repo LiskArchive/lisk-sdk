@@ -93,7 +93,8 @@ function Account(scope, cb) {
 				maxLength: 22
 			},
 			conv: String,
-			constante: true
+			constante: true,
+			expression: "UPPER(\"address\")"
 		},
 		{
 			name: "publicKey",
