@@ -674,6 +674,9 @@ Account.prototype.set = function (address, fields, cb) {
 		console.log("!!!!!!!!!!!!!!!!!!!!!!!", address, diff);
 	}
 
+	// Normalize address
+	address = String(address).toUpperCase();
+
 	fields.address = address;
 	var account = fields;
 	var sqles = []
@@ -684,9 +687,6 @@ Account.prototype.set = function (address, fields, cb) {
 		values: this.toDB(account)
 	});
 	sqles.push(sql);
-
-	// Normalize address
-	address = String(address).toUpperCase();
 
 	var sql = jsonSql.build({
 		type: 'update',
