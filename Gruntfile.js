@@ -1,5 +1,5 @@
-var moment = require('moment'),
-    util = require( "util" );
+var moment = require('moment');
+var util = require('util');
 
 module.exports = function (grunt) {
 	var os = grunt.option('os');
