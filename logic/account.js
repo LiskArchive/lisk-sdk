@@ -89,6 +89,7 @@ function Account(scope, cb) {
 			filter: {
 				required: true,
 				type: "string",
+				case: "upper",
 				minLength: 1,
 				maxLength: 22
 			},
