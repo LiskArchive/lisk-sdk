@@ -680,31 +680,16 @@ Account.prototype.set = function (address, fields, cb) {
 
 	fields.address = address;
 	var account = fields;
-	var sqles = []
 
 	var sql = jsonSql.build({
-		type: 'insertornothing',
+		type: 'insertorupdate',
 		table: this.table,
-		values: this.toDB(account)
-	});
-	sqles.push(sql);
-
-	var sql = jsonSql.build({
-		type: 'update',
-		table: this.table,
-		modifier: this.toDB(account),
-		condition: {
-			address: address
-		}
+		conflictFields: ["address"],
+		values: this.toDB(account),
+		modifier: this.toDB(account)
 	});
 
-	sqles.push(sql);
-
-	var queries = sqles.map(function (sql) {
-		return pgp.as.format(sql.query, sql.values);
-	}).join('');
-
-	this.scope.db.none(queries).then(function () {
+	this.scope.db.none(sql.query, sql.values).then(function () {
 		return cb();
 	}).catch(function (err) {
 		library.logger.error(err.toString());
