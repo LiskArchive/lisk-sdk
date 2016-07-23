@@ -1,4 +1,4 @@
-/* Lisk Views - Version 0.2
+/* Lisk Views
  *
  */
 

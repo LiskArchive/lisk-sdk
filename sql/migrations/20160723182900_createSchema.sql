@@ -1,10 +1,11 @@
-/* Lisk Schema - Version 0.2
+/* Lisk Schema
  *
  */
 
 BEGIN;
 
 /* Tables */
+CREATE TABLE IF NOT EXISTS "migrations"("id" VARCHAR(22) NOT NULL PRIMARY KEY, "name" TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS "blocks"("id" VARCHAR(20) PRIMARY KEY, "rowId" SERIAL NOT NULL, "version" INT NOT NULL, "timestamp" INT NOT NULL, "height" INT NOT NULL, "previousBlock" VARCHAR(20), "numberOfTransactions" INT NOT NULL, "totalAmount" BIGINT NOT NULL, "totalFee" BIGINT NOT NULL, "reward" BIGINT NOT NULL, "payloadLength" INT NOT NULL, "payloadHash" bytea NOT NULL, "generatorPublicKey" bytea NOT NULL, "blockSignature" bytea NOT NULL, FOREIGN KEY("previousBlock") REFERENCES "blocks"("id") ON DELETE SET NULL);
 CREATE TABLE IF NOT EXISTS "trs"("id" VARCHAR(20) PRIMARY KEY, "rowId" SERIAL NOT NULL, "blockId" VARCHAR(20) NOT NULL, "type" SMALLINT NOT NULL, "timestamp" INT NOT NULL, "senderPublicKey" bytea NOT NULL, "senderId" VARCHAR(22) NOT NULL, "recipientId" VARCHAR(22), "amount" BIGINT NOT NULL, "fee" BIGINT NOT NULL, "signature" bytea NOT NULL, "signSignature" bytea, "requesterPublicKey" bytea, "signatures" TEXT, FOREIGN KEY("blockId") REFERENCES "blocks"("id") ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS "signatures"("transactionId" VARCHAR(20) NOT NULL PRIMARY KEY, "publicKey" bytea NOT NULL, FOREIGN KEY("transactionId") REFERENCES trs(id) ON DELETE CASCADE);
@@ -46,8 +47,5 @@ CREATE INDEX IF NOT EXISTS "delegates_trs_id" ON "delegates"("transactionId");
 CREATE INDEX IF NOT EXISTS "multisignatures_trs_id" ON "multisignatures"("transactionId");
 CREATE INDEX IF NOT EXISTS "dapps_trs_id" ON "dapps"("transactionId");
 CREATE INDEX IF NOT EXISTS "dapps_name" ON "dapps"("name");
-
-/* Peers */
-UPDATE "peers" SET "state" = 1, "clock" = NULL WHERE "state" != 0;
 
 COMMIT;
