@@ -37,8 +37,7 @@ function Account(scope, cb) {
 			filter: {
 				type: "boolean"
 			},
-			conv: Boolean,
-			default: 0
+			conv: Boolean
 		},
 		{
 			name: "u_isDelegate",
@@ -46,8 +45,7 @@ function Account(scope, cb) {
 			filter: {
 				type: "boolean"
 			},
-			conv: Boolean,
-			default: 0
+			conv: Boolean
 		},
 		{
 			name: "secondSignature",
@@ -55,8 +53,7 @@ function Account(scope, cb) {
 			filter: {
 				type: "boolean"
 			},
-			conv: Boolean,
-			default: 0
+			conv: Boolean
 		},
 		{
 			name: "u_secondSignature",
@@ -64,8 +61,7 @@ function Account(scope, cb) {
 			filter: {
 				type: "boolean"
 			},
-			conv: Boolean,
-			default: 0
+			conv: Boolean
 		},
 		{
 			name: "u_username",
@@ -130,8 +126,7 @@ function Account(scope, cb) {
 				maximum: constants.totalAmount
 			},
 			conv: Number,
-			expression: "(\"balance\")::bigint",
-			default: 0
+			expression: "(\"balance\")::bigint"
 		},
 		{
 			name: "u_balance",
@@ -143,8 +138,7 @@ function Account(scope, cb) {
 				maximum: constants.totalAMount
 			},
 			conv: Number,
-			expression: "(\"u_balance\")::bigint",
-			default: 0
+			expression: "(\"u_balance\")::bigint"
 		},
 		{
 			name: "vote",
@@ -153,8 +147,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
-			expression: "(\"vote\")::bigint",
-			default: 0
+			expression: "(\"vote\")::bigint"
 		},
 		{
 			name: "rate",
@@ -163,8 +156,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
-			expression: "(\"rate\")::bigint",
-			default: 0
+			expression: "(\"rate\")::bigint"
 		},
 		{
 			name: "delegates",
@@ -215,8 +207,7 @@ function Account(scope, cb) {
 				maximum: 17
 			},
 			conv: Number,
-			expression: "(\"multimin\")::bigint",
-			default: 0
+			expression: "(\"multimin\")::bigint"
 		},
 		{
 			name: "u_multimin",
@@ -227,8 +218,7 @@ function Account(scope, cb) {
 				maximum: 17
 			},
 			conv: Number,
-			expression: "(\"u_multimin\")::bigint",
-			default: 0
+			expression: "(\"u_multimin\")::bigint"
 		},
 		{
 			name: "multilifetime",
@@ -239,8 +229,7 @@ function Account(scope, cb) {
 				maximum: 72
 			},
 			conv: Number,
-			expression: "(\"multilifetime\")::bigint",
-			default: 0
+			expression: "(\"multilifetime\")::bigint"
 		},
 		{
 			name: "u_multilifetime",
@@ -251,8 +240,7 @@ function Account(scope, cb) {
 				maximum: 72
 			},
 			conv: Number,
-			expression: "(\"u_multilifetime\")::bigint",
-			default: 0
+			expression: "(\"u_multilifetime\")::bigint"
 		},
 		{
 			name: "blockId",
@@ -263,8 +251,7 @@ function Account(scope, cb) {
 				minLength: 1,
 				maxLength: 20
 			},
-			conv: String,
-			default: genesisBlock.id
+			conv: String
 		},
 		{
 			name: "nameexist",
@@ -272,8 +259,7 @@ function Account(scope, cb) {
 			filter: {
 				type: "boolean"
 			},
-			conv: Boolean,
-			default: 0
+			conv: Boolean
 		},
 		{
 			name: "u_nameexist",
@@ -281,8 +267,7 @@ function Account(scope, cb) {
 			filter: {
 				type: "boolean"
 			},
-			conv: Boolean,
-			default: 0
+			conv: Boolean
 		},
 		{
 			name: "producedblocks",
@@ -292,8 +277,7 @@ function Account(scope, cb) {
 				minimum: -1,
 				maximum: 1
 			},
-			conv: Number,
-			default: 0
+			conv: Number
 		},
 		{
 			name: "missedblocks",
@@ -303,8 +287,7 @@ function Account(scope, cb) {
 				minimum: -1,
 				maximum: 1
 			},
-			conv: Number,
-			default: 0
+			conv: Number
 		},
 		{
 			name: "fees",
@@ -313,8 +296,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
-			expression: "(\"fees\")::bigint",
-			default: 0
+			expression: "(\"fees\")::bigint"
 		},
 		{
 			name: "rewards",
@@ -323,8 +305,7 @@ function Account(scope, cb) {
 				type: "integer"
 			},
 			conv: Number,
-			expression: "(\"rewards\")::bigint",
-			default: 0
+			expression: "(\"rewards\")::bigint"
 		}
 	];
 
