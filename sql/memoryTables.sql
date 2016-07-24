@@ -2,6 +2,8 @@
  *
  */
 
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS "mem_accounts"(
   "username" VARCHAR(20),
   "isDelegate" SMALLINT DEFAULT 0,
@@ -70,3 +72,5 @@ DELETE FROM "mem_accounts2u_delegates";
 
 INSERT INTO "mem_accounts2u_delegates" SELECT * FROM "mem_accounts2delegates";
 -- INSERT INTO mem_accounts2u_multisignatures SELECT * FROM mem_accounts2multisignatures;
+
+COMMIT;
