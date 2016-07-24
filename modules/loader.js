@@ -409,93 +409,87 @@ private.loadBlockChain = function () {
 		});
 	}
 
-	library.logic.account.createTables(function (err) {
-		function reload (count, message) {
-			if (message) {
-				library.logger.warn(message);
-				library.logger.warn("Recreating memory tables");
-			}
-			load(count);
+	function reload (count, message) {
+		if (message) {
+			library.logger.warn(message);
+			library.logger.warn("Recreating memory tables");
+		}
+		load(count);
+	}
+
+	function checkMemTables (t) {
+		var promises = [
+			t.one(sql.countBlocks),
+			t.one(sql.countMemAccounts),
+			t.query(sql.getMemRounds)
+		];
+
+		return t.batch(promises);
+	}
+
+	library.db.task(checkMemTables).then(function (results) {
+		var count = results[0].count,
+		    missed = !(results[1].count);
+
+		library.logger.info("Blocks " + count);
+
+		if (count == 1) {
+			return reload(count);
 		}
 
-		if (err) {
-			throw err;
+		if (verify) {
+			return reload(count, "Blocks verification enabled");
 		}
 
-		function checkMemTables (t) {
+		if (missed) {
+			return reload(count, "Detected missed blocks in mem_accounts");
+		}
+
+		var round = modules.round.calc(count);
+		var unapplied = results[2].filter(function (row) {
+			return (row.round != round);
+		});
+
+		if (unapplied.length > 0) {
+			return reload(count, "Detected unapplied rounds in mem_round");
+		}
+
+		function updateMemAccounts (t) {
 			var promises = [
-				t.one(sql.countBlocks),
-				t.one(sql.countMemAccounts),
-				t.query(sql.getMemRounds)
+				t.none(sql.updateMemAccounts),
+				t.query(sql.getOrphanedMemAccounts),
+				t.query(sql.getDelegates)
 			];
 
 			return t.batch(promises);
 		}
 
-		library.db.task(checkMemTables).then(function (results) {
-			var count = results[0].count,
-			    missed = !(results[1].count);
-
-			library.logger.info("Blocks " + count);
-
-			if (count == 1) {
-				return reload(count);
+		library.db.task(updateMemAccounts).then(function (results) {
+			if (results[1].length > 0) {
+				return reload(count, "Detected orphaned blocks in mem_accounts");
 			}
 
-			if (verify) {
-				return reload(count, "Blocks verification enabled");
+			if (results[2].length == 0) {
+				return reload(count, "No delegates found");
 			}
 
-			if (missed) {
-				return reload(count, "Detected missed blocks in mem_accounts");
-			}
-
-			var round = modules.round.calc(count);
-			var unapplied = results[2].filter(function (row) {
-				return (row.round != round);
-			});
-
-			if (unapplied.length > 0) {
-				return reload(count, "Detected unapplied rounds in mem_round");
-			}
-
-			function updateMemAccounts (t) {
-				var promises = [
-					t.none(sql.updateMemAccounts),
-					t.query(sql.getOrphanedMemAccounts),
-					t.query(sql.getDelegates)
-				];
-
-				return t.batch(promises);
-			}
-
-			library.db.task(updateMemAccounts).then(function (results) {
-				if (results[1].length > 0) {
-					return reload(count, "Detected orphaned blocks in mem_accounts");
+			modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
+				if (err) {
+					return reload(count, err || "Failed to load blocks offset");
+				} else {
+					modules.blocks.loadLastBlock(function (err, block) {
+						if (err) {
+							return load(count);
+						}
+						private.lastBlock = block;
+						library.logger.info("Blockchain ready");
+						library.bus.message("blockchainReady");
+					});
 				}
-
-				if (results[2].length == 0) {
-					return reload(count, "No delegates found");
-				}
-
-				modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
-					if (err) {
-						return reload(count, err || "Failed to load blocks offset");
-					} else {
-						modules.blocks.loadLastBlock(function (err, block) {
-							if (err) {
-								return load(count);
-							}
-							private.lastBlock = block;
-							library.logger.info("Blockchain ready");
-							library.bus.message("blockchainReady");
-						});
-					}
-				});
 			});
-		}).catch(function (err) {
-			return reload(count, err);
 		});
+	}).catch(function (err) {
+		return reload(count, err);
 	});
 }
 
