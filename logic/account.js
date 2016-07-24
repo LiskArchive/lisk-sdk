@@ -21,7 +21,6 @@ function Account(scope, cb) {
 		{
 			name: "username",
 			type: "String",
-			length: 20,
 			filter: {
 				type: "string",
 				case: "lower",
@@ -66,7 +65,6 @@ function Account(scope, cb) {
 		{
 			name: "u_username",
 			type: "String",
-			length: 20,
 			filter: {
 				type: "string",
 				case: "lower",
@@ -79,10 +77,6 @@ function Account(scope, cb) {
 		{
 			name: "address",
 			type: "String",
-			length: 22,
-			not_null: true,
-			unique: true,
-			primary_key: true,
 			filter: {
 				required: true,
 				type: "string",
@@ -245,7 +239,6 @@ function Account(scope, cb) {
 		{
 			name: "blockId",
 			type: "String",
-			length: 20,
 			filter: {
 				type: "string",
 				minLength: 1,
