@@ -3,8 +3,8 @@
 // Requires and node configuration
 var node = require("./../variables.js");
 
-var totalMembers = node.randomNumber(2,16);
-var requiredSignatures = node.randomNumber(2,totalMembers+1);
+var totalMembers = node.randomNumber(2, 16);
+var requiredSignatures = node.randomNumber(2, totalMembers + 1);
 
 var NoLISKAccount = node.randomAccount();
 NoLISKAccount.name = "nolisk";
