@@ -8,6 +8,7 @@ var request = require("request");
 var path = require("path");
 var npm = require("npm");
 var slots = require("../helpers/slots.js");
+var OrderBy = require("../helpers/orderBy.js");
 var Router = require("../helpers/router.js");
 var DecompressZip = require("decompress-zip");
 var crypto = require("crypto");
@@ -1385,16 +1386,15 @@ private.getByIds = function (ids, cb) {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = sql.sortFields;
-	var params = {}, fields = [];
+	var params = {}, where = [];
 
 	if (filter.type >= 0) {
-		fields.push('"type" = ${type}');
+		where.push('"type" = ${type}');
 		params.type = filter.type;
 	}
 
 	if (filter.name) {
-		fields.push('"name" = ${name}');
+		where.push('"name" = ${name}');
 		params.name = filter.name;
 	}
 
@@ -1402,7 +1402,7 @@ private.list = function (filter, cb) {
 		var category = dappCategories[filter.category];
 
 		if (category !== null && category !== undefined) {
-			fields.push('"category" = ${category}');
+			where.push('"category" = ${category}');
 			params.category = category;
 		} else {
 			return setImmediate(cb, "Invalid application category");
@@ -1410,48 +1410,40 @@ private.list = function (filter, cb) {
 	}
 
 	if (filter.link) {
-		fields.push('"link" = ${link}');
+		where.push('"link" = ${link}');
 		params.link = filter.link;
 	}
 
-	if (!filter.limit && filter.limit != 0) {
-		filter.limit = 100;
+	if (!filter.limit) {
+		params.limit = 100;
+	} else {
+		params.limit = Math.abs(filter.limit);
 	}
 
-	if (!filter.offset && filter.offset != 0) {
-		filter.offset = 0;
+	if (!filter.offset) {
+		params.offset = 0;
+	} else {
+		params.offset = Math.abs(filter.offset);
 	}
 
-	if (filter.limit >= 0) {
-		params.limit = filter.limit;
+	if (params.limit > 100) {
+		return cb("Invalid limit. Maximum is 100");
 	}
 
-	if (filter.offset >= 0) {
-		params.offset = filter.offset;
-	}
-
-	if (filter.orderBy) {
-		var sort = filter.orderBy.split(":");
-		var sortBy = sort[0].replace(/[^\w_]/gi, "");
-
-		if (sort.length == 2) {
-			var sortMethod = sort[1] == "desc" ? "DESC" : "ASC"
-		} else {
-			sortMethod = "DESC";
+	var orderBy = OrderBy(
+		filter.orderBy, {
+			sortFields: sql.sortFields
 		}
-	}
+	);
 
-	if (sortBy) {
-		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid sort field");
-		}
+	if (orderBy.error) {
+		return cb(orderBy.error);
 	}
 
 	library.db.query(sql.list({
-		filter: filter,
-		fields: fields,
-		sortBy: sortBy,
-		sortMethod: sortMethod
+		where: where,
+		sortField: orderBy.sortField,
+		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {

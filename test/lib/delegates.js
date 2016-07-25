@@ -9,9 +9,9 @@ while (Raccount.username === Raccount.username.toUpperCase()) {
     Raccount = node.randomAccount();
 }
 
-// second RANDOM account - 0 LISK amount | Will test registration with same delegate name, changing case
+// Second RANDOM account - 0 LISK amount | Will test registration with same delegate name, changing case
 var R2account = node.randomAccount();
-R2account.username=Raccount.username.toUpperCase();
+R2account.username = Raccount.username.toUpperCase();
 // console.log(JSON.stringify(R2account));
 
 describe("PUT /accounts/delegates without funds", function () {
@@ -74,6 +74,33 @@ describe("PUT /accounts/delegates without funds", function () {
     });
 });
 
+describe("PUT /delegates without funds", function () {
+
+    it("Using valid parameters. Should fail", function (done) {
+        node.api.put("/delegates")
+            .set("Accept", "application/json")
+            .send({
+                secret: Raccount.password,
+                username: Raccount.username
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                if (res.body.success == false && res.body.error != null) {
+                    node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
+                } else {
+                    // console.log("Expected error and got success");
+                    // console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
+                    node.expect("TEST").to.equal("FAILED");
+                }
+                done();
+            });
+    });
+});
+
 describe("PUT /accounts/delegates with funds", function () {
 
     before(function(done) {
@@ -92,7 +119,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("transactionId");
-                if (res.body.success == true && res.body.transactionId != null) {
+                if (res.body.success && res.body.transactionId) {
                     node.expect(res.body.transactionId).to.be.above(1);
                     Raccount.amount += node.LISK;
                 } else {
@@ -120,7 +147,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 .end(function (err, res) {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    if (res.body.success == true && res.body.account != null) {
+                    if (res.body.success && res.body.account) {
                         node.expect(res.body.account.balance).to.be.equal(String(node.LISK));
                     } else {
                         // console.log("Failed to open account or account object is null");
@@ -147,7 +174,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
-                    if (res.body.success == true) {
+                    if (res.body.success) {
                         // console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
                     }
                     done();
@@ -170,7 +197,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
-                    if (res.body.success == true) {
+                    if (res.body.success) {
                         // console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
                     }
                     done();
@@ -191,10 +218,10 @@ describe("PUT /accounts/delegates with funds", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    console.log(JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
-                    if (res.body.success == true) {
+                    if (res.body.success) {
                         console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate) + "]";
                     }
                     done();
@@ -215,7 +242,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                if (res.body.success == true && res.body.transaction != null) {
+                if (res.body.success && res.body.transaction) {
                     node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
                     node.expect(res.body.transaction.amount).to.equal(0);
                     node.expect(res.body.transaction.senderPublicKey).to.equal(Raccount.publicKey);
@@ -270,7 +297,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                    if (res.body.success == true && res.body.transaction != null) {
+                    if (res.body.success && res.body.transaction) {
                         node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
                         node.expect(res.body.transaction.amount).to.equal(0);
                         node.expect(res.body.transaction.senderPublicKey).to.equal(Raccount.publicKey);
@@ -384,7 +411,6 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("Without any delegates. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
@@ -401,33 +427,6 @@ describe("PUT /accounts/delegates with funds", function () {
                     done();
                 });
         }, 3000);
-    });
-});
-
-describe("PUT /delegates without funds", function () {
-
-    it("Using valid parameters. Should fail", function (done) {
-        node.api.put("/delegates")
-            .set("Accept", "application/json")
-            .send({
-                secret: Raccount.password,
-                username: Raccount.username
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                // console.log(JSON.stringify(res.body));
-                node.expect(res.body).to.have.property("success").to.be.false;
-                node.expect(res.body).to.have.property("error");
-                if (res.body.success == false && res.body.error != null) {
-                    node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
-                } else {
-                    // console.log("Expected error and got success");
-                    // console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
-                    node.expect("TEST").to.equal("FAILED");
-                }
-                done();
-            });
     });
 });
 
@@ -466,7 +465,7 @@ describe("PUT /delegates with funds",function () {
                         // console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("transactionId");
-                        if (res.body.success == true && res.body.transactionId != null) {
+                        if (res.body.success && res.body.transactionId) {
                             node.expect(res.body.transactionId).to.be.above(1);
                             R2account.amount += node.LISK;
                         } else {
@@ -494,7 +493,7 @@ describe("PUT /delegates with funds",function () {
                 .end(function (err, res) {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    if (res.body.success == true && res.body.account != null) {
+                    if (res.body.success && res.body.account) {
                         node.expect(res.body.account.balance).to.be.equal(''+node.LISK);
                     } else {
                         // console.log("Failed to open account or account object is null");
@@ -525,7 +524,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using invalid pasphrase. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -545,7 +543,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using invalid username. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -565,7 +562,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using username longer than 20 characters. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -585,7 +581,6 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using blank username. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function() {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -618,7 +613,7 @@ describe("PUT /delegates with funds",function () {
                     // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                    if (res.body.success == true && res.body.transaction != null) {
+                    if (res.body.success && res.body.transaction) {
                         node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
                         node.expect(res.body.transaction.asset.delegate.username).to.equal(Raccount.username.toLowerCase());
                         node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(Raccount.publicKey);
@@ -814,7 +809,7 @@ describe("GET /delegates/count", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
-                node.expect(res.body).to.have.property("count").to.equal(101);
+                node.expect(res.body).to.have.property("count").to.be.at.least(101);
                 done();
             });
     });
@@ -888,16 +883,346 @@ describe("GET /delegates/voters", function () {
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("accounts").that.is.an("array");
                     var flag = 0;
-                    if (res.body.success == true && res.body.accounts != null) {
-                        for (var i = 0; i < res.body.accounts.length; i++) {
-                            if (res.body.accounts[i].address == Raccount.address) {
-                                flag = 1;
-                            }
+                    for (var i = 0; i < res.body.accounts.length; i++) {
+                        if (res.body.accounts[i].address == Raccount.address) {
+                            flag = 1;
                         }
                     }
                     node.expect(flag).to.equal(1);
                     done();
                 });
         });
+    });
+});
+
+describe("GET /delegates/search", function () {
+
+    it("When criteria is missing. Should fail", function (done) {
+        var q = "";
+
+        node.api.get("/delegates/search")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When criteria is an empty string. Should fail", function (done) {
+        var q = "";
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When criteria length is 1 character. Should be ok", function (done) {
+        var q = "g"; // 1 character
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                done();
+            });
+    });
+
+    it("When criteria length is 20 characters. Should be ok", function (done) {
+        var q = "genesis_123456789012"; // 20 characters
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                done();
+            });
+    });
+
+    it("When criteria length is greater than 20 characters. Should fail", function (done) {
+        var q = "genesis_1234567890123"; // 21 characters
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When critera == 'genesis_1'. Should return 13 delegates", function (done) {
+        var q = "genesis_1";
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(13);
+                done();
+            });
+    });
+
+    it("When critera == 'genesis_10'. Should return 3 delegates", function (done) {
+        var q = "genesis_10";
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(3);
+                done();
+            });
+    });
+
+    it("When critera == 'genesis_101'. Should return 1 delegate", function (done) {
+        var q = "genesis_101";
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(1);
+                done();
+            });
+    });
+
+    it("When critera == 'genesis_101'. Should have all properties", function (done) {
+        var q = "genesis_101";
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(1);
+                node.expect(res.body.delegates[0]).to.have.property("username").that.is.an("string");
+                node.expect(res.body.delegates[0]).to.have.property("address").that.is.an("string");
+                node.expect(res.body.delegates[0]).to.have.property("publicKey").that.is.an("string");
+                node.expect(res.body.delegates[0]).to.have.property("vote").that.is.an("string");
+                node.expect(res.body.delegates[0]).to.have.property("producedblocks").that.is.an("number");
+                node.expect(res.body.delegates[0]).to.have.property("missedblocks").that.is.an("number");
+                done();
+            });
+    });
+
+    it("When limit is missing. Should be ok", function (done) {
+        var q = "genesis_";
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(100);
+                done();
+            });
+    });
+
+    it("When limit is a string. Should be ok", function (done) {
+        var q = "genesis_";
+        var limit = "one"
+
+        node.api.get("/delegates/search?q=" + q + "&limit=" + limit)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When limit == -100. Should fail", function (done) {
+        var q = "genesis_";
+        var limit = -100;
+
+        node.api.get("/delegates/search?q=" + q + "&limit=" + limit)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When limit == -1. Should fail", function (done) {
+        var q = "genesis_";
+        var limit = -1;
+
+        node.api.get("/delegates/search?q=" + q + "&limit=" + limit)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When limit == 0. Should fail", function (done) {
+        var q = "genesis_";
+        var limit = 0;
+
+        node.api.get("/delegates/search?q=" + q + "&limit=" + limit)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When limit == 1. Should be ok", function (done) {
+        var q = "genesis_";
+        var limit = 1;
+
+        node.api.get("/delegates/search?q=" + q + "&limit=" + limit)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(1);
+                done();
+            });
+    });
+
+    it("When limit == 100. Should be ok", function (done) {
+        var q = "genesis_";
+        var limit = 100;
+
+        node.api.get("/delegates/search?q=" + q + "&limit=" + limit)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(100);
+                done();
+            });
+    });
+
+    it("When limit > 100. Should fail", function (done) {
+        var q = "genesis_";
+        var limit = 101;
+
+        node.api.get("/delegates/search?q=" + q + "&limit=" + limit)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When orderBy is invalid. Should fail", function (done) {
+        var q = "genesis_";
+
+        node.api.get("/delegates/search?q=" + q + "&orderBy=unknown:abc")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("When orderBy is missing. Should be ordered by ascending username", function (done) {
+        var q = "genesis_";
+
+        node.api.get("/delegates/search?q=" + q)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(100);
+                node.expect(res.body.delegates[0]).to.have.property("username");
+                node.expect(res.body.delegates[0].username).to.equal("genesis_1");
+                node.expect(res.body.delegates[24]).to.have.property("username");
+                node.expect(res.body.delegates[24].username).to.equal("genesis_3");
+                done();
+            });
+    });
+
+    it("When orderBy == 'username:asc'. Should be ordered by ascending username", function (done) {
+        var q = "genesis_";
+
+        node.api.get("/delegates/search?q=" + q + "&orderBy=username:asc")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(100);
+                node.expect(res.body.delegates[0]).to.have.property("username");
+                node.expect(res.body.delegates[0].username).to.equal("genesis_1");
+                node.expect(res.body.delegates[24]).to.have.property("username");
+                node.expect(res.body.delegates[24].username).to.equal("genesis_3");
+                done();
+            });
+    });
+
+    it("When orderBy == 'username:desc'. Should be ordered by descending username", function (done) {
+        var q = "genesis_";
+
+        node.api.get("/delegates/search?q=" + q + "&orderBy=username:desc")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("delegates").that.is.an("array");
+                node.expect(res.body.delegates).to.have.length(100);
+                node.expect(res.body.delegates[0]).to.have.property("username");
+                node.expect(res.body.delegates[0].username).to.equal("genesis_99");
+                node.expect(res.body.delegates[24]).to.have.property("username");
+                node.expect(res.body.delegates[24].username).to.equal("genesis_77");
+                done();
+            });
     });
 });

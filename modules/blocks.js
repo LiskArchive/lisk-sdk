@@ -7,6 +7,7 @@ var genesisblock = null;
 var blockReward = require("../helpers/blockReward.js");
 var constants = require("../helpers/constants.js");
 var Inserts = require("../helpers/inserts.js");
+var OrderBy = require("../helpers/orderBy.js");
 var Router = require("../helpers/router.js");
 var slots = require("../helpers/slots.js");
 var util = require("util");
@@ -149,8 +150,7 @@ private.deleteBlock = function (blockId, cb) {
 }
 
 private.list = function (filter, cb) {
-	var sortFields = sql.sortFields;
-	var params = {}, where = [], sortMethod = '', sortBy = '';
+	var params = {}, where = [];
 
 	if (filter.generatorPublicKey) {
 		where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
@@ -187,25 +187,6 @@ private.list = function (filter, cb) {
 		params.reward = filter.reward;
 	}
 
-	if (filter.orderBy) {
-		var sort = filter.orderBy.split(':');
-
-		sortBy = sort[0].replace(/[^\w\s]/gi, '');
-		sortBy = '"b_' + sortBy + '"';
-
-		if (sort.length == 2) {
-			sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
-		} else {
-			sortMethod = 'DESC';
-		}
-	}
-
-	if (sortBy) {
-		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid sort field");
-		}
-	}
-
 	if (!filter.limit) {
 		params.limit = 100;
 	} else {
@@ -222,6 +203,17 @@ private.list = function (filter, cb) {
 		return cb("Invalid limit. Maximum is 100");
 	}
 
+	var orderBy = OrderBy(
+		filter.orderBy, {
+			sortFields: sql.sortFields,
+			fieldPrefix: "b_"
+		}
+	);
+
+	if (orderBy.error) {
+		return cb(orderBy.error);
+	}
+
 	library.db.query(sql.countList({
 		where: where
 	}), params).then(function (rows) {
@@ -229,21 +221,21 @@ private.list = function (filter, cb) {
 
 		library.db.query(sql.list({
 			where: where,
-			sortBy: sortBy,
-			sortMethod: sortMethod
+			sortField: orderBy.sortField,
+			sortMethod: orderBy.sortMethod
 		}), params).then(function (rows) {
-				var blocks = [];
+			var blocks = [];
 
-				for (var i = 0; i < rows.length; i++) {
-					blocks.push(library.logic.block.dbRead(rows[i]));
-				}
+			for (var i = 0; i < rows.length; i++) {
+				blocks.push(library.logic.block.dbRead(rows[i]));
+			}
 
-				var data = {
-					blocks: blocks,
-					count: count
-				}
+			var data = {
+				blocks: blocks,
+				count: count
+			}
 
-				cb(null, data);
+			return cb(null, data);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
 			return cb("Blocks#list error");

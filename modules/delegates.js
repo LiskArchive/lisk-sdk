@@ -12,6 +12,7 @@ var blockReward = require("../helpers/blockReward.js");
 var constants = require("../helpers/constants.js");
 var transactionTypes = require("../helpers/transactionTypes.js");
 var MilestoneBlocks = require("../helpers/milestoneBlocks.js");
+var OrderBy = require("../helpers/orderBy.js");
 var sandboxHelper = require("../helpers/sandbox.js");
 var sql = require("../sql/delegates.js");
 var checkIpInList = require("../helpers/checkIpInList.js");
@@ -292,6 +293,7 @@ private.attachApi = function () {
 
 	router.map(shared, {
 		"get /count": "count",
+		"get /search": "search",
 		"get /voters": "getVoters",
 		"get /get": "getDelegate",
 		"get /": "getDelegates",
@@ -623,14 +625,9 @@ Delegates.prototype.getDelegates = function (query, cb) {
 
 		var limit = query.limit || constants.activeDelegates,
 		    offset = query.offset || 0,
-		    orderField = query.orderBy,
 		    active = query.active;
 
-		orderField = orderField ? orderField.split(':') : null;
 		limit = limit > constants.activeDelegates ? constants.activeDelegates : limit;
-
-		var orderBy = orderField ? orderField[0] : null;
-		var sortMode = orderField && orderField.length == 2 ? orderField[1] : 'asc';
 
 		var count = delegates.length;
 		var length = Math.min(limit, count);
@@ -651,10 +648,16 @@ Delegates.prototype.getDelegates = function (query, cb) {
 			delegates[i].productivity = (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0;
 		}
 
+		var orderBy = OrderBy(query.orderBy, { quoteField: false });
+
+		if (orderBy.error) {
+			return cb(orderBy.error);
+		}
+
 		return cb(null, {
 			delegates: delegates,
-			sortMode: sortMode,
-			orderBy: orderBy,
+			sortField: orderBy.sortField,
+			sortMethod: orderBy.sortMethod,
 			count: count,
 			offset: offset,
 			limit: realLimit
@@ -949,6 +952,54 @@ shared.getDelegate = function (req, cb) {
 	});
 }
 
+shared.search = function (req, cb) {
+	var query = req.body;
+
+	library.scheme.validate(query, {
+		type: "object",
+		properties: {
+			q: {
+				type: "string",
+				minLength: 1,
+				maxLength: 20
+			},
+			limit: {
+				type: "integer",
+				minimum: 1,
+				maximum: 100
+			}
+		},
+		required: ["q"]
+	}, function (err) {
+		if (err) {
+			return cb(err[0].message);
+		}
+
+		var orderBy = OrderBy(
+			query.orderBy, {
+				sortFields: sql.sortFields,
+				sortField: "username"
+			}
+		);
+
+		if (orderBy.error) {
+			return cb(orderBy.error);
+		}
+
+		library.db.query(sql.search({
+			q: query.q,
+			limit: query.limit || 100,
+			sortField: orderBy.sortField,
+			sortMethod: orderBy.sortMethod
+		})).then(function (rows) {
+			return cb(null, { delegates: rows });
+		}).catch(function (err) {
+			library.logger.error(err.toString());
+			return cb("Database search failed");
+		});
+	});
+}
+
 shared.count = function (req, cb) {
 	library.db.one(sql.count).then(function (row) {
 		return cb(null, { count: row.count });
@@ -1024,9 +1075,9 @@ shared.getDelegates = function (req, cb) {
 			}
 
 			function compareNumber(a, b) {
-				var sorta = parseFloat(a[result.orderBy]);
-				var sortb = parseFloat(b[result.orderBy]);
-				if (result.sortMode == 'asc') {
+				var sorta = parseFloat(a[result.sortField]);
+				var sortb = parseFloat(b[result.sortField]);
+				if (result.sortMethod == 'ASC') {
 					return sorta - sortb;
 				} else {
 				 	return sortb - sorta;
@@ -1034,19 +1085,21 @@ shared.getDelegates = function (req, cb) {
 			};
 
 			function compareString(a, b) {
-				var sorta = a[result.orderBy];
-				var sortb = b[result.orderBy];
-				if (result.sortMode == 'asc') {
+				var sorta = a[result.sortField];
+				var sortb = b[result.sortField];
+				if (result.sortMethod == 'ASC') {
 				  return sorta.localeCompare(sortb);
 				} else {
 				  return sortb.localeCompare(sorta);
 				}
 			};
 
-			if (["approval", "productivity", "rate", "vote", "missedblocks", "producedblocks"].indexOf(result.orderBy) >- 1) {
-				result.delegates = result.delegates.sort(compareNumber);
-			} else{
-				result.delegates = result.delegates.sort(compareString);
+			if (result.sortField) {
+				if (["approval", "productivity", "rate", "vote", "missedblocks", "producedblocks"].indexOf(result.sortField) > -1) {
+					result.delegates = result.delegates.sort(compareNumber);
+				} else {
+					result.delegates = result.delegates.sort(compareString);
+				}
 			}
 
 			library.logger.debug(result.delegates);

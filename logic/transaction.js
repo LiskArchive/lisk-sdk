@@ -195,7 +195,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	try {
 		var txId = this.getId(trs);
 	} catch (e) {
-		library.logger.error(e.toString());
+		this.scope.logger.error(e.toString());
 		return setImmediate(cb, "Invalid transaction id");
 	}
 
@@ -241,13 +241,13 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 
 			cb(null, trs);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			this.scope.logger.error(err.toString());
 			return cb("Transaction#process error");
 		});
 	}.bind(this));
 }
 
-Transaction.prototype.verify = function (trs, sender, requester, cb) { //inheritance
+Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	if (typeof requester === 'function') {
 		cb = requester;
 	}
@@ -281,7 +281,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 			valid = this.verifySignature(trs, trs.senderPublicKey, trs.signature);
 		}
 	} catch (e) {
-		library.logger.error(e.toString());
+		this.scope.logger.error(e.toString());
 		return setImmediate(cb, e.toString());
 	}
 
@@ -357,7 +357,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 	}
 
 	// Check sender
-	if (trs.senderId != sender.address) {
+	if (String(trs.senderId).toUpperCase() != String(sender.address).toUpperCase()) {
 		return setImmediate(cb, "Invalid sender id: " + trs.id);
 	}
 
@@ -366,10 +366,12 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 	if (!fee || trs.fee != fee) {
 		return setImmediate(cb, "Invalid transaction type/fee: " + trs.id);
 	}
+
 	// Check amount
 	if (trs.amount < 0 || trs.amount > constants.totalAmount || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
 		return setImmediate(cb, "Invalid transaction amount: " + trs.id);
 	}
+
 	// Check timestamp
 	if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
 		return setImmediate(cb, "Invalid transaction timestamp");
@@ -377,7 +379,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) { //inherit
 
 	// Spec
 	private.types[trs.type].verify.call(this, trs, sender, function (err) {
-		cb(err);
+		return cb(err);
 	});
 }
 

@@ -1,14 +1,14 @@
 const BlocksSql = {
   sortFields: [
-    '"b_id"',
-    '"b_timestamp"',
-    '"b_height"',
-    '"b_previousBlock"',
-    '"b_totalAmount"',
-    '"b_totalFee"',
-    '"b_reward"',
-    '"b_numberOfTransactions"',
-    '"b_generatorPublicKey"'
+    'id',
+    'timestamp',
+    'height',
+    'previousBlock',
+    'totalAmount',
+    'totalFee',
+    'reward',
+    'numberOfTransactions',
+    'generatorPublicKey'
   ],
 
   getGenesisBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
@@ -18,15 +18,15 @@ const BlocksSql = {
   countList: function (params) {
     return [
       'SELECT COUNT("b_id")::int FROM blocks_list',
-      (params.where.length ? 'WHERE' + params.where.join(' AND ') : '')
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
     ].filter(Boolean).join(' ');
   },
 
   list: function (params) {
     return [
       'SELECT * FROM blocks_list',
-      (params.where.length ? 'WHERE' + params.where.join(' AND ') : ''),
-      (params.sortBy ? 'ORDER BY ' + params.sortBy + ' ' + params.sortMethod : ''),
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },

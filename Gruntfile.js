@@ -1,14 +1,7 @@
-var moment = require('moment'),
-    util = require( "util" );
+var moment = require('moment');
+var util = require('util');
 
 module.exports = function (grunt) {
-	var os = grunt.option('os');
-	var sqliteFile = 'sqlite3';
-
-	if (os == 'win') {
-		sqliteFile += '.exe';
-	}
-
 	var files = [
 		'logger.js',
 		'helpers/**/*.js',
@@ -99,6 +92,8 @@ module.exports = function (grunt) {
 			all: ['app.js', 'helpers/**/*.js', 'modules/**/*.js', 'logic/**/*.js']
 		}
 	});
+
+	grunt.loadTasks('tasks');
 
 	grunt.loadNpmTasks('grunt-obfuscator');
 	grunt.loadNpmTasks('grunt-jsdox');

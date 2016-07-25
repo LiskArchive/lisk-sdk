@@ -1,6 +1,7 @@
 var async = require('async');
 var util = require('util');
 var ip = require('ip');
+var OrderBy = require("../helpers/orderBy.js");
 var Router = require('../helpers/router.js');
 var extend = require('extend');
 var fs = require('fs');
@@ -151,7 +152,7 @@ private.updatePeerList = function (cb) {
 private.count = function (cb) {
 	library.db.query(sql.count).then(function (rows) {
 		var res = rows.length && rows[0].count;
-		cb(null, res)
+		return cb(null, res)
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Peer#count error");
@@ -168,54 +169,32 @@ private.banManager = function (cb) {
 }
 
 private.getByFilter = function (filter, cb) {
-	var sortFields = sql.sortFields;
-	var sortMethod = '', sortBy = ''
-
-	var fields = [];
+	var where = [];
 	var params = {};
 
-	if (filter.hasOwnProperty('state') && filter.state !== null) {
-		fields.push('"state" = ${state}');
+	if (filter.state) {
+		where.push('"state" = ${state}');
 		params.state = filter.state;
 	}
 
-	if (filter.hasOwnProperty('os') && filter.os !== null) {
-		fields.push('"os" = ${os}');
+	if (filter.os) {
+		where.push('"os" = ${os}');
 		params.os = filter.os;
 	}
 
-	if (filter.hasOwnProperty('version') && filter.version !== null) {
-		fields.push('"version" = ${version}');
+	if (filter.version) {
+		where.push('"version" = ${version}');
 		params.version = filter.version;
 	}
 
-	if (filter.hasOwnProperty('ip') && filter.ip !== null) {
-		fields.push('"ip" = ${ip}');
+	if (filter.ip) {
+		where.push('"ip" = ${ip}');
 		params.ip = filter.ip;
 	}
 
-	if (filter.hasOwnProperty('port') && filter.port !== null) {
-		fields.push('"port" = ${port}');
+	if (filter.port) {
+		where.push('"port" = ${port}');
 		params.port = filter.port;
-	}
-
-	if (filter.hasOwnProperty('orderBy')) {
-		var sort = filter.orderBy.split(':');
-		sortBy = sort[0].replace(/[^\w\s]/gi, '');
-
-		if (sort.length == 2) {
-			sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC'
-		} else {
-			sortMethod = 'DESC';
-		}
-	}
-
-	if (sortBy) {
-		if (sortFields.indexOf(sortBy) < 0) {
-			return cb("Invalid sort field");
-		} else {
-			sortBy = '"' + sortBy + '"';
-		}
 	}
 
 	if (!filter.limit) {
@@ -234,12 +213,22 @@ private.getByFilter = function (filter, cb) {
 		return cb("Invalid limit. Maximum is 100");
 	}
 
+	var orderBy = OrderBy(
+		filter.orderBy, {
+			sortFields: sql.sortFields
+		}
+	);
+
+	if (orderBy.error) {
+		return cb(orderBy.error);
+	}
+
 	library.db.query(sql.getByFilter({
-		fields: fields,
-		sortBy: sortBy,
-		sortMethod: sortMethod
+		where: where,
+		sortField: orderBy.sortField,
+		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
-		cb(null, rows);
+		return cb(null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Peer#getByFilter error");
@@ -279,7 +268,7 @@ Peer.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
 	library.db.query(sql.randomList(options), options).then(function (rows) {
-		cb(null, rows);
+		return cb(null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Peer#list error");
@@ -390,7 +379,7 @@ Peer.prototype.update = function (peer, cb) {
 		}
 	], function (err) {
 		err && library.logger.error(err);
-		cb && cb();
+		return cb && cb();
 	})
 }
 
@@ -501,7 +490,7 @@ shared.getPeers = function (req, cb) {
 				return cb("Peer not found");
 			}
 
-			cb(null, {peers: peers});
+			return cb(null, {peers: peers});
 		});
 	});
 }
@@ -538,13 +527,13 @@ shared.getPeer = function (req, cb) {
 
 			var peer = peers.length ? peers[0] : null;
 
-			cb(null, {peer: peer || {}});
+			return cb(null, {peer: peer || {}});
 		});
 	});
 }
 
 shared.version = function (req, cb) {
-	cb(null, {version: library.config.version, build: library.build});
+	return cb(null, {version: library.config.version, build: library.build});
 }
 
 // Export

@@ -55,7 +55,7 @@ module.exports = function (config) {
 			}
 
 			data && (log["data"] = snipsecret(data));
-			var data_str = log.data ? JSON.stringify(log.data) : "";
+			var data_str = util.isObject(log.data) ? JSON.stringify(log.data) : String(log.data);
 			var level_str = config.level_abbr[log.level] ? config.level_abbr[log.level] : "???";
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
