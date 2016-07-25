@@ -1,4 +1,4 @@
-/* Lisk Views
+/* Create Views
  *
  */
 

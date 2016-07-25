@@ -1,4 +1,4 @@
-/* Lisk Memory Tables
+/* Create Memory Tables
  *
  */
 

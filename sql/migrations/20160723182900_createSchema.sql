@@ -1,4 +1,4 @@
-/* Lisk Schema
+/* Create Schema
  *
  */
 
