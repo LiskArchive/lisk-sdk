@@ -37,11 +37,11 @@ function openAccount (account, i) {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-            if (i) {
+            if (i != null) {
                 console.log("Opening Account " + i + " with password: " + account.password);
             }
             node.expect(res.body).to.have.property("success").to.be.true;
-            if (res.body.account && i) {
+            if (res.body.account && i != null) {
                 Accounts[i].address = res.body.account.address;
                 Accounts[i].publicKey = res.body.account.publicKey;
             } else if (account.name == "nolisk") {
@@ -74,7 +74,7 @@ function sendLISK (account, i) {
                 // console.log(JSON.stringify(res.body));
                 // console.log("Sending " + randomLISK + " LISK to " + account.address);
                 node.expect(res.body).to.have.property("success").to.be.true;
-                if (res.body.success && i) {
+                if (res.body.success && i != null) {
                     Accounts[i].balance = randomLISK / node.normalizer;
                 }
             });
