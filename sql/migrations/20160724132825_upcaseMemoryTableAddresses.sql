@@ -1,4 +1,4 @@
-/* Upcase Addresses
+/* Upcase Memory Table Addresses
  *
  */
 
