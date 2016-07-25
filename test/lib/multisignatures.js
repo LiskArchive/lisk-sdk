@@ -1,6 +1,7 @@
 "use strict";
 
 // Requires and node configuration
+var async = require("async");
 var node = require("./../variables.js");
 
 var totalMembers = node.randomNumber(2, 16);
@@ -27,7 +28,7 @@ var MultiSigTX = {
 // Used for opening accounts
 var accountOpenTurn = 0;
 
-function openAccount (account, i) {
+function openAccount (account, i, done) {
     node.api.post("/accounts/open")
         .set("Accept", "application/json")
         .send({
@@ -51,34 +52,34 @@ function openAccount (account, i) {
                 MultisigAccount.address = res.body.account.address;
                 MultisigAccount.publicKey = res.body.account.publicKey;
             }
+            return done();
         });
 }
 
 // Used for sending LISK to accounts
 var accountSendTurn = 0;
 
-function sendLISK (account, i) {
-    node.onNewBlock(function (err) {
-        var randomLISK = node.randomLISK();
+function sendLISK (account, i, done) {
+    var randomLISK = node.randomLISK();
 
-        node.api.put("/transactions")
-            .set("Accept", "application/json")
-            .send({
-                secret: node.Gaccount.password,
-                amount: randomLISK,
-                recipientId: account.address
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                // console.log(JSON.stringify(res.body));
-                // console.log("Sending " + randomLISK + " LISK to " + account.address);
-                node.expect(res.body).to.have.property("success").to.be.true;
-                if (res.body.success && i != null) {
-                    Accounts[i].balance = randomLISK / node.normalizer;
-                }
-            });
-    });
+    node.api.put("/transactions")
+        .set("Accept", "application/json")
+        .send({
+            secret: node.Gaccount.password,
+            amount: randomLISK,
+            recipientId: account.address
+        })
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            // console.log(JSON.stringify(res.body));
+            // console.log("Sending " + randomLISK + " LISK to " + account.address);
+            node.expect(res.body).to.have.property("success").to.be.true;
+            if (res.body.success && i != null) {
+                Accounts[i].balance = randomLISK / node.normalizer;
+            }
+            return done();
+        });
 }
 
 function sendLISKfromMultisigAccount (amount, recipient) {
@@ -129,38 +130,44 @@ function makeKeysGroup () {
 }
 
 before(function (done) {
-    for (var i = 0; i < Accounts.length; i++) {
-        if (Accounts[i]) {
-            openAccount(Accounts[i],i);
-            setTimeout(function () {
-                if (accountOpenTurn < totalMembers) {
-                    accountOpenTurn += 1;
-                }
-            }, 2000);
+    async.series([
+        function (seriesCb) {
+            var i = 0;
+            async.eachSeries(Accounts, function (account, eachCb) {
+                openAccount(account, i, function () {
+                    if (accountOpenTurn < totalMembers) {
+                        accountOpenTurn++;
+                    }
+                    i++;
+                    return eachCb();
+                });
+            }, function (err) {
+                return seriesCb();
+            });
+        },
+        function (seriesCb) {
+            return openAccount(NoLISKAccount, null, seriesCb);
+        },
+        function (seriesCb) {
+            return openAccount(MultisigAccount, null, seriesCb);
+        },
+        function (seriesCb) {
+            var i = 0;
+            async.eachSeries(Accounts, function (account, eachCb) {
+                sendLISK(account, i, function () {
+                    i++;
+                    return eachCb();
+                });
+            }, function (err) {
+                return seriesCb();
+            });
+        },
+        function (seriesCb) {
+            return sendLISK(MultisigAccount, null, seriesCb);
         }
-    }
-    openAccount(NoLISKAccount, null);
-    openAccount(MultisigAccount, null);
-    done();
-});
-
-before(function (done) {
-   for (var i = 0; i < (Accounts.length); i++) {
-       if (Accounts[i]) {
-           sendLISK(Accounts[i], i);
-       }
-   }
-   sendLISK(MultisigAccount, null);
-   done();
-});
-
-before(function (done) {
-    // Wait for two new blocks to ensure all data has been recieved
-    node.onNewBlock(function (err) {
+    ], function (err) {
         node.onNewBlock(function (err) {
-            node.expect(err).to.be.not.ok;
-            // console.log(Accounts);
-            done();
+            return done(err);
         });
     });
 });
