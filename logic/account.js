@@ -370,13 +370,7 @@ Account.prototype.removeTables = function (cb) {
 		sqles.push(sql.query);
 	});
 
-	var i, concatenated = "";
-
-	for (i = 0; i < sqles.length; i++) {
-		concatenated += sqles[i];
-	}
-
-	this.scope.db.query(concatenated).then(function () {
+	this.scope.db.query(sqles.join('')).then(function () {
 		return cb();
 	}).catch(function (err) {
 		library.logger.error(err.toString());
