@@ -666,9 +666,9 @@ describe("GET /multisignatures/pending", function () {
     });
 });
 
-describe("Sending another transaction", function () {
+describe("PUT /api/transactions", function () {
 
-    it("When others are still pending. Should be ok", function (done) {
+    it("When transactions are pending. Should be ok", function (done) {
         node.onNewBlock(function (err) {
             sendLISKfromMultisigAccount(100000000, node.Gaccount.address, done);
         });
