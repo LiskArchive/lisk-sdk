@@ -102,21 +102,6 @@ function sendLISKfromMultisigAccount (amount, recipient) {
         });
 }
 
-function confirmTransaction (account, id) {
-    node.api.put("/multisignatures/sign")
-        .set("Accept", "application/json")
-        .send({
-            secret: account.password,
-            transactionId: id
-        })
-        .expect("Content-Type", /json/)
-        .expect(200)
-        .end(function (err, res) {
-            // console.log("Signing Tx ID = " + id + " from account with password = " + account.password + " Got reply: " + JSON.stringify(res.body));
-            node.expect(res.body).to.have.property("success").to.be.true;
-        });
-}
-
 // Used for KeysGroup
 var Keys;
 
