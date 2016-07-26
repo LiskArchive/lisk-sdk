@@ -108,7 +108,7 @@ function confirmTransaction (transactionId, numSignatures, done) {
 
     async.until(
         function () {
-            return (count + 1) >= numSignatures;
+            return (count >= numSignatures);
         },
         function (untilCb) {
             var account = Accounts[count];
