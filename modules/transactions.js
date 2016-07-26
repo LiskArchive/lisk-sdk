@@ -43,7 +43,7 @@ function Transfer() {
 			return cb("Invalid transaction amount");
 		}
 
-		cb(null, trs);
+		return cb(null, trs);
 	}
 
 	this.process = function (trs, sender, cb) {
@@ -67,7 +67,7 @@ function Transfer() {
 				blockId: block.id,
 				round: modules.round.calc(block.height)
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		});
 	}
@@ -85,7 +85,7 @@ function Transfer() {
 				blockId: block.id,
 				round: modules.round.calc(block.height)
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		});
 	}
@@ -276,7 +276,7 @@ private.getById = function (id, cb) {
 
 		var transacton = library.logic.transaction.dbRead(rows[0]);
 
-		cb(null, transacton);
+		return cb(null, transacton);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb("Transactions#getById error");
@@ -369,7 +369,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 				library.bus.message('unconfirmedTransaction', transaction, broadcast);
 
-				cb();
+				return cb();
 			});
 		}
 
@@ -438,7 +438,7 @@ Transactions.prototype.undoUnconfirmedList = function (cb) {
 			setImmediate(cb);
 		}
 	}, function (err) {
-		cb(err, ids);
+		return cb(err, ids);
 	})
 }
 
@@ -485,7 +485,7 @@ Transactions.prototype.receiveTransactions = function (transactions, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
 		self.processUnconfirmedTransaction(transaction, true, cb);
 	}, function (err) {
-		cb(err, transactions);
+		return cb(err, transactions);
 	});
 }
 
@@ -563,7 +563,7 @@ shared.getTransactions = function (req, cb) {
 				return cb("Failed to get transactions: " + err);
 			}
 
-			cb(null, {transactions: data.transactions, count: data.count});
+			return cb(null, {transactions: data.transactions, count: data.count});
 		});
 	});
 }
@@ -588,7 +588,7 @@ shared.getTransaction = function (req, cb) {
 			if (!transaction || err) {
 				return cb("Transaction not found");
 			}
-			cb(null, {transaction: transaction});
+			return cb(null, {transaction: transaction});
 		});
 	});
 }
@@ -615,7 +615,7 @@ shared.getUnconfirmedTransaction = function (req, cb) {
 			return cb("Transaction not found");
 		}
 
-		cb(null, {transaction: unconfirmedTransaction});
+		return cb(null, {transaction: unconfirmedTransaction});
 	});
 }
 
@@ -652,7 +652,7 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 			}
 		}
 
-		cb(null, {transactions: toSend});
+		return cb(null, {transactions: toSend});
 	});
 }
 
@@ -819,7 +819,7 @@ shared.addTransactions = function (req, cb) {
 				return cb(err);
 			}
 
-			cb(null, {transactionId: transaction[0].id});
+			return cb(null, {transactionId: transaction[0].id});
 		});
 	});
 }
