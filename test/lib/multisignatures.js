@@ -660,7 +660,9 @@ describe("GET /multisignatures/pending", function () {
                         }
                     }
                     node.expect(flag).to.equal(1);
-                    done();
+                    node.onNewBlock(function (err) {
+                        done();
+                    });
                 });
         });
     });
@@ -669,9 +671,7 @@ describe("GET /multisignatures/pending", function () {
 describe("PUT /api/transactions", function () {
 
     it("When transactions are pending. Should be ok", function (done) {
-        node.onNewBlock(function (err) {
-            sendLISKfromMultisigAccount(100000000, node.Gaccount.address, done);
-        });
+        sendLISKfromMultisigAccount(100000000, node.Gaccount.address, done);
     });
 });
 
