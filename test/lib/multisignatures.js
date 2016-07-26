@@ -648,6 +648,16 @@ describe("GET /multisignatures/pending", function () {
     });
 });
 
+describe("Sending another transaction", function () {
+
+    it("When others are still pending. Should be ok", function (done) {
+        node.onNewBlock(function (err) {
+            sendLISKfromMultisigAccount(100000000, node.Gaccount.address);
+            done();
+        });
+    });
+});
+
 describe("POST /multisignatures/sign", function () {
 
     it("Using random passphrase. Should fail", function (done) {
@@ -698,15 +708,5 @@ describe("POST /multisignatures/sign", function () {
                 node.expect(res.body).to.have.property("success").to.be.false;
                 done();
             });
-    });
-});
-
-describe("Sending another transaction", function () {
-
-    it("When other transactions are still pending. Should be ok", function (done) {
-        node.onNewBlock(function (err) {
-            sendLISKfromMultisigAccount(100000000, node.Gaccount.address);
-            done();
-        });
     });
 });
