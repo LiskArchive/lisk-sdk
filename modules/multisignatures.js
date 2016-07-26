@@ -1,17 +1,17 @@
-var ed = require('ed25519');
+var ed = require("ed25519");
 var ByteBuffer = require("bytebuffer");
-var crypto = require('crypto');
+var crypto = require("crypto");
 var genesisblock = null;
 var constants = require("../helpers/constants.js");
-var slots = require('../helpers/slots.js');
-var extend = require('extend');
-var Router = require('../helpers/router.js');
-var async = require('async');
-var RequestSanitizer = require('../helpers/request-sanitizer.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
-var Diff = require('../helpers/diff.js');
-var sandboxHelper = require('../helpers/sandbox.js');
-var sql = require('../sql/multisignatures.js');
+var slots = require("../helpers/slots.js");
+var extend = require("extend");
+var Router = require("../helpers/router.js");
+var async = require("async");
+var RequestSanitizer = require("../helpers/request-sanitizer.js");
+var transactionTypes = require("../helpers/transactionTypes.js");
+var Diff = require("../helpers/diff.js");
+var sandboxHelper = require("../helpers/sandbox.js");
+var sql = require("../sql/multisignatures.js");
 
 // Private fields
 var modules, library, self, private = {}, shared = {};
