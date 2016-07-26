@@ -222,8 +222,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		if (!this.verifySignature(trs, trs.requesterPublicKey, trs.signature)) {
 			return setImmediate(cb, "Failed to verify signature");
 		}
-	}
-	else {
+	} else {
 		if (!this.verifySignature(trs, trs.senderPublicKey, trs.signature)) {
 			return setImmediate(cb, "Failed to verify signature");
 		}
@@ -239,7 +238,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 				return cb("Ignoring already confirmed transaction");
 			}
 
-			cb(null, trs);
+			return cb(null, trs);
 		}).catch(function (err) {
 			this.scope.logger.error(err.toString());
 			return cb("Transaction#process error");

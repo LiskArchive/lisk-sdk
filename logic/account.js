@@ -600,7 +600,7 @@ Account.prototype.merge = function (address, diff, cb) {
 							} else if (math == "+") {
 								val = trueValue[i].slice(1);
 								insert[value] = insert[value] || [];
-								insert[value].push(val)
+								insert[value].push(val);
 								if (value == "delegates") {
 									round.push({
 										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};",
@@ -615,7 +615,7 @@ Account.prototype.merge = function (address, diff, cb) {
 							} else {
 								val = trueValue[i];
 								insert[value] = insert[value] || [];
-								insert[value].push(val)
+								insert[value].push(val);
 								if (value == "delegates") {
 									round.push({
 										query: "INSERT INTO mem_round (\"address\", \"amount\", \"delegate\", \"blockId\", \"round\") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};",

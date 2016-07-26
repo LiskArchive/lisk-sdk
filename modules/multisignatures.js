@@ -179,6 +179,7 @@ function Multisignature() {
 		var multiInvert = Diff.reverse(trs.asset.multisignature.keysgroup);
 
 		private.unconfirmedSignatures[sender.address] = true;
+
 		this.scope.account.merge(sender.address, {
 			multisignatures: multiInvert,
 			multimin: -trs.asset.multisignature.min,
@@ -214,6 +215,7 @@ function Multisignature() {
 		var multiInvert = Diff.reverse(trs.asset.multisignature.keysgroup);
 
 		private.unconfirmedSignatures[sender.address] = false;
+
 		this.scope.account.merge(sender.address, {
 			u_multisignatures: multiInvert,
 			u_multimin: -trs.asset.multisignature.min,
@@ -781,6 +783,7 @@ shared.addMultisignature = function (req, cb) {
 				if (err) {
 					return cb(err);
 				}
+
 				if (!account || !account.publicKey) {
 					return cb("Account not found");
 				}

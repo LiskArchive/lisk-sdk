@@ -255,9 +255,9 @@ private.list = function (filter, cb) {
 			var data = {
 				transactions: transactions,
 				count: count
-			}
+			};
 
-			cb(null, data);
+			return cb(null, data);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
 			return cb("Transactions#list error");
