@@ -1,5 +1,4 @@
 var ed = require('ed25519');
-var util = require('util');
 var ByteBuffer = require("bytebuffer");
 var crypto = require('crypto');
 var genesisblock = null;
