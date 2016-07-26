@@ -82,7 +82,7 @@ function sendLISK (account, i, done) {
         });
 }
 
-function sendLISKfromMultisigAccount (amount, recipient) {
+function sendLISKfromMultisigAccount (amount, recipient, done) {
     node.api.put("/transactions")
         .set("Accept", "application/json")
         .send({
@@ -99,6 +99,7 @@ function sendLISKfromMultisigAccount (amount, recipient) {
             if (res.body.success) {
                 node.expect(res.body).to.have.property("transactionId");
             }
+            done();
         });
 }
 
@@ -637,8 +638,7 @@ describe("Sending another transaction", function () {
 
     it("When others are still pending. Should be ok", function (done) {
         node.onNewBlock(function (err) {
-            sendLISKfromMultisigAccount(100000000, node.Gaccount.address);
-            done();
+            sendLISKfromMultisigAccount(100000000, node.Gaccount.address, done);
         });
     });
 });
