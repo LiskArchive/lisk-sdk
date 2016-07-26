@@ -126,9 +126,6 @@ private.saveGenesisBlock = function (cb) {
 
 		if (!blockId) {
 			private.saveBlock(genesisblock.block, function (err) {
-				if (err) {
-				}
-
 				return cb(err);
 			});
 		} else {
