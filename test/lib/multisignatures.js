@@ -685,8 +685,6 @@ describe("POST /multisignatures/sign", function () {
     });
 
     it("Using undefined passphrase. Should fail", function (done) {
-        var undefined;
-
         node.api.post("/multisignatures/sign")
             .set("Accept", "application/json")
             .send({
