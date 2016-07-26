@@ -52,7 +52,7 @@ function openAccount (account, i, done) {
                 MultisigAccount.address = res.body.account.address;
                 MultisigAccount.publicKey = res.body.account.publicKey;
             }
-            return done();
+            done();
         });
 }
 
@@ -78,7 +78,7 @@ function sendLISK (account, i, done) {
             if (res.body.success && i != null) {
                 Accounts[i].balance = randomLISK / node.normalizer;
             }
-            return done();
+            done();
         });
 }
 
@@ -153,7 +153,7 @@ before(function (done) {
         }
     ], function (err) {
         node.onNewBlock(function (err) {
-            return done(err);
+            done(err);
         });
     });
 });
