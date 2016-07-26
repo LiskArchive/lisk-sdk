@@ -103,6 +103,38 @@ function sendLISKfromMultisigAccount (amount, recipient, done) {
         });
 }
 
+function confirmTransaction (transactionId, numSignatures, done) {
+    var count = 0;
+
+    async.until(
+        function () {
+            return (count + 1) >= numSignatures;
+        },
+        function (untilCb) {
+            var account = Accounts[count];
+
+            node.api.post("/multisignatures/sign")
+              .set("Accept", "application/json")
+              .send({
+                  secret: account.password,
+                  transactionId: transactionId
+              })
+              .expect("Content-Type", /json/)
+              .expect(200)
+              .end(function (err, res) {
+                  // console.log(JSON.stringify(res.body));
+                  node.expect(res.body).to.have.property("success").to.be.true;
+                  node.expect(res.body).to.have.property("transactionId").to.eql(transactionId);
+                  count++;
+                  return untilCb();
+              });
+        },
+        function (err) {
+            done(err);
+        }
+    );
+}
+
 // Used for KeysGroup
 var Keys;
 
@@ -693,5 +725,9 @@ describe("POST /multisignatures/sign", function () {
                 node.expect(res.body).to.have.property("success").to.be.false;
                 done();
             });
+    });
+
+    it("Using required passphrases. Should be ok", function (done) {
+        confirmTransaction(MultiSigTX.txId, requiredSignatures, done);
     });
 });
