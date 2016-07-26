@@ -577,11 +577,11 @@ Account.prototype.merge = function (address, diff, cb) {
 							} else if (val.action == "+") {
 								delete val.action;
 								insert_object[value] = insert_object[value] || [];
-								insert_object[value].push(val)
+								insert_object[value].push(val);
 							} else {
 								delete val.action;
 								insert_object[value] = insert_object[value] || [];
-								insert_object[value].push(val)
+								insert_object[value].push(val);
 							}
 						}
 					} else {

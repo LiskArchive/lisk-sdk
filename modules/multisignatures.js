@@ -170,7 +170,7 @@ function Multisignature() {
 					address: address,
 					publicKey: key
 				}, function (err) {
-					cb(err);
+					return cb(err);
 				})
 			}, cb);
 		});
@@ -187,7 +187,7 @@ function Multisignature() {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			cb(err);
+			return cb(err);
 		});
 	}
 
@@ -207,7 +207,7 @@ function Multisignature() {
 			u_multimin: trs.asset.multisignature.min,
 			u_multilifetime: trs.asset.multisignature.lifetime
 		}, function (err) {
-			cb();
+			return cb();
 		});
 	}
 
@@ -220,7 +220,7 @@ function Multisignature() {
 			u_multimin: -trs.asset.multisignature.min,
 			u_multilifetime: -trs.asset.multisignature.lifetime
 		}, function (err) {
-			cb(err);
+			return cb(err);
 		});
 	}
 
@@ -256,13 +256,13 @@ function Multisignature() {
 
 	this.dbRead = function (raw) {
 		if (!raw.m_keysgroup) {
-			return null
+			return null;
 		} else {
 			var multisignature = {
 				min: raw.m_min,
 				lifetime: raw.m_lifetime,
 				keysgroup: raw.m_keysgroup.split(',')
-			}
+			};
 
 			return {multisignature: multisignature};
 		}
