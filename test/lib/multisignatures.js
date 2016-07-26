@@ -728,6 +728,18 @@ describe("POST /multisignatures/sign", function () {
     });
 
     it("Using required passphrases. Should be ok", function (done) {
-        confirmTransaction(MultiSigTX.txId, requiredSignatures, done);
+        confirmTransaction(MultiSigTX.txId, totalMembers, function () {
+            node.onNewBlock(function (err) {
+                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                    .set("Accept", "application/json")
+                    .expect("Content-Type", /json/)
+                    .expect(200)
+                    .end(function (err, res) {
+                        // console.log(JSON.stringify(res.body));
+                        node.expect(res.body).to.have.property("success").to.be.true;
+                        done();
+                    });
+            });
+        });
     });
 });
