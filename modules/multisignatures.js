@@ -41,7 +41,7 @@ function Multisignature() {
 			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
-		if (!util.isArray(trs.asset.multisignature.keysgroup)) {
+		if (!Array.isArray(trs.asset.multisignature.keysgroup)) {
 			return setImmediate(cb, "Invalid transaction asset: " + trs.id);
 		}
 
