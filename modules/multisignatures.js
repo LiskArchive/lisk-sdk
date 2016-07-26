@@ -262,7 +262,7 @@ function Multisignature() {
 			var multisignature = {
 				min: raw.m_min,
 				lifetime: raw.m_lifetime,
-				keysgroup: raw.m_keysgroup.split(',')
+				keysgroup: raw.m_keysgroup
 			};
 
 			return {multisignature: multisignature};
