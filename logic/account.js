@@ -751,10 +751,10 @@ Account.prototype.remove = function (address, cb) {
 		}
 	});
 	this.scope.db.none(sql.query, sql.values).then(function () {
-		cb(null, address);
+		return cb(null, address);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		cb("Account#remove error");
+		return cb("Account#remove error");
 	});
 }
 
