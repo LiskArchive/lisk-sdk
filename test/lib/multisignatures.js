@@ -650,11 +650,13 @@ describe("GET /multisignatures/pending", function () {
 
 describe("POST /multisignatures/sign", function () {
 
-    it("Using invalid passphrase. Should fail", function (done) {
+    it("Using random passphrase. Should fail", function (done) {
+        var account = node.randomAccount();
+
         node.api.post("/multisignatures/sign")
             .set("Accept", "application/json")
             .send({
-                secret: 1234,
+                secret: account.password,
                 transactionId: MultiSigTX.txId
             })
             .expect("Content-Type", /json/)
@@ -689,22 +691,6 @@ describe("POST /multisignatures/sign", function () {
             .set("Accept", "application/json")
             .send({
                 secret: undefined,
-                transactionId: MultiSigTX.txId
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                // console.log(JSON.stringify(res.body));
-                node.expect(res.body).to.have.property("success").to.be.false;
-                done();
-            });
-    });
-
-    it("Using random passphrase. Should fail (account is not associated)", function (done) {
-        node.api.post("/multisignatures/sign")
-            .set("Accept", "application/json")
-            .send({
-                secret: "Just 4 R4nd0m P455W0RD",
                 transactionId: MultiSigTX.txId
             })
             .expect("Content-Type", /json/)
