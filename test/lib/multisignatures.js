@@ -629,7 +629,7 @@ describe("GET /multisignatures/pending", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    // console.log("Asked for pending multisig Transactions. Got reply: " + JSON.stringify(res.body));
+                    // console.log(JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
                     node.expect(res.body).to.have.property("transactions").that.is.an("array");
                     node.expect(res.body.transactions.length).to.be.at.least(1);
