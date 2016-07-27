@@ -730,6 +730,8 @@ describe("POST /multisignatures/sign (group)", function () {
                     .end(function (err, res) {
                         // console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
+                        node.expect(res.body).to.have.property("transaction");
+                        node.expect(res.body.transaction).to.have.property("id").to.eql(MultiSigTX.txId);
                         done();
                     });
             });
