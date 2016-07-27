@@ -582,7 +582,7 @@ describe("PUT /multisignatures", function () {
                     MultiSigTX.min = requiredSignatures;
                 } else {
                     console.log("Transaction failed or transactionId null");
-                    node.expect("test").to.equal("failed");
+                    node.expect("test").to.equal("FAILED");
                 }
                 done();
             });
