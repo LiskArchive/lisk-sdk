@@ -60,7 +60,6 @@ function Multisignature() {
 			return setImmediate(cb, "Invalid multisignature lifetime: " + trs.id);
 		}
 
-		// If it's ready
 		if (this.ready(trs, sender)) {
 			try {
 				for (var s = 0; s < trs.asset.multisignature.keysgroup.length; s++) {
@@ -97,7 +96,6 @@ function Multisignature() {
 				return cb("Invalid math operator");
 			}
 
-			// Check that there is a publicKey
 			try {
 				var b = new Buffer(publicKey, 'hex');
 				if (b.length != 32) {
