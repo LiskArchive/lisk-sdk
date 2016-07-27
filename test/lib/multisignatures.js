@@ -738,3 +738,54 @@ describe("POST /multisignatures/sign (group)", function () {
         });
     });
 });
+
+describe("POST /multisignatures/sign (transaction)", function () {
+    before(function (done) {
+        sendLISKfromMultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
+            MultiSigTX.txId = transactionId;
+            done();
+        });
+    });
+
+    it("Using one less than minimum signatures. Should not confirm transaction", function (done) {
+        var passphrases = Accounts.map(function (account) {
+            return account.password;
+        });
+
+        confirmTransaction(MultiSigTX.txId, passphrases.slice(0, (MultiSigTX.min - 1)), function () {
+            node.onNewBlock(function (err) {
+                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                    .set("Accept", "application/json")
+                    .expect("Content-Type", /json/)
+                    .expect(200)
+                    .end(function (err, res) {
+                        // console.log(JSON.stringify(res.body));
+                        node.expect(res.body).to.have.property("success").to.be.false;
+                        done();
+                    });
+            });
+        });
+    });
+
+    it("Using one more signature. Should confirm transaction", function (done) {
+        var passphrases = Accounts.map(function (account) {
+            return account.password;
+        });
+
+        confirmTransaction(MultiSigTX.txId, passphrases.slice(-1), function () {
+            node.onNewBlock(function (err) {
+                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                    .set("Accept", "application/json")
+                    .expect("Content-Type", /json/)
+                    .expect(200)
+                    .end(function (err, res) {
+                        // console.log(JSON.stringify(res.body));
+                        node.expect(res.body).to.have.property("success").to.be.true;
+                        node.expect(res.body).to.have.property("transaction");
+                        node.expect(res.body.transaction).to.have.property("id").to.eql(MultiSigTX.txId);
+                        done();
+                    });
+            });
+        });
+    });
+});
