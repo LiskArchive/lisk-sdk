@@ -659,8 +659,22 @@ describe("GET /multisignatures/pending", function () {
 
 describe("PUT /api/transactions", function () {
 
-    it("When transactions are pending. Should be ok", function (done) {
-        sendLISKfromMultisigAccount(100000000, node.Gaccount.address, done);
+    it("When group transaction is pending. Should be ok", function (done) {
+        sendLISKfromMultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
+            node.onNewBlock(function (err) {
+                node.api.get("/transactions/get?id=" + transactionId)
+                    .set("Accept", "application/json")
+                    .expect("Content-Type", /json/)
+                    .expect(200)
+                    .end(function (err, res) {
+                        // console.log(JSON.stringify(res.body));
+                        node.expect(res.body).to.have.property("success").to.be.true;
+                        node.expect(res.body).to.have.property("transaction");
+                        node.expect(res.body.transaction).to.have.property("id").to.eql(transactionId);
+                        done();
+                    });
+            });
+        });
     });
 });
 
