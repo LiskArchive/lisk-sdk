@@ -263,7 +263,7 @@ function Delegate() {
 			if (!Array.isArray(trs.signatures)) {
 				return false;
 			}
-			return trs.signatures.length >= sender.multimin - 1;
+			return trs.signatures.length >= sender.multimin;
 		} else {
 			return true;
 		}

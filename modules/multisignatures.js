@@ -302,7 +302,7 @@ function Multisignature() {
 		if (!Array.isArray(sender.multisignatures) || !sender.multisignatures.length) {
 			return trs.signatures.length == trs.asset.multisignature.keysgroup.length;
 		} else {
-			return trs.signatures.length >= sender.multimin - 1;
+			return trs.signatures.length >= sender.multimin;
 		}
 	}
 }
