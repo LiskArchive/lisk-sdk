@@ -101,20 +101,20 @@ function sendLISKfromMultisigAccount (amount, recipient, done) {
         });
 }
 
-function confirmTransaction (transactionId, numSignatures, done) {
+function confirmTransaction (transactionId, passphrases, done) {
     var count = 0;
 
     async.until(
         function () {
-            return (count >= numSignatures);
+            return (count >= passphrases.length);
         },
         function (untilCb) {
-            var account = Accounts[count];
+            var passphrase = passphrases[count];
 
             node.api.post("/multisignatures/sign")
               .set("Accept", "application/json")
               .send({
-                  secret: account.password,
+                  secret: passphrase,
                   transactionId: transactionId
               })
               .expect("Content-Type", /json/)
@@ -717,7 +717,11 @@ describe("POST /multisignatures/sign (group)", function () {
     });
 
     it("Using required signatures. Should confirm transaction", function (done) {
-        confirmTransaction(MultiSigTX.txId, totalMembers, function () {
+        var passphrases = Accounts.map(function (account) {
+            return account.password;
+        });
+
+        confirmTransaction(MultiSigTX.txId, passphrases, function () {
             node.onNewBlock(function (err) {
                 node.api.get("/transactions/get?id=" + MultiSigTX.txId)
                     .set("Accept", "application/json")
