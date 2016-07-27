@@ -572,16 +572,7 @@ describe("PUT /multisignatures", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-                // console.log("Sent valid information to create multisignature. " + JSON.stringify({
-                //     secret: MultisigAccount.password,
-                //     lifetime: life,
-                //     min: requiredSignatures,
-                //     keysgroup: Keys
-                // }));
-                if (res.body.error) {
-                    console.log(res.body.error);
-                }
-                // console.log(res.body);
+                // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("transactionId");
                 if (res.body.success && res.body.transactionId) {
