@@ -716,12 +716,32 @@ describe("POST /multisignatures/sign (group)", function () {
             });
     });
 
-    it("Using required signatures. Should confirm transaction", function (done) {
+    it("Using one less than total signatures. Should not confirm transaction", function (done) {
+        var passphrases = Accounts.map(function (account) {
+            return account.password;
+        })
+
+        confirmTransaction(MultiSigTX.txId, passphrases.slice(0, (passphrases.length - 1)), function () {
+            node.onNewBlock(function (err) {
+                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                    .set("Accept", "application/json")
+                    .expect("Content-Type", /json/)
+                    .expect(200)
+                    .end(function (err, res) {
+                        // console.log(JSON.stringify(res.body));
+                        node.expect(res.body).to.have.property("success").to.be.false;
+                        done();
+                    });
+            });
+        });
+    });
+
+    it("Using one more signature. Should confirm transaction", function (done) {
         var passphrases = Accounts.map(function (account) {
             return account.password;
         });
 
-        confirmTransaction(MultiSigTX.txId, passphrases, function () {
+        confirmTransaction(MultiSigTX.txId, passphrases.slice(-1), function () {
             node.onNewBlock(function (err) {
                 node.api.get("/transactions/get?id=" + MultiSigTX.txId)
                     .set("Accept", "application/json")
