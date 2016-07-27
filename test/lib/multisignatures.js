@@ -96,9 +96,7 @@ function sendLISKfromMultisigAccount (amount, recipient, done) {
             // console.log(JSON.stringify(res.body));
             // console.log("Sending " + amount + " LISK to " + recipient);
             node.expect(res.body).to.have.property("success").to.be.true;
-            if (res.body.success) {
-                node.expect(res.body).to.have.property("transactionId");
-            }
+            node.expect(res.body).to.have.property("transactionId");
             done();
         });
 }
