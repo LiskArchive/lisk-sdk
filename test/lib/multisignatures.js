@@ -664,7 +664,7 @@ describe("PUT /api/transactions", function () {
     });
 });
 
-describe("POST /multisignatures/sign", function () {
+describe("POST /multisignatures/sign (group)", function () {
 
     it("Using random passphrase. Should fail", function (done) {
         var account = node.randomAccount();
@@ -716,7 +716,7 @@ describe("POST /multisignatures/sign", function () {
             });
     });
 
-    it("Using required passphrases. Should be ok", function (done) {
+    it("Using required signatures. Should confirm transaction", function (done) {
         confirmTransaction(MultiSigTX.txId, totalMembers, function () {
             node.onNewBlock(function (err) {
                 node.api.get("/transactions/get?id=" + MultiSigTX.txId)
