@@ -126,6 +126,8 @@ function onNewBlock(cb) {
 // Function used to wait until a new block has been created
 function waitForNewBlock(height, cb) {
   var actualHeight = height;
+  var counter = 1;
+
   async.doWhilst(
     function (cb) {
       request({
@@ -141,6 +143,7 @@ function waitForNewBlock(height, cb) {
           height = body.height;
         }
 
+        console.log("  Waiting for block:", "Height:", height, "Second:", counter++);
         setTimeout(cb, 1000);
       });
     },
