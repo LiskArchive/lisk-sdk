@@ -130,6 +130,7 @@ describe("POST /peer/transactions", function () {
     var account = node.randomAccount();
 
     var delegates = [];
+    var votedDelegates = [];
 
     var delegate1;
     var delegate2;
@@ -148,6 +149,10 @@ describe("POST /peer/transactions", function () {
             },
             function (seriesCb) {
                 getDelegates(function (err, res) {
+                    delegates = res.body.delegates.map(function (delegate) {
+                        return delegate.publicKey;
+                    }).slice(0, 101);
+
                     delegate1 = res.body.delegates[0].publicKey;
                     delegate2 = res.body.delegates[1].publicKey;
 
@@ -156,7 +161,7 @@ describe("POST /peer/transactions", function () {
             },
             function (seriesCb) {
                 getVotes(account.address, function (err, res) {
-                    delegates = res.body.delegates.map(function (delegate) {
+                    votedDelegates = res.body.delegates.map(function (delegate) {
                         return delegate.publicKey;
                     });
 
@@ -164,7 +169,7 @@ describe("POST /peer/transactions", function () {
                 });
             },
             function (seriesCb) {
-                return makeVotes(delegates, account.password, "-", seriesCb);
+                return makeVotes(votedDelegates, account.password, "-", seriesCb);
             },
             function (seriesCb) {
                 return makeVotes([delegate1, delegate2], account.password, "+", seriesCb);
@@ -196,6 +201,29 @@ describe("POST /peer/transactions", function () {
                 done();
             });
         });
+    });
+
+    it("Voting for 101 delegates separately. Should be ok", function (done) {
+        node.onNewBlock(function () {
+            makeVotes(delegates, account.password, "+", done);
+        });
+    });
+
+    it("Removing votes from 101 delegates separately. Should be ok", function (done) {
+        var count = 0;
+
+        async.whilst(
+            function () {
+                return count <= 3;
+            }, function (untilCb) {
+                node.onNewBlock(function (err) {
+                    count++;
+                    return untilCb();
+                });
+            }, function (err) {
+                makeVotes(delegates, account.password, "-", done);
+            }
+        );
     });
 });
 
