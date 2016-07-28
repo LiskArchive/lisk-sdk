@@ -670,6 +670,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 			if (err) {
 				return cb(err);
 			}
+
 			if (!account) {
 				return cb("Account not found");
 			}
@@ -702,6 +703,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				if (math == "+" && (account.delegates !== null && account.delegates.indexOf(publicKey) != -1)) {
 					return cb("Failed to add vote, account has already voted for this delegate");
 				}
+
 				if (math == "-" && (account.delegates === null || account.delegates.indexOf(publicKey) === -1)) {
 					return cb("Failed to remove vote, account has not voted for this delegate");
 				}
@@ -715,7 +717,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 						return cb("Delegate not found");
 					}
 
-					cb();
+					return cb();
 				});
 			}, function (err) {
 				if (err) {
@@ -734,7 +736,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 			});
 		});
 	} else {
-		setImmediate(cb, "Votes must be an array");
+		return setImmediate(cb, "Votes must be an array");
 	}
 }
 
