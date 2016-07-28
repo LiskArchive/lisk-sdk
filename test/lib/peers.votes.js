@@ -202,7 +202,7 @@ describe("POST /peer/transactions", function () {
                     });
                 },
                 function (seriesCb) {
-                    sendLISK(node.Fees.delegateRegistrationFee + node.Fees.voteFee, account.address, seriesCb);
+                    sendLISK(100000000000, account.address, seriesCb);
                 },
                 function (seriesCb) {
                     registerDelegate(account, seriesCb);
@@ -212,8 +212,17 @@ describe("POST /peer/transactions", function () {
             });
         });
 
-        it("Voting for a delegate. Should be ok", function (done) {
+        it("Voting for self. Should be ok", function (done) {
             makeVote(account.publicKey, account.password, "+", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.onNewBlock(function (err) {
+                    return done(err);
+                });
+            });
+        });
+
+        it("Removing vote from self. Should be ok", function (done) {
+            makeVote(account.publicKey, account.password, "-", function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.true;
                 done();
             });
