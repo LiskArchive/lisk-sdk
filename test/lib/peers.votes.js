@@ -19,7 +19,7 @@ describe("POST /peer/transactions", function () {
             .expect(200)
             .end(function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.true;
-                if (res.body.success == true){
+                if (res.body.success) {
                     delegate1 = res.body.delegates[1].publicKey;
                     delegate2 = res.body.delegates[2].publicKey;
 
@@ -30,13 +30,13 @@ describe("POST /peer/transactions", function () {
                             var transaction=null;
                             // console.log(JSON.stringify(res.body));
                             node.expect(res.body).to.have.property("success").to.be.true;
-                            if (res.body.success == true){
+                            if (res.body.success) {
                                 node.expect(res.body).to.have.property("delegates").that.is.an("array");
                                 if (res.body.delagates !== null) {
                                     for (var i = 0; i < res.body.delegates.length; i++) {
                                         if (res.body.delegates[i].publicKey == delegate1) {
                                             delegate1Voted = true;
-                                        } else if (res.body.delegates[i].publicKey == delegate2){
+                                        } else if (res.body.delegates[i].publicKey == delegate2) {
                                             delegate2Voted = true;
                                         }
                                     }
@@ -48,11 +48,11 @@ describe("POST /peer/transactions", function () {
                                 done();
                             }
                             if (!delegate1Voted && !delegate2Voted) {
-                                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1, "+"+delegate2]);
+                                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+" + delegate1, "+" + delegate2]);
                             } else if (delegate1Voted && !delegate2Voted) {
-                                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate2]);
+                                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+" + delegate2]);
                             } else if (delegate2Voted && !delegate1Voted) {
-                                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1]);
+                                transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+" + delegate1]);
                             }
                             if (transaction !== null) {
                                 node.peer.post("/transactions")
@@ -80,7 +80,8 @@ describe("POST /peer/transactions", function () {
 
     it("Voting twice for a delegate. Should fail", function (done) {
         node.onNewBlock(function (err) {
-            var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate1]);
+            var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["+" + delegate1]);
+
             node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
@@ -100,12 +101,13 @@ describe("POST /peer/transactions", function () {
     });
 
     it("Removing votes from a delegate. Should be ok", function (done) {
-        var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-"+delegate1]);
+        var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-" + delegate1]);
+
         node.peer.post("/transactions")
             .set("Accept", "application/json")
-            .set("version",node.version)
+            .set("version", node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 transaction: transaction
             })
@@ -120,7 +122,8 @@ describe("POST /peer/transactions", function () {
 
     it("Removing votes from a delegate and then voting again. Should fail", function (done) {
         node.onNewBlock(function (err) {
-            var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-"+delegate2]);
+            var transaction = node.lisk.vote.createVote(node.Gaccount.password, ["-" + delegate2]);
+
             node.peer.post("/transactions")
                 .set("Accept", "application/json")
                 .set("version", node.version)
@@ -134,7 +137,8 @@ describe("POST /peer/transactions", function () {
                 .end(function (err, res) {
                     // console.log("Sent POST /transactions with data:" + JSON.stringify(transaction) + "! Got reply:" + JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    var transaction2 = node.lisk.vote.createVote(node.Gaccount.password, ["+"+delegate2]);
+                    var transaction2 = node.lisk.vote.createVote(node.Gaccount.password, ["+" + delegate2]);
+
                     node.peer.post("/transactions")
                         .set("Accept", "application/json")
                         .set("version", node.version)
@@ -160,14 +164,14 @@ describe("POST /peer/transactions", function () {
             .set("Accept", "application/json")
             .set("version",node.version)
             .set("nethash", node.config.nethash)
-            .set("port",node.config.port)
+            .set("port", node.config.port)
             .send({
                 secret: account.password
             })
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-                if (res.body.success == true && res.body.account != null){
+                if (res.body.success && res.body.account != null) {
                     account.address = res.body.account.address;
                     account.publicKey = res.body.account.publicKey;
                 } else {
@@ -177,9 +181,9 @@ describe("POST /peer/transactions", function () {
                 }
                 node.api.put("/transactions")
                     .set("Accept", "application/json")
-                    .set("version",node.version)
+                    .set("version", node.version)
                     .set("nethash", node.config.nethash)
-                    .set("port",node.config.port)
+                    .set("port", node.config.port)
                     .send({
                         secret: node.Gaccount.password,
                         amount: node.Fees.delegateRegistrationFee+node.Fees.voteFee,
@@ -192,11 +196,12 @@ describe("POST /peer/transactions", function () {
                             node.expect(err).to.be.not.ok;
                             account.username = node.randomDelegateName().toLowerCase();
                             var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+
                             node.peer.post("/transactions")
                                 .set("Accept", "application/json")
-                                .set("version",node.version)
+                                .set("version", node.version)
                                 .set("nethash", node.config.nethash)
-                                .set("port",node.config.port)
+                                .set("port", node.config.port)
                                 .send({
                                     transaction: transaction
                                 })
@@ -213,13 +218,14 @@ describe("POST /peer/transactions", function () {
 
     it("Voting for a delegate. Should be ok", function (done) {
         var transaction = node.lisk.vote.createVote(account.password, ["+" + account.publicKey]);
+
         node.onNewBlock(function (err) {
             node.expect(err).to.be.not.ok;
             node.peer.post("/transactions")
                 .set("Accept", "application/json")
-                .set("version",node.version)
+                .set("version", node.version)
                 .set("nethash", node.config.nethash)
-                .set("port",node.config.port)
+                .set("port", node.config.port)
                 .send({
                     transaction: transaction
                 })
