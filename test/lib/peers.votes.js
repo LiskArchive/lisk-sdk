@@ -140,6 +140,16 @@ describe("POST /peer/transactions", function () {
     before(function (done) {
         async.series([
             function (seriesCb) {
+                openAccount(account.password, function (err, res) {
+                    account.address = res.body.account.address;
+                    account.publicKey = res.body.account.publicKey;
+                    return seriesCb();
+                });
+            },
+            function (seriesCb) {
+                sendLISK(100000000000, account.address, seriesCb);
+            },
+            function (seriesCb) {
                 getDelegates(function (err, res) {
                     delegate1 = res.body.delegates[0].publicKey;
                     delegate2 = res.body.delegates[1].publicKey;
@@ -148,7 +158,7 @@ describe("POST /peer/transactions", function () {
                 });
             },
             function (seriesCb) {
-                getVotes(node.Gaccount.address, function (err, res) {
+                getVotes(account.address, function (err, res) {
                     delegates = res.body.delegates.map(function (delegate) {
                         return delegate.publicKey;
                     });
@@ -157,10 +167,10 @@ describe("POST /peer/transactions", function () {
                 });
             },
             function (seriesCb) {
-                return makeVotes(delegates, node.Gaccount.password, "-", seriesCb);
+                return makeVotes(delegates, account.password, "-", seriesCb);
             },
             function (seriesCb) {
-                return makeVotes([delegate1, delegate2], node.Gaccount.password, "+", seriesCb);
+                return makeVotes([delegate1, delegate2], account.password, "+", seriesCb);
             }
         ], function (err) {
             return done(err);
@@ -168,23 +178,23 @@ describe("POST /peer/transactions", function () {
     });
 
     it("Voting twice for a delegate. Should fail", function (done) {
-        makeVote(delegate1, node.Gaccount.password, "+", function (err, res) {
+        makeVote(delegate1, account.password, "+", function (err, res) {
             node.expect(res.body).to.have.property("success").to.be.false;
             done();
         });
     });
 
     it("Removing votes from a delegate. Should be ok", function (done) {
-        makeVote(delegate1, node.Gaccount.password, "-", function (err, res) {
+        makeVote(delegate1, account.password, "-", function (err, res) {
             node.expect(res.body).to.have.property("success").to.be.true;
             done();
         });
     });
 
     it("Removing votes from a delegate and then voting again. Should fail", function (done) {
-        makeVote(delegate2, node.Gaccount.password, "-", function (err, res) {
+        makeVote(delegate2, account.password, "-", function (err, res) {
             node.expect(res.body).to.have.property("success").to.be.true;
-            makeVote(delegate2, node.Gaccount.password, "+", function (err, res) {
+            makeVote(delegate2, account.password, "+", function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.false;
                 done();
             });
