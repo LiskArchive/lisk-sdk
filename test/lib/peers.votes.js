@@ -200,44 +200,44 @@ describe("POST /peer/transactions", function () {
             });
         });
     });
+});
 
-    describe("For a new delegate", function () {
-        var account = node.randomAccount();
+describe("POST /peer/transactions (for a new delegate)", function () {
+    var account = node.randomAccount();
 
-        before(function (done) {
-            async.series([
-                function (seriesCb) {
-                    openAccount(account.password, function (err, res) {
-                        account.address = res.body.account.address;
-                        account.publicKey = res.body.account.publicKey;
-                        return seriesCb();
-                    });
-                },
-                function (seriesCb) {
-                    sendLISK(100000000000, account.address, seriesCb);
-                },
-                function (seriesCb) {
-                    registerDelegate(account, seriesCb);
-                }
-            ], function (err) {
+    before(function (done) {
+        async.series([
+            function (seriesCb) {
+                openAccount(account.password, function (err, res) {
+                    account.address = res.body.account.address;
+                    account.publicKey = res.body.account.publicKey;
+                    return seriesCb();
+                });
+            },
+            function (seriesCb) {
+                sendLISK(100000000000, account.address, seriesCb);
+            },
+            function (seriesCb) {
+                registerDelegate(account, seriesCb);
+            }
+        ], function (err) {
+            return done(err);
+        });
+    });
+
+    it("Voting for self. Should be ok", function (done) {
+        makeVote(account.publicKey, account.password, "+", function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.true;
+            node.onNewBlock(function (err) {
                 return done(err);
             });
         });
+    });
 
-        it("Voting for self. Should be ok", function (done) {
-            makeVote(account.publicKey, account.password, "+", function (err, res) {
-                node.expect(res.body).to.have.property("success").to.be.true;
-                node.onNewBlock(function (err) {
-                    return done(err);
-                });
-            });
-        });
-
-        it("Removing vote from self. Should be ok", function (done) {
-            makeVote(account.publicKey, account.password, "-", function (err, res) {
-                node.expect(res.body).to.have.property("success").to.be.true;
-                done();
-            });
+    it("Removing vote from self. Should be ok", function (done) {
+        makeVote(account.publicKey, account.password, "-", function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.true;
+            done();
         });
     });
 });
