@@ -7,7 +7,6 @@ var bignum = require("../helpers/bignum.js");
 var Router = require("../helpers/router.js");
 var slots = require("../helpers/slots.js");
 var schedule = require("node-schedule");
-var util = require("util");
 var blockReward = require("../helpers/blockReward.js");
 var constants = require("../helpers/constants.js");
 var transactionTypes = require("../helpers/transactionTypes.js");
