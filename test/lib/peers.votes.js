@@ -1,8 +1,7 @@
 "use strict";
 
 var async = require("async");
-var node = require("./../variables.js"),
-    crypto = require("crypto");
+var node = require("./../variables.js");
 
 var account = node.randomAccount();
 
