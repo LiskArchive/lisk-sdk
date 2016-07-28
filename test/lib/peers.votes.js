@@ -3,15 +3,6 @@
 var async = require("async");
 var node = require("./../variables.js");
 
-var account = node.randomAccount();
-
-var delegates = [];
-
-var delegate1Voted = false;
-var delegate2Voted = false;
-
-var delegate1;
-var delegate2;
 node.chai.config.includeStack = true;
 
 function getDelegates (done) {
@@ -136,6 +127,15 @@ function registerDelegate (account, done) {
 }
 
 describe("POST /peer/transactions", function () {
+    var account = node.randomAccount();
+
+    var delegates = [];
+
+    var delegate1Voted = false;
+    var delegate2Voted = false;
+
+    var delegate1;
+    var delegate2;
 
     before(function (done) {
         async.series([
@@ -202,6 +202,8 @@ describe("POST /peer/transactions", function () {
     });
 
     describe("For a new delegate", function () {
+        var account = node.randomAccount();
+
         before(function (done) {
             async.series([
                 function (seriesCb) {
