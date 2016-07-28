@@ -131,9 +131,6 @@ describe("POST /peer/transactions", function () {
 
     var delegates = [];
 
-    var delegate1Voted = false;
-    var delegate2Voted = false;
-
     var delegate1;
     var delegate2;
 
