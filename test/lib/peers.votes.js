@@ -44,7 +44,7 @@ describe("POST /peer/transactions", function () {
                                     console.log("Accounts returned null. Unable to proceed with test");
                                 }
                             } else {
-                                console.log("Check if already voted request failed or account array null");
+                                console.log("Votes request failed or account array is null");
                                 done();
                             }
                             if (!delegate1Voted && !delegate2Voted) {
@@ -65,8 +65,8 @@ describe("POST /peer/transactions", function () {
                                     .expect("Content-Type", /json/)
                                     .expect(200)
                                     .end(function (err, res) {
-                                        console.log("Sent vote fix for delegates");
-                                        console.log("Sent: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
+                                        // console.log("Sent vote fix for delegates");
+                                        // console.log("Sent: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
                                         node.expect(res.body).to.have.property("success").to.be.true;
                                         done();
                                     });
@@ -93,7 +93,7 @@ describe("POST /peer/transactions", function () {
                 .expect("Content-Type", /json/)
                 .expect(200)
                 .end(function (err, res) {
-                    // console.log("Sending POST /transactions with data: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
+                    // console.log("Sent POST /transactions with data: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
                     node.expect(res.body).to.have.property("success").to.be.false;
                     done();
                 });
@@ -175,7 +175,7 @@ describe("POST /peer/transactions", function () {
                     account.address = res.body.account.address;
                     account.publicKey = res.body.account.publicKey;
                 } else {
-                    // console.log("Open account failed or account object is null");
+                    console.log("Open account failed or account object is null");
                     node.expect(true).to.equal(false);
                     done();
                 }
