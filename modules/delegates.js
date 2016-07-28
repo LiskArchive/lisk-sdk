@@ -560,7 +560,7 @@ private.loop = function (cb) {
 private.loadMyDelegates = function (cb) {
 	var secrets = null;
 	if (library.config.forging.secret) {
-		secrets = util.isArray(library.config.forging.secret) ? library.config.forging.secret : [library.config.forging.secret];
+		secrets = Array.isArray(library.config.forging.secret) ? library.config.forging.secret : [library.config.forging.secret];
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
@@ -666,7 +666,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 }
 
 Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
-	if (util.isArray(votes)) {
+	if (Array.isArray(votes)) {
 		modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
 			if (err) {
 				return cb(err);
@@ -740,7 +740,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 }
 
 Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) {
-	if (util.isArray(votes)) {
+	if (Array.isArray(votes)) {
 		modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
 			if (err) {
 				return cb(err);
