@@ -255,6 +255,16 @@ describe("POST /peer/transactions", function () {
         });
     });
 
+    it("Voting for 34 delegates at once. Should fail", function (done) {
+        node.onNewBlock(function (err) {
+            makeVote(delegates.slice(0, 34), account.password, "+", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("message").to.eql("Voting limit exceeded. Maximum is 33 votes per transaction");
+                done();
+            });
+        });
+    });
+
     it("Voting for 101 delegates separately. Should be ok", function (done) {
         node.onNewBlock(function () {
             makeVotes({
@@ -265,6 +275,16 @@ describe("POST /peer/transactions", function () {
                     node.expect(res.body).to.have.property("success").to.be.true;
                 }
             }, done);
+        });
+    });
+
+    it("Removing votes from 34 delegates at once. Should fail", function (done) {
+        node.onNewBlock(function (err) {
+            makeVote(delegates.slice(0, 34), account.password, "-", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("message").to.eql("Voting limit exceeded. Maximum is 33 votes per transaction");
+                done();
+            });
         });
     });
 
