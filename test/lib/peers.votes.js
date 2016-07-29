@@ -237,6 +237,24 @@ describe("POST /peer/transactions", function () {
         });
     });
 
+    it("Voting for 33 delegates at once. Should be ok", function (done) {
+        node.onNewBlock(function (err) {
+            makeVote(delegates.slice(0, 33), account.password, "+", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.true;
+                done();
+            });
+        });
+    });
+
+    it("Removing votes from 33 delegates at once. Should be ok", function (done) {
+        node.onNewBlock(function (err) {
+            makeVote(delegates.slice(0, 33), account.password, "-", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.true;
+                done();
+            });
+        });
+    });
+
     it("Voting for 101 delegates separately. Should be ok", function (done) {
         node.onNewBlock(function () {
             makeVotes({
