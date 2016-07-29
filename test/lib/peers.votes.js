@@ -44,7 +44,7 @@ function makeVotes (options, done) {
         }, function (err) {
             async.eachSeries(options.delegates, function (delegate, eachCb) {
                 makeVote(delegate, options.passphrase, options.action, function (err, res) {
-                    node.expect(res.body).to.have.property("success").to.be.true;
+                    options.voteCb(err, res);
                     return eachCb();
                 });
             }, function (err) {
@@ -186,14 +186,20 @@ describe("POST /peer/transactions", function () {
                 return makeVotes({
                     delegates: votedDelegates,
                     passphrase: account.password,
-                    action: "-"
+                    action: "-",
+                    voteCb: function (err, res) {
+                        node.expect(res.body).to.have.property("success").to.be.true;
+                    }
                 }, seriesCb);
             },
             function (seriesCb) {
                 return makeVotes({
                     delegates: [delegate1, delegate2],
                     passphrase: account.password,
-                    action: "+"
+                    action: "+",
+                    voteCb: function (err, res) {
+                        node.expect(res.body).to.have.property("success").to.be.true;
+                    }
                 }, seriesCb);
             }
         ], function (err) {
@@ -230,7 +236,10 @@ describe("POST /peer/transactions", function () {
             makeVotes({
                 delegates: delegates,
                 passphrase: account.password,
-                action: "+"
+                action: "+",
+                voteCb: function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                }
             }, done);
         });
     });
@@ -239,7 +248,10 @@ describe("POST /peer/transactions", function () {
         makeVotes({
             delegates: delegates,
             passphrase: account.password,
-            action: "-"
+            action: "-",
+            voteCb: function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.true;
+            }
         }, done);
     });
 });
