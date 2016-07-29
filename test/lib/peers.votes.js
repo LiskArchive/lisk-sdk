@@ -29,9 +29,9 @@ function getVotes (address, done) {
         });
 }
 
-function makeVotes (delegates, passphrase, action, done) {
+function makeVotes (options, done) {
     var count = 0;
-    var limit = Math.ceil(delegates.length / 25);
+    var limit = Math.ceil(options.delegates.length / 25);
 
     async.whilst(
         function () {
@@ -42,8 +42,8 @@ function makeVotes (delegates, passphrase, action, done) {
                 return untilCb();
             });
         }, function (err) {
-            async.eachSeries(delegates, function (delegate, eachCb) {
-                makeVote (delegate, passphrase, action, function (err, res) {
+            async.eachSeries(options.delegates, function (delegate, eachCb) {
+                makeVote(delegate, options.passphrase, options.action, function (err, res) {
                     node.expect(res.body).to.have.property("success").to.be.true;
                     return eachCb();
                 });
@@ -183,10 +183,18 @@ describe("POST /peer/transactions", function () {
                 });
             },
             function (seriesCb) {
-                return makeVotes(votedDelegates, account.password, "-", seriesCb);
+                return makeVotes({
+                    delegates: votedDelegates,
+                    passphrase: account.password,
+                    action: "-"
+                }, seriesCb);
             },
             function (seriesCb) {
-                return makeVotes([delegate1, delegate2], account.password, "+", seriesCb);
+                return makeVotes({
+                    delegates: [delegate1, delegate2],
+                    passphrase: account.password,
+                    action: "+"
+                }, seriesCb);
             }
         ], function (err) {
             return done(err);
@@ -219,12 +227,20 @@ describe("POST /peer/transactions", function () {
 
     it("Voting for 101 delegates separately. Should be ok", function (done) {
         node.onNewBlock(function () {
-            makeVotes(delegates, account.password, "+", done);
+            makeVotes({
+                delegates: delegates,
+                passphrase: account.password,
+                action: "+"
+            }, done);
         });
     });
 
     it("Removing votes from 101 delegates separately. Should be ok", function (done) {
-        makeVotes(delegates, account.password, "-", done);
+        makeVotes({
+            delegates: delegates,
+            passphrase: account.password,
+            action: "-"
+        }, done);
     });
 });
 
