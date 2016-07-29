@@ -56,8 +56,14 @@ function makeVotes (options, done) {
     );
 }
 
-function makeVote (delegate, passphrase, action, done) {
-    var transaction = node.lisk.vote.createVote(passphrase, [action + delegate]);
+function makeVote (delegates, passphrase, action, done) {
+    if (!Array.isArray(delegates)) {
+        delegates = [delegates];
+    }
+
+    var transaction = node.lisk.vote.createVote(passphrase, delegates.map(function (delegate) {
+        return action + delegate;
+    }));
 
     node.peer.post("/transactions")
         .set("Accept", "application/json")
