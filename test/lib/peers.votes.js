@@ -30,16 +30,30 @@ function getVotes (address, done) {
 }
 
 function makeVotes (delegates, passphrase, action, done) {
-    async.eachSeries(delegates, function (delegate, eachCb) {
-        makeVote (delegate, passphrase, action, function (err, res) {
-            node.expect(res.body).to.have.property("success").to.be.true;
-            return eachCb();
-        });
-    }, function (err) {
-        node.onNewBlock(function (err) {
-            return done(err);
-        });
-    });
+    var count = 0;
+    var limit = Math.ceil(delegates.length / 25);
+
+    async.whilst(
+        function () {
+            return count <= limit;
+        }, function (untilCb) {
+            node.onNewBlock(function (err) {
+                count++;
+                return untilCb();
+            });
+        }, function (err) {
+            async.eachSeries(delegates, function (delegate, eachCb) {
+                makeVote (delegate, passphrase, action, function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    return eachCb();
+                });
+            }, function (err) {
+                node.onNewBlock(function (err) {
+                    return done(err);
+                });
+            });
+        }
+    );
 }
 
 function makeVote (delegate, passphrase, action, done) {
@@ -210,20 +224,7 @@ describe("POST /peer/transactions", function () {
     });
 
     it("Removing votes from 101 delegates separately. Should be ok", function (done) {
-        var count = 0;
-
-        async.whilst(
-            function () {
-                return count <= 3;
-            }, function (untilCb) {
-                node.onNewBlock(function (err) {
-                    count++;
-                    return untilCb();
-                });
-            }, function (err) {
-                makeVotes(delegates, account.password, "-", done);
-            }
-        );
+        makeVotes(delegates, account.password, "-", done);
     });
 });
 
