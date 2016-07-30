@@ -301,10 +301,20 @@ describe("POST /peer/transactions", function () {
 });
 
 describe("POST /peer/transactions (for a new delegate)", function () {
+    var delegates = [];
     var account = node.randomAccount();
 
     before(function (done) {
         async.series([
+            function (seriesCb) {
+                getDelegates(function (err, res) {
+                    delegates = res.body.delegates.map(function (delegate) {
+                        return delegate.publicKey;
+                    }).slice(0, 101);
+
+                    return seriesCb();
+                });
+            },
             function (seriesCb) {
                 openAccount(account.password, function (err, res) {
                     account.address = res.body.account.address;
@@ -329,6 +339,36 @@ describe("POST /peer/transactions (for a new delegate)", function () {
             node.onNewBlock(function (err) {
                 return done(err);
             });
+        });
+    });
+
+    it("Exceeding maximum of 101 votes within same block. Should fail", function (done) {
+        async.series([
+            function (seriesCb) {
+                var slicedDelegates = delegates.slice(0, 76);
+                node.expect(slicedDelegates).to.have.lengthOf(76);
+
+                makeVotes({
+                    delegates: slicedDelegates,
+                    passphrase: account.password,
+                    action: "+",
+                    voteCb: function (err, res) {
+                        node.expect(res.body).to.have.property("success").to.be.true;
+                    }
+                }, seriesCb);
+            },
+            function (seriesCb) {
+                var slicedDelegates = delegates.slice(-25);
+                node.expect(slicedDelegates).to.have.lengthOf(25);
+
+                makeVote(slicedDelegates, account.password, "+", function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.false;
+                    node.expect(res.body).to.have.property("message").to.eql("Maximum number of 101 votes exceeded (1 too many).");
+                    seriesCb();
+                });
+            }
+        ], function (err) {
+            return done(err);
         });
     });
 
