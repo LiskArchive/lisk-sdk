@@ -213,7 +213,7 @@ describe("POST /peer/transactions", function () {
         });
     });
 
-    it("Removing votes from a delegate and then voting again. Should be ok", function (done) {
+    it("Removing votes from a delegate and then voting again within same block. Should be ok", function (done) {
         makeVote(delegate1, account.password, "-", function (err, res) {
             node.expect(res.body).to.have.property("success").to.be.true;
             makeVote(delegate1, account.password, "+", function (err, res) {
