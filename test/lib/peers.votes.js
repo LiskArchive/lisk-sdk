@@ -213,27 +213,29 @@ describe("POST /peer/transactions", function () {
         });
     });
 
+    it("Removing votes from a delegate and then voting again. Should be ok", function (done) {
+        makeVote(delegate1, account.password, "-", function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.true;
+            makeVote(delegate1, account.password, "+", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.true;
+                done();
+            });
+        });
+    });
+
     it("Voting twice for a delegate. Should fail", function (done) {
-        makeVote(delegate1, account.password, "+", function (err, res) {
-            node.expect(res.body).to.have.property("success").to.be.false;
-            done();
+        node.onNewBlock(function (err) {
+            makeVote(delegate1, account.password, "+", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.false;
+                done();
+            });
         });
     });
 
     it("Removing votes from a delegate. Should be ok", function (done) {
-        makeVote(delegate1, account.password, "-", function (err, res) {
+        makeVote([delegate1, delegate2], account.password, "-", function (err, res) {
             node.expect(res.body).to.have.property("success").to.be.true;
             done();
-        });
-    });
-
-    it("Removing votes from a delegate and then voting again. Should fail", function (done) {
-        makeVote(delegate2, account.password, "-", function (err, res) {
-            node.expect(res.body).to.have.property("success").to.be.true;
-            makeVote(delegate2, account.password, "+", function (err, res) {
-                node.expect(res.body).to.have.property("success").to.be.false;
-                done();
-            });
         });
     });
 
