@@ -300,7 +300,7 @@ describe("POST /peer/transactions", function () {
     });
 });
 
-describe("POST /peer/transactions (for a new delegate)", function () {
+describe("POST /peer/transactions (after registering a new delegate)", function () {
     var delegates = [];
     var account = node.randomAccount();
 
