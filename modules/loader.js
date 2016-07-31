@@ -533,7 +533,7 @@ Loader.prototype.onPeerReady = function () {
 	});
 
 	setImmediate(function nextLoadSignatures() {
-		if (!private.loaded) return;
+		if (!private.loaded || self.syncing()) return;
 		private.loadSignatures(function (err) {
 			err && library.logger.error("Signatures timer:", err);
 
