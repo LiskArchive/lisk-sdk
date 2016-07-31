@@ -43,7 +43,12 @@ function Vote() {
 		}
 
 		modules.delegates.checkDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
-			setImmediate(cb, err, trs);
+			if (err && constants.maxVotesExceeded.indexOf(trs.id) > -1) {
+				library.logger.debug(err);
+				library.logger.debug(JSON.stringify(trs));
+				err = null;
+			}
+			return setImmediate(cb, err, trs);
 		});
 	}
 
