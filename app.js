@@ -213,7 +213,7 @@ d.run(function () {
 
 			});
 
-			cb(null, new z_schema())
+			cb(null, new z_schema());
 		},
 
 		network: ["config", function (cb, scope) {
@@ -288,7 +288,6 @@ d.run(function () {
 			var requestSanitizer = require("./helpers/request-sanitizer");
 			var queryParser = require("express-query-int");
 
-
 			scope.network.app.engine("html", require("ejs").renderFile);
 			scope.network.app.use(require("express-domain-middleware"));
 			scope.network.app.set("view engine", "ejs");
@@ -300,6 +299,7 @@ d.run(function () {
 			scope.network.app.use(methodOverride());
 
 			var ignore = ["id", "name", "lastBlockId", "blockId", "transactionId", "address", "recipientId", "senderId", "previousBlock"];
+
 			scope.network.app.use(queryParser({
 				parser: function (value, radix, name) {
 					if (ignore.indexOf(name) >= 0) {
@@ -391,7 +391,7 @@ d.run(function () {
 					})
 				}
 			}
-			cb(null, new bus)
+			cb(null, new bus);
 		},
 
 		db: function (cb) {
@@ -436,6 +436,7 @@ d.run(function () {
 
 		modules: ["network", "connect", "config", "logger", "bus", "sequence", "dbSequence", "balancesSequence", "db", "logic", function (cb, scope) {
 			var tasks = {};
+
 			Object.keys(config.modules).forEach(function (name) {
 				tasks[name] = function (cb) {
 					var d = require("domain").create();
@@ -445,13 +446,14 @@ d.run(function () {
 					});
 
 					d.run(function () {
-						logger.debug("Loading module", name)
+						logger.debug("Loading module", name);
 						var Klass = require(config.modules[name]);
-						var obj = new Klass(cb, scope)
+						var obj = new Klass(cb, scope);
 						modules.push(obj);
 					});
 				}
 			});
+
 			async.parallel(tasks, function (err, results) {
 				cb(err, results);
 			});
@@ -463,23 +465,23 @@ d.run(function () {
 		}]
 	}, function (err, scope) {
 		if (err) {
-			logger.fatal(err)
+			logger.fatal(err);
 		} else {
 			scope.logger.info("Modules ready and launched");
 
 			process.once("cleanup", function () {
 				scope.logger.info("Cleaning up...");
 				async.eachSeries(modules, function (module, cb) {
-					if (typeof(module.cleanup) == "function"){
+					if (typeof(module.cleanup) == "function") {
 						module.cleanup(cb);
-					}else{
+					} else {
 						setImmediate(cb);
 					}
 				}, function (err) {
 					if (err) {
-							scope.logger.error(err);
+						scope.logger.error(err);
 					} else {
-							scope.logger.info("Cleaned up successfully");
+						scope.logger.info("Cleaned up successfully");
 					}
 					process.exit(1);
 				});
