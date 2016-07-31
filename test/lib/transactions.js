@@ -98,7 +98,7 @@ before(function (done) {
 before(function (done) {
     // Send to LISK to account 1 address
 
-    setTimeout(function() {
+    setTimeout(function () {
         randomLISK = node.randomLISK();
         expectedFee = node.expectedFee(randomLISK);
         node.api.put("/transactions")
@@ -142,7 +142,7 @@ before(function (done) {
 before(function (done) {
     // Send to LISK to account 1 address
 
-    setTimeout(function() {
+    setTimeout(function () {
         randomLISK = node.randomLISK();
         expectedFee = node.expectedFee(randomLISK);
         node.api.put("/transactions")
@@ -186,7 +186,7 @@ before(function (done) {
 
 before(function (done) {
     // Wait for new block to ensure all data has been recieved
-    node.onNewBlock(function(err) {
+    node.onNewBlock(function (err) {
         node.expect(err).to.be.not.ok;
         // console.log("ACCOUNT 1:" + Account1);
         // console.log("ACCOUNT 2:" + Account2);
@@ -212,7 +212,7 @@ describe("GET /api/transactions", function () {
                 node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
                 if (res.body.transactions.length > 0) {
                     for (var i = 0; i < res.body.transactions.length; i++) {
-                        if (res.body.transactions[i + 1]){
+                        if (res.body.transactions[i + 1]) {
                             node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i+1].amount);
                         }
                     }
@@ -242,7 +242,7 @@ describe("GET /api/transactions", function () {
     it("Ordered by ascending timestamp. Should be ok", function (done) {
         var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 0, orderBy = "timestamp:asc";
 
-        node.onNewBlock(function(err){
+        node.onNewBlock(function (err) {
             node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
@@ -275,7 +275,7 @@ describe("GET /api/transactions", function () {
     it("Using offset. Should be ok", function (done) {
         var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 1, orderBy = "timestamp:asc";
 
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
@@ -348,7 +348,7 @@ describe("GET /api/transactions", function () {
     it("Using partially invalid fields. Should fail", function (done) {
         var senderId = "notAReadAddress", blockId = "about5", recipientId = Account1.address, limit = "aLOT", offset = "Boris", orderBy = "blockId:asc";
 
-        node.onNewBlock(function(err){
+        node.onNewBlock(function (err) {
         node.expect(err).to.be.not.ok;
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -367,7 +367,7 @@ describe("GET /api/transactions", function () {
 describe("PUT /api/transactions", function () {
 
     it("Using valid parameters. Should be ok", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.expect(err).to.be.not.ok;
             var amountToSend = 100000000;
             node.api.put("/transactions")
@@ -428,7 +428,7 @@ describe("PUT /api/transactions", function () {
             });
     });
 
-    it("Using float amount. Should fail", function(done) {
+    it("Using float amount. Should fail", function (done) {
         var amountToSend = 1.2;
         node.api.put("/transactions")
             .set("Accept", "application/json")
@@ -449,7 +449,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using entire balance. Should fail", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
@@ -470,7 +470,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using zero amount. Should fail", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
@@ -491,7 +491,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using positive overflown amount. Should fail", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
@@ -512,7 +512,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using negative overflown amount. Should fail", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
@@ -533,7 +533,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using small fractional amount. Should be ok", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
@@ -665,7 +665,7 @@ describe("GET /transactions/unconfirmed/get?id=", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success");
-                if (res.body.success == true){
+                if (res.body.success == true) {
                     if (res.body.transaction != null) {
                         node.expect(res.body.transaction.id).to.equal(transactionList[transactionCount-1].txId);
                     }
@@ -698,7 +698,7 @@ describe("PUT /signatures", function () {
 
     it("When account has no funds. Should fail", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
             .send({
@@ -717,7 +717,7 @@ describe("PUT /signatures", function () {
     });
 
     it("Using invalid passphrase. Should fail", function (done) {
-        node.onNewBlock(function(){
+        node.onNewBlock(function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
             .send({
@@ -737,7 +737,7 @@ describe("PUT /signatures", function () {
 
     it("Using no second passphrase. Should fail", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/signatures")
                 .set("Accept", "application/json")
                 .send({
@@ -755,7 +755,7 @@ describe("PUT /signatures", function () {
     });
 
     it("Using valid parameters. Should be ok ", function (done) {
-        node.onNewBlock(function(){
+        node.onNewBlock(function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
             .send({
@@ -800,7 +800,7 @@ describe("PUT /transactions (with second passphase now enabled)", function () {
 
     it("Without specifying second passphase on account. Should fail", function (done) {
         var amountToSend = 100000000;
-        node.onNewBlock(function(err){
+        node.onNewBlock(function (err) {
         node.expect(err).to.be.not.ok;
 
         node.api.put("/transactions")
@@ -824,7 +824,7 @@ describe("PUT /transactions (with second passphase now enabled)", function () {
     it("Using second passphase but without primary passphase. Should fail", function (done) {
         var amountToSend = 100000000;
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
@@ -848,7 +848,7 @@ describe("PUT /delegates (with second passphase now enabled)", function () {
 
     it("Without specifying second passphase on account. Should fail", function (done) {
         this.timeout(5000);
-        setTimeout(function(){
+        setTimeout(function () {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
                 .send({

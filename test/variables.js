@@ -113,7 +113,7 @@ function getHeight(cb) {
 }
 
 function onNewBlock(cb) {
-  getHeight(function(err, height) {
+  getHeight(function (err, height) {
     //console.log("Height: " + height);
     if (err) {
       return cb(err);

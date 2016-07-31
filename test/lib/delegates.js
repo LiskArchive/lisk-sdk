@@ -32,7 +32,7 @@ describe("PUT /accounts/delegates without funds", function () {
                 Raccount.publicKey = res.body.account.publicKey;
                 Raccount.balance = res.body.account.balance;
 
-                node.onNewBlock(function(err) {
+                node.onNewBlock(function (err) {
                     node.expect(err).to.be.not.ok;
                     node.api.put("/accounts/delegates")
                         .set("Accept", "application/json")
@@ -54,7 +54,7 @@ describe("PUT /accounts/delegates without funds", function () {
     });
 
     it("When downvoting. Should fail", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -103,7 +103,7 @@ describe("PUT /delegates without funds", function () {
 
 describe("PUT /accounts/delegates with funds", function () {
 
-    before(function(done) {
+    before(function (done) {
         // Send random LISK amount from genesis account to Random account
 
         node.api.put("/transactions")
@@ -134,7 +134,7 @@ describe("PUT /accounts/delegates with funds", function () {
     before(function (done) {
         // Check that Raccount has the LISK we sent
 
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.expect(err).to.be.not.ok;
 
             node.api.post("/accounts/open")
@@ -161,7 +161,7 @@ describe("PUT /accounts/delegates with funds", function () {
 
     it("When upvoting same delegate multiple times. Should fail", function (done) {
         var votedDelegate = "'+" + node.Eaccount.publicKey + "','+" + node.Eaccount.publicKey + "'";
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -184,7 +184,7 @@ describe("PUT /accounts/delegates with funds", function () {
 
     it("When downvoting same delegate multiple times. Should fail", function (done) {
         var votedDelegate = "'-" + node.Eaccount.publicKey + "','-" + node.Eaccount.publicKey + "'";
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -208,7 +208,7 @@ describe("PUT /accounts/delegates with funds", function () {
     it("When upvoting and downvoting within same request. Should fail", function (done) {
         var votedDelegate = "'+" + node.Eaccount.publicKey + "','-" + node.Eaccount.publicKey + "'";
 
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -257,7 +257,7 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("When upvoting again from same account. Should fail", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -283,7 +283,7 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("When downvoting. Should be ok", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
         node.expect(err).to.be.not.ok;
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
@@ -313,7 +313,7 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("When downvoting again from same account. Should fail", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -373,7 +373,7 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("When upvoting without any delegates. Should fail", function (done) {
-        node.onNewBlock(function() {
+        node.onNewBlock(function () {
         node.api.put("/accounts/delegates")
             .set("Accept", "application/json")
             .send({
@@ -392,7 +392,7 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("When downvoting without any delegates. Should fail", function (done) {
-        node.onNewBlock(function() {
+        node.onNewBlock(function () {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -411,7 +411,7 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 
     it("Without any delegates. Should fail", function (done) {
-        setTimeout(function() {
+        setTimeout(function () {
             node.api.put("/accounts/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -430,7 +430,7 @@ describe("PUT /accounts/delegates with funds", function () {
     });
 });
 
-describe("PUT /delegates with funds",function () {
+describe("PUT /delegates with funds", function () {
 
     before(function (done) {
         // Send random LISK amount from foundation account to second Random account
@@ -524,7 +524,7 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using invalid pasphrase. Should fail", function (done) {
-        setTimeout(function() {
+        setTimeout(function () {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -543,7 +543,7 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using invalid username. Should fail", function (done) {
-        setTimeout(function() {
+        setTimeout(function () {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -562,7 +562,7 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using username longer than 20 characters. Should fail", function (done) {
-        setTimeout(function() {
+        setTimeout(function () {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -581,7 +581,7 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using blank username. Should fail", function (done) {
-        setTimeout(function() {
+        setTimeout(function () {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
                 .send({
@@ -600,7 +600,7 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using uppercase username: " + Raccount.username + ". Should be ok and delegate should be registered in lower case", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.api.put('/delegates')
                 .set('Accept', 'application/json')
                 .send({
@@ -630,7 +630,7 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using same account. Should fail", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.expect(err).to.be.not.ok;
             node.api.put("/delegates")
                 .set("Accept", "application/json")
@@ -650,7 +650,7 @@ describe("PUT /delegates with funds",function () {
     });
 
     it("Using existing username but different case: " + R2account.username + ". Should fail", function (done) {
-        node.onNewBlock(function(err) {
+        node.onNewBlock(function (err) {
             node.expect(err).to.be.not.ok;
             // console.log(JSON.stringify({
             //    secret: R2account.password,
