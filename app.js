@@ -25,12 +25,12 @@ if (typeof gc !== "undefined") {
 
 program
 	.version(packageJson.version)
-	.option("-c, --config <path>", "Config file path")
-	.option("-p, --port <port>", "Listening port number")
-	.option("-a, --address <ip>", "Listening host name or ip")
-	.option("-b, --blockchain <path>", "Blockchain db path")
-	.option("-x, --peers [peers...]", "Peers list")
-	.option("-l, --log <level>", "Log level")
+	.option("-c, --config <path>", "config file path")
+	.option("-p, --port <port>", "listening port number")
+	.option("-a, --address <ip>", "listening host name or ip")
+	.option("-b, --blockchain <path>", "blockchain db path")
+	.option("-x, --peers [peers...]", "peers list")
+	.option("-l, --log <level>", "log level")
 	.parse(process.argv);
 
 if (program.config) {
