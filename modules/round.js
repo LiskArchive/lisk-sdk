@@ -24,6 +24,7 @@ function Round(cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = private;
+	self.__private.snapshot = library.config.loading.snapshot;
 	setImmediate(cb, null, self);
 }
 
@@ -92,6 +93,10 @@ function RoundPromiser (scope, t) {
 
 	this.flushRound = function () {
 		return t.none(sql.flush, { round: scope.round });
+	}
+
+	this.truncateBlocks = function () {
+		return t.none(sql.truncateBlocks, { height: scope.block.height });
 	}
 
 	this.applyRound = function () {
@@ -258,6 +263,10 @@ Round.prototype.tick = function (block, done) {
 		delegates: private.delegatesByRound[round]
 	};
 
+	scope.snapshotRound = (
+		private.snapshot > 1 && private.snapshot == round
+	);
+
 	scope.finishRound = (
 		(round !== nextRound && private.delegatesByRound[round].length == slots.delegates) ||
 		(block.height == 1 || block.height == 101)
@@ -273,6 +282,11 @@ Round.prototype.tick = function (block, done) {
 					delete private.rewardsByRound[round];
 					delete private.delegatesByRound[round];
 					library.bus.message("finishRound", round);
+					if (scope.snapshotRound) {
+						promised.truncateBlocks().then(function () {
+							scope.finishSnapshot = true;
+						});
+					}
 				});
 			}
 		});
@@ -288,7 +302,12 @@ Round.prototype.tick = function (block, done) {
 		},
 		function (cb) {
 			library.db.tx(Tick).then(function () {
-				return cb();
+				if (scope.finishSnapshot) {
+					library.logger.info("Snapshot finished");
+					process.exit();
+				} else {
+					return cb();
+				}
 			}).catch(function (err) {
 				library.logger.error(err.toString());
 				return cb(err);

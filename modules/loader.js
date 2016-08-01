@@ -26,6 +26,7 @@ function Loader(cb, scope) {
 	private.genesisBlock = private.loadingLastBlock = library.genesisblock;
 	self = this;
 	self.__private = private;
+	self.__private.snapshot = library.config.loading.snapshot;
 	private.attachApi();
 
 	setImmediate(cb, null, self);
@@ -432,6 +433,12 @@ private.loadBlockChain = function () {
 		    missed = !(results[1].count);
 
 		library.logger.info("Blocks " + count);
+
+		if (private.snapshot > 1) {
+			library.logger.info("Snapshot mode enabled");
+			library.logger.info("Truncating blocks to end of round: " + private.snapshot);
+			verify = true;
+		}
 
 		if (count == 1) {
 			return reload(count);

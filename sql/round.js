@@ -1,6 +1,8 @@
 const RoundSql = {
   flush: 'DELETE FROM mem_round WHERE "round" = (${round})::bigint;',
 
+  truncateBlocks: 'DELETE FROM blocks WHERE "height" > (${height})::bigint;',
+
   updateMissedBlocks: 'UPDATE mem_accounts SET "missedblocks" = "missedblocks" + 1 WHERE "address" IN ($1:csv);',
 
   getVotes: 'SELECT d."delegate", d."amount" FROM (SELECT m."delegate", SUM(m."amount") AS "amount", "round" FROM mem_round m GROUP BY m."delegate", m."round") AS d WHERE "round" = (${round})::bigint',

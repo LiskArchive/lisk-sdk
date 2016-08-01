@@ -31,6 +31,7 @@ program
 	.option("-b, --blockchain <path>", "blockchain db path")
 	.option("-x, --peers [peers...]", "peers list")
 	.option("-l, --log <level>", "log level")
+	.option("-s, --snapshot <round>", "verify snapshot")
 	.parse(process.argv);
 
 if (program.config) {
@@ -61,6 +62,12 @@ if (program.peers) {
 
 if (program.log) {
 	appConfig.consoleLogLevel = program.log;
+}
+
+if (program.snapshot) {
+	appConfig.loading.snapshot = Math.abs(
+		Math.floor(program.snapshot)
+	);
 }
 
 var config = {
@@ -112,6 +119,10 @@ d.run(function () {
 					readable: true,
 					charset: "alphanumeric"
 				});
+
+				if (appConfig.loading.snapshot != null) {
+					delete appConfig.loading.snapshot;
+				}
 
 				fs.writeFile("./config.json", JSON.stringify(appConfig, null, 4), "utf8", function (err) {
 					cb(err, appConfig);
