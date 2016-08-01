@@ -23,10 +23,10 @@ private.syncIntervalId = null;
 // Constructor
 function Loader(cb, scope) {
 	library = scope;
-	private.genesisBlock = private.loadingLastBlock = library.genesisblock;
 	self = this;
 	self.__private = private;
 	self.__private.snapshot = library.config.loading.snapshot;
+	self.__private.genesisBlock = self.__private.loadingLastBlock = library.genesisblock;
 	private.attachApi();
 
 	setImmediate(cb, null, self);
