@@ -233,6 +233,7 @@ private.attachApi = function () {
 			}, function (err, report, query) {
 				if (err) return next(err);
 				if (!report.isValid) return res.json({success: false, error: report.issues});
+
 				self.getAccounts({
 					sort: {
 						balance: -1
@@ -243,11 +244,12 @@ private.attachApi = function () {
 					if (err) {
 						return res.json({success: false, error: err});
 					}
-					var accounts = raw.map(function (fullAccount) {
+
+					var accounts = raw.map(function (account) {
 						return {
-							address: fullAccount.address,
-							balance: fullAccount.balance,
-							publicKey: fullAccount.publicKey
+							address: account.address,
+							balance: account.balance,
+							publicKey: account.publicKey
 						}
 					});
 
