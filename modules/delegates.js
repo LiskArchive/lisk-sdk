@@ -910,9 +910,6 @@ shared.getDelegate = function (req, cb) {
 	library.scheme.validate(query, {
 		type: "object",
 		properties: {
-			transactionId: {
-				type: "string"
-			},
 			publicKey: {
 				type: "string"
 			},
