@@ -14,6 +14,7 @@ module.exports = {
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
 	fixedPoint : Math.pow(10, 8),
+	forgingTimeOut: 500, // 50 blocks
 	maxAddressesLength: 208 * 128,
 	maxAmount: 100000000,
 	maxClientConnections: 100,
