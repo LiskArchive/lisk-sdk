@@ -239,7 +239,7 @@ private.attachApi = function () {
 						balance: -1
 					},
 					offset: query.offset,
-					limit: query.limit
+					limit: (query.limit || 100)
 				}, function (err, raw) {
 					if (err) {
 						return res.json({success: false, error: err});
