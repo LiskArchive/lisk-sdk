@@ -289,6 +289,7 @@ private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 			return setImmediate(cb, err);
 		}
 
+		transaction.receivedAt = new Date();
 		private.unconfirmedTransactions.push(transaction);
 		var index = private.unconfirmedTransactions.length - 1;
 		private.unconfirmedTransactionsIdIndex[transaction.id] = index;
@@ -441,6 +442,38 @@ Transactions.prototype.undoUnconfirmedList = function (cb) {
 	});
 }
 
+Transactions.prototype.expireUnconfirmedList = function (cb) {
+	var standardTimeOut = Number(constants.unconfirmedTransactionTimeOut);
+	var ids = [];
+
+	async.eachSeries(private.unconfirmedTransactions, function (transaction, cb) {
+		if (transaction == false) {
+			return cb();
+		}
+
+		var timeNow = new Date();
+		var timeOut = (transaction.type == 4) ? standardTimeOut * 8 : standardTimeOut;
+		var seconds = Math.floor((timeNow.getTime() - transaction.receivedAt.getTime()) / 1000);
+
+		if (seconds > timeOut) {
+			self.undoUnconfirmed(transaction, function (err) {
+				if (err) {
+					return cb(err);
+				} else {
+					ids.push(transaction.id);
+					self.removeUnconfirmedTransaction(transaction.id);
+					library.logger.log("Expired unconfirmed transaction: " + transaction.id + " received at: " + transaction.receivedAt.toUTCString());
+					return cb();
+				}
+			});
+		} else {
+			setImmediate(cb);
+		}
+	}, function (err) {
+		return cb(err, ids);
+	});
+}
+
 Transactions.prototype.apply = function (transaction, block, sender, cb) {
 	library.logic.transaction.apply(transaction, block, sender, cb);
 }
@@ -495,6 +528,18 @@ Transactions.prototype.sandboxApi = function (call, args, cb) {
 // Events
 Transactions.prototype.onBind = function (scope) {
 	modules = scope;
+}
+
+Transactions.prototype.onPeerReady = function () {
+	setImmediate(function nextUnconfirmedExpiry () {
+		self.expireUnconfirmedList(function (err, ids) {
+			if (err) {
+				library.logger.error("Unconfirmed transactions timer:", err);
+			}
+
+			setTimeout(nextUnconfirmedExpiry, 14 * 1000);
+		});
+	});
 }
 
 // Shared
