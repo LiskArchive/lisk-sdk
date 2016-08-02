@@ -438,7 +438,7 @@ Transactions.prototype.undoUnconfirmedList = function (cb) {
 		}
 	}, function (err) {
 		return cb(err, ids);
-	})
+	});
 }
 
 Transactions.prototype.apply = function (transaction, block, sender, cb) {

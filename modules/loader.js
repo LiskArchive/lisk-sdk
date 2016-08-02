@@ -511,9 +511,10 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeerReady = function () {
-	setImmediate(function nextLoadBlock() {
+	setImmediate(function nextLoadBlock () {
 		if (!private.loaded) return;
 		private.isActive = true;
+
 		library.sequence.add(function (cb) {
 			private.syncTrigger(true);
 			var lastBlock = modules.blocks.getLastBlock();
@@ -526,25 +527,25 @@ Loader.prototype.onPeerReady = function () {
 			private.isActive = false;
 			if (!private.loaded) return;
 
-			setTimeout(nextLoadBlock, 9 * 1000)
+			setTimeout(nextLoadBlock, 9 * 1000);
 		});
 	});
 
-	setImmediate(function nextLoadUnconfirmedTransactions() {
+	setImmediate(function nextLoadUnconfirmedTransactions () {
 		if (!private.loaded || self.syncing()) return;
+
 		private.loadUnconfirmedTransactions(function (err) {
 			err && library.logger.error("Unconfirmed transactions timer:", err);
 			setTimeout(nextLoadUnconfirmedTransactions, 14 * 1000)
 		});
-
 	});
 
-	setImmediate(function nextLoadSignatures() {
+	setImmediate(function nextLoadSignatures () {
 		if (!private.loaded || self.syncing()) return;
+
 		private.loadSignatures(function (err) {
 			err && library.logger.error("Signatures timer:", err);
-
-			setTimeout(nextLoadSignatures, 14 * 1000)
+			setTimeout(nextLoadSignatures, 14 * 1000);
 		});
 	});
 }

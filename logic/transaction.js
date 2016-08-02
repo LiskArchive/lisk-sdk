@@ -164,6 +164,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 	} catch (e) {
 		throw Error(e.toString());
 	}
+
 	return bb.toBuffer();
 }
 

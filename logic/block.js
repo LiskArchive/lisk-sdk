@@ -16,10 +16,13 @@ function Block(scope, cb) {
 
 // Private methods
 var private = {};
+
 private.blockReward = new blockReward();
+
 private.getAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
 	var temp = new Buffer(8);
+
 	for (var i = 0; i < 8; i++) {
 		temp[i] = publicKeyHash[7 - i];
 	}
