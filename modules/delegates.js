@@ -933,8 +933,7 @@ shared.getDelegate = function (req, cb) {
 			var delegate = _.find(result.delegates, function (delegate) {
 				if (query.publicKey) {
 					return delegate.publicKey == query.publicKey;
-				}
-				if (query.username) {
+				} else if (query.username) {
 					return delegate.username == query.username;
 				}
 
@@ -942,9 +941,9 @@ shared.getDelegate = function (req, cb) {
 			});
 
 			if (delegate) {
-				cb(null, {delegate: delegate});
+				return cb(null, {delegate: delegate});
 			} else {
-				cb("Delegate not found");
+				return cb("Delegate not found");
 			}
 		});
 	});
