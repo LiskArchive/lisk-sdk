@@ -931,9 +931,6 @@ shared.getDelegate = function (req, cb) {
 			}
 
 			var delegate = _.find(result.delegates, function (delegate) {
-				// if (query.transactionId) {
-					// TODO: Store transactionId
-				// }
 				if (query.publicKey) {
 					return delegate.publicKey == query.publicKey;
 				}
