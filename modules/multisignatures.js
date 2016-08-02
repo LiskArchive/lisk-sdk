@@ -158,8 +158,8 @@ function Multisignature() {
 			}
 
 			// Get public keys
-			async.eachSeries(trs.asset.multisignature.keysgroup, function (item, cb) {
-				var key = item.substring(1);
+			async.eachSeries(trs.asset.multisignature.keysgroup, function (transaction, cb) {
+				var key = transaction.substring(1);
 				var address = modules.accounts.generateAddressByPublicKey(key);
 
 				// Create accounts
@@ -441,17 +441,17 @@ shared.pending = function (req, cb) {
 		});
 
 		var pendings = [];
-		async.eachSeries(transactions, function (item, cb) {
+		async.eachSeries(transactions, function (transaction, cb) {
 			var signed = false;
 
-			if (!verify && item.signatures && item.signatures.length > 0) {
+			if (!verify && transaction.signatures && transaction.signatures.length > 0) {
 				var verify = false;
 
-				for (var i in item.signatures) {
-					var signature = item.signatures[i];
+				for (var i in transaction.signatures) {
+					var signature = transaction.signatures[i];
 
 					try {
-						verify = library.logic.transaction.verifySignature(item, query.publicKey, item.signatures[i]);
+						verify = library.logic.transaction.verifySignature(transaction, query.publicKey, transaction.signatures[i]);
 					} catch (e) {
 						library.logger.error(e.toString());
 						verify = false;
@@ -467,12 +467,12 @@ shared.pending = function (req, cb) {
 				}
 			}
 
-			if (!signed && item.senderPublicKey == query.publicKey) {
+			if (!signed && transaction.senderPublicKey == query.publicKey) {
 				signed = true;
 			}
 
 			modules.accounts.getAccount({
-				publicKey: item.senderPublicKey
+				publicKey: transaction.senderPublicKey
 			}, function (err, sender) {
 				if (err) {
 					return cb(err);
@@ -508,7 +508,7 @@ shared.pending = function (req, cb) {
 						min: min,
 						lifetime: lifetime,
 						signed: signed,
-						transaction: item
+						transaction: transaction
 					});
 				}
 
