@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS "mem_accounts"(
   "rewards" BIGINT DEFAULT 0
 );
 
+CREATE INDEX IF NOT EXISTS "mem_accounts_balance" ON "mem_accounts"("balance");
+
 CREATE TABLE IF NOT EXISTS "mem_round"(
   "address" VARCHAR(22),
   "amount" BIGINT,
