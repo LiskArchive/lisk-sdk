@@ -302,19 +302,18 @@ Round.prototype.tick = function (block, done) {
 		},
 		function (cb) {
 			library.db.tx(Tick).then(function () {
-				if (scope.finishSnapshot) {
-					library.logger.info("Snapshot finished");
-					process.emit("SIGTERM");
-				} else {
-					return cb();
-				}
+				return cb();
 			}).catch(function (err) {
 				library.logger.error(err.toString());
 				return cb(err);
 			});
 		}
 	], function (err) {
-		return done(err);
+		if (scope.finishSnapshot) {
+			process.emit("SIGTERM");
+		} else {
+			return done(err);
+		}
 	});
 }
 
