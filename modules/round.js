@@ -264,7 +264,7 @@ Round.prototype.tick = function (block, done) {
 	};
 
 	scope.snapshotRound = (
-		private.snapshot > 1 && private.snapshot == round
+		private.snapshot > 0 && private.snapshot == round
 	);
 
 	scope.finishRound = (

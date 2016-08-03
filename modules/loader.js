@@ -357,7 +357,7 @@ private.loadBlockChain = function () {
 	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
 	    verify = Boolean(library.config.loading.verifyOnLoading);
 
-	if (private.snapshot > 1) {
+	if (private.snapshot > 0) {
 		library.logger.info("Snapshot mode enabled");
 		library.logger.info("Truncating blocks to end of round: " + private.snapshot);
 		verify = true;
