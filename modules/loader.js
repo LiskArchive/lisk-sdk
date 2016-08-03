@@ -429,8 +429,8 @@ private.loadBlockChain = function () {
 	}
 
 	library.db.task(checkMemTables).then(function (results) {
-		var count = results[0].count,
-		    missed = !(results[1].count);
+		var count = results[0].count;
+		var missed = !(results[1].count);
 
 		library.logger.info("Blocks " + count);
 
