@@ -1,7 +1,7 @@
 const LoaderSql = {
   countBlocks: 'SELECT COUNT("rowId")::int FROM blocks',
 
-  countMemAccounts: 'SELECT COUNT(*)::int FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" WHERE "numberOfTransactions" > 0 ORDER BY "height" DESC LIMIT 1)',
+  countMemAccounts: 'SELECT COUNT(*)::int FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" ORDER BY "height" DESC LIMIT 1)',
 
   getMemRounds: 'SELECT "round" FROM mem_round GROUP BY "round"',
 
