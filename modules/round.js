@@ -304,7 +304,7 @@ Round.prototype.tick = function (block, done) {
 			library.db.tx(Tick).then(function () {
 				if (scope.finishSnapshot) {
 					library.logger.info("Snapshot finished");
-					process.exit();
+					process.emit("SIGTERM");
 				} else {
 					return cb();
 				}
