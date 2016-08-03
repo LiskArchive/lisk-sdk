@@ -31,7 +31,7 @@ before(function (done) {
         .expect(200)
         .end(function (err, res) {
             // console.log(JSON.stringify(res.body));
-            console.log("Opening Account 1 with password: " + Account1.password);
+            // console.log("Opening Account 1 with password: " + Account1.password);
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.success == true && res.body.account != null) {
                  Account1.address = res.body.account.address;
@@ -57,7 +57,7 @@ before(function (done) {
         .expect(200)
         .end(function (err, res) {
              // console.log("register second password");
-             console.log("Opening Account 2 with password: " + Account2.password);
+             // console.log("Opening Account 2 with password: " + Account2.password);
              node.expect(res.body).to.have.property("success").to.be.true;
              if (res.body.success == true && res.body.account != null) {
                   Account2.address = res.body.account.address;
@@ -83,7 +83,7 @@ before(function (done) {
         .expect(200)
         .end(function (err, res) {
             // console.log(JSON.stringify(res.body));
-            console.log("Opening Account 3 with password: " + Account3.password);
+            // console.log("Opening Account 3 with password: " + Account3.password);
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.success == true && res.body.account != null) {
                 Account3.address = res.body.account.address;
@@ -120,8 +120,8 @@ before(function (done) {
                     Account1.transactions.push(transactionCount);
                     Account1.balance += randomLISK;
                 } else {
-                    console.log("Sending LISK to Account1 failed.");
-                    console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
+                    // console.log("Sending LISK to Account1 failed.");
+                    // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
                     node.expect("TEST").to.equal("FAILED");
                 }
                 done();
@@ -144,8 +144,8 @@ before(function (done) {
             .expect(200)
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
-                // console.log("We send the LISK from genesis account to account. Recipient is: " + Account2.address);
-                console.log("Sent to " + Account2.address + " " + (randomLISK / node.normalizer) + " LISK");
+                // console.log("Sending LISK from genesis account to account. Recipient is: " + Account2.address);
+                // console.log("Sent to " + Account2.address + " " + (randomLISK / node.normalizer) + " LISK");
                 // console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
                 node.expect(res.body).to.have.property("success").to.be.true;
                 if (res.body.success == true && res.body.transactionId != null) {

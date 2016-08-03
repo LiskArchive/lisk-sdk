@@ -39,7 +39,7 @@ function openAccount (account, i, done) {
         .expect(200)
         .end(function (err, res) {
             if (i != null) {
-                console.log("Opening Account " + i + " with password: " + account.password);
+                // console.log("Opening Account " + i + " with password: " + account.password);
             }
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.account && i != null) {

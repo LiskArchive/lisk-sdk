@@ -222,7 +222,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     node.expect(res.body).to.have.property("success").to.be.false;
                     node.expect(res.body).to.have.property("error");
                     if (res.body.success) {
-                        console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate) + "]";
+                        // console.log("Sent: secret:" + Raccount.password + ", delegates: [" + votedDelegate + "]");
                     }
                     done();
                 });

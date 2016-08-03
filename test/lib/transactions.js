@@ -156,7 +156,7 @@ before(function (done) {
             .expect(200)
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
-                // console.log("We send the LISK from genesis account to account. Recipient is: " + Account2.address);
+                // console.log("Sending LISK from genesis account to account. Recipient is: " + Account2.address);
                 // console.log("Sent to " + Account2.address + " " + (randomLISK / node.normalizer) + " LISK");
                 // console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
                 node.expect(res.body).to.have.property("success").to.be.true;
