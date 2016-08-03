@@ -357,12 +357,6 @@ private.loadBlockChain = function () {
 	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
 	    verify = Boolean(library.config.loading.verifyOnLoading);
 
-	if (private.snapshot > 0) {
-		library.logger.info("Snapshot mode enabled");
-		library.logger.info("Truncating blocks to end of round: " + private.snapshot);
-		verify = true;
-	}
-
 	function load(count) {
 		verify = true;
 		private.total = count;
@@ -440,6 +434,21 @@ private.loadBlockChain = function () {
 
 		library.logger.info("Blocks " + count);
 
+		var round = modules.round.calc(count);
+
+		if (private.snapshot > 0) {
+			library.logger.info("Snapshot mode enabled");
+			verify = true;
+
+			if (private.snapshot > round) {
+				library.logger.warn("Invalid snapshot round");
+				library.logger.warn("Snapshotting to end of highest available round: " + round);
+				private.snapshot = round;
+			} else {
+				library.logger.info("Snapshotting to end of round: " + private.snapshot);
+			}
+		}
+
 		if (count == 1) {
 			return reload(count);
 		}
@@ -452,7 +461,6 @@ private.loadBlockChain = function () {
 			return reload(count, "Detected missed blocks in mem_accounts");
 		}
 
-		var round = modules.round.calc(count);
 		var unapplied = results[2].filter(function (row) {
 			return (row.round != round);
 		});
