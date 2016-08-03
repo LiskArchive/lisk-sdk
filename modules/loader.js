@@ -357,6 +357,12 @@ private.loadBlockChain = function () {
 	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
 	    verify = Boolean(library.config.loading.verifyOnLoading);
 
+	if (private.snapshot > 1) {
+		library.logger.info("Snapshot mode enabled");
+		library.logger.info("Truncating blocks to end of round: " + private.snapshot);
+		verify = true;
+	}
+
 	function load(count) {
 		verify = true;
 		private.total = count;
@@ -433,12 +439,6 @@ private.loadBlockChain = function () {
 		    missed = !(results[1].count);
 
 		library.logger.info("Blocks " + count);
-
-		if (private.snapshot > 1) {
-			library.logger.info("Snapshot mode enabled");
-			library.logger.info("Truncating blocks to end of round: " + private.snapshot);
-			verify = true;
-		}
 
 		if (count == 1) {
 			return reload(count);
