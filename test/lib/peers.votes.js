@@ -201,7 +201,7 @@ describe("POST /peer/transactions", function () {
         });
     });
 
-    it("Voting for a delegate and then removing again within same block. Should be fail", function (done) {
+    it("Voting for a delegate and then removing again within same block. Should fail", function (done) {
         node.onNewBlock(function (err) {
             makeVote(delegate, account.password, "+", function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.true;
@@ -213,7 +213,7 @@ describe("POST /peer/transactions", function () {
         });
     });
 
-    it("Removing votes from a delegate and then voting again within same block. Should be fail", function (done) {
+    it("Removing votes from a delegate and then voting again within same block. Should fail", function (done) {
         node.onNewBlock(function (err) {
             makeVote(delegate, account.password, "-", function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.true;
