@@ -6,6 +6,7 @@ var BlockReward = require('../logic/blockReward.js');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var exceptions = require('../helpers/exceptions.js');
 var genesisblock = null;
 var Inserts = require('../helpers/inserts.js');
 var ip = require('ip');
@@ -699,7 +700,7 @@ Blocks.prototype.verifyBlock = function (block) {
 
 	var expectedReward = __private.blockReward.calcReward(block.height);
 
-	if (block.height !== 1 && expectedReward !== block.reward) {
+	if (block.height !== 1 && expectedReward !== block.reward && !_.includes(exceptions.blockRewards, block.id)) {
 		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
 	}
 
