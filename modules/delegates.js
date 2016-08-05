@@ -678,7 +678,7 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 			return cb("Account not found");
 		}
 
-		var existing_votes = Array.isArray(account.u_delegates) ? account.u_delegates.length : 0;
+		var existing_votes = Array.isArray(account.delegates) ? account.delegates.length : 0;
 		var additions = 0, removals = 0;
 
 		async.eachSeries(votes, function (action, cb) {
@@ -703,11 +703,11 @@ Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
 				return cb("Invalid public key");
 			}
 
-			if (math == "+" && (account.u_delegates !== null && account.u_delegates.indexOf(publicKey) != -1)) {
+			if (math == "+" && (account.delegates !== null && account.delegates.indexOf(publicKey) != -1)) {
 				return cb("Failed to add vote, account has already voted for this delegate");
 			}
 
-			if (math == "-" && (account.u_delegates === null || account.u_delegates.indexOf(publicKey) === -1)) {
+			if (math == "-" && (account.delegates === null || account.delegates.indexOf(publicKey) === -1)) {
 				return cb("Failed to remove vote, account has not voted for this delegate");
 			}
 
