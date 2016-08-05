@@ -5,11 +5,9 @@ var node = require("./../variables.js");
 
 var account = node.randomAccount();
 
+var delegate;
 var delegates = [];
 var votedDelegates = [];
-
-var delegate1;
-var delegate2;
 
 node.chai.config.includeStack = true;
 
@@ -174,8 +172,7 @@ describe("POST /peer/transactions", function () {
                         return delegate.publicKey;
                     }).slice(0, 101);
 
-                    delegate1 = res.body.delegates[0].publicKey;
-                    delegate2 = res.body.delegates[1].publicKey;
+                    delegate = res.body.delegates[0].publicKey;
 
                     return seriesCb();
                 });
@@ -206,9 +203,9 @@ describe("POST /peer/transactions", function () {
 
     it("Voting for a delegate and then removing again within same block. Should be fail", function (done) {
         node.onNewBlock(function (err) {
-            makeVote(delegate1, account.password, "+", function (err, res) {
+            makeVote(delegate, account.password, "+", function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.true;
-                makeVote(delegate1, account.password, "-", function (err, res) {
+                makeVote(delegate, account.password, "-", function (err, res) {
                     node.expect(res.body).to.have.property("success").to.be.false;
                     done();
                 });
@@ -218,9 +215,9 @@ describe("POST /peer/transactions", function () {
 
     it("Removing votes from a delegate and then voting again within same block. Should be fail", function (done) {
         node.onNewBlock(function (err) {
-            makeVote(delegate1, account.password, "-", function (err, res) {
+            makeVote(delegate, account.password, "-", function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.true;
-                makeVote(delegate1, account.password, "+", function (err, res) {
+                makeVote(delegate, account.password, "+", function (err, res) {
                     node.expect(res.body).to.have.property("success").to.be.false;
                     done();
                 });
@@ -232,7 +229,7 @@ describe("POST /peer/transactions", function () {
         async.series([
             function (seriesCb) {
                 node.onNewBlock(function (err) {
-                    makeVote(delegate1, account.password, "+", function (err, res) {
+                    makeVote(delegate, account.password, "+", function (err, res) {
                         node.expect(res.body).to.have.property("success").to.be.true;
                         done();
                     });
@@ -240,7 +237,7 @@ describe("POST /peer/transactions", function () {
             },
             function (seriesCb) {
                 node.onNewBlock(function (err) {
-                    makeVote(delegate1, account.password, "+", function (err, res) {
+                    makeVote(delegate, account.password, "+", function (err, res) {
                         node.expect(res.body).to.have.property("success").to.be.false;
                         done();
                     });
@@ -253,7 +250,7 @@ describe("POST /peer/transactions", function () {
 
     it("Removing votes from a delegate. Should be ok", function (done) {
         node.onNewBlock(function (err) {
-            makeVote([delegate1, delegate2], account.password, "-", function (err, res) {
+            makeVote(delegate, account.password, "-", function (err, res) {
                 node.expect(res.body).to.have.property("success").to.be.true;
                 done();
             });
