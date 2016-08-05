@@ -93,7 +93,13 @@ function Vote() {
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		modules.delegates.checkUnconfirmedDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
 			if (err) {
-				return setImmediate(cb, err);
+				if (constants.voteExceptions.indexOf(trs.id) > -1) {
+					library.logger.debug(err);
+					library.logger.debug(JSON.stringify(trs));
+					err = null;
+				} else {
+					return setImmediate(cb, err);
+				}
 			}
 
 			this.scope.account.merge(sender.address, {
