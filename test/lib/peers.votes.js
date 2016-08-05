@@ -198,28 +198,32 @@ describe("POST /peer/transactions", function () {
                         node.expect(res.body).to.have.property("success").to.be.true;
                     }
                 }, seriesCb);
-            },
-            function (seriesCb) {
-                return makeVotes({
-                    delegates: [delegate1, delegate2],
-                    passphrase: account.password,
-                    action: "+",
-                    voteCb: function (err, res) {
-                        node.expect(res.body).to.have.property("success").to.be.true;
-                    }
-                }, seriesCb);
             }
         ], function (err) {
             return done(err);
         });
     });
 
-    it("Removing votes from a delegate and then voting again within same block. Should be fail", function (done) {
-        makeVote(delegate1, account.password, "-", function (err, res) {
-            node.expect(res.body).to.have.property("success").to.be.true;
+    it("Voting for a delegate and then removing again within same block. Should be fail", function (done) {
+        node.onNewBlock(function (err) {
             makeVote(delegate1, account.password, "+", function (err, res) {
-                node.expect(res.body).to.have.property("success").to.be.false;
-                done();
+                node.expect(res.body).to.have.property("success").to.be.true;
+                makeVote(delegate1, account.password, "-", function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.false;
+                    done();
+                });
+            });
+        });
+    });
+
+    it("Removing votes from a delegate and then voting again within same block. Should be fail", function (done) {
+        node.onNewBlock(function (err) {
+            makeVote(delegate1, account.password, "-", function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.true;
+                makeVote(delegate1, account.password, "+", function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.false;
+                    done();
+                });
             });
         });
     });
