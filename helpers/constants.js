@@ -23,11 +23,6 @@ module.exports = {
 	maxRequests: 10000 * 12,
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
-	maxVotesExceeded: [
-		"5524930565698900323",  // 20407
-		"11613486949732674475", // 123300
-		"14164134775432642506"  // 123333
-	],
 	numberLength: 100000000,
 	requestLength: 104,
 	rewards: {
@@ -36,5 +31,10 @@ module.exports = {
 	},
 	signatureLength: 196,
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+	voteExceptions: [
+		"5524930565698900323",  // 20407
+		"11613486949732674475", // 123300
+		"14164134775432642506"  // 123333
+	]
 }
