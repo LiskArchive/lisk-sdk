@@ -135,7 +135,7 @@ function Vote() {
 		});
 
 		if (!report) {
-			throw new Error("Incorrect votes in transactions: " + library.scheme.getLastError());
+			throw new Error("Invalid votes in transaction: " + library.scheme.getLastError());
 		}
 
 		return trs;
