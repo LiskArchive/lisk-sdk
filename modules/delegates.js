@@ -556,6 +556,83 @@ private.loop = function (cb) {
 	});
 }
 
+private.checkDelegates = function (publicKey, votes, state, cb) {
+	if (!Array.isArray(votes)) {
+		return setImmediate(cb, "Votes must be an array");
+	}
+
+	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
+		if (err) {
+			return cb(err);
+		}
+
+		if (!account) {
+			return cb("Account not found");
+		}
+
+		var delegates = (state == 'confirmed') ? account.delegates : account.u_delegates;
+		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
+		var additions = 0, removals = 0;
+
+		async.eachSeries(votes, function (action, cb) {
+			var math = action[0];
+
+			if (math !== '+' && math !== '-') {
+				return cb("Invalid math operator");
+			}
+
+			if (math == '+') {
+				additions += 1;
+			} else if (math == '+') {
+				removals += 1;
+			}
+
+			var publicKey = action.slice(1);
+
+			try {
+				new Buffer(publicKey, "hex");
+			} catch (e) {
+				library.logger.error(e.toString());
+				return cb("Invalid public key");
+			}
+
+			if (math == "+" && (delegates !== null && delegates.indexOf(publicKey) != -1)) {
+				return cb("Failed to add vote, account has already voted for this delegate");
+			}
+
+			if (math == "-" && (delegates === null || delegates.indexOf(publicKey) === -1)) {
+				return cb("Failed to remove vote, account has not voted for this delegate");
+			}
+
+			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
+				if (err) {
+					return cb(err);
+				}
+
+				if (!account) {
+					return cb("Delegate not found");
+				}
+
+				return cb();
+			});
+		}, function (err) {
+			if (err) {
+				return cb(err);
+			}
+
+			var total_votes = (existing_votes + additions) - removals;
+
+			if (total_votes > constants.activeDelegates) {
+				var exceeded = total_votes - constants.activeDelegates;
+
+				return cb("Maximum number of " + constants.activeDelegates + " votes exceeded (" + exceeded + " too many).");
+			} else {
+				return cb();
+			}
+		});
+	});
+}
+
 private.loadMyDelegates = function (cb) {
 	var secrets = null;
 	if (library.config.forging.secret) {
@@ -665,155 +742,11 @@ Delegates.prototype.getDelegates = function (query, cb) {
 }
 
 Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
-	if (!Array.isArray(votes)) {
-		return setImmediate(cb, "Votes must be an array");
-	}
-
-	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
-		if (err) {
-			return cb(err);
-		}
-
-		if (!account) {
-			return cb("Account not found");
-		}
-
-		var existing_votes = Array.isArray(account.delegates) ? account.delegates.length : 0;
-		var additions = 0, removals = 0;
-
-		async.eachSeries(votes, function (action, cb) {
-			var math = action[0];
-
-			if (math !== '+' && math !== '-') {
-				return cb("Invalid math operator");
-			}
-
-			if (math == '+') {
-				additions += 1;
-			} else if (math == '+') {
-				removals += 1;
-			}
-
-			var publicKey = action.slice(1);
-
-			try {
-				new Buffer(publicKey, "hex");
-			} catch (e) {
-				library.logger.error(e.toString());
-				return cb("Invalid public key");
-			}
-
-			if (math == "+" && (account.delegates !== null && account.delegates.indexOf(publicKey) != -1)) {
-				return cb("Failed to add vote, account has already voted for this delegate");
-			}
-
-			if (math == "-" && (account.delegates === null || account.delegates.indexOf(publicKey) === -1)) {
-				return cb("Failed to remove vote, account has not voted for this delegate");
-			}
-
-			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
-				if (err) {
-					return cb(err);
-				}
-
-				if (!account) {
-					return cb("Delegate not found");
-				}
-
-				return cb();
-			});
-		}, function (err) {
-			if (err) {
-				return cb(err);
-			}
-
-			var total_votes = (existing_votes + additions) - removals;
-
-			if (total_votes > constants.activeDelegates) {
-				var exceeded = total_votes - constants.activeDelegates;
-
-				return cb("Maximum number of " + constants.activeDelegates + " votes exceeded (" + exceeded + " too many).");
-			} else {
-				return cb();
-			}
-		});
-	});
+	return private.checkDelegates(publicKey, votes, 'confirmed', cb);
 }
 
 Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) {
-	if (!Array.isArray(votes)) {
-		return setImmediate(cb, "Votes must be an array");
-	}
-
-	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
-		if (err) {
-			return cb(err);
-		}
-
-		if (!account) {
-			return cb("Account not found");
-		}
-
-		var existing_votes = Array.isArray(account.u_delegates) ? account.u_delegates.length : 0;
-		var additions = 0, removals = 0;
-
-		async.eachSeries(votes, function (action, cb) {
-			var math = action[0];
-
-			if (math !== '+' && math !== '-') {
-				return cb("Invalid math operator");
-			}
-
-			if (math == '+') {
-				additions += 1;
-			} else if (math == '+') {
-				removals += 1;
-			}
-
-			var publicKey = action.slice(1);
-
-			try {
-				new Buffer(publicKey, "hex");
-			} catch (e) {
-				library.logger.error(e.toString());
-				return cb("Invalid public key");
-			}
-
-			if (math == "+" && (account.u_delegates !== null && account.u_delegates.indexOf(publicKey) != -1)) {
-				return cb("Failed to add vote, account has already voted for this delegate");
-			}
-
-			if (math == "-" && (account.u_delegates === null || account.u_delegates.indexOf(publicKey) === -1)) {
-				return cb("Failed to remove vote, account has not voted for this delegate");
-			}
-
-			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
-				if (err) {
-					return cb(err);
-				}
-
-				if (!account) {
-					return cb("Delegate not found");
-				}
-
-				return cb();
-			});
-		}, function (err) {
-			if (err) {
-				return cb(err);
-			}
-
-			var total_votes = (existing_votes + additions) - removals;
-
-			if (total_votes > constants.activeDelegates) {
-				var exceeded = total_votes - constants.activeDelegates;
-
-				return cb("Maximum number of " + constants.activeDelegates + " votes exceeded (" + exceeded + " too many).");
-			} else {
-				return cb();
-			}
-		});
-	});
+	return private.checkDelegates(publicKey, votes, 'unconfirmed', cb);
 }
 
 Delegates.prototype.fork = function (block, cause) {
