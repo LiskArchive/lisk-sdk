@@ -370,7 +370,7 @@ describe("PUT /multisignatures", function () {
             .set("Accept", "application/json")
             .send({
                 secret: MultisigAccount.password,
-                lifetime: 99999999,
+                lifetime: 73,
                 min: requiredSignatures,
                 keysgroup: Keys
             })
