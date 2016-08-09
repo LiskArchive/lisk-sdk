@@ -452,7 +452,7 @@ Transactions.prototype.expireUnconfirmedList = function (cb) {
 		}
 
 		var timeNow = new Date();
-		var timeOut = (transaction.type == 4) ? standardTimeOut * 8 : standardTimeOut;
+		var timeOut = (transaction.type == 4) ? (transaction.asset.multisignature.lifetime * 3600) : standardTimeOut;
 		var seconds = Math.floor((timeNow.getTime() - transaction.receivedAt.getTime()) / 1000);
 
 		if (seconds > timeOut) {
