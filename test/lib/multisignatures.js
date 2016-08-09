@@ -422,25 +422,6 @@ describe("PUT /multisignatures", function () {
             });
     });
 
-    it("When lifetime is a string. Should fail", function (done) {
-        node.api.put("/multisignatures")
-            .set("Accept", "application/json")
-            .send({
-                secret: MultisigAccount.password,
-                lifetime: "2",
-                min: requiredSignatures,
-                keysgroup: Keys
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                // console.log(JSON.stringify(res.body));
-                node.expect(res.body).to.have.property("success").to.be.false;
-                node.expect(res.body).to.have.property("error");
-                done();
-            });
-    });
-
     it("When no min is given. Should fail", function (done) {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
@@ -459,7 +440,7 @@ describe("PUT /multisignatures", function () {
             });
     });
 
-    it("When min is invalid. Should fail", function (done) {
+    it("When min is a string. Should fail", function (done) {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
@@ -518,27 +499,6 @@ describe("PUT /multisignatures", function () {
 
     it("When min is negative. Should fail", function (done) {
         var minimum = -1 * requiredSignatures;
-
-        node.api.put("/multisignatures")
-            .set("Accept", "application/json")
-            .send({
-                secret: MultisigAccount.password,
-                lifetime: 1,
-                min: minimum,
-                keysgroup: Keys
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-                // console.log(JSON.stringify(res.body));
-                node.expect(res.body).to.have.property("success").to.be.false;
-                node.expect(res.body).to.have.property("error");
-                done();
-            });
-    });
-
-    it("When min is a string. Should fail", function (done) {
-        var minimum = toString(requiredSignatures);
 
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
