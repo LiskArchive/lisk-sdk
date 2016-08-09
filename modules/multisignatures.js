@@ -240,7 +240,7 @@ function Multisignature() {
 				lifetime: {
 					type: "integer",
 					minimum: 1,
-					maximum: 24
+					maximum: 72
 				}
 			},
 			required: ['min', 'keysgroup', 'lifetime']
@@ -753,7 +753,7 @@ shared.addMultisignature = function (req, cb) {
 			lifetime: {
 				type: "integer",
 				minimum: 1,
-				maximum: 24
+				maximum: 72
 			},
 			keysgroup: {
 				type: "array",

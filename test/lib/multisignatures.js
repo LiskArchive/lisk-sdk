@@ -519,7 +519,7 @@ describe("PUT /multisignatures", function () {
     });
 
     it("When data is valid. Should be ok", function (done) {
-        var lifetime = parseInt(node.randomNumber(1,25));
+        var lifetime = parseInt(node.randomNumber(1,72));
 
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
