@@ -5,7 +5,7 @@
     "serveHttpWallet": true,
     "version": "0.0.0",
     "fileLogLevel": "info",
-    "logFileName": "logs.log",
+    "logFileName": "logs/lisk.log",
     "consoleLogLevel": "log",
     "db": {
         "host": "localhost",
