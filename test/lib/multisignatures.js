@@ -538,7 +538,7 @@ describe("PUT /multisignatures", function () {
     });
 
     it("When min is a string. Should fail", function (done) {
-        var minimum =  toString(requiredSignatures);
+        var minimum = toString(requiredSignatures);
 
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
@@ -559,13 +559,13 @@ describe("PUT /multisignatures", function () {
     });
 
     it("When data is valid. Should be ok", function (done) {
-        var life = parseInt(node.randomNumber(1,25));
+        var lifetime = parseInt(node.randomNumber(1,25));
 
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
                 secret: MultisigAccount.password,
-                lifetime: life,
+                lifetime: lifetime,
                 min: requiredSignatures,
                 keysgroup: Keys
             })
@@ -577,7 +577,7 @@ describe("PUT /multisignatures", function () {
                 node.expect(res.body).to.have.property("transactionId");
                 if (res.body.success && res.body.transactionId) {
                     MultiSigTX.txId = res.body.transactionId;
-                    MultiSigTX.lifetime = life;
+                    MultiSigTX.lifetime = lifetime;
                     MultiSigTX.members = Keys;
                     MultiSigTX.min = requiredSignatures;
                 } else {
