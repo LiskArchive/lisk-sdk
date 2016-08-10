@@ -938,37 +938,37 @@ shared.addUnconfirmedTransactions = function (req, cb) {
 		properties: {
 			id: {
 				type: 'string',
-		minLength: 1
+				minLength: 1
 			},
-		senderId: {
-			type: "string",
-		minLength: 1
-		},
-		type: {
-			type: "integer",
-		minimum: 0,
-		},
-		timestapmp: {
-			type: "integer",
-		minimum: 0,
-		},
-		recipientId: {
-			type: "string",
-			minLength: 1
-		},
-		amount: {
-			type: "integer",
-			minimum: 1,
-			maximum: constants.totalAmount
-		},
-		senderPublicKey: {
-			type: "string",
-			format: "publicKey"
-		},
-		signature: {
-			type: "string",
-			format: "signature"
-		}
+			senderId: {
+				type: "string",
+				minLength: 1
+			},
+			type: {
+				type: "integer",
+				minimum: 0,
+			},
+			timestapmp: {
+				type: "integer",
+				minimum: 0,
+			},
+			recipientId: {
+				type: "string",
+				minLength: 1
+			},
+			amount: {
+				type: "integer",
+				minimum: 1,
+				maximum: constants.totalAmount
+			},
+			senderPublicKey: {
+				type: "string",
+				format: "publicKey"
+			},
+			signature: {
+				type: "string",
+				format: "signature"
+			}
 		},
 		required: ["id", "type", "timestamp", "recipientId", "amount", "senderPublicKey", "signature"]
 	}, function (err) {
