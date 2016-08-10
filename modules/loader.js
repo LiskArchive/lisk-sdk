@@ -25,7 +25,6 @@ function Loader(cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = private;
-	self.__private.snapshot = library.config.loading.snapshot;
 	self.__private.genesisBlock = self.__private.loadingLastBlock = library.genesisblock;
 	private.attachApi();
 
@@ -436,19 +435,19 @@ private.loadBlockChain = function () {
 
 		var round = modules.round.calc(count);
 
-		if (private.snapshot > 0) {
+		if (library.config.loading.snapshot > 0) {
 			library.logger.info("Snapshot mode enabled");
 			verify = true;
 
-			if (private.snapshot >= round) {
-				private.snapshot = round;
+			if (library.config.loading.snapshot >= round) {
+				library.config.loading.snapshot = round;
 
 				if ((count == 1) || (count % constants.activeDelegates > 0)) {
-					private.snapshot = (round > 1) ? (round - 1) : 1;
+					library.config.loading.snapshot = (round > 1) ? (round - 1) : 1;
 				}
 			}
 
-			library.logger.info("Snapshotting to end of round: " + private.snapshot);
+			library.logger.info("Snapshotting to end of round: " + library.config.loading.snapshot);
 		}
 
 		if (count == 1) {

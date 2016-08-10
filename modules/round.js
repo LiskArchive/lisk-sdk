@@ -24,7 +24,6 @@ function Round(cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = private;
-	self.__private.snapshot = library.config.loading.snapshot;
 	setImmediate(cb, null, self);
 }
 
@@ -264,7 +263,7 @@ Round.prototype.tick = function (block, done) {
 	};
 
 	scope.snapshotRound = (
-		private.snapshot > 0 && private.snapshot == round
+		library.config.loading.snapshot > 0 && library.config.loading.snapshot == round
 	);
 
 	scope.finishRound = (
