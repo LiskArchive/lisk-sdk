@@ -281,14 +281,14 @@ private.attachApi = function () {
 	});
 }
 
-private.openAccount = function (secret, cb) {
+// Public methods
+Accounts.prototype.openAccount = function (secret, cb) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
 	var keypair = ed.MakeKeypair(hash);
 
 	self.setAccountAndGet({ publicKey: keypair.publicKey.toString('hex') }, cb);
 }
 
-// Public methods
 Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
 	var temp = new Buffer(8);
@@ -388,7 +388,7 @@ shared.open = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		private.openAccount(body.secret, function (err, account) {
+		self.openAccount(body.secret, function (err, account) {
 			var accountData = null;
 
 			if (!err) {
@@ -492,7 +492,7 @@ shared.generatePublickey = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		private.openAccount(body.secret, function (err, account) {
+		self.openAccount(body.secret, function (err, account) {
 			var publicKey = null;
 			if (!err && account) {
 				publicKey = account.publicKey;
