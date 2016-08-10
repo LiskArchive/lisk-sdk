@@ -440,13 +440,15 @@ private.loadBlockChain = function () {
 			library.logger.info("Snapshot mode enabled");
 			verify = true;
 
-			if (private.snapshot > round) {
-				library.logger.warn("Invalid snapshot round");
-				library.logger.warn("Snapshotting to end of highest available round: " + round);
+			if (private.snapshot >= round) {
 				private.snapshot = round;
-			} else {
-				library.logger.info("Snapshotting to end of round: " + private.snapshot);
+
+				if ((count == 1) || (count % constants.activeDelegates > 0)) {
+					private.snapshot = (round > 1) ? (round - 1) : 1;
+				}
 			}
+
+			library.logger.info("Snapshotting to end of round: " + private.snapshot);
 		}
 
 		if (count == 1) {
