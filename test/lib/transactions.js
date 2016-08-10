@@ -364,6 +364,189 @@ describe("GET /api/transactions", function () {
     });
 });
 
+describe("PUT /api/transactions/signed", function () {
+
+    it("Using valid parameters. Should be ok", function (done) {
+        node.onNewBlock(function (err) {
+            node.expect(err).to.be.not.ok;
+            var amountToSend = 100000000;
+            node.api.put("/transactions/signed")
+                .set("Accept", "application/json")
+                .send({
+                    secret: Account1.password,
+                    amount: amountToSend,
+                    recipientId: Account2.address
+                })
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    node.expect(res.body).to.have.property("id");
+                    node.expect(res.body).to.have.property("timestamp");
+                    node.expect(res.body).to.have.property("recipientId");
+                    node.expect(res.body).to.have.property("asset");
+                    node.expect(res.body).to.have.property("senderPublicKey");
+                    node.expect(res.body).to.have.property("signature");
+                    node.expect(res.body.type).equal(0);
+                    node.expect(res.body.amount).equal(amountToSend);
+
+                    done();
+                });
+        });
+    });
+
+    it("Using negative amount. Should fail", function (done) {
+        var amountToSend = -100000000;
+
+        node.api.put("/transactions/signed")
+            .set("Accept", "application/json")
+            .send({
+                secret: Account1.password,
+                amount: amountToSend,
+                recipientId: Account2.address
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("Using float amount. Should fail", function (done) {
+        var amountToSend = 1.2;
+        node.api.put("/transactions/signed")
+            .set("Accept", "application/json")
+            .send({
+                secret: Account1.password,
+                amount: amountToSend,
+                recipientId: Account2.address
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("Using zero amount. Should fail", function (done) {
+        this.timeout(5000);
+        setTimeout(function () {
+            node.api.put("/transactions/signed")
+                .set("Accept", "application/json")
+                .send({
+                    secret: Account1.password,
+                    amount: 0,
+                    recipientId: Account2.address
+                })
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.false;
+                    node.expect(res.body).to.have.property("error");
+                    done();
+                });
+        }, 1000);
+    });
+
+    it("Using positive overflown amount. Should fail", function (done) {
+        this.timeout(5000);
+        setTimeout(function () {
+            node.api.put("/transactions/signed")
+                .set("Accept", "application/json")
+                .send({
+                    secret: Account1.password,
+                    amount: 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
+                    recipientId: Account2.address
+                })
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.false;
+                    node.expect(res.body).to.have.property("error");
+                    done();
+                });
+        }, 1000);
+    });
+
+    it("Using negative overflown amount. Should fail", function (done) {
+        this.timeout(5000);
+        setTimeout(function () {
+            node.api.put("/transactions/signed")
+                .set("Accept", "application/json")
+                .send({
+                    secret: Account1.password,
+                    amount: -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
+                    recipientId: Account2.address
+                })
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.false;
+                    node.expect(res.body).to.have.property("error");
+                    done();
+                });
+        }, 1000);
+    });
+
+    it("Using small fractional amount. Should be ok", function (done) {
+        this.timeout(5000);
+        setTimeout(function () {
+            node.api.put("/transactions/signed")
+                .set("Accept", "application/json")
+                .send({
+                    secret: Account1.password,
+                    amount: 1,
+                    recipientId: Account2.address
+                })
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                    node.expect(res.body).to.have.property("success").to.be.true;
+                    node.expect(res.body).to.have.property("id");
+                    done();
+                });
+        }, 1000);
+    });
+
+    it("Using no passphase. Should fail", function (done) {
+        var amountToSend = 100000000;
+        node.api.put("/transactions/signed")
+            .set("Accept", "application/json")
+            .send({
+                amount: amountToSend,
+                recipientId: Account2.address
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+
+    it("Using no recipient. Should fail", function (done) {
+        var amountToSend = 100000000;
+        node.api.put("/transactions/signed")
+            .set("Accept", "application/json")
+            .send({
+                secret: Account1.password,
+                amount: amountToSend
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
+    });
+});
+
 describe("PUT /api/transactions", function () {
 
     it("Using valid parameters. Should be ok", function (done) {
@@ -586,6 +769,270 @@ describe("PUT /api/transactions", function () {
                 node.expect(res.body).to.have.property("error");
                 done();
             });
+    });
+});
+
+describe("PUT /api/transactions/unconfirmed", function () {
+    var amountToSend = 100000000;
+    var signedTransaction = {};
+
+    beforeEach(function (done) {
+        node.api.put("/transactions/signed")
+        .set("Accept", "application/json")
+        .send({
+            secret: Account1.password,
+            amount: amountToSend,
+            recipientId: Account2.address
+        })
+    .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.true;
+            if (res.body.success == true && res.body.id != null) {
+                signedTransaction.id = res.body.id;
+                signedTransaction.type = res.body.type;
+                signedTransaction.timestamp = res.body.timestamp;
+                signedTransaction.recipientId = res.body.recipientId;
+                signedTransaction.amount = res.body.amount;
+                signedTransaction.fee = res.body.fee;
+                signedTransaction.asset = res.body.asset;
+                signedTransaction.senderPublicKey = res.body.senderPublicKey;
+                signedTransaction.signature = res.body.signature;
+            } else {
+                node.expect("TEST").to.equal("FAILED");
+            }
+            done();
+        });
+    });
+
+    it("Using valid parameters. Should be ok", function (done) {
+        node.onNewBlock(function (err) {
+            node.expect(err).to.be.not.ok;
+            node.api.put("/transactions/unconfirmed")
+            .set("Accept", "application/json")
+            .send(signedTransaction)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("transactionId");
+                if (res.body.success == true && res.body.transactionId != null) {
+                    expectedFee = node.expectedFee(amountToSend);
+                    Account1.balance -= (amountToSend + expectedFee);
+                    Account2.balance += amountToSend;
+                    Account1.transactions.push(transactionCount);
+                    transactionList[transactionCount] = {
+                        "sender": Account1.address,
+                        "recipient": Account2.address,
+                        "brutoSent": (amountToSend + expectedFee) / node.normalizer,
+                        "fee": expectedFee / node.normalizer,
+                        "nettoSent": amountToSend / node.normalizer,
+                        "txId": res.body.transactionId,
+                        "type": node.TxTypes.SEND
+                    }
+                    transactionCount += 1;
+
+                } else {
+                    node.expect("TEST").to.equal("FAILED");
+                }
+                done();
+            });
+        });
+    });
+
+    it("Using negative amount. Should fail", function (done) {
+        signedTransaction.amount = -100000000;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using float amount. Should fail", function (done) {
+        signedTransaction.amount = 1.2;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using zero amount. Should fail", function (done) {
+        signedTransaction.amount = 0;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using positive overflown amount. Should fail", function (done) {
+        signedTransaction.amount = 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using negative overflown amount. Should fail", function (done) {
+        signedTransaction.amount = -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using no transaction id. Should fail", function (done) {
+        signedTransaction.id = null;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using no type Should fail", function (done) {
+        signedTransaction.type = null;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using no timestamp Should fail", function (done) {
+        signedTransaction.timestamp = null;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using no recipientId Should fail", function (done) {
+        signedTransaction.recipientId = null;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using no amount Should fail", function (done) {
+        signedTransaction.amount = null;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using no senderPublicKey Should fail", function (done) {
+        signedTransaction.senderPublicKey = null;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using no signature Should fail", function (done) {
+        signedTransaction.signature = null;
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
+    });
+
+    it("Using invalid signature Should fail", function (done) {
+        signedTransaction.signature = "535dc062d8c6817f153edb747c8a1d07892e93bed36d18c8d84a0c13fca01fad8aa667b5d0635e58e0548ec34365845b06a200f2fdbfecf15b8e8948056ff108";
+
+        node.api.put("/transactions/unconfirmed")
+        .set("Accept", "application/json")
+        .send(signedTransaction)
+        .expect("Content-Type", /json/)
+        .expect(200)
+        .end(function (err, res) {
+            node.expect(res.body).to.have.property("success").to.be.false;
+            node.expect(res.body).to.have.property("error");
+            done();
+        });
     });
 });
 
