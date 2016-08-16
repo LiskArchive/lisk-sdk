@@ -35,6 +35,12 @@ function Loader(cb, scope) {
 private.attachApi = function () {
 	var router = new Router();
 
+	router.get('/status/ping', function (req, res) {
+		private.ping(function(status, body) {
+			return res.status(status).json(body);
+		});
+	});
+
 	router.map(shared, {
 		"get /status": "status",
 		"get /status/sync": "sync"
@@ -581,6 +587,18 @@ Loader.prototype.cleanup = function (cb) {
 				cb();
 			}
 		});
+	}
+}
+
+private.ping = function (cb) {
+	var epoch = Date.UTC(2016, 4, 24, 17, 0, 0, 0) / 1000;
+	var lastBlockTime = epoch + modules.blocks.getLastBlock().timestamp;
+	var currentTime = new Date().getTime() / 1000;
+	var blockAge = currentTime - lastBlockTime;
+	if (blockAge < 120) {
+		cb(200, {success: true});
+	} else {
+		cb(503, {success: false});
 	}
 }
 
