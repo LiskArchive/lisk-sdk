@@ -590,11 +590,13 @@ Loader.prototype.cleanup = function (cb) {
 	}
 }
 
+// Private
 private.ping = function (cb) {
 	var epoch = Date.UTC(2016, 4, 24, 17, 0, 0, 0) / 1000;
 	var lastBlockTime = epoch + modules.blocks.getLastBlock().timestamp;
 	var currentTime = new Date().getTime() / 1000;
 	var blockAge = currentTime - lastBlockTime;
+
 	if (blockAge < 120) {
 		cb(200, {success: true});
 	} else {
