@@ -98,6 +98,7 @@ private.attachApi = function () {
 	router.map(shared, {
 		"get /get": "getBlock",
 		"get /": "getBlocks",
+		"get /getEpoch": "getEpoch",
 		"get /getHeight": "getHeight",
 		"get /getNethash": "getNethash",
 		"get /getFee": "getFee",
@@ -1266,6 +1267,14 @@ shared.getBlocks = function (req, cb) {
 			});
 		}, cb);
 	});
+}
+
+shared.getEpoch = function (req, cb) {
+	if (!private.loaded) {
+		cb("Blockchain is loading")
+	}
+	var query = req.body;
+	cb(null, {epoch: constants.epochTime});
 }
 
 shared.getHeight = function (req, cb) {

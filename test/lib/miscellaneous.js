@@ -159,6 +159,21 @@ describe("GET /peers", function () {
     });
 });
 
+describe("GET /blocks/getEpoch", function () {
+
+    it("Should be ok", function (done) {
+        node.api.get("/blocks/getEpoch")
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+            // console.log(JSON.stringify(res.body));
+            node.expect(res.body).to.have.property("epoch").to.be.a("string");
+            done();
+          });
+    });
+});
+
 describe("GET /blocks/getHeight", function () {
 
     it("Should be ok", function (done) {
