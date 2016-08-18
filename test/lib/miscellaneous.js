@@ -195,12 +195,8 @@ describe("GET /blocks/getFee", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
-                if (res.body.success == true && res.body.fee != null) {
-                    node.expect(res.body).to.have.property("fee");
-                    node.expect(res.body.fee).to.equal(node.Fees.transactionFee);
-                } else {
-                    console.log("Request failed or fee is null");
-                }
+                node.expect(res.body).to.have.property("fee");
+                node.expect(res.body.fee).to.equal(node.Fees.transactionFee);
                 done();
             });
     });
@@ -216,17 +212,13 @@ describe("GET /blocks/getFees", function () {
             .end(function (err, res) {
             // console.log(JSON.stringify(res.body));
             node.expect(res.body).to.have.property("success").to.be.true;
-            if (res.body.success == true && res.body.fees != null) {
-                node.expect(res.body).to.have.property("fees");
-                node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
-                node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
-                node.expect(res.body.fees.dapp).to.equal(node.Fees.dappAddFee);
-                node.expect(res.body.fees.secondsignature).to.equal(node.Fees.secondPasswordFee);
-                node.expect(res.body.fees.delegate).to.equal(node.Fees.delegateRegistrationFee);
-                node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
-            } else {
-              console.log("Request failed or fees is null");
-            }
+            node.expect(res.body).to.have.property("fees");
+            node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
+            node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
+            node.expect(res.body.fees.dapp).to.equal(node.Fees.dappAddFee);
+            node.expect(res.body.fees.secondsignature).to.equal(node.Fees.secondPasswordFee);
+            node.expect(res.body.fees.delegate).to.equal(node.Fees.delegateRegistrationFee);
+            node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
             done();
           });
     });
@@ -242,12 +234,8 @@ describe("GET /blocks/getNethash", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
-                if (res.body.success == true && res.body.nethash != null) {
-                    node.expect(res.body).to.have.property("nethash");
-                    node.expect(res.body.nethash).to.equal(node.config.nethash);
-                } else {
-                    console.log("Request failed or nethash is null");
-                }
+                node.expect(res.body).to.have.property("nethash");
+                node.expect(res.body.nethash).to.equal(node.config.nethash);
                 done();
             });
     });
