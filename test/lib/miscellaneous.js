@@ -234,7 +234,7 @@ describe("GET /blocks/getNethash", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
-                node.expect(res.body).to.have.property("nethash");
+                node.expect(res.body).to.have.property("nethash").to.be.a("string");
                 node.expect(res.body.nethash).to.equal(node.config.nethash);
                 done();
             });
