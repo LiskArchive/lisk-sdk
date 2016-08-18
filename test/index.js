@@ -8,3 +8,4 @@ require("./lib/peers.votes.js");
 require("./lib/delegates.js");
 require("./lib/dapps.js");
 require("./lib/multisignatures.js");
+require("./lib/loader.js");
