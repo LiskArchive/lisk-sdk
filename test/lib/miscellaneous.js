@@ -241,6 +241,71 @@ describe("GET /blocks/getNethash", function () {
     });
 });
 
+describe("GET /blocks/getMilestone", function () {
+
+    it("Should be ok", function (done) {
+        node.api.get("/blocks/getMilestone")
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("milestone").to.be.a("number");
+                done();
+            });
+    });
+});
+
+describe("GET /blocks/getReward", function () {
+
+    it("Should be ok", function (done) {
+        node.api.get("/blocks/getReward")
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("reward").to.be.a("number");
+                done();
+            });
+    });
+});
+
+describe("GET /blocks/getSupply", function () {
+
+    it("Should be ok", function (done) {
+        node.api.get("/blocks/getSupply")
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("supply").to.be.a("number");
+                done();
+            });
+    });
+});
+
+describe("GET /blocks/getStatus", function () {
+
+    it("Should be ok", function (done) {
+        node.api.get("/blocks/getStatus")
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("height").to.be.a("number");
+                node.expect(res.body).to.have.property("fee").to.be.a("number");
+                node.expect(res.body).to.have.property("milestone").to.be.a("number");
+                node.expect(res.body).to.have.property("reward").to.be.a("number");
+                node.expect(res.body).to.have.property("supply").to.be.a("number");
+                done();
+            });
+    });
+});
+
 describe("GET /blocks", function () {
 
     it("Using height. Should be ok", function (done) {
