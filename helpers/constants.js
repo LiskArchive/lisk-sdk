@@ -1,4 +1,5 @@
 module.exports = {
+	activeDelegates: 101,
 	addressLength: 208,
 	blockHeaderLength: 248,
 	confirmationLength: 77,
@@ -10,7 +11,6 @@ module.exports = {
 		multisignature: 500000000,
 		dapp: 2500000000
 	},
-	activeDelegates: 101,
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
 	fixedPoint : Math.pow(10, 8),
