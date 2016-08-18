@@ -225,17 +225,17 @@ describe("GET /blocks/getFees", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
-            // console.log(JSON.stringify(res.body));
-            node.expect(res.body).to.have.property("success").to.be.true;
-            node.expect(res.body).to.have.property("fees");
-            node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
-            node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
-            node.expect(res.body.fees.dapp).to.equal(node.Fees.dappAddFee);
-            node.expect(res.body.fees.secondsignature).to.equal(node.Fees.secondPasswordFee);
-            node.expect(res.body.fees.delegate).to.equal(node.Fees.delegateRegistrationFee);
-            node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
-            done();
-          });
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("fees");
+                node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
+                node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
+                node.expect(res.body.fees.dapp).to.equal(node.Fees.dappAddFee);
+                node.expect(res.body.fees.secondsignature).to.equal(node.Fees.secondPasswordFee);
+                node.expect(res.body.fees.delegate).to.equal(node.Fees.delegateRegistrationFee);
+                node.expect(res.body.fees.multisignature).to.equal(node.Fees.multisignatureRegistrationFee);
+                done();
+            });
     });
 });
 
