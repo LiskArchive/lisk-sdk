@@ -1339,6 +1339,7 @@ shared.getStatus = function (req, cb) {
 	}
 	var query = req.body, height = private.lastBlock.height;
 	cb(null, {
+		epoch:     constants.epochTime,
 		height:    height,
 		fee:       library.logic.block.calculateFee(),
 		milestone: private.blockReward.calcMilestone(height),

@@ -311,6 +311,7 @@ describe("GET /blocks/getStatus", function () {
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("epoch").to.be.a("string");
                 node.expect(res.body).to.have.property("height").to.be.a("number");
                 node.expect(res.body).to.have.property("fee").to.be.a("number");
                 node.expect(res.body).to.have.property("milestone").to.be.a("number");
