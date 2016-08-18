@@ -1333,6 +1333,7 @@ shared.getStatus = function (req, cb) {
 		height:    height,
 		fee:       library.logic.block.calculateFee(),
 		milestone: private.blockReward.calcMilestone(height),
+		nethash:   library.config.nethash,
 		reward:    private.blockReward.calcReward(height),
 		supply:    private.blockReward.calcSupply(height)
 	});

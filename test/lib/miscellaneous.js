@@ -299,6 +299,7 @@ describe("GET /blocks/getStatus", function () {
                 node.expect(res.body).to.have.property("height").to.be.a("number");
                 node.expect(res.body).to.have.property("fee").to.be.a("number");
                 node.expect(res.body).to.have.property("milestone").to.be.a("number");
+                node.expect(res.body).to.have.property("nethash").to.be.a("string");
                 node.expect(res.body).to.have.property("reward").to.be.a("number");
                 node.expect(res.body).to.have.property("supply").to.be.a("number");
                 done();
