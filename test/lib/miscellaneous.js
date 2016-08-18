@@ -234,7 +234,7 @@ describe("GET /blocks/getFees", function () {
 
 describe("GET /blocks/getNethash", function () {
 
-    it("Get blockchain nethash. Should be ok", function (done) {
+    it("Should be ok", function (done) {
         node.api.get("/blocks/getNethash")
             .set("Accept", "application/json")
             .expect("Content-Type", /json/)
