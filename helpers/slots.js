@@ -1,3 +1,5 @@
+var constants = require("./constants.js");
+
 /**
  * Get time from Lisk epoch.
  * @param {number|undefined} time Time in unix seconds
@@ -5,7 +7,7 @@
  */
 
 function beginEpochTime () {
-	var d = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
+	var d = constants.epochTime;
 
 	return d;
 }
