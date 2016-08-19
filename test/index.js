@@ -9,3 +9,5 @@ require("./api/delegates.js");
 require("./api/dapps.js");
 require("./api/multisignatures.js");
 require("./api/loader.js");
+
+require("./unit/helpers/blockReward.js");
