@@ -25,8 +25,8 @@ function BlockReward() {
 	};
 
 	this.calcMilestone = function (height) {
-		var location = parseInt(parseHeight(height - rewardOffset) / distance),
-		    lastMile = milestones[milestones.length - 1];
+		var location = parseInt(parseHeight(height - rewardOffset) / distance);
+		var lastMile = milestones[milestones.length - 1];
 
 		if (location > (milestones.length - 1)) {
 			return milestones.lastIndexOf(lastMile);
@@ -46,10 +46,10 @@ function BlockReward() {
 	};
 
 	this.calcSupply = function (height) {
-		var height    = parseHeight(height),
-		    milestone = this.calcMilestone(height),
-		    supply    = constants.totalAmount / Math.pow(10,8),
-		    rewards   = [];
+		var height    = parseHeight(height);
+		var milestone = this.calcMilestone(height);
+		var supply    = constants.totalAmount / Math.pow(10,8);
+		var rewards   = [];
 
 		var amount = 0, multiplier = 0;
 
