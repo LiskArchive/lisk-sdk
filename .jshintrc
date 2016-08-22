@@ -6,5 +6,8 @@
   "newcap" : false,
   "node": true,
   "quotmark": "single",
-  "strict" : true
+  "strict" : true,
+  "globals": {
+    "RequestSanitizer": true
+  }
 }
