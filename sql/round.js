@@ -1,4 +1,6 @@
-const RoundSql = {
+'use strict';
+
+var RoundSql = {
   flush: 'DELETE FROM mem_round WHERE "round" = (${round})::bigint;',
 
   truncateBlocks: 'DELETE FROM blocks WHERE "height" > (${height})::bigint;',
@@ -10,6 +12,6 @@ const RoundSql = {
   updateVotes: 'UPDATE mem_accounts SET "vote" = "vote" + (${amount})::bigint WHERE "address" = ${address};',
 
   summedRound: 'SELECT SUM(b."totalFee")::bigint AS "fees", ARRAY_AGG(b."reward") AS "rewards", ARRAY_AGG(ENCODE(b."generatorPublicKey", \'hex\')) AS "delegates" FROM blocks b WHERE (SELECT (CAST(b."height" / ${activeDelegates} AS INTEGER) + (CASE WHEN b."height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END))) = ${round}'
-}
+};
 
 module.exports = RoundSql;

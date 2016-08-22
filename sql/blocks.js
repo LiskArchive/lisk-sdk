@@ -1,4 +1,6 @@
-const BlocksSql = {
+'use strict';
+
+var BlocksSql = {
   sortFields: [
     'id',
     'timestamp',

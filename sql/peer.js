@@ -1,4 +1,6 @@
-const PeerSql = {
+'use strict';
+
+var PeerSql = {
   sortFields: ['ip', 'port', 'state', 'os', 'version'],
 
   count: 'SELECT COUNT(*)::int FROM peers',
@@ -11,7 +13,7 @@ const PeerSql = {
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : 'ORDER BY random()'),
       'LIMIT ${limit} OFFSET ${offset}'
-    ].filter(Boolean).join(' ')
+    ].filter(Boolean).join(' ');
   },
 
   randomList: function (params) {
@@ -19,7 +21,7 @@ const PeerSql = {
       'SELECT p."ip", p."port", p."state", p."os", p."version" FROM peers p',
       (params.dappid ? 'INNER JOIN peers_dapp AS pd ON p."id" = pd."peerId" AND pd."dappid" = ${dappid}' : ''),
       'WHERE p."state" > 0 ORDER BY RANDOM() LIMIT ${limit}'
-    ].filter(Boolean).join(' ')
+    ].filter(Boolean).join(' ');
   },
 
   state: 'UPDATE peers SET "state" = ${state}, "clock" = ${clock} WHERE "ip" = ${ip} AND "port" = ${port};',
@@ -41,6 +43,6 @@ const PeerSql = {
       'WHERE "ip" = ${ip} and "port" = ${port};'
     ].join(' ');
   }
-}
+};
 
 module.exports = PeerSql;
