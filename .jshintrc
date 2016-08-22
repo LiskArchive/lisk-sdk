@@ -8,6 +8,7 @@
   "quotmark": "single",
   "strict" : true,
   "globals": {
+    "gc": true,
     "RequestSanitizer": true
   }
 }
