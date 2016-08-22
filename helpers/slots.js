@@ -1,4 +1,6 @@
-var constants = require("./constants.js");
+'use strict';
+
+var constants = require('./constants.js');
 
 /**
  * Get time from Lisk epoch.
@@ -33,7 +35,7 @@ module.exports = {
 
 	getRealTime: function (epochTime) {
 		if (epochTime === undefined) {
-			epochTime = this.getTime()
+			epochTime = this.getTime();
 		}
 
 		var d = beginEpochTime();
@@ -65,6 +67,6 @@ module.exports = {
 	},
 
 	roundTime: function (date) {
-		Math.floor(date.getTime() / 1000) * 1000;
+		return Math.floor(date.getTime() / 1000) * 1000;
 	}
-}
+};
