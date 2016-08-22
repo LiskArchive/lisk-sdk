@@ -1,3 +1,5 @@
+'use strict';
+
 var moment = require('moment');
 var util = require('util');
 
@@ -29,30 +31,32 @@ module.exports = function (grunt) {
 		exec: {
 			package: {
 				command: function () {
-					return util.format('mkdir -p %s && ', version_dir)
-					     + util.format('mkdir -p %s/logs && ', version_dir)
-					     + util.format('mkdir -p %s/pids && ', version_dir)
-					     + util.format('mkdir -p %s/public && ', version_dir)
-					     + util.format('cp %s/app.js %s && ', release_dir, version_dir)
-					     + util.format('cp %s/config.json %s && ', __dirname, version_dir)
-					     + util.format('cp %s/package.json %s && ', __dirname, version_dir)
-					     + util.format('cp %s/genesisBlock.json %s && ', __dirname, version_dir)
-					     + util.format('cp -Rf %s/sql %s && ', __dirname, version_dir)
-					     + util.format('cd %s/public && mkdir -p ./static && ', __dirname)
-					     + 'npm install && bower install && grunt release && cd ../ && '
-					     + util.format('cp %s/public/wallet.html %s/public/ && ', __dirname, version_dir)
-					     + util.format('cp %s/public/loading.html %s/public/ && ', __dirname, version_dir)
-					     + util.format('cp -Rf %s/public/images %s/public/ && ', __dirname, version_dir)
-					     + util.format('cp -Rf %s/public/partials %s/public/ && ', __dirname, version_dir)
-					     + util.format('cp -RfL %s/public/static %s/public/ && ', __dirname, version_dir)
-					     + util.format('mkdir -p %s/public/node_modules && ', version_dir)
-					     + util.format('cp -Rf %s/public/node_modules/chart.js %s/public/node_modules && ', __dirname, version_dir)
-					     + util.format('mkdir -p %s/public/bower_components && ', version_dir)
-					     + util.format('mkdir -p %s/public/socket.io && ', version_dir)
-					     + util.format('cp -Rf %s/public/bower_components/jquery %s/public/bower_components && ', __dirname, version_dir)
-					     + util.format('cp -Rf %s/public/bower_components/materialize %s/public/bower_components && ', __dirname, version_dir)
-					     + util.format('cp -Rf %s/public/bower_components/blob %s/public/bower_components && ', __dirname, version_dir)
-					     + util.format('cp -Rf %s/public/bower_components/file-saver %s/public/bower_components', __dirname, version_dir);
+					return [
+						util.format('mkdir -p %s', version_dir),
+						util.format('mkdir -p %s/logs', version_dir),
+						util.format('mkdir -p %s/pids', version_dir),
+						util.format('mkdir -p %s/public', version_dir),
+						util.format('cp %s/app.js %s', release_dir, version_dir),
+						util.format('cp %s/config.json %s', __dirname, version_dir),
+						util.format('cp %s/package.json %s', __dirname, version_dir),
+						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
+						util.format('cp -Rf %s/sql %s', __dirname, version_dir),
+						util.format('cd %s/public && mkdir -p ./static', __dirname),
+						'npm install && bower install && grunt release && cd ../',
+						util.format('cp %s/public/wallet.html %s/public/', __dirname, version_dir),
+						util.format('cp %s/public/loading.html %s/public/', __dirname, version_dir),
+						util.format('cp -Rf %s/public/images %s/public/', __dirname, version_dir),
+						util.format('cp -Rf %s/public/partials %s/public/', __dirname, version_dir),
+						util.format('cp -RfL %s/public/static %s/public/', __dirname, version_dir),
+						util.format('mkdir -p %s/public/node_modules', version_dir),
+						util.format('cp -Rf %s/public/node_modules/chart.js %s/public/node_modules', __dirname, version_dir),
+						util.format('mkdir -p %s/public/bower_components', version_dir),
+						util.format('mkdir -p %s/public/socket.io', version_dir),
+						util.format('cp -Rf %s/public/bower_components/jquery %s/public/bower_components', __dirname, version_dir),
+						util.format('cp -Rf %s/public/bower_components/materialize %s/public/bower_components', __dirname, version_dir),
+						util.format('cp -Rf %s/public/bower_components/blob %s/public/bower_components', __dirname, version_dir),
+						util.format('cp -Rf %s/public/bower_components/file-saver %s/public/bower_components', __dirname, version_dir)
+					].join(' && ');
 				}
 			},
 			folder: {
