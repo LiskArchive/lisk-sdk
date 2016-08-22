@@ -1,21 +1,21 @@
-var os = require("os");
+'use strict';
+
+var os = require('os');
 var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
-var modules, library, self, private = {}, shared = {};
-
-private.version, private.osName, private.port, private.nethash;
+var modules, library, self, __private = {}, shared = {};
 
 // Constructor
 function System(cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = private;
+	self.__private = __private;
 
-	private.version = library.config.version;
-	private.port = library.config.port;
-	private.nethash = library.config.nethash;
-	private.osName = os.platform() + os.release();
+	__private.version = library.config.version;
+	__private.port = library.config.port;
+	__private.nethash = library.config.nethash;
+	__private.osName = os.platform() + os.release();
 
 	setImmediate(cb, null, self);
 }
@@ -24,29 +24,29 @@ function System(cb, scope) {
 
 // Public methods
 System.prototype.getOS = function () {
-	return private.osName;
-}
+	return __private.osName;
+};
 
 System.prototype.getVersion = function () {
-	return private.version;
-}
+	return __private.version;
+};
 
 System.prototype.getPort = function () {
-	return private.port;
-}
+	return __private.port;
+};
 
 System.prototype.getNethash = function () {
-	return private.nethash;
-}
+	return __private.nethash;
+};
 
 System.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
-}
+};
 
 // Events
 System.prototype.onBind = function (scope) {
 	modules = scope;
-}
+};
 
 // Shared
 
