@@ -20,7 +20,7 @@ RequestSanitizer.options = extend({
 }, Validator.options);
 
 RequestSanitizer.addRule('empty', {
-	validate : function(accept, value, field) {
+	validate : function (accept, value, field) {
 		if (accept !== false) { return; }
 
 		return !field.isEmpty();
@@ -28,7 +28,7 @@ RequestSanitizer.addRule('empty', {
 });
 
 RequestSanitizer.addRule('string', {
-	filter : function(accept, value, field){
+	filter : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
 		return String(value||'');
@@ -37,7 +37,7 @@ RequestSanitizer.addRule('string', {
 
 RequestSanitizer.addRule('regexp', {
 	message : 'value should match template',
-	validate : function(accept, value) {
+	validate : function (accept, value) {
 		if (typeof value !== 'string') { return false; }
 
 		return accept.test(value);
@@ -45,7 +45,7 @@ RequestSanitizer.addRule('regexp', {
 });
 
 RequestSanitizer.addRule('boolean', {
-	filter : function(accept, value, field){
+	filter : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
 		switch(String(value).toLowerCase()) {
@@ -59,7 +59,7 @@ RequestSanitizer.addRule('boolean', {
 });
 
 RequestSanitizer.addRule('int', {
-	filter : function(accept, value , field) {
+	filter : function (accept, value , field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
 		if (isNaN(value) || parseInt(value) !== value || isNaN(parseInt(value, 10))) {
@@ -71,7 +71,7 @@ RequestSanitizer.addRule('int', {
 });
 
 RequestSanitizer.addRule('float', {
-	filter : function(accept, value , field) {
+	filter : function (accept, value , field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
 		value = parseFloat(value);
@@ -81,7 +81,7 @@ RequestSanitizer.addRule('float', {
 });
 
 RequestSanitizer.addRule('object', {
-	filter : function(accept, value , field) {
+	filter : function (accept, value , field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
 	   return Object.prototype.toString.call(value) === '[object Object]' ? value : {};
@@ -103,7 +103,7 @@ RequestSanitizer.addRule('array', {
 });
 
 RequestSanitizer.addRule('arrayOf', {
-	validate : function(accept, value, field) {
+	validate : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 		if (! Array.isArray(value)) { return false; }
 
@@ -118,12 +118,12 @@ RequestSanitizer.addRule('arrayOf', {
 });
 
 RequestSanitizer.addRule('hex', {
-	filter : function(accept, value, field) {
+	filter : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
 		return value;
 	},
-	validate : function(accept, value, field) {
+	validate : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return; }
 
 		return /^([A-Fa-f0-9]{2})*$/.test(String(value||''));
@@ -131,7 +131,7 @@ RequestSanitizer.addRule('hex', {
 });
 
 RequestSanitizer.addRule('buffer', {
-	filter : function(accept, value) {
+	filter : function (accept, value) {
 		if (typeof accept !== 'string') {
 			accept = 'utf8';
 		}
@@ -145,7 +145,7 @@ RequestSanitizer.addRule('buffer', {
 });
 
 RequestSanitizer.addRule('variant', {
-	filter : function(accept, value, field) {
+	filter : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
 		return typeof value === 'undefined' ? '' : value;
@@ -154,28 +154,28 @@ RequestSanitizer.addRule('variant', {
 
 RequestSanitizer.addRule('required', {
 	message : 'value is required',
-	validate : function(accept, value) {
+	validate : function (accept, value) {
 		return (typeof value !== 'undefined') === accept;
 	}
 });
 
 RequestSanitizer.addRule('default', {
-	filter : function(accept, value) {
+	filter : function (accept, value) {
 		return (typeof value === 'undefined') ? accept : value;
 	}
 });
 
 RequestSanitizer.addRule('properties', {
-	validate : function(accept, value, field) {
+	validate : function (accept, value, field) {
 		if (! field.isObject()) { return false; }
 
-		Object.getOwnPropertyNames(accept).forEach(function(name){
+		Object.getOwnPropertyNames(accept).forEach(function (name) {
 			var childAccept = accept[name];
 			if (typeof childAccept === 'string') {
 				childAccept = convertStringRule(childAccept);
 			}
 			var child = field.child(name, value[name], childAccept, value);
-			child.validate(function(err, report, output){
+			child.validate(function (err, report, output) {
 				if (err) { throw err; }
 
 				value[name] = output;
@@ -186,23 +186,23 @@ RequestSanitizer.addRule('properties', {
 
 RequestSanitizer.addRule('minLength', {
 	message : 'minimum length is ${accept}.',
-	validate : function(accept, value) {
+	validate : function (accept, value) {
 		return value.length >= accept;
 	}
 });
 
 RequestSanitizer.addRule('case', {
 	message : 'case is ${accept}.',
-	validate : function(accept, value) {
+	validate : function (accept, value) {
 		return typeof value === 'string' && ((accept==='lower' && value===value.toLowerCase())||(accept==='upper' && value===value.toUpperCase()));
 	},
-	filter : function(accept, value, field){
+	filter : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return null; }
 
-		if(accept==='lower'){
+		if(accept==='lower') {
 		  return String(value||'').toLowerCase();
 		}
-		else if(accept==='upper'){
+		else if(accept==='upper') {
 		  return String(value||'').toUpperCase();
 		}
 	}
@@ -210,14 +210,14 @@ RequestSanitizer.addRule('case', {
 
 RequestSanitizer.addRule('maxLength', {
 	message : 'maximum length is ${accept}.',
-	validate : function(accept, value) {
+	validate : function (accept, value) {
 		return value.length <= accept;
 	}
 });
 
 RequestSanitizer.addRule('maxByteLength', {
 	message : 'maximum size is ${accept.length} bytes',
-	accept : function(accept){
+	accept : function (accept) {
 		if (typeof accept !== 'object') {
 			accept = {
 				encoding : 'utf8',
@@ -226,7 +226,7 @@ RequestSanitizer.addRule('maxByteLength', {
 		}
 		return accept;
 	},
-	validate : function(accept, value, field) {
+	validate : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return; }
 
 		if (typeof value === 'object' && value !== null) {
@@ -240,7 +240,7 @@ RequestSanitizer.addRule('maxByteLength', {
 
 RequestSanitizer.addRule('minByteLength', {
 	message : 'minimum size is ${accept.length} bytes',
-	accept : function(accept){
+	accept : function (accept) {
 		if (typeof accept !== 'object') {
 			accept = {
 				encoding : 'utf8',
@@ -250,7 +250,7 @@ RequestSanitizer.addRule('minByteLength', {
 
 		return accept;
 	},
-	validate : function(accept, value, field) {
+	validate : function (accept, value, field) {
 		if (field.isEmpty() && field.rules.empty) { return; }
 
 		if (typeof value === 'object' && value !== null) {
@@ -265,11 +265,11 @@ RequestSanitizer.addRule('minByteLength', {
  * @param {Object} options Validator constructor options
  * @returns {Function} Express middleware
  */
-RequestSanitizer.express = function(options) {
+RequestSanitizer.express = function (options) {
 	options = extend({}, RequestSanitizer.options, options);
 
 
-	return function(req, res, next) {
+	return function (req, res, next) {
 		req.sanitize = sanitize;
 
 		function sanitize(value, properties, callback) {
@@ -278,7 +278,7 @@ RequestSanitizer.express = function(options) {
 				value = req[value] || {};
 			}
 
-			Object.getOwnPropertyNames(properties).forEach(function(name){
+			Object.getOwnPropertyNames(properties).forEach(function (name) {
 				values[name] = value.hasOwnProperty(name) ? value[name] : undefined;
 				if (typeof properties[name] === 'string') {
 					properties[name] = convertStringRule(properties[name]);
@@ -304,7 +304,7 @@ var rules = RequestSanitizer.prototype.rules;
 	'object',
 	'hex',
 	'buffer'
-].forEach(function(name){
+].forEach(function (name) {
 	var rule = rules[name];
 	if (typeof rule.filter !== 'function') { return; }
 	if (name in RequestSanitizer) { return; }
@@ -337,16 +337,16 @@ function SanitizeReporter(validator) {
 	this.validator = validator;
 }
 
-SanitizeReporter.prototype.format = function(message, values) {
-	return String(message).replace(/\$\{([^}]+)}/g, function(match, id) {
+SanitizeReporter.prototype.format = function (message, values) {
+	return String(message).replace(/\$\{([^}]+)}/g, function (match, id) {
 		return getByPath(values, id.split('.')) || '';
 	});
 };
 
-SanitizeReporter.prototype.convert = function(issues) {
+SanitizeReporter.prototype.convert = function (issues) {
 	var self = this;
 
-	var grouped = issues.reduce(function(result, item){
+	var grouped = issues.reduce(function (result, item) {
 		var path = item.path.join('.');
 		if (path in result === false) { result[path] = []; }
 
@@ -357,10 +357,10 @@ SanitizeReporter.prototype.convert = function(issues) {
 
 	var result = '';
 
-	Object.getOwnPropertyNames(grouped).forEach(function(path){
+	Object.getOwnPropertyNames(grouped).forEach(function (path) {
 		result += 'Property \'' + path + '\':\n';
 
-		grouped[path].forEach(function(item){
+		grouped[path].forEach(function (item) {
 			var rule = self.validator.getRule(item.rule);
 
 			result += '\t- ';
@@ -376,7 +376,7 @@ SanitizeReporter.prototype.convert = function(issues) {
 	return result;
 };
 
-function getByPath(target, path) {
+function getByPath (target, path) {
 	var segment;
 	path = path.slice();
 	var i = -1;
@@ -394,7 +394,7 @@ function getByPath(target, path) {
 	return target[path[l]];
 }
 
-function convertStringRule(rule) {
+function convertStringRule (rule) {
 	var result = {};
 
 	if (rule.charAt(rule.length-1) === '!') {
