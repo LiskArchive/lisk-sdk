@@ -1,31 +1,33 @@
-var crypto = require("crypto");
-var ed = require("ed25519");
-var ip = require("ip");
-var ByteBuffer = require("bytebuffer");
-var constants = require("../helpers/constants.js");
+'use strict';
+
+var crypto = require('crypto');
+var ed = require('ed25519');
+var ip = require('ip');
+var ByteBuffer = require('bytebuffer');
+var constants = require('../helpers/constants.js');
 var genesisblock = null;
-var blockReward = require("../helpers/blockReward.js");
-var constants = require("../helpers/constants.js");
-var Inserts = require("../helpers/inserts.js");
-var OrderBy = require("../helpers/orderBy.js");
-var Router = require("../helpers/router.js");
-var slots = require("../helpers/slots.js");
-var util = require("util");
-var async = require("async");
-var transactionTypes = require("../helpers/transactionTypes.js");
-var sandboxHelper = require("../helpers/sandbox.js");
-var sql = require("../sql/blocks.js");
-var _ = require("underscore");
+var blockReward = require('../helpers/blockReward.js');
+var constants = require('../helpers/constants.js');
+var Inserts = require('../helpers/inserts.js');
+var OrderBy = require('../helpers/orderBy.js');
+var Router = require('../helpers/router.js');
+var slots = require('../helpers/slots.js');
+var util = require('util');
+var async = require('async');
+var transactionTypes = require('../helpers/transactionTypes.js');
+var sandboxHelper = require('../helpers/sandbox.js');
+var sql = require('../sql/blocks.js');
+var _ = require('underscore');
 
 // Private fields
-var modules, library, self, private = {}, shared = {};
+var modules, library, self, __private = {}, shared = {};
 
-private.lastBlock = {};
-private.lastReceipt = null;
-private.blockReward = new blockReward();
+__private.lastBlock = {};
+__private.lastReceipt = null;
+__private.blockReward = new blockReward();
 
 // @formatter:off
-private.blocksDataFields = {
+__private.blocksDataFields = {
 	'b_id': String,
 	'b_version': Number,
 	'b_timestamp': Number,
@@ -70,63 +72,63 @@ private.blocksDataFields = {
 };
 // @formatter:on
 
-private.loaded = false;
-private.isActive = false;
+__private.loaded = false;
+__private.isActive = false;
 
 // Constructor
 function Blocks(cb, scope) {
 	library = scope;
 	genesisblock = library.genesisblock;
 	self = this;
-	self.__private = private;
-	private.attachApi();
+	self.__private = __private;
+	__private.attachApi();
 
-	private.saveGenesisBlock(function (err) {
+	__private.saveGenesisBlock(function (err) {
 		setImmediate(cb, err, self);
 	});
 }
 
 // Private methods
-private.attachApi = function () {
+__private.attachApi = function () {
 	var router = new Router();
 
 	router.use(function (req, res, next) {
-		if (modules) return next();
-		res.status(500).send({success: false, error: "Blockchain is loading"});
+		if (modules) { return next(); }
+		res.status(500).send({success: false, error: 'Blockchain is loading'});
 	});
 
 	router.map(shared, {
-		"get /get": "getBlock",
-		"get /": "getBlocks",
-		"get /getEpoch": "getEpoch",
-		"get /getHeight": "getHeight",
-		"get /getNethash": "getNethash",
-		"get /getFee": "getFee",
-		"get /getFees": "getFees",
-		"get /getMilestone": "getMilestone",
-		"get /getReward": "getReward",
-		"get /getSupply": "getSupply",
-		"get /getStatus": "getStatus"
+		'get /get': 'getBlock',
+		'get /': 'getBlocks',
+		'get /getEpoch': 'getEpoch',
+		'get /getHeight': 'getHeight',
+		'get /getNethash': 'getNethash',
+		'get /getFee': 'getFee',
+		'get /getFees': 'getFees',
+		'get /getMilestone': 'getMilestone',
+		'get /getReward': 'getReward',
+		'get /getSupply': 'getSupply',
+		'get /getStatus': 'getStatus'
 	});
 
 	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: "API endpoint not found"});
+		res.status(500).send({success: false, error: 'API endpoint not found'});
 	});
 
 	library.network.app.use('/api/blocks', router);
 	library.network.app.use(function (err, req, res, next) {
-		if (!err) return next();
+		if (!err) { return next(); }
 		library.logger.error(req.url, err);
 		res.status(500).send({success: false, error: err});
 	});
-}
+};
 
-private.saveGenesisBlock = function (cb) {
+__private.saveGenesisBlock = function (cb) {
 	library.db.query(sql.getGenesisBlockId, { id: genesisblock.block.id }).then(function (rows) {
 		var blockId = rows.length && rows[0].id;
 
 		if (!blockId) {
-			private.saveBlock(genesisblock.block, function (err) {
+			__private.saveBlock(genesisblock.block, function (err) {
 				return cb(err);
 			});
 		} else {
@@ -134,20 +136,20 @@ private.saveGenesisBlock = function (cb) {
 		}
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#saveGenesisBlock error");
+		return cb('Blocks#saveGenesisBlock error');
 	});
-}
+};
 
-private.deleteBlock = function (blockId, cb) {
+__private.deleteBlock = function (blockId, cb) {
 	library.db.none(sql.deleteBlock, { id: blockId }).then(function () {
 		return cb();
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#deleteBlock error");
+		return cb('Blocks#deleteBlock error');
 	});
-}
+};
 
-private.list = function (filter, cb) {
+__private.list = function (filter, cb) {
 	var params = {}, where = [];
 
 	if (filter.generatorPublicKey) {
@@ -198,13 +200,13 @@ private.list = function (filter, cb) {
 	}
 
 	if (params.limit > 100) {
-		return cb("Invalid limit. Maximum is 100");
+		return cb('Invalid limit. Maximum is 100');
 	}
 
 	var orderBy = OrderBy(
 		filter.orderBy, {
 			sortFields: sql.sortFields,
-			fieldPrefix: "b_"
+			fieldPrefix: 'b_'
 		}
 	);
 
@@ -231,23 +233,23 @@ private.list = function (filter, cb) {
 			var data = {
 				blocks: blocks,
 				count: count
-			}
+			};
 
 			return cb(null, data);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return cb("Blocks#list error");
+			return cb('Blocks#list error');
 		});
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#list error");
+		return cb('Blocks#list error');
 	});
-}
+};
 
-private.getById = function (id, cb) {
+__private.getById = function (id, cb) {
 	library.db.query(sql.getById, { id: id }).then(function (rows) {
 		if (!rows.length) {
-			return cb("Block not found");
+			return cb('Block not found');
 		}
 
 		var block = library.logic.block.dbRead(rows[0]);
@@ -255,11 +257,11 @@ private.getById = function (id, cb) {
 		cb(null, block);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#getById error");
+		return cb('Blocks#getById error');
 	});
-}
+};
 
-private.saveBlock = function (block, cb) {
+__private.saveBlock = function (block, cb) {
 	library.db.tx(function (t) {
 		var promise = library.logic.block.dbSave(block);
 		var inserts = new Inserts(promise, promise.values);
@@ -268,17 +270,17 @@ private.saveBlock = function (block, cb) {
 			t.none(inserts.template(), promise.values)
 		];
 
-		t = private.promiseTransactions(t, block, promises);
+		t = __private.promiseTransactions(t, block, promises);
 		t.batch(promises);
 	}).then(function () {
-		return private.afterSave(block, cb);
+		return __private.afterSave(block, cb);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#saveBlock error");
+		return cb('Blocks#saveBlock error');
 	});
-}
+};
 
-private.promiseTransactions = function (t, block, blockPromises) {
+__private.promiseTransactions = function (t, block, blockPromises) {
 	if (_.isEmpty(block.transactions)) {
 		return t;
 	}
@@ -296,7 +298,7 @@ private.promiseTransactions = function (t, block, blockPromises) {
 		if (promise && promise.table) {
 			return promise.table;
 		} else {
-			throw new Error("Invalid promise");
+			throw new Error('Invalid promise');
 		}
 	};
 
@@ -307,29 +309,29 @@ private.promiseTransactions = function (t, block, blockPromises) {
 			if (promise && promise.values) {
 				values = values.concat(promise.values);
 			} else {
-				throw new Error("Invalid promise");
+				throw new Error('Invalid promise');
 			}
 		});
 
 		var inserts = new Inserts(type[0], values, true);
 		t.none(inserts.template(), inserts);
-	}
+	};
 
 	_.each(block.transactions, transactionIterator);
 	_.each(_.groupBy(promises, promiseGrouper), typeIterator);
 
 	return t;
-}
+};
 
-private.afterSave = function (block, cb) {
+__private.afterSave = function (block, cb) {
 	async.eachSeries(block.transactions, function (transaction, cb) {
 		return library.logic.transaction.afterSave(transaction, cb);
 	}, function (err) {
 		return cb(err);
 	});
-}
+};
 
-private.popLastBlock = function (oldLastBlock, cb) {
+__private.popLastBlock = function (oldLastBlock, cb) {
 	library.balancesSequence.add(function (cb) {
 		self.loadBlocksPart({ id: oldLastBlock.previousBlock }, function (err, previousBlock) {
 			if (err || !previousBlock.length) {
@@ -355,7 +357,7 @@ private.popLastBlock = function (oldLastBlock, cb) {
 				], cb);
 			}, function (err) {
 				modules.round.backwardTick(oldLastBlock, previousBlock, function () {
-					private.deleteBlock(oldLastBlock.id, function (err) {
+					__private.deleteBlock(oldLastBlock.id, function (err) {
 						if (err) {
 							return cb(err);
 						}
@@ -366,12 +368,12 @@ private.popLastBlock = function (oldLastBlock, cb) {
 			});
 		});
 	}, cb);
-}
+};
 
-private.getIdSequence = function (height, cb) {
+__private.getIdSequence = function (height, cb) {
 	library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates, activeDelegates: constants.activeDelegates }).then(function (rows) {
-		if (rows.length == 0) {
-			return cb("Failed to get id sequence before: " + height);
+		if (rows.length === 0) {
+			return cb('Failed to get id sequence before: ' + height);
 		}
 
 		var ids = [];
@@ -387,27 +389,27 @@ private.getIdSequence = function (height, cb) {
 			}
 		}
 
-		if (private.lastBlock && !_.contains(rows, private.lastBlock.id)) {
+		if (__private.lastBlock && !_.contains(rows, __private.lastBlock.id)) {
 			rows.unshift({
-				id: private.lastBlock.id,
-				height: private.lastBlock.height
+				id: __private.lastBlock.id,
+				height: __private.lastBlock.height
 			});
 		}
 
 		rows.forEach(function (row) {
 			if (!_.contains(ids, row.id)) {
-				ids.push("\"" + row.id + "\"");
+				ids.push('\'' + row.id + '\'');
 			}
 		});
 
-		cb(null, { firstHeight: rows[0].height, ids: ids.join(",") });
+		cb(null, { firstHeight: rows[0].height, ids: ids.join(',') });
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#getIdSequence error");
+		return cb('Blocks#getIdSequence error');
 	});
-}
+};
 
-private.readDbRows = function (rows) {
+__private.readDbRows = function (rows) {
 	var blocks = {};
 	var order = [];
 
@@ -416,7 +418,7 @@ private.readDbRows = function (rows) {
 
 		if (__block) {
 			if (!blocks[__block.id]) {
-				if (__block.id == genesisblock.block.id) {
+				if (__block.id === genesisblock.block.id) {
 					__block.generationSignature = (new Array(65)).join('0');
 				}
 
@@ -443,9 +445,9 @@ private.readDbRows = function (rows) {
 	});
 
 	return blocks;
-}
+};
 
-private.applyTransaction = function (block, transaction, sender, cb) {
+__private.applyTransaction = function (block, transaction, sender, cb) {
 	modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, {
@@ -458,7 +460,7 @@ private.applyTransaction = function (block, transaction, sender, cb) {
 		modules.transactions.apply(transaction, block, sender, function (err) {
 			if (err) {
 				return setImmediate(cb, {
-					message: "Can't apply transaction: " + transaction.id,
+					message: 'Can\'t apply transaction: ' + transaction.id,
 					transaction: transaction,
 					block: block
 				});
@@ -466,16 +468,16 @@ private.applyTransaction = function (block, transaction, sender, cb) {
 			setImmediate(cb);
 		});
 	});
-}
+};
 
 // Public methods
 Blocks.prototype.lastReceipt = function (lastReceipt) {
 	if (lastReceipt) {
-		private.lastReceipt = lastReceipt;
+		__private.lastReceipt = lastReceipt;
 	}
 
-	return private.lastReceipt;
-}
+	return __private.lastReceipt;
+};
 
 Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 	var commonBlock = null;
@@ -488,14 +490,14 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 		},
 		function (next) {
 			count++;
-			private.getIdSequence(lastBlockHeight, function (err, data) {
+			__private.getIdSequence(lastBlockHeight, function (err, data) {
 				if (err) {
-					return next(err)
+					return next(err);
 				}
 
 				modules.transport.getFromPeer(peer, {
-					api: "/blocks/common?ids=" + data.ids,
-					method: "GET"
+					api: '/blocks/common?ids=' + data.ids,
+					method: 'GET'
 				}, function (err, data) {
 					if (err || data.body.error) {
 						return next(err || data.body.error.toString());
@@ -511,7 +513,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 						height: data.body.common.height
 					}).then(function (rows) {
 						if (!rows.length) {
-							return next("Chain comparison failed with peer: " + peer.string);
+							return next('Chain comparison failed with peer: ' + peer.string);
 						}
 
 						if (rows[0].count) {
@@ -521,7 +523,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 						return next();
 					}).catch(function (err) {
 						library.logger.error(err.toString());
-						return next("Blocks#getCommonBlock error");
+						return next('Blocks#getCommonBlock error');
 					});
 				});
 			});
@@ -529,8 +531,8 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 		function (err) {
 			setImmediate(cb, err, commonBlock);
 		}
-	)
-}
+	);
+};
 
 Blocks.prototype.count = function (cb) {
 	library.db.query(sql.countByRowId).then(function (rows) {
@@ -539,9 +541,9 @@ Blocks.prototype.count = function (cb) {
 		return cb(null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#count error");
+		return cb('Blocks#count error');
 	});
-}
+};
 
 Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 	if (arguments.length < 3) {
@@ -552,14 +554,20 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 	options = options || {};
 
 	if (filter.lastId && filter.id) {
-		return cb("Invalid filter");
+		return cb('Invalid filter');
 	}
 
 	var params = { limit: filter.limit || 1 };
-	filter.lastId && (params['lastId'] = filter.lastId);
-	filter.id && !filter.lastId && (params['id'] = filter.id);
 
-	var fields = private.blocksDataFields;
+	if (filter.lastId) {
+		params.lastId = filter.lastId;
+	}
+
+	if (filter.id && !filter.lastId) {
+		params.id = filter.id;
+	}
+
+	var fields = __private.blocksDataFields;
 
 	library.dbSequence.add(function (cb) {
 		library.db.query(sql.getHeightByLastId, { lastId: filter.lastId || null }).then(function (rows) {
@@ -575,10 +583,10 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 			});
 		}).catch(function (err ) {
 			library.logger.error(err.toString());
-			return cb("Blocks#loadBlockData error");
+			return cb('Blocks#loadBlockData error');
 		});
 	}, cb);
-}
+};
 
 Blocks.prototype.loadBlocksPart = function (filter, cb) {
 	self.loadBlocksData(filter, function (err, rows) {
@@ -588,38 +596,38 @@ Blocks.prototype.loadBlocksPart = function (filter, cb) {
 		var blocks = [];
 
 		if (!err) {
-			blocks = private.readDbRows(rows);
+			blocks = __private.readDbRows(rows);
 		}
 
 		cb(err, blocks);
 	});
-}
+};
 
 Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
 
-	library.logger.debug("loadBlocksOffset", { limit: limit, offset: offset, verify: verify });
+	library.logger.debug('loadBlocksOffset', { limit: limit, offset: offset, verify: verify });
 	library.dbSequence.add(function (cb) {
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
-			var blocks = private.readDbRows(rows);
+			var blocks = __private.readDbRows(rows);
 
 			async.eachSeries(blocks, function (block, cb) {
-				library.logger.debug("Processing block:", block.id);
-				if (verify && block.id != genesisblock.block.id) {
+				library.logger.debug('Processing block:', block.id);
+				if (verify && block.id !== genesisblock.block.id) {
 					// Sanity check of the block, if values are coherent.
 					// No access to database.
 					var check = self.verifyBlock(block);
 
 					if (!check.verified) {
-						library.logger.error("Block is erroneous:", check.errors);
+						library.logger.error('Block is erroneous:', check.errors);
 						return setImmediate(cb, check.errors[0]);
 					}
 				}
-				if (block.id == genesisblock.block.id) {
-					private.applyGenesisBlock(block, cb);
+				if (block.id === genesisblock.block.id) {
+					__private.applyGenesisBlock(block, cb);
 				} else {
-					private.applyBlock(block, false, cb, false);
+					__private.applyBlock(block, false, cb, false);
 				}
 			}, function (err) {
 				setImmediate(cb, err);
@@ -628,14 +636,14 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			// Notes:
 			// If while loading we encounter an error, for example, an invalid signature on a block & transaction, then we need to stop loading and remove all blocks after the last good block. We also need to process all transactions within the block.
 			library.logger.error(err.toString());
-			return cb("Blocks#loadBlocksOffset error");
+			return cb('Blocks#loadBlocksOffset error');
 		});
 	}, cb);
-}
+};
 
 Blocks.prototype.getLastBlock = function () {
-	return private.lastBlock;
-}
+	return __private.lastBlock;
+};
 
 // Will return all possible errors that are intrinsic to the block.
 // NO DATABASE access
@@ -648,50 +656,53 @@ Blocks.prototype.verifyBlock = function (block) {
 		result.errors.push(e.toString());
 	}
 
-	block.height = private.lastBlock.height + 1;
+	block.height = __private.lastBlock.height + 1;
 
-	if (!block.previousBlock && block.height != 1) {
-		result.errors.push("Invalid previous block");
+	if (!block.previousBlock && block.height !== 1) {
+		result.errors.push('Invalid previous block');
 	}
 
-	var expectedReward = private.blockReward.calcReward(block.height);
+	var expectedReward = __private.blockReward.calcReward(block.height);
 
-	if (block.height != 1 && expectedReward !== block.reward) {
-		result.errors.push("Invalid block reward");
+	if (block.height !== 1 && expectedReward !== block.reward) {
+		result.errors.push('Invalid block reward');
 	}
+
+	var valid;
 
 	try {
-		var valid = library.logic.block.verifySignature(block);
+		valid = library.logic.block.verifySignature(block);
 	} catch (e) {
-		result.errors.push(cb, e.toString());
-	}
-	if (!valid) {
-		result.errors.push("Can't verify signature: " + block.id);
+		result.errors.push(e.toString());
 	}
 
-	if (block.previousBlock != private.lastBlock.id) {
+	if (!valid) {
+		result.errors.push('Can\'t verify signature: ' + block.id);
+	}
+
+	if (block.previousBlock !== __private.lastBlock.id) {
 		// Fork: Same height but different previous block id.
 		modules.delegates.fork(block, 1);
-		result.errors.push("Can't verify previous block: " + block.id);
+		result.errors.push('Can\'t verify previous block: ' + block.id);
 	}
 
 	if (block.version > 0) {
-		result.errors.push("Invalid block version: " + block.id);
+		result.errors.push('Invalid block version: ' + block.id);
 	}
 
 	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-	var lastBlockSlotNumber = slots.getSlotNumber(private.lastBlock.timestamp);
+	var lastBlockSlotNumber = slots.getSlotNumber(__private.lastBlock.timestamp);
 
 	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-		result.errors.push("Can't verify block timestamp: " + block.id);
+		result.errors.push('Can\'t verify block timestamp: ' + block.id);
 	}
 
 	if (block.payloadLength > constants.maxPayloadLength) {
-		result.errors.push("Can't verify payload length of block: " + block.id);
+		result.errors.push('Can\'t verify payload length of block: ' + block.id);
 	}
 
-	if (block.transactions.length != block.numberOfTransactions || block.transactions.length > constants.maxTxsPerBlock) {
-		result.errors.push("Invalid amount of block assets: " + block.id);
+	if (block.transactions.length !== block.numberOfTransactions || block.transactions.length > constants.maxTxsPerBlock) {
+		result.errors.push('Invalid amount of block assets: ' + block.id);
 	}
 
 	// Checking if transactions of the block adds up to block values.
@@ -702,15 +713,16 @@ Blocks.prototype.verifyBlock = function (block) {
 
 	for (var i in block.transactions) {
 		var transaction = block.transactions[i];
+		var bytes;
 
 		try {
-			var bytes = library.logic.transaction.getBytes(transaction);
+			bytes = library.logic.transaction.getBytes(transaction);
 		} catch (e) {
 			result.errors.push(e.toString());
 		}
 
 		if (appliedTransactions[transaction.id]) {
-			result.errors.push("Duplicate transaction id in block " + block.id);
+			result.errors.push('Duplicate transaction id in block ' + block.id);
 		}
 
 		appliedTransactions[transaction.id] = transaction;
@@ -720,25 +732,25 @@ Blocks.prototype.verifyBlock = function (block) {
 	}
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-		result.errors.push("Invalid payload hash: " + block.id);
+		result.errors.push('Invalid payload hash: ' + block.id);
 	}
 
-	if (totalAmount != block.totalAmount) {
-		result.errors.push("Invalid total amount: " + block.id);
+	if (totalAmount !== block.totalAmount) {
+		result.errors.push('Invalid total amount: ' + block.id);
 	}
 
-	if (totalFee != block.totalFee) {
-		result.errors.push("Invalid total fee: " + block.id);
+	if (totalFee !== block.totalFee) {
+		result.errors.push('Invalid total fee: ' + block.id);
 	}
 
-	result.verified = result.errors.length == 0;
+	result.verified = result.errors.length === 0;
 	return result;
 };
 
 // Apply the block, provided it has been verified.
-private.applyBlock = function (block, broadcast, cb, saveBlock) {
+__private.applyBlock = function (block, broadcast, cb, saveBlock) {
 	// Don't shut the node right now as it might kill the database state.
-	private.isActive = true;
+	__private.isActive = true;
 
 	library.balancesSequence.add(function (cb) {
 		// Pop current unconfirmed transactions list before applying block.
@@ -748,7 +760,7 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		// DATABASE write
 		modules.transactions.undoUnconfirmedList(function (err, unconfirmedTransactions) {
 			if (err) {
-				private.isActive = false;
+				__private.isActive = false;
 				// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 				return process.exit(0);
 			}
@@ -759,7 +771,7 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 				// TODO: See undoUnconfirmedList discussion above.
 				// DATABASE write
 				modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function () {
-					private.isActive = false;
+					__private.isActive = false;
 					setImmediate(cb, err);
 				});
 			}
@@ -775,8 +787,8 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					// DATABASE: write. Apply transaction to mem_accounts u_* fields
 					modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 						if (err) {
-							library.logger.error( "Failed to apply transaction: " + transaction.id + " - error: " + err);
-							return setImmediate(cb, "Failed to apply transaction: " + transaction.id + " - error: " + err);
+							library.logger.error( 'Failed to apply transaction: ' + transaction.id + ' - error: ' + err);
+							return setImmediate(cb, 'Failed to apply transaction: ' + transaction.id + ' - error: ' + err);
 						}
 						appliedTransactions[transaction.id] = transaction;
 
@@ -813,14 +825,14 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						// DATABASE: write
 						modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 							if (err) {
-								library.logger.error("Failed to apply transactions: " + transaction.id);
+								library.logger.error('Failed to apply transactions: ' + transaction.id);
 								// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 								process.exit(0);
 							}
 							// DATABASE: write
 							modules.transactions.apply(transaction, block, sender, function (err) {
 								if (err) {
-									library.logger.error("Failed to apply transactions: " + transaction.id);
+									library.logger.error('Failed to apply transactions: ' + transaction.id);
 									// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 									process.exit(0);
 								}
@@ -831,18 +843,18 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							});
 						});
 					}, function (err) {
-						private.lastBlock = block;
+						__private.lastBlock = block;
 						// Save the block into the database.
 						// DATABASE: write
 						if (saveBlock) {
-							private.saveBlock(block, function (err) {
+							__private.saveBlock(block, function (err) {
 							 if (err) {
-								 library.logger.error("Failed to save block...");
+								 library.logger.error('Failed to save block...');
 								 // TODO: Send a numbered signal to be caught by forever to trigger a normal restart (i.e. restarting the db).
 								 process.exit(0);
 							 }
 
-							 library.logger.debug("Block applied corrrectly with " + block.transactions.length + " transactions");
+							 library.logger.debug('Block applied corrrectly with ' + block.transactions.length + ' transactions');
 							 library.bus.message('newBlock', block, broadcast);
 							 // DATABASE write. Update delegates accounts
 							 modules.round.tick(block, done);
@@ -857,13 +869,13 @@ private.applyBlock = function (block, broadcast, cb, saveBlock) {
 			});
 		});
 	}, cb);
-}
+};
 
 // Apply the genesis block, provided it has been verified.
 // Shortcuting the unconfirmed/confirmed states.
-private.applyGenesisBlock = function (block, cb) {
+__private.applyGenesisBlock = function (block, cb) {
 	block.transactions = block.transactions.sort(function (a, b) {
-		if (a.type == transactionTypes.VOTE) {
+		if (a.type === transactionTypes.VOTE) {
 			return 1;
 		} else {
 			return 0;
@@ -878,15 +890,15 @@ private.applyGenesisBlock = function (block, cb) {
 						block: block
 					});
 				}
-				private.applyTransaction(block, transaction, sender, cb);
+				__private.applyTransaction(block, transaction, sender, cb);
 			});
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...
 			return process.exit(0);
 		} else {
-			private.lastBlock = block;
-			modules.round.tick(private.lastBlock, cb);
+			__private.lastBlock = block;
+			modules.round.tick(__private.lastBlock, cb);
 		}
 	});
 };
@@ -896,8 +908,8 @@ private.applyGenesisBlock = function (block, cb) {
 // * Verify the block is compatible with database state (DATABASE readonly)
 // * Apply the block to database if both verifications are ok
 Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
-	if (!private.loaded) {
-		return setImmediate(cb, "Blockchain is loading");
+	if (!__private.loaded) {
+		return setImmediate(cb, 'Blockchain is loading');
 	}
 
 	try {
@@ -911,7 +923,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	var check = self.verifyBlock(block);
 
 	if (!check.verified) {
-		library.logger.error("Block is erroneous: ", check.errors);
+		library.logger.error('Block is erroneous: ', check.errors);
 		return setImmediate(cb, check.errors[0]);
 	}
 
@@ -920,7 +932,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	// DATABASE: read only
 	library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
 		if (rows.length > 0) {
-			return setImmediate(cb, "Block already exists: " + block.id);
+			return setImmediate(cb, 'Block already exists: ' + block.id);
 		}
 
 		// Check if block was generated by the right active delagate. Otherwise, fork 3.
@@ -946,14 +958,14 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
 							if (rows.length > 0) {
 								modules.delegates.fork(block, 2);
-								callback("Transaction already exists: " + transaction.id);
+								callback('Transaction already exists: ' + transaction.id);
 							} else {
 								// Get account from database if any (otherwise cold wallet).
 								// DATABASE: read only
 								modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, callback);
 							}
 						}).catch(function (err) {
-							callback("Blocks#processBlock error: " + err.toString());
+							callback('Blocks#processBlock error: ' + err.toString());
 						});
 					},
 					function (sender, callback) {
@@ -964,7 +976,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 				],
 				function (err) {
 					cb(err);
-				})
+				});
 			},
 			function (err) {
 				if (err) {
@@ -974,7 +986,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 					// * Block and transactions have valid values (signatures, block slots, etc...)
 					// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
 					// We thus update the database with the transactions values, save the block and tick it.
-					private.applyBlock(block, broadcast, cb, saveBlock);
+					__private.applyBlock(block, broadcast, cb, saveBlock);
 				}
 			});
 		});
@@ -986,18 +998,18 @@ Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 		return cb(null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb("Blocks#simpleDeleteAfterBlock error");
+		return cb('Blocks#simpleDeleteAfterBlock error');
 	});
 };
 
 Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
-	var lastValidBlock = private.lastBlock;
+	var lastValidBlock = __private.lastBlock;
 
 	peer = modules.peer.inspect(peer);
 	library.logger.info('Loading blocks from', peer.string);
 
 	modules.transport.getFromPeer(peer, {
-		method: "GET",
+		method: 'GET',
 		api: '/blocks?lastBlockId=' + lastValidBlock.id
 	}, function (err, data) {
 		if (err || data.body.error) {
@@ -1007,23 +1019,22 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 		var blocks = data.body.blocks;
 
 		var report = library.scheme.validate(blocks, {
-			type: "array"
+			type: 'array'
 		});
 
 		if (!report) {
-			return setImmediate(callback, "Received invalid blocks data", lastValidBlock);
+			return setImmediate(callback, 'Received invalid blocks data', lastValidBlock);
 		}
 
-		blocks = private.readDbRows(blocks);
+		blocks = __private.readDbRows(blocks);
 
-		if (blocks.length == 0) {
+		if (blocks.length === 0) {
 			return setImmediate(callback, null, lastValidBlock);
 		} else {
-
 			async.eachSeries(blocks, function (block, cb) {
 				self.processBlock(block, false, function (err) {
 					if (!err) {
-						lastCommonBlockId = block.id;
+						var lastCommonBlockId = block.id;
 						lastValidBlock = block;
 						library.logger.info('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
 					} else {
@@ -1035,25 +1046,25 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 				});
 			}, function (err) {
 				if (err) {
-					return setImmediate(callback, "Error loading blocks: " + err, lastValidBlock);
+					return setImmediate(callback, 'Error loading blocks: ' + err, lastValidBlock);
 				}
 				return setImmediate(callback, null, lastValidBlock);
 			});
 		}
 	});
-}
+};
 
 Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	var blocks = [];
 
 	async.whilst(
 		function () {
-			return !(block.height >= private.lastBlock.height)
+			return (block.height < __private.lastBlock.height);
 		},
 		function (next) {
-			blocks.unshift(private.lastBlock);
-			private.popLastBlock(private.lastBlock, function (err, newLastBlock) {
-				private.lastBlock = newLastBlock;
+			blocks.unshift(__private.lastBlock);
+			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
+				__private.lastBlock = newLastBlock;
 				next(err);
 			});
 		},
@@ -1061,7 +1072,7 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 			setImmediate(cb, err, blocks);
 		}
 	);
-}
+};
 
 Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
@@ -1070,7 +1081,7 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
 		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
 			if (err || !sender) {
-				return setImmediate(cb, "Invalid sender");
+				return setImmediate(cb, 'Invalid sender');
 			}
 
 			if (library.logic.transaction.ready(transaction, sender)) {
@@ -1083,11 +1094,13 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 			}
 		});
 	}, function () {
+		var block;
+
 		try {
-			var block = library.logic.block.create({
+			block = library.logic.block.create({
 				keypair: keypair,
 				timestamp: timestamp,
-				previousBlock: private.lastBlock,
+				previousBlock: __private.lastBlock,
 				transactions: ready
 			});
 		} catch (e) {
@@ -1097,135 +1110,135 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 
 		self.processBlock(block, true, cb, true);
 	});
-}
+};
 
 Blocks.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
-}
+};
 
 // Events
 Blocks.prototype.onReceiveBlock = function (block) {
 	// When client is not loaded, is syncing or round is ticking
 	// Do not receive new blocks as client is not ready to receive them
-	if (!private.loaded || modules.loader.syncing() || modules.round.ticking()) {
+	if (!__private.loaded || modules.loader.syncing() || modules.round.ticking()) {
 		library.logger.debug('onReceiveBlock:', 'client not ready');
 		return;
 	}
 
 	library.sequence.add(function (cb) {
-		if (block.previousBlock == private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
-			library.logger.info('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward)
+		if (block.previousBlock === __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
+			library.logger.info('Received new block id: ' + block.id + ' height: ' + block.height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(block.timestamp) + ' reward: ' + modules.blocks.getLastBlock().reward);
 			self.lastReceipt(new Date());
 			self.processBlock(block, true, cb, true);
-		} else if (block.previousBlock != private.lastBlock.id && private.lastBlock.height + 1 == block.height) {
+		} else if (block.previousBlock !== __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
 			// Fork: Same height but different previous block id
 			modules.delegates.fork(block, 1);
-			cb("Fork");
-		} else if (block.previousBlock == private.lastBlock.previousBlock && block.height == private.lastBlock.height && block.id != private.lastBlock.id) {
+			cb('Fork');
+		} else if (block.previousBlock === __private.lastBlock.previousBlock && block.height === __private.lastBlock.height && block.id !== __private.lastBlock.id) {
 			// Fork: Same height and previous block id, but different block id
 			modules.delegates.fork(block, 5);
-			cb("Fork");
+			cb('Fork');
 		} else {
 			cb();
 		}
 	});
-}
+};
 
 Blocks.prototype.onBind = function (scope) {
 	modules = scope;
 
-	private.loaded = true;
-}
+	__private.loaded = true;
+};
 
 Blocks.prototype.cleanup = function (cb) {
-	private.loaded = false;
-	if (!private.isActive) {
+	__private.loaded = false;
+	if (!__private.isActive) {
 		cb();
 	} else {
 		setImmediate(function nextWatch() {
-			if (private.isActive) {
-				setTimeout(nextWatch, 1 * 1000)
+			if (__private.isActive) {
+				setTimeout(nextWatch, 1 * 1000);
 			} else {
 				cb();
 			}
 		});
 	}
-}
+};
 
 // Shared
 shared.getBlock = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
-		type: "object",
+		type: 'object',
 		properties: {
 			id: {
 				type: 'string',
 				minLength: 1
 			}
 		},
-		required: ["id"]
+		required: ['id']
 	}, function (err) {
 		if (err) {
 			return cb(err[0].message);
 		}
 
 		library.dbSequence.add(function (cb) {
-			private.getById(query.id, function (err, block) {
+			__private.getById(query.id, function (err, block) {
 				if (!block || err) {
-					return cb("Block not found");
+					return cb('Block not found');
 				}
 				cb(null, {block: block});
 			});
 		}, cb);
 	});
-}
+};
 
 shared.getBlocks = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
-		type: "object",
+		type: 'object',
 		properties: {
 			limit: {
-				type: "integer",
+				type: 'integer',
 				minimum: 0,
 				maximum: 100
 			},
 			orderBy: {
-				type: "string"
+				type: 'string'
 			},
 			offset: {
-				type: "integer",
+				type: 'integer',
 				minimum: 0
 			},
 			generatorPublicKey: {
-				type: "string",
-				format: "publicKey"
+				type: 'string',
+				format: 'publicKey'
 			},
 			totalAmount: {
-				type: "integer",
+				type: 'integer',
 				minimum: 0,
 				maximum: constants.totalAmount
 			},
 			totalFee: {
-				type: "integer",
+				type: 'integer',
 				minimum: 0,
 				maximum: constants.totalAmount
 			},
 			reward: {
-				type: "integer",
+				type: 'integer',
 				minimum: 0
 			},
 			previousBlock: {
-				type: "string"
+				type: 'string'
 			},
 			height: {
-				type: "integer"
+				type: 'integer'
 			}
 		}
 	}, function (err) {
@@ -1234,7 +1247,7 @@ shared.getBlocks = function (req, cb) {
 		}
 
 		library.dbSequence.add(function (cb) {
-			private.list(query, function (err, data) {
+			__private.list(query, function (err, data) {
 				if (err) {
 					return cb(err);
 				}
@@ -1242,87 +1255,87 @@ shared.getBlocks = function (req, cb) {
 			});
 		}, cb);
 	});
-}
+};
 
 shared.getEpoch = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
 	var query = req.body;
 	cb(null, {epoch: constants.epochTime});
-}
+};
 
 shared.getHeight = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
 	var query = req.body;
-	cb(null, {height: private.lastBlock.height});
-}
+	cb(null, {height: __private.lastBlock.height});
+};
 
 shared.getFee = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
 	var query = req.body;
 	cb(null, {fee: library.logic.block.calculateFee()});
-}
+};
 
 shared.getFees = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
 	var query = req.body;
 	cb(null, {fees: constants.fees});
-}
+};
 
 shared.getNethash = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
 	var query = req.body;
 	cb(null, {nethash: library.config.nethash});
-}
+};
 
 shared.getMilestone = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
-	var query = req.body, height = private.lastBlock.height;
-	cb(null, {milestone: private.blockReward.calcMilestone(height)});
-}
+	var query = req.body, height = __private.lastBlock.height;
+	cb(null, {milestone: __private.blockReward.calcMilestone(height)});
+};
 
 shared.getReward = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
-	var query = req.body, height = private.lastBlock.height;
-	cb(null, {reward: private.blockReward.calcReward(height)});
-}
+	var query = req.body, height = __private.lastBlock.height;
+	cb(null, {reward: __private.blockReward.calcReward(height)});
+};
 
 shared.getSupply = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
-	var query = req.body, height = private.lastBlock.height;
-	cb(null, {supply: private.blockReward.calcSupply(height)});
-}
+	var query = req.body, height = __private.lastBlock.height;
+	cb(null, {supply: __private.blockReward.calcSupply(height)});
+};
 
 shared.getStatus = function (req, cb) {
-	if (!private.loaded) {
-		cb("Blockchain is loading")
+	if (!__private.loaded) {
+		cb('Blockchain is loading');
 	}
-	var query = req.body, height = private.lastBlock.height;
+	var query = req.body, height = __private.lastBlock.height;
 	cb(null, {
 		epoch:     constants.epochTime,
 		height:    height,
 		fee:       library.logic.block.calculateFee(),
-		milestone: private.blockReward.calcMilestone(height),
+		milestone: __private.blockReward.calcMilestone(height),
 		nethash:   library.config.nethash,
-		reward:    private.blockReward.calcReward(height),
-		supply:    private.blockReward.calcSupply(height)
+		reward:    __private.blockReward.calcReward(height),
+		supply:    __private.blockReward.calcSupply(height)
 	});
-}
+};
 
 // Export
 module.exports = Blocks;
