@@ -118,7 +118,6 @@ private.findUpdate = function (lastBlock, peer, cb) {
 				},
 				function (cb) {
 					library.bus.message("deleteBlocksBefore", commonBlock);
-
 					modules.blocks.deleteBlocksBefore(commonBlock, cb);
 				},
 				function (cb) {
@@ -130,7 +129,6 @@ private.findUpdate = function (lastBlock, peer, cb) {
 				},
 				function (cb) {
 					library.logger.debug("Loading blocks from peer " + peer.string);
-
 					modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 						if (err) {
 							// Database Corruption...
@@ -230,7 +228,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 						}
 					});
 				}
-			], cb)
+			], cb);
 		});
 	});
 }
@@ -506,37 +504,36 @@ private.loadBlockChain = function () {
 	});
 }
 
-private.loadBlocksFromNetwork = function(cb) {
-	var counterrorload=0;
-	var loaded=false;
-	self.getNetwork(function(err, network){
-		if(err) {
+private.loadBlocksFromNetwork = function (cb) {
+	var counterrorload = 0;
+	var loaded = false;
+	self.getNetwork(function (err, network) {
+		if (err) {
 			private.loadBlocksFromNetwork(cb);
-		}
-		else {
+		} else {
 			async.whilst(
 				function () {
 					return !loaded && counterrorload < 5;
 				},
 				function (next) {
-					var peer = network.peers[Math.floor(Math.random()*network.peers.length)];
+					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlockId = modules.blocks.getLastBlock().id;
-					modules.blocks.loadBlocksFromPeer(peer, function(err, lastValidBlock){
-						if(err){
+					modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
+						if (err) {
 							library.logger.error("Could not load blocks from " + peer.ip, err);
 							library.logger.info("Trying to reload from another random peer");
-							counterrorload=counterrorload + 1;
+							counterrorload = counterrorload + 1;
 						}
 						loaded = lastValidBlock.id == lastBlockId;
 						next();
 					});
 				},
 				function (error) {
-					if(counterrorload == 5){
+					if (counterrorload == 5) {
 						library.logger.info("Peer is not well connected to network, resyncing from network");
 						return private.loadBlocksFromNetwork(cb);
 					}
-					if(error){
+					if (error) {
 						library.logger.error("Could not load blocks from network", error);
 						return cb(error);
 					}
@@ -550,18 +547,18 @@ private.loadBlocksFromNetwork = function(cb) {
 // Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 private.findGoodPeers = function (heights) {
 	// Removing unreachable peers
-	heights = heights.filter(function(item){
+	heights = heights.filter(function (item) {
 		return item != null;
 	});
 
-  if(heights.length < 10){
-    return null;
-  } else {
 	// Assuming that the node reached at least 10% of the network
+	if (heights.length < 10) {
+		return null;
+	} else {
 		// Ordering the peers with descending height
-	  heights = heights.sort(function (a,b){
-	    return b.height - a.height;
-	  });
+		heights = heights.sort(function (a,b) {
+			return b.height - a.height;
+		});
 		var histogram = {};
 		var max = 0;
 		var height;
@@ -569,25 +566,26 @@ private.findGoodPeers = function (heights) {
 		var aggregation = 2; // Aggregating height by 2. TODO: To be changed if node latency increases?
 
 		// Histogram calculation, together with histogram maximum
-		for(i in heights){
+		for (i in heights) {
 			var val = parseInt(heights[i].height / aggregation) * aggregation;
 			histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
-			if(histogram[val] > max){
+
+			if (histogram[val] > max) {
 				max = histogram[val];
 				height = val;
 			}
 		}
 
 		// Performing histogram cut of peers too far from histogram maximum
-		var peers = heights.filter(function(item){
+		var peers = heights.filter(function (item) {
 			return item && Math.abs(height - item.height) < aggregation + 1;
-		}).map(function(item){
+		}).map(function (item) {
 			// Add the height info to the peer. To be removed?
-			item.peer.height=item.height;
+			item.peer.height = item.height;
 			return item.peer;
 		});
-    return {height:height, peers: peers};
-  }
+		return {height: height, peers: peers};
+	}
 }
 
 // Public methods
@@ -596,7 +594,7 @@ private.findGoodPeers = function (heights) {
 // - We pick 100 random peers from a random peer (could be unreachable).
 // - Then for each of them we grab the height of their blockchain.
 // - With this list we try to get a peer with sensibly good blockchain height (see private.findGoodPeers for actual strategy).
-Loader.prototype.getNetwork = function(cb) {
+Loader.prototype.getNetwork = function (cb) {
 	// If private.network is not so far (i.e. 1 round) from current node height, just return the cached one.
 	if(private.network && Math.abs(private.network.height - modules.blocks.getLastBlock().height) < 101){
 		return setImmediate(cb, null, private.network);
@@ -614,6 +612,7 @@ Loader.prototype.getNetwork = function(cb) {
 		}
 
 		var report = library.scheme.validate(data.body.peers, {type: "array", required: true, uniqueItems: true});
+
 		library.scheme.validate(data.body, {
 			type: "object",
 			properties: {
@@ -658,7 +657,6 @@ Loader.prototype.getNetwork = function(cb) {
 					required: ['ip', 'port', 'state']
 				});
 
-
 				if (ispeervalid) {
 					modules.transport.getFromPeer(peer, {
 						api: "/height",
@@ -680,17 +678,16 @@ Loader.prototype.getNetwork = function(cb) {
 						if (isheightvalid) {
 							library.logger.info("Checking blockchain on " + result.peer.string + " - received height: " + result.body.height);
 							var peer = modules.peer.inspect(result.peer);
-							return cb(null,{peer: peer, height: result.body.height});
+							return cb(null, {peer: peer, height: result.body.height});
 						}
 					});
 				}
-			},function(err, heights){
-				private.network=private.findGoodPeers(heights);
+			},function (err, heights) {
+				private.network = private.findGoodPeers(heights);
 
-				if(!private.network){
+				if (!private.network) {
 					return setImmediate(cb, "Could not find enough good peers to connect");
-				}
-				else{
+				} else {
 					return setImmediate(cb, null, private.network);
 				}
 			});
@@ -708,7 +705,7 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeerReady = function () {
-	setImmediate(function nextLoadBlock() {
+	setImmediate(function nextLoadBlock () {
 		library.sequence.add(function (cb) {
 			private.isActive = true;
 			private.syncTrigger(true);

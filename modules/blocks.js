@@ -1003,7 +1003,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 	var lastValidBlock = private.lastBlock;
 
 	peer = modules.peer.inspect(peer);
-  library.logger.info('Loading blocks from', peer.string);
+	library.logger.info('Loading blocks from', peer.string);
 
 	modules.transport.getFromPeer(peer, {
 		method: "GET",
@@ -1042,8 +1042,8 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 					}
 					return cb(err);
 				});
-			}, function(err){
-				if(err){
+			}, function (err) {
+				if (err) {
 					return setImmediate(callback, "Error loading blocks: " + err, lastValidBlock);
 				}
 				return setImmediate(callback, null, lastValidBlock);
