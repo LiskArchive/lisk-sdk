@@ -1,3 +1,5 @@
+'use strict';
+
 var async = require('async');
 var bignum = require('./bignum');
 var fs = require('fs');
@@ -8,12 +10,12 @@ var path = require('path');
 
 function Migrator (pgp, db) {
 	this.checkMigrations = function (waterCb) {
-		db.one("SELECT to_regclass('migrations')").then(function (row) {
+		db.one('SELECT to_regclass(\'migrations\')').then(function (row) {
 			return waterCb(null, Boolean(row.to_regclass));
 		}).catch(function (err) {
 			return waterCb(err);
 		});
-	}
+	};
 
 	this.getLastMigration = function (hasMigrations, waterCb) {
 		if (!hasMigrations) {
@@ -27,7 +29,7 @@ function Migrator (pgp, db) {
 		}).catch(function (err) {
 			return waterCb(err);
 		});
-	}
+	};
 
 	this.readPendingMigrations = function (lastMigration, waterCb) {
 		var migrationsPath = path.join('sql', 'migrations');
@@ -58,9 +60,7 @@ function Migrator (pgp, db) {
 				};
 			}).filter(function (file) {
 				return (
-					(file.id && file.name)
-					&& fs.statSync(file.path).isFile()
-					&& /\.sql$/.test(file.path)
+					(file.id && file.name) && fs.statSync(file.path).isFile() && /\.sql$/.test(file.path)
 				);
 			}).forEach(function (file) {
 				if (!lastMigration || file.id.greaterThan(lastMigration.id)) {
@@ -70,7 +70,7 @@ function Migrator (pgp, db) {
 
 			return waterCb(null, pendingMigrations);
 		});
-	}
+	};
 
 	this.applyPendingMigrations = function (pendingMigrations, waterCb) {
 		var appliedMigrations = [];
@@ -87,7 +87,7 @@ function Migrator (pgp, db) {
 		}, function (err) {
 			return waterCb(err, appliedMigrations);
 		});
-	}
+	};
 
 	this.insertAppliedMigrations = function (appliedMigrations, waterCb) {
 		async.eachSeries(appliedMigrations, function (file, eachCb) {
@@ -99,7 +99,7 @@ function Migrator (pgp, db) {
 		}, function (err) {
 			return waterCb(err);
 		});
-	}
+	};
 
 	this.applyRuntimeQueryFile = function (waterCb) {
 		var sql = new pgp.QueryFile(path.join('sql', 'runtime.sql'), { minify: true });
@@ -109,8 +109,8 @@ function Migrator (pgp, db) {
 		}).catch(function (err) {
 			return waterCb(err);
 		});
-	}
-};
+	};
+}
 
 module.exports.connect = function (config, logger, cb) {
 	var pgOptions = {
@@ -128,7 +128,7 @@ module.exports.connect = function (config, logger, cb) {
 		info.display = false;
 	};
 
-	config.user = config.user || process.env['USER'];
+	config.user = config.user || process.env.USER;
 
 	var db = pgp(config);
 	var migrator = new Migrator(pgp, db);
@@ -143,4 +143,4 @@ module.exports.connect = function (config, logger, cb) {
 	], function (err) {
 		return cb(err, db);
 	});
-}
+};
