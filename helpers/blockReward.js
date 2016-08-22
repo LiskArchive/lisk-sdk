@@ -1,4 +1,6 @@
-var constants = require("./constants.js");
+'use strict';
+
+var constants = require('./constants.js');
 
 function BlockReward() {
 	var milestones = [
@@ -18,7 +20,7 @@ function BlockReward() {
 		height = parseInt(height);
 
 		if (isNaN(height)) {
-			throw "Invalid block height";
+			throw 'Invalid block height';
 		} else {
 			return Math.abs(height);
 		}
@@ -36,7 +38,7 @@ function BlockReward() {
 	};
 
 	this.calcReward = function (height) {
-		var height = parseHeight(height);
+		height = parseHeight(height);
 
 		if (height < rewardOffset) {
 			return 0;
@@ -46,7 +48,7 @@ function BlockReward() {
 	};
 
 	this.calcSupply = function (height) {
-		var height    = parseHeight(height);
+		height        = parseHeight(height);
 		var milestone = this.calcMilestone(height);
 		var supply    = constants.totalAmount / Math.pow(10,8);
 		var rewards   = [];
@@ -66,7 +68,7 @@ function BlockReward() {
 					height -= distance; // Deduct from total height
 
 					// After last milestone
-					if (height > 0 && i == milestones.length - 1) {
+					if (height > 0 && i === milestones.length - 1) {
 						var postHeight = rewardOffset - 1;
 
 						if (height >= postHeight) {
