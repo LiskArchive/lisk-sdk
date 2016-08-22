@@ -1,9 +1,11 @@
+'use strict';
+
 var ed2curve = require('ed2curve');
-var nacl_factory = require("js-nacl");
-// var nacl = nacl_factory.instantiate();
+var nacl_factory = require('js-nacl');
+var nacl = nacl_factory.instantiate();
 
 function convertPublicKey(publicKey) {
-	return ed2curve.convertPublicKey(publicKey)
+	return ed2curve.convertPublicKey(publicKey);
 }
 
 function convertPrivateKey(privateKey) {
@@ -19,7 +21,7 @@ function decrypt(message, nonce, senderPublicKey, recipientPrivateKey) {
 }
 
 function getNonce() {
-	return nacl.crypto_box_random_nonce();;
+	return nacl.crypto_box_random_nonce();
 }
 
 function cryptobox(text, nonce, key) {
@@ -38,4 +40,4 @@ module.exports = {
 	decrypt: decrypt,
 	cryptobox: cryptobox,
 	decrypt_cryptobox: decrypt_cryptobox
-}
+};
