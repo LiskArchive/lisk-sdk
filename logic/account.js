@@ -413,7 +413,7 @@ Account.prototype.get = function (filter, fields, cb) {
 	}
 
 	this.getAll(filter, fields, function (err, data) {
-		cb(err, data && data.length ? data[0] : null)
+		return cb(err, data && data.length ? data[0] : null);
 	})
 }
 

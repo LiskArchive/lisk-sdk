@@ -448,7 +448,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 	var amount = trs.amount + trs.fee;
 
 	if (trs.blockId != genesisblock.block.id && sender.balance < amount) {
-		return setImmediate(cb, "Account has no LISK: " + trs.id);
+		return setImmediate(cb, "Account has no LISK: " + sender.address + " balance=" + sender.balance);
 	}
 
 	this.scope.account.merge(sender.address, {
@@ -536,21 +536,21 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 	var amount = trs.amount + trs.fee;
 
 	if (sender.u_balance < amount && trs.blockId != genesisblock.block.id) {
-		return setImmediate(cb, "Account has no LISK: " + trs.id);
+		return setImmediate(cb, "Account has no LISK: " + sender.address);
 	}
 
 	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		private.types[trs.type].applyUnconfirmed.call(this, trs, sender, function (err) {
 			if (err) {
 				this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
-					cb(err);
+					return setImmediate(cb, err2 || err);
 				});
 			} else {
-				setImmediate(cb, err);
+				return setImmediate(cb);
 			}
 		}.bind(this));
 	}.bind(this));
@@ -565,16 +565,16 @@ Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
 
 	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		private.types[trs.type].undoUnconfirmed.call(this, trs, sender, function (err) {
 			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err) {
-					cb(err);
+				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
+					return setImmediate(cb, err2 || err);
 				});
 			} else {
-				setImmediate(cb, err);
+				return setImmediate(cb);
 			}
 		}.bind(this));
 	}.bind(this));

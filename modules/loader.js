@@ -499,14 +499,9 @@ private.loadBlockChain = function () {
 				if (err) {
 					return reload(count, err || "Failed to load blocks offset");
 				} else {
-					modules.blocks.loadLastBlock(function (err, block) {
-						if (err) {
-							return load(count);
-						}
-						private.lastBlock = block;
-						library.logger.info("Blockchain ready");
-						library.bus.message("blockchainReady");
-					});
+					private.lastBlock = lastBlock;
+					library.logger.info("Blockchain ready");
+					library.bus.message("blockchainReady");
 				}
 			});
 		});
