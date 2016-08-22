@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = Field;
 
 /**
@@ -62,7 +64,7 @@ Field.prototype.validate = function(callback) {
         accept = this.rules[rule];
 
         try {
-            if (! this.validator.hasRule(rule) && ! this.validator.skipMissed) {
+            if (!this.validator.hasRule(rule) && !this.validator.skipMissed) {
                 throw new Error('Rule "' + rule + '" not found for "' + this.path.join('.') + '".');
             }
 
@@ -84,7 +86,7 @@ Field.prototype.validate = function(callback) {
                 result = descriptor.validate.call(thisArg, accept, value, this);
             }
 
-            if (this.isAsync) return;
+            if (this.isAsync) { return; }
 
             if (result === false) {
                 report.push({
@@ -97,12 +99,12 @@ Field.prototype.validate = function(callback) {
                 stack.length = 0;
             }
         } catch (err) {
-            if (! err.field)
-                Object.defineProperty(err, "field", {
+            if (!err.field) {
+                Object.defineProperty(err, 'field', {
                     enumerable : false,
                     value : this
                 });
-
+            }
             this.validator.onError(this, err);
             this.end(err, report, value);
             return;
@@ -111,7 +113,7 @@ Field.prototype.validate = function(callback) {
 
     this.inProgress = false;
 
-    if (! stack.length) {
+    if (!stack.length) {
         this.end(null, report, value);
     }
 };
@@ -150,15 +152,15 @@ Field.prototype.async = function(callback) {
         self.isAsync = false;
 
         if (err) {
-            if (! err.hasOwnProperty("field")) {
-                Object.defineProperty(err, "field", {
+            if (!err.hasOwnProperty('field')) {
+                Object.defineProperty(err, 'field', {
                     enumerable : false,
                     value : self
                 });
                 self.validator.onError(self, err);
             }
             self.end(err);
-        } else if (! self.inProgress) {
+        } else if (!self.inProgress) {
             self.validate(self.callback);
         }
     });

@@ -1,3 +1,5 @@
+'use strict';
+
 var util = require('util');
 
 exports.extend = extend;
@@ -5,10 +7,10 @@ exports.copy = copy;
 exports.inherits = util.inherits;
 
 function extend(target, source) {
-    if (! target || typeof target !== 'object') return target;
+    if (!target || typeof target !== 'object') { return target; }
 
     Array.prototype.slice.call(arguments).forEach(function(source){
-        if (! source || typeof source !== 'object') return;
+        if (!source || typeof source !== 'object') { return; }
 
         util._extend(target, source);
     });
@@ -17,7 +19,7 @@ function extend(target, source) {
 }
 
 function copy(target) {
-    if (! target || typeof target !== 'object') return target;
+    if (!target || typeof target !== 'object') { return target; }
 
     if (Array.isArray(target)) {
         return target.map(copy);
