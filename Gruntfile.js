@@ -90,7 +90,17 @@ module.exports = function (grunt) {
 		},
 
 		jshint: {
-			all: ['app.js', 'helpers/**/*.js', 'modules/**/*.js', 'logic/**/*.js']
+			options: {
+				jshintrc: true
+			},
+			all: [
+				'*.js',
+				'helpers/**/*.js',
+				'modules/**/*.js',
+				'logic/**/*.js',
+				'sql/**/*.js',
+				'tasks/**/*.js'
+			]
 		}
 	});
 
