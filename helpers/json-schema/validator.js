@@ -1,3 +1,5 @@
+'use strict';
+
 var utils = require('../validator/utils');
 
 module.exports = JsonSchema;
@@ -22,26 +24,26 @@ JsonSchema.fieldProperty = Validator.fieldProperty;
 JsonSchema.options = utils.extend({}, Validator.options);
 JsonSchema.validate = Validator.validate;
 
-JsonSchema.addRule("type", {
-    validate : function(accept, value){
+JsonSchema.addRule('type', {
+    validate : function (accept, value) {
         switch (accept) {
-            case "array":
+            case 'array':
                 return Array.isArray(value);
-            case "object":
-                return typeof value === "object" && value !== null;
-            case "null":
+            case 'object':
+                return typeof value === 'object' && value !== null;
+            case 'null':
                 return value === null;
-            case "integer":
-                accept = number;
+            case 'integer':
+                return typeof value === 'number';
             default:
                 return typeof value === accept;
         }
     }
 });
 
-JsonSchema.addRule("default", {
-   filter : function(accept, value) {
-       if (typeof value === "undefined") {
+JsonSchema.addRule('default', {
+   filter : function (accept, value) {
+       if (typeof value === 'undefined') {
            return accept;
        } else {
            return value;
@@ -49,20 +51,20 @@ JsonSchema.addRule("default", {
    }
 });
 
-JsonSchema.addRule("enum", {
-    validate : function(accept, value) {
+JsonSchema.addRule('enum', {
+    validate : function (accept, value) {
         return accept.indexOf(value) > -1;
     }
 });
 
 // String rules
 
-JsonSchema.addRule("case", {
-    validate : function(accept, value) {
-      if(accept==="lower"){
+JsonSchema.addRule('case', {
+    validate : function (accept, value) {
+      if(accept==='lower') {
         return String(value).toLowerCase() === String(value);
       }
-      else if(accept==="upper"){
+      else if(accept==='upper') {
         return String(value).toUpperCase() === String(value);
       }
       else{
@@ -71,31 +73,31 @@ JsonSchema.addRule("case", {
     }
 });
 
-JsonSchema.addRule("minLength", {
-    validate : function(accept, value) {
+JsonSchema.addRule('minLength', {
+    validate : function (accept, value) {
         return String(value).length >= accept;
     }
 });
 
-JsonSchema.addRule("maxLength", {
-    validate : function(accept, value) {
+JsonSchema.addRule('maxLength', {
+    validate : function (accept, value) {
         return String(value).length <= accept;
     }
 });
 
-JsonSchema.addRule("pattern", {
-    validate : function(accept, value) {
-        if (accept instanceof RegExp === false)
+JsonSchema.addRule('pattern', {
+    validate : function (accept, value) {
+        if (accept instanceof RegExp === false) {
             accept = new RegExp(accept);
-
+        }
         return accept.test(value);
     }
 });
 
 // Numeric rules
 
-JsonSchema.addRule("minimum", {
-    validate : function(accept, value, field) {
+JsonSchema.addRule('minimum', {
+    validate : function (accept, value, field) {
         if (field.rules.exclusiveMinimum) {
             return value > accept;
         } else {
@@ -104,10 +106,10 @@ JsonSchema.addRule("minimum", {
     }
 });
 
-JsonSchema.addRule("exclusiveMinimum", {});
+JsonSchema.addRule('exclusiveMinimum', {});
 
-JsonSchema.addRule("maximum", {
-    validate : function(accept, value, field) {
+JsonSchema.addRule('maximum', {
+    validate : function (accept, value, field) {
         if (field.rules.exclusiveMaximum) {
             return value < accept;
         } else {
@@ -116,25 +118,25 @@ JsonSchema.addRule("maximum", {
     }
 });
 
-JsonSchema.addRule("exclusiveMaximum", {});
+JsonSchema.addRule('exclusiveMaximum', {});
 
-JsonSchema.addRule("divisibleBy", {
-    validate : function(accept, value) {
+JsonSchema.addRule('divisibleBy', {
+    validate : function (accept, value) {
         return value % accept === 0;
     }
 });
 
 // Object rules
 
-JsonSchema.addRule("properties", {
-    validate : function(accept, value, field) {
-        if (! field.isObject()) return;
+JsonSchema.addRule('properties', {
+    validate : function (accept, value, field) {
+        if (!field.isObject()) { return; }
 
-        field.async(function(done){
+        field.async(function (done) {
             var result = {};
             var properties = Object.getOwnPropertyNames(accept);
 
-            Object.keys(value).forEach(function(property){
+            Object.keys(value).forEach(function (property) {
                 if (properties.indexOf(property) < 0) {
                     properties.push(property);
                 }
@@ -145,21 +147,21 @@ JsonSchema.addRule("properties", {
             var additionalProperty = field.rules.additionalProperties || false;
 
             function end(err) {
-                if (l === null) return;
+                if (l === null) { return; }
 
                 --l;
 
-                if (err) l = null;
+                if (err) { l = null; }
 
-                if (! l) {
+                if (!l) {
                     done(err);
                 }
             }
 
-            properties.forEach(function(property){
+            properties.forEach(function (property) {
                 var acceptProperty;
 
-                if (! accept.hasOwnProperty(property)) {
+                if (!accept.hasOwnProperty(property)) {
                     if (additionalProperty === true) {
                         result[property] = value[property];
                         return end(); // Accept anyway
@@ -168,9 +170,9 @@ JsonSchema.addRule("properties", {
                     } else {
                         return end();
                     }
-                } else if (! value.hasOwnProperty(property)) {
+                } else if (!value.hasOwnProperty(property)) {
                     acceptProperty = accept[property];
-                    if (acceptProperty.hasOwnProperty("default")) {
+                    if (acceptProperty.hasOwnProperty('default')) {
                         result[property] = acceptProperty.default;
                     }
                     return end();
@@ -179,38 +181,38 @@ JsonSchema.addRule("properties", {
                 }
 
                 var child = field.child(property, value[property], acceptProperty, value);
-                child.validate(function(err, report, value){
+                child.validate(function (err, report, value) {
                     result[property] = value;
 
                     end(err);
-                })
+                });
             });
         });
     }
 });
 
-JsonSchema.addRule("additionalProperties", {});
+JsonSchema.addRule('additionalProperties', {});
 
-JsonSchema.addRule("minProperties", {
-    validate : function(accept, value) {
+JsonSchema.addRule('minProperties', {
+    validate : function (accept, value) {
         return Object.keys(value).length >= accept;
     }
 });
 
-JsonSchema.addRule("maxProperties", {
-    validate : function(accept, value) {
+JsonSchema.addRule('maxProperties', {
+    validate : function (accept, value) {
         return Object.keys(value).length <= accept;
     }
 });
 
-JsonSchema.addRule("required", {
-    validate : function(accept, value, field) {
-        accept.forEach(function(property){
-            if (value.hasOwnProperty(property)) return;
+JsonSchema.addRule('required', {
+    validate : function (accept, value, field) {
+        accept.forEach(function (property) {
+            if (value.hasOwnProperty(property)) { return; }
 
             field.issue({
                 path : property,
-                rule  : "required"
+                rule  : 'required'
             });
         });
     }
@@ -221,57 +223,57 @@ JsonSchema.addRule("required", {
 // TODO Add items as Array value
 // TODO Add additionalItems
 
-JsonSchema.addRule("items", {
-    validate : function(accept, value, field) {
-        if (! Array.isArray(value)) return;
+JsonSchema.addRule('items', {
+    validate : function (accept, value, field) {
+        if (!Array.isArray(value)) { return; }
 
-        field.async(function(done){
+        field.async(function (done) {
             var result = [];
             var l = value.length;
 
             function end(err) {
-                if (l === null) return;
+                if (l === null) { return; }
 
                 --l;
 
-                if (err) l = null;
+                if (err) { l = null; }
 
-                if (! l) {
+                if (!l) {
                     done(err);
                 }
             }
 
-            value.forEach(function(item, i){
+            value.forEach(function (item, i) {
                 var child = field.child(i, item, accept, value);
-                child.validate(function(err, report, value){
-                    if (err) return end(err);
+                child.validate(function (err, report, value) {
+                    if (err) { return end(err); }
 
                     result[i] = value;
 
                     end();
-                })
+                });
             });
         });
     }
 });
 
-JsonSchema.addRule("minItems", {
-    validate : function(accept, value){
+JsonSchema.addRule('minItems', {
+    validate : function (accept, value) {
         return Array.isArray(value) && value.length >= accept;
     }
 });
 
 
-JsonSchema.addRule("maxItems", {
-    validate : function(accept, value){
+JsonSchema.addRule('maxItems', {
+    validate : function (accept, value) {
         return Array.isArray(value) && value.length <= accept;
     }
 });
 
-JsonSchema.addRule("uniqueItems", {
-    validate : function(accept, value, field){
-        if (! accept) return;
-        if (! Array.isArray(value)) return;
+JsonSchema.addRule('uniqueItems', {
+    validate : function (accept, value, field) {
+        if (!accept) { return; }
+        if (!Array.isArray(value)) { return; }
 
         var i = -1;
         var l = value.length;
