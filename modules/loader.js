@@ -13,6 +13,8 @@ require("colors");
 var modules, library, self, private = {}, shared = {};
 
 private.loaded = false;
+// Network height (network.height) and "good peers" (i.e. reachable peers and with height close to network.height).
+private.network = null;
 private.isActive = false;
 private.loadingLastBlock = null;
 private.genesisBlock = null;
@@ -70,16 +72,6 @@ private.syncTrigger = function (turnOn) {
 	}
 }
 
-private.loadFullDb = function (peer, cb) {
-	peer = modules.peer.inspect(peer);
-
-	var commonBlockId = private.genesisBlock.block.id;
-
-	library.logger.info("Loading blocks from genesis from " + peer.string);
-
-	modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
-}
-
 private.findUpdate = function (lastBlock, peer, cb) {
 	peer = modules.peer.inspect(peer);
 
@@ -91,17 +83,23 @@ private.findUpdate = function (lastBlock, peer, cb) {
 		}
 
 		library.logger.info("Found common block " + commonBlock.id + " (at " + commonBlock.height + ")" + " with peer " + peer.string);
+
+		// toRemove > 0 means node has forked from the other peer, in this case we will remove the "wrong blocks".
+		// TODO: Note from fixcrypt: I think removing blocks does not work here.
+		// TODO: Before removing try to confirm with other "good peers".
 		var toRemove = lastBlock.height - commonBlock.height;
 
 		if (toRemove > constants.activeDelegates * 10) {
 			library.logger.warn("Long fork, ban 60 min", peer.string);
 			modules.peer.state(peer.ip, peer.port, 0, 3600);
-			return cb();
+			return cb("Remote peer not in sync");
 		}
 
 		var overTransactionList = [];
+		// Removing applied transactions not yet included in a block (thus in unconfirmed state).
 		modules.transactions.undoUnconfirmedList(function (err, unconfirmedList) {
 			if (err) {
+				// Database likely corrupt
 				return process.exit(0);
 			}
 
@@ -111,6 +109,11 @@ private.findUpdate = function (lastBlock, peer, cb) {
 				modules.transactions.removeUnconfirmedTransaction(unconfirmedList[i]);
 			}
 
+			// Strategy:
+			// - Set Round in backward mode.
+			// - Remove Blocks (and transactions included in thoses blocks) until the commonBlock if needed.
+			// - Set Round in forward mode.
+			// - Process Blocks sent from the peer from commonBlock.
 			async.series([
 				function (cb) {
 					if (commonBlock.id != lastBlock.id) {
@@ -121,7 +124,6 @@ private.findUpdate = function (lastBlock, peer, cb) {
 				},
 				function (cb) {
 					library.bus.message("deleteBlocksBefore", commonBlock);
-
 					modules.blocks.deleteBlocksBefore(commonBlock, cb);
 				},
 				function (cb) {
@@ -133,9 +135,17 @@ private.findUpdate = function (lastBlock, peer, cb) {
 				},
 				function (cb) {
 					library.logger.debug("Loading blocks from peer " + peer.string);
-
-					modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, function (err, lastValidBlock) {
+					modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 						if (err) {
+							// Database Corruption...
+							//
+							// Strategy:
+							// - Set Round in backward mode.
+							// - Remove all "uploaded" blocks from the peers that have been applied.
+							// - Set Round in forward mode.
+							// - Apply unconfirmed transactions from the list.
+							//
+							// We are then supposed to be back in a correct state at commonBlock height.
 							modules.transactions.deleteHiddenTransaction();
 							library.logger.warn("Failed to load blocks, ban 60 min", peer.string);
 							modules.peer.state(peer.ip, peer.port, 0, 3600);
@@ -143,7 +153,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 							if (lastValidBlock) {
 								var uploaded = lastValidBlock.height - commonBlock.height;
 
-								if (toRemove < uploaded) {
+								if (toRemove < uploaded) { // Note from fixcrypt: Useless since the "else" block contains the exact same code logic imo.
 									library.logger.info("Removing blocks again until " + lastValidBlock.id + " (at " + lastValidBlock.height + ")");
 
 									async.series([
@@ -224,7 +234,7 @@ private.findUpdate = function (lastBlock, peer, cb) {
 						}
 					});
 				}
-			], cb)
+			], cb);
 		});
 	});
 }
@@ -235,7 +245,7 @@ private.loadBlocks = function (lastBlock, cb) {
 		method: "GET"
 	}, function (err, data) {
 		if (err) {
-			return cb();
+			return cb(err);
 		}
 
 		data.peer = modules.peer.inspect(data.peer);
@@ -256,17 +266,12 @@ private.loadBlocks = function (lastBlock, cb) {
 
 		if (!report) {
 			library.logger.warn("Failed to parse blockchain height: " + data.peer.string + "\n" + library.scheme.getLastError());
-			return cb();
+			return cb(err);
 		}
 
 		if (bignum(modules.blocks.getLastBlock().height).lt(data.body.height)) { // Diff in chainbases
 			private.blocksToSync = data.body.height;
-
-			if (lastBlock.id != private.genesisBlock.block.id) { // Have to find common block
-				private.findUpdate(lastBlock, data.peer, cb);
-			} else { // Have to load full db
-				private.loadFullDb(data.peer, cb);
-			}
+			private.findUpdate(lastBlock, data.peer, cb);
 		} else {
 			cb();
 		}
@@ -510,7 +515,197 @@ private.loadBlockChain = function () {
 	});
 }
 
+private.loadBlocksFromNetwork = function (cb) {
+	var counterrorload = 0;
+	var loaded = false;
+	self.getNetwork(function (err, network) {
+		if (err) {
+			private.loadBlocksFromNetwork(cb);
+		} else {
+			async.whilst(
+				function () {
+					return !loaded && counterrorload < 5;
+				},
+				function (next) {
+					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
+					var lastBlockId = modules.blocks.getLastBlock().id;
+					modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
+						if (err) {
+							library.logger.error("Could not load blocks from " + peer.ip, err);
+							library.logger.info("Trying to reload from another random peer");
+							counterrorload = counterrorload + 1;
+						}
+						loaded = lastValidBlock.id == lastBlockId;
+						next();
+					});
+				},
+				function (error) {
+					if (counterrorload == 5) {
+						library.logger.info("Peer is not well connected to network, resyncing from network");
+						return private.loadBlocksFromNetwork(cb);
+					}
+					if (error) {
+						library.logger.error("Could not load blocks from network", error);
+						return cb(error);
+					}
+					return cb();
+				}
+			);
+		}
+	});
+}
+
+// Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
+private.findGoodPeers = function (heights) {
+	// Removing unreachable peers
+	heights = heights.filter(function (item) {
+		return item != null;
+	});
+
+	// Assuming that the node reached at least 10% of the network
+	if (heights.length < 10) {
+		return null;
+	} else {
+		// Ordering the peers with descending height
+		heights = heights.sort(function (a,b) {
+			return b.height - a.height;
+		});
+		var histogram = {};
+		var max = 0;
+		var height;
+
+		var aggregation = 2; // Aggregating height by 2. TODO: To be changed if node latency increases?
+
+		// Histogram calculation, together with histogram maximum
+		for (i in heights) {
+			var val = parseInt(heights[i].height / aggregation) * aggregation;
+			histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
+
+			if (histogram[val] > max) {
+				max = histogram[val];
+				height = val;
+			}
+		}
+
+		// Performing histogram cut of peers too far from histogram maximum
+		var peers = heights.filter(function (item) {
+			return item && Math.abs(height - item.height) < aggregation + 1;
+		}).map(function (item) {
+			// Add the height info to the peer. To be removed?
+			item.peer.height = item.height;
+			return item.peer;
+		});
+		return {height: height, peers: peers};
+	}
+}
+
 // Public methods
+
+// Rationale:
+// - We pick 100 random peers from a random peer (could be unreachable).
+// - Then for each of them we grab the height of their blockchain.
+// - With this list we try to get a peer with sensibly good blockchain height (see private.findGoodPeers for actual strategy).
+Loader.prototype.getNetwork = function (cb) {
+	// If private.network is not so far (i.e. 1 round) from current node height, just return the cached one.
+	if(private.network && Math.abs(private.network.height - modules.blocks.getLastBlock().height) < 101){
+		return setImmediate(cb, null, private.network);
+	}
+	// Fetch a list of 100 random peers
+	// TODO: Get the list from database?
+	modules.transport.getFromRandomPeer({
+		api: '/list',
+		method: 'GET'
+	}, function (err, data) {
+		if (err) {
+			library.logger.info("Could not connect properly to the network", err);
+			library.logger.info("Retrying...", err);
+			return self.getNetwork(cb); // TODO: Use setImmediate to prevent from stack overflow?
+		}
+
+		var report = library.scheme.validate(data.body.peers, {type: "array", required: true, uniqueItems: true});
+
+		library.scheme.validate(data.body, {
+			type: "object",
+			properties: {
+				peers: {
+					type: "array",
+					uniqueItems: true
+				}
+			},
+			required: ['peers']
+		}, function (err) {
+			if (err) {
+				return cb(err);
+			}
+
+			var peers = data.body.peers;
+
+			// For each peer, we will get the height
+			async.map(peers, function (peer, cb) {
+				var ispeervalid = library.scheme.validate(peer, {
+					type: "object",
+					properties: {
+						ip: {
+							type: "string"
+						},
+						port: {
+							type: "integer",
+							minimum: 1,
+							maximum: 65535
+						},
+						state: {
+							type: "integer",
+							minimum: 0,
+							maximum: 3
+						},
+						os: {
+							type: "string"
+						},
+						version: {
+							type: "string"
+						}
+					},
+					required: ['ip', 'port', 'state']
+				});
+
+				if (ispeervalid) {
+					modules.transport.getFromPeer(peer, {
+						api: "/height",
+						method: "GET"
+					}, function (err, result) {
+						if (err) {
+							return cb(err);
+						}
+						var isheightvalid = library.scheme.validate(result.body, {
+							type: "object",
+							properties: {
+								"height": {
+									type: "integer",
+									minimum: 0
+								}
+							}, required: ["height"]
+						});
+
+						if (isheightvalid) {
+							library.logger.info("Checking blockchain on " + result.peer.string + " - received height: " + result.body.height);
+							var peer = modules.peer.inspect(result.peer);
+							return cb(null, {peer: peer, height: result.body.height});
+						}
+					});
+				}
+			},function (err, heights) {
+				private.network = private.findGoodPeers(heights);
+
+				if (!private.network) {
+					return setImmediate(cb, "Could not find enough good peers to connect");
+				} else {
+					return setImmediate(cb, null, private.network);
+				}
+			});
+		});
+	});
+}
+
 Loader.prototype.syncing = function () {
 	return !!private.syncIntervalId;
 }
@@ -522,23 +717,18 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 // Events
 Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadBlock () {
-		if (!private.loaded) return;
-		private.isActive = true;
-
 		library.sequence.add(function (cb) {
+			private.isActive = true;
 			private.syncTrigger(true);
-			var lastBlock = modules.blocks.getLastBlock();
-			private.loadBlocks(lastBlock, cb);
+			private.loadBlocksFromNetwork(cb);
 		}, function (err) {
-			err && library.logger.error("Blocks timer:", err);
+			err && library.logger.error("Blocks timer", err);
+			private.isActive = false;
 			private.syncTrigger(false);
 			private.blocksToSync = 0;
-
-			private.isActive = false;
-			if (!private.loaded) return;
-
-			setTimeout(nextLoadBlock, 9 * 1000);
 		});
+		library.logger.debug("Checking blockchain for new block in 10 seconds");
+		setTimeout(nextLoadBlock, 10 * 1000);
 	});
 
 	setImmediate(function nextLoadUnconfirmedTransactions () {
