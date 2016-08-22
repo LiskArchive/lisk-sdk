@@ -9,9 +9,6 @@ var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 var genesisBlock = null;
 
-// Private fields
-var __private = {};
-
 // Constructor
 function Account(scope, cb) {
 	this.scope = scope;
@@ -344,6 +341,9 @@ function Account(scope, cb) {
 
 	setImmediate(cb, null, this);
 }
+
+// Private methods
+var __private = {};
 
 Account.prototype.createTables = function (cb) {
 	var self = this;
