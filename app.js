@@ -235,6 +235,8 @@ d.run(function () {
 			var cors = require('cors');
 			var app = express();
 
+			require('./helpers/request-limiter')(app, appConfig);
+
 			app.use(compression({ level: 6 }));
 			app.use(cors());
 			app.options('*', cors());

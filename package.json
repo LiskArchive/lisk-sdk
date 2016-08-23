@@ -28,6 +28,7 @@
     "express": "=4.13.4",
     "express-domain-middleware": "=0.1.0",
     "express-query-int": "https://github.com/LiskHQ/express-query-int/tarball/master",
+    "express-rate-limit": "^2.4.0",
     "extend": "=3.0.0",
     "image-type": "=2.1.0",
     "ip": "=1.1.2",
