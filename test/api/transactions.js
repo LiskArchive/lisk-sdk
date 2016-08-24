@@ -268,17 +268,17 @@ describe("GET /api/transactions", function () {
         var senderId = "notAReadAddress", blockId = "about5", recipientId = Account1.address, limit = "aLOT", offset = "Boris", orderBy = "blockId:asc";
 
         node.onNewBlock(function (err) {
-        node.expect(err).to.be.not.ok;
-        node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-            .set("Accept", "application/json")
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err, res) {
-              // console.log(JSON.stringify(res.body));
-              node.expect(res.body).to.have.property("success").to.be.false;
-              node.expect(res.body).to.have.property("error");
-              done();
-            });
+            node.expect(err).to.be.not.ok;
+            node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
+                .set("Accept", "application/json")
+                .expect("Content-Type", /json/)
+                .expect(200)
+                .end(function (err, res) {
+                  // console.log(JSON.stringify(res.body));
+                  node.expect(res.body).to.have.property("success").to.be.false;
+                  node.expect(res.body).to.have.property("error");
+                  done();
+                });
         });
     });
 });
