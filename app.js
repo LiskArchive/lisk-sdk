@@ -213,7 +213,8 @@ d.run(function () {
 			});
 
 			z_schema.registerFormat('checkInt', function (value) {
-				if (isNaN(value) || parseInt(value) !== value || isNaN(parseInt(value, 10))) {
+				/*jslint eqeq: true*/
+				if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 					return false;
 				}
 
@@ -318,7 +319,8 @@ d.run(function () {
 						return value;
 					}
 
-					if (isNaN(value) || parseInt(value) !== value || isNaN(parseInt(value, radix))) {
+					/*jslint eqeq: true*/
+					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;
 					}
 
