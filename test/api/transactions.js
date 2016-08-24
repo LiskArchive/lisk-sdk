@@ -267,65 +267,59 @@ describe("GET /api/transactions", function () {
     it("Using partially invalid fields. Should fail", function (done) {
         var senderId = "notAReadAddress", blockId = "about5", recipientId = Account1.address, limit = "aLOT", offset = "Boris", orderBy = "blockId:asc";
 
-        node.onNewBlock(function (err) {
-            node.expect(err).to.be.not.ok;
-            node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-                .set("Accept", "application/json")
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                  // console.log(JSON.stringify(res.body));
-                  node.expect(res.body).to.have.property("success").to.be.false;
-                  node.expect(res.body).to.have.property("error");
-                  done();
-                });
-        });
+        node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
+            .set("Accept", "application/json")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+              // console.log(JSON.stringify(res.body));
+              node.expect(res.body).to.have.property("success").to.be.false;
+              node.expect(res.body).to.have.property("error");
+              done();
+            });
     });
 });
 
 describe("PUT /api/transactions", function () {
 
     it("Using valid parameters. Should be ok", function (done) {
-        node.onNewBlock(function (err) {
-            node.expect(err).to.be.not.ok;
-            var amountToSend = 100000000;
+        var amountToSend = 100000000;
 
-            node.api.put("/transactions")
-                .set("Accept", "application/json")
-                .send({
-                    secret: Account1.password,
-                    amount: amountToSend,
-                    recipientId: Account2.address
-                })
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    // console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("transactionId");
-                    if (res.body.success == true && res.body.transactionId != null) {
-                        expectedFee = node.expectedFee(amountToSend);
-                        Account1.balance -= (amountToSend + expectedFee);
-                        Account2.balance += amountToSend;
-                        Account1.transactions.push(transactionCount);
-                        transactionList[transactionCount] = {
-                            "sender": Account1.address,
-                            "recipient": Account2.address,
-                            "grossSent": (amountToSend + expectedFee) / node.normalizer,
-                            "fee": expectedFee / node.normalizer,
-                            "netSent": amountToSend / node.normalizer,
-                            "txId": res.body.transactionId,
-                            "type": node.TxTypes.SEND
-                        }
-                        transactionCount += 1;
-                    } else {
-                        // console.log("Failed Tx or transactionId is null");
-                        // console.log("Sent: secret: " + Account1.password + ", amount: " + amountToSend + ", recipientId: " + Account2.address);
-                        node.expect(false).to.equal(true);
+        node.api.put("/transactions")
+            .set("Accept", "application/json")
+            .send({
+                secret: Account1.password,
+                amount: amountToSend,
+                recipientId: Account2.address
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("transactionId");
+                if (res.body.success == true && res.body.transactionId != null) {
+                    expectedFee = node.expectedFee(amountToSend);
+                    Account1.balance -= (amountToSend + expectedFee);
+                    Account2.balance += amountToSend;
+                    Account1.transactions.push(transactionCount);
+                    transactionList[transactionCount] = {
+                        "sender": Account1.address,
+                        "recipient": Account2.address,
+                        "grossSent": (amountToSend + expectedFee) / node.normalizer,
+                        "fee": expectedFee / node.normalizer,
+                        "netSent": amountToSend / node.normalizer,
+                        "txId": res.body.transactionId,
+                        "type": node.TxTypes.SEND
                     }
-                    done();
-                });
-        });
+                    transactionCount += 1;
+                } else {
+                    // console.log("Failed Tx or transactionId is null");
+                    // console.log("Sent: secret: " + Account1.password + ", amount: " + amountToSend + ", recipientId: " + Account2.address);
+                    node.expect(false).to.equal(true);
+                }
+                done();
+            });
     });
 
     it("Using negative amount. Should fail", function (done) {
@@ -622,22 +616,20 @@ describe("PUT /signatures", function () {
     });
 
     it("Using invalid passphrase. Should fail", function (done) {
-        node.onNewBlock(function () {
-            node.api.put("/signatures")
-                .set("Accept", "application/json")
-                .send({
-                    secret: "Account1.password",
-                    secondSecret: Account1.password
-                })
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    // console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.false;
-                    node.expect(res.body).to.have.property("error");
-                    done();
-                });
-        });
+        node.api.put("/signatures")
+            .set("Accept", "application/json")
+            .send({
+                secret: "Account1.password",
+                secondSecret: Account1.password
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
     });
 
     it("Using no second passphrase. Should fail", function (done) {
@@ -657,43 +649,41 @@ describe("PUT /signatures", function () {
     });
 
     it("Using valid parameters. Should be ok ", function (done) {
-        node.onNewBlock(function () {
-            node.api.put("/signatures")
-                .set("Accept", "application/json")
-                .send({
-                    secret: Account1.password,
-                    secondSecret: Account1.secondPassword
-                })
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    // console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("transaction").that.is.an("object");
-                    if (res.body.success == true && res.body.transaction != null) {
-                        node.expect(res.body.transaction).to.have.property("type").to.equal(node.TxTypes.SIGNATURE);
-                        node.expect(res.body.transaction).to.have.property("senderPublicKey").to.equal(Account1.publicKey);
-                        node.expect(res.body.transaction).to.have.property("senderId").to.equal(Account1.address);
-                        node.expect(res.body.transaction).to.have.property("fee").to.equal(node.Fees.secondPasswordFee);
-                        Account1.transactions.push(transactionCount);
-                        transactionCount += 1;
-                        Account1.balance -= node.Fees.secondPasswordFee;
-                        transactionList[transactionCount - 1] = {
-                            "sender": Account1.address,
-                            "recipient": "SYSTEM",
-                            "grossSent": 0,
-                            "fee": node.Fees.secondPasswordFee,
-                            "netSent": 0,
-                            "txId": res.body.transaction.id,
-                            "type":node.TxTypes.SIGNATURE
-                        }
-                    } else {
-                        // console.log("Transaction failed or transaction object is null");
-                        // console.log("Sent: secret: " + Account1.password + ", secondSecret: " + Account1.secondPassword);
-                        node.expect(false).to.equal(true);
+        node.api.put("/signatures")
+            .set("Accept", "application/json")
+            .send({
+                secret: Account1.password,
+                secondSecret: Account1.secondPassword
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("transaction").that.is.an("object");
+                if (res.body.success == true && res.body.transaction != null) {
+                    node.expect(res.body.transaction).to.have.property("type").to.equal(node.TxTypes.SIGNATURE);
+                    node.expect(res.body.transaction).to.have.property("senderPublicKey").to.equal(Account1.publicKey);
+                    node.expect(res.body.transaction).to.have.property("senderId").to.equal(Account1.address);
+                    node.expect(res.body.transaction).to.have.property("fee").to.equal(node.Fees.secondPasswordFee);
+                    Account1.transactions.push(transactionCount);
+                    transactionCount += 1;
+                    Account1.balance -= node.Fees.secondPasswordFee;
+                    transactionList[transactionCount - 1] = {
+                        "sender": Account1.address,
+                        "recipient": "SYSTEM",
+                        "grossSent": 0,
+                        "fee": node.Fees.secondPasswordFee,
+                        "netSent": 0,
+                        "txId": res.body.transaction.id,
+                        "type":node.TxTypes.SIGNATURE
                     }
-                    done();
-                });
+                } else {
+                    // console.log("Transaction failed or transaction object is null");
+                    // console.log("Sent: secret: " + Account1.password + ", secondSecret: " + Account1.secondPassword);
+                    node.expect(false).to.equal(true);
+                }
+                done();
             });
     });
 });
