@@ -60,7 +60,6 @@ function sendLISK (account, done) {
                 // console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
                 // console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
                 account.balance += randomLISK;
-                account.transactions.push(transactionCount);
                 transactionList[transactionCount - 1] = {
                     'sender': node.Gaccount.address,
                     'recipient': account.address,
