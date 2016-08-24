@@ -3,7 +3,6 @@
 // Requires and node configuration
 var node = require("./../variables.js");
 
-// Account info for a RANDOM account (which we create later) - 0 LISK amount | Will act as delegate
 var Account1 = node.randomTxAccount();
 var Account2 = node.randomTxAccount();
 var Account3 = node.randomTxAccount();
@@ -12,7 +11,6 @@ var transactionCount = 0;
 var transactionList = [];
 var offsetTimestamp = 0;
 
-// Used for calculating amounts
 var expectedFee = 0;
 var totalTxFee = 0;
 var randomLISK = 0;
@@ -109,7 +107,6 @@ before(function (done) {
 });
 
 before(function (done) {
-    // Wait for new block to ensure all data has been recieved
     node.onNewBlock(function (err) {
         node.expect(err).to.be.not.ok;
         // console.log("ACCOUNT 1:" + Account1);
@@ -123,8 +120,6 @@ describe("GET /api/transactions", function () {
     it("Using valid parameters. Should be ok", function (done) {
         var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 10, offset = 0, orderBy = "amount:asc";
 
-        // console.log(Account1);
-        // console.log("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy);
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
             .expect("Content-Type", /json/)
