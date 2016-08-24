@@ -40,7 +40,7 @@ before(function (done) {
             } else {
                  console.log("Unable to open account1, tests will fail");
                  console.log("Data sent: secret: " + Account1.password + " , secondSecret: " + Account1.secondPassword );
-                 node.expect("TEST").to.equal("FAILED");
+                 node.expect(false).to.equal(true);
             }
             done();
         });
@@ -66,7 +66,7 @@ before(function (done) {
              } else {
                   console.log("Unable to open account2, tests will fail");
                   console.log("Data sent: secret: " + Account2.password + " , secondSecret: " + Account2.secondPassword );
-                  node.expect("TEST").to.equal("FAILED");
+                  node.expect(false).to.equal(true);
              }
              done();
         });
@@ -92,7 +92,7 @@ before(function (done) {
             } else {
                 console.log("Unable to open account3, tests will fail");
                 console.log("Data sent: secret: " + Account3.password + " , secondSecret: " + Account3.secondPassword );
-                node.expect("TEST").to.equal("FAILED");
+                node.expect(false).to.equal(true);
             }
             done();
         });
@@ -122,7 +122,7 @@ before(function (done) {
                 } else {
                     // console.log("Sending LISK to Account1 failed.");
                     // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -165,7 +165,7 @@ before(function (done) {
                 } else {
                     console.log("Sending LISK to Account2 failed.");
                     console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });

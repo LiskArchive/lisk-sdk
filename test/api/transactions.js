@@ -37,7 +37,7 @@ before(function (done) {
             } else {
                 // console.log("Unable to open account1, tests will fail");
                 // console.log("Data sent: secret: " + Account1.password + " , secondSecret: " + Account1.secondPassword );
-                node.expect("TEST").to.equal("FAILED");
+                node.expect(false).to.equal(true);
             }
             done();
         });
@@ -63,7 +63,7 @@ before(function (done) {
             } else {
                 // console.log("Unable to open account2, tests will fail");
                 // console.log("Data sent: secret: " + Account2.password + " , secondSecret: " + Account2.secondPassword );
-                node.expect("TEST").to.equal("FAILED");
+                node.expect(false).to.equal(true);
             }
             done();
         });
@@ -89,7 +89,7 @@ before(function (done) {
             } else {
                 // console.log("Unable to open account3, tests will fail");
                 // console.log("Data sent: secret: " + Account3.password + " , secondSecret: " + Account3.secondPassword );
-                node.expect("TEST").to.equal("FAILED");
+                node.expect(false).to.equal(true);
             }
             done();
         });
@@ -132,7 +132,7 @@ before(function (done) {
                 } else {
                     // console.log("Sending LISK to Account1 failed.");
                     // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -177,7 +177,7 @@ before(function (done) {
                 } else {
                     // console.log("Sending LISK to Account2 failed.");
                     // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -218,7 +218,7 @@ describe("GET /api/transactions", function () {
                     }
                 } else {
                     // console.log("Request failed. Expected success");
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -265,7 +265,7 @@ describe("GET /api/transactions", function () {
                         }
                     } else {
                         // console.log("Request failed. Expected success");
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -401,7 +401,7 @@ describe("PUT /api/transactions", function () {
                     } else {
                         // console.log("Failed Tx or transactionId is null");
                         // console.log("Sent: secret: " + Account1.password + ", amount: " + amountToSend + ", recipientId: " + Account2.address);
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -608,7 +608,7 @@ describe("GET /transactions/get?id=", function () {
                     node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
                 } else {
                     // console.log("Transaction failed or transaction list is null");
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -646,7 +646,7 @@ describe("GET /transactions", function () {
                     }
                 } else {
                     // console.log("Request failed or transaction list is null");
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -784,7 +784,7 @@ describe("PUT /signatures", function () {
                 } else {
                     // console.log("Transaction failed or transaction object is null");
                     // console.log("Sent: secret: " + Account1.password + ", secondSecret: " + Account1.secondPassword);
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });

@@ -94,7 +94,7 @@ describe("PUT /delegates without funds", function () {
                 } else {
                     // console.log("Expected error and got success");
                     // console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -125,7 +125,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 } else {
                     // console.log("Transaction failed or transactionId is null");
                     // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + node.LISK + ", recipientId: " + Raccount.address);
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -152,7 +152,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     } else {
                         // console.log("Failed to open account or account object is null");
                         // console.log("Sent: secret: " + Raccount.password);
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -250,7 +250,7 @@ describe("PUT /accounts/delegates with funds", function () {
                 } else {
                     // console.log("Transaction failed or transaction object is null");
                     // console.log("Sent: secret: " + Raccount.password + ", delegates: [+" + node.Eaccount.publicKey + "]");
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -275,7 +275,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     } else {
                         // console.log("Expected error but got success");
                         // console.log("Sent: secret: " + Raccount.password + ", delegates: [+" + node.Eaccount.publicKey + "]");
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -305,7 +305,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     } else {
                         // console.log("Expected success but got error");
                         // console.log("Sent: secret: " + Raccount.password + ", delegates: [-" + node.Eaccount.publicKey + "]");
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -331,7 +331,7 @@ describe("PUT /accounts/delegates with funds", function () {
                     } else {
                         // console.log("Expected error but got success");
                         // console.log("Sent: secret: " + Raccount.password + ", delegates: [-" + node.Eaccount.publicKey + "]");
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -471,7 +471,7 @@ describe("PUT /delegates with funds", function () {
                         } else {
                             // console.log("Transaction failed or transactionId is null");
                             // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + node.LISK + ", recipientId: " + R2account.address);
-                            node.expect("TEST").to.equal("FAILED");
+                            node.expect(false).to.equal(true);
                         }
                         done();
                     });
@@ -498,7 +498,7 @@ describe("PUT /delegates with funds", function () {
                     } else {
                         // console.log("Failed to open account or account object is null");
                         // console.log("Sent: secret: " + R2account.password);
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -622,7 +622,7 @@ describe("PUT /delegates with funds", function () {
                     } else {
                         // console.log("Transaction failed or transaction object is null");
                         // console.log("Sent: secret: " + Raccount.password + ", username: " + Raccount.username);
-                        node.expect("TEST").to.equal("FAILED");
+                        node.expect(false).to.equal(true);
                     }
                     done();
                 });
@@ -707,7 +707,7 @@ describe("GET /delegates", function () {
                     }
                 } else {
                     // console.log("Got 0 delegates");
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
@@ -738,7 +738,7 @@ describe("GET /delegates", function () {
                     }
                 } else {
                     // console.log("Got 0 delegates");
-                    node.expect("TEST").to.equal("FAILED");
+                    node.expect(false).to.equal(true);
                 }
                 done();
             });
