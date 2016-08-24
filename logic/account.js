@@ -493,16 +493,14 @@ Account.prototype.set = function (address, fields, cb) {
 
 	// Normalize address
 	address = String(address).toUpperCase();
-
 	fields.address = address;
-	var account = fields;
 
 	var sql = jsonSql.build({
 		type: 'insertorupdate',
 		table: this.table,
 		conflictFields: ['address'],
-		values: this.toDB(account),
-		modifier: this.toDB(account)
+		values: this.toDB(fields),
+		modifier: this.toDB(fields)
 	});
 
 	self.scope.db.none(sql.query, sql.values).then(function () {
