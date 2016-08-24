@@ -156,9 +156,9 @@ before(function (done) {
                     transactionList[transactionCount - 1] = {
                         "sender": node.Gaccount.address,
                         "recipient": Account2.address,
-                        "brutoSent": (randomLISK + expectedFee) / node.normalizer,
+                        "grossSent": (randomLISK + expectedFee) / node.normalizer,
                         "fee": expectedFee / node.normalizer,
-                        "nettoSent": randomLISK / node.normalizer,
+                        "netSent": randomLISK / node.normalizer,
                         "txId": res.body.transactionId,
                         "type":node.TxTypes.SEND
                     }
