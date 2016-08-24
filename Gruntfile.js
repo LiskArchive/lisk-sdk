@@ -103,7 +103,10 @@ module.exports = function (grunt) {
 				'modules/**/*.js',
 				'logic/**/*.js',
 				'sql/**/*.js',
-				'tasks/**/*.js'
+				'tasks/**/*.js',
+				'test/*.js',
+				'test/api/**/*.js',
+				'test/unit/**/*.js'
 			]
 		}
 	});
