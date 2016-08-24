@@ -616,6 +616,7 @@ shared.getTransactions = function (req, cb) {
 
 shared.getTransaction = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -641,6 +642,7 @@ shared.getTransaction = function (req, cb) {
 
 shared.getUnconfirmedTransaction = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -705,6 +707,7 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 
 shared.addTransactions = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: 'object',
 		properties: {
@@ -760,6 +763,7 @@ shared.addTransactions = function (req, cb) {
 				}
 
 				var recipientId = recipient ? recipient.address : body.recipientId;
+
 				if (!recipientId) {
 					return cb('Recipient not found');
 				}
