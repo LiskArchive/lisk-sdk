@@ -1,4 +1,4 @@
-"use strict";
+'use strict'; /*jslint mocha:true */
 
 var node = require("./../variables.js"),
     crypto = require("crypto");

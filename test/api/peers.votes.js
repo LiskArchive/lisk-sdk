@@ -1,4 +1,4 @@
-"use strict";
+'use strict'; /*jslint mocha:true */
 
 var async = require("async");
 var node = require("./../variables.js");
