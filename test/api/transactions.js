@@ -123,9 +123,9 @@ before(function (done) {
                     transactionList[transactionCount - 1] = {
                         "sender": node.Gaccount.address,
                         "recipient": Account1.address,
-                        "brutoSent": (randomLISK + expectedFee) / node.normalizer,
+                        "grossSent": (randomLISK + expectedFee) / node.normalizer,
                         "fee": expectedFee / node.normalizer,
-                        "nettoSent": randomLISK / node.normalizer,
+                        "netSent": randomLISK / node.normalizer,
                         "txId": res.body.transactionId,
                         "type":node.TxTypes.SEND
                     }
@@ -168,9 +168,9 @@ before(function (done) {
                     transactionList[transactionCount - 1] = {
                         "sender": node.Gaccount.address,
                         "recipient": Account2.address,
-                        "brutoSent": (randomLISK + expectedFee) / node.normalizer,
+                        "grossSent": (randomLISK + expectedFee) / node.normalizer,
                         "fee": expectedFee / node.normalizer,
-                        "nettoSent": randomLISK / node.normalizer,
+                        "netSent": randomLISK / node.normalizer,
                         "txId": res.body.transactionId,
                         "type":node.TxTypes.SEND
                     }
@@ -392,9 +392,9 @@ describe("PUT /api/transactions", function () {
                         transactionList[transactionCount] = {
                             "sender": Account1.address,
                             "recipient": Account2.address,
-                            "brutoSent": (amountToSend + expectedFee) / node.normalizer,
+                            "grossSent": (amountToSend + expectedFee) / node.normalizer,
                             "fee": expectedFee / node.normalizer,
-                            "nettoSent": amountToSend / node.normalizer,
+                            "netSent": amountToSend / node.normalizer,
                             "txId": res.body.transactionId,
                             "type": node.TxTypes.SEND
                         }
@@ -602,7 +602,7 @@ describe("GET /transactions/get?id=", function () {
                 node.expect(res.body).to.have.property("transaction").that.is.an("object");
                 if (res.body.success == true && res.body.transaction.id != null) {
                     node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
-                    node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.nettoSent);
+                    node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
                     node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
                     node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
                     node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
@@ -776,9 +776,9 @@ describe("PUT /signatures", function () {
                     transactionList[transactionCount - 1] = {
                         "sender": Account1.address,
                         "recipient": "SYSTEM",
-                        "brutoSent": 0,
+                        "grossSent": 0,
                         "fee": node.Fees.secondPasswordFee,
-                        "nettoSent": 0,
+                        "netSent": 0,
                         "txId": res.body.transaction.id,
                         "type":node.TxTypes.SIGNATURE
                     }
