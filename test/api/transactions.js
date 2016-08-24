@@ -136,7 +136,7 @@ before(function (done) {
                 }
                 done();
             });
-    },2000);
+    }, 2000);
 });
 
 before(function (done) {
@@ -181,7 +181,7 @@ before(function (done) {
                 }
                 done();
             });
-    },2000);
+    }, 2000);
 });
 
 before(function (done) {
@@ -370,6 +370,7 @@ describe("PUT /api/transactions", function () {
         node.onNewBlock(function (err) {
             node.expect(err).to.be.not.ok;
             var amountToSend = 100000000;
+
             node.api.put("/transactions")
                 .set("Accept", "application/json")
                 .send({
