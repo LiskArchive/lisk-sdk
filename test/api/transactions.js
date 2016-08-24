@@ -11,9 +11,6 @@ var transactionCount = 0;
 var transactionList = [];
 var offsetTimestamp = 0;
 
-var expectedFee = 0;
-var randomLISK = 0;
-
 function openAccount (account, done) {
     node.api.post('/accounts/open')
         .set('Accept', 'application/json')
@@ -41,8 +38,8 @@ function openAccount (account, done) {
 }
 
 function sendLISK (account, done) {
-    randomLISK = node.randomLISK();
-    expectedFee = node.expectedFee(randomLISK);
+    var randomLISK = node.randomLISK();
+    var expectedFee = node.expectedFee(randomLISK);
 
     node.api.put('/transactions')
         .set('Accept', 'application/json')
