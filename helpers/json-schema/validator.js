@@ -7,7 +7,7 @@ module.exports = JsonSchema;
 var Validator = require('../validator');
 var Field = require('./field');
 
-function JsonSchema(options) {
+function JsonSchema (options) {
 	Validator.call(this, options);
 }
 

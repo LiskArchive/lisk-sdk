@@ -11,7 +11,7 @@ module.exports = Field;
  * @param {*} thisArg Value used as this reference within rule callback calls.
  * @constructor
  */
-function Field(validator, path, value, rules, thisArg) {
+function Field (validator, path, value, rules, thisArg) {
 	this.isAsync = false;
 	this.hasError = false;
 	this.rules = rules;
