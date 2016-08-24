@@ -690,27 +690,28 @@ describe("PUT /signatures", function () {
 
 describe("PUT /transactions (with second passphase now enabled)", function () {
 
+    before(function (done) {
+        node.onNewBlock(done);
+    });
+
     it("Without specifying second passphase on account. Should fail", function (done) {
         var amountToSend = 100000000;
-        node.onNewBlock(function (err) {
-            node.expect(err).to.be.not.ok;
 
-            node.api.put("/transactions")
-                .set("Accept", "application/json")
-                .send({
-                    secret: Account1.password,
-                    recipientId: Account2.address,
-                    amount: amountToSend
-                })
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    // console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.false;
-                    node.expect(res.body).to.have.property("error");
-                    done();
-                });
-        });
+        node.api.put("/transactions")
+            .set("Accept", "application/json")
+            .send({
+                secret: Account1.password,
+                recipientId: Account2.address,
+                amount: amountToSend
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.false;
+                node.expect(res.body).to.have.property("error");
+                done();
+            });
     });
 
     it("Using second passphase but without primary passphase. Should fail", function (done) {
