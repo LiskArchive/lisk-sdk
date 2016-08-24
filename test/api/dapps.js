@@ -123,7 +123,7 @@ before(function (done) {
                 }
                 done();
             });
-    },2000);
+    }, 2000);
 });
 
 before(function (done) {
@@ -166,7 +166,7 @@ before(function (done) {
                 }
                 done();
             });
-    },2000);
+    }, 2000);
 });
 
 before(function (done) {
