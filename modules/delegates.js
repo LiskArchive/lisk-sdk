@@ -332,6 +332,7 @@ __private.attachApi = function () {
 
 	router.post('/forging/enable', function (req, res) {
 		var body = req.body;
+
 		library.scheme.validate(body, {
 			type: 'object',
 			properties: {
@@ -386,6 +387,7 @@ __private.attachApi = function () {
 
 	router.post('/forging/disable', function (req, res) {
 		var body = req.body;
+
 		library.scheme.validate(body, {
 			type: 'object',
 			properties: {
@@ -967,6 +969,7 @@ shared.count = function (req, cb) {
 
 shared.getVoters = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -1078,6 +1081,7 @@ shared.getFee = function (req, cb) {
 
 shared.getForgedByAccount = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -1104,6 +1108,7 @@ shared.getForgedByAccount = function (req, cb) {
 
 shared.addDelegate = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: 'object',
 		properties: {
