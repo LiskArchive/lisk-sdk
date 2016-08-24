@@ -10,11 +10,9 @@ var randomLISK = 0;
 var transactionCount = 0;
 var transactionList = [];
 
-// Used for calculating amounts
 var expectedFee = 0;
 var totalTxFee = 0;
 
-// Create random accounts
 var Account1 = node.randomTxAccount();
 var Account2 = node.randomTxAccount();
 var Account3 = node.randomTxAccount();

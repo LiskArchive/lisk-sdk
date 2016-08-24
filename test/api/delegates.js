@@ -2,16 +2,13 @@
 
 var node = require("./../variables.js");
 
-// Account info for a RANDOM account (which we create later) - 0 LISK amount | Will act as delegate
 var Raccount = node.randomAccount();
 while (Raccount.username === Raccount.username.toUpperCase()) {
     Raccount = node.randomAccount();
 }
 
-// Second RANDOM account - 0 LISK amount | Will test registration with same delegate name, changing case
 var R2account = node.randomAccount();
 R2account.username = Raccount.username.toUpperCase();
-// console.log(JSON.stringify(R2account));
 
 describe("PUT /accounts/delegates without funds", function () {
 

@@ -24,7 +24,6 @@ var MultiSigTX = {
     txId: ""
 }
 
-// Used for opening accounts
 var accountOpenTurn = 0;
 
 function openAccount (account, i, done) {
