@@ -127,11 +127,11 @@ before(function (done) {
                         "fee": expectedFee / node.normalizer,
                         "netSent": randomLISK / node.normalizer,
                         "txId": res.body.transactionId,
-                        "type":node.TxTypes.SEND
+                        "type": node.TxTypes.SEND
                     }
                 } else {
                     // console.log("Sending LISK to Account1 failed.");
-                    // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address );
+                    // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account1.address);
                     node.expect(false).to.equal(true);
                 }
                 done();
@@ -156,11 +156,10 @@ before(function (done) {
             .expect(200)
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
-                // console.log("Sending LISK from genesis account to account. Recipient is: " + Account2.address);
-                // console.log("Sent to " + Account2.address + " " + (randomLISK / node.normalizer) + " LISK");
-                // console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
                 node.expect(res.body).to.have.property("success").to.be.true;
                 if (res.body.success == true && res.body.transactionId != null) {
+                    // console.log("Sent to " + Account1.address + " " + (randomLISK / node.normalizer) + " LISK");
+                    // console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
                     Account2.transactions.push(transactionCount);
                     transactionCount += 1;
                     totalTxFee += (expectedFee / node.normalizer);
@@ -172,11 +171,11 @@ before(function (done) {
                         "fee": expectedFee / node.normalizer,
                         "netSent": randomLISK / node.normalizer,
                         "txId": res.body.transactionId,
-                        "type":node.TxTypes.SEND
+                        "type": node.TxTypes.SEND
                     }
                 } else {
                     // console.log("Sending LISK to Account2 failed.");
-                    // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address );
+                    // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + Account2.address);
                     node.expect(false).to.equal(true);
                 }
                 done();
