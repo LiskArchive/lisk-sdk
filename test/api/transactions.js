@@ -665,8 +665,8 @@ describe("PUT /signatures", function () {
                     node.expect(res.body.transaction).to.have.property("senderId").to.equal(Account1.address);
                     node.expect(res.body.transaction).to.have.property("fee").to.equal(node.Fees.secondPasswordFee);
                     Account1.transactions.push(transactionCount);
-                    transactionCount += 1;
                     Account1.balance -= node.Fees.secondPasswordFee;
+                    transactionCount += 1;
                     transactionList[transactionCount - 1] = {
                         "sender": Account1.address,
                         "recipient": "SYSTEM",
