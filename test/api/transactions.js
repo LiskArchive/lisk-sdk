@@ -430,6 +430,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using float amount. Should fail", function (done) {
         var amountToSend = 1.2;
+
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
@@ -448,7 +449,6 @@ describe("PUT /api/transactions", function () {
     });
 
     it("Using entire balance. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
@@ -469,7 +469,6 @@ describe("PUT /api/transactions", function () {
     });
 
     it("Using zero amount. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
@@ -490,7 +489,6 @@ describe("PUT /api/transactions", function () {
     });
 
     it("Using positive overflown amount. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
@@ -511,7 +509,6 @@ describe("PUT /api/transactions", function () {
     });
 
     it("Using negative overflown amount. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
@@ -532,7 +529,6 @@ describe("PUT /api/transactions", function () {
     });
 
     it("Using small fractional amount. Should be ok", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
@@ -554,6 +550,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using no passphase. Should fail", function (done) {
         var amountToSend = 100000000;
+
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
@@ -572,6 +569,7 @@ describe("PUT /api/transactions", function () {
 
     it("Using no recipient. Should fail", function (done) {
         var amountToSend = 100000000;
+
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
@@ -697,7 +695,6 @@ describe("GET /transactions/unconfirmed", function () {
 describe("PUT /signatures", function () {
 
     it("When account has no funds. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
@@ -736,7 +733,6 @@ describe("PUT /signatures", function () {
     });
 
     it("Using no second passphrase. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
             node.api.put("/signatures")
                 .set("Accept", "application/json")
@@ -823,7 +819,7 @@ describe("PUT /transactions (with second passphase now enabled)", function () {
 
     it("Using second passphase but without primary passphase. Should fail", function (done) {
         var amountToSend = 100000000;
-        this.timeout(5000);
+
         setTimeout(function () {
             node.api.put("/transactions")
                 .set("Accept", "application/json")
@@ -847,7 +843,6 @@ describe("PUT /transactions (with second passphase now enabled)", function () {
 describe("PUT /delegates (with second passphase now enabled)", function () {
 
     it("Without specifying second passphase on account. Should fail", function (done) {
-        this.timeout(5000);
         setTimeout(function () {
             node.api.put("/delegates")
                 .set("Accept", "application/json")
