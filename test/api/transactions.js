@@ -12,7 +12,6 @@ var transactionList = [];
 var offsetTimestamp = 0;
 
 var expectedFee = 0;
-var totalTxFee = 0;
 var randomLISK = 0;
 
 function openAccount (account, done) {
@@ -62,7 +61,6 @@ function sendLISK (account, done) {
                 // console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
                 account.balance += randomLISK;
                 account.transactions.push(transactionCount);
-                totalTxFee += (expectedFee / node.normalizer);
                 transactionList[transactionCount - 1] = {
                     'sender': node.Gaccount.address,
                     'recipient': account.address,
