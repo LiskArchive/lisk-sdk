@@ -688,7 +688,7 @@ describe("PUT /signatures", function () {
     });
 });
 
-describe("PUT /transactions (with second passphase now enabled)", function () {
+describe("PUT /transactions on account with second passphase enabled", function () {
 
     before(function (done) {
         node.onNewBlock(done);
@@ -735,7 +735,7 @@ describe("PUT /transactions (with second passphase now enabled)", function () {
     });
 });
 
-describe("PUT /delegates (with second passphase now enabled)", function () {
+describe("PUT /delegates on account with second passphase enabled", function () {
 
     it("Without specifying second passphase on account. Should fail", function (done) {
         node.api.put("/delegates")
