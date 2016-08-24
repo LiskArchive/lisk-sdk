@@ -1,6 +1,5 @@
 'use strict'; /*jslint mocha:true */
 
-// Requires and node configuration
 var async = require("async");
 var node = require("./../variables.js");
 

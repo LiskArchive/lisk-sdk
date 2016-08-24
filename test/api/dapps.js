@@ -1,9 +1,8 @@
 'use strict'; /*jslint mocha:true */
 
+var node = require("./../variables.js");
 var path = require("path");
 
-// Requires and node configuration
-var node = require("./../variables.js");
 var Dapp = {};
 var DappName = "";
 var DappToInstall = {};

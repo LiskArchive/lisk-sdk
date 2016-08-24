@@ -1,10 +1,8 @@
 'use strict'; /*jslint mocha:true */
 
-var path = require("path");
-var spawn = require("child_process").spawn;
-
-// Requires and node configuration
 var node = require("./../variables.js");
+var spawn = require("child_process").spawn;
+var path = require("path");
 
 // Account info for password "sebastian" - 0 LISK amount
 var Saccount = {

@@ -1,6 +1,5 @@
 'use strict'; /*jslint mocha:true */
 
-// Requires and node configuration
 var node = require("./../variables.js");
 
 // Account info for a RANDOM account (which we create later) - 0 LISK amount | Will act as delegate

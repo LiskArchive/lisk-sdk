@@ -1,6 +1,5 @@
 'use strict'; /*jslint mocha:true */
 
-// Requires and node configuration
 var node = require("./../variables.js");
 
 describe("GET /loader/status/ping", function () {
