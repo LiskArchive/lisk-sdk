@@ -1,8 +1,8 @@
 'use strict';
 
-var constants = require('./constants.js');
+var constants = require('../helpers/constants.js');
 
-function BlockReward() {
+function BlockReward () {
 	var milestones = [
 		500000000, // Initial Reward
 		400000000, // Milestone 1
@@ -94,5 +94,5 @@ function BlockReward() {
 	};
 }
 
-// Exports
+// Export
 module.exports = BlockReward;

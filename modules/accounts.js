@@ -6,7 +6,7 @@ var ed = require('ed25519');
 var slots = require('../helpers/slots.js');
 var Router = require('../helpers/router.js');
 var util = require('util');
-var blockReward = require('../helpers/blockReward.js');
+var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var util = require('util');
@@ -17,7 +17,7 @@ var sandboxHelper = require('../helpers/sandbox.js');
 var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
-__private.blockReward = new blockReward();
+__private.blockReward = new BlockReward();
 
 // Constructor
 function Accounts (cb, scope) {

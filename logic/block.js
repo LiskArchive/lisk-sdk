@@ -6,7 +6,7 @@ var crypto = require('crypto');
 var genesisblock = null;
 var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
-var blockReward = require('../helpers/blockReward.js');
+var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 
 // Constructor
@@ -21,7 +21,7 @@ function Block (scope, cb) {
 // Private methods
 var __private = {};
 
-__private.blockReward = new blockReward();
+__private.blockReward = new BlockReward();
 
 __private.getAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();

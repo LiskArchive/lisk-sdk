@@ -3,7 +3,7 @@
 var chai = require("chai");
 var expect = require("chai").expect;
 
-var BlockReward = require("../../../helpers/blockReward.js");
+var BlockReward = require("../../../logic/blockReward.js");
 var constants = require("../../../helpers/constants.js");
 
 constants.rewards.distance = 3000000;

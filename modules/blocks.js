@@ -6,7 +6,7 @@ var ip = require('ip');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var genesisblock = null;
-var blockReward = require('../helpers/blockReward.js');
+var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 var Inserts = require('../helpers/inserts.js');
 var OrderBy = require('../helpers/orderBy.js');
@@ -24,7 +24,7 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.lastBlock = {};
 __private.lastReceipt = null;
-__private.blockReward = new blockReward();
+__private.blockReward = new BlockReward();
 
 // @formatter:off
 __private.blocksDataFields = {

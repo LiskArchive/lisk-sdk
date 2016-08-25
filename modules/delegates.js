@@ -9,7 +9,7 @@ var bignum = require('../helpers/bignum.js');
 var Router = require('../helpers/router.js');
 var slots = require('../helpers/slots.js');
 var schedule = require('node-schedule');
-var blockReward = require('../helpers/blockReward.js');
+var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
@@ -25,7 +25,7 @@ var modules, library, self, __private = {}, shared = {};
 __private.assetTypes = {};
 __private.loaded = false;
 __private.forging = false;
-__private.blockReward = new blockReward();
+__private.blockReward = new BlockReward();
 __private.keypairs = {};
 
 // Constructor
