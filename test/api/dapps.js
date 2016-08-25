@@ -213,7 +213,7 @@ describe("PUT /dapps", function () {
             });
     });
 
-    it("Using invalid Category. Should fail", function (done) {
+    it("Using invalid category. Should fail", function (done) {
         node.api.put("/dapps")
             .set("Accept", "application/json")
             .send({
