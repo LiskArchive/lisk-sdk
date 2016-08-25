@@ -1414,7 +1414,7 @@ __private.list = function (filter, cb) {
 		var category = dappCategories[filter.category];
 
 		if (category !== null && category !== undefined) {
-			where.push('"category": = ${category}');
+			where.push('"category" = ${category}');
 			params.category = category;
 		} else {
 			return setImmediate(cb, 'Invalid application category');
