@@ -2,11 +2,11 @@
 
 var async = require('async');
 var util = require('util');
-var pgp = require('pg-promise');
 var slots = require('../helpers/slots.js');
 var constants = require('../helpers/constants.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/round.js');
+var RoundPromiser = require('../logic/roundPromiser.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -27,125 +27,6 @@ function Round (cb, scope) {
 	self = this;
 	self.__private = __private;
 	setImmediate(cb, null, self);
-}
-
-// Round changes
-function RoundChanges (round) {
-	var roundFees = Math.floor(__private.feesByRound[round]) || 0;
-	var roundRewards = (__private.rewardsByRound[round] || []);
-
-	this.at = function (index) {
-		var fees = Math.floor(roundFees / slots.delegates),
-		    feesRemaining = roundFees - (fees * slots.delegates),
-		    rewards = Math.floor(roundRewards[index]) || 0;
-
-		return {
-			fees : fees,
-			feesRemaining : feesRemaining,
-			rewards : rewards,
-			balance : fees + rewards
-		};
-	};
-}
-
-// Round promiser
-function RoundPromiser (scope, t) {
-	var self = this;
-
-	this.mergeBlockGenerator = function () {
-		return t.none(
-			modules.accounts.mergeAccountAndGet({
-				publicKey: scope.block.generatorPublicKey,
-				producedblocks: (scope.backwards ? -1 : 1),
-				blockId: scope.block.id,
-				round: scope.round
-			})
-		);
-	};
-
-	this.updateMissedBlocks = function () {
-		if (scope.outsiders.length === 0) {
-			return t;
-		}
-
-		return t.none(sql.updateMissedBlocks, [scope.outsiders]);
-	};
-
-	this.getVotes = function () {
-		return t.query(sql.getVotes, { round: scope.round });
-	};
-
-	this.updateVotes = function () {
-		return self.getVotes(scope.round).then(function (votes) {
-			var queries = votes.map(function (vote) {
-				return pgp.as.format(sql.updateVotes, {
-					address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-					amount: Math.floor(vote.amount)
-				});
-			}).join('');
-
-			if (queries.length > 0) {
-				return t.none(queries);
-			} else {
-				return t;
-			}
-		});
-	};
-
-	this.flushRound = function () {
-		return t.none(sql.flush, { round: scope.round });
-	};
-
-	this.truncateBlocks = function () {
-		return t.none(sql.truncateBlocks, { height: scope.block.height });
-	};
-
-	this.applyRound = function () {
-		var roundChanges = new RoundChanges(scope.round);
-		var queries = '';
-
-		for (var i = 0; i < scope.delegates.length; i++) {
-			var delegate = scope.delegates[i],
-			    changes  = roundChanges.at(i);
-
-			queries += modules.accounts.mergeAccountAndGet({
-				publicKey: delegate,
-				balance: (scope.backwards ? -changes.balance : changes.balance),
-				u_balance: (scope.backwards ? -changes.balance : changes.balance),
-				blockId: scope.block.id,
-				round: scope.round,
-				fees: (scope.backwards ? -changes.fees : changes.fees),
-				rewards: (scope.backwards ? -changes.rewards : changes.rewards)
-			});
-
-			if (i === scope.delegates.length - 1) {
-				queries += modules.accounts.mergeAccountAndGet({
-					publicKey: delegate,
-					balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-					u_balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-					blockId: scope.block.id,
-					round: scope.round,
-					fees: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-				});
-			}
-		}
-
-		return t.none(queries);
-	};
-
-	this.land = function () {
-		__private.ticking = true;
-		return this.updateVotes()
-			.then(this.updateMissedBlocks)
-			.then(this.flushRound)
-			.then(this.applyRound)
-			.then(this.updateVotes)
-			.then(this.flushRound)
-			.then(function () {
-				__private.ticking = false;
-				return t;
-			});
-	};
 }
 
 // Public methods
@@ -198,6 +79,8 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 	__private.unDelegatesByRound[round].push(block.generatorPublicKey);
 
 	var scope = {
+		modules: modules,
+		__private: __private,
 		block: block,
 		round: round,
 		backwards: true,
@@ -258,6 +141,8 @@ Round.prototype.tick = function (block, done) {
 	__private.delegatesByRound[round].push(block.generatorPublicKey);
 
 	var scope = {
+		modules: modules,
+		__private: __private,
 		block: block,
 		round: round,
 		backwards: false,
