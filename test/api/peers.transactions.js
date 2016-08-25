@@ -22,7 +22,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body.expected).to.equal(node.config.nethash);
 				done();
 			});
@@ -43,7 +43,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 	});
@@ -78,7 +78,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('account').that.is.an('object');
 					done(err, res);
 				});
@@ -116,7 +116,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});
@@ -137,7 +137,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});
@@ -160,7 +160,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});
@@ -181,7 +181,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});
@@ -204,7 +204,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});
@@ -227,7 +227,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});
@@ -249,7 +249,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				done();
 			});
 	});
@@ -270,7 +270,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});
@@ -291,7 +291,7 @@ describe('POST /peer/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message');
 				done();
 			});

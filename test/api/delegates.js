@@ -22,7 +22,7 @@ describe('PUT /accounts/delegates without funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('account').that.is.an('object');
 				account.address = res.body.account.address;
 				account.publicKey = res.body.account.publicKey;
@@ -40,7 +40,7 @@ describe('PUT /accounts/delegates without funds', function () {
 						.expect(200)
 						.end(function (err, res) {
 							// console.log(JSON.stringify(res.body));
-							node.expect(res.body).to.have.property('success').to.be.false;
+							node.expect(res.body).to.have.property('success').to.be.not.ok;
 							node.expect(res.body).to.have.property('error');
 							node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
 							done();
@@ -61,7 +61,7 @@ describe('PUT /accounts/delegates without funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					node.expect(res.body.error).to.contain('Failed to remove vote');
 					done();
@@ -83,7 +83,7 @@ describe('PUT /delegates without funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				if (res.body.success === false && res.body.error != null) {
 					node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
@@ -113,7 +113,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionId');
 				if (res.body.success && res.body.transactionId) {
 					node.expect(res.body.transactionId).to.be.above(1);
@@ -142,7 +142,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					if (res.body.success && res.body.account) {
 						node.expect(res.body.account.balance).to.be.equal(String(node.LISK));
 					} else {
@@ -168,7 +168,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					if (res.body.success) {
 						// console.log('Sent: secret:' + account.password + ', delegates: [' + votedDelegate + ']');
@@ -191,7 +191,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					if (res.body.success) {
 						// console.log('Sent: secret:' + account.password + ', delegates: [' + votedDelegate + ']');
@@ -215,7 +215,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					if (res.body.success) {
 						// console.log('Sent: secret:' + account.password + ', delegates: [' + votedDelegate + ']');
@@ -236,7 +236,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 				if (res.body.success && res.body.transaction) {
 					node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
@@ -264,7 +264,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					if (res.body.success === false && res.body.error != null) {
 						node.expect(res.body.error.toLowerCase()).to.contain('already voted');
@@ -291,7 +291,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction').that.is.an('object');
 					if (res.body.success && res.body.transaction) {
 						node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
@@ -320,7 +320,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					if (res.body.success === false && res.body.error != null) {
 						node.expect(res.body.error.toLowerCase()).to.contain('not voted');
@@ -345,7 +345,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -362,7 +362,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -380,7 +380,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -399,7 +399,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -418,7 +418,7 @@ describe('PUT /accounts/delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -440,7 +440,7 @@ describe('PUT /delegates with funds', function () {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
 			account2.address = res.body.account.address;
 			account2.publicKey = res.body.account.publicKey;
@@ -459,7 +459,7 @@ describe('PUT /delegates with funds', function () {
 					.expect(200)
 					.end(function (err, res) {
 						// console.log(JSON.stringify(res.body));
-						node.expect(res.body).to.have.property('success').to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('transactionId');
 						if (res.body.success && res.body.transactionId) {
 							node.expect(res.body.transactionId).to.be.above(1);
@@ -488,7 +488,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					if (res.body.success && res.body.account) {
 						node.expect(res.body.account.balance).to.be.equal(''+node.LISK);
 					} else {
@@ -513,7 +513,7 @@ describe('PUT /delegates with funds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -531,7 +531,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -550,7 +550,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -569,7 +569,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -588,7 +588,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -607,7 +607,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction').that.is.an('object');
 					if (res.body.success && res.body.transaction) {
 						node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
@@ -638,7 +638,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -662,7 +662,7 @@ describe('PUT /delegates with funds', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -682,7 +682,7 @@ describe('GET /delegates', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
 				node.expect(res.body.delegates).to.have.length.of.at.most(limit);
@@ -719,7 +719,7 @@ describe('GET /delegates', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
 				node.expect(res.body.delegates).to.have.length.of.at.most(limit);
@@ -752,7 +752,7 @@ describe('GET /delegates', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -768,7 +768,7 @@ describe('GET /accounts/delegates?address=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length.of.at.least(1);
 				node.expect(res.body.delegates[0]).to.have.property('username');
@@ -788,7 +788,7 @@ describe('GET /accounts/delegates?address=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -804,7 +804,7 @@ describe('GET /delegates/count', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('count').to.be.at.least(101);
 				done();
 			});
@@ -830,7 +830,7 @@ describe('GET /delegates/voters', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					done();
 				});
 		});
@@ -862,7 +862,7 @@ describe('GET /delegates/voters', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -876,7 +876,7 @@ describe('GET /delegates/voters', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('accounts').that.is.an('array');
 					var flag = 0;
 					for (var i = 0; i < res.body.accounts.length; i++) {
@@ -901,7 +901,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -915,7 +915,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -929,7 +929,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				done();
 			});
@@ -943,7 +943,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				done();
 			});
@@ -957,7 +957,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -971,7 +971,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(13);
 				done();
@@ -986,7 +986,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(3);
 				done();
@@ -1001,7 +1001,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(1);
 				done();
@@ -1016,7 +1016,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(1);
 				node.expect(res.body.delegates[0]).to.have.property('username').that.is.an('string');
@@ -1037,7 +1037,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(100);
 				done();
@@ -1053,7 +1053,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1068,7 +1068,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1083,7 +1083,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1098,7 +1098,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1113,7 +1113,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(1);
 				done();
@@ -1129,7 +1129,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(100);
 				done();
@@ -1145,7 +1145,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1159,7 +1159,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1173,7 +1173,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(100);
 				node.expect(res.body.delegates[0]).to.have.property('username');
@@ -1192,7 +1192,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(100);
 				node.expect(res.body.delegates[0]).to.have.property('username');
@@ -1211,7 +1211,7 @@ describe('GET /delegates/search', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 				node.expect(res.body.delegates).to.have.length(100);
 				node.expect(res.body.delegates[0]).to.have.property('username');

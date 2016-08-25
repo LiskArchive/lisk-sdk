@@ -11,7 +11,7 @@ describe('GET /loader/status/ping', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 	});

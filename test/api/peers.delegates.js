@@ -53,7 +53,7 @@ describe('POST /peer/transactions', function () {
 									.expect(200)
 									.end(function (err, res) {
 										// console.log(JSON.stringify(res.body));
-										node.expect(res.body).to.have.property('success').to.be.false;
+										node.expect(res.body).to.have.property('success').to.be.not.ok;
 										done();
 									});
 							});
@@ -77,7 +77,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -98,7 +98,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -118,7 +118,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -139,7 +139,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					done();
 				});
 		});
@@ -190,7 +190,7 @@ describe('POST /peer/transactions', function () {
 									.expect(200)
 									.end(function (err, res) {
 										// console.log(res.body);
-										node.expect(res.body).to.have.property('success').to.be.true;
+										node.expect(res.body).to.have.property('success').to.be.ok;
 
 										account2.username = node.randomDelegateName().toLowerCase();
 										var transaction2 = node.lisk.delegate.createDelegate(account2.password, account2.username);
@@ -207,7 +207,7 @@ describe('POST /peer/transactions', function () {
 											.expect(200)
 											.end(function (err, res) {
 												// console.log(JSON.stringify(res.body));
-												node.expect(res.body).to.have.property('success').to.be.false;
+												node.expect(res.body).to.have.property('success').to.be.not.ok;
 												done();
 											});
 									});

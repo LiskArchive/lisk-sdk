@@ -25,7 +25,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -57,7 +57,7 @@ describe('POST /peer/transactions', function () {
 						.expect(200)
 						.end(function (err, res) {
 							// console.log(JSON.stringify(res.body));
-							node.expect(res.body).to.have.property('success').to.be.true;
+							node.expect(res.body).to.have.property('success').to.be.ok;
 							node.onNewBlock(function (err) {
 								node.expect(err).to.be.not.ok;
 								var transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
@@ -75,7 +75,7 @@ describe('POST /peer/transactions', function () {
 									.end(function (err, res) {
 										// console.log(transaction.recipientId);
 										// console.log(account.address);
-										node.expect(res.body).to.have.property('success').to.be.true;
+										node.expect(res.body).to.have.property('success').to.be.ok;
 										node.onNewBlock(done);
 									});
 							});
@@ -104,7 +104,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -123,7 +123,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -144,7 +144,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -163,7 +163,7 @@ describe('POST /peer/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					done();
 				});
 		});

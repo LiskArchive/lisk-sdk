@@ -28,7 +28,7 @@ before(function (done) {
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
 			// console.log('Opening account with password:', account.password);
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success === true && res.body.account != null) {
 				 account.address = res.body.account.address;
 				 account.publicKey = res.body.account.publicKey;
@@ -54,7 +54,7 @@ before(function (done) {
 		.end(function (err, res) {
 			 // console.log(JSON.stringify(res.body));
 			 // console.log('Opening account with password:', account2.password);
-			 node.expect(res.body).to.have.property('success').to.be.true;
+			 node.expect(res.body).to.have.property('success').to.be.ok;
 			 if (res.body.success === true && res.body.account != null) {
 					account2.address = res.body.account.address;
 					account2.publicKey = res.body.account.publicKey;
@@ -80,7 +80,7 @@ before(function (done) {
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
 			// console.log('Opening account with password:', account3.password);
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success === true && res.body.account != null) {
 				account3.address = res.body.account.address;
 				account3.publicKey = res.body.account.publicKey;
@@ -109,7 +109,7 @@ before(function (done) {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				if (res.body.success === true && res.body.transactionId != null) {
 					// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 					account.balance += randomLISK;
@@ -139,7 +139,7 @@ before(function (done) {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				if (res.body.success === true && res.body.transactionId != null) {
 					// console.log('Sent to:', account2.address, (randomLISK / node.normalizer), 'LISK');
 					// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
@@ -178,7 +178,7 @@ before(function (done) {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 				done();
 			});
@@ -207,7 +207,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -230,7 +230,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -252,7 +252,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -274,7 +274,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -297,7 +297,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -320,7 +320,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -341,7 +341,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -386,7 +386,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				done();
 			});
 	});
@@ -409,7 +409,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				done();
 			});
 	});
@@ -434,7 +434,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				done();
 			});
 	});
@@ -458,7 +458,7 @@ describe('PUT /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body.transaction).to.have.property('id');
 				DappToInstall.transactionId = res.body.transaction.id;
 				done();
@@ -483,7 +483,7 @@ describe('PUT /dapps', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 		});
@@ -507,7 +507,7 @@ describe('PUT /dapps', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
@@ -530,7 +530,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					if ((res.body.dapps).length > 0) {
@@ -553,7 +553,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -567,7 +567,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					if (res.body.dapps[0] != null) {
@@ -593,7 +593,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					if (res.body.dapps[0] != null) {
@@ -619,7 +619,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					node.expect((res.body.dapps).length).to.be.at.most(limit);
@@ -639,7 +639,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					if((res.body.dapps).length > 0) {
@@ -670,7 +670,7 @@ describe('GET /dapps', function () {
 				if (name === 'test') {
 					node.expect(res.body).to.have.property('success');
 				} else {
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('dapps').that.is.an('array');
 					node.expect(res.body.dapps.length).to.equal(1);
 					if (res.body.success === true && res.body.dapps != null) {
@@ -692,7 +692,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					for( var i = 0; i < res.body.dapps.length; i++) {
@@ -716,7 +716,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					for( var i = 0; i < res.body.dapps.length; i++) {
@@ -741,7 +741,7 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					if (res.body.dapps[1] != null) {
@@ -752,7 +752,7 @@ describe('GET /dapps', function () {
 							.expect(200)
 							.end(function (err, res) {
 								// console.log(JSON.stringify(res.body));
-								node.expect(res.body).to.have.property('success').to.be.true;
+								node.expect(res.body).to.have.property('success').to.be.ok;
 								if (res.body.success === true && res.body.dapps != null) {
 									node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
 								}
@@ -780,7 +780,7 @@ describe('GET /dapps?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -792,7 +792,7 @@ describe('GET /dapps?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -806,7 +806,7 @@ describe('GET /dapps?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapp');
 				if (res.body.success === true && res.body.dapp != null) {
 					node.expect(res.body.dapp.transactionId).to.equal(dappId);
@@ -832,7 +832,7 @@ describe('POST /dapps/install', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -849,7 +849,7 @@ describe('POST /dapps/install', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -868,7 +868,7 @@ describe('POST /dapps/install', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('path');
 				done();
 			});
@@ -885,7 +885,7 @@ describe('GET /dapps/installed', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success === true && res.body.dapps != null) {
 					for (var i = 0; i < res.body.dapps.length; i++) {
@@ -915,7 +915,7 @@ describe('GET /dapps/installedIds', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('ids').that.is.an('array');
 				if (res.body.success === true && res.body.ids != null) {
 					for (var i = 0; i < res.body.ids.length; i++) {
@@ -945,7 +945,7 @@ describe('GET /dapps/search?q=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -961,7 +961,7 @@ describe('GET /dapps/search?q=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				done();
 			});
@@ -977,7 +977,7 @@ describe('GET /dapps/search?q=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				done();
 			});
@@ -998,7 +998,7 @@ describe('POST /dapps/launch', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1017,7 +1017,7 @@ describe('POST /dapps/launch', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1036,13 +1036,13 @@ describe('POST /dapps/launch', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.api.get('/dapps/launched')
 					.expect('Content-Type', /json/)
 					.expect(200)
 					.end(function (err, res) {
 						// console.log(JSON.stringify(res.body));
-						node.expect(res.body).to.have.property('success').to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('launched').that.is.an('array');
 						if(res.body.success === true && res.body.launched != null) {
 							var flag = 0;
@@ -1074,7 +1074,7 @@ describe('POST /dapps/stop', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1093,7 +1093,7 @@ describe('POST /dapps/stop', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1112,7 +1112,7 @@ describe('POST /dapps/stop', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 	});
@@ -1126,7 +1126,7 @@ describe('GET /dapps/categories', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('categories').that.is.an('object');
 				for (var i in node.DappCategory) {
 					node.expect(res.body.categories[i]).to.equal(node.DappCategory[i]);
@@ -1149,7 +1149,7 @@ describe('POST /dapps/uninstall', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1168,7 +1168,7 @@ describe('POST /dapps/uninstall', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -1187,7 +1187,7 @@ describe('POST /dapps/uninstall', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 	});

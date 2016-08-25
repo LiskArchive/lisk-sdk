@@ -17,7 +17,7 @@ function getDelegates (done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			return done(err, res);
 		});
@@ -29,7 +29,7 @@ function getVotes (address, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			return done(err, res);
 		});
@@ -100,7 +100,7 @@ function openAccount (passphrase, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
 				return done(err, res);
 			});
@@ -122,7 +122,7 @@ function sendLISK (amount, recipientId, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
 				return done(err, res);
 			});
@@ -145,7 +145,7 @@ function registerDelegate (account, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log('Sent: ' + JSON.stringify(transaction) + ' Got reply: ' + JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
 				return done(err, res);
 			});
@@ -192,7 +192,7 @@ describe('POST /peer/transactions', function () {
 					passphrase: account.password,
 					action: '-',
 					voteCb: function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.ok;
 					}
 				}, seriesCb);
 			}
@@ -204,9 +204,9 @@ describe('POST /peer/transactions', function () {
 	it('Voting for a delegate and then removing again within same block. Should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegate, account.password, '+', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				makeVote(delegate, account.password, '-', function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 			});
@@ -216,9 +216,9 @@ describe('POST /peer/transactions', function () {
 	it('Removing votes from a delegate and then voting again within same block. Should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegate, account.password, '-', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				makeVote(delegate, account.password, '+', function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
 			});
@@ -230,7 +230,7 @@ describe('POST /peer/transactions', function () {
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
 					makeVote(delegate, account.password, '+', function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.ok;
 						done();
 					});
 				});
@@ -238,7 +238,7 @@ describe('POST /peer/transactions', function () {
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
 					makeVote(delegate, account.password, '+', function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.false;
+						node.expect(res.body).to.have.property('success').to.be.not.ok;
 						done();
 					});
 				});
@@ -251,7 +251,7 @@ describe('POST /peer/transactions', function () {
 	it('Removing votes from a delegate. Should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegate, account.password, '-', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -260,7 +260,7 @@ describe('POST /peer/transactions', function () {
 	it('Voting for 33 delegates at once. Should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 33), account.password, '+', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -269,7 +269,7 @@ describe('POST /peer/transactions', function () {
 	it('Removing votes from 33 delegates at once. Should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 33), account.password, '-', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -278,7 +278,7 @@ describe('POST /peer/transactions', function () {
 	it('Voting for 34 delegates at once. Should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 34), account.password, '+', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message').to.eql('Voting limit exceeded. Maximum is 33 votes per transaction');
 				done();
 			});
@@ -292,7 +292,7 @@ describe('POST /peer/transactions', function () {
 				passphrase: account.password,
 				action: '+',
 				voteCb: function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 				}
 			}, done);
 		});
@@ -301,7 +301,7 @@ describe('POST /peer/transactions', function () {
 	it('Removing votes from 34 delegates at once. Should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 34), account.password, '-', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message').to.eql('Voting limit exceeded. Maximum is 33 votes per transaction');
 				done();
 			});
@@ -314,7 +314,7 @@ describe('POST /peer/transactions', function () {
 			passphrase: account.password,
 			action: '-',
 			voteCb: function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 			}
 		}, done);
 	});
@@ -353,7 +353,7 @@ describe('POST /peer/transactions (after registering a new delegate)', function 
 
 	it('Voting for self. Should be ok', function (done) {
 		makeVote(account.publicKey, account.password, '+', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
 				return done(err);
 			});
@@ -371,7 +371,7 @@ describe('POST /peer/transactions (after registering a new delegate)', function 
 					passphrase: account.password,
 					action: '+',
 					voteCb: function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.ok;
 					}
 				}, seriesCb);
 			},
@@ -380,7 +380,7 @@ describe('POST /peer/transactions (after registering a new delegate)', function 
 				node.expect(slicedDelegates).to.have.lengthOf(25);
 
 				makeVote(slicedDelegates, account.password, '+', function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('message').to.eql('Maximum number of 101 votes exceeded (1 too many).');
 					seriesCb();
 				});
@@ -392,7 +392,7 @@ describe('POST /peer/transactions (after registering a new delegate)', function 
 
 	it('Removing vote from self. Should be ok', function (done) {
 		makeVote(account.publicKey, account.password, '-', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			done();
 		});
 	});

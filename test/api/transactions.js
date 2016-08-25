@@ -22,7 +22,7 @@ function openAccount (account, done) {
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
 			// console.log('Opening account with password:', account.password);
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success && res.body.account !== null) {
 				account.address = res.body.account.address;
 				account.publicKey = res.body.account.publicKey;
@@ -51,7 +51,7 @@ function sendLISK (account, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success && res.body.transactionId !== null) {
 				// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 				// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
@@ -119,7 +119,7 @@ describe('GET /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
 				if (res.body.transactions.length > 0) {
@@ -145,7 +145,7 @@ describe('GET /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -161,7 +161,7 @@ describe('GET /api/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transactions').that.is.an('array');
 					node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
 					if (res.body.transactions.length > 0) {
@@ -194,7 +194,7 @@ describe('GET /api/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transactions').that.is.an('array');
 					node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
 					if (res.body.transactions.length > 0) {
@@ -214,7 +214,7 @@ describe('GET /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			 });
@@ -229,7 +229,7 @@ describe('GET /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				if (res.body.transactions.length > 0) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
@@ -251,7 +251,7 @@ describe('GET /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -266,7 +266,7 @@ describe('GET /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -290,7 +290,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionId');
 				if (res.body.success === true && res.body.transactionId != null) {
 					account.transactions.push(transactionCount);
@@ -329,7 +329,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -349,7 +349,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -367,7 +367,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -385,7 +385,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -403,7 +403,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -421,7 +421,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -439,7 +439,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionId');
 				done();
 			});
@@ -458,7 +458,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -477,7 +477,7 @@ describe('PUT /api/transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -494,7 +494,7 @@ describe('GET /transactions/get?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 				if (res.body.success === true && res.body.transaction.id != null) {
 					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
@@ -518,7 +518,7 @@ describe('GET /transactions/get?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -534,7 +534,7 @@ describe('GET /transactions', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				if (res.body.success === true && res.body.transactions != null) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i]) {
@@ -582,7 +582,7 @@ describe('GET /transactions/unconfirmed', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				done();
 			});
@@ -602,7 +602,7 @@ describe('PUT /signatures', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -619,7 +619,7 @@ describe('PUT /signatures', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -635,7 +635,7 @@ describe('PUT /signatures', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -652,7 +652,7 @@ describe('PUT /signatures', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 				if (res.body.success === true && res.body.transaction != null) {
 					node.expect(res.body.transaction).to.have.property('type').to.equal(node.TxTypes.SIGNATURE);
@@ -701,7 +701,7 @@ describe('PUT /transactions on account with second passphase enabled', function 
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -721,7 +721,7 @@ describe('PUT /transactions on account with second passphase enabled', function 
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});
@@ -741,7 +741,7 @@ describe('PUT /delegates on account with second passphase enabled', function () 
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
 			});

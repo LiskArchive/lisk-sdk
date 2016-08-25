@@ -36,7 +36,7 @@ describe('GET /blocks/getHeight', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				if (res.body.success === true && res.body.height != null) {
 					node.expect(res.body).to.have.property('height').to.be.above(0);
 					if (res.body.success === true) {
@@ -62,7 +62,7 @@ describe('GET /blocks/getFee', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('fee');
 				node.expect(res.body.fee).to.equal(node.Fees.transactionFee);
 				done();
@@ -79,7 +79,7 @@ describe('GET /blocks/getFees', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('fees');
 				node.expect(res.body.fees.send).to.equal(node.Fees.transactionFee);
 				node.expect(res.body.fees.vote).to.equal(node.Fees.voteFee);
@@ -101,7 +101,7 @@ describe('GET /blocks/getNethash', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('nethash').to.be.a('string');
 				node.expect(res.body.nethash).to.equal(node.config.nethash);
 				done();
@@ -163,7 +163,7 @@ describe('GET /blocks/getStatus', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('epoch').to.be.a('string');
 				node.expect(res.body).to.have.property('height').to.be.a('number');
 				node.expect(res.body).to.have.property('fee').to.be.a('number');
@@ -186,7 +186,7 @@ describe('GET /blocks', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				if (res.body.success === true && res.body.blocks != null) {
 					node.expect(res.body).to.have.property('blocks').that.is.an('array');
 					node.expect(res.body).to.have.property('count').to.equal(1);
@@ -219,7 +219,7 @@ describe('GET /blocks', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					if (res.body.success === true && res.body.blocks != null) {
 						node.expect(res.body).to.have.property('count');
 						node.expect(res.body).to.have.property('blocks').that.is.an('array');
@@ -254,7 +254,7 @@ describe('GET /blocks', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					node.expect(res.body.blocks[i].generatorPublicKey).to.equal(block.generatorPublicKey);
@@ -271,7 +271,7 @@ describe('GET /blocks', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					node.expect(res.body.blocks[i].totalFee).to.equal(block.totalFee);
@@ -288,7 +288,7 @@ describe('GET /blocks', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					node.expect(res.body.blocks[i].totalAmount).to.equal(block.totalAmount);
@@ -309,7 +309,7 @@ describe('GET /blocks', function () {
 					.expect(200)
 					.end(function (err, res) {
 						// console.log(JSON.stringify(res.body));
-						node.expect(res.body).to.have.property('success').to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('blocks').that.is.an('array');
 						node.expect(res.body.blocks).to.have.length(1);
 						node.expect(res.body.blocks[0].previousBlock).to.equal(previousBlock);
@@ -328,7 +328,7 @@ describe('GET /blocks', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					if (res.body.blocks[i+1] != null) {
@@ -351,7 +351,7 @@ describe('GET /blocks/get?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('block').to.be.a('object');
 				node.expect(res.body.block).to.have.property('id').to.be.a('string');
 				done();
@@ -367,7 +367,7 @@ describe('GET /blocks/get?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.be.a('string');
 				done();
 			});
@@ -380,7 +380,7 @@ describe('GET /blocks/get?id=', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.be.a('string');
 				done();
 			});

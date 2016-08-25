@@ -20,7 +20,7 @@ describe('POST /peer/blocks', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body.expected).to.equal(node.config.nethash);
 				done();
 			});
