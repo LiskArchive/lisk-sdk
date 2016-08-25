@@ -1,6 +1,6 @@
 'use strict'; /*jslint mocha:true */
 
-var node = require("./../variables.js");
+var node = require("./../node.js");
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();

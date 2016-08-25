@@ -1,7 +1,7 @@
 'use strict'; /*jslint mocha:true */
 
 var async = require("async");
-var node = require("./../variables.js");
+var node = require("./../node.js");
 
 var totalMembers = node.randomNumber(2, 16);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);

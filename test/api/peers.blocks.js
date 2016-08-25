@@ -1,7 +1,7 @@
 'use strict'; /*jslint mocha:true */
 
 var crypto = require("crypto");
-var node = require("./../variables.js");
+var node = require("./../node.js");
 
 var genesisblock = require("../../genesisBlock.json");
 
