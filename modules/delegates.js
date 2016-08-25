@@ -199,6 +199,7 @@ __private.attachApi = function () {
 
 	router.get('/forging/status', function (req, res) {
 		var query = req.query;
+
 		library.scheme.validate(query, {
 			type: 'object',
 			properties: {

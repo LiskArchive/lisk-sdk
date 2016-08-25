@@ -1170,7 +1170,9 @@ shared.getBlock = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -1200,7 +1202,9 @@ shared.getBlocks = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -1261,7 +1265,9 @@ shared.getEpoch = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body;
+
 	return cb(null, {epoch: constants.epochTime});
 };
 
@@ -1269,7 +1275,9 @@ shared.getHeight = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body;
+
 	return cb(null, {height: __private.lastBlock.height});
 };
 
@@ -1277,7 +1285,9 @@ shared.getFee = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body;
+
 	return cb(null, {fee: library.logic.block.calculateFee()});
 };
 
@@ -1285,7 +1295,9 @@ shared.getFees = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body;
+
 	return cb(null, {fees: constants.fees});
 };
 
@@ -1293,7 +1305,9 @@ shared.getNethash = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body;
+
 	return cb(null, {nethash: library.config.nethash});
 };
 
@@ -1301,7 +1315,9 @@ shared.getMilestone = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body, height = __private.lastBlock.height;
+
 	return cb(null, {milestone: __private.blockReward.calcMilestone(height)});
 };
 
@@ -1309,7 +1325,9 @@ shared.getReward = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body, height = __private.lastBlock.height;
+
 	return cb(null, {reward: __private.blockReward.calcReward(height)});
 };
 
@@ -1317,7 +1335,9 @@ shared.getSupply = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body, height = __private.lastBlock.height;
+
 	return cb(null, {supply: __private.blockReward.calcSupply(height)});
 };
 
@@ -1325,7 +1345,9 @@ shared.getStatus = function (req, cb) {
 	if (!__private.loaded) {
 		return cb('Blockchain is loading');
 	}
+
 	var query = req.body, height = __private.lastBlock.height;
+
 	return cb(null, {
 		epoch:     constants.epochTime,
 		height:    height,

@@ -256,6 +256,7 @@ shared.open = function (req, cb) {
 
 shared.getBalance = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -290,6 +291,7 @@ shared.getBalance = function (req, cb) {
 
 shared.getPublickey = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
@@ -389,6 +391,7 @@ shared.getDelegates = function (req, cb) {
 
 shared.getDelegatesFee = function (req, cb) {
 	var query = req.body;
+
 	return cb(null, {fee: constants.fees.delegate});
 };
 
@@ -535,6 +538,7 @@ shared.addDelegates = function (req, cb) {
 
 shared.getAccount = function (req, cb) {
 	var query = req.body;
+
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
