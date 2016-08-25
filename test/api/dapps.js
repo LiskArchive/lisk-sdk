@@ -112,8 +112,8 @@ before(function (done) {
                 node.expect(res.body).to.have.property("success").to.be.true;
                 if (res.body.success == true && res.body.transactionId != null) {
                     // console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
-                    transactionCount += 1;
                     account.balance += randomLISK;
+                    transactionCount += 1;
                 } else {
                     // console.log('Sending LISK to:', account.address, 'failed');
                     // console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
