@@ -114,7 +114,6 @@ before(function (done) {
                 if (res.body.success == true && res.body.transactionId != null) {
                     // console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
                     transactionCount += 1;
-                    account.transactions.push(transactionCount);
                     account.balance += randomLISK;
                 } else {
                     // console.log('Sending LISK to:', account.address, 'failed');
@@ -145,7 +144,6 @@ before(function (done) {
                 if (res.body.success == true && res.body.transactionId != null) {
                     // console.log('Sent to:', account2.address, (randomLISK / node.normalizer), 'LISK');
                     // console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
-                    account2.transactions.push(transactionCount);
                     account2.balance += randomLISK;
                     transactionCount += 1;
                     totalTxFee += (expectedFee / node.normalizer);
