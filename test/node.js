@@ -1,28 +1,28 @@
-"use strict";
+'use strict';
 
 // Requires
-var _ = require("lodash");
-var expect = require("chai").expect;
-var chai = require("chai");
-var supertest = require("supertest");
-var async = require("async");
-var request = require("request");
+var _ = require('lodash');
+var expect = require('chai').expect;
+var chai = require('chai');
+var supertest = require('supertest');
+var async = require('async');
+var request = require('request');
 
-var DappCategory = require("../helpers/dappCategories.js");
-var DappType = require("../helpers/dappTypes.js");
-var TxTypes = require("../helpers/transactionTypes.js");
+var DappCategory = require('../helpers/dappCategories.js');
+var DappType = require('../helpers/dappTypes.js');
+var TxTypes = require('../helpers/transactionTypes.js');
 
 // Node configuration
-var config = require("../config.json");
-var baseUrl = "http://" + config.address + ":" + config.port;
-var api = supertest(baseUrl + "/api");
-var peer = supertest(baseUrl + "/peer");
-var constants = require("../helpers/constants.js");
+var config = require('../config.json');
+var baseUrl = 'http://' + config.address + ':' + config.port;
+var api = supertest(baseUrl + '/api');
+var peer = supertest(baseUrl + '/peer');
+var constants = require('../helpers/constants.js');
 
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
 var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-var version = "0.0.0" // Node version
+var version = '0.0.0' // Node version
 
 // Holds Fee amounts for different transaction types
 var Fees = {
@@ -35,35 +35,35 @@ var Fees = {
 };
 
 var guestbookDapp = {
-	icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png",
-	link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip"
+	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
+	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip'
 };
 
 // Account info for delegate to register manually
 var Daccount = {
-	"address": "4180149793392527131L",
-	"publicKey": "fe16b09612ca50a6cbcc0a95bdf30bfa11e12c1aded819916cadb0c1e769b4bf",
-	"password": "demise hidden width hand solid deal doll party danger pencil foil oven",
-	"secondPassword": "brother maid replace hard scorpion clinic sentence bridge goose gun mass next",
-	"balance": 0,
-	"delegateName": "test_delegate",
+	'address': '4180149793392527131L',
+	'publicKey': 'fe16b09612ca50a6cbcc0a95bdf30bfa11e12c1aded819916cadb0c1e769b4bf',
+	'password': 'demise hidden width hand solid deal doll party danger pencil foil oven',
+	'secondPassword': 'brother maid replace hard scorpion clinic sentence bridge goose gun mass next',
+	'balance': 0,
+	'delegateName': 'test_delegate',
 };
 
 // Existing delegate account in blockchain
 var Eaccount = {
-	"address": "10881167371402274308L",
-	"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-	"password": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
-	"balance": 0,
-	"delegateName": "genesis_100"
+	'address': '10881167371402274308L',
+	'publicKey': 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+	'password': 'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
+	'balance': 0,
+	'delegateName': 'genesis_100'
 };
 
 // Account info for genesis account - Needed for voting, registrations and Tx
 var Gaccount = {
-	"address": "16313739661670634666L",
-	"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-	"password": "wagon stock borrow episode laundry kitten salute link globe zero feed marble",
-	"balance": 10000000000000000
+	'address': '16313739661670634666L',
+	'publicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+	'password': 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
+	'balance': 10000000000000000
 };
 
 // Random LISK Amount
@@ -72,8 +72,8 @@ var LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1; // Remove 1 x 0
 // Used to create random delegates names
 function randomDelegateName() {
 	var size = randomNumber(1,20); // Min. delegate name size is 1, Max. delegate name is 20
-	var delegateName = "";
-	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.";
+	var delegateName = '';
+	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for( var i=0; i < size; i++ )
 		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -100,12 +100,12 @@ function randomLISK() {
 // Returns current block height
 function getHeight(cb) {
 	request({
-		type: "GET",
-		url: baseUrl + "/api/blocks/getHeight",
+		type: 'GET',
+		url: baseUrl + '/api/blocks/getHeight',
 		json: true
 	}, function (err, resp, body) {
 		if (err || resp.statusCode != 200) {
-			return cb(err || "Status code is not 200 (getHeight)");
+			return cb(err || 'Status code is not 200 (getHeight)');
 		} else {
 			return cb(null, body.height);
 		}
@@ -114,7 +114,7 @@ function getHeight(cb) {
 
 function onNewBlock(cb) {
 	getHeight(function (err, height) {
-		//console.log("Height: " + height);
+		//console.log('Height: ' + height);
 		if (err) {
 			return cb(err);
 		} else {
@@ -131,19 +131,19 @@ function waitForNewBlock(height, cb) {
 	async.doWhilst(
 		function (cb) {
 			request({
-				type: "GET",
-				url: baseUrl + "/api/blocks/getHeight",
+				type: 'GET',
+				url: baseUrl + '/api/blocks/getHeight',
 				json: true
 			}, function (err, resp, body) {
 				if (err || resp.statusCode != 200) {
-					return cb(err || "Got incorrect status");
+					return cb(err || 'Got incorrect status');
 				}
 
 				if (height + 2 == body.height) {
 					height = body.height;
 				}
 
-				console.log("	Waiting for block:", "Height:", height, "Second:", counter++);
+				console.log('	Waiting for block:', 'Height:', height, 'Second:', counter++);
 				setTimeout(cb, 1000);
 			});
 		},
@@ -162,7 +162,7 @@ function waitForNewBlock(height, cb) {
 
 // Adds peers to local node
 function addPeers(numOfPeers, cb) {
-	var operatingSystems = ["win32","win64","ubuntu","debian", "centos"];
+	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var ports = [4000, 5000, 7000, 8000];
 
 	var os,version,port;
@@ -176,18 +176,18 @@ function addPeers(numOfPeers, cb) {
 		port = ports[randomizeSelection(ports.length)];
 
 		request({
-			type: "GET",
-			url: baseUrl + "/peer/height",
+			type: 'GET',
+			url: baseUrl + '/peer/height',
 			json: true,
 			headers: {
-				"version": version,
-				"port": port,
-				"nethash": config.nethash,
-				"os": os
+				'version': version,
+				'port': port,
+				'nethash': config.nethash,
+				'os': os
 			}
 		}, function (err, resp, body) {
 			if (err || resp.statusCode != 200) {
-				return next(err || "Status code is not 200 (getHeight)");
+				return next(err || 'Status code is not 200 (getHeight)');
 			} else {
 				i++;
 				next();
@@ -216,8 +216,8 @@ function expectedFee(amount) {
 // Used to create random usernames
 function randomUsername() {
 	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
-	var username = "";
-	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.";
+	var username = '';
+	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for( var i=0; i < size; i++ )
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -227,8 +227,8 @@ function randomUsername() {
 
 function randomCapitalUsername() {
 	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
-	var username = "A";
-	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.";
+	var username = 'A';
+	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for( var i=0; i < size-1; i++ )
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -239,12 +239,12 @@ function randomCapitalUsername() {
 // Used to create random basic accounts
 function randomAccount() {
 	var account = {
-		"address" : "",
-		"publicKey" : "",
-		"password" : "",
-		"secondPassword": "",
-		"username" : "",
-		"balance": 0
+		'address' : '',
+		'publicKey' : '',
+		'password' : '',
+		'secondPassword': '',
+		'username' : '',
+		'balance': 0
 	};
 
 	account.password = randomPassword();
@@ -257,9 +257,9 @@ function randomAccount() {
 // Used to create random transaction accounts (holds additional info to regular account)
 function randomTxAccount() {
 	return _.defaults(randomAccount(), {
-		sentAmount:"",
-		paidFee: "",
-		totalPaidFee: "",
+		sentAmount:'',
+		paidFee: '',
+		totalPaidFee: '',
 		transactions: []
 	})
 }
@@ -274,7 +274,7 @@ module.exports = {
 	api: api,
 	chai: chai,
 	peer : peer,
-	lisk : require("./lisk-js"),
+	lisk : require('./lisk-js'),
 	supertest: supertest,
 	expect: expect,
 	version: version,

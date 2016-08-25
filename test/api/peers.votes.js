@@ -1,7 +1,7 @@
 'use strict'; /*jslint mocha:true */
 
-var async = require("async");
-var node = require("./../node.js");
+var async = require('async');
+var node = require('./../node.js');
 
 var account = node.randomAccount();
 
@@ -12,25 +12,25 @@ var votedDelegates = [];
 node.chai.config.includeStack = true;
 
 function getDelegates (done) {
-	node.api.get("/delegates")
-		.expect("Content-Type", /json/)
+	node.api.get('/delegates')
+		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property("success").to.be.true;
-			node.expect(res.body).to.have.property("delegates").that.is.an("array");
+			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			return done(err, res);
 		});
 }
 
 function getVotes (address, done) {
-	node.api.get("/accounts/delegates/?address=" + address)
-		.expect("Content-Type", /json/)
+	node.api.get('/accounts/delegates/?address=' + address)
+		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property("success").to.be.true;
-			node.expect(res.body).to.have.property("delegates").that.is.an("array");
+			node.expect(res.body).to.have.property('success').to.be.true;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			return done(err, res);
 		});
 }
@@ -71,36 +71,36 @@ function makeVote (delegates, passphrase, action, done) {
 		return action + delegate;
 	}));
 
-	node.peer.post("/transactions")
-		.set("Accept", "application/json")
-		.set("version", node.version)
-		.set("port", node.config.port)
-		.set("nethash", node.config.nethash)
+	node.peer.post('/transactions')
+		.set('Accept', 'application/json')
+		.set('version', node.version)
+		.set('port', node.config.port)
+		.set('nethash', node.config.nethash)
 		.send({
 			transaction: transaction
 		})
-		.expect("Content-Type", /json/)
+		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
-			// console.log("Sent: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
+			// console.log('Sent: ' + JSON.stringify(transaction) + ' Got reply: ' + JSON.stringify(res.body));
 			return done(err, res);
 		});
 }
 
 function openAccount (passphrase, done) {
-	node.api.post("/accounts/open")
-		.set("Accept", "application/json")
-		.set("version",node.version)
-		.set("nethash", node.config.nethash)
-		.set("port", node.config.port)
+	node.api.post('/accounts/open')
+		.set('Accept', 'application/json')
+		.set('version',node.version)
+		.set('nethash', node.config.nethash)
+		.set('port', node.config.port)
 		.send({
 			secret: passphrase
 		})
-		.expect("Content-Type", /json/)
+		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property("success").to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.true;
 			node.onNewBlock(function (err) {
 				return done(err, res);
 			});
@@ -108,21 +108,21 @@ function openAccount (passphrase, done) {
 }
 
 function sendLISK (amount, recipientId, done) {
-	node.api.put("/transactions")
-		.set("Accept", "application/json")
-		.set("version", node.version)
-		.set("nethash", node.config.nethash)
-		.set("port", node.config.port)
+	node.api.put('/transactions')
+		.set('Accept', 'application/json')
+		.set('version', node.version)
+		.set('nethash', node.config.nethash)
+		.set('port', node.config.port)
 		.send({
 			secret: node.Gaccount.password,
 			amount: amount,
 			recipientId: recipientId
 		})
-		.expect("Content-Type", /json/)
+		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property("success").to.be.true;
+			node.expect(res.body).to.have.property('success').to.be.true;
 			node.onNewBlock(function (err) {
 				return done(err, res);
 			});
@@ -133,26 +133,26 @@ function registerDelegate (account, done) {
 	account.username = node.randomDelegateName().toLowerCase();
 	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
-	node.peer.post("/transactions")
-		.set("Accept", "application/json")
-		.set("version", node.version)
-		.set("nethash", node.config.nethash)
-		.set("port", node.config.port)
+	node.peer.post('/transactions')
+		.set('Accept', 'application/json')
+		.set('version', node.version)
+		.set('nethash', node.config.nethash)
+		.set('port', node.config.port)
 		.send({
 			transaction: transaction
 		})
-		.expect("Content-Type", /json/)
+		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
-			// console.log("Sent: " + JSON.stringify(transaction) + " Got reply: " + JSON.stringify(res.body));
-			node.expect(res.body).to.have.property("success").to.be.true;
+			// console.log('Sent: ' + JSON.stringify(transaction) + ' Got reply: ' + JSON.stringify(res.body));
+			node.expect(res.body).to.have.property('success').to.be.true;
 			node.onNewBlock(function (err) {
 				return done(err, res);
 			});
 		});
 }
 
-describe("POST /peer/transactions", function () {
+describe('POST /peer/transactions', function () {
 
 	before(function (done) {
 		async.series([
@@ -190,9 +190,9 @@ describe("POST /peer/transactions", function () {
 				return makeVotes({
 					delegates: votedDelegates,
 					passphrase: account.password,
-					action: "-",
+					action: '-',
 					voteCb: function (err, res) {
-						node.expect(res.body).to.have.property("success").to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.true;
 					}
 				}, seriesCb);
 			}
@@ -201,44 +201,44 @@ describe("POST /peer/transactions", function () {
 		});
 	});
 
-	it("Voting for a delegate and then removing again within same block. Should fail", function (done) {
+	it('Voting for a delegate and then removing again within same block. Should fail', function (done) {
 		node.onNewBlock(function (err) {
-			makeVote(delegate, account.password, "+", function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.true;
-				makeVote(delegate, account.password, "-", function (err, res) {
-					node.expect(res.body).to.have.property("success").to.be.false;
+			makeVote(delegate, account.password, '+', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.true;
+				makeVote(delegate, account.password, '-', function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.false;
 					done();
 				});
 			});
 		});
 	});
 
-	it("Removing votes from a delegate and then voting again within same block. Should fail", function (done) {
+	it('Removing votes from a delegate and then voting again within same block. Should fail', function (done) {
 		node.onNewBlock(function (err) {
-			makeVote(delegate, account.password, "-", function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.true;
-				makeVote(delegate, account.password, "+", function (err, res) {
-					node.expect(res.body).to.have.property("success").to.be.false;
+			makeVote(delegate, account.password, '-', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.true;
+				makeVote(delegate, account.password, '+', function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.false;
 					done();
 				});
 			});
 		});
 	});
 
-	it("Voting twice for a delegate. Should fail", function (done) {
+	it('Voting twice for a delegate. Should fail', function (done) {
 		async.series([
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
-					makeVote(delegate, account.password, "+", function (err, res) {
-						node.expect(res.body).to.have.property("success").to.be.true;
+					makeVote(delegate, account.password, '+', function (err, res) {
+						node.expect(res.body).to.have.property('success').to.be.true;
 						done();
 					});
 				});
 			},
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
-					makeVote(delegate, account.password, "+", function (err, res) {
-						node.expect(res.body).to.have.property("success").to.be.false;
+					makeVote(delegate, account.password, '+', function (err, res) {
+						node.expect(res.body).to.have.property('success').to.be.false;
 						done();
 					});
 				});
@@ -248,79 +248,79 @@ describe("POST /peer/transactions", function () {
 		});
 	});
 
-	it("Removing votes from a delegate. Should be ok", function (done) {
+	it('Removing votes from a delegate. Should be ok', function (done) {
 		node.onNewBlock(function (err) {
-			makeVote(delegate, account.password, "-", function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.true;
+			makeVote(delegate, account.password, '-', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.true;
 				done();
 			});
 		});
 	});
 
-	it("Voting for 33 delegates at once. Should be ok", function (done) {
+	it('Voting for 33 delegates at once. Should be ok', function (done) {
 		node.onNewBlock(function (err) {
-			makeVote(delegates.slice(0, 33), account.password, "+", function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.true;
+			makeVote(delegates.slice(0, 33), account.password, '+', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.true;
 				done();
 			});
 		});
 	});
 
-	it("Removing votes from 33 delegates at once. Should be ok", function (done) {
+	it('Removing votes from 33 delegates at once. Should be ok', function (done) {
 		node.onNewBlock(function (err) {
-			makeVote(delegates.slice(0, 33), account.password, "-", function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.true;
+			makeVote(delegates.slice(0, 33), account.password, '-', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.true;
 				done();
 			});
 		});
 	});
 
-	it("Voting for 34 delegates at once. Should fail", function (done) {
+	it('Voting for 34 delegates at once. Should fail', function (done) {
 		node.onNewBlock(function (err) {
-			makeVote(delegates.slice(0, 34), account.password, "+", function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("message").to.eql("Voting limit exceeded. Maximum is 33 votes per transaction");
+			makeVote(delegates.slice(0, 34), account.password, '+', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('message').to.eql('Voting limit exceeded. Maximum is 33 votes per transaction');
 				done();
 			});
 		});
 	});
 
-	it("Voting for 101 delegates separately. Should be ok", function (done) {
+	it('Voting for 101 delegates separately. Should be ok', function (done) {
 		node.onNewBlock(function () {
 			makeVotes({
 				delegates: delegates,
 				passphrase: account.password,
-				action: "+",
+				action: '+',
 				voteCb: function (err, res) {
-					node.expect(res.body).to.have.property("success").to.be.true;
+					node.expect(res.body).to.have.property('success').to.be.true;
 				}
 			}, done);
 		});
 	});
 
-	it("Removing votes from 34 delegates at once. Should fail", function (done) {
+	it('Removing votes from 34 delegates at once. Should fail', function (done) {
 		node.onNewBlock(function (err) {
-			makeVote(delegates.slice(0, 34), account.password, "-", function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("message").to.eql("Voting limit exceeded. Maximum is 33 votes per transaction");
+			makeVote(delegates.slice(0, 34), account.password, '-', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('message').to.eql('Voting limit exceeded. Maximum is 33 votes per transaction');
 				done();
 			});
 		});
 	});
 
-	it("Removing votes from 101 delegates separately. Should be ok", function (done) {
+	it('Removing votes from 101 delegates separately. Should be ok', function (done) {
 		makeVotes({
 			delegates: delegates,
 			passphrase: account.password,
-			action: "-",
+			action: '-',
 			voteCb: function (err, res) {
-				node.expect(res.body).to.have.property("success").to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.true;
 			}
 		}, done);
 	});
 });
 
-describe("POST /peer/transactions (after registering a new delegate)", function () {
+describe('POST /peer/transactions (after registering a new delegate)', function () {
 
 	before(function (done) {
 		async.series([
@@ -351,16 +351,16 @@ describe("POST /peer/transactions (after registering a new delegate)", function 
 		});
 	});
 
-	it("Voting for self. Should be ok", function (done) {
-		makeVote(account.publicKey, account.password, "+", function (err, res) {
-			node.expect(res.body).to.have.property("success").to.be.true;
+	it('Voting for self. Should be ok', function (done) {
+		makeVote(account.publicKey, account.password, '+', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.true;
 			node.onNewBlock(function (err) {
 				return done(err);
 			});
 		});
 	});
 
-	it("Exceeding maximum of 101 votes within same block. Should fail", function (done) {
+	it('Exceeding maximum of 101 votes within same block. Should fail', function (done) {
 		async.series([
 			function (seriesCb) {
 				var slicedDelegates = delegates.slice(0, 76);
@@ -369,9 +369,9 @@ describe("POST /peer/transactions (after registering a new delegate)", function 
 				makeVotes({
 					delegates: slicedDelegates,
 					passphrase: account.password,
-					action: "+",
+					action: '+',
 					voteCb: function (err, res) {
-						node.expect(res.body).to.have.property("success").to.be.true;
+						node.expect(res.body).to.have.property('success').to.be.true;
 					}
 				}, seriesCb);
 			},
@@ -379,9 +379,9 @@ describe("POST /peer/transactions (after registering a new delegate)", function 
 				var slicedDelegates = delegates.slice(-25);
 				node.expect(slicedDelegates).to.have.lengthOf(25);
 
-				makeVote(slicedDelegates, account.password, "+", function (err, res) {
-					node.expect(res.body).to.have.property("success").to.be.false;
-					node.expect(res.body).to.have.property("message").to.eql("Maximum number of 101 votes exceeded (1 too many).");
+				makeVote(slicedDelegates, account.password, '+', function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.false;
+					node.expect(res.body).to.have.property('message').to.eql('Maximum number of 101 votes exceeded (1 too many).');
 					seriesCb();
 				});
 			}
@@ -390,9 +390,9 @@ describe("POST /peer/transactions (after registering a new delegate)", function 
 		});
 	});
 
-	it("Removing vote from self. Should be ok", function (done) {
-		makeVote(account.publicKey, account.password, "-", function (err, res) {
-			node.expect(res.body).to.have.property("success").to.be.true;
+	it('Removing vote from self. Should be ok', function (done) {
+		makeVote(account.publicKey, account.password, '-', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.true;
 			done();
 		});
 	});

@@ -11,4 +11,4 @@ require('./api/peers.transactions.js');
 require('./api/peers.votes.js');
 require('./api/transactions.js');
 
-require("./unit/logic/blockReward.js");
+require('./unit/logic/blockReward.js');

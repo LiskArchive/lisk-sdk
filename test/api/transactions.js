@@ -1,6 +1,6 @@
 'use strict'; /*jslint mocha:true */
 
-var node = require("./../node.js");
+var node = require('./../node.js');
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
@@ -102,25 +102,25 @@ before(function (done) {
 before(function (done) {
 	node.onNewBlock(function (err) {
 		node.expect(err).to.be.not.ok;
-		// console.log("ACCOUNT 1:" + account);
-		// console.log("ACCOUNT 2:" + account2);
+		// console.log('ACCOUNT 1:' + account);
+		// console.log('ACCOUNT 2:' + account2);
 		done();
 	});
 });
 
-describe("GET /api/transactions", function () {
+describe('GET /api/transactions', function () {
 
-	it("Using valid parameters. Should be ok", function (done) {
-		var senderId = node.Gaccount.address, blockId = "", recipientId = account.address, limit = 10, offset = 0, orderBy = "amount:asc";
+	it('Using valid parameters. Should be ok', function (done) {
+		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
 
-		node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
-				node.expect(res.body).to.have.property("transactions").that.is.an("array");
+				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
 				if (res.body.transactions.length > 0) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
@@ -129,40 +129,40 @@ describe("GET /api/transactions", function () {
 						}
 					}
 				} else {
-					// console.log("Request failed. Expected success");
+					// console.log('Request failed. Expected success');
 					node.expect(false).to.equal(true);
 				}
 				done();
 			});
 	});
 
-	it("Using limit > 100. Should fail", function (done) {
-		var senderId = node.Gaccount.address, blockId = "", recipientId = account.address, limit = 999999, offset = 0, orderBy = "amount:asc";
+	it('Using limit > 100. Should fail', function (done) {
+		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
 
-		node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Ordered by ascending timestamp. Should be ok", function (done) {
-		var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 0, orderBy = "timestamp:asc";
+	it('Ordered by ascending timestamp. Should be ok', function (done) {
+		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 0, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
-			node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-				.set("Accept", "application/json")
-				.expect("Content-Type", /json/)
+			node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+				.set('Accept', 'application/json')
+				.expect('Content-Type', /json/)
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property("success").to.be.true;
-					node.expect(res.body).to.have.property("transactions").that.is.an("array");
+					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('transactions').that.is.an('array');
 					node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
 					if (res.body.transactions.length > 0) {
 						var flag = 0;
@@ -176,7 +176,7 @@ describe("GET /api/transactions", function () {
 							}
 						}
 					} else {
-						// console.log("Request failed. Expected success");
+						// console.log('Request failed. Expected success');
 						node.expect(false).to.equal(true);
 					}
 					done();
@@ -184,18 +184,18 @@ describe("GET /api/transactions", function () {
 		});
 	});
 
-	it("Using offset. Should be ok", function (done) {
-		var senderId = "", blockId = "", recipientId = "", limit = 100, offset = 1, orderBy = "timestamp:asc";
+	it('Using offset. Should be ok', function (done) {
+		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 1, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
-			node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-				.set("Accept", "application/json")
-				.expect("Content-Type", /json/)
+			node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+				.set('Accept', 'application/json')
+				.expect('Content-Type', /json/)
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property("success").to.be.true;
-					node.expect(res.body).to.have.property("transactions").that.is.an("array");
+					node.expect(res.body).to.have.property('success').to.be.true;
+					node.expect(res.body).to.have.property('transactions').that.is.an('array');
 					node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
 					if (res.body.transactions.length > 0) {
 						node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
@@ -205,32 +205,32 @@ describe("GET /api/transactions", function () {
 		});
 	});
 
-	it("Using string offset. Should fail", function (done) {
-		var senderId = "", blockId = "", recipientId = "", limit = 100, offset = "one", orderBy = "timestamp:asc";
+	it('Using string offset. Should fail', function (done) {
+		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 'one', orderBy = 'timestamp:asc';
 
-		node.api.get("/transactions?blockId=" + blockId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+		node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			 });
 	});
 
-	it("Using no limit. Should be ok", function (done) {
-		var senderId = node.Gaccount.address, blockId = "", recipientId = account.address, offset = 0, orderBy = "amount:desc";
+	it('Using no limit. Should be ok', function (done) {
+		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
 
-		node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&offset=" + offset + "&orderBy=" + orderBy)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
-				node.expect(res.body).to.have.property("transactions").that.is.an("array");
+				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				if (res.body.transactions.length > 0) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
@@ -242,260 +242,260 @@ describe("GET /api/transactions", function () {
 			});
 	});
 
-	it("Using completely invalid fields. Should fail", function (done) {
-		var senderId = "invalid", blockId = "invalid", recipientId = "invalid", limit = "invalid", offset = "invalid", orderBy = "blockId:asc";
+	it('Using completely invalid fields. Should fail', function (done) {
+		var senderId = 'invalid', blockId = 'invalid', recipientId = 'invalid', limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
-		node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using partially invalid fields. Should fail", function (done) {
-		var senderId = "invalid", blockId = "invalid", recipientId = account.address, limit = "invalid", offset = "invalid", orderBy = "blockId:asc";
+	it('Using partially invalid fields. Should fail', function (done) {
+		var senderId = 'invalid', blockId = 'invalid', recipientId = account.address, limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
-		node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 });
 
-describe("PUT /api/transactions", function () {
+describe('PUT /api/transactions', function () {
 
-	it("Using valid parameters. Should be ok", function (done) {
+	it('Using valid parameters. Should be ok', function (done) {
 		var amountToSend = 100000000;
 
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: amountToSend,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
-				node.expect(res.body).to.have.property("transactionId");
+				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('transactionId');
 				if (res.body.success == true && res.body.transactionId != null) {
 					expectedFee = node.expectedFee(amountToSend);
 					account.transactions.push(transactionCount);
 					account.balance -= (amountToSend + expectedFee);
 					account2.balance += amountToSend;
 					transactionList[transactionCount] = {
-						"sender": account.address,
-						"recipient": account2.address,
-						"grossSent": (amountToSend + expectedFee) / node.normalizer,
-						"fee": expectedFee / node.normalizer,
-						"netSent": amountToSend / node.normalizer,
-						"txId": res.body.transactionId,
-						"type": node.TxTypes.SEND
+						'sender': account.address,
+						'recipient': account2.address,
+						'grossSent': (amountToSend + expectedFee) / node.normalizer,
+						'fee': expectedFee / node.normalizer,
+						'netSent': amountToSend / node.normalizer,
+						'txId': res.body.transactionId,
+						'type': node.TxTypes.SEND
 					}
 					transactionCount += 1;
 				} else {
-					// console.log("Failed Tx or transactionId is null");
-					// console.log("Sent: secret: " + account.password + ", amount: " + amountToSend + ", recipientId: " + account2.address);
+					// console.log('Failed Tx or transactionId is null');
+					// console.log('Sent: secret: ' + account.password + ', amount: ' + amountToSend + ', recipientId: ' + account2.address);
 					node.expect(false).to.equal(true);
 				}
 				done();
 			});
 	});
 
-	it("Using negative amount. Should fail", function (done) {
+	it('Using negative amount. Should fail', function (done) {
 		var amountToSend = -100000000;
 
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: amountToSend,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using float amount. Should fail", function (done) {
+	it('Using float amount. Should fail', function (done) {
 		var amountToSend = 1.2;
 
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: amountToSend,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using entire balance. Should fail", function (done) {
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+	it('Using entire balance. Should fail', function (done) {
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: account.balance,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using zero amount. Should fail", function (done) {
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+	it('Using zero amount. Should fail', function (done) {
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: 0,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using positive overflown amount. Should fail", function (done) {
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+	it('Using positive overflown amount. Should fail', function (done) {
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using negative overflown amount. Should fail", function (done) {
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+	it('Using negative overflown amount. Should fail', function (done) {
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using small fractional amount. Should be ok", function (done) {
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+	it('Using small fractional amount. Should be ok', function (done) {
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: 1,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
-				node.expect(res.body).to.have.property("transactionId");
+				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('transactionId');
 				done();
 			});
 	});
 
-	it("Using no passphase. Should fail", function (done) {
+	it('Using no passphase. Should fail', function (done) {
 		var amountToSend = 100000000;
 
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				amount: amountToSend,
 				recipientId: account2.address
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using no recipient. Should fail", function (done) {
+	it('Using no recipient. Should fail', function (done) {
 		var amountToSend = 100000000;
 
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				amount: amountToSend
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 });
 
-describe("GET /transactions/get?id=", function () {
+describe('GET /transactions/get?id=', function () {
 
-	it("Using valid id. Should be ok", function (done) {
+	it('Using valid id. Should be ok', function (done) {
 		var transactionInCheck = transactionList[0];
-		node.api.get("/transactions/get?id="+transactionInCheck.txId)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+		node.api.get('/transactions/get?id='+transactionInCheck.txId)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
-				node.expect(res.body).to.have.property("transaction").that.is.an("object");
+				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 				if (res.body.success == true && res.body.transaction.id != null) {
 					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
 					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
@@ -504,37 +504,37 @@ describe("GET /transactions/get?id=", function () {
 					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
 					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
 				} else {
-					// console.log("Transaction failed or transaction list is null");
+					// console.log('Transaction failed or transaction list is null');
 					node.expect(false).to.equal(true);
 				}
 				done();
 			});
 	});
 
-	it("Using invalid id. Should fail", function (done) {
-		node.api.get("/transactions/get?id=NotTxId")
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+	it('Using invalid id. Should fail', function (done) {
+		node.api.get('/transactions/get?id=NotTxId')
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 });
 
-describe("GET /transactions", function () {
+describe('GET /transactions', function () {
 
-	it("Using type. Should be ok", function (done) {
-		node.api.get("/transactions?type=" + node.TxTypes.SEND)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+	it('Using type. Should be ok', function (done) {
+		node.api.get('/transactions?type=' + node.TxTypes.SEND)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
+				node.expect(res.body).to.have.property('success').to.be.true;
 				if (res.body.success == true && res.body.transactions != null) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i]) {
@@ -542,7 +542,7 @@ describe("GET /transactions", function () {
 						}
 					}
 				} else {
-					// console.log("Request failed or transaction list is null");
+					// console.log('Request failed or transaction list is null');
 					node.expect(false).to.equal(true);
 				}
 				done();
@@ -550,130 +550,130 @@ describe("GET /transactions", function () {
 	});
 });
 
-describe("GET /transactions/unconfirmed/get?id=", function () {
+describe('GET /transactions/unconfirmed/get?id=', function () {
 
-	it("Using valid id. Should be ok ", function (done) {
-		node.api.get("/transactions/unconfirmed/get?id=" + transactionList[transactionCount-1].txId)
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+	it('Using valid id. Should be ok ', function (done) {
+		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionCount-1].txId)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success");
+				node.expect(res.body).to.have.property('success');
 				if (res.body.success == true) {
 					if (res.body.transaction != null) {
 						node.expect(res.body.transaction.id).to.equal(transactionList[transactionCount-1].txId);
 					}
 				} else {
-					// console.log("Transaction already processed");
-					node.expect(res.body).to.have.property("error");
+					// console.log('Transaction already processed');
+					node.expect(res.body).to.have.property('error');
 				}
 				done();
 			});
 	});
 });
 
-describe("GET /transactions/unconfirmed", function () {
+describe('GET /transactions/unconfirmed', function () {
 
-	it("Should be ok", function (done) {
-		node.api.get("/transactions/unconfirmed")
-			.set("Accept", "application/json")
-			.expect("Content-Type", /json/)
+	it('Should be ok', function (done) {
+		node.api.get('/transactions/unconfirmed')
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
-				node.expect(res.body).to.have.property("transactions").that.is.an("array");
+				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				done();
 			});
 	});
 });
 
-describe("PUT /signatures", function () {
+describe('PUT /signatures', function () {
 
-	it("When account has no funds. Should fail", function (done) {
-		node.api.put("/signatures")
-			.set("Accept", "application/json")
+	it('When account has no funds. Should fail', function (done) {
+		node.api.put('/signatures')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account3.password,
 				secondSecret: account3.password
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using invalid passphrase. Should fail", function (done) {
-		node.api.put("/signatures")
-			.set("Accept", "application/json")
+	it('Using invalid passphrase. Should fail', function (done) {
+		node.api.put('/signatures')
+			.set('Accept', 'application/json')
 			.send({
-				secret: "account.password",
+				secret: 'account.password',
 				secondSecret: account.password
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using no second passphrase. Should fail", function (done) {
-		node.api.put("/signatures")
-			.set("Accept", "application/json")
+	it('Using no second passphrase. Should fail', function (done) {
+		node.api.put('/signatures')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using valid parameters. Should be ok ", function (done) {
-		node.api.put("/signatures")
-			.set("Accept", "application/json")
+	it('Using valid parameters. Should be ok ', function (done) {
+		node.api.put('/signatures')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				secondSecret: account.secondPassword
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.true;
-				node.expect(res.body).to.have.property("transaction").that.is.an("object");
+				node.expect(res.body).to.have.property('success').to.be.true;
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 				if (res.body.success == true && res.body.transaction != null) {
-					node.expect(res.body.transaction).to.have.property("type").to.equal(node.TxTypes.SIGNATURE);
-					node.expect(res.body.transaction).to.have.property("senderPublicKey").to.equal(account.publicKey);
-					node.expect(res.body.transaction).to.have.property("senderId").to.equal(account.address);
-					node.expect(res.body.transaction).to.have.property("fee").to.equal(node.Fees.secondPasswordFee);
+					node.expect(res.body.transaction).to.have.property('type').to.equal(node.TxTypes.SIGNATURE);
+					node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
+					node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);
+					node.expect(res.body.transaction).to.have.property('fee').to.equal(node.Fees.secondPasswordFee);
 					account.transactions.push(transactionCount);
 					account.balance -= node.Fees.secondPasswordFee;
 					transactionCount += 1;
 					transactionList[transactionCount - 1] = {
-						"sender": account.address,
-						"recipient": "SYSTEM",
-						"grossSent": 0,
-						"fee": node.Fees.secondPasswordFee,
-						"netSent": 0,
-						"txId": res.body.transaction.id,
-						"type":node.TxTypes.SIGNATURE
+						'sender': account.address,
+						'recipient': 'SYSTEM',
+						'grossSent': 0,
+						'fee': node.Fees.secondPasswordFee,
+						'netSent': 0,
+						'txId': res.body.transaction.id,
+						'type':node.TxTypes.SIGNATURE
 					}
 				} else {
-					// console.log("Transaction failed or transaction object is null");
-					// console.log("Sent: secret: " + account.password + ", secondSecret: " + account.secondPassword);
+					// console.log('Transaction failed or transaction object is null');
+					// console.log('Sent: secret: ' + account.password + ', secondSecret: ' + account.secondPassword);
 					node.expect(false).to.equal(true);
 				}
 				done();
@@ -681,68 +681,68 @@ describe("PUT /signatures", function () {
 	});
 });
 
-describe("PUT /transactions on account with second passphase enabled", function () {
+describe('PUT /transactions on account with second passphase enabled', function () {
 
 	before(function (done) {
 		node.onNewBlock(done);
 	});
 
-	it("Without specifying second passphase on account. Should fail", function (done) {
+	it('Without specifying second passphase on account. Should fail', function (done) {
 		var amountToSend = 100000000;
 
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				recipientId: account2.address,
 				amount: amountToSend
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 
-	it("Using second passphase but without primary passphase. Should fail", function (done) {
+	it('Using second passphase but without primary passphase. Should fail', function (done) {
 		var amountToSend = 100000000;
 
-		node.api.put("/transactions")
-			.set("Accept", "application/json")
+		node.api.put('/transactions')
+			.set('Accept', 'application/json')
 			.send({
 				secondSecret: account.secondPassword,
 				recipientId: account2.address,
 				amount: amountToSend
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
 });
 
-describe("PUT /delegates on account with second passphase enabled", function () {
+describe('PUT /delegates on account with second passphase enabled', function () {
 
-	it("Without specifying second passphase on account. Should fail", function (done) {
-		node.api.put("/delegates")
-			.set("Accept", "application/json")
+	it('Without specifying second passphase on account. Should fail', function (done) {
+		node.api.put('/delegates')
+			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
 				username: account.delegateName
 			})
-			.expect("Content-Type", /json/)
+			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property("success").to.be.false;
-				node.expect(res.body).to.have.property("error");
+				node.expect(res.body).to.have.property('success').to.be.false;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 	});
