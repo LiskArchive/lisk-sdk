@@ -18,7 +18,7 @@ var modules, library, self, __private = {}, shared = {};
 __private.assetTypes = {};
 
 // Constructor
-function Multisignatures(cb, scope) {
+function Multisignatures (cb, scope) {
 	library = scope;
 	genesisblock = library.genesisblock;
 	self = this;

@@ -16,7 +16,7 @@ var modules, library, self, __private = {}, shared = {};
 __private.assetTypes = {};
 
 // Constructor
-function Signatures(cb, scope) {
+function Signatures (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;

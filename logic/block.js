@@ -10,7 +10,7 @@ var blockReward = require('../helpers/blockReward.js');
 var constants = require('../helpers/constants.js');
 
 // Constructor
-function Block(scope, cb) {
+function Block (scope, cb) {
 	this.scope = scope;
 	genesisblock = this.scope.genesisblock;
 	if (cb) {

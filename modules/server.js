@@ -12,7 +12,7 @@ var modules, library, self, __private = {}, shared = {};
 __private.loaded = false;
 
 // Constructor
-function Server(cb, scope) {
+function Server (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;

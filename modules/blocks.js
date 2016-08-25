@@ -76,7 +76,7 @@ __private.loaded = false;
 __private.isActive = false;
 
 // Constructor
-function Blocks(cb, scope) {
+function Blocks (cb, scope) {
 	library = scope;
 	genesisblock = library.genesisblock;
 	self = this;

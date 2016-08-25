@@ -25,7 +25,7 @@ __private.unconfirmedTransactionsIdIndex = {};
 __private.doubleSpendingTransactions = {};
 
 // Constructor
-function Transactions(cb, scope) {
+function Transactions (cb, scope) {
 	library = scope;
 	genesisblock = library.genesisblock;
 	self = this;

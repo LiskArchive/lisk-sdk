@@ -29,7 +29,7 @@ __private.blockReward = new blockReward();
 __private.keypairs = {};
 
 // Constructor
-function Delegates(cb, scope) {
+function Delegates (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;

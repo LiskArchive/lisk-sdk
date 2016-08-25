@@ -20,7 +20,7 @@ __private.assetTypes = {};
 __private.blockReward = new blockReward();
 
 // Constructor
-function Accounts(cb, scope) {
+function Accounts (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;

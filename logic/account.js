@@ -10,7 +10,7 @@ var slots = require('../helpers/slots.js');
 var genesisBlock = null;
 
 // Constructor
-function Account(scope, cb) {
+function Account (scope, cb) {
 	this.scope = scope;
 	genesisBlock = this.scope.genesisblock.block;
 

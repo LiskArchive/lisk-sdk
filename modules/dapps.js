@@ -37,7 +37,7 @@ __private.dappready = {};
 __private.routes = {};
 
 // Constructor
-function DApps(cb, scope) {
+function DApps (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;
