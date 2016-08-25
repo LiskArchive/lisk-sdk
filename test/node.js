@@ -70,7 +70,7 @@ var Gaccount = {
 var LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1; // Remove 1 x 0 for reduced fees (delegate + Tx)
 
 // Used to create random delegates names
-function randomDelegateName() {
+function randomDelegateName () {
 	var size = randomNumber(1,20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
@@ -94,12 +94,12 @@ function randomProperty (obj, needKey) {
 }
 
 // Randomizes LISK amount
-function randomLISK() {
+function randomLISK () {
 	return Math.floor(Math.random() * (10000 * 100000000)) + (1000 * 100000000);
 }
 
 // Returns current block height
-function getHeight(cb) {
+function getHeight (cb) {
 	request({
 		type: 'GET',
 		url: baseUrl + '/api/blocks/getHeight',
@@ -113,7 +113,7 @@ function getHeight(cb) {
 	});
 }
 
-function onNewBlock(cb) {
+function onNewBlock (cb) {
 	getHeight(function (err, height) {
 		//console.log('Height: ' + height);
 		if (err) {
@@ -125,7 +125,7 @@ function onNewBlock(cb) {
 }
 
 // Function used to wait until a new block has been created
-function waitForNewBlock(height, cb) {
+function waitForNewBlock (height, cb) {
 	var actualHeight = height;
 	var counter = 1;
 
@@ -162,7 +162,7 @@ function waitForNewBlock(height, cb) {
 }
 
 // Adds peers to local node
-function addPeers(numOfPeers, cb) {
+function addPeers (numOfPeers, cb) {
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var ports = [4000, 5000, 7000, 8000];
 
@@ -200,22 +200,22 @@ function addPeers(numOfPeers, cb) {
 }
 
 // Used to randomize selecting from within an array. Requires array length
-function randomizeSelection(length) {
+function randomizeSelection (length) {
 	return Math.floor(Math.random() * length);
 }
 
 // Returns a random number between min (inclusive) and max (exclusive)
-function randomNumber(min, max) {
+function randomNumber (min, max) {
 	return	Math.floor(Math.random() * (max - min) + min);
 }
 
 // Calculates the expected fee from a transaction
-function expectedFee(amount) {
+function expectedFee (amount) {
 	return parseInt(Fees.transactionFee);
 }
 
 // Used to create random usernames
-function randomUsername() {
+function randomUsername () {
 	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
 	var username = '';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
@@ -227,7 +227,7 @@ function randomUsername() {
 	return username;
 }
 
-function randomCapitalUsername() {
+function randomCapitalUsername () {
 	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
 	var username = 'A';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
@@ -240,7 +240,7 @@ function randomCapitalUsername() {
 }
 
 // Used to create random basic accounts
-function randomAccount() {
+function randomAccount () {
 	var account = {
 		'address' : '',
 		'publicKey' : '',
@@ -258,7 +258,7 @@ function randomAccount() {
 }
 
 // Used to create random transaction accounts (holds additional info to regular account)
-function randomTxAccount() {
+function randomTxAccount () {
 	return _.defaults(randomAccount(), {
 		sentAmount:'',
 		paidFee: '',
@@ -268,7 +268,7 @@ function randomTxAccount() {
 }
 
 // Used to create random passwords
-function randomPassword() {
+function randomPassword () {
 	return Math.random().toString(36).substring(7);
 }
 
