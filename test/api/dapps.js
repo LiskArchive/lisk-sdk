@@ -28,15 +28,15 @@ before(function (done) {
         .expect(200)
         .end(function (err, res) {
             // console.log(JSON.stringify(res.body));
-            // console.log("Opening Account 1 with password: " + account.password);
+            // console.log('Opening account with password:', account.password);
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.success == true && res.body.account != null) {
                  account.address = res.body.account.address;
                  account.publicKey = res.body.account.publicKey;
                  account.balance = res.body.account.balance;
             } else {
-                 console.log("Unable to open account, tests will fail");
-                 console.log("Data sent: secret: " + account.password + " , secondSecret: " + account.secondPassword );
+                 // console.log('Failed to open account');
+                 // console.log('Secret:', account.password, ', secondSecret:', account.secondPassword);
                  node.expect(false).to.equal(true);
             }
             done();
@@ -53,16 +53,16 @@ before(function (done) {
         .expect("Content-Type", /json/)
         .expect(200)
         .end(function (err, res) {
-             // console.log("register second password");
-             // console.log("Opening Account 2 with password: " + account2.password);
+             // console.log(JSON.stringify(res.body));
+             // console.log('Opening account with password:', account2.password);
              node.expect(res.body).to.have.property("success").to.be.true;
              if (res.body.success == true && res.body.account != null) {
                   account2.address = res.body.account.address;
                   account2.publicKey = res.body.account.publicKey;
                   account2.balance = res.body.account.balance;
              } else {
-                  console.log("Unable to open account2, tests will fail");
-                  console.log("Data sent: secret: " + account2.password + " , secondSecret: " + account2.secondPassword );
+                  // console.log('Failed to open account');
+                  // console.log('Secret:', account2.password, ', secondSecret:', account2.secondPassword);
                   node.expect(false).to.equal(true);
              }
              done();
@@ -80,15 +80,15 @@ before(function (done) {
         .expect(200)
         .end(function (err, res) {
             // console.log(JSON.stringify(res.body));
-            // console.log("Opening Account 3 with password: " + account3.password);
+            // console.log('Opening account with password:', account3.password);
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.success == true && res.body.account != null) {
                 account3.address = res.body.account.address;
                 account3.publicKey = res.body.account.publicKey;
                 account3.balance = res.body.account.balance;
             } else {
-                console.log("Unable to open account3, tests will fail");
-                console.log("Data sent: secret: " + account3.password + " , secondSecret: " + account3.secondPassword );
+                // console.log('Failed to open account');
+                // console.log('Secret:', account3.password, ', secondSecret:', account.secondPassword);
                 node.expect(false).to.equal(true);
             }
             done();
@@ -112,13 +112,13 @@ before(function (done) {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 if (res.body.success == true && res.body.transactionId != null) {
-                    // console.log("Sent to " + account.address + " " + (randomLISK / node.normalizer) + " LISK");
+                    // console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
                     transactionCount += 1;
                     account.transactions.push(transactionCount);
                     account.balance += randomLISK;
                 } else {
-                    // console.log("Sending LISK to account failed.");
-                    // console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + account.address );
+                    // console.log('Sending LISK to:', account.address, 'failed');
+                    // console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
                     node.expect(false).to.equal(true);
                 }
                 done();
@@ -141,11 +141,10 @@ before(function (done) {
             .expect(200)
             .end(function (err, res) {
                 // console.log(JSON.stringify(res.body));
-                // console.log("Sending LISK from genesis account to account. Recipient is: " + account2.address);
-                // console.log("Sent to " + account2.address + " " + (randomLISK / node.normalizer) + " LISK");
-                // console.log("Expected fee (paid by sender): " + expectedFee / node.normalizer + " LISK");
                 node.expect(res.body).to.have.property("success").to.be.true;
                 if (res.body.success == true && res.body.transactionId != null) {
+                    // console.log('Sent to:', account2.address, (randomLISK / node.normalizer), 'LISK');
+                    // console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
                     account2.transactions.push(transactionCount);
                     transactionCount += 1;
                     totalTxFee += (expectedFee / node.normalizer);
@@ -160,8 +159,8 @@ before(function (done) {
                         "type":node.TxTypes.SEND
                     }
                 } else {
-                    console.log("Sending LISK to account2 failed.");
-                    console.log("Sent: secret: " + node.Gaccount.password + ", amount: " + randomLISK + ", recipientId: " + account2.address );
+                    // console.log('Sending LISK to:', account2.address, 'failed');
+                    // console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
                     node.expect(false).to.equal(true);
                 }
                 done();
