@@ -520,29 +520,32 @@ describe("PUT /dapps", function () {
 
 describe("GET /dapps", function () {
 
+    before(function (done) {
+        node.onNewBlock(done);
+    });
+
     it("Using no limit. Should be ok", function (done) {
         var category = ""; var name = ""; var type = ""; var link = "";
         var icon = ""; var limit = ""; var offset = ""; var orderBy = "";
 
-        node.onNewBlock(function (err) {
-            node.api.get("/dapps")
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    // console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("dapps").that.is.an("array");
-                    if (res.body.success == true && res.body.dapps != null) {
-                        if ((res.body.dapps).length > 0) {
-                            Dapp = res.body.dapps[0];
-                            DappToInstall = Dapp;
-                        }
-                    } else {
-                        // console.log(JSON.stringify(res.body));
-                        console.log("Request failed or dapps array is null");
+        node.api.get("/dapps")
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body).to.have.property("dapps").that.is.an("array");
+                if (res.body.success == true && res.body.dapps != null) {
+                    if ((res.body.dapps).length > 0) {
+                        Dapp = res.body.dapps[0];
+                        DappToInstall = Dapp;
                     }
-                    done();
-                });
+                } else {
+                    // console.log(JSON.stringify(res.body));
+                    console.log("Request failed or dapps array is null");
+                }
+                done();
+            });
         });
     });
 
