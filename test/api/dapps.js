@@ -442,30 +442,29 @@ describe("PUT /dapps", function () {
     });
 
     it("Using valid Link. Should be ok", function (done) {
-        node.onNewBlock(function () {
-            DappName = node.randomDelegateName();
-            node.api.put("/dapps")
-                .set("Accept", "application/json")
-                .send({
-                    secret: account.password,
-                    category: node.randomProperty(node.DappCategory),
-                    type: node.DappType.DAPP,
-                    name: DappName,
-                    description: "A dapp added via API autotest",
-                    tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
-                    link: node.guestbookDapp.link,
-                    icon: node.guestbookDapp.icon
-                })
-                .expect("Content-Type", /json/)
-                .expect(200)
-                .end(function (err, res) {
-                    // console.log(JSON.stringify(res.body));
-                    node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body.transaction).to.have.property("id");
-                    DappToInstall.transactionId = res.body.transaction.id;
-                    done();
-                });
-        });
+        DappName = node.randomDelegateName();
+
+        node.api.put("/dapps")
+            .set("Accept", "application/json")
+            .send({
+                secret: account.password,
+                category: node.randomProperty(node.DappCategory),
+                type: node.DappType.DAPP,
+                name: DappName,
+                description: "A dapp added via API autotest",
+                tags: "handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate",
+                link: node.guestbookDapp.link,
+                icon: node.guestbookDapp.icon
+            })
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
+                node.expect(res.body).to.have.property("success").to.be.true;
+                node.expect(res.body.transaction).to.have.property("id");
+                DappToInstall.transactionId = res.body.transaction.id;
+                done();
+            });
     });
 
     it("Using existing dapp name. Should fail", function (done) {
