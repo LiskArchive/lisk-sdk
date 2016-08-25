@@ -1,16 +1,16 @@
 'use strict';
 
+var _ = require('underscore');
 var async = require('async');
-var util = require('util');
-var ip = require('ip');
-var OrderBy = require('../helpers/orderBy.js');
-var Router = require('../helpers/router.js');
 var extend = require('extend');
 var fs = require('fs');
+var ip = require('ip');
+var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
+var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/peer.js');
-var _ = require('underscore');
+var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

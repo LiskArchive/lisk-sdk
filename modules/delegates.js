@@ -1,23 +1,23 @@
 'use strict';
 
-var crypto = require('crypto');
-var extend = require('extend');
-var ed = require('ed25519');
+var _ = require('underscore');
 var async = require('async');
-var shuffle = require('knuth-shuffle').knuthShuffle;
 var bignum = require('../helpers/bignum.js');
-var Router = require('../helpers/router.js');
-var slots = require('../helpers/slots.js');
-var schedule = require('node-schedule');
 var BlockReward = require('../logic/blockReward.js');
+var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var crypto = require('crypto');
+var ed = require('ed25519');
+var extend = require('extend');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
+var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schedule = require('node-schedule');
+var shuffle = require('knuth-shuffle').knuthShuffle;
+var slots = require('../helpers/slots.js');
 var sql = require('../sql/delegates.js');
-var checkIpInList = require('../helpers/checkIpInList.js');
-var _ = require('underscore');
+var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

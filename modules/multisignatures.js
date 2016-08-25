@@ -1,16 +1,16 @@
 'use strict';
 
 var async = require('async');
-var ed = require('ed25519');
 var crypto = require('crypto');
-var genesisblock = null;
-var slots = require('../helpers/slots.js');
+var ed = require('ed25519');
 var extend = require('extend');
-var Router = require('../helpers/router.js');
+var genesisblock = null;
 var RequestSanitizer = require('../helpers/request-sanitizer.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var slots = require('../helpers/slots.js');
 var sql = require('../sql/multisignatures.js');
+var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

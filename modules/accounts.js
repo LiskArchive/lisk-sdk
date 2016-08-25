@@ -1,17 +1,16 @@
 'use strict';
 
-var crypto = require('crypto');
 var bignum = require('../helpers/bignum.js');
-var ed = require('ed25519');
-var slots = require('../helpers/slots.js');
-var Router = require('../helpers/router.js');
-var util = require('util');
 var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
+var crypto = require('crypto');
+var ed = require('ed25519');
+var extend = require('extend');
+var Router = require('../helpers/router.js');
+var sandboxHelper = require('../helpers/sandbox.js');
+var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var util = require('util');
-var extend = require('extend');
-var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

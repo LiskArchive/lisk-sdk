@@ -1,27 +1,27 @@
 'use strict';
 
-var async = require('async');
-var dappTypes = require('../helpers/dappTypes.js');
-var dappCategories = require('../helpers/dappCategories.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
-var fs = require('fs');
-var request = require('request');
-var path = require('path');
-var npm = require('npm');
-var slots = require('../helpers/slots.js');
-var OrderBy = require('../helpers/orderBy.js');
-var Router = require('../helpers/router.js');
-var DecompressZip = require('decompress-zip');
-var crypto = require('crypto');
-var constants = require('../helpers/constants.js');
-var Sandbox = require('lisk-sandbox');
-var ed = require('ed25519');
-var rmdir = require('rimraf');
-var extend = require('extend');
-var ip = require('ip');
-var sandboxHelper = require('../helpers/sandbox.js');
-var sql = require('../sql/dapps.js');
 var _ = require('underscore');
+var async = require('async');
+var constants = require('../helpers/constants.js');
+var crypto = require('crypto');
+var dappCategories = require('../helpers/dappCategories.js');
+var dappTypes = require('../helpers/dappTypes.js');
+var DecompressZip = require('decompress-zip');
+var ed = require('ed25519');
+var extend = require('extend');
+var fs = require('fs');
+var ip = require('ip');
+var npm = require('npm');
+var OrderBy = require('../helpers/orderBy.js');
+var path = require('path');
+var request = require('request');
+var rmdir = require('rimraf');
+var Router = require('../helpers/router.js');
+var Sandbox = require('lisk-sandbox');
+var sandboxHelper = require('../helpers/sandbox.js');
+var slots = require('../helpers/slots.js');
+var sql = require('../sql/dapps.js');
+var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

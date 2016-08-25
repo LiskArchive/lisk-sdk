@@ -1,17 +1,17 @@
 'use strict';
 
-var Router = require('../helpers/router.js');
-var async = require('async');
-var request = require('request');
-var ip = require('ip');
-var util = require('util');
 var _ = require('underscore');
-var zlib = require('zlib');
-var extend = require('extend');
-var crypto = require('crypto');
+var async = require('async');
 var bignum = require('../helpers/bignum.js');
+var crypto = require('crypto');
+var extend = require('extend');
+var ip = require('ip');
+var request = require('request');
+var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
+var util = require('util');
+var zlib = require('zlib');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

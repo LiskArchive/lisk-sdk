@@ -1,9 +1,9 @@
 'use strict';
 
 var async = require('async');
+var extend = require('extend');
 var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
-var extend = require('extend');
 var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields

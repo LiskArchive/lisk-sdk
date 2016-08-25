@@ -1,14 +1,14 @@
 'use strict';
 
-var ed = require('ed25519');
-var crypto = require('crypto');
-var constants = require('../helpers/constants.js');
-var slots = require('../helpers/slots.js');
-var Router = require('../helpers/router.js');
 var async = require('async');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var constants = require('../helpers/constants.js');
+var crypto = require('crypto');
+var ed = require('ed25519');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
+var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var slots = require('../helpers/slots.js');
+var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

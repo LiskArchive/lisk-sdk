@@ -1,19 +1,19 @@
 'use strict';
 
-var ed = require('ed25519');
-var util = require('util');
+var async = require('async');
 var ByteBuffer = require('bytebuffer');
-var crypto = require('crypto');
-var genesisblock = null;
 var constants = require('../helpers/constants.js');
-var slots = require('../helpers/slots.js');
+var crypto = require('crypto');
+var ed = require('ed25519');
 var extend = require('extend');
+var genesisblock = null;
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
-var async = require('async');
-var transactionTypes = require('../helpers/transactionTypes.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
+var transactionTypes = require('../helpers/transactionTypes.js');
+var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

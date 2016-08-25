@@ -1,23 +1,23 @@
 'use strict';
 
-var crypto = require('crypto');
-var ed = require('ed25519');
-var ip = require('ip');
+var _ = require('underscore');
+var async = require('async');
+var BlockReward = require('../logic/blockReward.js');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
-var genesisblock = null;
-var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
+var crypto = require('crypto');
+var ed = require('ed25519');
+var genesisblock = null;
 var Inserts = require('../helpers/inserts.js');
+var ip = require('ip');
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
-var slots = require('../helpers/slots.js');
-var util = require('util');
-var async = require('async');
-var transactionTypes = require('../helpers/transactionTypes.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var slots = require('../helpers/slots.js');
 var sql = require('../sql/blocks.js');
-var _ = require('underscore');
+var transactionTypes = require('../helpers/transactionTypes.js');
+var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
