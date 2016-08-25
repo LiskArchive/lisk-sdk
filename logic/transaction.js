@@ -73,6 +73,7 @@ Transaction.prototype.attachAssetType = function (typeId, instance) {
 		typeof instance.ready === 'function' && typeof instance.process === 'function'
 	) {
 		__private.types[typeId] = instance;
+		return instance;
 	} else {
 		throw Error('Invalid instance interface');
 	}
