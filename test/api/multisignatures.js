@@ -43,10 +43,10 @@ function openAccount (account, i, done) {
 			if (res.body.account && i != null) {
 				accounts[i].address = res.body.account.address;
 				accounts[i].publicKey = res.body.account.publicKey;
-			} else if (account.name == 'nolisk') {
+			} else if (account.name === 'nolisk') {
 				noLISKAccount.address = res.body.account.address;
 				noLISKAccount.publicKey = res.body.account.publicKey;
-			} else if (account.name == 'multi') {
+			} else if (account.name === 'multi') {
 				multisigAccount.address = res.body.account.address;
 				multisigAccount.publicKey = res.body.account.publicKey;
 			}
@@ -594,7 +594,7 @@ describe('GET /multisignatures/pending', function () {
 					var flag = 0;
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						// console.log(multisigAccount.publicKey);
-						if (res.body.transactions[i].transaction.senderPublicKey == multisigAccount.publicKey) {
+						if (res.body.transactions[i].transaction.senderPublicKey === multisigAccount.publicKey) {
 							flag += 1;
 							node.expect(res.body.transactions[i].transaction).to.have.property('type').to.equal(node.TxTypes.MULTI);
 							node.expect(res.body.transactions[i].transaction).to.have.property('amount').to.equal(0);
@@ -691,7 +691,7 @@ describe('POST /multisignatures/sign (group)', function () {
 	it('Using one less than total signatures. Should not confirm transaction', function (done) {
 		var passphrases = accounts.map(function (account) {
 			return account.password;
-		})
+		});
 
 		confirmTransaction(multiSigTx.txId, passphrases.slice(0, (passphrases.length - 1)), function () {
 			node.onNewBlock(function (err) {

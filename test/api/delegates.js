@@ -85,7 +85,7 @@ describe('PUT /delegates without funds', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.false;
 				node.expect(res.body).to.have.property('error');
-				if (res.body.success == false && res.body.error != null) {
+				if (res.body.success === false && res.body.error != null) {
 					node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
 				} else {
 					// console.log('Expected error and got success');
@@ -266,7 +266,7 @@ describe('PUT /accounts/delegates with funds', function () {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.false;
 					node.expect(res.body).to.have.property('error');
-					if (res.body.success == false && res.body.error != null) {
+					if (res.body.success === false && res.body.error != null) {
 						node.expect(res.body.error.toLowerCase()).to.contain('already voted');
 					} else {
 						// console.log('Expected error but got success');
@@ -322,7 +322,7 @@ describe('PUT /accounts/delegates with funds', function () {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.false;
 					node.expect(res.body).to.have.property('error');
-					if (res.body.success == false && res.body.error != null) {
+					if (res.body.success === false && res.body.error != null) {
 						node.expect(res.body.error.toLowerCase()).to.contain('not voted');
 					} else {
 						// console.log('Expected error but got success');
@@ -844,7 +844,7 @@ describe('GET /delegates/voters', function () {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success');
-				if(res.body.success == false) {
+				if(res.body.success === false) {
 					node.expect(res.body).to.have.property('error');
 				} else {
 					node.expect(res.body).to.have.property('accounts').that.is.an('array');
@@ -1089,7 +1089,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit == 0. Should fail', function (done) {
+	it('When limit === 0. Should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 0;
 

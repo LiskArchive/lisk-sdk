@@ -169,7 +169,7 @@ describe('GET /api/transactions', function () {
 						for (var i = 0; i < res.body.transactions.length; i++) {
 							if (res.body.transactions[i + 1]) {
 								node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
-								if (flag == 0) {
+								if (flag === 0) {
 									offsetTimestamp = res.body.transactions[i + 1].timestamp;
 									flag = 1;
 								}
@@ -277,6 +277,7 @@ describe('PUT /api/transactions', function () {
 
 	it('Using valid parameters. Should be ok', function (done) {
 		var amountToSend = 100000000;
+		var expectedFee = node.expectedFee(amountToSend);
 
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
@@ -291,8 +292,7 @@ describe('PUT /api/transactions', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('transactionId');
-				if (res.body.success == true && res.body.transactionId != null) {
-					expectedFee = node.expectedFee(amountToSend);
+				if (res.body.success === true && res.body.transactionId != null) {
 					account.transactions.push(transactionCount);
 					account.balance -= (amountToSend + expectedFee);
 					account2.balance += amountToSend;
@@ -304,7 +304,7 @@ describe('PUT /api/transactions', function () {
 						'netSent': amountToSend / node.normalizer,
 						'txId': res.body.transactionId,
 						'type': node.TxTypes.SEND
-					}
+					};
 					transactionCount += 1;
 				} else {
 					// console.log('Failed Tx or transactionId is null');
@@ -496,7 +496,7 @@ describe('GET /transactions/get?id=', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				if (res.body.success == true && res.body.transaction.id != null) {
+				if (res.body.success === true && res.body.transaction.id != null) {
 					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
 					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
 					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
@@ -535,7 +535,7 @@ describe('GET /transactions', function () {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
-				if (res.body.success == true && res.body.transactions != null) {
+				if (res.body.success === true && res.body.transactions != null) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i]) {
 							node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
@@ -560,7 +560,7 @@ describe('GET /transactions/unconfirmed/get?id=', function () {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success');
-				if (res.body.success == true) {
+				if (res.body.success === true) {
 					if (res.body.transaction != null) {
 						node.expect(res.body.transaction.id).to.equal(transactionList[transactionCount-1].txId);
 					}
@@ -654,7 +654,7 @@ describe('PUT /signatures', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				if (res.body.success == true && res.body.transaction != null) {
+				if (res.body.success === true && res.body.transaction != null) {
 					node.expect(res.body.transaction).to.have.property('type').to.equal(node.TxTypes.SIGNATURE);
 					node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
 					node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);
@@ -670,7 +670,7 @@ describe('PUT /signatures', function () {
 						'netSent': 0,
 						'txId': res.body.transaction.id,
 						'type':node.TxTypes.SIGNATURE
-					}
+					};
 				} else {
 					// console.log('Transaction failed or transaction object is null');
 					// console.log('Sent: secret: ' + account.password + ', secondSecret: ' + account.secondPassword);

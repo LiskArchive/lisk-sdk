@@ -29,7 +29,7 @@ before(function (done) {
 			// console.log(JSON.stringify(res.body));
 			// console.log('Opening account with password:', account.password);
 			node.expect(res.body).to.have.property('success').to.be.true;
-			if (res.body.success == true && res.body.account != null) {
+			if (res.body.success === true && res.body.account != null) {
 				 account.address = res.body.account.address;
 				 account.publicKey = res.body.account.publicKey;
 				 account.balance = res.body.account.balance;
@@ -55,7 +55,7 @@ before(function (done) {
 			 // console.log(JSON.stringify(res.body));
 			 // console.log('Opening account with password:', account2.password);
 			 node.expect(res.body).to.have.property('success').to.be.true;
-			 if (res.body.success == true && res.body.account != null) {
+			 if (res.body.success === true && res.body.account != null) {
 					account2.address = res.body.account.address;
 					account2.publicKey = res.body.account.publicKey;
 					account2.balance = res.body.account.balance;
@@ -81,7 +81,7 @@ before(function (done) {
 			// console.log(JSON.stringify(res.body));
 			// console.log('Opening account with password:', account3.password);
 			node.expect(res.body).to.have.property('success').to.be.true;
-			if (res.body.success == true && res.body.account != null) {
+			if (res.body.success === true && res.body.account != null) {
 				account3.address = res.body.account.address;
 				account3.publicKey = res.body.account.publicKey;
 				account3.balance = res.body.account.balance;
@@ -110,7 +110,7 @@ before(function (done) {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
-				if (res.body.success == true && res.body.transactionId != null) {
+				if (res.body.success === true && res.body.transactionId != null) {
 					// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 					account.balance += randomLISK;
 					transactionCount += 1;
@@ -140,7 +140,7 @@ before(function (done) {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
-				if (res.body.success == true && res.body.transactionId != null) {
+				if (res.body.success === true && res.body.transactionId != null) {
 					// console.log('Sent to:', account2.address, (randomLISK / node.normalizer), 'LISK');
 					// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
 					account2.balance += randomLISK;
@@ -153,7 +153,7 @@ before(function (done) {
 						'netSent': randomLISK / node.normalizer,
 						'txId': res.body.transactionId,
 						'type':node.TxTypes.SEND
-					}
+					};
 				} else {
 					// console.log('Sending LISK to:', account2.address, 'failed');
 					// console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
@@ -532,7 +532,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					if ((res.body.dapps).length > 0) {
 						Dapp = res.body.dapps[0];
 						DappToInstall = Dapp;
@@ -569,7 +569,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					if (res.body.dapps[0] != null) {
 						for (var i = 0; i < res.body.dapps.length; i++) {
 							if (res.body.dapps[i+1] != null) {
@@ -595,7 +595,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					if (res.body.dapps[0] != null) {
 						for( var i = 0; i < res.body.dapps.length; i++) {
 							if (res.body.dapps[i+1] != null) {
@@ -621,7 +621,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					node.expect((res.body.dapps).length).to.be.at.most(limit);
 				} else {
 					// console.log(JSON.stringify(res.body));
@@ -641,7 +641,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					if((res.body.dapps).length > 0) {
 						node.expect(res.body.dapps[0].category).to.equal(node.DappCategory[randomCategory]);
 					}
@@ -656,7 +656,7 @@ describe('GET /dapps', function () {
 	it('Using name. Should be ok', function (done) {
 		var name = '';
 
-		if (Dapp != {} && Dapp != null) {
+		if (Dapp !== {} && Dapp != null) {
 			name = Dapp.name;
 		} else {
 			name = 'test';
@@ -667,20 +667,20 @@ describe('GET /dapps', function () {
 			.expect(200)
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
-				if (name == 'test') {
+				if (name === 'test') {
 					node.expect(res.body).to.have.property('success');
 				} else {
 					node.expect(res.body).to.have.property('success').to.be.true;
 					node.expect(res.body).to.have.property('dapps').that.is.an('array');
 					node.expect(res.body.dapps.length).to.equal(1);
-					if (res.body.success == true && res.body.dapps != null) {
+					if (res.body.success === true && res.body.dapps != null) {
 						node.expect(res.body.dapps[0].name).to.equal(name);
 					} else {
 						// console.log(JSON.stringify(res.body));
 						console.log('Request failed or dapps array is null');
 					}
 				}
-				done()
+				done();
 			});
 	});
 
@@ -694,7 +694,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					for( var i = 0; i < res.body.dapps.length; i++) {
 						if (res.body.dapps[i] != null) {
 							node.expect(res.body.dapps[i].type).to.equal(type);
@@ -718,7 +718,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					for( var i = 0; i < res.body.dapps.length; i++) {
 						if (res.body.dapps[i] != null) {
 							node.expect(res.body.dapps[i].link).to.equal(link);
@@ -743,7 +743,7 @@ describe('GET /dapps', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					if (res.body.dapps[1] != null) {
 						secondDapp = res.body.dapps[1];
 						console.log(offset);
@@ -753,7 +753,7 @@ describe('GET /dapps', function () {
 							.end(function (err, res) {
 								// console.log(JSON.stringify(res.body));
 								node.expect(res.body).to.have.property('success').to.be.true;
-								if (res.body.success == true && res.body.dapps != null) {
+								if (res.body.success === true && res.body.dapps != null) {
 									node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
 								}
 							});
@@ -808,7 +808,7 @@ describe('GET /dapps?id=', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapp');
-				if (res.body.success == true && res.body.dapp != null) {
+				if (res.body.success === true && res.body.dapp != null) {
 					node.expect(res.body.dapp.transactionId).to.equal(dappId);
 				} else {
 					// console.log(JSON.stringify(res.body));
@@ -887,10 +887,10 @@ describe('GET /dapps/installed', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success == true && res.body.dapps != null) {
+				if (res.body.success === true && res.body.dapps != null) {
 					for (var i = 0; i < res.body.dapps.length; i++) {
 						if (res.body.dapps[i] != null) {
-							if (res.body.dapps[i].transactionId == DappToInstall.transactionId) {
+							if (res.body.dapps[i].transactionId === DappToInstall.transactionId) {
 								flag += 1;
 							}
 						}
@@ -917,10 +917,10 @@ describe('GET /dapps/installedIds', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.true;
 				node.expect(res.body).to.have.property('ids').that.is.an('array');
-				if (res.body.success == true && res.body.ids != null) {
+				if (res.body.success === true && res.body.ids != null) {
 					for (var i = 0; i < res.body.ids.length; i++) {
 						if (res.body.ids[i] != null) {
-							if (res.body.ids[i] == DappToInstall.transactionId) {
+							if (res.body.ids[i] === DappToInstall.transactionId) {
 								flag += 1;
 							}
 						}
@@ -1044,11 +1044,11 @@ describe('POST /dapps/launch', function () {
 						// console.log(JSON.stringify(res.body));
 						node.expect(res.body).to.have.property('success').to.be.true;
 						node.expect(res.body).to.have.property('launched').that.is.an('array');
-						if(res.body.success == true && res.body.launched != null) {
+						if(res.body.success === true && res.body.launched != null) {
 							var flag = 0;
 							for (var i = 0; i < res.body.launched.length; i++) {
 								if (res.body.launched[i] != null) {
-									if (res.body.launched[i] == dappId) {
+									if (res.body.launched[i] === dappId) {
 										flag += 1;
 									}
 								}

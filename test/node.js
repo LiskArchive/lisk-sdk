@@ -22,7 +22,7 @@ var constants = require('../helpers/constants.js');
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
 var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-var version = '0.0.0' // Node version
+var version = '0.0.0'; // Node version
 
 // Holds Fee amounts for different transaction types
 var Fees = {
@@ -75,22 +75,23 @@ function randomDelegateName() {
 	var delegateName = '';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
-	for( var i=0; i < size; i++ )
+	for (var i = 0; i < size; i++) {
 		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
 
 	return delegateName;
 }
 
 // Randomize a property from within an object
-function randomProperty(obj, needKey) {
-	var keys = Object.keys(obj)
+function randomProperty (obj, needKey) {
+	var keys = Object.keys(obj);
 
 	if (!needKey) {
 		return obj[keys[keys.length * Math.random() << 0]];
 	} else {
 		return keys[keys.length * Math.random() << 0];
 	}
-};
+}
 
 // Randomizes LISK amount
 function randomLISK() {
@@ -104,12 +105,12 @@ function getHeight(cb) {
 		url: baseUrl + '/api/blocks/getHeight',
 		json: true
 	}, function (err, resp, body) {
-		if (err || resp.statusCode != 200) {
+		if (err || resp.statusCode !== 200) {
 			return cb(err || 'Status code is not 200 (getHeight)');
 		} else {
 			return cb(null, body.height);
 		}
-	})
+	});
 }
 
 function onNewBlock(cb) {
@@ -135,11 +136,11 @@ function waitForNewBlock(height, cb) {
 				url: baseUrl + '/api/blocks/getHeight',
 				json: true
 			}, function (err, resp, body) {
-				if (err || resp.statusCode != 200) {
+				if (err || resp.statusCode !== 200) {
 					return cb(err || 'Got incorrect status');
 				}
 
-				if (height + 2 == body.height) {
+				if (height + 2 === body.height) {
 					height = body.height;
 				}
 
@@ -148,7 +149,7 @@ function waitForNewBlock(height, cb) {
 			});
 		},
 		function () {
-			return actualHeight == height;
+			return actualHeight === height;
 		},
 		function (err) {
 			if (err) {
@@ -157,7 +158,7 @@ function waitForNewBlock(height, cb) {
 				return setImmediate(cb, null, height);
 			}
 		}
-	)
+	);
 }
 
 // Adds peers to local node
@@ -169,7 +170,7 @@ function addPeers(numOfPeers, cb) {
 
 	var i = 0;
 	async.whilst(function () {
-		return i < numOfPeers
+		return i < numOfPeers;
 	}, function (next) {
 		os = operatingSystems[randomizeSelection(operatingSystems.length)];
 		version = config.version;
@@ -186,13 +187,13 @@ function addPeers(numOfPeers, cb) {
 				'os': os
 			}
 		}, function (err, resp, body) {
-			if (err || resp.statusCode != 200) {
+			if (err || resp.statusCode !== 200) {
 				return next(err || 'Status code is not 200 (getHeight)');
 			} else {
 				i++;
 				next();
 			}
-		})
+		});
 	}, function (err) {
 		return cb(err);
 	});
@@ -219,8 +220,9 @@ function randomUsername() {
 	var username = '';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
-	for( var i=0; i < size; i++ )
+	for (var i = 0; i < size; i++) {
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
 
 	return username;
 }
@@ -230,8 +232,9 @@ function randomCapitalUsername() {
 	var username = 'A';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
-	for( var i=0; i < size-1; i++ )
+	for (var i = 0; i < size - 1; i++) {
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
 
 	return username;
 }
@@ -261,7 +264,7 @@ function randomTxAccount() {
 		paidFee: '',
 		totalPaidFee: '',
 		transactions: []
-	})
+	});
 }
 
 // Used to create random passwords
