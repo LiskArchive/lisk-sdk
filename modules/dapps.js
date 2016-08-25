@@ -830,11 +830,7 @@ __private.installDependencies = function (dapp, cb) {
 		npm.prefix = dappPath;
 
 		npm.commands.install(function (err, data) {
-			if (err) {
-				setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null);
-			}
+			return setImmediate(cb, null);
 		});
 	});
 };
