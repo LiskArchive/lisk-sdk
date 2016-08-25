@@ -4,7 +4,7 @@ var node = require("./../variables.js");
 var spawn = require("child_process").spawn;
 var path = require("path");
 
-var Saccount = {
+var account = {
     "address": "12099044743111170367L",
     "publicKey": "fbd20d4975e53916488791477dd38274c1b4ec23ad322a65adb171ec2ab6a0dc",
     "password": "sebastian",
@@ -14,11 +14,11 @@ var Saccount = {
 
 describe("POST /accounts/open", function () {
 
-    it("Using valid passphrase: "+Saccount.password+". Should be ok", function (done) {
+    it("Using valid passphrase: "+account.password+". Should be ok", function (done) {
         node.api.post("/accounts/open")
             .set("Accept", "application/json")
             .send({
-                secret: Saccount.password
+                secret: account.password
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -26,9 +26,9 @@ describe("POST /accounts/open", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("account").that.is.an("object");
-                node.expect(res.body.account.address).to.equal(Saccount.address);
-                node.expect(res.body.account.publicKey).to.equal(Saccount.publicKey);
-                Saccount.balance = res.body.account.balance;
+                node.expect(res.body.account.address).to.equal(account.address);
+                node.expect(res.body.account.publicKey).to.equal(account.publicKey);
+                account.balance = res.body.account.balance;
                 done();
             });
     });
@@ -85,7 +85,7 @@ describe("POST /accounts/open", function () {
 describe("GET /accounts/getBalance", function () {
 
     it("Using valid params. Should be ok", function (done) {
-        node.api.get("/accounts/getBalance?address=" + Saccount.address)
+        node.api.get("/accounts/getBalance?address=" + account.address)
             .set("Accept", "application/json")
             .expect("Content-Type", /json/)
             .expect(200)
@@ -93,7 +93,7 @@ describe("GET /accounts/getBalance", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("balance");
-                node.expect(res.body.balance).to.equal(Saccount.balance);
+                node.expect(res.body.balance).to.equal(account.balance);
                 done();
             });
     });
@@ -130,7 +130,7 @@ describe("GET /accounts/getBalance", function () {
 describe("GET /accounts/getPublicKey", function () {
 
     it("Using valid address. Should be ok", function (done) {
-        node.api.get("/accounts/getPublicKey?address=" + Saccount.address)
+        node.api.get("/accounts/getPublicKey?address=" + account.address)
             .set("Accept", "application/json")
             .expect("Content-Type", /json/)
             .expect(200)
@@ -138,7 +138,7 @@ describe("GET /accounts/getPublicKey", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("publicKey");
-                node.expect(res.body.publicKey).to.equal(Saccount.publicKey);
+                node.expect(res.body.publicKey).to.equal(account.publicKey);
                 done();
             });
     });
@@ -175,7 +175,7 @@ describe("GET /accounts/getPublicKey", function () {
         node.api.post("/accounts/generatePublicKey")
             .set("Accept", "application/json")
             .send({
-                secret: Saccount.password
+                secret: account.password
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -183,7 +183,7 @@ describe("GET /accounts/getPublicKey", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("publicKey");
-                node.expect(res.body.publicKey).to.equal(Saccount.publicKey);
+                node.expect(res.body.publicKey).to.equal(account.publicKey);
                 done();
             });
     });
@@ -242,7 +242,7 @@ describe("POST /accounts/generatePublicKey", function () {
 describe("GET /accounts?address=", function () {
 
     it("Using valid address. Should be ok", function (done) {
-        node.api.get("/accounts?address=" + Saccount.address)
+        node.api.get("/accounts?address=" + account.address)
             .set("Accept", "application/json")
             .expect("Content-Type", /json/)
             .expect(200)
@@ -250,15 +250,15 @@ describe("GET /accounts?address=", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("account").that.is.an("object");
-                node.expect(res.body.account.address).to.equal(Saccount.address);
-                node.expect(res.body.account.publicKey).to.equal(Saccount.publicKey);
-                node.expect(res.body.account.balance).to.equal(Saccount.balance);
+                node.expect(res.body.account.address).to.equal(account.address);
+                node.expect(res.body.account.publicKey).to.equal(account.publicKey);
+                node.expect(res.body.account.balance).to.equal(account.balance);
                 done();
             });
     });
 
     it("Using lowercase address. Should be ok", function (done) {
-        node.api.get("/accounts?address=" + Saccount.address.toLowerCase())
+        node.api.get("/accounts?address=" + account.address.toLowerCase())
             .set("Accept", "application/json")
             .expect("Content-Type", /json/)
             .expect(200)
@@ -266,9 +266,9 @@ describe("GET /accounts?address=", function () {
                 // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("account").that.is.an("object");
-                node.expect(res.body.account.address).to.equal(Saccount.address);
-                node.expect(res.body.account.publicKey).to.equal(Saccount.publicKey);
-                node.expect(res.body.account.balance).to.equal(Saccount.balance);
+                node.expect(res.body.account.address).to.equal(account.address);
+                node.expect(res.body.account.publicKey).to.equal(account.publicKey);
+                node.expect(res.body.account.balance).to.equal(account.balance);
                 done();
             });
     });

@@ -2,9 +2,9 @@
 
 var node = require("./../variables.js");
 
-var Account1 = node.randomTxAccount();
-var Account2 = node.randomTxAccount();
-var Account3 = node.randomTxAccount();
+var account = node.randomTxAccount();
+var account2 = node.randomTxAccount();
+var account3 = node.randomTxAccount();
 
 var transactionCount = 0;
 var transactionList = [];
@@ -76,34 +76,34 @@ function sendLISK (account, done) {
 }
 
 before(function (done) {
-    openAccount(Account1, done);
+    openAccount(account, done);
 });
 
 before(function (done) {
-    openAccount(Account2, done);
+    openAccount(account2, done);
 });
 
 before(function (done) {
-    openAccount(Account3, done);
+    openAccount(account3, done);
 });
 
 before(function (done) {
     setTimeout(function () {
-        sendLISK(Account1, done);
+        sendLISK(account, done);
     }, 2000);
 });
 
 before(function (done) {
     setTimeout(function () {
-        sendLISK(Account2, done);
+        sendLISK(account2, done);
     }, 2000);
 });
 
 before(function (done) {
     node.onNewBlock(function (err) {
         node.expect(err).to.be.not.ok;
-        // console.log("ACCOUNT 1:" + Account1);
-        // console.log("ACCOUNT 2:" + Account2);
+        // console.log("ACCOUNT 1:" + account);
+        // console.log("ACCOUNT 2:" + account2);
         done();
     });
 });
@@ -111,7 +111,7 @@ before(function (done) {
 describe("GET /api/transactions", function () {
 
     it("Using valid parameters. Should be ok", function (done) {
-        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 10, offset = 0, orderBy = "amount:asc";
+        var senderId = node.Gaccount.address, blockId = "", recipientId = account.address, limit = 10, offset = 0, orderBy = "amount:asc";
 
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -137,7 +137,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using limit > 100. Should fail", function (done) {
-        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, limit = 999999, offset = 0, orderBy = "amount:asc";
+        var senderId = node.Gaccount.address, blockId = "", recipientId = account.address, limit = 999999, offset = 0, orderBy = "amount:asc";
 
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -221,7 +221,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using no limit. Should be ok", function (done) {
-        var senderId = node.Gaccount.address, blockId = "", recipientId = Account1.address, offset = 0, orderBy = "amount:desc";
+        var senderId = node.Gaccount.address, blockId = "", recipientId = account.address, offset = 0, orderBy = "amount:desc";
 
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -258,7 +258,7 @@ describe("GET /api/transactions", function () {
     });
 
     it("Using partially invalid fields. Should fail", function (done) {
-        var senderId = "invalid", blockId = "invalid", recipientId = Account1.address, limit = "invalid", offset = "invalid", orderBy = "blockId:asc";
+        var senderId = "invalid", blockId = "invalid", recipientId = account.address, limit = "invalid", offset = "invalid", orderBy = "blockId:asc";
 
         node.api.get("/transactions?blockId=" + blockId + "&senderId=" + senderId + "&recipientId=" + recipientId + "&limit=" + limit + "&offset=" + offset + "&orderBy=" + orderBy)
             .set("Accept", "application/json")
@@ -281,9 +281,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: amountToSend,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -293,12 +293,12 @@ describe("PUT /api/transactions", function () {
                 node.expect(res.body).to.have.property("transactionId");
                 if (res.body.success == true && res.body.transactionId != null) {
                     expectedFee = node.expectedFee(amountToSend);
-                    Account1.balance -= (amountToSend + expectedFee);
-                    Account2.balance += amountToSend;
-                    Account1.transactions.push(transactionCount);
+                    account.balance -= (amountToSend + expectedFee);
+                    account2.balance += amountToSend;
+                    account.transactions.push(transactionCount);
                     transactionList[transactionCount] = {
-                        "sender": Account1.address,
-                        "recipient": Account2.address,
+                        "sender": account.address,
+                        "recipient": account2.address,
                         "grossSent": (amountToSend + expectedFee) / node.normalizer,
                         "fee": expectedFee / node.normalizer,
                         "netSent": amountToSend / node.normalizer,
@@ -308,7 +308,7 @@ describe("PUT /api/transactions", function () {
                     transactionCount += 1;
                 } else {
                     // console.log("Failed Tx or transactionId is null");
-                    // console.log("Sent: secret: " + Account1.password + ", amount: " + amountToSend + ", recipientId: " + Account2.address);
+                    // console.log("Sent: secret: " + account.password + ", amount: " + amountToSend + ", recipientId: " + account2.address);
                     node.expect(false).to.equal(true);
                 }
                 done();
@@ -321,9 +321,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: amountToSend,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -341,9 +341,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: amountToSend,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -359,9 +359,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
-                amount: Account1.balance,
-                recipientId: Account2.address
+                secret: account.password,
+                amount: account.balance,
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -377,9 +377,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: 0,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -395,9 +395,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -413,9 +413,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -431,9 +431,9 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: 1,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -452,7 +452,7 @@ describe("PUT /api/transactions", function () {
             .set("Accept", "application/json")
             .send({
                 amount: amountToSend,
-                recipientId: Account2.address
+                recipientId: account2.address
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -470,7 +470,7 @@ describe("PUT /api/transactions", function () {
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
+                secret: account.password,
                 amount: amountToSend
             })
             .expect("Content-Type", /json/)
@@ -595,8 +595,8 @@ describe("PUT /signatures", function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
             .send({
-                secret: Account3.password,
-                secondSecret: Account3.password
+                secret: account3.password,
+                secondSecret: account3.password
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -612,8 +612,8 @@ describe("PUT /signatures", function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
             .send({
-                secret: "Account1.password",
-                secondSecret: Account1.password
+                secret: "account.password",
+                secondSecret: account.password
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -629,7 +629,7 @@ describe("PUT /signatures", function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password
+                secret: account.password
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -645,8 +645,8 @@ describe("PUT /signatures", function () {
         node.api.put("/signatures")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
-                secondSecret: Account1.secondPassword
+                secret: account.password,
+                secondSecret: account.secondPassword
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -656,14 +656,14 @@ describe("PUT /signatures", function () {
                 node.expect(res.body).to.have.property("transaction").that.is.an("object");
                 if (res.body.success == true && res.body.transaction != null) {
                     node.expect(res.body.transaction).to.have.property("type").to.equal(node.TxTypes.SIGNATURE);
-                    node.expect(res.body.transaction).to.have.property("senderPublicKey").to.equal(Account1.publicKey);
-                    node.expect(res.body.transaction).to.have.property("senderId").to.equal(Account1.address);
+                    node.expect(res.body.transaction).to.have.property("senderPublicKey").to.equal(account.publicKey);
+                    node.expect(res.body.transaction).to.have.property("senderId").to.equal(account.address);
                     node.expect(res.body.transaction).to.have.property("fee").to.equal(node.Fees.secondPasswordFee);
-                    Account1.transactions.push(transactionCount);
-                    Account1.balance -= node.Fees.secondPasswordFee;
+                    account.transactions.push(transactionCount);
+                    account.balance -= node.Fees.secondPasswordFee;
                     transactionCount += 1;
                     transactionList[transactionCount - 1] = {
-                        "sender": Account1.address,
+                        "sender": account.address,
                         "recipient": "SYSTEM",
                         "grossSent": 0,
                         "fee": node.Fees.secondPasswordFee,
@@ -673,7 +673,7 @@ describe("PUT /signatures", function () {
                     }
                 } else {
                     // console.log("Transaction failed or transaction object is null");
-                    // console.log("Sent: secret: " + Account1.password + ", secondSecret: " + Account1.secondPassword);
+                    // console.log("Sent: secret: " + account.password + ", secondSecret: " + account.secondPassword);
                     node.expect(false).to.equal(true);
                 }
                 done();
@@ -693,8 +693,8 @@ describe("PUT /transactions on account with second passphase enabled", function 
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
-                recipientId: Account2.address,
+                secret: account.password,
+                recipientId: account2.address,
                 amount: amountToSend
             })
             .expect("Content-Type", /json/)
@@ -713,8 +713,8 @@ describe("PUT /transactions on account with second passphase enabled", function 
         node.api.put("/transactions")
             .set("Accept", "application/json")
             .send({
-                secondSecret: Account1.secondPassword,
-                recipientId: Account2.address,
+                secondSecret: account.secondPassword,
+                recipientId: account2.address,
                 amount: amountToSend
             })
             .expect("Content-Type", /json/)
@@ -734,8 +734,8 @@ describe("PUT /delegates on account with second passphase enabled", function () 
         node.api.put("/delegates")
             .set("Accept", "application/json")
             .send({
-                secret: Account1.password,
-                username: Account1.delegateName
+                secret: account.password,
+                username: account.delegateName
             })
             .expect("Content-Type", /json/)
             .expect(200)

@@ -6,18 +6,18 @@ var node = require("./../variables.js");
 var totalMembers = node.randomNumber(2, 16);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);
 
-var NoLISKAccount = node.randomAccount();
-NoLISKAccount.name = "nolisk";
+var noLISKAccount = node.randomAccount();
+noLISKAccount.name = "nolisk";
 
-var MultisigAccount = node.randomAccount();
-MultisigAccount.name = "multi";
+var multisigAccount = node.randomAccount();
+multisigAccount.name = "multi";
 
-var Accounts = [];
+var accounts = [];
 for (var i = 0; i < totalMembers; i++) {
-    Accounts[i] = node.randomAccount();
+    accounts[i] = node.randomAccount();
 }
 
-var MultiSigTX = {
+var multiSigTx = {
     lifetime: 0,
     min: 0,
     members: [],
@@ -41,21 +41,21 @@ function openAccount (account, i, done) {
             }
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.account && i != null) {
-                Accounts[i].address = res.body.account.address;
-                Accounts[i].publicKey = res.body.account.publicKey;
+                accounts[i].address = res.body.account.address;
+                accounts[i].publicKey = res.body.account.publicKey;
             } else if (account.name == "nolisk") {
-                NoLISKAccount.address = res.body.account.address;
-                NoLISKAccount.publicKey = res.body.account.publicKey;
+                noLISKAccount.address = res.body.account.address;
+                noLISKAccount.publicKey = res.body.account.publicKey;
             } else if (account.name == "multi") {
-                MultisigAccount.address = res.body.account.address;
-                MultisigAccount.publicKey = res.body.account.publicKey;
+                multisigAccount.address = res.body.account.address;
+                multisigAccount.publicKey = res.body.account.publicKey;
             }
             done();
         });
 }
 
 // Used for sending LISK to accounts
-var accountSendTurn = 0;
+var accountsendTurn = 0;
 
 function sendLISK (account, i, done) {
     var randomLISK = node.randomLISK();
@@ -74,17 +74,17 @@ function sendLISK (account, i, done) {
             // console.log("Sending " + randomLISK + " LISK to " + account.address);
             node.expect(res.body).to.have.property("success").to.be.true;
             if (res.body.success && i != null) {
-                Accounts[i].balance = randomLISK / node.normalizer;
+                accounts[i].balance = randomLISK / node.normalizer;
             }
             done();
         });
 }
 
-function sendLISKfromMultisigAccount (amount, recipient, done) {
+function sendLISKfrommultisigAccount (amount, recipient, done) {
     node.api.put("/transactions")
         .set("Accept", "application/json")
         .send({
-            secret: MultisigAccount.password,
+            secret: multisigAccount.password,
             amount: amount,
             recipientId: recipient
         })
@@ -137,7 +137,7 @@ var Keys;
 function makeKeysGroup () {
     var keysgroup = [];
     for (var i = 0; i < totalMembers; i++) {
-        var member = "+" + Accounts[i].publicKey;
+        var member = "+" + accounts[i].publicKey;
         keysgroup.push(member);
     }
     return keysgroup;
@@ -147,7 +147,7 @@ before(function (done) {
     async.series([
         function (seriesCb) {
             var i = 0;
-            async.eachSeries(Accounts, function (account, eachCb) {
+            async.eachSeries(accounts, function (account, eachCb) {
                 openAccount(account, i, function () {
                     if (accountOpenTurn < totalMembers) {
                         accountOpenTurn++;
@@ -160,14 +160,14 @@ before(function (done) {
             });
         },
         function (seriesCb) {
-            return openAccount(NoLISKAccount, null, seriesCb);
+            return openAccount(noLISKAccount, null, seriesCb);
         },
         function (seriesCb) {
-            return openAccount(MultisigAccount, null, seriesCb);
+            return openAccount(multisigAccount, null, seriesCb);
         },
         function (seriesCb) {
             var i = 0;
-            async.eachSeries(Accounts, function (account, eachCb) {
+            async.eachSeries(accounts, function (account, eachCb) {
                 sendLISK(account, i, function () {
                     i++;
                     return eachCb();
@@ -177,7 +177,7 @@ before(function (done) {
             });
         },
         function (seriesCb) {
-            return sendLISK(MultisigAccount, null, seriesCb);
+            return sendLISK(multisigAccount, null, seriesCb);
         }
     ], function (err) {
         node.onNewBlock(function (err) {
@@ -197,7 +197,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: Accounts[Accounts.length-1].password,
+                secret: accounts[accounts.length-1].password,
                 lifetime: 1,
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -216,7 +216,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: NoLISKAccount.password,
+                secret: noLISKAccount.password,
                 lifetime: 1,
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -237,7 +237,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 min: requiredSignatures,
                 keysgroup: emptyKeys
@@ -256,7 +256,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 min: requiredSignatures
             })
@@ -274,7 +274,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 min: requiredSignatures,
                 keysgroup: "invalid"
@@ -311,7 +311,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password + "inv4lid",
+                secret: multisigAccount.password + "inv4lid",
                 lifetime: 1,
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -330,7 +330,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 min: requiredSignatures,
                 keysgroup: Keys
             })
@@ -348,7 +348,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: "invalid",
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -367,7 +367,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 73,
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -386,7 +386,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 0,
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -405,7 +405,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: -1,
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -424,7 +424,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 keysgroup: Keys
             })
@@ -442,7 +442,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 min: "invalid",
                 keysgroup: Keys
@@ -461,7 +461,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 min: totalMembers + 5,
                 keysgroup: Keys
@@ -480,7 +480,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 min: 0,
                 keysgroup: Keys
@@ -501,7 +501,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: 1,
                 min: minimum,
                 keysgroup: Keys
@@ -522,7 +522,7 @@ describe("PUT /multisignatures", function () {
         node.api.put("/multisignatures")
             .set("Accept", "application/json")
             .send({
-                secret: MultisigAccount.password,
+                secret: multisigAccount.password,
                 lifetime: lifetime,
                 min: requiredSignatures,
                 keysgroup: Keys
@@ -534,10 +534,10 @@ describe("PUT /multisignatures", function () {
                 node.expect(res.body).to.have.property("success").to.be.true;
                 node.expect(res.body).to.have.property("transactionId");
                 if (res.body.success && res.body.transactionId) {
-                    MultiSigTX.txId = res.body.transactionId;
-                    MultiSigTX.lifetime = lifetime;
-                    MultiSigTX.members = Keys;
-                    MultiSigTX.min = requiredSignatures;
+                    multiSigTx.txId = res.body.transactionId;
+                    multiSigTx.lifetime = lifetime;
+                    multiSigTx.members = Keys;
+                    multiSigTx.min = requiredSignatures;
                 } else {
                     console.log("Transaction failed or transactionId null");
                     node.expect(false).to.equal(true);
@@ -581,8 +581,8 @@ describe("GET /multisignatures/pending", function () {
 
     it("Using valid public key. Should be ok", function (done) {
         node.onNewBlock(function (err) {
-            // console.log(JSON.stringify(MultisigAccount));
-            node.api.get("/multisignatures/pending?publicKey=" + MultisigAccount.publicKey)
+            // console.log(JSON.stringify(multisigAccount));
+            node.api.get("/multisignatures/pending?publicKey=" + multisigAccount.publicKey)
                 .set("Accept", "application/json")
                 .expect("Content-Type", /json/)
                 .expect(200)
@@ -593,17 +593,17 @@ describe("GET /multisignatures/pending", function () {
                     node.expect(res.body.transactions.length).to.be.at.least(1);
                     var flag = 0;
                     for (var i = 0; i < res.body.transactions.length; i++) {
-                        // console.log(MultisigAccount.publicKey);
-                        if (res.body.transactions[i].transaction.senderPublicKey == MultisigAccount.publicKey) {
+                        // console.log(multisigAccount.publicKey);
+                        if (res.body.transactions[i].transaction.senderPublicKey == multisigAccount.publicKey) {
                             flag += 1;
                             node.expect(res.body.transactions[i].transaction).to.have.property("type").to.equal(node.TxTypes.MULTI);
                             node.expect(res.body.transactions[i].transaction).to.have.property("amount").to.equal(0);
                             node.expect(res.body.transactions[i].transaction).to.have.property("asset").that.is.an("object");
                             node.expect(res.body.transactions[i].transaction).to.have.property("fee").to.equal(node.Fees.multisignatureRegistrationFee * (Keys.length + 1));
-                            node.expect(res.body.transactions[i].transaction).to.have.property("id").to.equal(MultiSigTX.txId);
-                            node.expect(res.body.transactions[i].transaction).to.have.property("senderPublicKey").to.equal(MultisigAccount.publicKey);
-                            node.expect(res.body.transactions[i]).to.have.property("lifetime").to.equal(MultiSigTX.lifetime);
-                            node.expect(res.body.transactions[i]).to.have.property("min").to.equal(MultiSigTX.min);
+                            node.expect(res.body.transactions[i].transaction).to.have.property("id").to.equal(multiSigTx.txId);
+                            node.expect(res.body.transactions[i].transaction).to.have.property("senderPublicKey").to.equal(multisigAccount.publicKey);
+                            node.expect(res.body.transactions[i]).to.have.property("lifetime").to.equal(multiSigTx.lifetime);
+                            node.expect(res.body.transactions[i]).to.have.property("min").to.equal(multiSigTx.min);
                         }
                     }
                     node.expect(flag).to.equal(1);
@@ -618,7 +618,7 @@ describe("GET /multisignatures/pending", function () {
 describe("PUT /api/transactions", function () {
 
     it("When group transaction is pending. Should be ok", function (done) {
-        sendLISKfromMultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
+        sendLISKfrommultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
             node.onNewBlock(function (err) {
                 node.api.get("/transactions/get?id=" + transactionId)
                     .set("Accept", "application/json")
@@ -645,7 +645,7 @@ describe("POST /multisignatures/sign (group)", function () {
             .set("Accept", "application/json")
             .send({
                 secret: account.password,
-                transactionId: MultiSigTX.txId
+                transactionId: multiSigTx.txId
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -661,7 +661,7 @@ describe("POST /multisignatures/sign (group)", function () {
             .set("Accept", "application/json")
             .send({
                 secret: null,
-                transactionId: MultiSigTX.txId
+                transactionId: multiSigTx.txId
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -677,7 +677,7 @@ describe("POST /multisignatures/sign (group)", function () {
             .set("Accept", "application/json")
             .send({
                 secret: undefined,
-                transactionId: MultiSigTX.txId
+                transactionId: multiSigTx.txId
             })
             .expect("Content-Type", /json/)
             .expect(200)
@@ -689,13 +689,13 @@ describe("POST /multisignatures/sign (group)", function () {
     });
 
     it("Using one less than total signatures. Should not confirm transaction", function (done) {
-        var passphrases = Accounts.map(function (account) {
+        var passphrases = accounts.map(function (account) {
             return account.password;
         })
 
-        confirmTransaction(MultiSigTX.txId, passphrases.slice(0, (passphrases.length - 1)), function () {
+        confirmTransaction(multiSigTx.txId, passphrases.slice(0, (passphrases.length - 1)), function () {
             node.onNewBlock(function (err) {
-                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                node.api.get("/transactions/get?id=" + multiSigTx.txId)
                     .set("Accept", "application/json")
                     .expect("Content-Type", /json/)
                     .expect(200)
@@ -709,13 +709,13 @@ describe("POST /multisignatures/sign (group)", function () {
     });
 
     it("Using one more signature. Should confirm transaction", function (done) {
-        var passphrases = Accounts.map(function (account) {
+        var passphrases = accounts.map(function (account) {
             return account.password;
         });
 
-        confirmTransaction(MultiSigTX.txId, passphrases.slice(-1), function () {
+        confirmTransaction(multiSigTx.txId, passphrases.slice(-1), function () {
             node.onNewBlock(function (err) {
-                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                node.api.get("/transactions/get?id=" + multiSigTx.txId)
                     .set("Accept", "application/json")
                     .expect("Content-Type", /json/)
                     .expect(200)
@@ -723,7 +723,7 @@ describe("POST /multisignatures/sign (group)", function () {
                         // console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("transaction");
-                        node.expect(res.body.transaction).to.have.property("id").to.eql(MultiSigTX.txId);
+                        node.expect(res.body.transaction).to.have.property("id").to.eql(multiSigTx.txId);
                         done();
                     });
             });
@@ -733,20 +733,20 @@ describe("POST /multisignatures/sign (group)", function () {
 
 describe("POST /multisignatures/sign (transaction)", function () {
     before(function (done) {
-        sendLISKfromMultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
-            MultiSigTX.txId = transactionId;
+        sendLISKfrommultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
+            multiSigTx.txId = transactionId;
             done();
         });
     });
 
     it("Using one less than minimum signatures. Should not confirm transaction", function (done) {
-        var passphrases = Accounts.map(function (account) {
+        var passphrases = accounts.map(function (account) {
             return account.password;
         });
 
-        confirmTransaction(MultiSigTX.txId, passphrases.slice(0, (MultiSigTX.min - 1)), function () {
+        confirmTransaction(multiSigTx.txId, passphrases.slice(0, (multiSigTx.min - 1)), function () {
             node.onNewBlock(function (err) {
-                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                node.api.get("/transactions/get?id=" + multiSigTx.txId)
                     .set("Accept", "application/json")
                     .expect("Content-Type", /json/)
                     .expect(200)
@@ -760,13 +760,13 @@ describe("POST /multisignatures/sign (transaction)", function () {
     });
 
     it("Using one more signature. Should confirm transaction", function (done) {
-        var passphrases = Accounts.map(function (account) {
+        var passphrases = accounts.map(function (account) {
             return account.password;
         });
 
-        confirmTransaction(MultiSigTX.txId, passphrases.slice(-1), function () {
+        confirmTransaction(multiSigTx.txId, passphrases.slice(-1), function () {
             node.onNewBlock(function (err) {
-                node.api.get("/transactions/get?id=" + MultiSigTX.txId)
+                node.api.get("/transactions/get?id=" + multiSigTx.txId)
                     .set("Accept", "application/json")
                     .expect("Content-Type", /json/)
                     .expect(200)
@@ -774,7 +774,7 @@ describe("POST /multisignatures/sign (transaction)", function () {
                         // console.log(JSON.stringify(res.body));
                         node.expect(res.body).to.have.property("success").to.be.true;
                         node.expect(res.body).to.have.property("transaction");
-                        node.expect(res.body.transaction).to.have.property("id").to.eql(MultiSigTX.txId);
+                        node.expect(res.body.transaction).to.have.property("id").to.eql(multiSigTx.txId);
                         done();
                     });
             });
