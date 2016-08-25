@@ -8,8 +8,8 @@ var _ = require("lodash"),
     async = require("async"),
     request = require("request");
 
-var DappType = require("../helpers/dappTypes.js");
 var DappCategory = require("../helpers/dappCategories.js");
+var DappType = require("../helpers/dappTypes.js");
 var TxTypes = require("../helpers/transactionTypes.js");
 
 // Node configuration

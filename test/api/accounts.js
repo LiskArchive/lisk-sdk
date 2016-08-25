@@ -1,8 +1,8 @@
 'use strict'; /*jslint mocha:true */
 
 var node = require("./../variables.js");
-var spawn = require("child_process").spawn;
 var path = require("path");
+var spawn = require("child_process").spawn;
 
 var account = {
     "address": "12099044743111170367L",

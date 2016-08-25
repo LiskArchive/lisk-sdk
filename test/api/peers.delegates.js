@@ -1,7 +1,7 @@
 'use strict'; /*jslint mocha:true */
 
-var node = require("./../variables.js");
 var crypto = require("crypto");
+var node = require("./../variables.js");
 
 var account = node.randomAccount();
 var account2 = node.randomAccount();
