@@ -546,7 +546,6 @@ describe("GET /dapps", function () {
                 }
                 done();
             });
-        });
     });
 
     it("Using invalid parameter type (link). Should fail", function (done) {
