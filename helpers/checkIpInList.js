@@ -1,7 +1,7 @@
 'use strict';
 
-var ip = require('ip');
 var _ = require('underscore');
+var ip = require('ip');
 
 /*
   Checks if ip address is in list (e.g. whitelist, blacklist).

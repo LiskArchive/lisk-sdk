@@ -1,8 +1,8 @@
 'use strict';
 
-var Validator = require('./validator/validator.js');
 var extend = require('extend');
 var inherits = require('util').inherits;
+var Validator = require('./validator/validator.js');
 
 module.exports = RequestSanitizer;
 

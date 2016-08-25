@@ -1,7 +1,7 @@
 'use strict';
 
-var util = require('util');
 var extend = require('extend');
+var util = require('util');
 
 function Sequence (config) {
 	var _default = {

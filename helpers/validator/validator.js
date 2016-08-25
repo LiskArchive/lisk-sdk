@@ -2,7 +2,6 @@
 
 // Dependencies
 var utils = require('./utils.js');
-
 var extend = utils.extend;
 
 // Implementation
