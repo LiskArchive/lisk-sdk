@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true */
+'use strict'; /*jslint mocha:true, expr:true */
 
 var node = require('./../node.js');
 

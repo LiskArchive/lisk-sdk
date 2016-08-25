@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true */
+'use strict'; /*jslint mocha:true, expr:true */
 
 var node = require('./../node.js');
 
@@ -156,7 +156,8 @@ describe('PUT /accounts/delegates with funds', function () {
 	});
 
 	it('When upvoting same delegate multiple times. Should fail', function (done) {
-		var votedDelegate = ''+' + node.Eaccount.publicKey + '','+' + node.Eaccount.publicKey + ''';
+		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
+
 		node.onNewBlock(function (err) {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
@@ -179,7 +180,8 @@ describe('PUT /accounts/delegates with funds', function () {
 	});
 
 	it('When downvoting same delegate multiple times. Should fail', function (done) {
-		var votedDelegate = ''-' + node.Eaccount.publicKey + '','-' + node.Eaccount.publicKey + ''';
+		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
+
 		node.onNewBlock(function (err) {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
@@ -202,7 +204,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	});
 
 	it('When upvoting and downvoting within same request. Should fail', function (done) {
-		var votedDelegate = ''+' + node.Eaccount.publicKey + '','-' + node.Eaccount.publicKey + ''';
+		var votedDelegate = '"+' + node.Eaccount.publicKey + '","-' + node.Eaccount.publicKey + '"';
 
 		node.onNewBlock(function (err) {
 			node.api.put('/accounts/delegates')
@@ -880,7 +882,7 @@ describe('GET /delegates/voters', function () {
 					node.expect(res.body).to.have.property('accounts').that.is.an('array');
 					var flag = 0;
 					for (var i = 0; i < res.body.accounts.length; i++) {
-						if (res.body.accounts[i].address == account.address) {
+						if (res.body.accounts[i].address === account.address) {
 							flag = 1;
 						}
 					}
@@ -963,7 +965,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == 'genesis_1'. Should return 13 delegates', function (done) {
+	it('When critera == "genesis_1". Should return 13 delegates', function (done) {
 		var q = 'genesis_1';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -978,7 +980,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == 'genesis_10'. Should return 3 delegates', function (done) {
+	it('When critera == "genesis_10". Should return 3 delegates', function (done) {
 		var q = 'genesis_10';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -993,7 +995,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == 'genesis_101'. Should return 1 delegate', function (done) {
+	it('When critera == "genesis_101". Should return 1 delegate', function (done) {
 		var q = 'genesis_101';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -1008,7 +1010,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == 'genesis_101'. Should have all properties', function (done) {
+	it('When critera == "genesis_101". Should have all properties', function (done) {
 		var q = 'genesis_101';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -1046,7 +1048,7 @@ describe('GET /delegates/search', function () {
 
 	it('When limit is a string. Should be ok', function (done) {
 		var q = 'genesis_';
-		var limit = 'one'
+		var limit = 'one';
 
 		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
 			.expect('Content-Type', /json/)
@@ -1089,7 +1091,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit === 0. Should fail', function (done) {
+	it('When limit == 0. Should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 0;
 
@@ -1184,7 +1186,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When orderBy == 'username:asc'. Should be ordered by ascending username', function (done) {
+	it('When orderBy == "username:asc". Should be ordered by ascending username', function (done) {
 		var q = 'genesis_';
 
 		node.api.get('/delegates/search?q=' + q + '&orderBy=username:asc')
@@ -1203,7 +1205,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When orderBy == 'username:desc'. Should be ordered by descending username', function (done) {
+	it('When orderBy == "username:desc". Should be ordered by descending username', function (done) {
 		var q = 'genesis_';
 
 		node.api.get('/delegates/search?q=' + q + '&orderBy=username:desc')

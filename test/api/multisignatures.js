@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true */
+'use strict'; /*jslint mocha:true, expr:true */
 
 var async = require('async');
 var node = require('./../node.js');
@@ -22,7 +22,7 @@ var multiSigTx = {
 	min: 0,
 	members: [],
 	txId: ''
-}
+};
 
 var accountOpenTurn = 0;
 
