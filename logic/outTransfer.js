@@ -47,7 +47,7 @@ function OutTransfer (scope) {
 			return setImmediate(cb, 'Invalid outTransfer transactionId');
 		}
 
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.process = function (trs, sender, cb) {
@@ -112,7 +112,7 @@ function OutTransfer (scope) {
 				blockId: block.id,
 				round: modules.round.calc(block.height)
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		});
 	};
@@ -131,19 +131,19 @@ function OutTransfer (scope) {
 				blockId: block.id,
 				round: modules.round.calc(block.height)
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		});
 	};
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = true;
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.undoUnconfirmed = function (trs, sender, cb) {
 		__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = false;
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.objectNormalize = function (trs) {

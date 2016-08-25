@@ -124,11 +124,11 @@ function DApp () {
 			}
 		}
 
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.process = function (trs, sender, cb) {
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.getBytes = function (trs) {
@@ -171,11 +171,11 @@ function DApp () {
 	};
 
 	this.apply = function (trs, block, sender, cb) {
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.undo = function (trs, block, sender, cb) {
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
@@ -217,7 +217,7 @@ function DApp () {
 		delete __private.unconfirmedNames[trs.asset.dapp.name];
 		delete __private.unconfirmedLinks[trs.asset.dapp.link];
 
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.objectNormalize = function (trs) {

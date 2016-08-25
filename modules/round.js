@@ -239,7 +239,7 @@ Round.prototype.onFinishRound = function (round) {
 
 Round.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	cb();
+	return cb();
 };
 
 // Private

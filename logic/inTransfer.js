@@ -53,7 +53,7 @@ function InTransfer () {
 	};
 
 	this.process = function (trs, sender, cb) {
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.getBytes = function (trs) {
@@ -82,7 +82,7 @@ function InTransfer () {
 				blockId: block.id,
 				round: modules.round.calc(block.height)
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		});
 	};
@@ -99,17 +99,17 @@ function InTransfer () {
 				blockId: block.id,
 				round: modules.round.calc(block.height)
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		});
 	};
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.undoUnconfirmed = function (trs, sender, cb) {
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.objectNormalize = function (trs) {

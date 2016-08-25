@@ -15,7 +15,7 @@ function Transaction (scope, cb) {
 	this.scope = scope;
 	genesisblock = this.scope.genesisblock;
 	if (cb) {
-		setImmediate(cb, null, this);
+		return setImmediate(cb, null, this);
 	}
 }
 
@@ -488,10 +488,10 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 					blockId: block.id,
 					round: calc(block.height)
 				}, function (err) {
-					cb(err);
+					return cb(err);
 				});
 			} else {
-				setImmediate(cb);
+				return setImmediate(cb);
 			}
 		}.bind(this));
 	}.bind(this));
@@ -520,10 +520,10 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 					blockId: block.id,
 					round: calc(block.height)
 				}, function (err) {
-					cb(err);
+					return cb(err);
 				});
 			} else {
-				setImmediate(cb);
+				return setImmediate(cb);
 			}
 		}.bind(this));
 	}.bind(this));

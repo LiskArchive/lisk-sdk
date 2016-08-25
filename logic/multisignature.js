@@ -118,12 +118,12 @@ function Multisignature () {
 				return setImmediate(cb, 'Multisignature group contains non-unique public keys');
 			}
 
-			setImmediate(cb, null, trs);
+			return setImmediate(cb, null, trs);
 		});
 	};
 
 	this.process = function (trs, sender, cb) {
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.getBytes = function (trs, skip) {

@@ -44,11 +44,11 @@ function Signature () {
 			return setImmediate(cb, 'Invalid signature hex');
 		}
 
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.process = function (trs, sender, cb) {
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.getBytes = function (trs) {

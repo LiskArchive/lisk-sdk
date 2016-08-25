@@ -283,7 +283,7 @@ shared.getBalance = function (req, cb) {
 			var balance = account ? account.balance : 0;
 			var unconfirmedBalance = account ? account.u_balance : 0;
 
-			cb(null, {balance: balance, unconfirmedBalance: unconfirmedBalance});
+			return cb(null, {balance: balance, unconfirmedBalance: unconfirmedBalance});
 		});
 	});
 };
@@ -313,7 +313,7 @@ shared.getPublickey = function (req, cb) {
 				return cb('Account does not have a public key');
 			}
 
-			cb(null, {publicKey: account.publicKey});
+			return cb(null, {publicKey: account.publicKey});
 		});
 	});
 };
@@ -339,7 +339,7 @@ shared.generatePublickey = function (req, cb) {
 			if (!err && account) {
 				publicKey = account.publicKey;
 			}
-			cb(err, {
+			return cb(err, {
 				publicKey: publicKey
 			});
 		});
@@ -378,10 +378,10 @@ shared.getDelegates = function (req, cb) {
 						return account.delegates.indexOf(delegate.publicKey) !== -1;
 					});
 
-					cb(null, {delegates: delegates});
+					return cb(null, {delegates: delegates});
 				});
 			} else {
-				cb(null, {delegates: []});
+				return cb(null, {delegates: []});
 			}
 		});
 	});
@@ -389,7 +389,7 @@ shared.getDelegates = function (req, cb) {
 
 shared.getDelegatesFee = function (req, cb) {
 	var query = req.body;
-	cb(null, {fee: constants.fees.delegate});
+	return cb(null, {fee: constants.fees.delegate});
 };
 
 shared.addDelegates = function (req, cb) {
@@ -528,7 +528,7 @@ shared.addDelegates = function (req, cb) {
 				return cb(err);
 			}
 
-			cb(null, {transaction: transaction[0]});
+			return cb(null, {transaction: transaction[0]});
 		});
 	});
 };
@@ -558,7 +558,7 @@ shared.getAccount = function (req, cb) {
 				return cb('Account not found');
 			}
 
-			cb(null, {
+			return cb(null, {
 				account: {
 					address: account.address,
 					unconfirmedBalance: account.u_balance,

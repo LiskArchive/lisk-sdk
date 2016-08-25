@@ -198,7 +198,7 @@ __private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 		var index = __private.unconfirmedTransactions.length - 1;
 		__private.unconfirmedTransactionsIdIndex[transaction.id] = index;
 
-		setImmediate(cb);
+		return setImmediate(cb);
 	});
 };
 
@@ -325,7 +325,7 @@ Transactions.prototype.applyUnconfirmedList = function (ids, cb) {
 					self.removeUnconfirmedTransaction(id);
 					self.addDoubleSpending(transaction);
 				}
-				setImmediate(cb);
+				return setImmediate(cb);
 			});
 		});
 	}, cb);
@@ -339,7 +339,7 @@ Transactions.prototype.undoUnconfirmedList = function (cb) {
 			ids.push(transaction.id);
 			self.undoUnconfirmed(transaction, cb);
 		} else {
-			setImmediate(cb);
+			return setImmediate(cb);
 		}
 	}, function (err) {
 		return cb(err, ids);
@@ -371,7 +371,7 @@ Transactions.prototype.expireUnconfirmedList = function (cb) {
 				}
 			});
 		} else {
-			setImmediate(cb);
+			return setImmediate(cb);
 		}
 	}, function (err) {
 		return cb(err, ids);

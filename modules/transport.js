@@ -289,7 +289,7 @@ __private.attachApi = function () {
 				});
 			}
 
-			setImmediate(cb);
+			return setImmediate(cb);
 		}, function () {
 			return res.status(200).json({success: true, signatures: signatures});
 		});
@@ -468,14 +468,14 @@ Transport.prototype.broadcast = function (config, options, cb) {
 			async.eachLimit(peers, 3, function (peer, cb) {
 				self.getFromPeer(peer, options);
 
-				setImmediate(cb);
+				return setImmediate(cb);
 			}, function () {
 				if (cb) {
-					cb(null, {body: null, peer: peers});
+					return cb(null, {body: null, peer: peers});
 				}
 			});
 		} else if (cb) {
-			setImmediate(cb, err);
+			return setImmediate(cb, err);
 		}
 	});
 };
@@ -497,7 +497,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 			}
 		});
 	}, function (err, results) {
-		cb(err, results);
+		return cb(err, results);
 	});
 };
 
@@ -565,9 +565,10 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				}
 			}
 			if (cb) {
-				cb(err || ('Request status code: ' + response.statusCode));
+				return cb(err || ('Request status code: ' + response.statusCode));
+			} else {
+				return;
 			}
-			return;
 		}
 
 		if (response.headers.nethash !== library.config.nethash) {
@@ -615,7 +616,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		}
 
 		if (cb) {
-			cb(null, {body: body, peer: peer});
+			return cb(null, {body: body, peer: peer});
 		}
 	});
 };
@@ -669,7 +670,7 @@ Transport.prototype.onMessage = function (msg, broadcast) {
 
 Transport.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	cb();
+	return cb();
 };
 
 // Shared
@@ -679,7 +680,7 @@ shared.message = function (msg, cb) {
 
 	self.broadcast({limit: 100, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 
-	cb(null, {});
+	return cb(null, {});
 };
 
 shared.request = function (msg, cb) {

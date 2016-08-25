@@ -47,7 +47,7 @@ function Vote () {
 	};
 
 	this.process = function (trs, sender, cb) {
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.getBytes = function (trs) {
@@ -68,7 +68,7 @@ function Vote () {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			cb(err);
+			return cb(err);
 		});
 	};
 
@@ -82,7 +82,7 @@ function Vote () {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			cb(err);
+			return cb(err);
 		});
 	};
 
@@ -101,7 +101,7 @@ function Vote () {
 			this.scope.account.merge(sender.address, {
 				u_delegates: trs.asset.votes
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		}.bind(this));
 	};
@@ -112,7 +112,7 @@ function Vote () {
 		var votesInvert = Diff.reverse(trs.asset.votes);
 
 		this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (err) {
-			cb(err);
+			return cb(err);
 		});
 	};
 

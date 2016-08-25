@@ -240,7 +240,7 @@ __private.getKeysSortByVote = function (cb) {
 		if (err) {
 			return cb(err);
 		}
-		cb(null, rows.map(function (el) {
+		return cb(null, rows.map(function (el) {
 			return el.publicKey;
 		}));
 	});
@@ -264,7 +264,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 			}
 		}
 
-		cb(null, null);
+		return cb(null, null);
 	});
 };
 
@@ -423,7 +423,7 @@ __private.loadMyDelegates = function (cb) {
 			} else {
 				library.logger.warn('Delegate with this public key not found: ' + keypair.publicKey.toString('hex'));
 			}
-			cb();
+			return cb();
 		});
 	}, cb);
 };
@@ -447,7 +447,7 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
 			currentSeed = crypto.createHash('sha256').update(currentSeed).digest();
 		}
 
-		cb(null, truncDelegateList);
+		return cb(null, truncDelegateList);
 	});
 };
 
@@ -583,7 +583,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 Delegates.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	cb();
+	return cb();
 };
 
 Delegates.prototype.enableForging = function () {
@@ -826,7 +826,7 @@ shared.getDelegates = function (req, cb) {
 
 			var delegates = result.delegates.slice(result.offset, result.limit);
 
-			cb(null, {delegates: delegates, totalCount: result.count});
+			return cb(null, {delegates: delegates, totalCount: result.count});
 		});
 	});
 };
@@ -837,7 +837,7 @@ shared.getFee = function (req, cb) {
 
 	fee = constants.fees.delegate;
 
-	cb(null, {fee: fee});
+	return cb(null, {fee: fee});
 };
 
 shared.getForgedByAccount = function (req, cb) {
@@ -862,7 +862,7 @@ shared.getForgedByAccount = function (req, cb) {
 				return cb(err || 'Account not found');
 			}
 			var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
-			cb(null, {fees: account.fees, rewards: account.rewards, forged: forged});
+			return cb(null, {fees: account.fees, rewards: account.rewards, forged: forged});
 		});
 	});
 };
@@ -1008,7 +1008,7 @@ shared.addDelegate = function (req, cb) {
 				return cb(err);
 			}
 
-			cb(null, {transaction: transaction[0]});
+			return cb(null, {transaction: transaction[0]});
 		});
 	});
 };

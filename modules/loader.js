@@ -121,7 +121,7 @@ __private.findUpdate = function (lastBlock, peer, cb) {
 					if (commonBlock.id !== lastBlock.id) {
 						modules.round.directionSwap('backward', lastBlock, cb);
 					} else {
-						cb();
+						return cb();
 					}
 				},
 				function (cb) {
@@ -132,7 +132,7 @@ __private.findUpdate = function (lastBlock, peer, cb) {
 					if (commonBlock.id !== lastBlock.id) {
 						modules.round.directionSwap('forward', lastBlock, cb);
 					} else {
-						cb();
+						return cb();
 					}
 				},
 				function (cb) {
@@ -163,7 +163,7 @@ __private.findUpdate = function (lastBlock, peer, cb) {
 											if (lastValidBlock.id !== lastBlock.id) {
 												modules.round.directionSwap('backward', lastBlock, cb);
 											} else {
-												cb();
+												return cb();
 											}
 										},
 										function (cb) {
@@ -192,7 +192,7 @@ __private.findUpdate = function (lastBlock, peer, cb) {
 											if (commonBlock.id !== lastBlock.id) {
 												modules.round.directionSwap('backward', lastBlock, cb);
 											} else {
-												cb();
+												return cb();
 											}
 										},
 										function (cb) {
@@ -202,7 +202,7 @@ __private.findUpdate = function (lastBlock, peer, cb) {
 											if (commonBlock.id !== lastBlock.id) {
 												modules.round.directionSwap('forward', lastBlock, cb);
 											} else {
-												cb();
+												return cb();
 											}
 										},
 										function (cb) {
@@ -275,7 +275,7 @@ __private.loadBlocks = function (lastBlock, cb) {
 			__private.blocksToSync = data.body.height;
 			__private.findUpdate(lastBlock, data.peer, cb);
 		} else {
-			cb();
+			return cb();
 		}
 	});
 };
@@ -311,7 +311,7 @@ __private.loadSignatures = function (cb) {
 							signature: s,
 							transaction: signature.transaction
 						}, function (err) {
-							setImmediate(cb);
+							return setImmediate(cb);
 						});
 					}, cb);
 				}, cb);
@@ -388,7 +388,7 @@ __private.loadBlockChain = function () {
 								if (count > 1) {
 									library.logger.info('Rebuilding blockchain, current block height: ' + offset);
 								}
-								setImmediate(function () {
+								return setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
 										if (err) {
 											return cb(err);
@@ -397,7 +397,7 @@ __private.loadBlockChain = function () {
 										offset = offset + limit;
 										__private.loadingLastBlock = lastBlockOffset;
 
-										cb();
+										return cb();
 									});
 								});
 							}, function (err) {
@@ -772,13 +772,13 @@ Loader.prototype.onBlockchainReady = function () {
 Loader.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	if (!__private.isActive) {
-		cb();
+		return cb();
 	} else {
 		setImmediate(function nextWatch () {
 			if (__private.isActive) {
 				setTimeout(nextWatch, 1 * 1000);
 			} else {
-				cb();
+				return cb();
 			}
 		});
 	}
@@ -792,15 +792,15 @@ __private.ping = function (cb) {
 	var blockAge = currentTime - lastBlockTime;
 
 	if (blockAge < 120) {
-		cb(200, {success: true});
+		return cb(200, {success: true});
 	} else {
-		cb(503, {success: false});
+		return cb(503, {success: false});
 	}
 };
 
 // Shared
 shared.status = function (req, cb) {
-	cb(null, {
+	return cb(null, {
 		loaded: __private.loaded,
 		now: __private.loadingLastBlock.height,
 		blocksCount: __private.total
@@ -808,7 +808,7 @@ shared.status = function (req, cb) {
 };
 
 shared.sync = function (req, cb) {
-	cb(null, {
+	return cb(null, {
 		syncing: self.syncing(),
 		blocks: __private.blocksToSync,
 		height: modules.blocks.getLastBlock().height

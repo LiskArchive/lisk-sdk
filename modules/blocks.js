@@ -84,7 +84,7 @@ function Blocks (cb, scope) {
 	__private.attachApi();
 
 	__private.saveGenesisBlock(function (err) {
-		setImmediate(cb, err, self);
+		return setImmediate(cb, err, self);
 	});
 }
 
@@ -254,7 +254,7 @@ __private.getById = function (id, cb) {
 
 		var block = library.logic.block.dbRead(rows[0]);
 
-		cb(null, block);
+		return cb(null, block);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb('Blocks#getById error');
@@ -352,7 +352,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 						modules.transactions.undoUnconfirmed(transaction, cb);
 					}, function (cb) {
 						modules.transactions.pushHiddenTransaction(transaction);
-						setImmediate(cb);
+						return setImmediate(cb);
 					}
 				], cb);
 			}, function (err) {
@@ -362,7 +362,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 							return cb(err);
 						}
 
-						cb(null, previousBlock);
+						return cb(null, previousBlock);
 					});
 				});
 			});
@@ -402,7 +402,7 @@ __private.getIdSequence = function (height, cb) {
 			}
 		});
 
-		cb(null, { firstHeight: rows[0].height, ids: ids.join(',') });
+		return cb(null, { firstHeight: rows[0].height, ids: ids.join(',') });
 	}).catch(function (err) {
 		library.logger.error(err.toString());
 		return cb('Blocks#getIdSequence error');
@@ -465,7 +465,7 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
 					block: block
 				});
 			}
-			setImmediate(cb);
+			return setImmediate(cb);
 		});
 	});
 };
@@ -529,7 +529,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		},
 		function (err) {
-			setImmediate(cb, err, commonBlock);
+			return setImmediate(cb, err, commonBlock);
 		}
 	);
 };
@@ -599,7 +599,7 @@ Blocks.prototype.loadBlocksPart = function (filter, cb) {
 			blocks = __private.readDbRows(rows);
 		}
 
-		cb(err, blocks);
+		return cb(err, blocks);
 	});
 };
 
@@ -630,7 +630,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 					__private.applyBlock(block, false, cb, false);
 				}
 			}, function (err) {
-				setImmediate(cb, err);
+				return setImmediate(cb, err);
 			});
 		}).catch(function (err) {
 			// Notes:
@@ -772,7 +772,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 				// DATABASE write
 				modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function () {
 					__private.isActive = false;
-					setImmediate(cb, err);
+					return setImmediate(cb, err);
 				});
 			}
 
@@ -798,7 +798,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							unconfirmedTransactions.splice(index, 1);
 						}
 
-						setImmediate(cb);
+						return setImmediate(cb);
 					});
 				});
 			}, function (err) {
@@ -812,7 +812,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 								// DATABASE: write
 								library.logic.transaction.undoUnconfirmed(transaction, sender, cb);
 							} else {
-								setImmediate(cb);
+								return setImmediate(cb);
 							}
 						});
 					}, function (err) {
@@ -839,7 +839,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 								// Transaction applied, removed from the unconfirmed list.
 								// In memory list, no database access
 								modules.transactions.removeUnconfirmedTransaction(transaction.id);
-								setImmediate(cb);
+								return setImmediate(cb);
 							});
 						});
 					}, function (err) {
@@ -975,7 +975,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 					}
 				],
 				function (err) {
-					cb(err);
+					return cb(err);
 				});
 			},
 			function (err) {
@@ -1069,7 +1069,7 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 			});
 		},
 		function (err) {
-			setImmediate(cb, err, blocks);
+			return setImmediate(cb, err, blocks);
 		}
 	);
 };
@@ -1133,13 +1133,13 @@ Blocks.prototype.onReceiveBlock = function (block) {
 		} else if (block.previousBlock !== __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
 			// Fork: Same height but different previous block id
 			modules.delegates.fork(block, 1);
-			cb('Fork');
+			return cb('Fork');
 		} else if (block.previousBlock === __private.lastBlock.previousBlock && block.height === __private.lastBlock.height && block.id !== __private.lastBlock.id) {
 			// Fork: Same height and previous block id, but different block id
 			modules.delegates.fork(block, 5);
-			cb('Fork');
+			return cb('Fork');
 		} else {
-			cb();
+			return cb();
 		}
 	});
 };
@@ -1153,13 +1153,13 @@ Blocks.prototype.onBind = function (scope) {
 Blocks.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	if (!__private.isActive) {
-		cb();
+		return cb();
 	} else {
 		setImmediate(function nextWatch () {
 			if (__private.isActive) {
 				setTimeout(nextWatch, 1 * 1000);
 			} else {
-				cb();
+				return cb();
 			}
 		});
 	}
@@ -1168,7 +1168,7 @@ Blocks.prototype.cleanup = function (cb) {
 // Shared
 shared.getBlock = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
@@ -1190,7 +1190,7 @@ shared.getBlock = function (req, cb) {
 				if (!block || err) {
 					return cb('Block not found');
 				}
-				cb(null, {block: block});
+				return cb(null, {block: block});
 			});
 		}, cb);
 	});
@@ -1198,7 +1198,7 @@ shared.getBlock = function (req, cb) {
 
 shared.getBlocks = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body;
 	library.scheme.validate(query, {
@@ -1251,7 +1251,7 @@ shared.getBlocks = function (req, cb) {
 				if (err) {
 					return cb(err);
 				}
-				cb(null, {blocks: data.blocks, count: data.count});
+				return cb(null, {blocks: data.blocks, count: data.count});
 			});
 		}, cb);
 	});
@@ -1259,74 +1259,74 @@ shared.getBlocks = function (req, cb) {
 
 shared.getEpoch = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body;
-	cb(null, {epoch: constants.epochTime});
+	return cb(null, {epoch: constants.epochTime});
 };
 
 shared.getHeight = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body;
-	cb(null, {height: __private.lastBlock.height});
+	return cb(null, {height: __private.lastBlock.height});
 };
 
 shared.getFee = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body;
-	cb(null, {fee: library.logic.block.calculateFee()});
+	return cb(null, {fee: library.logic.block.calculateFee()});
 };
 
 shared.getFees = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body;
-	cb(null, {fees: constants.fees});
+	return cb(null, {fees: constants.fees});
 };
 
 shared.getNethash = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body;
-	cb(null, {nethash: library.config.nethash});
+	return cb(null, {nethash: library.config.nethash});
 };
 
 shared.getMilestone = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body, height = __private.lastBlock.height;
-	cb(null, {milestone: __private.blockReward.calcMilestone(height)});
+	return cb(null, {milestone: __private.blockReward.calcMilestone(height)});
 };
 
 shared.getReward = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body, height = __private.lastBlock.height;
-	cb(null, {reward: __private.blockReward.calcReward(height)});
+	return cb(null, {reward: __private.blockReward.calcReward(height)});
 };
 
 shared.getSupply = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body, height = __private.lastBlock.height;
-	cb(null, {supply: __private.blockReward.calcSupply(height)});
+	return cb(null, {supply: __private.blockReward.calcSupply(height)});
 };
 
 shared.getStatus = function (req, cb) {
 	if (!__private.loaded) {
-		cb('Blockchain is loading');
+		return cb('Blockchain is loading');
 	}
 	var query = req.body, height = __private.lastBlock.height;
-	cb(null, {
+	return cb(null, {
 		epoch:     constants.epochTime,
 		height:    height,
 		fee:       library.logic.block.calculateFee(),

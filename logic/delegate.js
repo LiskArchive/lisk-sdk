@@ -88,12 +88,12 @@ function Delegate () {
 				return cb('Username already exists');
 			}
 
-			cb(null, trs);
+			return cb(null, trs);
 		});
 	};
 
 	this.process = function (trs, sender, cb) {
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.getBytes = function (trs) {

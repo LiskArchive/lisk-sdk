@@ -381,7 +381,7 @@ Peer.prototype.update = function (peer, cb) {
 			if (dappid) {
 				self.addDapp({dappid: dappid, ip: peer.ip, port: peer.port}, cb);
 			} else {
-				setImmediate(cb);
+				return setImmediate(cb);
 			}
 		}
 	], function (err) {

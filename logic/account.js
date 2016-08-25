@@ -339,7 +339,7 @@ function Account (scope, cb) {
 		}
 	}.bind(this));
 
-	setImmediate(cb, null, this);
+	return setImmediate(cb, null, this);
 }
 
 // Private methods

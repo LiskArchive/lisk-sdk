@@ -70,7 +70,7 @@ function DApps (cb, scope) {
 			__private.stop({
 				transactionId: id
 			}, function (err) {
-				cb(err);
+				return cb(err);
 			});
 		}, function (err) {
 			library.logger.error(err);
@@ -85,12 +85,12 @@ function DApps (cb, scope) {
 				}
 
 				__private.createBasePathes(function (err) {
-					setImmediate(cb, err, self);
+					return setImmediate(cb, err, self);
 				});
 			});
 		} else {
 			__private.createBasePathes(function (err) {
-				setImmediate(cb, null, self);
+				return setImmediate(cb, null, self);
 			});
 		}
 	});
@@ -939,13 +939,13 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			unzipper.on('error', function (err) {
 				fs.unlink(tmpPath);
 				fs.unlink(dappPath);
-				serialCb('Failed to decompress zip file: ' + err);
+				return serialCb('Failed to decompress zip file: ' + err);
 			});
 
 			unzipper.on('extract', function (log) {
 				library.logger.info(dapp.transactionId + ' Finished extracting');
 				fs.unlink(tmpPath);
-				serialCb(null);
+				return serialCb(null);
 			});
 
 			unzipper.on('progress', function (fileIndex, fileCount) {
@@ -1251,7 +1251,7 @@ __private.stop = function (dapp, cb) {
 				if (exists) {
 					return setImmediate(cb);
 				} else {
-					setImmediate(cb);
+					return setImmediate(cb);
 				}
 			});
 		},
@@ -1261,11 +1261,11 @@ __private.stop = function (dapp, cb) {
 			}
 
 			delete __private.sandboxes[dapp.transactionId];
-			setImmediate(cb);
+			return setImmediate(cb);
 		},
 		function (cb) {
 			delete __private.routes[dapp.transactionId];
-			setImmediate(cb);
+			return setImmediate(cb);
 		}
 	], function (err) {
 		return setImmediate(cb, err);
@@ -1428,7 +1428,7 @@ __private.addTransactions = function (req, cb) {
 				return cb(err);
 			}
 
-			cb(null, {transactionId: transaction[0].id});
+			return cb(null, {transactionId: transaction[0].id});
 		});
 	});
 };
@@ -1545,7 +1545,7 @@ shared.getGenesis = function (req, cb) {
 
 shared.setReady = function (req, cb) {
 	__private.dappready[req.dappid] = true;
-	cb(null, {});
+	return cb(null, {});
 };
 
 shared.getCommonBlock = function (req, cb) {
@@ -1719,7 +1719,7 @@ shared.sendWithdrawal = function (req, cb) {
 				return cb(err);
 			}
 
-			cb(null, {transactionId: transaction[0].id});
+			return cb(null, {transactionId: transaction[0].id});
 		});
 	});
 };

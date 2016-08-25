@@ -77,7 +77,7 @@ shared.getFee = function (req, cb) {
 
 	fee = constants.fees.secondsignature;
 
-	cb(null, {fee: fee});
+	return cb(null, {fee: fee});
 };
 
 shared.addSignature = function (req, cb) {
@@ -212,7 +212,7 @@ shared.addSignature = function (req, cb) {
 			if (err) {
 				return cb(err);
 			}
-			cb(null, {transaction: transaction[0]});
+			return cb(null, {transaction: transaction[0]});
 		});
 
 	});

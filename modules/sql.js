@@ -89,7 +89,7 @@ __private.query = function (action, config, cb) {
 			err = err;
 		}
 
-		cb(err, data);
+		return cb(err, data);
 	}
 
 	if (action !== 'batch') {
@@ -178,9 +178,9 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 		});
 	}, function (err) {
 		if (err) {
-			setImmediate(cb, 'Sql#createTables error', self);
+			return setImmediate(cb, 'Sql#createTables error', self);
 		} else {
-			setImmediate(cb);
+			return setImmediate(cb);
 		}
 	});
 };
@@ -194,20 +194,20 @@ Sql.prototype.dropTables = function (dappid, config, cb) {
 	async.eachSeries(tables, function (table, cb) {
 		if (table.type === 'create') {
 			library.db.none('DROP TABLE IF EXISTS ' + table.name + ' CASCADE').then(function () {
-				setImmediate(cb, null);
+				return setImmediate(cb, null);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				setImmediate(cb, 'Sql#dropTables error');
+				return setImmediate(cb, 'Sql#dropTables error');
 			});
 		} else if (table.type === 'index') {
 			library.db.none('DROP INDEX IF EXISTS ' + table.name).then(function () {
-				setImmediate(cb, null);
+				return setImmediate(cb, null);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				setImmediate(cb, 'Sql#dropTables error');
+				return setImmediate(cb, 'Sql#dropTables error');
 			});
 		} else {
-			setImmediate(cb);
+			return setImmediate(cb);
 		}
 	}, cb);
 };

@@ -66,7 +66,7 @@ Server.prototype.onBlockchainReady = function () {
 
 Server.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	cb();
+	return cb();
 };
 
 // Shared

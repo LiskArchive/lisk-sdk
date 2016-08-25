@@ -36,7 +36,7 @@ function Transfer () {
 	};
 
 	this.process = function (trs, sender, cb) {
-		setImmediate(cb, null, trs);
+		return setImmediate(cb, null, trs);
 	};
 
 	this.getBytes = function (trs) {
@@ -80,11 +80,11 @@ function Transfer () {
 	};
 
 	this.applyUnconfirmed = function (trs, sender, cb) {
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.undoUnconfirmed = function (trs, sender, cb) {
-		setImmediate(cb);
+		return setImmediate(cb);
 	};
 
 	this.objectNormalize = function (trs) {

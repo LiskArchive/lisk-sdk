@@ -14,7 +14,7 @@ function Block (scope, cb) {
 	this.scope = scope;
 	genesisblock = this.scope.genesisblock;
 	if (cb) {
-		setImmediate(cb, null, this);
+		return setImmediate(cb, null, this);
 	}
 }
 
