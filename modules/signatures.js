@@ -14,7 +14,7 @@ var sandboxHelper = require('../helpers/sandbox.js');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
-function Signature() {
+function Signature () {
 	this.create = function (data, trs) {
 		trs.recipientId = null;
 		trs.amount = 0;

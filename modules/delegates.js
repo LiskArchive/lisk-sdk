@@ -27,7 +27,7 @@ __private.forging = false;
 __private.blockReward = new blockReward();
 __private.keypairs = {};
 
-function Delegate() {
+function Delegate () {
 	this.create = function (data, trs) {
 		trs.recipientId = null;
 		trs.amount = 0;
@@ -166,7 +166,7 @@ function Delegate() {
 			return cb('Account is already a delegate');
 		}
 
-		function done() {
+		function done () {
 			var data = {
 				address: sender.address,
 				u_isDelegate: 1,

@@ -41,7 +41,7 @@ __private.dappready = {};
 __private.routes = {};
 __private.unconfirmedOutTansfers = {};
 
-function OutTransfer() {
+function OutTransfer () {
 	this.create = function (data, trs) {
 		trs.recipientId = data.recipientId;
 		trs.amount = data.amount;
@@ -251,7 +251,7 @@ function OutTransfer() {
 	};
 }
 
-function InTransfer() {
+function InTransfer () {
 	this.create = function (data, trs) {
 		trs.recipientId = null;
 		trs.amount = data.amount;
@@ -416,7 +416,7 @@ function InTransfer() {
 	};
 }
 
-function DApp() {
+function DApp () {
 	this.create = function (data, trs) {
 		trs.recipientId = null;
 		trs.amount = 0;

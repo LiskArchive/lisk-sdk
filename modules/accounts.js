@@ -19,7 +19,7 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.blockReward = new blockReward();
 
-function Vote() {
+function Vote () {
 	this.create = function (data, trs) {
 		trs.recipientId = data.sender.address;
 		trs.asset.votes = data.votes;

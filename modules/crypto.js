@@ -13,7 +13,7 @@ var modules, library, self, __private = {}, shared = {};
 __private.loaded = false;
 
 // Constructor
-function Crypto(cb, scope) {
+function Crypto (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;

@@ -22,7 +22,7 @@ __private.unRewardsByRound = {};
 __private.unDelegatesByRound = {};
 
 // Constructor
-function Round(cb, scope) {
+function Round (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;

@@ -23,7 +23,7 @@ __private.unconfirmedTransactions = [];
 __private.unconfirmedTransactionsIdIndex = {};
 __private.doubleSpendingTransactions = {};
 
-function Transfer() {
+function Transfer () {
 	this.create = function (data, trs) {
 		trs.recipientId = data.recipientId;
 		trs.amount = data.amount;

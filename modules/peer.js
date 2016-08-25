@@ -22,7 +22,7 @@ var removed = [];
 __private.loopback = ['0.0.0.0', '127.0.0.1'];
 
 // Constructor
-function Peer(cb, scope) {
+function Peer (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;
@@ -435,7 +435,7 @@ Peer.prototype.onBlockchainReady = function () {
 };
 
 Peer.prototype.onPeerReady = function () {
-	setImmediate(function nextUpdatePeerList() {
+	setImmediate(function nextUpdatePeerList () {
 		__private.updatePeerList(function (err) {
 			if (err) {
 				library.logger.error('Peers timer:', err);
@@ -444,7 +444,7 @@ Peer.prototype.onPeerReady = function () {
 		});
 	});
 
-	setImmediate(function nextBanManager() {
+	setImmediate(function nextBanManager () {
 		__private.banManager(function (err) {
 			if (err) {
 				library.logger.error('Ban manager timer:', err);

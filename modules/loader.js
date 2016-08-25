@@ -25,7 +25,7 @@ __private.blocksToSync = 0;
 __private.syncIntervalId = null;
 
 // Constructor
-function Loader(cb, scope) {
+function Loader (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;
@@ -64,7 +64,7 @@ __private.syncTrigger = function (turnOn) {
 		__private.syncIntervalId = null;
 	}
 	if (turnOn === true && !__private.syncIntervalId) {
-		setImmediate(function nextSyncTrigger() {
+		setImmediate(function nextSyncTrigger () {
 			library.network.io.sockets.emit('loader/sync', {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.getLastBlock().height
@@ -774,7 +774,7 @@ Loader.prototype.cleanup = function (cb) {
 	if (!__private.isActive) {
 		cb();
 	} else {
-		setImmediate(function nextWatch() {
+		setImmediate(function nextWatch () {
 			if (__private.isActive) {
 				setTimeout(nextWatch, 1 * 1000);
 			} else {

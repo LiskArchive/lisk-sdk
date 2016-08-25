@@ -7,7 +7,7 @@ var sandboxHelper = require('../helpers/sandbox.js');
 var modules, library, self, __private = {}, shared = {};
 
 // Constructor
-function System(cb, scope) {
+function System (cb, scope) {
 	library = scope;
 	self = this;
 	self.__private = __private;

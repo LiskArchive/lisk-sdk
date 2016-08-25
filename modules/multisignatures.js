@@ -20,7 +20,7 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.unconfirmedSignatures = {};
 
-function Multisignature() {
+function Multisignature () {
 	this.create = function (data, trs) {
 		trs.recipientId = null;
 		trs.amount = 0;

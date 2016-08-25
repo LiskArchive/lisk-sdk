@@ -1155,7 +1155,7 @@ Blocks.prototype.cleanup = function (cb) {
 	if (!__private.isActive) {
 		cb();
 	} else {
-		setImmediate(function nextWatch() {
+		setImmediate(function nextWatch () {
 			if (__private.isActive) {
 				setTimeout(nextWatch, 1 * 1000);
 			} else {
