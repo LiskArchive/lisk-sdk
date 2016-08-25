@@ -40,7 +40,6 @@ __private.routes = {};
 function DApps (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
 
 	__private.attachApi();
 

@@ -29,7 +29,7 @@ function Transactions (cb, scope) {
 	library = scope;
 	genesisblock = library.genesisblock;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	var Transfer = require('../logic/transfer.js');

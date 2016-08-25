@@ -15,7 +15,7 @@ __private.loaded = false;
 function Server (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	setImmediate(cb, null, self);

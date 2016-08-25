@@ -25,7 +25,7 @@ __private.unDelegatesByRound = {};
 function Round (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
+
 	setImmediate(cb, null, self);
 }
 

@@ -10,7 +10,6 @@ var modules, library, self, __private = {}, shared = {};
 function System (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
 
 	__private.version = library.config.version;
 	__private.port = library.config.port;

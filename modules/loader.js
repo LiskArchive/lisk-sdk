@@ -28,9 +28,9 @@ __private.syncIntervalId = null;
 function Loader (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
-	self.__private.genesisBlock = self.__private.loadingLastBlock = library.genesisblock;
+
 	__private.attachApi();
+	__private.genesisBlock = __private.loadingLastBlock = library.genesisblock;
 
 	setImmediate(cb, null, self);
 }

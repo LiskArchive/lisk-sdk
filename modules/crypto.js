@@ -16,7 +16,6 @@ __private.loaded = false;
 function Crypto (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
 
 	setImmediate(cb, null, self);
 }

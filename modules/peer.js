@@ -25,7 +25,7 @@ __private.loopback = ['0.0.0.0', '127.0.0.1'];
 function Peer (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	setImmediate(cb, null, self);

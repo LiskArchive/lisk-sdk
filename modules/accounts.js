@@ -22,7 +22,7 @@ __private.blockReward = new BlockReward();
 function Accounts (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	var Vote = require('../logic/vote.js');

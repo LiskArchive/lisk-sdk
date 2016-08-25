@@ -80,7 +80,7 @@ function Blocks (cb, scope) {
 	library = scope;
 	genesisblock = library.genesisblock;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	__private.saveGenesisBlock(function (err) {

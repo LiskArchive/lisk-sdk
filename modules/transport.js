@@ -24,7 +24,7 @@ __private.messages = {};
 function Transport (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	setImmediate(cb, null, self);

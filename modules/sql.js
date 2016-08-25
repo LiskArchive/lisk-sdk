@@ -18,7 +18,6 @@ __private.SINGLE_QUOTES_DOUBLED = '\'\'';
 function Sql (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
 
 	setImmediate(cb, null, self);
 }

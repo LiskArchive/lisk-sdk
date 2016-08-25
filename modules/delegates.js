@@ -32,7 +32,7 @@ __private.keypairs = {};
 function Delegates (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	var Delegate = require('../logic/delegate.js');

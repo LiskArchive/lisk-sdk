@@ -19,7 +19,7 @@ __private.assetTypes = {};
 function Signatures (cb, scope) {
 	library = scope;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	var Signature = require('../logic/signature.js');

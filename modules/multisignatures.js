@@ -22,7 +22,7 @@ function Multisignatures (cb, scope) {
 	library = scope;
 	genesisblock = library.genesisblock;
 	self = this;
-	self.__private = __private;
+
 	__private.attachApi();
 
 	var Multisignature = require('../logic/multisignature.js');
