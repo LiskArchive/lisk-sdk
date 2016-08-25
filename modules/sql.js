@@ -251,4 +251,5 @@ shared.remove = function (req, cb) {
 	__private.query.call(this, 'remove', config, cb);
 };
 
+// Export
 module.exports = Sql;

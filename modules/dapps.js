@@ -1749,4 +1749,5 @@ shared.getBalanceTransactions = function (req, cb) {
 	});
 };
 
+// Export
 module.exports = DApps;
