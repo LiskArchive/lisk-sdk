@@ -1,23 +1,23 @@
 "use strict";
 
 // Requires
-var _ = require("lodash"),
-    expect = require("chai").expect,
-    chai = require("chai"),
-    supertest = require("supertest"),
-    async = require("async"),
-    request = require("request");
+var _ = require("lodash");
+var expect = require("chai").expect;
+var chai = require("chai");
+var supertest = require("supertest");
+var async = require("async");
+var request = require("request");
 
 var DappCategory = require("../helpers/dappCategories.js");
 var DappType = require("../helpers/dappTypes.js");
 var TxTypes = require("../helpers/transactionTypes.js");
 
 // Node configuration
-var config = require("../config.json"),
-    baseUrl = "http://" + config.address + ":" + config.port,
-    api = supertest(baseUrl + "/api"),
-    peer = supertest(baseUrl + "/peer"),
-    constants = require("../helpers/constants.js");
+var config = require("../config.json");
+var baseUrl = "http://" + config.address + ":" + config.port;
+var api = supertest(baseUrl + "/api");
+var peer = supertest(baseUrl + "/peer");
+var constants = require("../helpers/constants.js");
 
 var normalizer = 100000000; // Use this to convert LISK amount to normal value
 var blockTime = 10000; // Block time in miliseconds
