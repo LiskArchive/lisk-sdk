@@ -1,13 +1,13 @@
 'use strict';
 
-var slots = require('../helpers/slots.js');
-var ed = require('ed25519');
-var crypto = require('crypto');
-var genesisblock = null;
-var constants = require('../helpers/constants.js');
-var ByteBuffer = require('bytebuffer');
 var bignum = require('../helpers/bignum.js');
+var ByteBuffer = require('bytebuffer');
+var constants = require('../helpers/constants.js');
+var crypto = require('crypto');
+var ed = require('ed25519');
 var extend = require('util-extend');
+var genesisblock = null;
+var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
 // Constructor
