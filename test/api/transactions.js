@@ -293,9 +293,9 @@ describe("PUT /api/transactions", function () {
                 node.expect(res.body).to.have.property("transactionId");
                 if (res.body.success == true && res.body.transactionId != null) {
                     expectedFee = node.expectedFee(amountToSend);
+                    account.transactions.push(transactionCount);
                     account.balance -= (amountToSend + expectedFee);
                     account2.balance += amountToSend;
-                    account.transactions.push(transactionCount);
                     transactionList[transactionCount] = {
                         "sender": account.address,
                         "recipient": account2.address,
