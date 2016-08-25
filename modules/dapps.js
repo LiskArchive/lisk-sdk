@@ -891,8 +891,8 @@ __private.removeDApp = function (dapp, cb) {
 };
 
 __private.downloadLink = function (dapp, dappPath, cb) {
-	var tmpDir = 'tmp',
-	    tmpPath = path.join(__private.appPath, tmpDir, dapp.transactionId + '.zip');
+	var tmpDir = 'tmp';
+	var tmpPath = path.join(__private.appPath, tmpDir, dapp.transactionId + '.zip');
 
 	async.series({
 		makeDirectory: function (serialCb) {

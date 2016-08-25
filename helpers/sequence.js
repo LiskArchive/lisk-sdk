@@ -12,7 +12,7 @@ function Sequence (config) {
 	var self = this;
 	this.sequence = [];
 
-	setImmediate(function nextSequenceTick() {
+	setImmediate(function nextSequenceTick () {
 		if (_default.onWarning && self.sequence.length >= _default.warningLimit) {
 			_default.onWarning(self.sequence.length, _default.warningLimit);
 		}
