@@ -11,7 +11,6 @@ var transactionCount = 0;
 var transactionList = [];
 
 var expectedFee = 0;
-var totalTxFee = 0;
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
@@ -146,7 +145,6 @@ before(function (done) {
                     // console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
                     account2.balance += randomLISK;
                     transactionCount += 1;
-                    totalTxFee += (expectedFee / node.normalizer);
                     transactionList[transactionCount - 1] = {
                         "sender": node.Gaccount.address,
                         "recipient": account2.address,
