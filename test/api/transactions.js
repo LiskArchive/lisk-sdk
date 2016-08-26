@@ -641,7 +641,7 @@ describe('PUT /signatures', function () {
 			});
 	});
 
-	it('using valid parameters should be ok ', function (done) {
+	it('using valid parameters should be ok', function (done) {
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -669,7 +669,7 @@ describe('PUT /signatures', function () {
 						'fee': node.Fees.secondPasswordFee,
 						'netSent': 0,
 						'txId': res.body.transaction.id,
-						'type':node.TxTypes.SIGNATURE
+						'type': node.TxTypes.SIGNATURE
 					};
 				} else {
 					// console.log('Transaction failed or transaction object is null');
