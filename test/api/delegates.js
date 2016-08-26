@@ -132,7 +132,6 @@ describe('PUT /accounts/delegates with funds', function () {
 
 		node.onNewBlock(function (err) {
 			node.expect(err).to.be.not.ok;
-
 			node.api.post('/accounts/open')
 				.set('Accept', 'application/json')
 				.send({
@@ -282,7 +281,7 @@ describe('PUT /accounts/delegates with funds', function () {
 
 	it('when downvoting should be ok', function (done) {
 		node.onNewBlock(function (err) {
-		node.expect(err).to.be.not.ok;
+			node.expect(err).to.be.not.ok;
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
 				.send({
@@ -372,20 +371,20 @@ describe('PUT /accounts/delegates with funds', function () {
 
 	it('when upvoting without any delegates should fail', function (done) {
 		node.onNewBlock(function () {
-		node.api.put('/accounts/delegates')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				delegates: ['+']
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+			node.api.put('/accounts/delegates')
+				.set('Accept', 'application/json')
+				.send({
+					secret: account.password,
+					delegates: ['+']
+				})
+				.expect('Content-Type', /json/)
+				.expect(200)
+				.end(function (err, res) {
+					// console.log(JSON.stringify(res.body));
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
+					node.expect(res.body).to.have.property('error');
+					done();
+				});
 		});
 	});
 
@@ -434,46 +433,46 @@ describe('PUT /delegates with funds', function () {
 		// Send random LISK amount from foundation account to second Random account
 
 		node.api.post('/accounts/open')
-		.set('Accept', 'application/json')
-		.send({
-			secret: account2.password
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('account').that.is.an('object');
-			account2.address = res.body.account.address;
-			account2.publicKey = res.body.account.publicKey;
-			account2.balance = res.body.account.balance;
+			.set('Accept', 'application/json')
+			.send({
+				secret: account2.password
+			})
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('account').that.is.an('object');
+				account2.address = res.body.account.address;
+				account2.publicKey = res.body.account.publicKey;
+				account2.balance = res.body.account.balance;
 
-			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
-				node.api.put('/transactions')
-					.set('Accept', 'application/json')
-					.send({
-						secret: node.Gaccount.password,
-						amount: node.LISK,
-						recipientId: account2.address
-					})
-					.expect('Content-Type', /json/)
-					.expect(200)
-					.end(function (err, res) {
-						// console.log(JSON.stringify(res.body));
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						node.expect(res.body).to.have.property('transactionId');
-						if (res.body.success && res.body.transactionId) {
-							node.expect(res.body.transactionId).to.be.above(1);
-							account2.amount += node.LISK;
-						} else {
-							// console.log('Transaction failed or transactionId is null');
-							// console.log('Sent: secret: ' + node.Gaccount.password + ', amount: ' + node.LISK + ', recipientId: ' + account2.address);
-							node.expect(false).to.equal(true);
-						}
-						done();
-					});
-			});
+				node.onNewBlock(function (err) {
+					node.expect(err).to.be.not.ok;
+					node.api.put('/transactions')
+						.set('Accept', 'application/json')
+						.send({
+							secret: node.Gaccount.password,
+							amount: node.LISK,
+							recipientId: account2.address
+						})
+						.expect('Content-Type', /json/)
+						.expect(200)
+						.end(function (err, res) {
+							// console.log(JSON.stringify(res.body));
+							node.expect(res.body).to.have.property('success').to.be.ok;
+							node.expect(res.body).to.have.property('transactionId');
+							if (res.body.success && res.body.transactionId) {
+								node.expect(res.body.transactionId).to.be.above(1);
+								account2.amount += node.LISK;
+							} else {
+								// console.log('Transaction failed or transactionId is null');
+								// console.log('Sent: secret: ' + node.Gaccount.password + ', amount: ' + node.LISK + ', recipientId: ' + account2.address);
+								node.expect(false).to.equal(true);
+							}
+							done();
+						});
+				});
 	});
 
 	before(function (done) {
