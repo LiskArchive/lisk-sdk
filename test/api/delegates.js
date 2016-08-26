@@ -10,62 +10,103 @@ while (account.username === account.username.toUpperCase()) {
 var account2 = node.randomAccount();
 account2.username = account.username.toUpperCase();
 
+function openAccount (params, done) {
+	node.api.post('/accounts/open')
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
+function sendLISK (params, done) {
+	node.api.put('/transactions')
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
+function putAccountsDelegates (params, done) {
+	node.api.put('/accounts/delegates')
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
+function putDelegates (params, done) {
+	node.api.put('/delegates')
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
+before(function (done) {
+	openAccount({
+		secret: account.password
+	}, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res.body).to.have.property('account').that.is.an('object');
+		account.address = res.body.account.address;
+		account.publicKey = res.body.account.publicKey;
+		account.balance = res.body.account.balance;
+		done();
+	});
+});
+
+before(function (done) {
+	openAccount({
+		secret: account2.password
+	}, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res.body).to.have.property('account').that.is.an('object');
+		account2.address = res.body.account.address;
+		account2.publicKey = res.body.account.publicKey;
+		account2.balance = res.body.account.balance;
+		done();
+	});
+});
+
 describe('PUT /accounts/delegates without funds', function () {
 
 	it('when upvoting should fail', function (done) {
-		node.api.post('/accounts/open')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('account').that.is.an('object');
-				account.address = res.body.account.address;
-				account.publicKey = res.body.account.publicKey;
-				account.balance = res.body.account.balance;
-
-				node.onNewBlock(function (err) {
-					node.expect(err).to.be.not.ok;
-					node.api.put('/accounts/delegates')
-						.set('Accept', 'application/json')
-						.send({
-							secret: account.password,
-							delegates: ['+' + node.Eaccount.publicKey]
-						})
-						.expect('Content-Type', /json/)
-						.expect(200)
-						.end(function (err, res) {
-							// console.log(JSON.stringify(res.body));
-							node.expect(res.body).to.have.property('success').to.be.not.ok;
-							node.expect(res.body).to.have.property('error');
-							node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
-							done();
-						});
-				});
-			});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['+' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
+			done();
+		});
 	});
 
 	it('when downvoting should fail', function (done) {
-		node.onNewBlock(function (err) {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ['-' + node.Eaccount.publicKey]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					node.expect(res.body.error).to.contain('Failed to remove vote');
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['-' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			node.expect(res.body.error).to.contain('Failed to remove vote');
+			done();
 		});
 	});
 });
@@ -73,600 +114,309 @@ describe('PUT /accounts/delegates without funds', function () {
 describe('PUT /delegates without funds', function () {
 
 	it('using valid parameters should fail', function (done) {
-		node.api.put('/delegates')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				username: account.username
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				if (!res.body.success && res.body.error != null) {
-					node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
-				} else {
-					// console.log('Expected error and got success');
-					// console.log('Sent: secret: ' + account.password + ', username: ' + account.username);
-					node.expect(false).to.equal(true);
-				}
-				done();
-			});
+		putDelegates({
+			secret: account.password,
+			username: account.username
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
+			done();
+		});
 	});
 });
 
 describe('PUT /accounts/delegates with funds', function () {
 
 	before(function (done) {
-		// Send random LISK amount from genesis account to Random account
-
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: node.Gaccount.password,
-				amount: node.LISK,
-				recipientId: account.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId');
-				if (res.body.success && res.body.transactionId) {
-					node.expect(res.body.transactionId).to.be.above(1);
-					account.amount += node.LISK;
-				} else {
-					// console.log('Transaction failed or transactionId is null');
-					// console.log('Sent: secret: ' + node.Gaccount.password + ', amount: ' + node.LISK + ', recipientId: ' + account.address);
-					node.expect(false).to.equal(true);
-				}
+		sendLISK({
+			secret: node.Gaccount.password,
+			amount: node.LISK,
+			recipientId: account.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId');
+			node.expect(res.body.transactionId).to.be.above(1);
+			node.onNewBlock(function (err) {
+				node.expect(err).to.be.not.ok;
 				done();
 			});
+		});
 	});
 
-	before(function (done) {
-		// Check that account has the LISK we sent
-
+	beforeEach(function (done) {
 		node.onNewBlock(function (err) {
 			node.expect(err).to.be.not.ok;
-			node.api.post('/accounts/open')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					if (res.body.success && res.body.account) {
-						node.expect(res.body.account.balance).to.be.equal(String(node.LISK));
-					} else {
-						// console.log('Failed to open account or account object is null');
-						// console.log('Sent: secret: ' + account.password);
-						node.expect(false).to.equal(true);
-					}
-					done();
-				});
+			done();
 		});
 	});
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
 		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
 
-		node.onNewBlock(function (err) {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: [votedDelegate]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					if (res.body.success) {
-						// console.log('Sent: secret:' + account.password + ', delegates: [' + votedDelegate + ']');
-					}
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: [votedDelegate]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
 		});
 	});
 
 	it('when downvoting same delegate multiple times should fail', function (done) {
 		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
 
-		node.onNewBlock(function (err) {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: [votedDelegate]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					if (res.body.success) {
-						// console.log('Sent: secret:' + account.password + ', delegates: [' + votedDelegate + ']');
-					}
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: [votedDelegate]
+		}, function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
 		});
 	});
 
 	it('when upvoting and downvoting within same request should fail', function (done) {
 		var votedDelegate = '"+' + node.Eaccount.publicKey + '","-' + node.Eaccount.publicKey + '"';
 
-		node.onNewBlock(function (err) {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: [votedDelegate]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					if (res.body.success) {
-						// console.log('Sent: secret:' + account.password + ', delegates: [' + votedDelegate + ']');
-					}
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: [votedDelegate]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
 		});
 	});
 
 	it('when upvoting should be ok', function (done) {
-		node.api.put('/accounts/delegates')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				delegates: ['+' + node.Eaccount.publicKey]
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				if (res.body.success && res.body.transaction) {
-					node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
-					node.expect(res.body.transaction.amount).to.equal(0);
-					node.expect(res.body.transaction.senderPublicKey).to.equal(account.publicKey);
-					node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
-				} else {
-					// console.log('Transaction failed or transaction object is null');
-					// console.log('Sent: secret: ' + account.password + ', delegates: [+' + node.Eaccount.publicKey + ']');
-					node.expect(false).to.equal(true);
-				}
-				done();
-			});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['+' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
+			node.expect(res.body.transaction.amount).to.equal(0);
+			node.expect(res.body.transaction.senderPublicKey).to.equal(account.publicKey);
+			node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
+			done();
+		});
 	});
 
 	it('when upvoting again from same account should fail', function (done) {
-		node.onNewBlock(function (err) {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ['+' + node.Eaccount.publicKey]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					if (!res.body.success && res.body.error != null) {
-						node.expect(res.body.error.toLowerCase()).to.contain('already voted');
-					} else {
-						// console.log('Expected error but got success');
-						// console.log('Sent: secret: ' + account.password + ', delegates: [+' + node.Eaccount.publicKey + ']');
-						node.expect(false).to.equal(true);
-					}
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['+' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			node.expect(res.body.error.toLowerCase()).to.contain('already voted');
+			done();
 		});
 	});
 
 	it('when downvoting should be ok', function (done) {
-		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ['-' + node.Eaccount.publicKey]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transaction').that.is.an('object');
-					if (res.body.success && res.body.transaction) {
-						node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
-						node.expect(res.body.transaction.amount).to.equal(0);
-						node.expect(res.body.transaction.senderPublicKey).to.equal(account.publicKey);
-						node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
-					} else {
-						// console.log('Expected success but got error');
-						// console.log('Sent: secret: ' + account.password + ', delegates: [-' + node.Eaccount.publicKey + ']');
-						node.expect(false).to.equal(true);
-					}
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['-' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
+			node.expect(res.body.transaction.amount).to.equal(0);
+			node.expect(res.body.transaction.senderPublicKey).to.equal(account.publicKey);
+			node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
+			done();
 		});
 	});
 
 	it('when downvoting again from same account should fail', function (done) {
-		node.onNewBlock(function (err) {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ['-' + node.Eaccount.publicKey]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					if (!res.body.success && res.body.error != null) {
-						node.expect(res.body.error.toLowerCase()).to.contain('not voted');
-					} else {
-						// console.log('Expected error but got success');
-						// console.log('Sent: secret: ' + account.password + ', delegates: [-' + node.Eaccount.publicKey + ']');
-						node.expect(false).to.equal(true);
-					}
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['-' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			node.expect(res.body.error.toLowerCase()).to.contain('not voted');
+			done();
 		});
 	});
 
 	it('when upvoting using a blank pasphrase should fail', function (done) {
-		node.api.put('/accounts/delegates')
-			.set('Accept', 'application/json')
-			.send({
-				secret: '',
-				delegates: ['+' + node.Eaccount.publicKey]
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putAccountsDelegates({
+			secret: '',
+			delegates: ['+' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when downvoting using a blank pasphrase should fail', function (done) {
-		node.api.put('/accounts/delegates')
-			.set('Accept', 'application/json')
-			.send({
-				secret: '',
-				delegates: ['-' + node.Eaccount.publicKey]
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putAccountsDelegates({
+			secret: '',
+			delegates: ['-' + node.Eaccount.publicKey]
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when upvoting without any delegates should fail', function (done) {
-		node.onNewBlock(function () {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ['+']
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['+']
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
 		});
 	});
 
 	it('when downvoting without any delegates should fail', function (done) {
-		node.onNewBlock(function () {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ['-']
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ['-']
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
 		});
 	});
 
 	it('without any delegates should fail', function (done) {
-		setTimeout(function () {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ''
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
-		}, 3000);
+		putAccountsDelegates({
+			secret: account.password,
+			delegates: ''
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 });
 
 describe('PUT /delegates with funds', function () {
 
 	before(function (done) {
-		// Send random LISK amount from foundation account to second Random account
-
-		node.api.post('/accounts/open')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account2.password
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('account').that.is.an('object');
-				account2.address = res.body.account.address;
-				account2.publicKey = res.body.account.publicKey;
-				account2.balance = res.body.account.balance;
-
-				node.onNewBlock(function (err) {
-					node.expect(err).to.be.not.ok;
-					node.api.put('/transactions')
-						.set('Accept', 'application/json')
-						.send({
-							secret: node.Gaccount.password,
-							amount: node.LISK,
-							recipientId: account2.address
-						})
-						.expect('Content-Type', /json/)
-						.expect(200)
-						.end(function (err, res) {
-							// console.log(JSON.stringify(res.body));
-							node.expect(res.body).to.have.property('success').to.be.ok;
-							node.expect(res.body).to.have.property('transactionId');
-							if (res.body.success && res.body.transactionId) {
-								node.expect(res.body.transactionId).to.be.above(1);
-								account2.amount += node.LISK;
-							} else {
-								// console.log('Transaction failed or transactionId is null');
-								// console.log('Sent: secret: ' + node.Gaccount.password + ', amount: ' + node.LISK + ', recipientId: ' + account2.address);
-								node.expect(false).to.equal(true);
-							}
-							done();
-						});
-				});
+		sendLISK({
+			secret: node.Gaccount.password,
+			amount: node.LISK,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId');
+			node.expect(res.body.transactionId).to.be.above(1);
+			node.onNewBlock(function (err) {
+				node.expect(err).to.be.not.ok;
+				done();
+			});
+		});
 	});
 
-	before(function (done) {
-		// Check that account2 has the LISK we sent
-
+	beforeEach(function (done) {
 		node.onNewBlock(function (err) {
 			node.expect(err).to.be.not.ok;
-			node.api.post('/accounts/open')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account2.password
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					if (res.body.success && res.body.account) {
-						node.expect(res.body.account.balance).to.be.equal(''+node.LISK);
-					} else {
-						// console.log('Failed to open account or account object is null');
-						// console.log('Sent: secret: ' + account2.password);
-						node.expect(false).to.equal(true);
-					}
-					done();
-				});
-			});
+			done();
 		});
 	});
 
 	it('using blank pasphrase should fail', function (done) {
-		node.api.put('/delegates')
-			.set('Accept', 'application/json')
-			.send({
-				secret: '',
-				username: account.username
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putDelegates({
+			secret: '',
+			username: account.username
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using invalid pasphrase should fail', function (done) {
-		setTimeout(function () {
-			node.api.put('/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: [],
-					username: account.username
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
-		}, 3000);
+		putDelegates({
+			secret: [],
+			username: account.username
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using invalid username should fail', function (done) {
-		setTimeout(function () {
-			node.api.put('/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					username: '~!@#$%^&*()_+.,?/'
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
-		}, 1000);
+		putDelegates({
+			secret: account.password,
+			username: '~!@#$%^&*()_+.,?/'
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using username longer than 20 characters should fail', function (done) {
-		setTimeout(function () {
-			node.api.put('/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					username: 'ABCDEFGHIJKLMNOPQRSTU'
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
-		}, 1000);
+		putDelegates({
+			secret: account.password,
+			username: 'ABCDEFGHIJKLMNOPQRSTU'
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using blank username should fail', function (done) {
-		setTimeout(function () {
-			node.api.put('/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					username: ''
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
-		}, 1000);
+		putDelegates({
+			secret: account.password,
+			username: ''
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
-	it('using uppercase username: ' + account.username + ' should be ok and delegate should be registered in lower case', function (done) {
-		node.onNewBlock(function (err) {
-			node.api.put('/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					username: account.username
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transaction').that.is.an('object');
-					if (res.body.success && res.body.transaction) {
-						node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
-						node.expect(res.body.transaction.asset.delegate.username).to.equal(account.username.toLowerCase());
-						node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(account.publicKey);
-						node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
-						node.expect(res.body.transaction.amount).to.equal(0);
-					} else {
-						// console.log('Transaction failed or transaction object is null');
-						// console.log('Sent: secret: ' + account.password + ', username: ' + account.username);
-						node.expect(false).to.equal(true);
-					}
-					done();
-				});
+	it('using uppercase username: ' + account.username + 'should be registered in lowercase', function (done) {
+		putDelegates({
+			secret: account.password,
+			username: account.username
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
+			node.expect(res.body.transaction).to.have.property('asset').that.is.an('object');
+			node.expect(res.body.transaction.asset.delegate.username).to.equal(account.username.toLowerCase());
+			node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(account.publicKey);
+			node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
+			node.expect(res.body.transaction.amount).to.equal(0);
+			done();
 		});
 	});
 
 	it('using same account should fail', function (done) {
-		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
-			node.api.put('/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					username: account.username
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
+		putDelegates({
+			secret: account.password,
+			username: account.username
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
 		});
 	});
 
 	it('using existing username but different case: ' + account2.username + ' should fail', function (done) {
-		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
-			// console.log(JSON.stringify({
-			//	secret: account2.password,
-			//	username: account2.username
-			// }));
-			node.api.put('/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account2.password,
-					username: account2.username
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
+		putDelegates({
+			secret: account2.password,
+			username: account2.username
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
 		});
 	});
 });
@@ -742,8 +492,6 @@ describe('GET /delegates', function () {
 	});
 
 	it('using invalid parameters should be ok', function (done) {
-		// should be ok because invalid parameters that we send are optional parameters
-
 		var limit = 'invalid';
 		var offset = 'invalid';
 
@@ -870,6 +618,7 @@ describe('GET /delegates/voters', function () {
 
 	it('using valid publicKey should be ok', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			node.api.get('/delegates/voters?publicKey=' + node.Eaccount.publicKey)
 				.set('Accept', 'application/json')
 				.expect('Content-Type', /json/)
