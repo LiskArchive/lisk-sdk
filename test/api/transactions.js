@@ -184,7 +184,7 @@ describe('GET /api/transactions', function () {
 		});
 	});
 
-	it('using offset should be ok', function (done) {
+	it('using offset == 1 should be ok', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 1, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
@@ -205,7 +205,7 @@ describe('GET /api/transactions', function () {
 		});
 	});
 
-	it('using string offset should fail', function (done) {
+	it('using offset == "one" should fail', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 'one', orderBy = 'timestamp:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
