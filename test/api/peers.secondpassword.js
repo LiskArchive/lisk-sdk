@@ -9,7 +9,7 @@ var account3 = node.randomAccount();
 
 describe('POST /peer/transactions', function () {
 
-	describe('Enabling second passphrase', function () {
+	describe('enabling second passphrase', function () {
 
 		it('when accounts has no funds should fail', function (done) {
 			var transaction = node.lisk.signature.createSignature(node.randomPassword(), node.randomPassword());
@@ -30,7 +30,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('when accounts has funds should be ok.', function (done) {
+		it('when accounts has funds should be ok', function (done) {
 			node.api.post('/accounts/open')
 				.set('Accept', 'application/json')
 				.set('version', node.version)
@@ -88,7 +88,7 @@ describe('POST /peer/transactions', function () {
 
 describe('POST /peer/transactions', function () {
 
-	describe('Sending normal transaction with second passphrase now enabled', function () {
+	describe('after enabling second signature', function () {
 
 		it('when account doesn\'t have a second passphrase should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, node.Gaccount.password, account.secondPassword);
@@ -109,7 +109,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('using blank second signature should fail', function (done) {
+		it('using blank second passphrase should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, ''); // Send 1 Lisk to address 1L
 			node.peer.post('/transactions')
 				.set('Accept', 'application/json')
@@ -128,7 +128,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('using fake second signature should fail', function (done) {
+		it('using fake second passphrase should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, account2.secondPassword); // Send 1 Lisk to address 1L
 			transaction.signSignature = crypto.randomBytes(64).toString('hex');
 			transaction.id = node.lisk.crypto.getId(transaction);
@@ -149,7 +149,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('using valid second signature should be ok', function (done) {
+		it('using valid second passphrase should be ok', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, account.secondPassword); // Send 1 Lisk to address 1L
 			node.peer.post('/transactions')
 				.set('Accept', 'application/json')

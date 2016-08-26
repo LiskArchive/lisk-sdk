@@ -8,7 +8,7 @@ var account2 = node.randomAccount();
 
 describe('POST /peer/transactions', function () {
 
-	describe('Registering a delegate', function () {
+	describe('registering a delegate', function () {
 
 		it('using invalid username should fail', function (done) {
 			node.api.post('/accounts/open')
@@ -82,7 +82,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('when account has funds. Username is uppercase should fail', function (done) {
+		it('when account has funds and username is uppercase should fail', function (done) {
 			account.username = node.randomDelegateName().toUpperCase();
 			var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
@@ -103,7 +103,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('when account has funds. Username is uppercase, Lowercase username already registered should fail', function (done) {
+		it('when account has funds and username is uppercase and lowercase username already registered should fail', function (done) {
 			var transaction = node.lisk.delegate.createDelegate(account2.password, account.username.toUpperCase());
 
 			node.peer.post('/transactions')
@@ -123,7 +123,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('when account has funds. Username is lowercase should be ok', function (done) {
+		it('when account has funds and username is lowercase should be ok', function (done) {
 			account.username = node.randomDelegateName().toLowerCase();
 			var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
@@ -144,7 +144,7 @@ describe('POST /peer/transactions', function () {
 				});
 		});
 
-		it('Twice within the same block should fail', function (done) {
+		it('twice within the same block should fail', function (done) {
 			node.api.post('/accounts/open')
 				.set('Accept', 'application/json')
 				.set('version', node.version)

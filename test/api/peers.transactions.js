@@ -48,7 +48,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('using varying recipientId casing. Transactions should go to same address', function (done) {
+	it('using varying recipientId casing should go to same address', function (done) {
 		var account = node.randomAccount();
 		var keys = node.lisk.crypto.getKeys(account.password);
 		var address = node.lisk.crypto.getAddress(keys.publicKey);
