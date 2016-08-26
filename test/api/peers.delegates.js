@@ -19,6 +19,7 @@ function openAccount (account, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			done(err, res);
 		});
 }
@@ -34,6 +35,7 @@ function sendLISK (params, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
+			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
 				node.expect(err).to.be.not.ok;
 				done(err, res);
