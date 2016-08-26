@@ -273,6 +273,112 @@ describe('GET /api/transactions', function () {
 	});
 });
 
+describe('GET /transactions/get?id=', function () {
+
+	it('using valid id should be ok', function (done) {
+		var transactionInCheck = transactionList[0];
+
+		node.api.get('/transactions/get?id='+transactionInCheck.txId)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
+				if (res.body.success === true && res.body.transaction.id != null) {
+					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
+					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
+					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
+					node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
+					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
+					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+				} else {
+					// console.log('Transaction failed or transaction list is null');
+					node.expect(false).to.equal(true);
+				}
+				done();
+			});
+	});
+
+	it('using invalid id should fail', function (done) {
+		node.api.get('/transactions/get?id=NotTxId')
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
+	});
+});
+
+describe('GET /transactions', function () {
+
+	it('using type should be ok', function (done) {
+		node.api.get('/transactions?type=' + node.TxTypes.SEND)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				if (res.body.success === true && res.body.transactions != null) {
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i]) {
+							node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
+						}
+					}
+				} else {
+					// console.log('Request failed or transaction list is null');
+					node.expect(false).to.equal(true);
+				}
+				done();
+			});
+	});
+});
+
+describe('GET /transactions/unconfirmed/get?id=', function () {
+
+	it('using valid id should be ok ', function (done) {
+		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionCount-1].txId)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success');
+				if (res.body.success === true) {
+					if (res.body.transaction != null) {
+						node.expect(res.body.transaction.id).to.equal(transactionList[transactionCount-1].txId);
+					}
+				} else {
+					// console.log('Transaction already processed');
+					node.expect(res.body).to.have.property('error');
+				}
+				done();
+			});
+	});
+});
+
+describe('GET /transactions/unconfirmed', function () {
+
+	it('should be ok', function (done) {
+		node.api.get('/transactions/unconfirmed')
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactions').that.is.an('array');
+				done();
+			});
+	});
+});
+
 describe('PUT /api/transactions', function () {
 
 	it('using valid parameters should be ok', function (done) {
@@ -479,111 +585,6 @@ describe('PUT /api/transactions', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
-				done();
-			});
-	});
-});
-
-describe('GET /transactions/get?id=', function () {
-
-	it('using valid id should be ok', function (done) {
-		var transactionInCheck = transactionList[0];
-		node.api.get('/transactions/get?id='+transactionInCheck.txId)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				if (res.body.success === true && res.body.transaction.id != null) {
-					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
-					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
-					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
-					node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
-					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
-					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-				} else {
-					// console.log('Transaction failed or transaction list is null');
-					node.expect(false).to.equal(true);
-				}
-				done();
-			});
-	});
-
-	it('using invalid id should fail', function (done) {
-		node.api.get('/transactions/get?id=NotTxId')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
-	});
-});
-
-describe('GET /transactions', function () {
-
-	it('using type should be ok', function (done) {
-		node.api.get('/transactions?type=' + node.TxTypes.SEND)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success === true && res.body.transactions != null) {
-					for (var i = 0; i < res.body.transactions.length; i++) {
-						if (res.body.transactions[i]) {
-							node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
-						}
-					}
-				} else {
-					// console.log('Request failed or transaction list is null');
-					node.expect(false).to.equal(true);
-				}
-				done();
-			});
-	});
-});
-
-describe('GET /transactions/unconfirmed/get?id=', function () {
-
-	it('using valid id should be ok ', function (done) {
-		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionCount-1].txId)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success');
-				if (res.body.success === true) {
-					if (res.body.transaction != null) {
-						node.expect(res.body.transaction.id).to.equal(transactionList[transactionCount-1].txId);
-					}
-				} else {
-					// console.log('Transaction already processed');
-					node.expect(res.body).to.have.property('error');
-				}
-				done();
-			});
-	});
-});
-
-describe('GET /transactions/unconfirmed', function () {
-
-	it('should be ok', function (done) {
-		node.api.get('/transactions/unconfirmed')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				done();
 			});
 	});
