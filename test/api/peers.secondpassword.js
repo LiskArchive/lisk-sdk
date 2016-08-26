@@ -88,9 +88,9 @@ describe('POST /peer/transactions', function () {
 
 describe('POST /peer/transactions', function () {
 
-	describe('after enabling second signature', function () {
+	describe('before enabling second signature', function () {
 
-		it('when account doesn\'t have a second passphrase should fail', function (done) {
+		it('using second passphrase should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, node.Gaccount.password, account.secondPassword);
 
 			node.peer.post('/transactions')
@@ -109,6 +109,9 @@ describe('POST /peer/transactions', function () {
 					done();
 				});
 		});
+	});
+
+	describe('after enabling second signature', function () {
 
 		it('using blank second passphrase should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, ''); // Send 1 Lisk to address 1L
