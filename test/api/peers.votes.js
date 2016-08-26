@@ -87,14 +87,14 @@ function makeVote (delegates, passphrase, action, done) {
 		});
 }
 
-function openAccount (passphrase, done) {
+function openAccount (account, done) {
 	node.api.post('/accounts/open')
 		.set('Accept', 'application/json')
 		.set('version',node.version)
 		.set('nethash', node.config.nethash)
 		.set('port', node.config.port)
 		.send({
-			secret: passphrase
+			secret: account.password
 		})
 		.expect('Content-Type', /json/)
 		.expect(200)
@@ -108,17 +108,13 @@ function openAccount (passphrase, done) {
 		});
 }
 
-function sendLISK (amount, recipientId, done) {
+function sendLISK (params, done) {
 	node.api.put('/transactions')
 		.set('Accept', 'application/json')
 		.set('version', node.version)
 		.set('nethash', node.config.nethash)
 		.set('port', node.config.port)
-		.send({
-			secret: node.Gaccount.password,
-			amount: amount,
-			recipientId: recipientId
-		})
+		.send(params)
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
@@ -160,14 +156,18 @@ describe('POST /peer/transactions', function () {
 	before(function (done) {
 		async.series([
 			function (seriesCb) {
-				openAccount(account.password, function (err, res) {
+				openAccount(account, function (err, res) {
 					account.address = res.body.account.address;
 					account.publicKey = res.body.account.publicKey;
 					return seriesCb();
 				});
 			},
 			function (seriesCb) {
-				sendLISK(100000000000, account.address, seriesCb);
+				sendLISK({
+					secret: node.Gaccount.password,
+					amount: 100000000000,
+					recipientId: account.address
+				}, seriesCb);
 			},
 			function (seriesCb) {
 				getDelegates(function (err, res) {
@@ -347,14 +347,18 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 				});
 			},
 			function (seriesCb) {
-				openAccount(account.password, function (err, res) {
+				openAccount(account, function (err, res) {
 					account.address = res.body.account.address;
 					account.publicKey = res.body.account.publicKey;
 					return seriesCb();
 				});
 			},
 			function (seriesCb) {
-				sendLISK(100000000000, account.address, seriesCb);
+				sendLISK({
+					secret: node.Gaccount.password,
+					amount: 100000000000,
+					recipientId: account.address
+				}, seriesCb);
 			},
 			function (seriesCb) {
 				registerDelegate(account, seriesCb);
