@@ -656,7 +656,7 @@ describe('PUT /signatures', function () {
 					account.balance -= node.Fees.secondPasswordFee;
 					transactionList.push({
 						'sender': account.address,
-						'recipient': 'SYSTEM',
+						'recipient': account.address,
 						'grossSent': 0,
 						'fee': node.Fees.secondPasswordFee,
 						'netSent': 0,
