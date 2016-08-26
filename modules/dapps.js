@@ -1,4 +1,4 @@
-// 'use strict';
+/*jslint strict:false */
 
 var _ = require('underscore');
 var async = require('async');
