@@ -14,7 +14,7 @@ var account = {
 
 describe('POST /accounts/open', function () {
 
-	it('Using valid passphrase: '+account.password+'. Should be ok', function (done) {
+	it('using valid passphrase: '+account.password+' should be ok', function (done) {
 		node.api.post('/accounts/open')
 			.set('Accept', 'application/json')
 			.send({
@@ -33,7 +33,7 @@ describe('POST /accounts/open', function () {
 			});
 	});
 
-	it('Using empty json. Should fail', function (done) {
+	it('using empty json should fail', function (done) {
 		node.api.post('/accounts/open')
 			.set('Accept', 'application/json')
 			.send({
@@ -49,7 +49,7 @@ describe('POST /accounts/open', function () {
 			});
 	});
 
-	it('Using empty passphrase. Should fail', function (done) {
+	it('using empty passphrase should fail', function (done) {
 		node.api.post('/accounts/open')
 			.set('Accept', 'application/json')
 			.send({
@@ -66,7 +66,7 @@ describe('POST /accounts/open', function () {
 			});
 	});
 
-	it('Using invalid json. Should fail', function (done) {
+	it('using invalid json should fail', function (done) {
 		node.api.post('/accounts/open')
 			.set('Accept', 'application/json')
 			.send('{\'invalid\'}')
@@ -81,7 +81,7 @@ describe('POST /accounts/open', function () {
 			});
 	});
 
-	it('When payload is over 2Mb. Should fail', function (done) {
+	it('when payload is over 2Mb should fail', function (done) {
 		var data = 'qs';
 		for (var i = 0; i < 20; i++) {
 			data += data;
@@ -105,7 +105,7 @@ describe('POST /accounts/open', function () {
 
 describe('GET /accounts/getBalance', function () {
 
-	it('Using valid params. Should be ok', function (done) {
+	it('using valid params should be ok', function (done) {
 		node.api.get('/accounts/getBalance?address=' + account.address)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -119,7 +119,7 @@ describe('GET /accounts/getBalance', function () {
 			});
 	});
 
-	it('Using invalid address. Should fail', function (done) {
+	it('using invalid address should fail', function (done) {
 		node.api.get('/accounts/getBalance?address=thisIsNOTALiskAddress')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -133,7 +133,7 @@ describe('GET /accounts/getBalance', function () {
 			});
 	});
 
-	it('Using no address. Should fail', function (done) {
+	it('using no address should fail', function (done) {
 		node.api.get('/accounts/getBalance')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -150,7 +150,7 @@ describe('GET /accounts/getBalance', function () {
 
 describe('GET /accounts/getPublicKey', function () {
 
-	it('Using valid address. Should be ok', function (done) {
+	it('using valid address should be ok', function (done) {
 		node.api.get('/accounts/getPublicKey?address=' + account.address)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -164,7 +164,7 @@ describe('GET /accounts/getPublicKey', function () {
 			});
 	});
 
-	it('Using invalid address. Should fail', function (done) {
+	it('using invalid address should fail', function (done) {
 		node.api.get('/accounts/getPublicKey?address=thisIsNOTALiskAddress')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -178,7 +178,7 @@ describe('GET /accounts/getPublicKey', function () {
 			});
 	});
 
-	it('Using no address. Should fail', function (done) {
+	it('using no address should fail', function (done) {
 		node.api.get('/accounts/getPublicKey?address=')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -192,7 +192,7 @@ describe('GET /accounts/getPublicKey', function () {
 			});
 	});
 
-	it('Using valid params. Should be ok', function (done) {
+	it('using valid params should be ok', function (done) {
 		node.api.post('/accounts/generatePublicKey')
 			.set('Accept', 'application/json')
 			.send({
@@ -212,7 +212,7 @@ describe('GET /accounts/getPublicKey', function () {
 
 describe('POST /accounts/generatePublicKey', function () {
 
-	it('Using empty passphrase. Should fail', function (done) {
+	it('using empty passphrase should fail', function (done) {
 		node.api.post('/accounts/generatePublicKey')
 			.set('Accept', 'application/json')
 			.send({
@@ -229,7 +229,7 @@ describe('POST /accounts/generatePublicKey', function () {
 			});
 	});
 
-	it('Using no params. Should fail', function (done) {
+	it('using no params should fail', function (done) {
 		node.api.post('/accounts/generatePublicKey')
 			.set('Accept', 'application/json')
 			.send({})
@@ -244,7 +244,7 @@ describe('POST /accounts/generatePublicKey', function () {
 			});
 	});
 
-	it('Using invalid json. Should fail', function (done) {
+	it('using invalid json should fail', function (done) {
 		node.api.post('/accounts/generatePublicKey')
 			.set('Accept', 'application/json')
 			.send('{\'invalid\'}')
@@ -262,7 +262,7 @@ describe('POST /accounts/generatePublicKey', function () {
 
 describe('GET /accounts?address=', function () {
 
-	it('Using valid address. Should be ok', function (done) {
+	it('using valid address should be ok', function (done) {
 		node.api.get('/accounts?address=' + account.address)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -278,7 +278,7 @@ describe('GET /accounts?address=', function () {
 			});
 	});
 
-	it('Using lowercase address. Should be ok', function (done) {
+	it('using lowercase address should be ok', function (done) {
 		node.api.get('/accounts?address=' + account.address.toLowerCase())
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -294,7 +294,7 @@ describe('GET /accounts?address=', function () {
 			});
 	});
 
-	it('Using invalid address. Should fail', function (done) {
+	it('using invalid address should fail', function (done) {
 		node.api.get('/accounts?address=thisIsNOTAValidLiskAddress')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -308,7 +308,7 @@ describe('GET /accounts?address=', function () {
 			});
 	});
 
-	it('Using empty address. Should fail', function (done) {
+	it('using empty address should fail', function (done) {
 		node.api.get('/accounts?address=')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)

@@ -4,7 +4,7 @@ var node = require('./../node.js');
 
 describe('GET /peers/version', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/peers/version')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -21,7 +21,7 @@ describe('GET /peers/version', function () {
 
 describe('GET /peers', function () {
 
-	it('Using empty parameters. Should fail', function (done) {
+	it('using empty parameters should fail', function (done) {
 		var state = '', os = '', shared = '', version = '', limit = '', offset = 0, orderBy = '';
 
 		node.api.get('/peers?state='+state+'&os='+os+'&shared='+true+'&version='+version+'&limit='+limit+'&offset='+offset+'orderBy='+orderBy)
@@ -36,7 +36,7 @@ describe('GET /peers', function () {
 			});
 	});
 
-	it('Using state. Should be ok', function (done) {
+	it('using state should be ok', function (done) {
 		var state = 1;
 
 		node.api.get('/peers?state='+state)
@@ -56,7 +56,7 @@ describe('GET /peers', function () {
 			});
 	});
 
-	it('Using limit. Should be ok', function (done) {
+	it('using limit should be ok', function (done) {
 		var limit = 3, offset = 0;
 
 		node.api.get('/peers?&limit='+limit+'&offset='+offset)
@@ -74,7 +74,7 @@ describe('GET /peers', function () {
 			});
 	});
 
-	it('Using orderBy. Should be ok', function (done) {
+	it('using orderBy should be ok', function (done) {
 		var orderBy = 'state:desc';
 
 		node.api.get('/peers?orderBy='+orderBy)
@@ -99,7 +99,7 @@ describe('GET /peers', function () {
 
 	});
 
-	it('Using limit > 100. Should fail', function (done) {
+	it('using limit > 100 should fail', function (done) {
 		var limit = 101;
 
 		node.api.get('/peers?&limit='+limit)
@@ -114,7 +114,7 @@ describe('GET /peers', function () {
 			});
 	});
 
-	it('Using invalid parameters. Should fail', function (done) {
+	it('using invalid parameters should fail', function (done) {
 		var state = 'invalid', os = 'invalid', shared = 'invalid', version = 'invalid', limit = 'invalid', offset = 'invalid', orderBy = 'invalid';
 
 		node.api.get('/peers?state='+state+'&os='+os+'&shared='+shared+'&version='+version+'&limit='+limit+'&offset='+offset+'orderBy='+orderBy)

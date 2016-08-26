@@ -110,7 +110,7 @@ before(function (done) {
 
 describe('GET /api/transactions', function () {
 
-	it('Using valid parameters. Should be ok', function (done) {
+	it('using valid parameters should be ok', function (done) {
 		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
@@ -136,7 +136,7 @@ describe('GET /api/transactions', function () {
 			});
 	});
 
-	it('Using limit > 100. Should fail', function (done) {
+	it('using limit > 100 should fail', function (done) {
 		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
@@ -151,7 +151,7 @@ describe('GET /api/transactions', function () {
 			});
 	});
 
-	it('Ordered by ascending timestamp. Should be ok', function (done) {
+	it('ordered by ascending timestamp should be ok', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 0, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
@@ -184,7 +184,7 @@ describe('GET /api/transactions', function () {
 		});
 	});
 
-	it('Using offset. Should be ok', function (done) {
+	it('using offset should be ok', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 1, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
@@ -205,7 +205,7 @@ describe('GET /api/transactions', function () {
 		});
 	});
 
-	it('Using string offset. Should fail', function (done) {
+	it('using string offset should fail', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 'one', orderBy = 'timestamp:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
@@ -220,7 +220,7 @@ describe('GET /api/transactions', function () {
 			 });
 	});
 
-	it('Using no limit. Should be ok', function (done) {
+	it('using no limit should be ok', function (done) {
 		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
@@ -242,7 +242,7 @@ describe('GET /api/transactions', function () {
 			});
 	});
 
-	it('Using completely invalid fields. Should fail', function (done) {
+	it('using completely invalid fields should fail', function (done) {
 		var senderId = 'invalid', blockId = 'invalid', recipientId = 'invalid', limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
@@ -257,7 +257,7 @@ describe('GET /api/transactions', function () {
 			});
 	});
 
-	it('Using partially invalid fields. Should fail', function (done) {
+	it('using partially invalid fields should fail', function (done) {
 		var senderId = 'invalid', blockId = 'invalid', recipientId = account.address, limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
@@ -275,7 +275,7 @@ describe('GET /api/transactions', function () {
 
 describe('PUT /api/transactions', function () {
 
-	it('Using valid parameters. Should be ok', function (done) {
+	it('using valid parameters should be ok', function (done) {
 		var amountToSend = 100000000;
 		var expectedFee = node.expectedFee(amountToSend);
 
@@ -315,7 +315,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using negative amount. Should fail', function (done) {
+	it('using negative amount should fail', function (done) {
 		var amountToSend = -100000000;
 
 		node.api.put('/transactions')
@@ -335,7 +335,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using float amount. Should fail', function (done) {
+	it('using float amount should fail', function (done) {
 		var amountToSend = 1.2;
 
 		node.api.put('/transactions')
@@ -355,7 +355,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using entire balance. Should fail', function (done) {
+	it('using entire balance should fail', function (done) {
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
 			.send({
@@ -373,7 +373,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using zero amount. Should fail', function (done) {
+	it('using zero amount should fail', function (done) {
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
 			.send({
@@ -391,7 +391,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using positive overflown amount. Should fail', function (done) {
+	it('using positive overflown amount should fail', function (done) {
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
 			.send({
@@ -409,7 +409,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using negative overflown amount. Should fail', function (done) {
+	it('using negative overflown amount should fail', function (done) {
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
 			.send({
@@ -427,7 +427,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using small fractional amount. Should be ok', function (done) {
+	it('using small fractional amount should be ok', function (done) {
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
 			.send({
@@ -445,7 +445,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using no passphase. Should fail', function (done) {
+	it('using no passphase should fail', function (done) {
 		var amountToSend = 100000000;
 
 		node.api.put('/transactions')
@@ -464,7 +464,7 @@ describe('PUT /api/transactions', function () {
 			});
 	});
 
-	it('Using no recipient. Should fail', function (done) {
+	it('using no recipient should fail', function (done) {
 		var amountToSend = 100000000;
 
 		node.api.put('/transactions')
@@ -486,7 +486,7 @@ describe('PUT /api/transactions', function () {
 
 describe('GET /transactions/get?id=', function () {
 
-	it('Using valid id. Should be ok', function (done) {
+	it('using valid id should be ok', function (done) {
 		var transactionInCheck = transactionList[0];
 		node.api.get('/transactions/get?id='+transactionInCheck.txId)
 			.set('Accept', 'application/json')
@@ -511,7 +511,7 @@ describe('GET /transactions/get?id=', function () {
 			});
 	});
 
-	it('Using invalid id. Should fail', function (done) {
+	it('using invalid id should fail', function (done) {
 		node.api.get('/transactions/get?id=NotTxId')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -527,7 +527,7 @@ describe('GET /transactions/get?id=', function () {
 
 describe('GET /transactions', function () {
 
-	it('Using type. Should be ok', function (done) {
+	it('using type should be ok', function (done) {
 		node.api.get('/transactions?type=' + node.TxTypes.SEND)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -552,7 +552,7 @@ describe('GET /transactions', function () {
 
 describe('GET /transactions/unconfirmed/get?id=', function () {
 
-	it('Using valid id. Should be ok ', function (done) {
+	it('using valid id should be ok ', function (done) {
 		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionCount-1].txId)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -575,7 +575,7 @@ describe('GET /transactions/unconfirmed/get?id=', function () {
 
 describe('GET /transactions/unconfirmed', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/transactions/unconfirmed')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -591,7 +591,7 @@ describe('GET /transactions/unconfirmed', function () {
 
 describe('PUT /signatures', function () {
 
-	it('When account has no funds. Should fail', function (done) {
+	it('when account has no funds should fail', function (done) {
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -608,7 +608,7 @@ describe('PUT /signatures', function () {
 			});
 	});
 
-	it('Using invalid passphrase. Should fail', function (done) {
+	it('using invalid passphrase should fail', function (done) {
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -625,7 +625,7 @@ describe('PUT /signatures', function () {
 			});
 	});
 
-	it('Using no second passphrase. Should fail', function (done) {
+	it('using no second passphrase should fail', function (done) {
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -641,7 +641,7 @@ describe('PUT /signatures', function () {
 			});
 	});
 
-	it('Using valid parameters. Should be ok ', function (done) {
+	it('using valid parameters should be ok ', function (done) {
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -687,7 +687,7 @@ describe('PUT /transactions on account with second passphase enabled', function 
 		node.onNewBlock(done);
 	});
 
-	it('Without specifying second passphase on account. Should fail', function (done) {
+	it('without specifying second passphase on account should fail', function (done) {
 		var amountToSend = 100000000;
 
 		node.api.put('/transactions')
@@ -707,7 +707,7 @@ describe('PUT /transactions on account with second passphase enabled', function 
 			});
 	});
 
-	it('Using second passphase but without primary passphase. Should fail', function (done) {
+	it('using second passphase but without primary passphase should fail', function (done) {
 		var amountToSend = 100000000;
 
 		node.api.put('/transactions')
@@ -730,7 +730,7 @@ describe('PUT /transactions on account with second passphase enabled', function 
 
 describe('PUT /delegates on account with second passphase enabled', function () {
 
-	it('Without specifying second passphase on account. Should fail', function (done) {
+	it('without specifying second passphase on account should fail', function (done) {
 		node.api.put('/delegates')
 			.set('Accept', 'application/json')
 			.send({

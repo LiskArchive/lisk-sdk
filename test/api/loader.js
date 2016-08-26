@@ -4,7 +4,7 @@ var node = require('./../node.js');
 
 describe('GET /loader/status/ping', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/loader/status/ping')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)

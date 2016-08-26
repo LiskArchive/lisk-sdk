@@ -190,7 +190,7 @@ before(function (done) {
 
 describe('PUT /dapps', function () {
 
-	it('Using invalid secret. Should fail', function (done) {
+	it('using invalid secret should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -213,7 +213,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using invalid category. Should fail', function (done) {
+	it('using invalid category should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -236,7 +236,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using no dapp name. Should fail', function (done) {
+	it('using no dapp name should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -258,7 +258,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using very long description. Should fail', function (done) {
+	it('using very long description should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -280,7 +280,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using very long tag. Should fail', function (done) {
+	it('using very long tag should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -303,7 +303,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using very long name. Should fail', function (done) {
+	it('using very long name should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -326,7 +326,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using no link. Should fail', function (done) {
+	it('using no link should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -347,7 +347,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using invalid parameter types. Should fail', function (done) {
+	it('using invalid parameter types should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -369,7 +369,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using account with 0 LISK account. Should fail', function (done) {
+	it('using account with 0 LISK account should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -391,7 +391,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using invalid 2nd passphrase. Should fail', function (done) {
+	it('using invalid 2nd passphrase should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
@@ -414,7 +414,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using invalid type. Should fail', function (done) {
+	it('using invalid type should fail', function (done) {
 		DappName = node.randomDelegateName();
 
 		node.api.put('/dapps')
@@ -439,7 +439,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using valid Link. Should be ok', function (done) {
+	it('using valid Link should be ok', function (done) {
 		DappName = node.randomDelegateName();
 
 		node.api.put('/dapps')
@@ -465,7 +465,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('Using existing dapp name. Should fail', function (done) {
+	it('using existing dapp name should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.api.put('/dapps')
 				.set('Accept', 'application/json')
@@ -489,7 +489,7 @@ describe('PUT /dapps', function () {
 		});
 	});
 
-	it('Using existing dapp link. Should fail', function (done) {
+	it('using existing dapp link should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.api.put('/dapps')
 				.set('Accept', 'application/json')
@@ -521,7 +521,7 @@ describe('GET /dapps', function () {
 		node.onNewBlock(done);
 	});
 
-	it('Using no limit. Should be ok', function (done) {
+	it('using no limit should be ok', function (done) {
 		var category = ''; var name = ''; var type = ''; var link = '';
 		var icon = ''; var limit = ''; var offset = ''; var orderBy = '';
 
@@ -545,7 +545,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Using invalid parameter type (link). Should fail', function (done) {
+	it('using invalid parameter type (link) should fail', function (done) {
 		var category = 'a category'; var name = 1234; var type = 'type'; var link = 1234; var icon = 1234;
 
 		node.api.get('/dapps?category=' + category + '&name=' + name + '&type=' + type + '&link=' + link + '&icon=' + icon)
@@ -559,7 +559,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Ordered by ascending category. Should be ok', function (done) {
+	it('ordered by ascending category should be ok', function (done) {
 		var orderBy = 'category:asc';
 
 		node.api.get('/dapps?orderBy=' + orderBy)
@@ -585,7 +585,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Ordered by descending category. Should be ok', function (done) {
+	it('ordered by descending category should be ok', function (done) {
 		var orderBy = 'category:desc';
 
 		node.api.get('/dapps?orderBy=' + orderBy)
@@ -611,7 +611,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Using limit. Should be ok', function (done) {
+	it('using limit should be ok', function (done) {
 		var limit = 3;
 
 		node.api.get('/dapps?limit=' + limit)
@@ -631,7 +631,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Using category. Should be ok', function (done) {
+	it('using category should be ok', function (done) {
 		var randomCategory = node.randomProperty(node.DappCategory, true);
 
 		node.api.get('/dapps?category=' + randomCategory)
@@ -653,7 +653,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Using name. Should be ok', function (done) {
+	it('using name should be ok', function (done) {
 		var name = '';
 
 		if (Dapp !== {} && Dapp != null) {
@@ -684,7 +684,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Using type. Should be ok', function (done) {
+	it('using type should be ok', function (done) {
 		var type = node.randomProperty(node.DappType);
 
 		node.api.get('/dapps?type=' + type)
@@ -708,7 +708,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Using link. Should be ok', function (done) {
+	it('using link should be ok', function (done) {
 		var link = node.guestbookDapp.link;
 
 		node.api.get('/dapps?link=' + link)
@@ -732,7 +732,7 @@ describe('GET /dapps', function () {
 			});
 	});
 
-	it('Using offset. Should be ok', function (done) {
+	it('using offset should be ok', function (done) {
 		var offset = 1;
 		var secondDapp;
 
@@ -772,7 +772,7 @@ describe('GET /dapps', function () {
 
 describe('GET /dapps?id=', function () {
 
-	it('Using unknown id. Should fail', function (done) {
+	it('using unknown id should fail', function (done) {
 		var dappId = 'UNKNOWN_ID';
 
 		node.api.get('/dapps/get?id=' + dappId)
@@ -786,7 +786,7 @@ describe('GET /dapps?id=', function () {
 			});
 	});
 
-	it('Using no id. Should fail', function (done) {
+	it('using no id should fail', function (done) {
 		node.api.get('/dapps/get?id=')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -798,7 +798,7 @@ describe('GET /dapps?id=', function () {
 			});
 	});
 
-	it('Using valid id. Should be ok', function (done) {
+	it('using valid id should be ok', function (done) {
 		var dappId = DappToInstall.transactionId;
 
 		node.api.get('/dapps/get?id=' + dappId)
@@ -821,7 +821,7 @@ describe('GET /dapps?id=', function () {
 
 describe('POST /dapps/install', function () {
 
-	it('Using no id. Should fail', function (done) {
+	it('using no id should fail', function (done) {
 		var dappId = DappToInstall.transactionId;
 
 		node.api.post('/dapps/install')
@@ -838,7 +838,7 @@ describe('POST /dapps/install', function () {
 			});
 	});
 
-	it('Using invalid id. Should fail', function (done) {
+	it('using invalid id should fail', function (done) {
 		node.api.post('/dapps/install')
 			.set('Accept', 'application/json')
 			.send({
@@ -855,7 +855,7 @@ describe('POST /dapps/install', function () {
 			});
 	});
 
-	it('Using valid id. Should be ok', function (done) {
+	it('using valid id should be ok', function (done) {
 		var dappId = DappToInstall.transactionId;
 
 		node.api.post('/dapps/install')
@@ -877,7 +877,7 @@ describe('POST /dapps/install', function () {
 
 describe('GET /dapps/installed', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		var flag = 0;
 
 		node.api.get('/dapps/installed')
@@ -907,7 +907,7 @@ describe('GET /dapps/installed', function () {
 
 describe('GET /dapps/installedIds', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		var flag = 0;
 
 		node.api.get('/dapps/installedIds')
@@ -937,7 +937,7 @@ describe('GET /dapps/installedIds', function () {
 
 describe('GET /dapps/search?q=', function () {
 
-	it('Using invalid parameters. Should fail', function (done) {
+	it('using invalid parameters should fail', function (done) {
 		var q = 1234; var category = 'good'; var installed = 'true';
 
 		node.api.get('/dapps/search?q=' + q + '&category=' + category + '&installed=' + installed)
@@ -951,7 +951,7 @@ describe('GET /dapps/search?q=', function () {
 			});
 	});
 
-	it('Using valid parameters. Should be ok', function (done) {
+	it('using valid parameters should be ok', function (done) {
 		var q = 'a';
 		var category = node.randomProperty(node.DappCategory, true);
 		var installed = 1;
@@ -967,7 +967,7 @@ describe('GET /dapps/search?q=', function () {
 			});
 	});
 
-	it('Using installed = 0. Should be ok', function (done) {
+	it('using installed = 0 should be ok', function (done) {
 		var q = 's';
 		var category = node.randomProperty(node.DappCategory);
 		var installed = 0;
@@ -986,7 +986,7 @@ describe('GET /dapps/search?q=', function () {
 
 describe('POST /dapps/launch', function () {
 
-	it('Using no id. Should fail', function (done) {
+	it('using no id should fail', function (done) {
 		var dappId = DappToInstall.transactionId;
 
 		node.api.post('/dapps/launch')
@@ -1004,7 +1004,7 @@ describe('POST /dapps/launch', function () {
 			});
 	});
 
-	it('Using unknown id. Should fail', function (done) {
+	it('using unknown id should fail', function (done) {
 		var dappId = 'UNKNOWN_ID';
 
 		node.api.post('/dapps/launch')
@@ -1023,7 +1023,7 @@ describe('POST /dapps/launch', function () {
 			});
 	});
 
-	it('Using valid id. Should be ok', function (done) {
+	it('using valid id should be ok', function (done) {
 		var dappId = DappToInstall.transactionId;
 
 		node.api.post('/dapps/launch')
@@ -1066,7 +1066,7 @@ describe('POST /dapps/launch', function () {
 
 describe('POST /dapps/stop', function () {
 
-	it('Using no id. Should fail', function (done) {
+	it('using no id should fail', function (done) {
 		node.api.post('/dapps/stop')
 			.set('Accept', 'application/json')
 			.send({})
@@ -1080,7 +1080,7 @@ describe('POST /dapps/stop', function () {
 			});
 	});
 
-	it('Using unknown id. Should fail', function (done) {
+	it('using unknown id should fail', function (done) {
 		var dappId = 'UNKNOWN_ID';
 
 		node.api.post('/dapps/stop')
@@ -1099,7 +1099,7 @@ describe('POST /dapps/stop', function () {
 			});
 	});
 
-	it('Using valid id. Should be ok', function (done) {
+	it('using valid id should be ok', function (done) {
 		var dappId = DappToInstall.transactionId;
 
 		node.api.post('/dapps/stop')
@@ -1120,7 +1120,7 @@ describe('POST /dapps/stop', function () {
 
 describe('GET /dapps/categories', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/dapps/categories')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -1138,7 +1138,7 @@ describe('GET /dapps/categories', function () {
 
 describe('POST /dapps/uninstall', function () {
 
-	it('Using no id. Should fail', function (done) {
+	it('using no id should fail', function (done) {
 		node.api.post('/dapps/uninstall')
 			.set('Accept', 'application/json')
 			.send({
@@ -1155,7 +1155,7 @@ describe('POST /dapps/uninstall', function () {
 			});
 	});
 
-	it('Using unknown id. Should fail', function (done) {
+	it('using unknown id should fail', function (done) {
 		var dappId = 'UNKNOWN_ID';
 
 		node.api.post('/dapps/uninstall')
@@ -1174,7 +1174,7 @@ describe('POST /dapps/uninstall', function () {
 			});
 	});
 
-	it('Using valid id. Should be ok', function (done) {
+	it('using valid id should be ok', function (done) {
 		var dappId = DappToInstall.transactionId;
 
 		node.api.post('/dapps/uninstall')

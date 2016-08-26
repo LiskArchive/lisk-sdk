@@ -12,7 +12,7 @@ account2.username = account.username.toUpperCase();
 
 describe('PUT /accounts/delegates without funds', function () {
 
-	it('When upvoting. Should fail', function (done) {
+	it('when upvoting should fail', function (done) {
 		node.api.post('/accounts/open')
 			.set('Accept', 'application/json')
 			.send({
@@ -49,7 +49,7 @@ describe('PUT /accounts/delegates without funds', function () {
 			});
 	});
 
-	it('When downvoting. Should fail', function (done) {
+	it('when downvoting should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
@@ -72,7 +72,7 @@ describe('PUT /accounts/delegates without funds', function () {
 
 describe('PUT /delegates without funds', function () {
 
-	it('Using valid parameters. Should fail', function (done) {
+	it('using valid parameters should fail', function (done) {
 		node.api.put('/delegates')
 			.set('Accept', 'application/json')
 			.send({
@@ -155,7 +155,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When upvoting same delegate multiple times. Should fail', function (done) {
+	it('when upvoting same delegate multiple times should fail', function (done) {
 		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
 
 		node.onNewBlock(function (err) {
@@ -179,7 +179,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When downvoting same delegate multiple times. Should fail', function (done) {
+	it('when downvoting same delegate multiple times should fail', function (done) {
 		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
 
 		node.onNewBlock(function (err) {
@@ -203,7 +203,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When upvoting and downvoting within same request. Should fail', function (done) {
+	it('when upvoting and downvoting within same request should fail', function (done) {
 		var votedDelegate = '"+' + node.Eaccount.publicKey + '","-' + node.Eaccount.publicKey + '"';
 
 		node.onNewBlock(function (err) {
@@ -227,7 +227,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When upvoting. Should be ok', function (done) {
+	it('when upvoting should be ok', function (done) {
 		node.api.put('/accounts/delegates')
 			.set('Accept', 'application/json')
 			.send({
@@ -254,7 +254,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			});
 	});
 
-	it('When upvoting again from same account. Should fail', function (done) {
+	it('when upvoting again from same account should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
@@ -280,7 +280,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When downvoting. Should be ok', function (done) {
+	it('when downvoting should be ok', function (done) {
 		node.onNewBlock(function (err) {
 		node.expect(err).to.be.not.ok;
 			node.api.put('/accounts/delegates')
@@ -310,7 +310,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When downvoting again from same account. Should fail', function (done) {
+	it('when downvoting again from same account should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
@@ -336,7 +336,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When upvoting using a blank pasphrase. Should fail', function (done) {
+	it('when upvoting using a blank pasphrase should fail', function (done) {
 		node.api.put('/accounts/delegates')
 			.set('Accept', 'application/json')
 			.send({
@@ -353,7 +353,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			});
 	});
 
-	it('When downvoting using a blank pasphrase. Should fail', function (done) {
+	it('when downvoting using a blank pasphrase should fail', function (done) {
 		node.api.put('/accounts/delegates')
 			.set('Accept', 'application/json')
 			.send({
@@ -370,7 +370,7 @@ describe('PUT /accounts/delegates with funds', function () {
 			});
 	});
 
-	it('When upvoting without any delegates. Should fail', function (done) {
+	it('when upvoting without any delegates should fail', function (done) {
 		node.onNewBlock(function () {
 		node.api.put('/accounts/delegates')
 			.set('Accept', 'application/json')
@@ -389,7 +389,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('When downvoting without any delegates. Should fail', function (done) {
+	it('when downvoting without any delegates should fail', function (done) {
 		node.onNewBlock(function () {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
@@ -408,7 +408,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		});
 	});
 
-	it('Without any delegates. Should fail', function (done) {
+	it('without any delegates should fail', function (done) {
 		setTimeout(function () {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
@@ -504,7 +504,7 @@ describe('PUT /delegates with funds', function () {
 		});
 	});
 
-	it('Using blank pasphrase. Should fail', function (done) {
+	it('using blank pasphrase should fail', function (done) {
 		node.api.put('/delegates')
 			.set('Accept', 'application/json')
 			.send({
@@ -521,7 +521,7 @@ describe('PUT /delegates with funds', function () {
 			});
 	});
 
-	it('Using invalid pasphrase. Should fail', function (done) {
+	it('using invalid pasphrase should fail', function (done) {
 		setTimeout(function () {
 			node.api.put('/delegates')
 				.set('Accept', 'application/json')
@@ -540,7 +540,7 @@ describe('PUT /delegates with funds', function () {
 		}, 3000);
 	});
 
-	it('Using invalid username. Should fail', function (done) {
+	it('using invalid username should fail', function (done) {
 		setTimeout(function () {
 			node.api.put('/delegates')
 				.set('Accept', 'application/json')
@@ -559,7 +559,7 @@ describe('PUT /delegates with funds', function () {
 		}, 1000);
 	});
 
-	it('Using username longer than 20 characters. Should fail', function (done) {
+	it('using username longer than 20 characters should fail', function (done) {
 		setTimeout(function () {
 			node.api.put('/delegates')
 				.set('Accept', 'application/json')
@@ -578,7 +578,7 @@ describe('PUT /delegates with funds', function () {
 		}, 1000);
 	});
 
-	it('Using blank username. Should fail', function (done) {
+	it('using blank username should fail', function (done) {
 		setTimeout(function () {
 			node.api.put('/delegates')
 				.set('Accept', 'application/json')
@@ -597,7 +597,7 @@ describe('PUT /delegates with funds', function () {
 		}, 1000);
 	});
 
-	it('Using uppercase username: ' + account.username + '. Should be ok and delegate should be registered in lower case', function (done) {
+	it('using uppercase username: ' + account.username + ' should be ok and delegate should be registered in lower case', function (done) {
 		node.onNewBlock(function (err) {
 			node.api.put('/delegates')
 				.set('Accept', 'application/json')
@@ -627,7 +627,7 @@ describe('PUT /delegates with funds', function () {
 		});
 	});
 
-	it('Using same account. Should fail', function (done) {
+	it('using same account should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.expect(err).to.be.not.ok;
 			node.api.put('/delegates')
@@ -647,7 +647,7 @@ describe('PUT /delegates with funds', function () {
 		});
 	});
 
-	it('Using existing username but different case: ' + account2.username + '. Should fail', function (done) {
+	it('using existing username but different case: ' + account2.username + ' should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.expect(err).to.be.not.ok;
 			// console.log(JSON.stringify({
@@ -674,7 +674,7 @@ describe('PUT /delegates with funds', function () {
 
 describe('GET /delegates', function () {
 
-	it('Using no parameters. Should be ok', function (done) {
+	it('using no parameters should be ok', function (done) {
 		var limit = 10;
 		var offset = 0;
 
@@ -711,7 +711,7 @@ describe('GET /delegates', function () {
 			});
 	});
 
-	it('Using valid parameters. Should be ok', function (done) {
+	it('using valid parameters should be ok', function (done) {
 		var limit = 20;
 		var offset = 10;
 
@@ -742,8 +742,8 @@ describe('GET /delegates', function () {
 			});
 	});
 
-	it('Using invalid parameters. Should be ok', function (done) {
-		// Should be ok because invalid parameters that we send are optional parameters
+	it('using invalid parameters should be ok', function (done) {
+		// should be ok because invalid parameters that we send are optional parameters
 
 		var limit = 'invalid';
 		var offset = 'invalid';
@@ -763,7 +763,7 @@ describe('GET /delegates', function () {
 
 describe('GET /accounts/delegates?address=', function () {
 
-	it('Using valid address. Should be ok', function (done) {
+	it('using valid address should be ok', function (done) {
 		node.api.get('/accounts/delegates?address=' + node.Gaccount.address)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -783,7 +783,7 @@ describe('GET /accounts/delegates?address=', function () {
 			});
 		});
 
-	it('Using invalid address. Should fail', function (done) {
+	it('using invalid address should fail', function (done) {
 		node.api.get('/accounts/delegates?address=NOTaLiskAddress')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -799,7 +799,7 @@ describe('GET /accounts/delegates?address=', function () {
 
 describe('GET /delegates/count', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/delegates/count')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -838,7 +838,7 @@ describe('GET /delegates/voters', function () {
 		});
 	});
 
-	it('Using no publicKey. Should fail', function (done) {
+	it('using no publicKey should fail', function (done) {
 		node.api.get('/delegates/voters?publicKey=')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -857,7 +857,7 @@ describe('GET /delegates/voters', function () {
 			});
 	});
 
-	it('Using invalid publicKey. Should fail', function (done) {
+	it('using invalid publicKey should fail', function (done) {
 		node.api.get('/delegates/voters?publicKey=NotAPublicKey')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -870,7 +870,7 @@ describe('GET /delegates/voters', function () {
 			});
 	});
 
-	it('Using valid publicKey. Should be ok', function (done) {
+	it('using valid publicKey should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			node.api.get('/delegates/voters?publicKey=' + node.Eaccount.publicKey)
 				.set('Accept', 'application/json')
@@ -895,7 +895,7 @@ describe('GET /delegates/voters', function () {
 
 describe('GET /delegates/search', function () {
 
-	it('When criteria is missing. Should fail', function (done) {
+	it('when criteria is missing should fail', function (done) {
 		var q = '';
 
 		node.api.get('/delegates/search')
@@ -909,7 +909,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When criteria is an empty string. Should fail', function (done) {
+	it('when criteria is an empty string should fail', function (done) {
 		var q = '';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -923,7 +923,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When criteria length is 1 character. Should be ok', function (done) {
+	it('when criteria length is 1 character should be ok', function (done) {
 		var q = 'g'; // 1 character
 
 		node.api.get('/delegates/search?q=' + q)
@@ -937,7 +937,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When criteria length is 20 characters. Should be ok', function (done) {
+	it('when criteria length is 20 characters should be ok', function (done) {
 		var q = 'genesis_123456789012'; // 20 characters
 
 		node.api.get('/delegates/search?q=' + q)
@@ -951,7 +951,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When criteria length is greater than 20 characters. Should fail', function (done) {
+	it('when criteria length is greater than 20 characters should fail', function (done) {
 		var q = 'genesis_1234567890123'; // 21 characters
 
 		node.api.get('/delegates/search?q=' + q)
@@ -965,7 +965,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == "genesis_1". Should return 13 delegates', function (done) {
+	it('when critera == "genesis_1" should return 13 delegates', function (done) {
 		var q = 'genesis_1';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -980,7 +980,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == "genesis_10". Should return 3 delegates', function (done) {
+	it('when critera == "genesis_10" should return 3 delegates', function (done) {
 		var q = 'genesis_10';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -995,7 +995,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == "genesis_101". Should return 1 delegate', function (done) {
+	it('when critera == "genesis_101" should return 1 delegate', function (done) {
 		var q = 'genesis_101';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -1010,7 +1010,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When critera == "genesis_101". Should have all properties', function (done) {
+	it('when critera == "genesis_101" should have all properties', function (done) {
 		var q = 'genesis_101';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -1031,7 +1031,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit is missing. Should be ok', function (done) {
+	it('when limit is missing should be ok', function (done) {
 		var q = 'genesis_';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -1046,7 +1046,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit is a string. Should be ok', function (done) {
+	it('when limit is a string should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 'one';
 
@@ -1061,7 +1061,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit == -100. Should fail', function (done) {
+	it('when limit == -100 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = -100;
 
@@ -1076,7 +1076,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit == -1. Should fail', function (done) {
+	it('when limit == -1 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = -1;
 
@@ -1091,7 +1091,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit == 0. Should fail', function (done) {
+	it('when limit == 0 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 0;
 
@@ -1106,7 +1106,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit == 1. Should be ok', function (done) {
+	it('when limit == 1 should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 1;
 
@@ -1122,7 +1122,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit == 100. Should be ok', function (done) {
+	it('when limit == 100 should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 100;
 
@@ -1138,7 +1138,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When limit > 100. Should fail', function (done) {
+	it('when limit > 100 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 101;
 
@@ -1153,7 +1153,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When orderBy is invalid. Should fail', function (done) {
+	it('when orderBy is invalid should fail', function (done) {
 		var q = 'genesis_';
 
 		node.api.get('/delegates/search?q=' + q + '&orderBy=unknown:abc')
@@ -1167,7 +1167,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When orderBy is missing. Should be ordered by ascending username', function (done) {
+	it('when orderBy is missing should be ordered by ascending username', function (done) {
 		var q = 'genesis_';
 
 		node.api.get('/delegates/search?q=' + q)
@@ -1186,7 +1186,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When orderBy == "username:asc". Should be ordered by ascending username', function (done) {
+	it('when orderBy == "username:asc" should be ordered by ascending username', function (done) {
 		var q = 'genesis_';
 
 		node.api.get('/delegates/search?q=' + q + '&orderBy=username:asc')
@@ -1205,7 +1205,7 @@ describe('GET /delegates/search', function () {
 			});
 	});
 
-	it('When orderBy == "username:desc". Should be ordered by descending username', function (done) {
+	it('when orderBy == "username:desc" should be ordered by descending username', function (done) {
 		var q = 'genesis_';
 
 		node.api.get('/delegates/search?q=' + q + '&orderBy=username:desc')

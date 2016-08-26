@@ -7,7 +7,7 @@ var genesisblock = require('../../genesisBlock.json');
 
 describe('POST /peer/transactions', function () {
 
-	it('Using valid transaction with wrong nethash in headers. Should fail', function (done) {
+	it('using valid transaction with wrong nethash in headers should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.Gaccount.password);
 
 		node.peer.post('/transactions')
@@ -28,7 +28,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using same valid transaction with correct nethash in headers. Should be ok', function (done) {
+	it('using same valid transaction with correct nethash in headers should be ok', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.Gaccount.password);
 
 		node.peer.post('/transactions')
@@ -48,7 +48,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using varying recipientId casing. Transactions should go to same address', function (done) {
+	it('using varying recipientId casing. Transactions should go to same address', function (done) {
 		var account = node.randomAccount();
 		var keys = node.lisk.crypto.getKeys(account.password);
 		var address = node.lisk.crypto.getAddress(keys.publicKey);
@@ -101,7 +101,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Using transaction with undefined recipientId. Should fail', function (done) {
+	it('using transaction with undefined recipientId should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction(undefined, 1, node.Gaccount.password);
 
 		node.peer.post('/transactions')
@@ -122,7 +122,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using transaction with negative amount. Should fail', function (done) {
+	it('using transaction with negative amount should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('1L', -1, node.Gaccount.password);
 
 		node.peer.post('/transactions')
@@ -143,7 +143,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using invalid passphrase. Should fail', function (done) {
+	it('using invalid passphrase should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.Gaccount.password);
 		transaction.recipientId = '1L';
 		transaction.id = node.lisk.crypto.getId(transaction);
@@ -166,7 +166,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('When sender has no funds. Should fail', function (done) {
+	it('when sender has no funds should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('1L', 1, 'randomstring');
 
 		node.peer.post('/transactions')
@@ -187,7 +187,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using fake signature. Should fail', function (done) {
+	it('using fake signature should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.Gaccount.password);
 		transaction.signature = crypto.randomBytes(64).toString('hex');
 		transaction.id = node.lisk.crypto.getId(transaction);
@@ -210,7 +210,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using invalid publicKey and signature. Should fail', function (done) {
+	it('using invalid publicKey and signature should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.Gaccount.password);
 		transaction.signature = node.randomPassword();
 		transaction.senderPublicKey = node.randomPassword();
@@ -233,7 +233,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using very large amount and genesis block id. Should fail', function (done) {
+	it('using very large amount and genesis block id should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 10000000000000000, node.Gaccount.password);
 		transaction.blockId = genesisblock.id;
 
@@ -254,7 +254,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using overflown amount. Should fail', function (done) {
+	it('using overflown amount should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 184819291270000000012910218291201281920128129,
 		node.Gaccount.password);
 
@@ -276,7 +276,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('Using float amount. Should fail', function (done) {
+	it('using float amount should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 1.3, node.Gaccount.password);
 
 		node.peer.post('/transactions')

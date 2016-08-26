@@ -193,7 +193,7 @@ describe('PUT /multisignatures', function () {
 		done();
 	});
 
-	it('When owner\'s public key in keysgroup. Should fail', function (done) {
+	it('when owner\'s public key in keysgroup should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -212,7 +212,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When account has 0 LISK. Should fail', function (done) {
+	it('when account has 0 LISK should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -231,7 +231,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When keysgroup is empty. Should fail', function (done) {
+	it('when keysgroup is empty should fail', function (done) {
 		var emptyKeys = [];
 
 		node.api.put('/multisignatures')
@@ -252,7 +252,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When no keygroup is given. Should fail', function (done) {
+	it('when no keygroup is given should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -270,7 +270,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When keysgroup is a string. Should fail', function (done) {
+	it('when keysgroup is a string should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -289,7 +289,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When no passphase is given. Should fail', function (done) {
+	it('when no passphase is given should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -307,7 +307,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When an invalid passphrase is given. Should fail', function (done) {
+	it('when an invalid passphrase is given should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -326,7 +326,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When no lifetime is given. Should fail', function (done) {
+	it('when no lifetime is given should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -344,7 +344,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When lifetime is a string. Should fail', function (done) {
+	it('when lifetime is a string should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -363,7 +363,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When lifetime is greater than the maximum allowed. Should fail', function (done) {
+	it('when lifetime is greater than the maximum allowed should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -382,7 +382,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When lifetime is zero. Should fail', function (done) {
+	it('when lifetime is zero should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -401,7 +401,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When lifetime is negative. Should fail', function (done) {
+	it('when lifetime is negative should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -420,7 +420,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When no min is given. Should fail', function (done) {
+	it('when no min is given should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -438,7 +438,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When min is a string. Should fail', function (done) {
+	it('when min is a string should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -457,7 +457,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When min is greater than the total members. Should fail', function (done) {
+	it('when min is greater than the total members should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -476,7 +476,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When min is zero. Should fail', function (done) {
+	it('when min is zero should fail', function (done) {
 		node.api.put('/multisignatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -495,7 +495,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When min is negative. Should fail', function (done) {
+	it('when min is negative should fail', function (done) {
 		var minimum = -1 * requiredSignatures;
 
 		node.api.put('/multisignatures')
@@ -516,7 +516,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('When data is valid. Should be ok', function (done) {
+	it('when data is valid should be ok', function (done) {
 		var lifetime = parseInt(node.randomNumber(1,72));
 
 		node.api.put('/multisignatures')
@@ -549,7 +549,7 @@ describe('PUT /multisignatures', function () {
 
 describe('GET /multisignatures/pending', function () {
 
-	it('Using invalid public key. Should fail', function (done) {
+	it('using invalid public key should fail', function (done) {
 		var publicKey = 1234;
 
 		node.api.get('/multisignatures/pending?publicKey=' + publicKey)
@@ -564,7 +564,7 @@ describe('GET /multisignatures/pending', function () {
 			});
 	});
 
-	it('Using no public key. Should be ok', function (done) {
+	it('using no public key should be ok', function (done) {
 		node.api.get('/multisignatures/pending?publicKey=')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -579,7 +579,7 @@ describe('GET /multisignatures/pending', function () {
 			});
 	});
 
-	it('Using valid public key. Should be ok', function (done) {
+	it('using valid public key should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			// console.log(JSON.stringify(multisigAccount));
 			node.api.get('/multisignatures/pending?publicKey=' + multisigAccount.publicKey)
@@ -617,7 +617,7 @@ describe('GET /multisignatures/pending', function () {
 
 describe('PUT /api/transactions', function () {
 
-	it('When group transaction is pending. Should be ok', function (done) {
+	it('when group transaction is pending should be ok', function (done) {
 		sendLISKfrommultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
 			node.onNewBlock(function (err) {
 				node.api.get('/transactions/get?id=' + transactionId)
@@ -638,7 +638,7 @@ describe('PUT /api/transactions', function () {
 
 describe('POST /multisignatures/sign (group)', function () {
 
-	it('Using random passphrase. Should fail', function (done) {
+	it('using random passphrase should fail', function (done) {
 		var account = node.randomAccount();
 
 		node.api.post('/multisignatures/sign')
@@ -656,7 +656,7 @@ describe('POST /multisignatures/sign (group)', function () {
 			});
 	});
 
-	it('Using null passphrase. Should fail', function (done) {
+	it('using null passphrase should fail', function (done) {
 		node.api.post('/multisignatures/sign')
 			.set('Accept', 'application/json')
 			.send({
@@ -672,7 +672,7 @@ describe('POST /multisignatures/sign (group)', function () {
 			});
 	});
 
-	it('Using undefined passphrase. Should fail', function (done) {
+	it('using undefined passphrase should fail', function (done) {
 		node.api.post('/multisignatures/sign')
 			.set('Accept', 'application/json')
 			.send({
@@ -688,7 +688,7 @@ describe('POST /multisignatures/sign (group)', function () {
 			});
 	});
 
-	it('Using one less than total signatures. Should not confirm transaction', function (done) {
+	it('using one less than total signatures should not confirm transaction', function (done) {
 		var passphrases = accounts.map(function (account) {
 			return account.password;
 		});
@@ -708,7 +708,7 @@ describe('POST /multisignatures/sign (group)', function () {
 		});
 	});
 
-	it('Using one more signature. Should confirm transaction', function (done) {
+	it('using one more signature should confirm transaction', function (done) {
 		var passphrases = accounts.map(function (account) {
 			return account.password;
 		});
@@ -739,7 +739,7 @@ describe('POST /multisignatures/sign (transaction)', function () {
 		});
 	});
 
-	it('Using one less than minimum signatures. Should not confirm transaction', function (done) {
+	it('using one less than minimum signatures should not confirm transaction', function (done) {
 		var passphrases = accounts.map(function (account) {
 			return account.password;
 		});
@@ -759,7 +759,7 @@ describe('POST /multisignatures/sign (transaction)', function () {
 		});
 	});
 
-	it('Using one more signature. Should confirm transaction', function (done) {
+	it('using one more signature should confirm transaction', function (done) {
 		var passphrases = accounts.map(function (account) {
 			return account.password;
 		});

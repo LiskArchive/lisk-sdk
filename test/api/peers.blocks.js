@@ -7,7 +7,7 @@ var genesisblock = require('../../genesisBlock.json');
 
 describe('POST /peer/blocks', function () {
 
-	it('Using invalid nethash in headers. Should fail', function (done) {
+	it('using invalid nethash in headers should fail', function (done) {
 		node.peer.post('/blocks')
 			.set('Accept', 'application/json')
 			.set('version',node.version)
@@ -29,7 +29,7 @@ describe('POST /peer/blocks', function () {
 
 describe('GET /peer/blocks', function () {
 
-	it('Using correct nethash in headers. Should be ok', function (done) {
+	it('using correct nethash in headers should be ok', function (done) {
 		node.peer.get('/blocks')
 			.set('Accept', 'application/json')
 			.set('version',node.version)

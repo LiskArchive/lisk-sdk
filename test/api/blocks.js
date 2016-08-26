@@ -14,7 +14,7 @@ var testBlocksUnder101 = 0;
 
 describe('GET /blocks/getEpoch', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getEpoch')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -29,7 +29,7 @@ describe('GET /blocks/getEpoch', function () {
 
 describe('GET /blocks/getHeight', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getHeight')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -55,7 +55,7 @@ describe('GET /blocks/getHeight', function () {
 
 describe('GET /blocks/getFee', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getFee')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -72,7 +72,7 @@ describe('GET /blocks/getFee', function () {
 
 describe('GET /blocks/getFees', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getFees')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -94,7 +94,7 @@ describe('GET /blocks/getFees', function () {
 
 describe('GET /blocks/getNethash', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getNethash')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -111,7 +111,7 @@ describe('GET /blocks/getNethash', function () {
 
 describe('GET /blocks/getMilestone', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getMilestone')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -126,7 +126,7 @@ describe('GET /blocks/getMilestone', function () {
 
 describe('GET /blocks/getReward', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getReward')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -141,7 +141,7 @@ describe('GET /blocks/getReward', function () {
 
 describe('GET /blocks/getSupply', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getSupply')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -156,7 +156,7 @@ describe('GET /blocks/getSupply', function () {
 
 describe('GET /blocks/getStatus', function () {
 
-	it('Should be ok', function (done) {
+	it('should be ok', function (done) {
 		node.api.get('/blocks/getStatus')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -178,7 +178,7 @@ describe('GET /blocks/getStatus', function () {
 
 describe('GET /blocks', function () {
 
-	it('Using height. Should be ok', function (done) {
+	it('using height should be ok', function (done) {
 		var height = block.blockHeight, limit = 100, offset = 0;
 		node.api.get('/blocks?height='+height+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
@@ -210,7 +210,7 @@ describe('GET /blocks', function () {
 			});
 	});
 
-	it('Using height < 100. Should be ok', function (done) {
+	it('using height < 100 should be ok', function (done) {
 		if (testBlocksUnder101) {
 			var height = 10;
 			node.api.get('/blocks?height='+height)
@@ -246,7 +246,7 @@ describe('GET /blocks', function () {
 		}
 	});
 
-	it('Using generatorPublicKey. Should be ok', function (done) {
+	it('using generatorPublicKey should be ok', function (done) {
 		var generatorPublicKey = block.generatorPublicKey, limit = 100, offset = 0, orderBy = '';
 		node.api.get('/blocks?generatorPublicKey='+generatorPublicKey+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
@@ -263,7 +263,7 @@ describe('GET /blocks', function () {
 			});
 	});
 
-	it('Using totalFee. Should be ok', function (done) {
+	it('using totalFee should be ok', function (done) {
 		var totalFee = block.totalFee, limit = 100, offset = 0;
 		node.api.get('/blocks?totalFee='+totalFee+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
@@ -280,7 +280,7 @@ describe('GET /blocks', function () {
 			});
 	});
 
-	it('Using totalAmount. Should be ok', function (done) {
+	it('using totalAmount should be ok', function (done) {
 		var totalAmount = block.totalAmount, limit = 100, offset = 0;
 		node.api.get('/blocks?totalAmount='+totalAmount+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
@@ -297,7 +297,7 @@ describe('GET /blocks', function () {
 			});
 	});
 
-	it('Using previousBlock. Should be ok', function (done) {
+	it('using previousBlock should be ok', function (done) {
 		if (block.id != null) {
 			var previousBlock = block.id;
 
@@ -319,7 +319,7 @@ describe('GET /blocks', function () {
 		}
 	});
 
-	it('Using orderBy. Should be ok', function (done) {
+	it('using orderBy should be ok', function (done) {
 		var orderBy = 'height:desc';
 
 		node.api.get('/blocks?orderBy='+orderBy)
@@ -342,7 +342,7 @@ describe('GET /blocks', function () {
 
 describe('GET /blocks/get?id=', function () {
 
-	it('Using genesisblock id. Should be ok', function (done) {
+	it('using genesisblock id should be ok', function (done) {
 		var genesisblockId = '6524861224470851795';
 
 		node.api.get('/blocks/get?id=' + genesisblockId)
@@ -358,7 +358,7 @@ describe('GET /blocks/get?id=', function () {
 			});
 	});
 
-	it('Using unknown id. Should be fail', function (done) {
+	it('using unknown id should fail', function (done) {
 		var unknownId = '9928719876370886655';
 
 		node.api.get('/blocks/get?id=' + unknownId)
@@ -373,7 +373,7 @@ describe('GET /blocks/get?id=', function () {
 			});
 	});
 
-	it('Using no id. Should be fail', function (done) {
+	it('using no id should fail', function (done) {
 		node.api.get('/blocks/get?id=' + null)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)

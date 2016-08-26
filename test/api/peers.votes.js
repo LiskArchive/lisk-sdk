@@ -201,7 +201,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Voting for a delegate and then removing again within same block. Should fail', function (done) {
+	it('Voting for a delegate and then removing again within same block should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegate, account.password, '+', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -213,7 +213,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Removing votes from a delegate and then voting again within same block. Should fail', function (done) {
+	it('Removing votes from a delegate and then voting again within same block should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegate, account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -225,7 +225,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Voting twice for a delegate. Should fail', function (done) {
+	it('Voting twice for a delegate should fail', function (done) {
 		async.series([
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
@@ -248,7 +248,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Removing votes from a delegate. Should be ok', function (done) {
+	it('Removing votes from a delegate should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegate, account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -257,7 +257,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Voting for 33 delegates at once. Should be ok', function (done) {
+	it('Voting for 33 delegates at once should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 33), account.password, '+', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -266,7 +266,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Removing votes from 33 delegates at once. Should be ok', function (done) {
+	it('Removing votes from 33 delegates at once should be ok', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 33), account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -275,7 +275,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Voting for 34 delegates at once. Should fail', function (done) {
+	it('Voting for 34 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 34), account.password, '+', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -285,7 +285,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Voting for 101 delegates separately. Should be ok', function (done) {
+	it('Voting for 101 delegates separately should be ok', function (done) {
 		node.onNewBlock(function () {
 			makeVotes({
 				delegates: delegates,
@@ -298,7 +298,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Removing votes from 34 delegates at once. Should fail', function (done) {
+	it('Removing votes from 34 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
 			makeVote(delegates.slice(0, 34), account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -308,7 +308,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('Removing votes from 101 delegates separately. Should be ok', function (done) {
+	it('Removing votes from 101 delegates separately should be ok', function (done) {
 		makeVotes({
 			delegates: delegates,
 			passphrase: account.password,
@@ -351,7 +351,7 @@ describe('POST /peer/transactions (after registering a new delegate)', function 
 		});
 	});
 
-	it('Voting for self. Should be ok', function (done) {
+	it('Voting for self should be ok', function (done) {
 		makeVote(account.publicKey, account.password, '+', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
@@ -360,7 +360,7 @@ describe('POST /peer/transactions (after registering a new delegate)', function 
 		});
 	});
 
-	it('Exceeding maximum of 101 votes within same block. Should fail', function (done) {
+	it('Exceeding maximum of 101 votes within same block should fail', function (done) {
 		async.series([
 			function (seriesCb) {
 				var slicedDelegates = delegates.slice(0, 76);
@@ -390,7 +390,7 @@ describe('POST /peer/transactions (after registering a new delegate)', function 
 		});
 	});
 
-	it('Removing vote from self. Should be ok', function (done) {
+	it('Removing vote from self should be ok', function (done) {
 		makeVote(account.publicKey, account.password, '-', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			done();
