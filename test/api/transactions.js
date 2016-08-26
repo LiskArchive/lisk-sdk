@@ -158,6 +158,28 @@ describe('GET /api/transactions', function () {
 			});
 	});
 
+	it('using no limit should be ok', function (done) {
+		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
+
+		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactions').that.is.an('array');
+				if (res.body.transactions.length > 0) {
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i + 1]) {
+							node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
+						}
+					}
+				}
+				done();
+			});
+	});
+
 	it('using limit > 100 should fail', function (done) {
 		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
 
@@ -240,28 +262,6 @@ describe('GET /api/transactions', function () {
 				node.expect(res.body).to.have.property('error');
 				done();
 			 });
-	});
-
-	it('using no limit should be ok', function (done) {
-		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
-
-		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				if (res.body.transactions.length > 0) {
-					for (var i = 0; i < res.body.transactions.length; i++) {
-						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
-						}
-					}
-				}
-				done();
-			});
 	});
 
 	it('using completely invalid fields should fail', function (done) {
