@@ -379,7 +379,7 @@ shared.open = function (req, cb) {
 			secret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			}
 		},
 		required: ["secret"]

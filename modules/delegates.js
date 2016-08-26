@@ -333,7 +333,7 @@ private.attachApi = function () {
 				secret: {
 					type: "string",
 					minLength: 1,
-					maxLength: 100
+					maxLength: 215
 				},
 				publicKey: {
 					type: "string",
@@ -387,7 +387,7 @@ private.attachApi = function () {
 				secret: {
 					type: "string",
 					minLength: 1,
-					maxLength: 100
+					maxLength: 215
 				},
 				publicKey: {
 					type: "string",
@@ -1105,7 +1105,7 @@ shared.addDelegate = function (req, cb) {
 			secret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			publicKey: {
 				type: "string",
@@ -1114,7 +1114,7 @@ shared.addDelegate = function (req, cb) {
 			secondSecret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			username: {
 				type: "string"

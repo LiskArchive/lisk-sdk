@@ -1955,7 +1955,7 @@ private.addTransactions = function (req, cb) {
 			secret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			amount: {
 				type: "integer",
@@ -1969,7 +1969,7 @@ private.addTransactions = function (req, cb) {
 			secondSecret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			dappId: {
 				type: "string",
@@ -2224,7 +2224,7 @@ shared.sendWithdrawal = function (req, cb) {
 			secret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			amount: {
 				type: "integer",
@@ -2239,7 +2239,7 @@ shared.sendWithdrawal = function (req, cb) {
 			secondSecret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			transactionId: {
 				type: "string",

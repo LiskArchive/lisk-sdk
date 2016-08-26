@@ -621,12 +621,12 @@ shared.sign = function (req, cb) {
 			secret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			secondSecret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			publicKey: {
 				type: "string",
@@ -734,7 +734,7 @@ shared.addMultisignature = function (req, cb) {
 			secret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			publicKey: {
 				type: "string",
@@ -743,7 +743,7 @@ shared.addMultisignature = function (req, cb) {
 			secondSecret: {
 				type: "string",
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			min: {
 				type: "integer",
