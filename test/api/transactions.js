@@ -142,7 +142,7 @@ describe('GET /api/transactions', function () {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success === true && res.body.transactions != null) {
+				if (res.body.success && res.body.transactions != null) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i]) {
 							node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
@@ -306,7 +306,7 @@ describe('GET /transactions/get?id=', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				if (res.body.success === true && res.body.transaction.id != null) {
+				if (res.body.success && res.body.transaction.id != null) {
 					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
 					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
 					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
@@ -345,7 +345,7 @@ describe('GET /transactions/unconfirmed/get?id=', function () {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success');
-				if (res.body.success === true) {
+				if (res.body.success) {
 					if (res.body.transaction != null) {
 						node.expect(res.body.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
 					}
@@ -393,7 +393,7 @@ describe('PUT /api/transactions', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionId');
-				if (res.body.success === true && res.body.transactionId != null) {
+				if (res.body.success && res.body.transactionId != null) {
 					account.balance -= (amountToSend + expectedFee);
 					account2.balance += amountToSend;
 					transactionList.push({
@@ -648,7 +648,7 @@ describe('PUT /signatures', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				if (res.body.success === true && res.body.transaction != null) {
+				if (res.body.success && res.body.transaction != null) {
 					node.expect(res.body.transaction).to.have.property('type').to.equal(node.TxTypes.SIGNATURE);
 					node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
 					node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);

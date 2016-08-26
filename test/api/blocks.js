@@ -37,9 +37,9 @@ describe('GET /blocks/getHeight', function () {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success === true && res.body.height != null) {
+				if (res.body.success && res.body.height != null) {
 					node.expect(res.body).to.have.property('height').to.be.above(0);
-					if (res.body.success === true) {
+					if (res.body.success) {
 						block.blockHeight = res.body.height;
 						if (res.body.height > 100) {
 							testBlocksUnder101 = true;
@@ -187,7 +187,7 @@ describe('GET /blocks', function () {
 			.end(function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success === true && res.body.blocks != null) {
+				if (res.body.success && res.body.blocks != null) {
 					node.expect(res.body).to.have.property('blocks').that.is.an('array');
 					node.expect(res.body).to.have.property('count').to.equal(1);
 					node.expect(res.body.blocks.length).to.equal(1);
@@ -220,7 +220,7 @@ describe('GET /blocks', function () {
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.ok;
-					if (res.body.success === true && res.body.blocks != null) {
+					if (res.body.success && res.body.blocks != null) {
 						node.expect(res.body).to.have.property('count');
 						node.expect(res.body).to.have.property('blocks').that.is.an('array');
 						node.expect(res.body.blocks.length).to.equal(1);
