@@ -31,7 +31,7 @@ function openAccount (account, done) {
 				// console.log('Secret:', account.password, ', secondSecret:', account.secondPassword);
 				node.expect(false).to.equal(true);
 			}
-			done();
+			done(err, res);
 		});
 }
 
@@ -69,7 +69,7 @@ function sendLISK (account, done) {
 				// console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
 				node.expect(false).to.equal(true);
 			}
-			done();
+			done(err, res);
 		});
 }
 
