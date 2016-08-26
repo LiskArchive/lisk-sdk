@@ -136,6 +136,28 @@ describe('GET /api/transactions', function () {
 			});
 	});
 
+	it('using type should be ok', function (done) {
+		node.api.get('/transactions?type=' + node.TxTypes.SEND)
+			.set('Accept', 'application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				if (res.body.success === true && res.body.transactions != null) {
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i]) {
+							node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
+						}
+					}
+				} else {
+					// console.log('Request failed or transaction list is null');
+					node.expect(false).to.equal(true);
+				}
+				done();
+			});
+	});
+
 	it('using limit > 100 should fail', function (done) {
 		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
 
@@ -310,31 +332,6 @@ describe('GET /transactions/get?id=', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
-				done();
-			});
-	});
-});
-
-describe('GET /transactions', function () {
-
-	it('using type should be ok', function (done) {
-		node.api.get('/transactions?type=' + node.TxTypes.SEND)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success === true && res.body.transactions != null) {
-					for (var i = 0; i < res.body.transactions.length; i++) {
-						if (res.body.transactions[i]) {
-							node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
-						}
-					}
-				} else {
-					// console.log('Request failed or transaction list is null');
-					node.expect(false).to.equal(true);
-				}
 				done();
 			});
 	});
