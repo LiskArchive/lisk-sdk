@@ -113,6 +113,7 @@ before(function (done) {
 					// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 					account.balance += randomLISK;
 					transactionCount += 1;
+					// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
 				} else {
 					// console.log('Sending LISK to:', account.address, 'failed');
 					// console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
@@ -124,6 +125,7 @@ before(function (done) {
 });
 
 before(function (done) {
+	// Send to LISK to account 2 address
 	setTimeout(function () {
 		var randomLISK = node.randomLISK();
 		var expectedFee = node.expectedFee(randomLISK);
