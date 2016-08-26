@@ -102,6 +102,7 @@ function openAccount (passphrase, done) {
 			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
+				node.expect(err).to.be.not.ok;
 				return done(err, res);
 			});
 		});
@@ -124,6 +125,7 @@ function sendLISK (amount, recipientId, done) {
 			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
+				node.expect(err).to.be.not.ok;
 				return done(err, res);
 			});
 		});
@@ -147,6 +149,7 @@ function registerDelegate (account, done) {
 			// console.log('Sent: ' + JSON.stringify(transaction) + ' Got reply: ' + JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
+				node.expect(err).to.be.not.ok;
 				return done(err, res);
 			});
 		});
@@ -203,6 +206,7 @@ describe('POST /peer/transactions', function () {
 
 	it('voting for a delegate and then removing again within same block should fail', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVote(delegate, account.password, '+', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				makeVote(delegate, account.password, '-', function (err, res) {
@@ -215,6 +219,7 @@ describe('POST /peer/transactions', function () {
 
 	it('removing votes from a delegate and then voting again within same block should fail', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVote(delegate, account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				makeVote(delegate, account.password, '+', function (err, res) {
@@ -229,6 +234,7 @@ describe('POST /peer/transactions', function () {
 		async.series([
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
+					node.expect(err).to.be.not.ok;
 					makeVote(delegate, account.password, '+', function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						done();
@@ -237,6 +243,7 @@ describe('POST /peer/transactions', function () {
 			},
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
+					node.expect(err).to.be.not.ok;
 					makeVote(delegate, account.password, '+', function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
 						done();
@@ -250,6 +257,7 @@ describe('POST /peer/transactions', function () {
 
 	it('removing votes from a delegate should be ok', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVote(delegate, account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
@@ -259,6 +267,7 @@ describe('POST /peer/transactions', function () {
 
 	it('voting for 33 delegates at once should be ok', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVote(delegates.slice(0, 33), account.password, '+', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
@@ -268,6 +277,7 @@ describe('POST /peer/transactions', function () {
 
 	it('removing votes from 33 delegates at once should be ok', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVote(delegates.slice(0, 33), account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
@@ -277,6 +287,7 @@ describe('POST /peer/transactions', function () {
 
 	it('voting for 34 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVote(delegates.slice(0, 34), account.password, '+', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message').to.eql('Voting limit exceeded. Maximum is 33 votes per transaction');
@@ -286,7 +297,8 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('voting for 101 delegates separately should be ok', function (done) {
-		node.onNewBlock(function () {
+		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVotes({
 				delegates: delegates,
 				passphrase: account.password,
@@ -300,6 +312,7 @@ describe('POST /peer/transactions', function () {
 
 	it('removing votes from 34 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			makeVote(delegates.slice(0, 34), account.password, '-', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('message').to.eql('Voting limit exceeded. Maximum is 33 votes per transaction');
