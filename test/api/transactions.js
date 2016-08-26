@@ -581,6 +581,57 @@ describe('PUT /api/transactions', function () {
 				done();
 			});
 	});
+
+	describe('to a cold address', function (done) {
+		var recipientId = '13896491535841206186L';
+
+		it('should be ok', function (done) {
+			var amountToSend = 100000000;
+
+			node.api.put('/transactions')
+				.set('Accept', 'application/json')
+				.send({
+					secret: node.Gaccount.password,
+					amount: amountToSend,
+					recipientId: recipientId
+				})
+				.expect('Content-Type', /json/)
+				.expect(200)
+				.end(function (err, res) {
+					// console.log(JSON.stringify(res.body));
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					done();
+				});
+		});
+	});
+
+	describe('from a cold address', function (done) {
+		var passphrase = 'fiber diet blind uncover crunch breeze bicycle globe attack chalk cousin divert';
+
+		before(function (done) {
+			node.onNewBlock(done);
+		});
+
+		it('should fail', function (done) {
+			var amountToSend = 100000000;
+
+			node.api.put('/transactions')
+				.set('Accept', 'application/json')
+				.send({
+					secret: passphrase,
+					amount: amountToSend,
+					recipientId: account2.address
+				})
+				.expect('Content-Type', /json/)
+				.expect(200)
+				.end(function (err, res) {
+					// console.log(JSON.stringify(res.body));
+					node.expect(res.body).to.have.property('success').to.not.be.ok;
+					node.expect(res.body).to.have.property('error').to.eql('Account not found');
+					done();
+				});
+		});
+	});
 });
 
 describe('PUT /signatures', function () {
