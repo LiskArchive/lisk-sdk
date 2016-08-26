@@ -3,11 +3,13 @@
 var slots = require('../helpers/slots.js');
 var ed = require('ed25519');
 var crypto = require('crypto');
-var genesisblock = null;
 var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
 var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
+
+// Private fields
+var __private = {}, genesisblock = null;
 
 // Constructor
 function Block (scope, cb) {
@@ -19,8 +21,6 @@ function Block (scope, cb) {
 }
 
 // Private methods
-var __private = {};
-
 __private.blockReward = new BlockReward();
 
 __private.getAddressByPublicKey = function (publicKey) {

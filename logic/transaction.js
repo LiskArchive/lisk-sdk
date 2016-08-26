@@ -6,9 +6,13 @@ var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var ed = require('ed25519');
 var extend = require('util-extend');
-var genesisblock = null;
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
+
+// Private fields
+var __private = {}, genesisblock = null;
+
+__private.types = {};
 
 // Constructor
 function Transaction (scope, cb) {
@@ -20,9 +24,6 @@ function Transaction (scope, cb) {
 }
 
 // Private methods
-var __private = {};
-__private.types = {};
-
 function calc (height) {
 	return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
 }

@@ -9,7 +9,7 @@ var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var self, db, library, genesisBlock = null;
+var self, db, library, __private = {}, genesisBlock = null;
 
 // Constructor
 function Account (scope, cb) {
@@ -347,9 +347,6 @@ function Account (scope, cb) {
 
 	return setImmediate(cb, null, this);
 }
-
-// Private methods
-var __private = {};
 
 Account.prototype.createTables = function (cb) {
 	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), { minify: true });
