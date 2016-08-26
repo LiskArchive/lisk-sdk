@@ -7,11 +7,15 @@ var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
-var genesisBlock = null;
+
+// Private fields
+var self, genesisBlock = null;
 
 // Constructor
 function Account (scope, cb) {
 	this.scope = scope;
+
+	self = this;
 	genesisBlock = this.scope.genesisblock.block;
 
 	this.table = 'mem_accounts';
@@ -346,8 +350,6 @@ function Account (scope, cb) {
 var __private = {};
 
 Account.prototype.createTables = function (cb) {
-	var self = this;
-
 	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), { minify: true });
 
 	self.scope.db.query(sql).then(function () {
@@ -359,7 +361,7 @@ Account.prototype.createTables = function (cb) {
 };
 
 Account.prototype.removeTables = function (cb) {
-	var sqles = [], sql, self = this;
+	var sqles = [], sql;
 
 	[this.table,
 	'mem_round',
@@ -422,8 +424,6 @@ Account.prototype.get = function (filter, fields, cb) {
 };
 
 Account.prototype.getAll = function (filter, fields, cb) {
-	var self = this;
-
 	if (typeof(fields) === 'function') {
 		cb = fields;
 		fields = this.fields.map(function (field) {
@@ -485,8 +485,6 @@ Account.prototype.getAll = function (filter, fields, cb) {
 };
 
 Account.prototype.set = function (address, fields, cb) {
-	var self = this;
-
 	if (fields.publicKey !== undefined && !fields.publicKey) {
 		console.log('!!!!!!!!!!!!!!!!!!!!!!!', address, fields);
 	}
@@ -512,8 +510,6 @@ Account.prototype.set = function (address, fields, cb) {
 };
 
 Account.prototype.merge = function (address, diff, cb) {
-	var self = this;
-
 	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
 
 	if (diff.publicKey !== undefined && !diff.publicKey) {
@@ -745,8 +741,6 @@ Account.prototype.merge = function (address, diff, cb) {
 };
 
 Account.prototype.remove = function (address, cb) {
-	var self = this;
-
 	var sql = jsonSql.build({
 		type: 'remove',
 		table: this.table,
