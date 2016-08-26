@@ -180,6 +180,7 @@ describe('GET /blocks', function () {
 
 	it('using height should be ok', function (done) {
 		var height = block.blockHeight, limit = 100, offset = 0;
+
 		node.api.get('/blocks?height='+height+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -213,6 +214,7 @@ describe('GET /blocks', function () {
 	it('using height < 100 should be ok', function (done) {
 		if (testBlocksUnder101) {
 			var height = 10;
+
 			node.api.get('/blocks?height='+height)
 				.set('Accept', 'application/json')
 				.expect('Content-Type', /json/)
@@ -248,6 +250,7 @@ describe('GET /blocks', function () {
 
 	it('using generatorPublicKey should be ok', function (done) {
 		var generatorPublicKey = block.generatorPublicKey, limit = 100, offset = 0, orderBy = '';
+
 		node.api.get('/blocks?generatorPublicKey='+generatorPublicKey+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -265,6 +268,7 @@ describe('GET /blocks', function () {
 
 	it('using totalFee should be ok', function (done) {
 		var totalFee = block.totalFee, limit = 100, offset = 0;
+
 		node.api.get('/blocks?totalFee='+totalFee+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
@@ -282,6 +286,7 @@ describe('GET /blocks', function () {
 
 	it('using totalAmount should be ok', function (done) {
 		var totalAmount = block.totalAmount, limit = 100, offset = 0;
+
 		node.api.get('/blocks?totalAmount='+totalAmount+'&limit='+limit+'&offset='+offset)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
