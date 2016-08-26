@@ -9,13 +9,15 @@ var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var self, genesisBlock = null;
+var self, db, library, genesisBlock = null;
 
 // Constructor
 function Account (scope, cb) {
 	this.scope = scope;
 
 	self = this;
+	db = this.scope.db;
+	library = this.scope.library;
 	genesisBlock = this.scope.genesisblock.block;
 
 	this.table = 'mem_accounts';
@@ -352,10 +354,10 @@ var __private = {};
 Account.prototype.createTables = function (cb) {
 	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), { minify: true });
 
-	self.scope.db.query(sql).then(function () {
+	db.query(sql).then(function () {
 		return cb();
 	}).catch(function (err) {
-		self.scope.library.logger.error(err.toString());
+		library.logger.error(err.toString());
 		return cb('Account#createTables error');
 	});
 };
@@ -376,10 +378,10 @@ Account.prototype.removeTables = function (cb) {
 		sqles.push(sql.query);
 	});
 
-	self.scope.db.query(sqles.join('')).then(function () {
+	db.query(sqles.join('')).then(function () {
 		return cb();
 	}).catch(function (err) {
-		self.scope.library.logger.error(err.toString());
+		library.logger.error(err.toString());
 		return cb('Account#removeTables error');
 	});
 };
@@ -476,10 +478,10 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		fields: realFields
 	});
 
-	self.scope.db.query(sql.query, sql.values).then(function (rows) {
+	db.query(sql.query, sql.values).then(function (rows) {
 		return cb(null, rows);
 	}).catch(function (err) {
-		self.scope.library.logger.error(err.toString());
+		library.logger.error(err.toString());
 		return cb('Account#getAll error');
 	});
 };
@@ -501,10 +503,10 @@ Account.prototype.set = function (address, fields, cb) {
 		modifier: this.toDB(fields)
 	});
 
-	self.scope.db.none(sql.query, sql.values).then(function () {
+	db.none(sql.query, sql.values).then(function () {
 		return cb();
 	}).catch(function (err) {
-		self.scope.library.logger.error(err.toString());
+		library.logger.error(err.toString());
 		return cb('Account#set error');
 	});
 };
@@ -732,10 +734,10 @@ Account.prototype.merge = function (address, diff, cb) {
 		return done();
 	}
 
-	self.scope.db.none(queries).then(function () {
+	db.none(queries).then(function () {
 		return done();
 	}).catch(function (err) {
-		self.scope.library.logger.error(err.toString());
+		library.logger.error(err.toString());
 		return done('Account#merge error');
 	});
 };
@@ -748,10 +750,10 @@ Account.prototype.remove = function (address, cb) {
 			address: address
 		}
 	});
-	self.scope.db.none(sql.query, sql.values).then(function () {
+	db.none(sql.query, sql.values).then(function () {
 		return cb(null, address);
 	}).catch(function (err) {
-		self.scope.library.logger.error(err.toString());
+		library.logger.error(err.toString());
 		return cb('Account#remove error');
 	});
 };
