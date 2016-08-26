@@ -852,7 +852,6 @@ describe('GET /delegates/voters', function () {
 					node.expect(res.body).to.have.property('accounts').that.is.an('array');
 					node.expect(res.body.accounts.length).to.equal(0);
 				}
-
 				done();
 			});
 	});

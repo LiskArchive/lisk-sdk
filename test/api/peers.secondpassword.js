@@ -13,6 +13,7 @@ describe('POST /peer/transactions', function () {
 
 		it('when accounts has no funds should fail', function (done) {
 			var transaction = node.lisk.signature.createSignature(node.randomPassword(), node.randomPassword());
+
 			node.peer.post('/transactions')
 				.set('Accept', 'application/json')
 				.set('version', node.version)
@@ -82,7 +83,6 @@ describe('POST /peer/transactions', function () {
 						});
 				});
 		});
-
 	});
 });
 
@@ -92,6 +92,7 @@ describe('POST /peer/transactions', function () {
 
 		it('when account doesn\'t have a second passphrase should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, node.Gaccount.password, account.secondPassword);
+
 			node.peer.post('/transactions')
 				.set('Accept', 'application/json')
 				.set('version',node.version)
@@ -111,6 +112,7 @@ describe('POST /peer/transactions', function () {
 
 		it('using blank second passphrase should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, ''); // Send 1 Lisk to address 1L
+
 			node.peer.post('/transactions')
 				.set('Accept', 'application/json')
 				.set('version', node.version)
@@ -132,6 +134,7 @@ describe('POST /peer/transactions', function () {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, account2.secondPassword); // Send 1 Lisk to address 1L
 			transaction.signSignature = crypto.randomBytes(64).toString('hex');
 			transaction.id = node.lisk.crypto.getId(transaction);
+
 			node.peer.post('/transactions')
 				.set('Accept', 'application/json')
 				.set('version', node.version)
@@ -151,6 +154,7 @@ describe('POST /peer/transactions', function () {
 
 		it('using valid second passphrase should be ok', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, account.secondPassword); // Send 1 Lisk to address 1L
+
 			node.peer.post('/transactions')
 				.set('Accept', 'application/json')
 				.set('version', node.version)
@@ -167,6 +171,5 @@ describe('POST /peer/transactions', function () {
 					done();
 				});
 		});
-
 	});
 });
