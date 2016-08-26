@@ -6,11 +6,8 @@ var path = require('path');
 var Dapp = {};
 var DappName = '';
 var DappToInstall = {};
-var randomLISK = 0;
 var transactionCount = 0;
 var transactionList = [];
-
-var expectedFee = 0;
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
@@ -97,7 +94,9 @@ before(function (done) {
 before(function (done) {
 	// Send to LISK to account 1 address
 	setTimeout(function () {
-		randomLISK = node.randomLISK();
+		var randomLISK = node.randomLISK();
+		var expectedFee = node.expectedFee(randomLISK);
+
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
 			.send({
@@ -126,8 +125,9 @@ before(function (done) {
 
 before(function (done) {
 	setTimeout(function () {
-		randomLISK = node.randomLISK();
-		expectedFee = node.expectedFee(randomLISK);
+		var randomLISK = node.randomLISK();
+		var expectedFee = node.expectedFee(randomLISK);
+
 		node.api.put('/transactions')
 			.set('Accept', 'application/json')
 			.send({
