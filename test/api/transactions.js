@@ -125,7 +125,7 @@ describe('GET /api/transactions', function () {
 				if (res.body.transactions.length > 0) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i+1].amount);
+							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
 						}
 					}
 				} else {
@@ -234,7 +234,7 @@ describe('GET /api/transactions', function () {
 				if (res.body.transactions.length > 0) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i+1].amount);
+							node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
 						}
 					}
 				}
