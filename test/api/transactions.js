@@ -6,7 +6,6 @@ var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
 var account3 = node.randomTxAccount();
 
-var transactionCount = 0;
 var transactionList = [];
 var offsetTimestamp = 0;
 
@@ -56,7 +55,7 @@ function sendLISK (account, done) {
 				// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 				// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
 				account.balance += randomLISK;
-				transactionList[transactionCount - 1] = {
+				transactionList.push({
 					'sender': node.Gaccount.address,
 					'recipient': account.address,
 					'grossSent': (randomLISK + expectedFee) / node.normalizer,
@@ -64,8 +63,7 @@ function sendLISK (account, done) {
 					'netSent': randomLISK / node.normalizer,
 					'txId': res.body.transactionId,
 					'type': node.TxTypes.SEND
-				};
-				transactionCount += 1;
+				});
 			} else {
 				// console.log('Sending LISK to:', account.address, 'failed');
 				// console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
@@ -121,7 +119,7 @@ describe('GET /api/transactions', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
+				node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
 				if (res.body.transactions.length > 0) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
@@ -207,7 +205,7 @@ describe('GET /api/transactions', function () {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transactions').that.is.an('array');
-					node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
+					node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
 					if (res.body.transactions.length > 0) {
 						var flag = 0;
 						for (var i = 0; i < res.body.transactions.length; i++) {
@@ -240,7 +238,7 @@ describe('GET /api/transactions', function () {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transactions').that.is.an('array');
-					node.expect(res.body.transactions).to.have.length.within(transactionCount, limit);
+					node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
 					if (res.body.transactions.length > 0) {
 						node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
 					}
@@ -340,7 +338,7 @@ describe('GET /transactions/get?id=', function () {
 describe('GET /transactions/unconfirmed/get?id=', function () {
 
 	it('using valid id should be ok ', function (done) {
-		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionCount-1].txId)
+		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -349,7 +347,7 @@ describe('GET /transactions/unconfirmed/get?id=', function () {
 				node.expect(res.body).to.have.property('success');
 				if (res.body.success === true) {
 					if (res.body.transaction != null) {
-						node.expect(res.body.transaction.id).to.equal(transactionList[transactionCount-1].txId);
+						node.expect(res.body.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
 					}
 				} else {
 					// console.log('Transaction already processed');
@@ -396,10 +394,9 @@ describe('PUT /api/transactions', function () {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionId');
 				if (res.body.success === true && res.body.transactionId != null) {
-					account.transactions.push(transactionCount);
 					account.balance -= (amountToSend + expectedFee);
 					account2.balance += amountToSend;
-					transactionList[transactionCount] = {
+					transactionList.push({
 						'sender': account.address,
 						'recipient': account2.address,
 						'grossSent': (amountToSend + expectedFee) / node.normalizer,
@@ -407,8 +404,7 @@ describe('PUT /api/transactions', function () {
 						'netSent': amountToSend / node.normalizer,
 						'txId': res.body.transactionId,
 						'type': node.TxTypes.SEND
-					};
-					transactionCount += 1;
+					});
 				} else {
 					// console.log('Failed Tx or transactionId is null');
 					// console.log('Sent: secret: ' + account.password + ', amount: ' + amountToSend + ', recipientId: ' + account2.address);
@@ -657,10 +653,8 @@ describe('PUT /signatures', function () {
 					node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
 					node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);
 					node.expect(res.body.transaction).to.have.property('fee').to.equal(node.Fees.secondPasswordFee);
-					account.transactions.push(transactionCount);
 					account.balance -= node.Fees.secondPasswordFee;
-					transactionCount += 1;
-					transactionList[transactionCount - 1] = {
+					transactionList.push({
 						'sender': account.address,
 						'recipient': 'SYSTEM',
 						'grossSent': 0,
@@ -668,7 +662,7 @@ describe('PUT /signatures', function () {
 						'netSent': 0,
 						'txId': res.body.transaction.id,
 						'type': node.TxTypes.SIGNATURE
-					};
+					});
 				} else {
 					// console.log('Transaction failed or transaction object is null');
 					// console.log('Sent: secret: ' + account.password + ', secondSecret: ' + account.secondPassword);
