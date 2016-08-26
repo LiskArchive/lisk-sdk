@@ -6,8 +6,6 @@ var path = require('path');
 var Dapp = {};
 var DappName = '';
 var DappToInstall = {};
-var transactionCount = 0;
-var transactionList = [];
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
@@ -112,7 +110,6 @@ before(function (done) {
 				if (res.body.success === true && res.body.transactionId != null) {
 					// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 					account.balance += randomLISK;
-					transactionCount += 1;
 					// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
 				} else {
 					// console.log('Sending LISK to:', account.address, 'failed');
@@ -146,16 +143,6 @@ before(function (done) {
 					// console.log('Sent to:', account2.address, (randomLISK / node.normalizer), 'LISK');
 					// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
 					account2.balance += randomLISK;
-					transactionCount += 1;
-					transactionList[transactionCount - 1] = {
-						'sender': node.Gaccount.address,
-						'recipient': account2.address,
-						'grossSent': (randomLISK + expectedFee) / node.normalizer,
-						'fee': expectedFee / node.normalizer,
-						'netSent': randomLISK / node.normalizer,
-						'txId': res.body.transactionId,
-						'type':node.TxTypes.SEND
-					};
 				} else {
 					// console.log('Sending LISK to:', account2.address, 'failed');
 					// console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
