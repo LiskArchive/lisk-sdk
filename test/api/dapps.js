@@ -729,7 +729,7 @@ describe('GET /dapps', function () {
 				if (res.body.success && res.body.dapps != null) {
 					if (res.body.dapps[1] != null) {
 						secondDapp = res.body.dapps[1];
-						console.log(offset);
+						// console.log(offset);
 						node.api.get('/dapps?offset=' + offset )
 							.expect('Content-Type', /json/)
 							.expect(200)
@@ -742,7 +742,7 @@ describe('GET /dapps', function () {
 							});
 					} else {
 						// console.log(JSON.stringify(res.body));
-						console.log('Only 1 dapp or something went wrong. Cannot check offset');
+						// console.log('Only 1 dapp or something went wrong. Cannot check offset');
 					}
 				} else {
 					// console.log(JSON.stringify(res.body));
