@@ -680,6 +680,20 @@ describe('PUT /dapps/transaction', function () {
 		});
 	});
 
+	it('using unknown dappId', function (done) {
+		var dappId = '8713095156789756398';
+
+		putTransaction({
+			secret: account.password,
+			dappId: dappId,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Application not found: ' + dappId);
+			done();
+		});
+	});
+
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
 		putTransaction({
 			secret: account.password,
