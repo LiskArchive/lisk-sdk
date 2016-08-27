@@ -67,9 +67,7 @@ function OutTransfer (scope) {
 			library.db.one(sql.countByOutTransactionId, {
 				transactionId: trs.asset.outTransfer.transactionId
 			}).then(function (row) {
-				var count = row.count;
-
-				if (count) {
+				if (row.count > 0) {
 					return cb('Transaction is already confirmed');
 				} else {
 					return cb(null, trs);
