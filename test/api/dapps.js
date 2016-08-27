@@ -14,9 +14,6 @@ var account3 = node.randomTxAccount();
 function openAccount (account, done) {
 	node.api.post('/accounts/open')
 		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
 		.send({
 			secret: account.password,
 			secondSecret: account.secondSecret
@@ -33,9 +30,6 @@ function openAccount (account, done) {
 function sendLISK (params, done) {
 	node.api.put('/transactions')
 		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
 		.send(params)
 		.expect('Content-Type', /json/)
 		.expect(200)
