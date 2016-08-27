@@ -322,6 +322,7 @@ shared.getPublickey = function (req, cb) {
 
 shared.generatePublickey = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: 'object',
 		properties: {
@@ -397,6 +398,7 @@ shared.getDelegatesFee = function (req, cb) {
 
 shared.addDelegates = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: 'object',
 		properties: {
