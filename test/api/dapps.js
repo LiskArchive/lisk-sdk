@@ -706,6 +706,356 @@ describe('PUT /dapps/transaction', function () {
 	});
 });
 
+
+describe('PUT /dapps/withdrawal', function () {
+
+	function putWithdrawal (params, done) {
+		node.api.put('/dapps/withdrawal')
+			.set('Accept', 'application/json')
+			.send(params)
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				done(err, res);
+			});
+	}
+
+	before(function (done) {
+		node.expect(DappToInstall).to.be.a('object')
+		node.expect(DappToInstall).to.have.property('transactionId').to.be.not.null;
+		done();
+	});
+
+	var randomAccount = node.randomTxAccount();
+	var keys = node.lisk.crypto.getKeys(account.password);
+	var recipientId = node.lisk.crypto.getAddress(keys.publicKey);
+
+	it('using no secret should fail', function (done) {
+		putWithdrawal({
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: secret');
+			done();
+		});
+	});
+
+	it('using invalid secret should fail', function (done) {
+		putWithdrawal({
+			secret: 'invalid',
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Account not found');
+			done();
+		});
+	});
+
+	it('using secret with length > 100 should fail', function (done) {
+		putWithdrawal({
+			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			done();
+		});
+	});
+
+	it('using no amount should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: amount');
+			done();
+		});
+	});
+
+	it('using amount < 0 should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: -1,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Value -1 is less than minimum 1');
+			done();
+		});
+	});
+
+	it('using amount > balance should fail', function (done) {
+		openAccount(account, function (err, res) {
+			var amount = node.bignum(account.balance).plus('1').toNumber();
+
+			putWithdrawal({
+				secret: account.password,
+				amount: amount,
+				dappId: DappToInstall.transactionId,
+				transactionId: '1',
+				recipientId: recipientId
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
+		});
+	});
+
+	it('using amount > 100M should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 10000000000000002,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Value 10000000000000002 is greater than maximum 10000000000000000');
+			done();
+		});
+	});
+
+	it('using numeric secondSecret should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			secondSecret: 1,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using secondSecret with length > 100 should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			done();
+		});
+	});
+
+	it('using no dappId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: dappId');
+			done();
+		});
+	});
+
+	it('using numeric dappId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: 1,
+			transactionId: 1,
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using blank dappId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: '',
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too short (0 chars), minimum 1');
+			done();
+		});
+	});
+
+	it('using dappId with length > 20 should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: '012345678901234567890',
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (21 chars), maximum 20');
+			done();
+		});
+	});
+
+	it('using no transactionId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: transactionId');
+			done();
+		});
+	});
+
+	it('using numeric transactionId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: 1,
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using blank transactionId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too short (0 chars), minimum 1');
+			done();
+		});
+	});
+
+	it('using transactionId with length > 20 should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '012345678901234567890',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (21 chars), maximum 20');
+			done();
+		});
+	});
+
+	it('using no recipientId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1'
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: recipientId');
+			done();
+		});
+	});
+
+	it('using numeric recipientId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: 12
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using recipientId with length < 2 should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: '1'
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too short (1 chars), minimum 2');
+			done();
+		});
+	});
+
+	it('using recipientId with length > 22 should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: '0123456789012345678901L'
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (23 chars), maximum 22');
+			done();
+		});
+	});
+
+	it('using numeric multisigAccountPublicKey should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId,
+			multisigAccountPublicKey: 1
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using valid params should be ok', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+			done();
+		});
+	});
+});
+
 describe('GET /dapps', function () {
 
 	before(function (done) {
