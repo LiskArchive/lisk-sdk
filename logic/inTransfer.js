@@ -71,7 +71,7 @@ function InTransfer () {
 	};
 
 	this.apply = function (trs, block, sender, cb) {
-		shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
+		shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
 			if (err) {
 				return cb(err);
 			}
@@ -88,7 +88,7 @@ function InTransfer () {
 	};
 
 	this.undo = function (trs, block, sender, cb) {
-		shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
+		shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
 			if (err) {
 				return cb(err);
 			}
