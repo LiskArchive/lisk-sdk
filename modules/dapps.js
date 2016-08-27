@@ -1545,7 +1545,7 @@ __private.sendWithdrawal = function (req, cb) {
 								keypair: keypair,
 								secondKeypair: secondKeypair,
 								requester: keypair,
-								dappId: req.dappid,
+								dappId: body.dappId,
 								transactionId: body.transactionId
 							});
 						} catch (e) {
@@ -1586,7 +1586,7 @@ __private.sendWithdrawal = function (req, cb) {
 							recipientId: body.recipientId,
 							keypair: keypair,
 							secondKeypair: secondKeypair,
-							dappId: req.dappid,
+							dappId: body.dappId,
 							transactionId: body.transactionId
 						});
 					} catch (e) {
