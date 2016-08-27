@@ -208,7 +208,12 @@ function OutTransfer (scope) {
 			message: {
 				transactionId: trs.id
 			}
-		}, cb);
+		}, function (err) {
+			if (err) {
+				library.logger.debug(err);
+			}
+			return cb();
+		});
 	};
 
 	this.ready = function (trs, sender) {
