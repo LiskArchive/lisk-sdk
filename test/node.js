@@ -8,6 +8,7 @@ var supertest = require('supertest');
 var async = require('async');
 var request = require('request');
 
+var bignum = require('../helpers/bignum.js');
 var DappCategory = require('../helpers/dappCategories.js');
 var DappType = require('../helpers/dappTypes.js');
 var TxTypes = require('../helpers/transactionTypes.js');
@@ -275,6 +276,7 @@ function randomPassword () {
 // Exports variables and functions for access from other files
 module.exports = {
 	api: api,
+	bignum: bignum,
 	chai: chai,
 	peer : peer,
 	lisk : require('./lisk-js'),
