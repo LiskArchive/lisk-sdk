@@ -904,6 +904,20 @@ describe('PUT /dapps/withdrawal', function () {
 		});
 	});
 
+	it('using alphanumeric dappId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: '1L',
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Application not found: 1L');
+			done();
+		});
+	});
+
 	it('using blank dappId should fail', function (done) {
 		putWithdrawal({
 			secret: account.password,
@@ -971,6 +985,20 @@ describe('PUT /dapps/withdrawal', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using alphanumeric transactionId should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1L',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Invalid outTransfer transactionId');
 			done();
 		});
 	});
