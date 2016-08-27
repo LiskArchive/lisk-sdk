@@ -54,9 +54,7 @@ function OutTransfer (scope) {
 		library.db.one(sql.countByTransactionId, {
 			id: trs.asset.outTransfer.dappId
 		}).then(function (row) {
-			var count = row.count;
-
-			if (count === 0) {
+			if (row.count === 0) {
 				return cb('Application not found: ' + trs.asset.outTransfer.dappId);
 			}
 
