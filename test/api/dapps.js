@@ -152,6 +152,7 @@ before(function (done) {
 before(function (done) {
 	// Wait for new block to ensure all data has been received
 	node.onNewBlock(function (err) {
+		node.expect(err).to.be.not.ok;
 		// Add second password for Account 2
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
@@ -452,6 +453,7 @@ describe('PUT /dapps', function () {
 
 	it('using existing dapp name should fail', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			node.api.put('/dapps')
 				.set('Accept', 'application/json')
 				.send({
@@ -476,6 +478,7 @@ describe('PUT /dapps', function () {
 
 	it('using existing dapp link should fail', function (done) {
 		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
 			node.api.put('/dapps')
 				.set('Accept', 'application/json')
 				.send({
@@ -1088,7 +1091,10 @@ describe('PUT /dapps/withdrawal', function () {
 describe('GET /dapps', function () {
 
 	before(function (done) {
-		node.onNewBlock(done);
+		node.onNewBlock(function (err) {
+			node.expect(err).to.be.not.ok;
+			done();
+		});
 	});
 
 	it('using no limit should be ok', function (done) {
