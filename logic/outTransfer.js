@@ -66,7 +66,7 @@ function OutTransfer (scope) {
 				transactionId: trs.asset.outTransfer.transactionId
 			}).then(function (row) {
 				if (row.count > 0) {
-					return cb('Transaction is already confirmed');
+					return cb('Transaction is already confirmed: ' + trs.asset.outTransfer.transactionId);
 				} else {
 					return cb(null, trs);
 				}
