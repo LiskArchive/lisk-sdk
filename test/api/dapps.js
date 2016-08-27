@@ -22,7 +22,17 @@ function openAccount (account, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
+			// console.log('Opening account with password:', account.password);
 			node.expect(res.body).to.have.property('success').to.be.ok;
+			if (res.body.success && res.body.account != null) {
+				account.address = res.body.account.address;
+				account.publicKey = res.body.account.publicKey;
+				account.balance = res.body.account.balance;
+			} else {
+				// console.log('Failed to open account');
+				// console.log('Secret:', account.password, ', secondSecret:', account.secondPassword);
+				node.expect(false).to.equal(true);
+			}
 			done(err, res);
 		});
 }
@@ -486,6 +496,200 @@ describe('PUT /dapps', function () {
 					node.expect(res.body).to.have.property('error');
 					done();
 				});
+		});
+	});
+});
+
+describe('PUT /dapps/transaction', function () {
+
+	function putTransaction (params, done) {
+		node.api.put('/dapps/transaction')
+			.set('Accept', 'application/json')
+			.send(params)
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
+				// console.log(JSON.stringify(res.body));
+				done(err, res);
+			});
+	}
+
+	before(function (done) {
+		node.expect(DappToInstall).to.be.a('object')
+		node.expect(DappToInstall).to.have.property('transactionId').to.be.not.null;
+		done();
+	});
+
+	it('using no secret should fail', function (done) {
+		putTransaction({
+			dappId: DappToInstall.transactionId,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: secret');
+			done();
+		});
+	});
+
+	it('using invalid secret should fail', function (done) {
+		putTransaction({
+			secret: 'invalid',
+			dappId: DappToInstall.transactionId,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Account not found');
+			done();
+		});
+	});
+
+	it('using secret with length > 100 should fail', function (done) {
+		putTransaction({
+			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
+			dappId: DappToInstall.transactionId,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			done();
+		});
+	});
+
+	it('using no amount should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: DappToInstall.transactionId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: amount');
+			done();
+		});
+	});
+
+	it('using amount < 0 should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: DappToInstall.transactionId,
+			amount: -1
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Value -1 is less than minimum 1');
+			done();
+		});
+	});
+
+	it('using amount > balance should fail', function (done) {
+		openAccount(account, function (err, res) {
+			var amount = node.bignum(account.balance).plus('1').toNumber();
+
+			putTransaction({
+				secret: account.password,
+				dappId: DappToInstall.transactionId,
+				amount: amount
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
+		});
+	});
+
+	it('using amount > 100M should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: DappToInstall.transactionId,
+			amount: 10000000000000002
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Value 10000000000000002 is greater than maximum 10000000000000000');
+			done();
+		});
+	});
+
+	it('using numeric publicKey should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: DappToInstall.transactionId,
+			amount: 100000000,
+			publicKey: 1
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using numeric secondSecret should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			secondSecret: 1,
+			dappId: DappToInstall.transactionId,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using secondSecret with length > 100 should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
+			dappId: DappToInstall.transactionId,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			done();
+		});
+	});
+
+	it('using no dappId should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Missing required property: dappId');
+			done();
+		});
+	});
+
+	it('using numeric dappId should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: 1,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using numeric multisigAccountPublicKey should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: DappToInstall.transactionId,
+			amount: 100000000,
+			multisigAccountPublicKey: 1
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			done();
+		});
+	});
+
+	it('using valid params should be ok', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: DappToInstall.transactionId,
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+			done();
 		});
 	});
 });
