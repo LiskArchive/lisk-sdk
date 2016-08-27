@@ -467,11 +467,14 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 		return setImmediate(cb, 'Transaction is not ready: ' + trs.id);
 	}
 
-	var amount = trs.amount + trs.fee;
+	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var exceedsBalance = bignum(sender.balance.toString()).lessThan(amount);
 
-	if (trs.blockId !== genesisblock.block.id && sender.balance < amount) {
+	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
 		return setImmediate(cb, 'Account has no LISK: ' + sender.address + ' balance=' + sender.balance);
 	}
+
+	amount = amount.toNumber();
 
 	this.scope.account.merge(sender.address, {
 		balance: -amount,
@@ -555,11 +558,14 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Account does not have a second signature');
 	}
 
-	var amount = trs.amount + trs.fee;
+	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var exceedsBalance = bignum(sender.u_balance.toString()).lessThan(amount);
 
-	if (sender.u_balance < amount && trs.blockId !== genesisblock.block.id) {
-		return setImmediate(cb, 'Account has no LISK: ' + sender.address);
+	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
+		return setImmediate(cb, 'Account has no LISK: ' + sender.address + ' balance=' + sender.u_balance);
 	}
+
+	amount = amount.toNumber();
 
 	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
 		if (err) {
