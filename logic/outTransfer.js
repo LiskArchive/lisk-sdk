@@ -39,11 +39,11 @@ function OutTransfer (scope) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
 
-		if (!trs.asset.outTransfer.dappId) {
+		if (!/^[0-9]+$/.test(trs.asset.outTransfer.dappId)) {
 			return setImmediate(cb, 'Invalid outTransfer dappId');
 		}
 
-		if (!trs.asset.outTransfer.transactionId) {
+		if (!/^[0-9]+$/.test(trs.asset.outTransfer.transactionId)) {
 			return setImmediate(cb, 'Invalid outTransfer transactionId');
 		}
 
