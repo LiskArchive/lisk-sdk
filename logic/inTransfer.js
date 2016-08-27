@@ -47,8 +47,8 @@ function InTransfer () {
 			} else {
 				return setImmediate(cb);
 			}
-		}).catch(function () {
-			return setImmediate(cb, 'Application not found: ' + trs.asset.inTransfer.dappId);
+		}).catch(function (err) {
+			return setImmediate(cb, err);
 		});
 	};
 

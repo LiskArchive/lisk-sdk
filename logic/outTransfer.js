@@ -75,10 +75,10 @@ function OutTransfer (scope) {
 						return cb(null, trs);
 					}
 			}).catch(function (err) {
-				return cb('Transaction is already confirmed: ' + trs.asset.outTransfer.transactionId);
+				return cb(err);
 			});
 		}).catch(function (err) {
-			return cb('Application not found: ' + trs.asset.outTransfer.dappId);
+			return cb(err);
 		});
 	};
 
