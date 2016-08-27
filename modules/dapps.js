@@ -1298,7 +1298,8 @@ __private.addTransactions = function (req, cb) {
 			},
 			dappId: {
 				type: 'string',
-				minLength: 1
+				minLength: 1,
+				maxLength: 20
 			},
 			multisigAccountPublicKey: {
 				type: 'string',

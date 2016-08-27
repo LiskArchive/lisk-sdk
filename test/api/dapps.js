@@ -668,6 +668,18 @@ describe('PUT /dapps/transaction', function () {
 		});
 	});
 
+	it('using dappId with length > 20 should fail', function (done) {
+		putTransaction({
+			secret: account.password,
+			dappId: '012345678901234567890',
+			amount: 100000000
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too long (21 chars), maximum 20');
+			done();
+		});
+	});
+
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
 		putTransaction({
 			secret: account.password,
