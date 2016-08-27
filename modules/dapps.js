@@ -1617,7 +1617,7 @@ DApps.prototype.message = function (dappid, body, cb) {
 
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!__private.sandboxes[dappid]) {
-		return cb('Application not found');
+		return cb('Application sandbox not found');
 	}
 	if (!__private.dappready[dappid]) {
 		return cb('Application not ready');
