@@ -54,7 +54,6 @@ function sendLISK (account, done) {
 			if (res.body.success && res.body.transactionId !== null) {
 				// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 				// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
-				account.balance += randomLISK;
 				transactionList.push({
 					'sender': node.Gaccount.address,
 					'recipient': account.address,
@@ -394,8 +393,6 @@ describe('PUT /api/transactions', function () {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionId');
 				if (res.body.success && res.body.transactionId != null) {
-					account.balance -= (amountToSend + expectedFee);
-					account2.balance += amountToSend;
 					transactionList.push({
 						'sender': account.address,
 						'recipient': account2.address,
