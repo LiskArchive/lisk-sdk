@@ -1579,7 +1579,7 @@ shared.sendWithdrawal = function (req, cb) {
 			recipientId: {
 				type: 'string',
 				minLength: 2,
-				maxLength: 21
+				maxLength: 22
 			},
 			secondSecret: {
 				type: 'string',
