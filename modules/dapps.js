@@ -673,7 +673,8 @@ __private.attachApi = function () {
 	});
 
 	router.map(__private, {
-		'put /transaction': 'addTransactions'
+		'put /transaction': 'addTransactions',
+		'put /withdrawal': 'sendWithdrawal'
 	});
 
 	library.network.app.use('/api/dapps', router);
@@ -1434,133 +1435,7 @@ __private.addTransactions = function (req, cb) {
 	});
 };
 
-// Public methods
-DApps.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
-
-DApps.prototype.message = function (dappid, body, cb) {
-	self.request(dappid, 'post', '/message', body, cb);
-};
-
-DApps.prototype.request = function (dappid, method, path, query, cb) {
-	if (!__private.sandboxes[dappid]) {
-		return cb('Application not found');
-	}
-	if (!__private.dappready[dappid]) {
-		return cb('Application not ready');
-	}
-	__private.sandboxes[dappid].sendMessage({
-		method: method,
-		path: path,
-		query: query
-	}, cb);
-};
-
-// Events
-DApps.prototype.onBind = function (scope) {
-	modules = scope;
-
-	__private.assetTypes[transactionTypes.DAPP].bind({
-		library: library
-	});
-
-	__private.assetTypes[transactionTypes.IN_TRANSFER].bind({
-		modules: modules, library: library, shared: shared
-	});
-
-	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind({
-		modules: modules, library: library
-	});
-};
-
-DApps.prototype.onBlockchainReady = function () {
-	setTimeout(function () {
-		if (!library.config.dapp) { return; }
-
-		async.eachSeries(library.config.dapp.autoexec || [], function (dapp, cb) {
-			__private.launch({
-				params: dapp.params,
-				id: dapp.dappid,
-				master: library.config.dapp.masterpassword
-			}, function (err) {
-				if (err) {
-					console.log('Failed to launch application', dapp.dappid + ':', err);
-				} else {
-					console.log('Launched application', dapp.dappid, 'successfully');
-				}
-
-				return cb();
-			});
-		});
-	}, 1000);
-};
-
-DApps.prototype.onDeleteBlocksBefore = function (block) {
-	Object.keys(__private.sandboxes).forEach(function (dappId) {
-		self.request(dappId, 'post', '/message', {
-			topic: 'rollback',
-			message: {pointId: block.id, pointHeight: block.height}
-		}, function (err) {
-			if (err) {
-				library.logger.error('onDeleteBlocksBefore message', err);
-			}
-		});
-	});
-};
-
-DApps.prototype.onNewBlock = function (block, broadcast) {
-	Object.keys(__private.sandboxes).forEach(function (dappId) {
-		if (broadcast) {
-			self.request(dappId, 'post', '/message', {
-				topic: 'point',
-				message: {id: block.id, height: block.height}
-			}, function (err) {
-				if (err) {
-					library.logger.error('DApps#onNewBlock error:', err);
-				}
-			});
-		}
-	});
-};
-
-// Shared
-shared.getGenesis = function (req, cb) {
-	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
-		if (rows.length === 0) {
-			return cb('Application genesis block not found');
-		} else {
-			var row = rows[0];
-
-			return cb(null, {
-				pointId: row.id,
-				pointHeight: row.height,
-				authorId: row.authorId,
-				dappid: req.dappid
-			});
-		}
-	}).catch(function (err) {
-		return cb('DApp#getGenesis error');
-	});
-};
-
-shared.setReady = function (req, cb) {
-	__private.dappready[req.dappid] = true;
-	return cb(null, {});
-};
-
-shared.getCommonBlock = function (req, cb) {
-	library.db.query(sql.getCommonBlock, {
-		dappid: req.dappid,
-		type: transactionTypes.IN_TRANSFER
-	}).then(function (rows) {
-		return cb(null, rows);
-	}).catch(function (err) {
-		return cb('DApp#getCommonBlock error');
-	});
-};
-
-shared.sendWithdrawal = function (req, cb) {
+__private.sendWithdrawal = function (req, cb) {
 	var body = req.body;
 
 	library.scheme.validate(body, {
@@ -1724,6 +1599,136 @@ shared.sendWithdrawal = function (req, cb) {
 			return cb(null, {transactionId: transaction[0].id});
 		});
 	});
+};
+
+// Public methods
+DApps.prototype.sandboxApi = function (call, args, cb) {
+	sandboxHelper.callMethod(shared, call, args, cb);
+};
+
+DApps.prototype.message = function (dappid, body, cb) {
+	self.request(dappid, 'post', '/message', body, cb);
+};
+
+DApps.prototype.request = function (dappid, method, path, query, cb) {
+	if (!__private.sandboxes[dappid]) {
+		return cb('Application not found');
+	}
+	if (!__private.dappready[dappid]) {
+		return cb('Application not ready');
+	}
+	__private.sandboxes[dappid].sendMessage({
+		method: method,
+		path: path,
+		query: query
+	}, cb);
+};
+
+// Events
+DApps.prototype.onBind = function (scope) {
+	modules = scope;
+
+	__private.assetTypes[transactionTypes.DAPP].bind({
+		library: library
+	});
+
+	__private.assetTypes[transactionTypes.IN_TRANSFER].bind({
+		modules: modules, library: library, shared: shared
+	});
+
+	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind({
+		modules: modules, library: library
+	});
+};
+
+DApps.prototype.onBlockchainReady = function () {
+	setTimeout(function () {
+		if (!library.config.dapp) { return; }
+
+		async.eachSeries(library.config.dapp.autoexec || [], function (dapp, cb) {
+			__private.launch({
+				params: dapp.params,
+				id: dapp.dappid,
+				master: library.config.dapp.masterpassword
+			}, function (err) {
+				if (err) {
+					console.log('Failed to launch application', dapp.dappid + ':', err);
+				} else {
+					console.log('Launched application', dapp.dappid, 'successfully');
+				}
+
+				return cb();
+			});
+		});
+	}, 1000);
+};
+
+DApps.prototype.onDeleteBlocksBefore = function (block) {
+	Object.keys(__private.sandboxes).forEach(function (dappId) {
+		self.request(dappId, 'post', '/message', {
+			topic: 'rollback',
+			message: {pointId: block.id, pointHeight: block.height}
+		}, function (err) {
+			if (err) {
+				library.logger.error('onDeleteBlocksBefore message', err);
+			}
+		});
+	});
+};
+
+DApps.prototype.onNewBlock = function (block, broadcast) {
+	Object.keys(__private.sandboxes).forEach(function (dappId) {
+		if (broadcast) {
+			self.request(dappId, 'post', '/message', {
+				topic: 'point',
+				message: {id: block.id, height: block.height}
+			}, function (err) {
+				if (err) {
+					library.logger.error('DApps#onNewBlock error:', err);
+				}
+			});
+		}
+	});
+};
+
+// Shared
+shared.getGenesis = function (req, cb) {
+	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
+		if (rows.length === 0) {
+			return cb('Application genesis block not found');
+		} else {
+			var row = rows[0];
+
+			return cb(null, {
+				pointId: row.id,
+				pointHeight: row.height,
+				authorId: row.authorId,
+				dappid: req.dappid
+			});
+		}
+	}).catch(function (err) {
+		return cb('DApp#getGenesis error');
+	});
+};
+
+shared.setReady = function (req, cb) {
+	__private.dappready[req.dappid] = true;
+	return cb(null, {});
+};
+
+shared.getCommonBlock = function (req, cb) {
+	library.db.query(sql.getCommonBlock, {
+		dappid: req.dappid,
+		type: transactionTypes.IN_TRANSFER
+	}).then(function (rows) {
+		return cb(null, rows);
+	}).catch(function (err) {
+		return cb('DApp#getCommonBlock error');
+	});
+};
+
+shared.sendWithdrawal = function (req, cb) {
+	return __private.sendWithdrawal(req, cb);
 };
 
 shared.getWithdrawalLastTransaction = function (req, cb) {
