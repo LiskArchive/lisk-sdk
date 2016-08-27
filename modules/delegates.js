@@ -361,7 +361,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				return cb('Invalid public key');
 			}
 
-			if (math === '+' && (delegates !== null && delegates.indexOf(publicKey) !== -1)) {
+			if (math === '+' && (delegates != null && delegates.indexOf(publicKey) !== -1)) {
 				return cb('Failed to add vote, account has already voted for this delegate');
 			}
 
