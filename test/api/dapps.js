@@ -1086,6 +1086,53 @@ describe('PUT /dapps/withdrawal', function () {
 			done();
 		});
 	});
+
+	it('using same params twice within current block should fail', function (done) {
+		var params = {
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '2',
+			recipientId: recipientId
+		};
+
+		putWithdrawal(params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+
+			setTimeout(function () {
+				putWithdrawal(params, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
+					node.expect(res.body).to.have.property('error').to.eql('Transaction is already processing: 2');
+					done();
+				});
+			}, 2000);
+		});
+	});
+
+	it('using already confirmed params after new block should fail', function (done) {
+		var params = {
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '3',
+			recipientId: recipientId
+		}
+
+		putWithdrawal(params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+
+			node.onNewBlock(function (err) {
+				node.expect(err).to.be.not.ok;
+				putWithdrawal(params, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.not.be.ok;
+					node.expect(res.body).to.have.property('error').to.eql('Transaction is already confirmed: 3');
+					done();
+				});
+			});
+		});
+	});
 });
 
 describe('GET /dapps', function () {
