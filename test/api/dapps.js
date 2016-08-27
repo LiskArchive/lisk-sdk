@@ -930,6 +930,22 @@ describe('PUT /dapps/withdrawal', function () {
 		});
 	});
 
+	it('using unknown dappId', function (done) {
+		var dappId = '8713095156789756398';
+
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: dappId,
+			transactionId: '1',
+			recipientId: recipientId
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Application not found: ' + dappId);
+			done();
+		});
+	});
+
 	it('using no transactionId should fail', function (done) {
 		putWithdrawal({
 			secret: account.password,
