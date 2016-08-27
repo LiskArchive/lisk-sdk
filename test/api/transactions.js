@@ -22,7 +22,7 @@ function openAccount (account, done) {
 			// console.log(JSON.stringify(res.body));
 			// console.log('Opening account with password:', account.password);
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.account !== null) {
+			if (res.body.success && res.body.account != null) {
 				account.address = res.body.account.address;
 				account.publicKey = res.body.account.publicKey;
 				account.balance = res.body.account.balance;
@@ -51,7 +51,7 @@ function sendLISK (account, done) {
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.transactionId !== null) {
+			if (res.body.success && res.body.transactionId != null) {
 				// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
 				// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
 				transactionList.push({
