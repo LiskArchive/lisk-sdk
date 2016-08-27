@@ -152,7 +152,7 @@ before(function (done) {
 before(function (done) {
 	// Wait for new block to ensure all data has been received
 	node.onNewBlock(function (err) {
-		// Add 2nd password for Account 2
+		// Add second password for Account 2
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
 			.send({
@@ -376,7 +376,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('using invalid 2nd passphrase should fail', function (done) {
+	it('using invalid second passphrase should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
