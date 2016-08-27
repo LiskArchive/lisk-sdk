@@ -420,7 +420,7 @@ describe('PUT /dapps', function () {
 			});
 	});
 
-	it('using valid Link should be ok', function (done) {
+	it('using valid link should be ok', function (done) {
 		DappName = node.randomDelegateName();
 
 		node.api.put('/dapps')
