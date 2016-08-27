@@ -186,8 +186,8 @@ function OutTransfer (scope) {
 
 	this.dbFields = [
 		'dappId',
-		'transactionId',
-		'outTransactionId'
+		'outTransactionId',
+		'transactionId'
 	];
 
 	this.dbSave = function (trs) {
