@@ -203,7 +203,7 @@ function OutTransfer (scope) {
 	};
 
 	this.afterSave = function (trs, cb) {
-		this.message(trs.asset.outTransfer.dappId, {
+		modules.dapps.message(trs.asset.outTransfer.dappId, {
 			topic: 'withdrawal',
 			message: {
 				transactionId: trs.id
