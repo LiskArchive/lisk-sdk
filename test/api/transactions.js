@@ -337,7 +337,7 @@ describe('GET /transactions/get?id=', function () {
 
 describe('GET /transactions/unconfirmed/get?id=', function () {
 
-	it('using valid id should be ok ', function (done) {
+	it('using valid id should be ok', function (done) {
 		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)

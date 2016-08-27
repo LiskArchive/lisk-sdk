@@ -65,7 +65,7 @@ describe('POST /peer/transactions', function () {
 
 	describe('enabling second signature', function () {
 
-		describe('when account has no funds ', function () {
+		describe('when account has no funds', function () {
 
 			it('should fail', function (done) {
 				var transaction = node.lisk.signature.createSignature(node.randomPassword(), node.randomPassword());
@@ -77,7 +77,7 @@ describe('POST /peer/transactions', function () {
 			});
 		});
 
-		describe('when account has funds ', function () {
+		describe('when account has funds', function () {
 
 			before(function (done) {
 				openAccount(account, function (err, res) {
