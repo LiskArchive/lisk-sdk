@@ -515,7 +515,7 @@ describe('PUT /dapps/transaction', function () {
 	}
 
 	before(function (done) {
-		node.expect(DappToInstall).to.be.a('object')
+		node.expect(DappToInstall).to.be.a('object');
 		node.expect(DappToInstall).to.have.property('transactionId').to.be.not.null;
 		done();
 	});
@@ -720,7 +720,6 @@ describe('PUT /dapps/transaction', function () {
 	});
 });
 
-
 describe('PUT /dapps/withdrawal', function () {
 
 	function putWithdrawal (params, done) {
@@ -736,7 +735,7 @@ describe('PUT /dapps/withdrawal', function () {
 	}
 
 	before(function (done) {
-		node.expect(DappToInstall).to.be.a('object')
+		node.expect(DappToInstall).to.be.a('object');
 		node.expect(DappToInstall).to.have.property('transactionId').to.be.not.null;
 		done();
 	});
