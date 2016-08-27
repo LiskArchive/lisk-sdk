@@ -1461,6 +1461,11 @@ __private.sendWithdrawal = function (req, cb) {
 				minLength: 1,
 				maxLength: 100
 			},
+			dappId: {
+				type: 'string',
+				minLength: 1,
+				maxLength: 20
+			},
 			transactionId: {
 				type: 'string',
 				minLength: 1,
@@ -1471,7 +1476,7 @@ __private.sendWithdrawal = function (req, cb) {
 				format: 'publicKey'
 			}
 		},
-		required: ['secret', 'recipientId', 'amount', 'transactionId']
+		required: ['secret', 'recipientId', 'amount', 'dappId', 'transactionId']
 	}, function (err) {
 		if (err) {
 			return cb(err[0].message);
