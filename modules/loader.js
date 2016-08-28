@@ -719,6 +719,10 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeerReady = function () {
+	if (library.config.forging.force) {
+		return;
+		}
+
 	setImmediate(function nextLoadBlock () {
 		library.sequence.add(function (cb) {
 			__private.isActive = true;
