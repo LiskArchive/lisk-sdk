@@ -1145,7 +1145,7 @@ describe('PUT /dapps/withdrawal', function () {
 			dappId: DappToInstall.transactionId,
 			transactionId: '3',
 			recipientId: recipientId
-		}
+		};
 
 		putWithdrawal(params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
