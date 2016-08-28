@@ -571,7 +571,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	__private.loadMyDelegates(function nextLoop(err) {
 		if (err) {
-			library.logger.error('Failed to load delegates:', err.toString());
+			library.logger.error('Failed to load delegates:', err);
 		}
 
 		__private.toggleForgingOnReceipt();

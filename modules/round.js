@@ -229,7 +229,7 @@ Round.prototype.onBlockchainReady = function () {
 		__private.loaded = true;
 
 	}).catch(function (err) {
-		library.logger.error('Round#onBlockchainReady error ' + err.toString());
+		library.logger.error('Round#onBlockchainReady error', err);
 	});
 };
 

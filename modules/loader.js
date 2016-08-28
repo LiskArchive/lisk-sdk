@@ -404,7 +404,7 @@ __private.loadBlockChain = function () {
 								if (err) {
 									library.logger.error(err);
 									if (err.block) {
-										library.logger.error('Blockchain failed at ', err.block.height);
+										library.logger.error('Blockchain failed at: ' + err.block.height);
 										modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {
 											library.logger.error('Blockchain clipped');
 											library.bus.message('blockchainReady');
@@ -542,14 +542,14 @@ __private.loadBlocksFromNetwork = function (cb) {
 						next();
 					});
 				},
-				function (error) {
+				function (err) {
 					if (counterrorload === 5) {
 						library.logger.info('Peer is not well connected to network, resyncing from network');
 						return __private.loadBlocksFromNetwork(cb);
 					}
-					if (error) {
-						library.logger.error('Could not load blocks from network', error);
-						return cb(error);
+					if (err) {
+						library.logger.error('Could not load blocks from network', err);
+						return cb(err);
 					}
 					return cb();
 				}
