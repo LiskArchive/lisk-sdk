@@ -1086,6 +1086,20 @@ describe('PUT /dapps/withdrawal', function () {
 		});
 	});
 
+	it('using recipientId without an "L" should fail', function (done) {
+		putWithdrawal({
+			secret: account.password,
+			amount: 100000000,
+			dappId: DappToInstall.transactionId,
+			transactionId: '1',
+			recipientId: recipientId.replace('L', '')
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Invalid recipient');
+			done();
+		});
+	});
+
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
 		putWithdrawal({
 			secret: account.password,
