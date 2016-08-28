@@ -131,7 +131,7 @@ function Vote () {
 		});
 
 		if (!report) {
-			throw new Error('Invalid votes in transaction: ' + library.scheme.getLastError());
+			throw new Error('Failed to normalize vote: ' + library.scheme.getLastError());
 		}
 
 		return trs;

@@ -125,7 +125,7 @@ function InTransfer () {
 		});
 
 		if (!report) {
-			throw Error('Unable to verify dapp transaction, invalid parameters: ' + library.scheme.getLastError());
+			throw Error('Failed to normalize inTransfer: ' + library.scheme.getLastError());
 		}
 
 		return trs;

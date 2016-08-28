@@ -294,7 +294,7 @@ Block.prototype.objectNormalize = function (block) {
 	});
 
 	if (!report) {
-		throw Error(this.scope.scheme.getLastError());
+		throw Error('Failed to normalize block: ' + this.scope.scheme.getLastError());
 	}
 
 	try {

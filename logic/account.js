@@ -390,7 +390,7 @@ Account.prototype.objectNormalize = function (account) {
 	});
 
 	if (!report) {
-		throw Error(this.scope.scheme.getLastError());
+		throw Error('Failed to normalize account: ' + this.scope.scheme.getLastError());
 	}
 
 	return account;

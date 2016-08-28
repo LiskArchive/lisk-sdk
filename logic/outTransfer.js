@@ -159,7 +159,7 @@ function OutTransfer (scope) {
 		});
 
 		if (!report) {
-			throw Error('Unable to verify outTransfer, invalid parameters: ' + library.scheme.getLastError());
+			throw Error('Failed to normalize outTransfer: ' + library.scheme.getLastError());
 		}
 
 		return trs;

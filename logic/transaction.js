@@ -756,7 +756,7 @@ Transaction.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error(this.scope.scheme.getLastError());
+		throw Error('Failed to normalize transaction: ' + this.scope.scheme.getLastError());
 	}
 
 	try {

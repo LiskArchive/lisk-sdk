@@ -207,7 +207,7 @@ function Delegate () {
 		});
 
 		if (!report) {
-			throw Error('Can\'t verify delegate transaction, incorrect parameters: ' + library.scheme.getLastError());
+			throw Error('Failed to normalize delegate: ' + library.scheme.getLastError());
 		}
 
 		return trs;

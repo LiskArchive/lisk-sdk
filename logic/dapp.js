@@ -269,7 +269,7 @@ function DApp () {
 		});
 
 		if (!report) {
-			throw Error('Unable to verify dapp transaction, invalid parameters: ' + library.scheme.getLastError());
+			throw Error('Failed to normalize dapp: ' + library.scheme.getLastError());
 		}
 
 		return trs;

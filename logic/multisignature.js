@@ -244,7 +244,7 @@ function Multisignature () {
 		});
 
 		if (!report) {
-			throw Error(report.getLastError());
+			throw Error('Failed to normalize multisignature: ' + library.scheme.getLastError());
 		}
 
 		return trs;

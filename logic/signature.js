@@ -112,7 +112,7 @@ function Signature () {
 		});
 
 		if (!report) {
-			throw Error('Can\'t parse signature: ' + library.scheme.getLastError());
+			throw Error('Failed to normalize signature: ' + library.scheme.getLastError());
 		}
 
 		return trs;
