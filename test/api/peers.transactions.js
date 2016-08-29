@@ -144,10 +144,20 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('using invalid publicKey and signature should fail', function (done) {
+	it('using invalid publicKey should fail', function (done) {
+		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.Gaccount.password);
+		transaction.senderPublicKey = node.randomPassword();
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message');
+			done();
+		});
+	});
+
+	it('using invalid signature should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.Gaccount.password);
 		transaction.signature = node.randomPassword();
-		transaction.senderPublicKey = node.randomPassword();
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
