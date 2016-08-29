@@ -96,7 +96,6 @@ describe('GET /peers', function () {
 
 				done();
 			});
-
 	});
 
 	it('using limit > 100 should fail', function (done) {
