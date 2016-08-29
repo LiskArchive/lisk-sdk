@@ -37,11 +37,11 @@ function Signature () {
 
 		try {
 			if (!trs.asset.signature.publicKey || new Buffer(trs.asset.signature.publicKey, 'hex').length !== 32) {
-				return setImmediate(cb, 'Invalid signature length');
+				return setImmediate(cb, 'Invalid public key');
 			}
 		} catch (e) {
 			library.logger.error(e.toString());
-			return setImmediate(cb, 'Invalid signature hex');
+			return setImmediate(cb, 'Invalid public key');
 		}
 
 		return setImmediate(cb, null, trs);

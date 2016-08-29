@@ -67,12 +67,12 @@ function DApp () {
 		}
 
 		if (!foundCategory) {
-			return setImmediate(cb, 'Unknown application category');
+			return setImmediate(cb, 'Application category not found');
 		}
 
 		if (trs.asset.dapp.icon) {
 			if (!valid_url.isUri(trs.asset.dapp.icon)) {
-				return setImmediate(cb, 'Invalid icon link');
+				return setImmediate(cb, 'Invalid application icon link');
 			}
 
 			var length = trs.asset.dapp.icon.length;
@@ -82,7 +82,7 @@ function DApp () {
 				trs.asset.dapp.icon.indexOf('.jpg') !== length - 4 &&
 				trs.asset.dapp.icon.indexOf('.jpeg') !== length - 5
 			) {
-				return setImmediate(cb, 'Invalid icon file type');
+				return setImmediate(cb, 'Invalid application icon file type');
 			}
 		}
 
@@ -123,7 +123,7 @@ function DApp () {
 
 			for (i = 0; i < tags.length - 1; i++) {
 				if (tags[i + 1] === tags[i]) {
-					return setImmediate(cb, 'Encountered duplicated tag: ' + tags[i]);
+					return setImmediate(cb, 'Encountered duplicate application tag: ' + tags[i]);
 				}
 			}
 		}

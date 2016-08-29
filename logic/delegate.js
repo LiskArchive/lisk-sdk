@@ -52,7 +52,7 @@ function Delegate () {
 		}
 
 		if (trs.asset.delegate.username !== trs.asset.delegate.username.toLowerCase()) {
- 			return setImmediate(cb, 'Username should be lowercase');
+ 			return setImmediate(cb, 'Username must be lowercase');
  		}
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;

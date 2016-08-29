@@ -38,23 +38,23 @@ function Multisignature () {
 		}
 
 		if (!Array.isArray(trs.asset.multisignature.keysgroup)) {
-			return setImmediate(cb, 'Invalid transaction asset: ' + trs.id);
+			return setImmediate(cb, 'Invalid multisignature keysgroup. Must be an array');
 		}
 
 		if (trs.asset.multisignature.keysgroup.length === 0) {
-			return setImmediate(cb, 'Multisignature group must contain at least one member');
+			return setImmediate(cb, 'Invalid multisignature keysgroup. Must not be empty');
 		}
 
 		if (trs.asset.multisignature.min <= 1 || trs.asset.multisignature.min > 16) {
-			return setImmediate(cb, 'Invalid transaction asset: ' + trs.id);
+			return setImmediate(cb, 'Invalid multisignature min. Must be between 1 and 16');
 		}
 
 		if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length + 1) {
-			return setImmediate(cb, 'Invalid multisignature min');
+			return setImmediate(cb, 'Invalid multisignature min. Must be less than keysgroup size');
 		}
 
 		if (trs.asset.multisignature.lifetime < 1 || trs.asset.multisignature.lifetime > 72) {
-			return setImmediate(cb, 'Invalid multisignature lifetime: ' + trs.id);
+			return setImmediate(cb, 'Invalid multisignature lifetime. Must be between 1 and 72');
 		}
 
 		if (this.ready(trs, sender)) {
@@ -72,17 +72,17 @@ function Multisignature () {
 					}
 
 					if (!verify) {
-						return setImmediate(cb, 'Failed to verify multisignature: ' + trs.id);
+						return setImmediate(cb, 'Failed to verify signatures in multisignature keysgroup');
 					}
 				}
 			} catch (e) {
 				library.logger.error(e.toString());
-				return setImmediate(cb, 'Failed to verify multisignature: ' + trs.id);
+				return setImmediate(cb, 'Failed to verify signatures in multisignature keysgroup');
 			}
 		}
 
 		if (trs.asset.multisignature.keysgroup.indexOf('+' + sender.publicKey) !== -1) {
-			return setImmediate(cb, 'Unable to sign transaction using own public key');
+			return setImmediate(cb, 'Invalid multisignature keysgroup. Can not contain sender');
 		}
 
 		async.eachSeries(trs.asset.multisignature.keysgroup, function (key, cb) {
@@ -90,17 +90,17 @@ function Multisignature () {
 			var publicKey = key.slice(1);
 
 			if (math !== '+') {
-				return cb('Invalid math operator');
+				return cb('Invalid math operator in multisignature keysgroup');
 			}
 
 			try {
 				var b = new Buffer(publicKey, 'hex');
 				if (b.length !== 32) {
-					return cb('Invalid public key');
+					return cb('Invalid public key in multisignature keysgroup');
 				}
 			} catch (e) {
 				library.logger.error(e.toString());
-				return cb('Invalid public key');
+				return cb('Invalid public key in multisignature keysgroup');
 			}
 
 			return setImmediate(cb);
@@ -115,7 +115,7 @@ function Multisignature () {
 			}, []);
 
 			if (keysgroup.length !== trs.asset.multisignature.keysgroup.length) {
-				return setImmediate(cb, 'Multisignature group contains non-unique public keys');
+				return setImmediate(cb, 'Encountered duplicate public key in multisignature keysgroup');
 			}
 
 			return setImmediate(cb, null, trs);

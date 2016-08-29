@@ -208,7 +208,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		txId = this.getId(trs);
 	} catch (e) {
 		this.scope.logger.error(e.toString());
-		return setImmediate(cb, 'Invalid transaction id');
+		return setImmediate(cb, 'Failed to get transaction id');
 	}
 
 	if (trs.id && trs.id !== txId) {
@@ -223,10 +223,10 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 
 	trs.senderId = sender.address;
 
-	// Verify that requester in multisignature
+	// Verify that requester belongs to multisignature keysgroup
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Failed to verify signature');
+			return setImmediate(cb, 'Requester does not belong to multisignature keysgroup');
 		}
 	}
 
@@ -310,7 +310,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 			return setImmediate(cb, e.toString());
 		}
 		if (!valid) {
-			return setImmediate(cb, 'Failed to verify second signature: ' + trs.id);
+			return setImmediate(cb, 'Failed to verify second signature');
 		}
 	} else if (trs.requesterPublicKey && requester.secondSignature) {
 		try {
@@ -319,7 +319,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 			return setImmediate(cb, e.toString());
 		}
 		if (!valid) {
-			return setImmediate(cb, 'Failed to verify second signature: ' + trs.id);
+			return setImmediate(cb, 'Failed to verify second signature');
 		}
 	}
 
@@ -331,7 +331,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		}, []);
 
 		if (signatures.length !== trs.signatures.length) {
-			return setImmediate(cb, 'Encountered duplicate signatures');
+			return setImmediate(cb, 'Encountered duplicate signature in transaction');
 		}
 	}
 
@@ -366,25 +366,25 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 			}
 
 			if (!verify) {
-				return setImmediate(cb, 'Failed to verify multisignature: ' + trs.id);
+				return setImmediate(cb, 'Failed to verify multisignature');
 			}
 		}
 	}
 
 	// Check sender
 	if (String(trs.senderId).toUpperCase() !== String(sender.address).toUpperCase()) {
-		return setImmediate(cb, 'Invalid sender id: ' + trs.id);
+		return setImmediate(cb, 'Invalid sender');
 	}
 
 	// Calc fee
 	var fee = __private.types[trs.type].calculateFee.call(this, trs, sender) || false;
 	if (!fee || trs.fee !== fee) {
-		return setImmediate(cb, 'Invalid transaction type/fee: ' + trs.id);
+		return setImmediate(cb, 'Invalid transaction fee');
 	}
 
 	// Check amount
 	if (trs.amount < 0 || trs.amount > constants.totalAmount || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
-		return setImmediate(cb, 'Invalid transaction amount: ' + trs.id);
+		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
 	// Check timestamp
@@ -464,7 +464,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 	}
 
 	if (!this.ready(trs, sender)) {
-		return setImmediate(cb, 'Transaction is not ready: ' + trs.id);
+		return setImmediate(cb, 'Transaction is not ready');
 	}
 
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
@@ -543,19 +543,19 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 	}
 
 	if (!trs.requesterPublicKey && sender.secondSignature && !trs.signSignature && trs.blockId !== genesisblock.block.id) {
-		return setImmediate(cb, 'Failed second signature: ' + trs.id);
+		return setImmediate(cb, 'Missing sender second signature');
 	}
 
 	if (!trs.requesterPublicKey && !sender.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
-		return setImmediate(cb, 'Account does not have a second signature');
+		return setImmediate(cb, 'Sender does not have a second signature');
 	}
 
 	if (trs.requesterPublicKey && requester.secondSignature && !trs.signSignature) {
-		return setImmediate(cb, 'Failed second signature: ' + trs.id);
+		return setImmediate(cb, 'Missing requester second signature');
 	}
 
 	if (trs.requesterPublicKey && !requester.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
-		return setImmediate(cb, 'Account does not have a second signature');
+		return setImmediate(cb, 'Requester does not have a second signature');
 	}
 
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
@@ -628,7 +628,7 @@ Transaction.prototype.dbFields = [
 
 Transaction.prototype.dbSave = function (trs) {
 	if (!__private.types[trs.type]) {
-		throw Error('Unknown transaction type: ' + trs.type);
+		throw Error('Unknown transaction type ' + trs.type);
 	}
 
 	var senderPublicKey, signature, signSignature, requesterPublicKey;
@@ -677,7 +677,7 @@ Transaction.prototype.afterSave = function (trs, cb) {
 	var tx_type = __private.types[trs.type];
 
 	if (!tx_type) {
-		return cb('Unknown transaction type: ' + trs.type);
+		return cb('Unknown transaction type ' + trs.type);
 	} else {
 		if (typeof tx_type.afterSave === 'function') {
 			return tx_type.afterSave.call(this, trs, cb);

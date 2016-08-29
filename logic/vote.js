@@ -25,15 +25,19 @@ function Vote () {
 
 	this.verify = function (trs, sender, cb) {
 		if (trs.recipientId !== trs.senderId) {
-			return setImmediate(cb, 'Recipient is not identical to sender');
+			return setImmediate(cb, 'Invalid recipient');
 		}
 
 		if (!trs.asset || !trs.asset.votes) {
 			return setImmediate(cb, 'Invalid transaction asset');
 		}
 
-		if (!trs.asset.votes || !trs.asset.votes.length) {
-			return setImmediate(cb, 'No votes sent');
+		if (!Array.isArray(trs.asset.votes)) {
+			return setImmediate(cb, 'Invalid votes. Must be an array');
+		}
+
+		if (!trs.asset.votes.length) {
+			return setImmediate(cb, 'Invalid votes. Must not be empty');
 		}
 
 		if (trs.asset.votes && trs.asset.votes.length > 33) {

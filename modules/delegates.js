@@ -314,7 +314,7 @@ __private.loop = function (cb) {
 			}
 		}, function (err) {
 			if (err) {
-				library.logger.error('Failed generate block within slot:', err);
+				library.logger.error('Failed generate block within slot', err);
 			}
 			return setImmediate(cb);
 		});
