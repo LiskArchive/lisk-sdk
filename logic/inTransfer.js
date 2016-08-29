@@ -44,9 +44,7 @@ function InTransfer () {
 		library.db.one(sql.countByTransactionId, {
 			id: trs.asset.inTransfer.dappId
 		}).then(function (row) {
-			var count = row.count;
-
-			if (count === 0) {
+			if (row.count === 0) {
 				return setImmediate(cb, 'Application not found: ' + trs.asset.inTransfer.dappId);
 			} else {
 				return setImmediate(cb);
