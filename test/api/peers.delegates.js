@@ -64,6 +64,27 @@ describe('POST /peer/transactions', function () {
 
 	describe('registering a delegate', function () {
 
+		it('using undefined transaction', function (done) {
+			postTransaction(undefined, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.eql('Invalid transaction body');
+				done();
+			});
+		});
+
+		it('using undefined transaction.asset', function (done) {
+			var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+			transaction.fee = node.Fees.delegateRegistrationFee;
+
+			delete transaction.asset;
+
+			postTransaction(transaction, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.eql('Invalid transaction body');
+				done();
+			});
+		});
+
 		describe('when account has no funds', function () {
 
 			it('should fail', function (done) {
