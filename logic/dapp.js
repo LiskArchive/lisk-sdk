@@ -123,7 +123,7 @@ function DApp () {
 
 			for (i = 0; i < tags.length - 1; i++) {
 				if (tags[i + 1] === tags[i]) {
-					return setImmediate(cb, 'Encountered duplicate application tag: ' + tags[i]);
+					return setImmediate(cb, 'Encountered duplicate tag: ' + tags[i] + ' in application');
 				}
 			}
 		}
