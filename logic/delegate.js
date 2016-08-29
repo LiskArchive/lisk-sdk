@@ -40,7 +40,7 @@ function Delegate () {
 		}
 
 		if (sender.isDelegate) {
-			return cb('Account is already a delegate');
+			return setImmediate(cb, 'Account is already a delegate');
 		}
 
 		if (!trs.asset || !trs.asset.delegate) {
@@ -48,11 +48,11 @@ function Delegate () {
 		}
 
 		if (!trs.asset.delegate.username) {
-			return cb('Username is undefined');
+			return setImmediate(cb, 'Username is undefined');
 		}
 
 		if (trs.asset.delegate.username !== trs.asset.delegate.username.toLowerCase()) {
- 			return cb('Username should be lowercase');
+ 			return setImmediate(cb, 'Username should be lowercase');
  		}
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;
@@ -61,33 +61,33 @@ function Delegate () {
 		var username = String(trs.asset.delegate.username).toLowerCase().trim();
 
 		if (username === '') {
-			return cb('Empty username');
+			return setImmediate(cb, 'Empty username');
 		}
 
 		if (username.length > 20) {
-			return cb('Username is too long. Maximum is 20 characters');
+			return setImmediate(cb, 'Username is too long. Maximum is 20 characters');
 		}
 
 		if (isAddress.test(username)) {
-			return cb('Username can not be a potential address');
+			return setImmediate(cb, 'Username can not be a potential address');
 		}
 
 		if (!allowSymbols.test(username)) {
-			return cb('Username can only contain alphanumeric characters with the exception of !@$&_.');
+			return setImmediate(cb, 'Username can only contain alphanumeric characters with the exception of !@$&_.');
 		}
 
 		modules.accounts.getAccount({
 			username: username
 		}, function (err, account) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
 			if (account) {
-				return cb('Username already exists');
+				return setImmediate(cb, 'Username already exists');
 			}
 
-			return cb(null, trs);
+			return setImmediate(cb, null, trs);
 		});
 	};
 
