@@ -19,7 +19,6 @@ function Delegate () {
 			publicKey: data.sender.publicKey
 		};
 
-		// We want to be fail proof by giving a chance to register a clean lowercase username
 		if (trs.asset.delegate.username) {
 			trs.asset.delegate.username = trs.asset.delegate.username.toLowerCase().trim();
 		}
