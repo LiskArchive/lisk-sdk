@@ -37,6 +37,10 @@ function InTransfer () {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
 
+		if (!trs.asset || !trs.asset.inTransfer) {
+			return setImmediate(cb, 'Invalid transaction asset');
+		}
+
 		library.db.one(sql.countByTransactionId, {
 			id: trs.asset.inTransfer.dappId
 		}).then(function (row) {

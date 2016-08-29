@@ -27,7 +27,7 @@ function Signature () {
 	};
 
 	this.verify = function (trs, sender, cb) {
-		if (!trs.asset.signature) {
+		if (!trs.asset || !trs.asset.signature) {
 			return setImmediate(cb, 'Invalid transaction asset');
 		}
 

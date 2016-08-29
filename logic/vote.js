@@ -28,6 +28,10 @@ function Vote () {
 			return setImmediate(cb, 'Recipient is not identical to sender');
 		}
 
+		if (!trs.asset || !trs.asset.votes) {
+			return setImmediate(cb, 'Invalid transaction asset');
+		}
+
 		if (!trs.asset.votes || !trs.asset.votes.length) {
 			return setImmediate(cb, 'No votes sent');
 		}

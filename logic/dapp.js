@@ -50,6 +50,10 @@ function DApp () {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
 
+		if (!trs.asset || !trs.asset.dapp) {
+			return setImmediate(cb, 'Invalid transaction asset');
+		}
+
 		if (trs.asset.dapp.category !== 0 && !trs.asset.dapp.category) {
 			return setImmediate(cb, 'Invalid application category');
 		}

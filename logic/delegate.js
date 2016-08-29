@@ -44,7 +44,7 @@ function Delegate () {
 		}
 
 		if (!trs.asset || !trs.asset.delegate) {
-			return cb('Invalid transaction asset');
+			return setImmediate(cb, 'Invalid transaction asset');
 		}
 
 		if (!trs.asset.delegate.username) {

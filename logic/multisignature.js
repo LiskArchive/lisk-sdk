@@ -33,8 +33,8 @@ function Multisignature () {
 	};
 
 	this.verify = function (trs, sender, cb) {
-		if (!trs.asset.multisignature) {
-			return setImmediate(cb, 'Invalid transaction asset: ' + trs.id);
+		if (!trs.asset || !trs.asset.multisignature) {
+			return setImmediate(cb, 'Invalid transaction asset');
 		}
 
 		if (!Array.isArray(trs.asset.multisignature.keysgroup)) {
