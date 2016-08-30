@@ -36,6 +36,17 @@ function generatePublicKey (params, done) {
 		});
 }
 
+function getBalance (address, done) {
+	node.api.get('/accounts/getBalance?address=' + address)
+		.set('Accept', 'application/json')
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
 describe('POST /accounts/open', function () {
 
 	it('using valid passphrase: '+account.password+' should be ok', function (done) {
@@ -100,45 +111,30 @@ describe('POST /accounts/open', function () {
 describe('GET /accounts/getBalance', function () {
 
 	it('using valid params should be ok', function (done) {
-		node.api.get('/accounts/getBalance?address=' + account.address)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('balance');
-				node.expect(res.body.balance).to.equal(account.balance);
-				done();
-			});
+		getBalance(account.address, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('balance');
+			node.expect(res.body.balance).to.equal(account.balance);
+			done();
+		});
 	});
 
 	it('using invalid address should fail', function (done) {
-		node.api.get('/accounts/getBalance?address=thisIsNOTALiskAddress')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// expect(res.body.error).to.contain('Provide valid Lisk address');
-				done();
-			});
+		getBalance('thisIsNOTALiskAddress', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// expect(res.body.error).to.contain('Provide valid Lisk address');
+			done();
+		});
 	});
 
 	it('using no address should fail', function (done) {
-		node.api.get('/accounts/getBalance')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide address in url');
-				done();
-			});
+		getBalance('', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide address in url');
+			done();
+		});
 	});
 });
 
