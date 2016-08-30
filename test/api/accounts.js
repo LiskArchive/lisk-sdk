@@ -181,23 +181,6 @@ describe('GET /accounts/getPublicKey', function () {
 				done();
 			});
 	});
-
-	it('using valid params should be ok', function (done) {
-		node.api.post('/accounts/generatePublicKey')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('publicKey');
-				node.expect(res.body.publicKey).to.equal(account.publicKey);
-				done();
-			});
-	});
 });
 
 describe('POST /accounts/generatePublicKey', function () {
