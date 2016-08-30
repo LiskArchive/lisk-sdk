@@ -150,7 +150,7 @@ describe('GET /accounts/getBalance', function () {
 		});
 	});
 
-	it('using no address should fail', function (done) {
+	it('using empty address should fail', function (done) {
 		getBalance('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -179,7 +179,7 @@ describe('GET /accounts/getPublicKey', function () {
 		});
 	});
 
-	it('using no address should fail', function (done) {
+	it('using empty address should fail', function (done) {
 		getPublicKey('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
