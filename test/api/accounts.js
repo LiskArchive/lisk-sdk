@@ -24,6 +24,18 @@ function openAccount (params, done) {
 		});
 }
 
+function generatePublicKey (params, done) {
+	node.api.post('/accounts/generatePublicKey')
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
 describe('POST /accounts/open', function () {
 
 	it('using valid passphrase: '+account.password+' should be ok', function (done) {
@@ -195,50 +207,32 @@ describe('GET /accounts/getPublicKey', function () {
 describe('POST /accounts/generatePublicKey', function () {
 
 	it('using empty passphrase should fail', function (done) {
-		node.api.post('/accounts/generatePublicKey')
-			.set('Accept', 'application/json')
-			.send({
-				secret: ''
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide secret key');
-				done();
-			});
+		generatePublicKey({
+			secret: ''
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide secret key');
+			done();
+		});
 	});
 
-	it('using no params should fail', function (done) {
-		node.api.post('/accounts/generatePublicKey')
-			.set('Accept', 'application/json')
-			.send({})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide secret key');
-				done();
-			});
+	it('using empty json should fail', function (done) {
+		generatePublicKey({}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide secret key');
+			done();
+		});
 	});
 
 	it('using invalid json should fail', function (done) {
-		node.api.post('/accounts/generatePublicKey')
-			.set('Accept', 'application/json')
-			.send('{\'invalid\'}')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide secret key');
-				done();
-			});
+		generatePublicKey('{\'invalid\'}', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide secret key');
+			done();
+		});
 	});
 });
 
