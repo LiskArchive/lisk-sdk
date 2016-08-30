@@ -163,7 +163,7 @@ describe('GET /accounts/getPublicKey', function () {
 		getPublicKey('thisIsNOTALiskAddress', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// expect(res.body.error).to.contain('Provide valid Lisk address');
+			node.expect(res.body.error).to.contain('Invalid address');
 			done();
 		});
 	});
@@ -172,7 +172,7 @@ describe('GET /accounts/getPublicKey', function () {
 		getPublicKey('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// expect(res.body.error).to.contain('Provide valid Lisk address');
+			node.expect(res.body.error).to.contain('String is too short (0 chars), minimum 1');
 			done();
 		});
 	});
