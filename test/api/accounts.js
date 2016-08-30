@@ -58,6 +58,17 @@ function getPublicKey (address, done) {
 		});
 }
 
+function getAccount (address, done) {
+	node.api.get('/accounts?address=' + address)
+		.set('Accept', 'application/json')
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
 describe('POST /accounts/open', function () {
 
 	it('using valid passphrase: '+account.password+' should be ok', function (done) {
@@ -226,62 +237,42 @@ describe('POST /accounts/generatePublicKey', function () {
 describe('GET /accounts?address=', function () {
 
 	it('using valid address should be ok', function (done) {
-		node.api.get('/accounts?address=' + account.address)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('account').that.is.an('object');
-				node.expect(res.body.account.address).to.equal(account.address);
-				node.expect(res.body.account.publicKey).to.equal(account.publicKey);
-				node.expect(res.body.account.balance).to.equal(account.balance);
-				done();
-			});
+		getAccount(account.address, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('account').that.is.an('object');
+			node.expect(res.body.account.address).to.equal(account.address);
+			node.expect(res.body.account.publicKey).to.equal(account.publicKey);
+			node.expect(res.body.account.balance).to.equal(account.balance);
+			done();
+		});
 	});
 
 	it('using lowercase address should be ok', function (done) {
-		node.api.get('/accounts?address=' + account.address.toLowerCase())
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('account').that.is.an('object');
-				node.expect(res.body.account.address).to.equal(account.address);
-				node.expect(res.body.account.publicKey).to.equal(account.publicKey);
-				node.expect(res.body.account.balance).to.equal(account.balance);
-				done();
-			});
+		getAccount(account.address.toLowerCase(), function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('account').that.is.an('object');
+			node.expect(res.body.account.address).to.equal(account.address);
+			node.expect(res.body.account.publicKey).to.equal(account.publicKey);
+			node.expect(res.body.account.balance).to.equal(account.balance);
+			done();
+		});
 	});
 
 	it('using invalid address should fail', function (done) {
-		node.api.get('/accounts?address=thisIsNOTAValidLiskAddress')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// expect(res.body.error).to.contain('Provide valid Lisk address');
-				done();
-			});
+		getAccount('thisIsNOTAValidLiskAddress', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// expect(res.body.error).to.contain('Provide valid Lisk address');
+			done();
+		});
 	});
 
 	it('using empty address should fail', function (done) {
-		node.api.get('/accounts?address=')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide address in url');
-				done();
-			});
+		getAccount('', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide address in url');
+			done();
+		});
 	});
 });
