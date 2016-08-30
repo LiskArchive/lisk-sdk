@@ -1281,7 +1281,7 @@ __private.addTransactions = function (req, cb) {
 			secret: {
 				type: 'string',
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			amount: {
 				type: 'integer',
@@ -1295,7 +1295,7 @@ __private.addTransactions = function (req, cb) {
 			secondSecret: {
 				type: 'string',
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			dappId: {
 				type: 'string',
@@ -1444,7 +1444,7 @@ __private.sendWithdrawal = function (req, cb) {
 			secret: {
 				type: 'string',
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			amount: {
 				type: 'integer',
@@ -1459,7 +1459,7 @@ __private.sendWithdrawal = function (req, cb) {
 			secondSecret: {
 				type: 'string',
 				minLength: 1,
-				maxLength: 100
+				maxLength: 215
 			},
 			dappId: {
 				type: 'string',
