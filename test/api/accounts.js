@@ -43,7 +43,7 @@ describe('POST /accounts/open', function () {
 		openAccount({}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// node.expect(res.body.error).to.contain('Provide secret key of account');
+			node.expect(res.body.error).to.contain('Missing required property: secret');
 			done();
 		});
 	});
@@ -54,7 +54,7 @@ describe('POST /accounts/open', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// node.expect(res.body.error).to.contain('Provide secret key of account');
+			node.expect(res.body.error).to.contain('String is too short (0 chars), minimum 1');
 			done();
 		});
 	});
@@ -63,7 +63,7 @@ describe('POST /accounts/open', function () {
 		openAccount('{\'invalid\'}', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// node.expect(res.body.error).to.contain('Provide secret key of account');
+			node.expect(res.body.error).to.contain('Missing required property: secret');
 			done();
 		});
 	});
@@ -78,6 +78,7 @@ describe('POST /accounts/open', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').that.is.an('object');
+			node.expect(res.body.error).to.have.property('message').to.equal('request entity too large');
 			node.expect(res.body.error).to.have.property('limit').to.equal(2097152);
 			done();
 		});
