@@ -306,6 +306,11 @@ shared.getPublickey = function (req, cb) {
 			return cb(err[0].message);
 		}
 
+		var isAddress = /^[0-9]{1,21}[L|l]$/g;
+		if (!isAddress.test(query.address)) {
+			return cb('Invalid address');
+		}
+
 		self.getAccount({ address: query.address }, function (err, account) {
 			if (err) {
 				return cb(err);
