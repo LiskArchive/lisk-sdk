@@ -81,7 +81,7 @@ describe('POST /peer/transactions', function () {
 							// console.log(JSON.stringify(res.body));
 							node.expect(res.body).to.have.property('success').to.be.ok;
 							node.expect(res.body).to.have.property('account').that.is.an('object');
-							node.expect(res.body.account).to.have.property('balance').to.eql('200000000');
+							node.expect(res.body.account).to.have.property('balance').to.equal('200000000');
 							done();
 						});
 					});

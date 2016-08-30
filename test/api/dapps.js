@@ -529,7 +529,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: secret');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: secret');
 			done();
 		});
 	});
@@ -541,7 +541,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Account not found');
+			node.expect(res.body).to.have.property('error').to.equal('Account not found');
 			done();
 		});
 	});
@@ -553,7 +553,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
 		});
 	});
@@ -564,7 +564,7 @@ describe('PUT /dapps/transaction', function () {
 			dappId: DappToInstall.transactionId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: amount');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: amount');
 			done();
 		});
 	});
@@ -576,7 +576,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: -1
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Value -1 is less than minimum 1');
+			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
 			done();
 		});
 	});
@@ -604,7 +604,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 10000000000000002
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Value 10000000000000002 is greater than maximum 10000000000000000');
+			node.expect(res.body).to.have.property('error').to.equal('Value 10000000000000002 is greater than maximum 10000000000000000');
 			done();
 		});
 	});
@@ -617,7 +617,7 @@ describe('PUT /dapps/transaction', function () {
 			publicKey: 1
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -630,7 +630,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -643,7 +643,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
 		});
 	});
@@ -654,7 +654,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: dappId');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: dappId');
 			done();
 		});
 	});
@@ -666,7 +666,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -678,7 +678,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (21 chars), maximum 20');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (21 chars), maximum 20');
 			done();
 		});
 	});
@@ -692,7 +692,7 @@ describe('PUT /dapps/transaction', function () {
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Application not found: ' + dappId);
+			node.expect(res.body).to.have.property('error').to.equal('Application not found: ' + dappId);
 			done();
 		});
 	});
@@ -705,7 +705,7 @@ describe('PUT /dapps/transaction', function () {
 			multisigAccountPublicKey: 1
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -755,7 +755,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: secret');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: secret');
 			done();
 		});
 	});
@@ -769,7 +769,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Account not found');
+			node.expect(res.body).to.have.property('error').to.equal('Account not found');
 			done();
 		});
 	});
@@ -783,7 +783,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
 		});
 	});
@@ -796,7 +796,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: amount');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: amount');
 			done();
 		});
 	});
@@ -810,7 +810,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Value -1 is less than minimum 1');
+			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
 			done();
 		});
 	});
@@ -842,7 +842,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Value 10000000000000002 is greater than maximum 10000000000000000');
+			node.expect(res.body).to.have.property('error').to.equal('Value 10000000000000002 is greater than maximum 10000000000000000');
 			done();
 		});
 	});
@@ -857,7 +857,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -872,7 +872,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (101 chars), maximum 100');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
 		});
 	});
@@ -885,7 +885,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: dappId');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: dappId');
 			done();
 		});
 	});
@@ -899,7 +899,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -913,7 +913,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Application not found: 1L');
+			node.expect(res.body).to.have.property('error').to.equal('Application not found: 1L');
 			done();
 		});
 	});
@@ -927,7 +927,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too short (0 chars), minimum 1');
+			node.expect(res.body).to.have.property('error').to.equal('String is too short (0 chars), minimum 1');
 			done();
 		});
 	});
@@ -941,7 +941,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (21 chars), maximum 20');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (21 chars), maximum 20');
 			done();
 		});
 	});
@@ -957,7 +957,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Application not found: ' + dappId);
+			node.expect(res.body).to.have.property('error').to.equal('Application not found: ' + dappId);
 			done();
 		});
 	});
@@ -970,7 +970,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: transactionId');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: transactionId');
 			done();
 		});
 	});
@@ -984,7 +984,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -998,7 +998,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Invalid outTransfer transactionId');
+			node.expect(res.body).to.have.property('error').to.equal('Invalid outTransfer transactionId');
 			done();
 		});
 	});
@@ -1012,7 +1012,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too short (0 chars), minimum 1');
+			node.expect(res.body).to.have.property('error').to.equal('String is too short (0 chars), minimum 1');
 			done();
 		});
 	});
@@ -1026,7 +1026,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (21 chars), maximum 20');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (21 chars), maximum 20');
 			done();
 		});
 	});
@@ -1039,7 +1039,7 @@ describe('PUT /dapps/withdrawal', function () {
 			transactionId: '1'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: recipientId');
+			node.expect(res.body).to.have.property('error').to.equal('Missing required property: recipientId');
 			done();
 		});
 	});
@@ -1053,7 +1053,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: 12
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -1067,7 +1067,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: '1'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too short (1 chars), minimum 2');
+			node.expect(res.body).to.have.property('error').to.equal('String is too short (1 chars), minimum 2');
 			done();
 		});
 	});
@@ -1081,7 +1081,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: '0123456789012345678901L'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('String is too long (23 chars), maximum 22');
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (23 chars), maximum 22');
 			done();
 		});
 	});
@@ -1095,7 +1095,7 @@ describe('PUT /dapps/withdrawal', function () {
 			recipientId: recipientId.replace('L', '')
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Invalid recipient');
+			node.expect(res.body).to.have.property('error').to.equal('Invalid recipient');
 			done();
 		});
 	});
@@ -1110,7 +1110,7 @@ describe('PUT /dapps/withdrawal', function () {
 			multisigAccountPublicKey: 1
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
 		});
 	});
@@ -1145,7 +1145,7 @@ describe('PUT /dapps/withdrawal', function () {
 			setTimeout(function () {
 				putWithdrawal(params, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').to.eql('Transaction is already processing: 2');
+					node.expect(res.body).to.have.property('error').to.equal('Transaction is already processing: 2');
 					done();
 				});
 			}, 2000);
@@ -1169,7 +1169,7 @@ describe('PUT /dapps/withdrawal', function () {
 				node.expect(err).to.be.not.ok;
 				putWithdrawal(params, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.not.be.ok;
-					node.expect(res.body).to.have.property('error').to.eql('Transaction is already confirmed: 3');
+					node.expect(res.body).to.have.property('error').to.equal('Transaction is already confirmed: 3');
 					done();
 				});
 			});

@@ -624,7 +624,7 @@ describe('PUT /api/transactions', function () {
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.not.be.ok;
-					node.expect(res.body).to.have.property('error').to.eql('Account not found');
+					node.expect(res.body).to.have.property('error').to.equal('Account not found');
 					done();
 				});
 		});

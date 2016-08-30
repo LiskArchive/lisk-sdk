@@ -199,7 +199,7 @@ describe('POST /accounts/generatePublicKey', function () {
 			secret: account.password
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('publicKey').to.eql(keys.publicKey);
+			node.expect(res.body).to.have.property('publicKey').to.equal(keys.publicKey);
 			done();
 		});
 	});

@@ -120,7 +120,7 @@ function confirmTransaction (transactionId, passphrases, done) {
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionId').to.eql(transactionId);
+					node.expect(res.body).to.have.property('transactionId').to.equal(transactionId);
 					count++;
 					return untilCb();
 				});
@@ -628,7 +628,7 @@ describe('PUT /api/transactions', function () {
 						// console.log(JSON.stringify(res.body));
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('transaction');
-						node.expect(res.body.transaction).to.have.property('id').to.eql(transactionId);
+						node.expect(res.body.transaction).to.have.property('id').to.equal(transactionId);
 						done();
 					});
 			});
@@ -723,7 +723,7 @@ describe('POST /multisignatures/sign (group)', function () {
 						// console.log(JSON.stringify(res.body));
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('transaction');
-						node.expect(res.body.transaction).to.have.property('id').to.eql(multiSigTx.txId);
+						node.expect(res.body.transaction).to.have.property('id').to.equal(multiSigTx.txId);
 						done();
 					});
 			});
@@ -774,7 +774,7 @@ describe('POST /multisignatures/sign (transaction)', function () {
 						// console.log(JSON.stringify(res.body));
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('transaction');
-						node.expect(res.body.transaction).to.have.property('id').to.eql(multiSigTx.txId);
+						node.expect(res.body.transaction).to.have.property('id').to.equal(multiSigTx.txId);
 						done();
 					});
 			});
