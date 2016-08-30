@@ -212,7 +212,7 @@ describe('POST /accounts/generatePublicKey', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// node.expect(res.body.error).to.contain('Provide secret key');
+			node.expect(res.body.error).to.contain('String is too short (0 chars), minimum 1');
 			done();
 		});
 	});
@@ -221,7 +221,7 @@ describe('POST /accounts/generatePublicKey', function () {
 		generatePublicKey({}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// node.expect(res.body.error).to.contain('Provide secret key');
+			node.expect(res.body.error).to.contain('Missing required property: secret');
 			done();
 		});
 	});
@@ -230,7 +230,7 @@ describe('POST /accounts/generatePublicKey', function () {
 		generatePublicKey('{\'invalid\'}', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// node.expect(res.body.error).to.contain('Provide secret key');
+			node.expect(res.body.error).to.contain('Missing required property: secret');
 			done();
 		});
 	});
