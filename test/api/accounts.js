@@ -206,6 +206,19 @@ describe('GET /accounts/getPublicKey', function () {
 
 describe('POST /accounts/generatePublicKey', function () {
 
+	it('using valid params should be ok', function (done) {
+		var account = node.randomAccount();
+		var keys = node.lisk.crypto.getKeys(account.password);
+
+		generatePublicKey({
+			secret: account.password
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('publicKey').to.eql(keys.publicKey);
+			done();
+		});
+	});
+
 	it('using empty passphrase should fail', function (done) {
 		generatePublicKey({
 			secret: ''
