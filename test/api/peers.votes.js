@@ -200,6 +200,26 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
+	it('using undefined transaction', function (done) {
+		postVote(undefined, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.eql('Invalid transaction body');
+			done();
+		});
+	});
+
+	it('using undefined transaction.asset', function (done) {
+		var transaction = node.lisk.vote.createVote(account.passphrase, [delegate]);
+
+		delete transaction.asset;
+
+		postVote(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.eql('Invalid transaction body');
+			done();
+		});
+	});
+
 	it('voting for a delegate and then removing again within same block should fail', function (done) {
 		node.onNewBlock(function (err) {
 			node.expect(err).to.be.not.ok;
