@@ -12,73 +12,60 @@ var account = {
 	'balance': 0
 };
 
+function openAccount (params, done) {
+	node.api.post('/accounts/open')
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
 describe('POST /accounts/open', function () {
 
 	it('using valid passphrase: '+account.password+' should be ok', function (done) {
-		node.api.post('/accounts/open')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('account').that.is.an('object');
-				node.expect(res.body.account.address).to.equal(account.address);
-				node.expect(res.body.account.publicKey).to.equal(account.publicKey);
-				account.balance = res.body.account.balance;
-				done();
-			});
+		openAccount({
+			secret: account.password
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('account').that.is.an('object');
+			node.expect(res.body.account.address).to.equal(account.address);
+			node.expect(res.body.account.publicKey).to.equal(account.publicKey);
+			account.balance = res.body.account.balance;
+			done();
+		});
 	});
 
 	it('using empty json should fail', function (done) {
-		node.api.post('/accounts/open')
-			.set('Accept', 'application/json')
-			.send({
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide secret key of account');
-				done();
-			});
+		openAccount({}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide secret key of account');
+			done();
+		});
 	});
 
 	it('using empty passphrase should fail', function (done) {
-		node.api.post('/accounts/open')
-			.set('Accept', 'application/json')
-			.send({
-				secret:''
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide secret key of account');
-				done();
-			});
+		openAccount({
+			secret: ''
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide secret key of account');
+			done();
+		});
 	});
 
 	it('using invalid json should fail', function (done) {
-		node.api.post('/accounts/open')
-			.set('Accept', 'application/json')
-			.send('{\'invalid\'}')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// node.expect(res.body.error).to.contain('Provide secret key of account');
-				done();
-			});
+		openAccount('{\'invalid\'}', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// node.expect(res.body.error).to.contain('Provide secret key of account');
+			done();
+		});
 	});
 
 	it('when payload is over 2Mb should fail', function (done) {
@@ -86,20 +73,14 @@ describe('POST /accounts/open', function () {
 		for (var i = 0; i < 20; i++) {
 			data += data;
 		}
-		node.api.post('/accounts/open')
-			.set('Accept', 'application/json')
-			.send({
-				payload: data
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').that.is.an('object');
-				node.expect(res.body.error).to.have.property('limit').to.equal(2097152);
-				done();
-			});
+		openAccount({
+			secret: data
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').that.is.an('object');
+			node.expect(res.body.error).to.have.property('limit').to.equal(2097152);
+			done();
+		});
 	});
 });
 
