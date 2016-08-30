@@ -47,6 +47,17 @@ function getBalance (address, done) {
 		});
 }
 
+function getPublicKey (address, done) {
+	node.api.get('/accounts/getPublicKey?address=' + address)
+		.set('Accept', 'application/json')
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
 describe('POST /accounts/open', function () {
 
 	it('using valid passphrase: '+account.password+' should be ok', function (done) {
@@ -141,45 +152,29 @@ describe('GET /accounts/getBalance', function () {
 describe('GET /accounts/getPublicKey', function () {
 
 	it('using valid address should be ok', function (done) {
-		node.api.get('/accounts/getPublicKey?address=' + account.address)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('publicKey');
-				node.expect(res.body.publicKey).to.equal(account.publicKey);
-				done();
-			});
+		getPublicKey(account.address, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('publicKey').to.equal(account.publicKey);
+			done();
+		});
 	});
 
 	it('using invalid address should fail', function (done) {
-		node.api.get('/accounts/getPublicKey?address=thisIsNOTALiskAddress')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// expect(res.body.error).to.contain('Provide valid Lisk address');
-				done();
-			});
+		getPublicKey('thisIsNOTALiskAddress', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// expect(res.body.error).to.contain('Provide valid Lisk address');
+			done();
+		});
 	});
 
 	it('using no address should fail', function (done) {
-		node.api.get('/accounts/getPublicKey?address=')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				// expect(res.body.error).to.contain('Provide valid Lisk address');
-				done();
-			});
+		getPublicKey('', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			// expect(res.body.error).to.contain('Provide valid Lisk address');
+			done();
+		});
 	});
 });
 
