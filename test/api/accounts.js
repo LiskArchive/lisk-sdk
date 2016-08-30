@@ -262,7 +262,7 @@ describe('GET /accounts?address=', function () {
 		getAccount('thisIsNOTAValidLiskAddress', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// expect(res.body.error).to.contain('Provide valid Lisk address');
+			node.expect(res.body.error).to.contain('Invalid address');
 			done();
 		});
 	});
@@ -271,7 +271,7 @@ describe('GET /accounts?address=', function () {
 		getAccount('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			// node.expect(res.body.error).to.contain('Provide address in url');
+			node.expect(res.body.error).to.contain('String is too short (0 chars), minimum 1');
 			done();
 		});
 	});
