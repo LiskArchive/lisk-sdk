@@ -1097,9 +1097,7 @@ describe('PUT /dapps/withdrawal', function () {
 describe('GET /dapps', function () {
 
 	before(function (done) {
-		node.onNewBlock(function (err) {
-			done();
-		});
+		node.onNewBlock(done);
 	});
 
 	it('using no limit should be ok', function (done) {
