@@ -42,16 +42,6 @@ var guestbookDapp = {
 	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip'
 };
 
-// Account info for delegate to register manually
-var Daccount = {
-	'address': '4180149793392527131L',
-	'publicKey': 'fe16b09612ca50a6cbcc0a95bdf30bfa11e12c1aded819916cadb0c1e769b4bf',
-	'password': 'demise hidden width hand solid deal doll party danger pencil foil oven',
-	'secondPassword': 'brother maid replace hard scorpion clinic sentence bridge goose gun mass next',
-	'balance': '0',
-	'delegateName': 'test_delegate',
-};
-
 // Existing delegate account
 var Eaccount = {
 	'address': '10881167371402274308L',
@@ -285,7 +275,6 @@ module.exports = {
 	version: version,
 	LISK: LISK,
 	Gaccount: Gaccount,
-	Daccount: Daccount,
 	Eaccount: Eaccount,
 	TxTypes: TxTypes,
 	DappType: DappType,
