@@ -46,39 +46,6 @@ function sendLISK (params, done) {
 }
 
 before(function (done) {
-	openAccount(account, function (err, res) {
-		if (res.body.success && res.body.account != null) {
-			 account.address = res.body.account.address;
-			 account.publicKey = res.body.account.publicKey;
-			 account.balance = res.body.account.balance;
-		}
-		done();
-	});
-});
-
-before(function (done) {
-	openAccount(account2, function (err, res) {
-		if (res.body.success && res.body.account != null) {
-			 account2.address = res.body.account.address;
-			 account2.publicKey = res.body.account.publicKey;
-			 account2.balance = res.body.account.balance;
-		}
-		done();
-	});
-});
-
-before(function (done) {
-	openAccount(account3, function (err, res) {
-		if (res.body.success && res.body.account != null) {
-			 account3.address = res.body.account.address;
-			 account3.publicKey = res.body.account.publicKey;
-			 account3.balance = res.body.account.balance;
-		}
-		done();
-	});
-});
-
-before(function (done) {
 	// Send to LISK to account 1 address
 	setTimeout(function () {
 		var randomLISK = node.randomLISK();
