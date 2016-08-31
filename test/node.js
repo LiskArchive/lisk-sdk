@@ -4,6 +4,7 @@
 var _ = require('lodash');
 var expect = require('chai').expect;
 var chai = require('chai');
+var lisk = require('./lisk-js');
 var supertest = require('supertest');
 var async = require('async');
 var request = require('request');
@@ -243,17 +244,14 @@ function randomCapitalUsername () {
 // Used to create random basic accounts
 function randomAccount () {
 	var account = {
-		'address' : '',
-		'publicKey' : '',
-		'password' : '',
-		'secondPassword': '',
-		'username' : '',
 		'balance': '0'
 	};
 
 	account.password = randomPassword();
 	account.secondPassword = randomPassword();
 	account.username = randomDelegateName();
+	account.publicKey = lisk.crypto.getKeys(account.password).publicKey;
+	account.address = lisk.crypto.getAddress(account.publicKey);
 
 	return account;
 }
@@ -279,7 +277,7 @@ module.exports = {
 	bignum: bignum,
 	chai: chai,
 	peer : peer,
-	lisk : require('./lisk-js'),
+	lisk : lisk,
 	supertest: supertest,
 	expect: expect,
 	version: version,
