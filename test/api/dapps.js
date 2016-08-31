@@ -1617,8 +1617,9 @@ describe('POST /dapps/launch', function () {
 						// console.log(JSON.stringify(res.body));
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('launched').that.is.an('array');
-						if(res.body.success && res.body.launched != null) {
+						if (res.body.success && res.body.launched != null) {
 							var flag = 0;
+
 							for (var i = 0; i < res.body.launched.length; i++) {
 								if (res.body.launched[i] != null) {
 									if (res.body.launched[i] === dappId) {
@@ -1626,6 +1627,7 @@ describe('POST /dapps/launch', function () {
 									}
 								}
 							}
+
 							node.expect(flag).to.equal(1);
 						}
 					});
