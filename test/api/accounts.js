@@ -105,8 +105,8 @@ describe('POST /accounts/open', function () {
 		});
 	});
 
-	it('using invalid json should fail', function (done) {
-		openAccount('{\'invalid\'}', function (err, res) {
+	it('using empty json should fail', function (done) {
+		openAccount({}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			node.expect(res.body.error).to.contain('Missing required property: secret');
@@ -114,8 +114,8 @@ describe('POST /accounts/open', function () {
 		});
 	});
 
-	it('using empty json should fail', function (done) {
-		openAccount({}, function (err, res) {
+	it('using invalid json should fail', function (done) {
+		openAccount('{\'invalid\'}', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			node.expect(res.body.error).to.contain('Missing required property: secret');
