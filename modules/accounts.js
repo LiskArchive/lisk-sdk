@@ -231,10 +231,8 @@ shared.open = function (req, cb) {
 		}
 
 		__private.openAccount(body.secret, function (err, account) {
-			var accountData = null;
-
 			if (!err) {
-				accountData = {
+				var accountData = {
 					address: account.address,
 					unconfirmedBalance: account.u_balance,
 					balance: account.balance,
