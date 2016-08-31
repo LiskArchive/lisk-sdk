@@ -96,11 +96,11 @@ before(function (done) {
 
 describe('PUT /dapps', function () {
 
-	it('using invalid secret should fail', function (done) {
+	it('using random secret should fail', function (done) {
 		node.api.put('/dapps')
 			.set('Accept', 'application/json')
 			.send({
-				secret: 'justAR4nd0m Passw0rd',
+				secret: node.randomPassword(),
 				category: node.randomProperty(node.DappCategory),
 				type: node.DappType.DAPP,
 				name: node.randomDelegateName(),
@@ -452,14 +452,14 @@ describe('PUT /dapps/transaction', function () {
 		});
 	});
 
-	it('using invalid secret should fail', function (done) {
+	it('using random secret should fail', function (done) {
 		putTransaction({
-			secret: 'invalid',
+			secret: node.randomPassword(),
 			dappId: DappToInstall.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Account not found');
+			node.expect(res.body).to.have.property('error').to.match(/Account has no LISK: [0-9]+L balance=0/);
 			done();
 		});
 	});
@@ -678,16 +678,16 @@ describe('PUT /dapps/withdrawal', function () {
 		});
 	});
 
-	it('using invalid secret should fail', function (done) {
+	it('using random secret should fail', function (done) {
 		putWithdrawal({
-			secret: 'invalid',
+			secret: node.randomPassword(),
 			amount: 100000000,
 			dappId: DappToInstall.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Account not found');
+			node.expect(res.body).to.have.property('error').to.match(/Account has no LISK: [0-9]+L balance=0/);
 			done();
 		});
 	});
