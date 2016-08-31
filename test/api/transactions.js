@@ -13,8 +13,7 @@ function openAccount (account, done) {
 	node.api.post('/accounts/open')
 		.set('Accept', 'application/json')
 		.send({
-			secret: account.password,
-			secondSecret: account.secondPassword
+			secret: account.password
 		})
 		.expect('Content-Type', /json/)
 		.expect(200)
