@@ -336,7 +336,7 @@ shared.getPublickey = function (req, cb) {
 			}
 
 			if (!account || !account.publicKey) {
-				return cb('Account does not have a public key');
+				return cb('Account not found');
 			}
 
 			return cb(null, {publicKey: account.publicKey});
