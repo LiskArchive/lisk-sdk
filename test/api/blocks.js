@@ -39,11 +39,10 @@ describe('GET /blocks/getHeight', function () {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				if (res.body.success && res.body.height != null) {
 					node.expect(res.body).to.have.property('height').to.be.above(0);
-					if (res.body.success) {
-						block.blockHeight = res.body.height;
-						if (res.body.height > 100) {
-							testBlocksUnder101 = true;
-						}
+					block.blockHeight = res.body.height;
+
+					if (res.body.height > 100) {
+						testBlocksUnder101 = true;
 					}
 				} else {
 					console.log('Request failed or height is null');
