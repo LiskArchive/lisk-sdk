@@ -170,7 +170,7 @@ __private.attachApi = function () {
 			library.balancesSequence.add(function (cb) {
 				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 					if (err) {
-						return cb('Failed to get account');
+						return cb(err);
 					}
 
 					if (!account || !account.publicKey) {
