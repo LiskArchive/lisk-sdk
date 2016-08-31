@@ -671,7 +671,7 @@ shared.addTransactions = function (req, cb) {
 				var recipientId = recipient ? recipient.address : body.recipientId;
 
 				if (!recipientId) {
-					return cb('Recipient not found');
+					return cb('Invalid recipient');
 				}
 
 				if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
