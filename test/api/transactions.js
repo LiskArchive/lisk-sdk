@@ -583,7 +583,7 @@ describe('PUT /api/transactions', function () {
 		var recipientId = '13896491535841206186L';
 
 		it('should be ok', function (done) {
-			var amountToSend = 100000000;
+			var amountToSend = 110000000;
 
 			node.api.put('/transactions')
 				.set('Accept', 'application/json')
