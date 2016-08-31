@@ -4,13 +4,7 @@ var node = require('./../node.js');
 var path = require('path');
 var spawn = require('child_process').spawn;
 
-var account = {
-	'address': '12099044743111170367L',
-	'publicKey': 'fbd20d4975e53916488791477dd38274c1b4ec23ad322a65adb171ec2ab6a0dc',
-	'password': 'sebastian',
-	'name': 'sebastian',
-	'balance': 0
-};
+var account = node.randomAccount();
 
 function openAccount (params, done) {
 	node.api.post('/accounts/open')
@@ -71,15 +65,51 @@ function getAccount (address, done) {
 
 describe('POST /accounts/open', function () {
 
-	it('using valid passphrase: '+account.password+' should be ok', function (done) {
+	it('using known passphrase should be ok', function (done) {
+		openAccount({
+			secret: node.Gaccount.password
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('account').that.is.an('object');
+			node.expect(res.body.account).to.have.property('address').to.equal(node.Gaccount.address);
+			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);
+			node.expect(res.body.account).to.have.property('multisignatures').to.equal(null);
+			node.expect(res.body.account).to.have.property('u_multisignatures').to.equal(null);
+			done();
+		});
+	});
+
+	it('using unknown passphrase should be ok', function (done) {
+		var account = node.randomAccount();
+
 		openAccount({
 			secret: account.password
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account.address).to.equal(account.address);
-			node.expect(res.body.account.publicKey).to.equal(account.publicKey);
-			account.balance = res.body.account.balance;
+			node.expect(res.body.account).to.have.property('address').to.equal(account.address);
+			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('publicKey').to.equal(account.publicKey);
+			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);
+			node.expect(res.body.account).to.have.property('multisignatures').to.equal(null);
+			node.expect(res.body.account).to.have.property('u_multisignatures').to.equal(null);
+			done();
+		});
+	});
+
+	it('using invalid json should fail', function (done) {
+		openAccount('{\'invalid\'}', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			node.expect(res.body.error).to.contain('Missing required property: secret');
 			done();
 		});
 	});
@@ -104,15 +134,6 @@ describe('POST /accounts/open', function () {
 		});
 	});
 
-	it('using invalid json should fail', function (done) {
-		openAccount('{\'invalid\'}', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.contain('Missing required property: secret');
-			done();
-		});
-	});
-
 	it('when payload is over 2Mb should fail', function (done) {
 		var data = 'qs';
 		for (var i = 0; i < 20; i++) {
@@ -132,11 +153,20 @@ describe('POST /accounts/open', function () {
 
 describe('GET /accounts/getBalance', function () {
 
-	it('using valid params should be ok', function (done) {
+	it('using known address should be ok', function (done) {
+		getBalance(node.Gaccount.address, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('balance').that.is.a('string');
+			node.expect(res.body).to.have.property('unconfirmedBalance').that.is.a('string');
+			done();
+		});
+	});
+
+	it('using unknown address should be ok', function (done) {
 		getBalance(account.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('balance');
-			node.expect(res.body.balance).to.equal(account.balance);
+			node.expect(res.body).to.have.property('balance').that.is.a('string');
+			node.expect(res.body).to.have.property('unconfirmedBalance').that.is.a('string');
 			done();
 		});
 	});
@@ -144,8 +174,7 @@ describe('GET /accounts/getBalance', function () {
 	it('using invalid address should fail', function (done) {
 		getBalance('thisIsNOTALiskAddress', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.contain('Invalid address');
+			node.expect(res.body).to.have.property('error').to.eql('Invalid address');
 			done();
 		});
 	});
@@ -162,10 +191,18 @@ describe('GET /accounts/getBalance', function () {
 
 describe('GET /accounts/getPublicKey', function () {
 
-	it('using valid address should be ok', function (done) {
-		getPublicKey(account.address, function (err, res) {
+	it('using known address should be ok', function (done) {
+		getPublicKey(node.Gaccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('publicKey').to.equal(account.publicKey);
+			node.expect(res.body).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			done();
+		});
+	});
+
+	it('using unknown address should be ok', function (done) {
+		getPublicKey(account.address, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.contain('Account not found');
 			done();
 		});
 	});
@@ -173,8 +210,7 @@ describe('GET /accounts/getPublicKey', function () {
 	it('using invalid address should fail', function (done) {
 		getPublicKey('thisIsNOTALiskAddress', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.contain('Invalid address');
+			node.expect(res.body).to.have.property('error').to.contain('Invalid address');
 			done();
 		});
 	});
@@ -191,26 +227,22 @@ describe('GET /accounts/getPublicKey', function () {
 
 describe('POST /accounts/generatePublicKey', function () {
 
-	it('using valid params should be ok', function (done) {
-		var account = node.randomAccount();
-		var keys = node.lisk.crypto.getKeys(account.password);
-
+	it('using known passphrase should be ok', function (done) {
 		generatePublicKey({
-			secret: account.password
+			secret: node.Gaccount.password
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('publicKey').to.equal(keys.publicKey);
+			node.expect(res.body).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
 			done();
 		});
 	});
 
-	it('using empty passphrase should fail', function (done) {
+	it('using unknown passphrase should be ok', function (done) {
 		generatePublicKey({
-			secret: ''
+			secret: account.password
 		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.contain('String is too short (0 chars), minimum 1');
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('publicKey').to.equal(account.publicKey);
 			done();
 		});
 	});
@@ -232,28 +264,59 @@ describe('POST /accounts/generatePublicKey', function () {
 			done();
 		});
 	});
+
+	it('using empty passphrase should fail', function (done) {
+		generatePublicKey({
+			secret: ''
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			node.expect(res.body.error).to.contain('String is too short (0 chars), minimum 1');
+			done();
+		});
+	});
 });
 
 describe('GET /accounts?address=', function () {
 
-	it('using valid address should be ok', function (done) {
-		getAccount(account.address, function (err, res) {
+	it('using known address should be ok', function (done) {
+		getAccount(node.Gaccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account.address).to.equal(account.address);
-			node.expect(res.body.account.publicKey).to.equal(account.publicKey);
-			node.expect(res.body.account.balance).to.equal(account.balance);
+			node.expect(res.body.account).to.have.property('address').to.equal(node.Gaccount.address);
+			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);
+			node.expect(res.body.account).to.have.property('multisignatures').to.a('array');
+			node.expect(res.body.account).to.have.property('u_multisignatures').to.a('array');
 			done();
 		});
 	});
 
-	it('using lowercase address should be ok', function (done) {
-		getAccount(account.address.toLowerCase(), function (err, res) {
+	it('using known lowercase address should be ok', function (done) {
+		getAccount(node.Gaccount.address.toLowerCase(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account.address).to.equal(account.address);
-			node.expect(res.body.account.publicKey).to.equal(account.publicKey);
-			node.expect(res.body.account.balance).to.equal(account.balance);
+			node.expect(res.body.account).to.have.property('address').to.equal(node.Gaccount.address);
+			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
+			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
+			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);
+			node.expect(res.body.account).to.have.property('multisignatures').to.a('array');
+			node.expect(res.body.account).to.have.property('u_multisignatures').to.a('array');
+			done();
+		});
+	});
+
+	it('using unknown address should fail', function (done) {
+		getAccount(account.address, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Account not found');
 			done();
 		});
 	});
