@@ -342,9 +342,11 @@ shared.generatePublickey = function (req, cb) {
 
 		__private.openAccount(body.secret, function (err, account) {
 			var publicKey = null;
+
 			if (!err && account) {
 				publicKey = account.publicKey;
 			}
+
 			return cb(err, {
 				publicKey: publicKey
 			});
