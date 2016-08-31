@@ -64,7 +64,7 @@ var LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 
 // Returns a random delegate name
 function randomDelegateName () {
-	var size = randomNumber(1,20); // Min. delegate name size is 1, Max. delegate name is 20
+	var size = randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
@@ -222,7 +222,7 @@ function randomUsername () {
 
 // Returns a random capitialized username
 function randomCapitalUsername () {
-	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
+	var size = randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
 	var username = 'A';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
