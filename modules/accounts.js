@@ -517,7 +517,7 @@ shared.addDelegates = function (req, cb) {
 					});
 				});
 			} else {
-				self.getAccount({ publicKey: keypair.publicKey.toString('hex') }, function (err, account) {
+				self.setAccountAndGet({ publicKey: keypair.publicKey.toString('hex') }, function (err, account) {
 					if (err) {
 						return cb(err);
 					}

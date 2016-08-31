@@ -736,7 +736,7 @@ shared.addTransactions = function (req, cb) {
 						});
 					});
 				} else {
-					modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+					modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 						if (err) {
 							return cb(err);
 						}

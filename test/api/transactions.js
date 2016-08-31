@@ -595,7 +595,7 @@ describe('PUT /api/transactions', function () {
 			node.onNewBlock(done);
 		});
 
-		it('should fail', function (done) {
+		it('should be ok', function (done) {
 			var amountToSend = 100000000;
 
 			node.api.put('/transactions')
@@ -609,8 +609,7 @@ describe('PUT /api/transactions', function () {
 				.expect(200)
 				.end(function (err, res) {
 					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.not.be.ok;
-					node.expect(res.body).to.have.property('error').to.equal('Account not found');
+					node.expect(res.body).to.have.property('success').to.be.ok;
 					done();
 				});
 		});

@@ -490,7 +490,7 @@ shared.addMultisignature = function (req, cb) {
 		}
 
 		library.balancesSequence.add(function (cb) {
-			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+			modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 				if (err) {
 					return cb(err);
 				}
