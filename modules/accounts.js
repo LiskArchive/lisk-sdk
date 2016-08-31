@@ -122,8 +122,29 @@ __private.attachApi = function () {
 __private.openAccount = function (secret, cb) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
 	var keypair = ed.MakeKeypair(hash);
+	var publicKey = keypair.publicKey.toString('hex');
 
-	self.setAccountAndGet({ publicKey: keypair.publicKey.toString('hex') }, cb);
+	self.getAccount({ publicKey: publicKey }, function (err, account) {
+		if (err) {
+			return cb(err);
+		}
+
+		if (account) {
+			return cb(null, account);
+		} else {
+			return cb(null, {
+				address: self.generateAddressByPublicKey(publicKey),
+				u_balance: '0',
+				balance: '0',
+				publicKey: publicKey,
+				u_secondSignature: 0,
+				secondSignature: 0,
+				secondPublicKey: null,
+				multisignatures: null,
+				u_multisignatures: null
+			});
+		}
+	});
 };
 
 // Public methods
