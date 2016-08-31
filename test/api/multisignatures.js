@@ -36,9 +36,6 @@ function openAccount (account, i, done) {
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
-			if (i != null) {
-				// console.log('Opening Account ' + i + ' with password: ' + account.password);
-			}
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.account && i != null) {
 				accounts[i].address = res.body.account.address;
@@ -54,9 +51,6 @@ function openAccount (account, i, done) {
 		});
 }
 
-// Used for sending LISK to accounts
-var accountsendTurn = 0;
-
 function sendLISK (account, i, done) {
 	var randomLISK = node.randomLISK();
 
@@ -71,7 +65,6 @@ function sendLISK (account, i, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			// console.log('Sending ' + randomLISK + ' LISK to ' + account.address);
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success && i != null) {
 				accounts[i].balance = randomLISK / node.normalizer;
@@ -92,7 +85,6 @@ function sendLISKfrommultisigAccount (amount, recipient, done) {
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			// console.log('Sending ' + amount + ' LISK to ' + recipient);
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
 			done(err, res.body.transactionId);

@@ -169,7 +169,6 @@ describe('PUT /accounts/delegates with funds', function () {
 			secret: account.password,
 			delegates: [votedDelegate]
 		}, function (err, res) {
-			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -434,8 +433,6 @@ describe('GET /delegates', function () {
 				node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
 				node.expect(res.body.delegates).to.have.length.of.at.most(limit);
 				var num_of_delegates = res.body.delegates.length;
-				// console.log('Limit is ' + limit + '. Number of delegates returned is: ' + num_of_delegates);
-				// console.log('Total Number of delegates returned is: ' + res.body.totalCount);
 				if (num_of_delegates >= 1) {
 					for (var i = 0; i < num_of_delegates; i++) {
 						if (res.body.delegates[i + 1] != null) {
@@ -449,7 +446,6 @@ describe('GET /delegates', function () {
 						}
 					}
 				} else {
-					// console.log('Got 0 delegates');
 					node.expect(false).to.equal(true);
 				}
 				done();
@@ -471,8 +467,6 @@ describe('GET /delegates', function () {
 				node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
 				node.expect(res.body.delegates).to.have.length.of.at.most(limit);
 				var num_of_delegates = res.body.delegates.length;
-				// console.log('Limit is: ' + limit + '. Number of delegates returned is: ' + num_of_delegates);
-				// console.log('Total Number of delegates returned is: ' + res.body.totalCount);
 				if (num_of_delegates >= 1) {
 					for (var i = 0; i < num_of_delegates; i++) {
 						if (res.body.delegates[i + 1] != null) {
@@ -480,7 +474,6 @@ describe('GET /delegates', function () {
 						}
 					}
 				} else {
-					// console.log('Got 0 delegates');
 					node.expect(false).to.equal(true);
 				}
 				done();
