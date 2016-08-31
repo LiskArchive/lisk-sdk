@@ -46,7 +46,7 @@ var Daccount = {
 	'publicKey': 'fe16b09612ca50a6cbcc0a95bdf30bfa11e12c1aded819916cadb0c1e769b4bf',
 	'password': 'demise hidden width hand solid deal doll party danger pencil foil oven',
 	'secondPassword': 'brother maid replace hard scorpion clinic sentence bridge goose gun mass next',
-	'balance': 0,
+	'balance': '0',
 	'delegateName': 'test_delegate',
 };
 
@@ -55,7 +55,7 @@ var Eaccount = {
 	'address': '10881167371402274308L',
 	'publicKey': 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	'password': 'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
-	'balance': 0,
+	'balance': '0',
 	'delegateName': 'genesis_100'
 };
 
@@ -64,7 +64,7 @@ var Gaccount = {
 	'address': '16313739661670634666L',
 	'publicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	'password': 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
-	'balance': 10000000000000000
+	'balance': '10000000000000000'
 };
 
 // Random LISK Amount
@@ -248,7 +248,7 @@ function randomAccount () {
 		'password' : '',
 		'secondPassword': '',
 		'username' : '',
-		'balance': 0
+		'balance': '0'
 	};
 
 	account.password = randomPassword();
