@@ -82,6 +82,7 @@ shared.getFee = function (req, cb) {
 
 shared.addSignature = function (req, cb) {
 	var body = req.body;
+
 	library.scheme.validate(body, {
 		type: 'object',
 		properties: {
@@ -182,6 +183,7 @@ shared.addSignature = function (req, cb) {
 					if (err) {
 						return cb(err);
 					}
+
 					if (!account || !account.publicKey) {
 						return cb('Account not found');
 					}
