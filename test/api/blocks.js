@@ -44,8 +44,6 @@ describe('GET /blocks/getHeight', function () {
 					if (res.body.height > 100) {
 						testBlocksUnder101 = true;
 					}
-				} else {
-					console.log('Request failed or height is null');
 				}
 				done();
 			});
@@ -203,8 +201,6 @@ describe('GET /blocks', function () {
 					block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
 					block.totalAmount = res.body.blocks[0].totalAmount;
 					block.totalFee = res.body.blocks[0].totalFee;
-				} else {
-					console.log('Request failed or blocks array is null');
 				}
 				done();
 			});
@@ -237,8 +233,6 @@ describe('GET /blocks', function () {
 						block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
 						block.totalAmount = res.body.blocks[0].totalAmount;
 						block.totalFee = res.body.blocks[0].totalFee;
-					} else {
-						console.log('Request failed or blocks array is null');
 					}
 					done();
 				});
