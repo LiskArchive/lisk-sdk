@@ -74,9 +74,8 @@ before(function (done) {
 });
 
 before(function (done) {
-	// Wait for new block to ensure all data has been received
+	// Add second password for Account 2
 	node.onNewBlock(function (err) {
-		// Add second password for Account 2
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
 			.send({
