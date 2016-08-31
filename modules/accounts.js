@@ -300,8 +300,8 @@ shared.getBalance = function (req, cb) {
 				return cb(err);
 			}
 
-			var balance = account ? account.balance : 0;
-			var unconfirmedBalance = account ? account.u_balance : 0;
+			var balance = account ? account.balance : '0';
+			var unconfirmedBalance = account ? account.u_balance : '0';
 
 			return cb(null, {balance: balance, unconfirmedBalance: unconfirmedBalance});
 		});
