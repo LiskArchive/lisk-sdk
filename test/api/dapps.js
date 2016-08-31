@@ -20,17 +20,11 @@ function openAccount (account, done) {
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			// console.log('Opening account with password:', account.password);
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success && res.body.account != null) {
 				account.address = res.body.account.address;
 				account.publicKey = res.body.account.publicKey;
 				account.balance = res.body.account.balance;
-			} else {
-				// console.log('Failed to open account');
-				// console.log('Secret:', account.password, ', secondSecret:', account.secondPassword);
-				node.expect(false).to.equal(true);
 			}
 			done(err, res);
 		});
@@ -53,15 +47,10 @@ function sendLISK (params, done) {
 
 before(function (done) {
 	openAccount(account, function (err, res) {
-		// console.log('Opening account with password:', account.password);
 		if (res.body.success && res.body.account != null) {
 			 account.address = res.body.account.address;
 			 account.publicKey = res.body.account.publicKey;
 			 account.balance = res.body.account.balance;
-		} else {
-			 // console.log('Failed to open account');
-			 // console.log('Secret:', account.password, ', secondSecret:', account.secondPassword);
-			 node.expect(false).to.equal(true);
 		}
 		done();
 	});
@@ -69,15 +58,10 @@ before(function (done) {
 
 before(function (done) {
 	openAccount(account2, function (err, res) {
-		// console.log('Opening account with password:', account2.password);
 		if (res.body.success && res.body.account != null) {
 			 account2.address = res.body.account.address;
 			 account2.publicKey = res.body.account.publicKey;
 			 account2.balance = res.body.account.balance;
-		} else {
-			 // console.log('Failed to open account');
-			 // console.log('Secret:', account2.password, ', secondSecret:', account2.secondPassword);
-			 node.expect(false).to.equal(true);
 		}
 		done();
 	});
@@ -85,15 +69,10 @@ before(function (done) {
 
 before(function (done) {
 	openAccount(account3, function (err, res) {
-		// console.log('Opening account with password:', account3.password);
 		if (res.body.success && res.body.account != null) {
 			 account3.address = res.body.account.address;
 			 account3.publicKey = res.body.account.publicKey;
 			 account3.balance = res.body.account.balance;
-		} else {
-			 // console.log('Failed to open account');
-			 // console.log('Secret:', account3.password, ', secondSecret:', account3.secondPassword);
-			 node.expect(false).to.equal(true);
 		}
 		done();
 	});
@@ -109,17 +88,7 @@ before(function (done) {
 			secret: node.Gaccount.password,
 			amount: randomLISK,
 			recipientId: account.address
-		}, function (err, res) {
-			if (res.body.success && res.body.transactionId != null) {
-				// console.log('Sent to:', account.address, (randomLISK / node.normalizer), 'LISK');
-				// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
-			} else {
-				// console.log('Sending LISK to:', account.address, 'failed');
-				// console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
-				node.expect(false).to.equal(true);
-			}
-			done();
-		});
+		}, done);
 	}, 2000);
 });
 
@@ -133,17 +102,7 @@ before(function (done) {
 			secret: node.Gaccount.password,
 			amount: randomLISK,
 			recipientId: account2.address
-		}, function (err, res) {
-			if (res.body.success && res.body.transactionId != null) {
-				// console.log('Sent to:', account2.address, (randomLISK / node.normalizer), 'LISK');
-				// console.log('Expected fee (paid by sender):', expectedFee / node.normalizer, 'LISK');
-			} else {
-				// console.log('Sending LISK to:', account2.address, 'failed');
-				// console.log('Secret:', node.Gaccount.password, ', amount:', randomLISK);
-				node.expect(false).to.equal(true);
-			}
-			done();
-		});
+		}, done);
 	}, 2000);
 });
 
@@ -166,9 +125,6 @@ before(function (done) {
 				done();
 			});
 	});
-	// console.log('ACCOUNT 1: ' + account.address);
-	// console.log('ACCOUNT 2: ' + account2.address);
-	// console.log('ACCOUNT 3: ' + account3.address);
 });
 
 describe('PUT /dapps', function () {
@@ -1195,9 +1151,6 @@ describe('GET /dapps', function () {
 						Dapp = res.body.dapps[0];
 						DappToInstall = Dapp;
 					}
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1235,9 +1188,6 @@ describe('GET /dapps', function () {
 							}
 						}
 					}
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1261,9 +1211,6 @@ describe('GET /dapps', function () {
 							}
 						}
 					}
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1281,9 +1228,6 @@ describe('GET /dapps', function () {
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success && res.body.dapps != null) {
 					node.expect((res.body.dapps).length).to.be.at.most(limit);
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1303,9 +1247,6 @@ describe('GET /dapps', function () {
 					if((res.body.dapps).length > 0) {
 						node.expect(res.body.dapps[0].category).to.equal(node.DappCategory[randomCategory]);
 					}
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1333,9 +1274,6 @@ describe('GET /dapps', function () {
 					node.expect(res.body.dapps.length).to.equal(1);
 					if (res.body.success && res.body.dapps != null) {
 						node.expect(res.body.dapps[0].name).to.equal(name);
-					} else {
-						// console.log(JSON.stringify(res.body));
-						console.log('Request failed or dapps array is null');
 					}
 				}
 				done();
@@ -1358,9 +1296,6 @@ describe('GET /dapps', function () {
 							node.expect(res.body.dapps[i].type).to.equal(type);
 						}
 					}
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1382,9 +1317,6 @@ describe('GET /dapps', function () {
 							node.expect(res.body.dapps[i].link).to.equal(link);
 						}
 					}
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1404,7 +1336,7 @@ describe('GET /dapps', function () {
 				if (res.body.success && res.body.dapps != null) {
 					if (res.body.dapps[1] != null) {
 						secondDapp = res.body.dapps[1];
-						// console.log(offset);
+
 						node.api.get('/dapps?offset=' + offset )
 							.expect('Content-Type', /json/)
 							.expect(200)
@@ -1415,13 +1347,7 @@ describe('GET /dapps', function () {
 									node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
 								}
 							});
-					} else {
-						// console.log(JSON.stringify(res.body));
-						// console.log('Only 1 dapp or something went wrong. Cannot check offset');
 					}
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1466,12 +1392,7 @@ describe('GET /dapps?id=', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapp');
-				if (res.body.success && res.body.dapp != null) {
-					node.expect(res.body.dapp.transactionId).to.equal(dappId);
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
-				}
+				node.expect(res.body.dapp.transactionId).to.equal(dappId);
 				done();
 			});
 	});
@@ -1554,9 +1475,6 @@ describe('GET /dapps/installed', function () {
 						}
 					}
 					node.expect(flag).to.equal(1);
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1584,9 +1502,6 @@ describe('GET /dapps/installedIds', function () {
 						}
 					}
 					node.expect(flag).to.equal(1);
-				} else {
-					// console.log(JSON.stringify(res.body));
-					console.log('Request failed or dapps array is null');
 				}
 				done();
 			});
@@ -1712,9 +1627,6 @@ describe('POST /dapps/launch', function () {
 								}
 							}
 							node.expect(flag).to.equal(1);
-						} else {
-							// console.log(JSON.stringify(res.body));
-							console.log('Request failed or launched array is null');
 						}
 					});
 				done();
