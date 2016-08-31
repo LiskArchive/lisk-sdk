@@ -20,6 +20,7 @@ function openAccount (account, done) {
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success && res.body.account != null) {
 				account.address = res.body.account.address;
