@@ -307,7 +307,6 @@ describe('GET /blocks', function () {
 			var previousBlock = block.id;
 
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				node.api.get('/blocks?previousBlock='+previousBlock)
 					.set('Accept', 'application/json')
 					.expect('Content-Type', /json/)

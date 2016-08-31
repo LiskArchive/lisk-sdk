@@ -37,7 +37,6 @@ function sendLISK (params, done) {
 			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				done(err, res);
 			});
 		});

@@ -86,7 +86,6 @@ before(function (done) {
 
 before(function (done) {
 	node.onNewBlock(function (err) {
-		node.expect(err).to.be.not.ok;
 		done();
 	});
 });

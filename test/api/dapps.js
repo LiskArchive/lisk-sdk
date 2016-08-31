@@ -47,7 +47,6 @@ function sendLISK (params, done) {
 			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				done(err, res);
 			});
 		});
@@ -152,7 +151,6 @@ before(function (done) {
 before(function (done) {
 	// Wait for new block to ensure all data has been received
 	node.onNewBlock(function (err) {
-		node.expect(err).to.be.not.ok;
 		// Add second password for Account 2
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
@@ -453,7 +451,6 @@ describe('PUT /dapps', function () {
 
 	it('using existing dapp name should fail', function (done) {
 		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
 			node.api.put('/dapps')
 				.set('Accept', 'application/json')
 				.send({
@@ -478,7 +475,6 @@ describe('PUT /dapps', function () {
 
 	it('using existing dapp link should fail', function (done) {
 		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
 			node.api.put('/dapps')
 				.set('Accept', 'application/json')
 				.send({
@@ -1166,7 +1162,6 @@ describe('PUT /dapps/withdrawal', function () {
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
 
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				putWithdrawal(params, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.not.be.ok;
 					node.expect(res.body).to.have.property('error').to.equal('Transaction is already confirmed: 3');
@@ -1181,7 +1176,6 @@ describe('GET /dapps', function () {
 
 	before(function (done) {
 		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
 			done();
 		});
 	});

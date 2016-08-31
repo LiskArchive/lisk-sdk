@@ -38,7 +38,6 @@ function sendLISK (params, done) {
 			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				done(err, res);
 			});
 		});
@@ -128,7 +127,6 @@ describe('POST /peer/transactions', function () {
 
 		before(function (done) {
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				done();
 			});
 		});

@@ -68,15 +68,11 @@ describe('POST /peer/transactions', function () {
 			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
-
 				var transaction2 = node.lisk.transaction.createTransaction(address.toLowerCase(), 100000000, node.Gaccount.password);
 				postTransaction(transaction2, function (err, res) {
 					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.onNewBlock(function (err) {
-						node.expect(err).to.be.not.ok;
-
 						getAddress(address, function (err, res) {
 							// console.log(JSON.stringify(res.body));
 							node.expect(res.body).to.have.property('success').to.be.ok;

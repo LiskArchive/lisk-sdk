@@ -138,7 +138,6 @@ describe('PUT /accounts/delegates with funds', function () {
 			node.expect(res.body).to.have.property('transactionId');
 			node.expect(res.body.transactionId).to.be.above(1);
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				done();
 			});
 		});
@@ -146,7 +145,6 @@ describe('PUT /accounts/delegates with funds', function () {
 
 	beforeEach(function (done) {
 		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
 			done();
 		});
 	});
@@ -313,7 +311,6 @@ describe('PUT /delegates with funds', function () {
 			node.expect(res.body).to.have.property('transactionId');
 			node.expect(res.body.transactionId).to.be.above(1);
 			node.onNewBlock(function (err) {
-				node.expect(err).to.be.not.ok;
 				done();
 			});
 		});
@@ -321,7 +318,6 @@ describe('PUT /delegates with funds', function () {
 
 	beforeEach(function (done) {
 		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
 			done();
 		});
 	});
@@ -568,7 +564,6 @@ describe('GET /delegates/voters', function () {
 		//	delegates: ['+' + node.Eaccount.publicKey]
 		// }));
 		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
 				.send({
@@ -618,7 +613,6 @@ describe('GET /delegates/voters', function () {
 
 	it('using valid publicKey should be ok', function (done) {
 		node.onNewBlock(function (err) {
-			node.expect(err).to.be.not.ok;
 			node.api.get('/delegates/voters?publicKey=' + node.Eaccount.publicKey)
 				.set('Accept', 'application/json')
 				.expect('Content-Type', /json/)
