@@ -328,8 +328,8 @@ describe('GET /blocks', function () {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
-					if (res.body.blocks[i+1] != null) {
-						node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i+1].height);
+					if (res.body.blocks[i + 1] != null) {
+						node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
 					}
 				}
 				done();
