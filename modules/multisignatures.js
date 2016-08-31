@@ -43,9 +43,9 @@ __private.attachApi = function () {
 	});
 
 	router.map(shared, {
-		'get /pending': 'pending', // Get pending transactions
-		'post /sign': 'sign', // Sign transaction
-		'put /': 'addMultisignature', // Add multisignature
+		'get /pending': 'pending',
+		'post /sign': 'sign',
+		'put /': 'addMultisignature',
 		'get /accounts': 'getAccounts'
 	});
 
