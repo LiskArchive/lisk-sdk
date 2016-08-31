@@ -26,7 +26,7 @@ var blockTime = 10000; // Block time in miliseconds
 var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 var version = '0.0.0'; // Node version
 
-// Holds Fee amounts for different transaction types
+// Transaction fees
 var Fees = {
 	voteFee: constants.fees.vote,
 	transactionFee: constants.fees.send,
@@ -36,6 +36,7 @@ var Fees = {
 	dappAddFee: constants.fees.dapp
 };
 
+// Test application
 var guestbookDapp = {
 	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
 	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip'
@@ -51,7 +52,7 @@ var Daccount = {
 	'delegateName': 'test_delegate',
 };
 
-// Existing delegate account in blockchain
+// Existing delegate account
 var Eaccount = {
 	'address': '10881167371402274308L',
 	'publicKey': 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
@@ -60,7 +61,7 @@ var Eaccount = {
 	'delegateName': 'genesis_100'
 };
 
-// Account info for genesis account - Needed for voting, registrations and Tx
+// Genesis account, initially holding 100M total supply
 var Gaccount = {
 	'address': '16313739661670634666L',
 	'publicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -68,10 +69,10 @@ var Gaccount = {
 	'balance': '10000000000000000'
 };
 
-// Random LISK Amount
-var LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1; // Remove 1 x 0 for reduced fees (delegate + Tx)
+// Random LSK amount
+var LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 
-// Used to create random delegates names
+// Returns a random delegate name
 function randomDelegateName () {
 	var size = randomNumber(1,20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
@@ -84,7 +85,7 @@ function randomDelegateName () {
 	return delegateName;
 }
 
-// Randomize a property from within an object
+// Returns a random property from the given object
 function randomProperty (obj, needKey) {
 	var keys = Object.keys(obj);
 
@@ -95,7 +96,7 @@ function randomProperty (obj, needKey) {
 	}
 }
 
-// Randomizes LISK amount
+// Returns random LSK amount
 function randomLISK () {
 	return Math.floor(Math.random() * (10000 * 100000000)) + (1000 * 100000000);
 }
@@ -117,7 +118,7 @@ function getHeight (cb) {
 
 function onNewBlock (cb) {
 	getHeight(function (err, height) {
-		//console.log('Height: ' + height);
+		// console.log('Height: ' + height);
 		if (err) {
 			return cb(err);
 		} else {
@@ -126,7 +127,7 @@ function onNewBlock (cb) {
 	});
 }
 
-// Function used to wait until a new block has been created
+// Wait until a new block has been created
 function waitForNewBlock (height, cb) {
 	var actualHeight = height;
 	var counter = 1;
@@ -201,7 +202,7 @@ function addPeers (numOfPeers, cb) {
 	});
 }
 
-// Used to randomize selecting from within an array. Requires array length
+// Returns a random index for an array
 function randomizeSelection (length) {
 	return Math.floor(Math.random() * length);
 }
@@ -211,12 +212,12 @@ function randomNumber (min, max) {
 	return	Math.floor(Math.random() * (max - min) + min);
 }
 
-// Calculates the expected fee from a transaction
+// Returns the expected fee for the given amount
 function expectedFee (amount) {
 	return parseInt(Fees.transactionFee);
 }
 
-// Used to create random usernames
+// Returns a random username
 function randomUsername () {
 	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
 	var username = '';
@@ -229,6 +230,7 @@ function randomUsername () {
 	return username;
 }
 
+// Returns a random capitialized username
 function randomCapitalUsername () {
 	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
 	var username = 'A';
@@ -241,7 +243,7 @@ function randomCapitalUsername () {
 	return username;
 }
 
-// Used to create random basic accounts
+// Returns a basic random account
 function randomAccount () {
 	var account = {
 		'balance': '0'
@@ -256,7 +258,7 @@ function randomAccount () {
 	return account;
 }
 
-// Used to create random transaction accounts (holds additional info to regular account)
+// Returns an extended random account
 function randomTxAccount () {
 	return _.defaults(randomAccount(), {
 		sentAmount:'',
@@ -266,12 +268,12 @@ function randomTxAccount () {
 	});
 }
 
-// Used to create random passwords
+// Returns a random password
 function randomPassword () {
 	return Math.random().toString(36).substring(7);
 }
 
-// Exports variables and functions for access from other files
+// Exports
 module.exports = {
 	api: api,
 	bignum: bignum,
