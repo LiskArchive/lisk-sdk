@@ -74,7 +74,7 @@ before(function (done) {
 });
 
 before(function (done) {
-	// Add second password for Account 2
+	// Add second signature to Account 2
 	node.onNewBlock(function (err) {
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
