@@ -100,7 +100,7 @@ describe('PUT /dapps', function () {
 	it('using unknown category should fail', function (done) {
 		node.put('/dapps', {
 			secret: account.password,
-			category: 'Choo Choo',
+			category: 'unknown',
 			type: node.dappTypes.DAPP,
 			name: node.randomDelegateName(),
 			description: 'A dapp that should not be added',
@@ -188,6 +188,7 @@ describe('PUT /dapps', function () {
 			name: node.randomDelegateName(),
 			description: 'A dapp that should not be added',
 			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			icon: node.guestbookDapp.icon
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -233,9 +234,8 @@ describe('PUT /dapps', function () {
 
 		node.put('/dapps', {
 			secret: account.password,
-			secondSecret: null,
 			category: node.randomProperty(node.dappCategories),
-			type: 'INVALIDTYPE',
+			type: 'unknown',
 			name: DappName,
 			description: 'A dapp that should not be added',
 			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -1155,7 +1155,7 @@ describe('GET /dapps?id=', function () {
 	});
 
 	it('using unknown id should fail', function (done) {
-		getDapps('UNKNOWN_ID', function (err, res) {
+		getDapps('unknown', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -1191,7 +1191,7 @@ describe('POST /dapps/install', function () {
 
 	it('using unknown id should fail', function (done) {
 		postInstall({
-			id: 'UNKNOWN_ID',
+			id: 'unknown',
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -1326,7 +1326,7 @@ describe('POST /dapps/launch', function () {
 
 	it('using unknown id should fail', function (done) {
 		postLaunch({
-			id: 'UNKNOWN_ID',
+			id: 'unknown',
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -1382,7 +1382,7 @@ describe('POST /dapps/stop', function () {
 
 	it('using unknown id should fail', function (done) {
 		postStop({
-			id: 'UNKNOWN_ID',
+			id: 'unknown',
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -1435,7 +1435,7 @@ describe('POST /dapps/uninstall', function () {
 
 	it('using unknown id should fail', function (done) {
 		postUninstall({
-			id: 'UNKNOWN_ID',
+			id: 'unknown',
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
