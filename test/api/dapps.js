@@ -8,7 +8,6 @@ var DappToInstall = {};
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
-var account3 = node.randomTxAccount();
 
 function openAccount (account, done) {
 	node.post('/accounts/open', {
