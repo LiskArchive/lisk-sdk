@@ -97,7 +97,7 @@ describe('PUT /dapps', function () {
 		});
 	});
 
-	it('using invalid category should fail', function (done) {
+	it('using unknown category should fail', function (done) {
 		node.put('/dapps', {
 			secret: account.password,
 			category: 'Choo Choo',
@@ -228,7 +228,7 @@ describe('PUT /dapps', function () {
 		});
 	});
 
-	it('using invalid type should fail', function (done) {
+	it('using unknown type should fail', function (done) {
 		DappName = node.randomDelegateName();
 
 		node.put('/dapps', {
