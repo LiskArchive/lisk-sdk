@@ -29,35 +29,41 @@ function openAccount (account, done) {
 		});
 }
 
-function sendLISK (account, done) {
-	var randomLISK = node.randomLISK();
-	var expectedFee = node.expectedFee(randomLISK);
-
+function putTransaction (params, done) {
 	node.api.put('/transactions')
 		.set('Accept', 'application/json')
-		.send({
-			secret: node.Gaccount.password,
-			amount: randomLISK,
-			recipientId: account.address
-		})
+		.send(params)
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
 			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.transactionId != null) {
-				transactionList.push({
-					'sender': node.Gaccount.address,
-					'recipient': account.address,
-					'grossSent': (randomLISK + expectedFee) / node.normalizer,
-					'fee': expectedFee / node.normalizer,
-					'netSent': randomLISK / node.normalizer,
-					'txId': res.body.transactionId,
-					'type': node.TxTypes.SEND
-				});
-			}
 			done(err, res);
 		});
+}
+
+function sendLISK (account, done) {
+	var randomLISK = node.randomLISK();
+	var expectedFee = node.expectedFee(randomLISK);
+
+	putTransaction({
+		secret: node.Gaccount.password,
+		amount: randomLISK,
+		recipientId: account.address
+	}, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		if (res.body.success && res.body.transactionId != null) {
+			transactionList.push({
+				'sender': node.Gaccount.address,
+				'recipient': account.address,
+				'grossSent': (randomLISK + expectedFee) / node.normalizer,
+				'fee': expectedFee / node.normalizer,
+				'netSent': randomLISK / node.normalizer,
+				'txId': res.body.transactionId,
+				'type': node.TxTypes.SEND
+			});
+		}
+		done(err, res);
+	});
 }
 
 before(function (done) {
@@ -364,204 +370,138 @@ describe('PUT /api/transactions', function () {
 		var amountToSend = 100000000;
 		var expectedFee = node.expectedFee(amountToSend);
 
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: amountToSend,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId');
-				if (res.body.success && res.body.transactionId != null) {
-					transactionList.push({
-						'sender': account.address,
-						'recipient': account2.address,
-						'grossSent': (amountToSend + expectedFee) / node.normalizer,
-						'fee': expectedFee / node.normalizer,
-						'netSent': amountToSend / node.normalizer,
-						'txId': res.body.transactionId,
-						'type': node.TxTypes.SEND
-					});
-				} else {
-					// console.log('Failed Tx or transactionId is null');
-					// console.log('Sent: secret: ' + account.password + ', amount: ' + amountToSend + ', recipientId: ' + account2.address);
-					node.expect(false).to.equal(true);
-				}
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: amountToSend,
+			recipientId: account2.address
+		}, function (err, res) {
+			if (res.body.success && res.body.transactionId != null) {
+				transactionList.push({
+					'sender': account.address,
+					'recipient': account2.address,
+					'grossSent': (amountToSend + expectedFee) / node.normalizer,
+					'fee': expectedFee / node.normalizer,
+					'netSent': amountToSend / node.normalizer,
+					'txId': res.body.transactionId,
+					'type': node.TxTypes.SEND
+				});
+			}
+			done();
+		});
 	});
 
 	it('using negative amount should fail', function (done) {
 		var amountToSend = -100000000;
 
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: amountToSend,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: amountToSend,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using float amount should fail', function (done) {
 		var amountToSend = 1.2;
 
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: amountToSend,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: amountToSend,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using entire balance should fail', function (done) {
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: account.balance,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: account.balance,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using zero amount should fail', function (done) {
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: 0,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: 0,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using positive overflown amount should fail', function (done) {
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using negative overflown amount should fail', function (done) {
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using small fractional amount should be ok', function (done) {
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: 1,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: 1,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId');
+			done();
+		});
 	});
 
 	it('using no passphase should fail', function (done) {
 		var amountToSend = 100000000;
 
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				amount: amountToSend,
-				recipientId: account2.address
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			amount: amountToSend,
+			recipientId: account2.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using no recipient should fail', function (done) {
 		var amountToSend = 100000000;
 
-		node.api.put('/transactions')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				amount: amountToSend
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		putTransaction({
+			secret: account.password,
+			amount: amountToSend
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	describe('to a cold address', function (done) {
@@ -570,20 +510,14 @@ describe('PUT /api/transactions', function () {
 		it('should be ok', function (done) {
 			var amountToSend = 110000000;
 
-			node.api.put('/transactions')
-				.set('Accept', 'application/json')
-				.send({
-					secret: node.Gaccount.password,
-					amount: amountToSend,
-					recipientId: recipientId
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					done();
-				});
+			putTransaction({
+				secret: node.Gaccount.password,
+				amount: amountToSend,
+				recipientId: recipientId
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				done();
+			});
 		});
 	});
 
@@ -597,20 +531,14 @@ describe('PUT /api/transactions', function () {
 		it('should be ok', function (done) {
 			var amountToSend = 100000000;
 
-			node.api.put('/transactions')
-				.set('Accept', 'application/json')
-				.send({
-					secret: passphrase,
-					amount: amountToSend,
-					recipientId: account2.address
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					done();
-				});
+			putTransaction({
+				secret: passphrase,
+				amount: amountToSend,
+				recipientId: account2.address
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				done();
+			});
 		});
 	});
 });
