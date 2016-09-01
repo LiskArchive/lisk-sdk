@@ -10,7 +10,7 @@ var block = {
 	totalFee: 0
 };
 
-var testBlocksUnder101 = 0;
+var testBlocksUnder101 = false;
 
 describe('GET /blocks/getEpoch', function () {
 
@@ -159,31 +159,31 @@ describe('GET /blocks', function () {
 	});
 
 	it('using height < 100 should be ok', function (done) {
-		if (testBlocksUnder101) {
-			getBlocks('height=' + 10, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success && res.body.blocks != null) {
-					node.expect(res.body).to.have.property('count');
-					node.expect(res.body).to.have.property('blocks').that.is.an('array');
-					node.expect(res.body.blocks.length).to.equal(1);
-					node.expect(res.body.blocks[0]).to.have.property('previousBlock');
-					node.expect(res.body.blocks[0]).to.have.property('totalAmount');
-					node.expect(res.body.blocks[0]).to.have.property('totalFee');
-					node.expect(res.body.blocks[0]).to.have.property('generatorId');
-					node.expect(res.body.blocks[0]).to.have.property('confirmations');
-					node.expect(res.body.blocks[0]).to.have.property('blockSignature');
-					node.expect(res.body.blocks[0]).to.have.property('numberOfTransactions');
-					node.expect(res.body.blocks[0].height).to.equal(10);
-					block.id = res.body.blocks[0].id;
-					block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
-					block.totalAmount = res.body.blocks[0].totalAmount;
-					block.totalFee = res.body.blocks[0].totalFee;
-				}
-				done();
-			});
-		} else {
-			done();
+		if (!testBlocksUnder101) {
+			this.skip();
 		}
+
+		getBlocks('height=' + 10, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			if (res.body.success && res.body.blocks != null) {
+				node.expect(res.body).to.have.property('count');
+				node.expect(res.body).to.have.property('blocks').that.is.an('array');
+				node.expect(res.body.blocks.length).to.equal(1);
+				node.expect(res.body.blocks[0]).to.have.property('previousBlock');
+				node.expect(res.body.blocks[0]).to.have.property('totalAmount');
+				node.expect(res.body.blocks[0]).to.have.property('totalFee');
+				node.expect(res.body.blocks[0]).to.have.property('generatorId');
+				node.expect(res.body.blocks[0]).to.have.property('confirmations');
+				node.expect(res.body.blocks[0]).to.have.property('blockSignature');
+				node.expect(res.body.blocks[0]).to.have.property('numberOfTransactions');
+				node.expect(res.body.blocks[0].height).to.equal(10);
+				block.id = res.body.blocks[0].id;
+				block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
+				block.totalAmount = res.body.blocks[0].totalAmount;
+				block.totalFee = res.body.blocks[0].totalFee;
+			}
+			done();
+		});
 	});
 
 	it('using generatorPublicKey should be ok', function (done) {
