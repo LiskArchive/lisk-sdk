@@ -80,7 +80,7 @@ before(function (done) {
 
 describe('PUT /dapps', function () {
 
-	it('using random secret should fail', function (done) {
+	it('using account with no funds should fail', function (done) {
 		node.put('/dapps', {
 			secret: node.randomPassword(),
 			category: node.randomProperty(node.dappCategories),
@@ -96,23 +96,6 @@ describe('PUT /dapps', function () {
 			done();
 		});
 	});
-
-	it('using account with 0 LISK account should fail', function (done) {
-		node.put('/dapps', {
-			secret: account3.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: node.randomDelegateName(),
-			description: 'A dapp that should not be added',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			done();
-		});
-	});
-
 
 	it('using invalid category should fail', function (done) {
 		node.put('/dapps', {
