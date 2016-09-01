@@ -1,49 +1,52 @@
 'use strict';
 
-// Requires
-var _ = require('lodash');
-var expect = require('chai').expect;
-var chai = require('chai');
-var lisk = require('./lisk-js');
-var supertest = require('supertest');
-var async = require('async');
-var request = require('request');
+// Root object
+var node = {};
 
-var bignum = require('../helpers/bignum.js');
-var dappCategories = require('../helpers/dappCategories.js');
-var dappTypes = require('../helpers/dappTypes.js');
-var txTypes = require('../helpers/transactionTypes.js');
+// Requires
+node._ = require('lodash');
+node.async = require('async');
+node.request = require('request');
+node.expect = require('chai').expect;
+node.chai = require('chai');
+node.lisk = require('./lisk-js');
+node.supertest = require('supertest');
+
+node.bignum = require('../helpers/bignum.js');
+node.dappCategories = require('../helpers/dappCategories.js');
+node.dappTypes = require('../helpers/dappTypes.js');
+node.txTypes = require('../helpers/transactionTypes.js');
 
 // Node configuration
-var config = require('../config.json');
-var baseUrl = 'http://' + config.address + ':' + config.port;
-var api = supertest(baseUrl + '/api');
-var peer = supertest(baseUrl + '/peer');
-var constants = require('../helpers/constants.js');
+node.config = require('../config.json');
+node.baseUrl = 'http://' + node.config.address + ':' + node.config.port;
+node.api = node.supertest(node.baseUrl + '/api');
+node.peer = node.supertest(node.baseUrl + '/peer');
+node.constants = require('../helpers/constants.js');
 
-var normalizer = 100000000; // Use this to convert LISK amount to normal value
-var blockTime = 10000; // Block time in miliseconds
-var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-var version = '0.0.0'; // Node version
+node.normalizer = 100000000; // Use this to convert LISK amount to normal value
+node.blockTime = 10000; // Block time in miliseconds
+node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
+node.version = '0.0.0'; // Node version
 
 // Transaction fees
-var fees = {
-	voteFee: constants.fees.vote,
-	transactionFee: constants.fees.send,
-	secondPasswordFee: constants.fees.secondsignature,
-	delegateRegistrationFee: constants.fees.delegate,
-	multisignatureRegistrationFee: constants.fees.multisignature,
-	dappAddFee: constants.fees.dapp
+node.fees = {
+	voteFee: node.constants.fees.vote,
+	transactionFee: node.constants.fees.send,
+	secondPasswordFee: node.constants.fees.secondsignature,
+	delegateRegistrationFee: node.constants.fees.delegate,
+	multisignatureRegistrationFee: node.constants.fees.multisignature,
+	dappAddFee: node.constants.fees.dapp
 };
 
 // Test application
-var guestbookDapp = {
+node.guestbookDapp = {
 	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
 	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip'
 };
 
 // Existing delegate account
-var eAccount = {
+node.eAccount = {
 	'address': '10881167371402274308L',
 	'publicKey': 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	'password': 'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
@@ -52,7 +55,7 @@ var eAccount = {
 };
 
 // Genesis account, initially holding 100M total supply
-var gAccount = {
+node.gAccount = {
 	'address': '16313739661670634666L',
 	'publicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	'password': 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
@@ -60,11 +63,11 @@ var gAccount = {
 };
 
 // Random LSK amount
-var LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
+node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 
 // Returns a random delegate name
-function randomDelegateName () {
-	var size = randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
+node.randomDelegateName = function () {
+	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
@@ -73,10 +76,10 @@ function randomDelegateName () {
 	}
 
 	return delegateName;
-}
+};
 
 // Returns a random property from the given object
-function randomProperty (obj, needKey) {
+node.randomProperty = function (obj, needKey) {
 	var keys = Object.keys(obj);
 
 	if (!needKey) {
@@ -84,18 +87,18 @@ function randomProperty (obj, needKey) {
 	} else {
 		return keys[keys.length * Math.random() << 0];
 	}
-}
+};
 
 // Returns random LSK amount
-function randomLISK () {
+node.randomLISK = function () {
 	return Math.floor(Math.random() * (10000 * 100000000)) + (1000 * 100000000);
-}
+};
 
 // Returns current block height
-function getHeight (cb) {
-	request({
+node.getHeight = function (cb) {
+	node.request({
 		type: 'GET',
-		url: baseUrl + '/api/blocks/getHeight',
+		url: node.baseUrl + '/api/blocks/getHeight',
 		json: true
 	}, function (err, resp, body) {
 		if (err || resp.statusCode !== 200) {
@@ -104,29 +107,29 @@ function getHeight (cb) {
 			return cb(null, body.height);
 		}
 	});
-}
+};
 
-function onNewBlock (cb) {
-	getHeight(function (err, height) {
+node.onNewBlock = function (cb) {
+	node.getHeight(function (err, height) {
 		// console.log('Height: ' + height);
 		if (err) {
 			return cb(err);
 		} else {
-			waitForNewBlock(height, cb);
+			node.waitForNewBlock(height, cb);
 		}
 	});
-}
+};
 
 // Wait until a new block has been created
-function waitForNewBlock (height, cb) {
+node.waitForNewBlock = function (height, cb) {
 	var actualHeight = height;
 	var counter = 1;
 
-	async.doWhilst(
+	node.async.doWhilst(
 		function (cb) {
-			request({
+			node.request({
 				type: 'GET',
-				url: baseUrl + '/api/blocks/getHeight',
+				url: node.baseUrl + '/api/blocks/getHeight',
 				json: true
 			}, function (err, resp, body) {
 				if (err || resp.statusCode !== 200) {
@@ -152,31 +155,31 @@ function waitForNewBlock (height, cb) {
 			}
 		}
 	);
-}
+};
 
 // Adds peers to local node
-function addPeers (numOfPeers, cb) {
+node.addPeers = function (numOfPeers, cb) {
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var ports = [4000, 5000, 7000, 8000];
 
 	var os,version,port;
 
 	var i = 0;
-	async.whilst(function () {
+	node.async.whilst(function () {
 		return i < numOfPeers;
 	}, function (next) {
-		os = operatingSystems[randomizeSelection(operatingSystems.length)];
-		version = config.version;
-		port = ports[randomizeSelection(ports.length)];
+		os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
+		version = node.config.version;
+		port = ports[node.randomizeSelection(ports.length)];
 
-		request({
+		node.request({
 			type: 'GET',
-			url: baseUrl + '/peer/height',
+			url: node.baseUrl + '/peer/height',
 			json: true,
 			headers: {
 				'version': version,
 				'port': port,
-				'nethash': config.nethash,
+				'nethash': node.config.nethash,
 				'os': os
 			}
 		}, function (err, resp, body) {
@@ -190,26 +193,26 @@ function addPeers (numOfPeers, cb) {
 	}, function (err) {
 		return cb(err);
 	});
-}
+};
 
 // Returns a random index for an array
-function randomizeSelection (length) {
+node.randomizeSelection = function (length) {
 	return Math.floor(Math.random() * length);
-}
+};
 
 // Returns a random number between min (inclusive) and max (exclusive)
-function randomNumber (min, max) {
+node.randomNumber = function (min, max) {
 	return	Math.floor(Math.random() * (max - min) + min);
-}
+};
 
 // Returns the expected fee for the given amount
-function expectedFee (amount) {
-	return parseInt(fees.transactionFee);
-}
+node.expectedFee = function (amount) {
+	return parseInt(node.fees.transactionFee);
+};
 
 // Returns a random username
-function randomUsername () {
-	var size = randomNumber(1,16); // Min. username size is 1, Max. username size is 16
+node.randomUsername = function () {
+	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
 	var username = '';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
@@ -218,11 +221,11 @@ function randomUsername () {
 	}
 
 	return username;
-}
+};
 
 // Returns a random capitialized username
-function randomCapitalUsername () {
-	var size = randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
+node.randomCapitalUsername = function () {
+	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
 	var username = 'A';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
@@ -231,41 +234,41 @@ function randomCapitalUsername () {
 	}
 
 	return username;
-}
+};
 
 // Returns a basic random account
-function randomAccount () {
+node.randomAccount = function () {
 	var account = {
 		'balance': '0'
 	};
 
-	account.password = randomPassword();
-	account.secondPassword = randomPassword();
-	account.username = randomDelegateName();
-	account.publicKey = lisk.crypto.getKeys(account.password).publicKey;
-	account.address = lisk.crypto.getAddress(account.publicKey);
+	account.password = node.randomPassword();
+	account.secondPassword = node.randomPassword();
+	account.username = node.randomDelegateName();
+	account.publicKey = node.lisk.crypto.getKeys(account.password).publicKey;
+	account.address = node.lisk.crypto.getAddress(account.publicKey);
 
 	return account;
-}
+};
 
 // Returns an extended random account
-function randomTxAccount () {
-	return _.defaults(randomAccount(), {
+node.randomTxAccount = function () {
+	return node._.defaults(node.randomAccount(), {
 		sentAmount:'',
 		paidFee: '',
 		totalPaidFee: '',
 		transactions: []
 	});
-}
+};
 
 // Returns a random password
-function randomPassword () {
+node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
-}
+};
 
 // Get the given path
-function get (path, done) {
-	api.get(path)
+node.get = function (path, done) {
+	node.api.get(path)
 		.set('Accept', 'application/json')
 		.expect('Content-Type', /json/)
 		.expect(200)
@@ -273,11 +276,11 @@ function get (path, done) {
 			// console.log(JSON.stringify(res.body));
 			done(err, res);
 		});
-}
+};
 
 // Post to the given path
-function post (path, params, done) {
-	api.post(path)
+node.post = function (path, params, done) {
+	node.api.post(path)
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
@@ -286,11 +289,11 @@ function post (path, params, done) {
 			// console.log(JSON.stringify(res.body));
 			done(err, res);
 		});
-}
+};
 
 // Put to the given path
-function put (path, params, done) {
-	api.put(path)
+node.put = function (path, params, done) {
+	node.api.put(path)
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
@@ -299,45 +302,7 @@ function put (path, params, done) {
 			// console.log(JSON.stringify(res.body));
 			done(err, res);
 		});
-}
+};
 
 // Exports
-module.exports = {
-	addPeers: addPeers,
-	api: api,
-	bignum: bignum,
-	blockTime: blockTime,
-	blockTimePlus: blockTimePlus,
-	chai: chai,
-	config: config,
-	dappCategories: dappCategories,
-	dappTypes: dappTypes,
-	eAccount: eAccount,
-	expect: expect,
-	expectedFee: expectedFee,
-	fees: fees,
-	gAccount: gAccount,
-	get: get,
-	getHeight: getHeight,
-	guestbookDapp: guestbookDapp,
-	lisk: lisk,
-	LISK: LISK,
-	normalizer: normalizer,
-	onNewBlock: onNewBlock,
-	peer: peer,
-	post: post,
-	put: put,
-	randomAccount: randomAccount,
-	randomCapitalUsername: randomCapitalUsername,
-	randomDelegateName: randomDelegateName,
-	randomLISK: randomLISK,
-	randomNumber: randomNumber,
-	randomPassword: randomPassword,
-	randomProperty: randomProperty,
-	randomTxAccount: randomTxAccount,
-	randomUsername: randomUsername,
-	supertest: supertest,
-	txTypes: txTypes,
-	version: version,
-	waitForNewBlock: waitForNewBlock
-};
+module.exports = node;
