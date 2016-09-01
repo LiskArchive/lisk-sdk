@@ -147,13 +147,13 @@ describe('PUT /signatures', function () {
 	});
 });
 
-describe('PUT /transactions on account with second passphase enabled', function () {
+describe('PUT /transactions from account with second passphase enabled', function () {
 
 	before(function (done) {
 		node.onNewBlock(done);
 	});
 
-	it('without specifying second passphase on account should fail', function (done) {
+	it('using no second passphase should fail', function (done) {
 		var amountToSend = 100000000;
 
 		node.api.put('/transactions')
@@ -173,7 +173,7 @@ describe('PUT /transactions on account with second passphase enabled', function 
 			});
 	});
 
-	it('using second passphase but without primary passphase should fail', function (done) {
+	it('using second passphase but no primary passphase should fail', function (done) {
 		var amountToSend = 100000000;
 
 		node.api.put('/transactions')
@@ -194,9 +194,9 @@ describe('PUT /transactions on account with second passphase enabled', function 
 	});
 });
 
-describe('PUT /delegates on account with second passphase enabled', function () {
+describe('PUT /delegates from account with second passphase enabled', function () {
 
-	it('without specifying second passphase on account should fail', function (done) {
+	it('using no second passphase should fail', function (done) {
 		node.api.put('/delegates')
 			.set('Accept', 'application/json')
 			.send({
