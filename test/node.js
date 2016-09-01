@@ -13,16 +13,16 @@ node.lisk = require('./lisk-js');
 node.supertest = require('supertest');
 
 node.bignum = require('../helpers/bignum.js');
+node.config = require('../config.json');
+node.constants = require('../helpers/constants.js');
 node.dappCategories = require('../helpers/dappCategories.js');
 node.dappTypes = require('../helpers/dappTypes.js');
 node.txTypes = require('../helpers/transactionTypes.js');
 
 // Node configuration
-node.config = require('../config.json');
 node.baseUrl = 'http://' + node.config.address + ':' + node.config.port;
 node.api = node.supertest(node.baseUrl + '/api');
 node.peer = node.supertest(node.baseUrl + '/peer');
-node.constants = require('../helpers/constants.js');
 
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
