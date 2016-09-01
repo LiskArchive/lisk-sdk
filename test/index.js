@@ -9,6 +9,7 @@ require('./api/peers.delegates.js');
 require('./api/peers.signatures.js');
 require('./api/peers.transactions.js');
 require('./api/peers.votes.js');
+require('./api/signatures.js');
 require('./api/transactions.js');
 
 require('./unit/logic/blockReward.js');
