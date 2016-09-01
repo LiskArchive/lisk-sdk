@@ -109,11 +109,13 @@ __private.attachApi = function () {
 			properties: {
 				secret: {
 					type: 'string',
-					minLength: 1
+					minLength: 1,
+					maxLength: 100
 				},
 				secondSecret: {
 					type: 'string',
-					minLength: 1
+					minLength: 1,
+					maxLength: 100
 				},
 				publicKey: {
 					type: 'string',
@@ -121,7 +123,8 @@ __private.attachApi = function () {
 				},
 				category: {
 					type: 'integer',
-					minimum: 0
+					minimum: 0,
+					maximum: 8
 				},
 				name: {
 					type: 'string',
@@ -144,8 +147,8 @@ __private.attachApi = function () {
 				},
 				link: {
 					type: 'string',
-					maxLength: 2000,
-					minLength: 1
+					minLength: 1,
+					maxLength: 2000
 				},
 				icon: {
 					type: 'string',
@@ -238,17 +241,18 @@ __private.attachApi = function () {
 				},
 				link: {
 					type: 'string',
-					maxLength: 2000,
-					minLength: 1
+					minLength: 1,
+					maxLength: 2000
+				},
+				icon: {
+					type: 'string',
+					minLength: 1,
+					maxLength: 2000
 				},
 				limit: {
 					type: 'integer',
 					minimum: 0,
 					maximum: 100
-				},
-				icon: {
-					type: 'string',
-					minLength: 1
 				},
 				offset: {
 					type: 'integer',
