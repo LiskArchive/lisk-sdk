@@ -11,38 +11,28 @@ var account2 = node.randomTxAccount();
 var account3 = node.randomTxAccount();
 
 function openAccount (account, done) {
-	node.api.post('/accounts/open')
-		.set('Accept', 'application/json')
-		.send({
-			secret: account.password
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.account != null) {
-				account.address = res.body.account.address;
-				account.publicKey = res.body.account.publicKey;
-				account.balance = res.body.account.balance;
-			}
-			done(err, res);
-		});
+	node.post('/accounts/open', {
+		secret: account.password
+	}, function (err, res) {
+		// console.log(JSON.stringify(res.body));
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		if (res.body.success && res.body.account != null) {
+			account.address = res.body.account.address;
+			account.publicKey = res.body.account.publicKey;
+			account.balance = res.body.account.balance;
+		}
+		done(err, res);
+	});
 }
 
-function sendLISK (params, done) {
-	node.api.put('/transactions')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.onNewBlock(function (err) {
-				done(err, res);
-			});
+function putTransaction (params, done) {
+	node.put('/transactions', params, function (err, res) {
+		// console.log(JSON.stringify(res.body));
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.onNewBlock(function (err) {
+			done(err, res);
 		});
+	});
 }
 
 before(function (done) {
@@ -51,7 +41,7 @@ before(function (done) {
 		var randomLISK = node.randomLISK();
 		var expectedFee = node.expectedFee(randomLISK);
 
-		sendLISK({
+		putTransaction({
 			secret: node.gAccount.password,
 			amount: randomLISK,
 			recipientId: account.address
@@ -65,7 +55,7 @@ before(function (done) {
 		var randomLISK = node.randomLISK();
 		var expectedFee = node.expectedFee(randomLISK);
 
-		sendLISK({
+		putTransaction({
 			secret: node.gAccount.password,
 			amount: randomLISK,
 			recipientId: account2.address
@@ -76,346 +66,257 @@ before(function (done) {
 before(function (done) {
 	// Add second signature to Account 2
 	node.onNewBlock(function (err) {
-		node.api.put('/signatures')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account2.password,
-				secondSecret: account2.secondPassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				done();
-			});
+		node.put('/signatures', {
+			secret: account2.password,
+			secondSecret: account2.secondPassword
+		}, function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			done();
+		});
 	});
 });
 
 describe('PUT /dapps', function () {
 
 	it('using random secret should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: node.randomPassword(),
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.put('/dapps', {
+			secret: node.randomPassword(),
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: node.randomDelegateName(),
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using invalid category should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				category: 'Choo Choo',
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			category: 'Choo Choo',
+			type: node.dappTypes.DAPP,
+			name: node.randomDelegateName(),
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using no dapp name should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using very long description should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret:account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.put('/dapps', {
+			secret:account.password,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: node.randomDelegateName(),
+			description: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using very long tag should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: node.randomDelegateName(),
+			description: 'A dapp that should not be added',
+			tags: 'develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using very long name should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: 'Lorem ipsum dolor sit amet, conse',
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: 'Lorem ipsum dolor sit amet, conse',
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using no link should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: node.randomDelegateName(),
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using invalid parameter types should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				category: 'String',
-				type: 'Type',
-				name: 1234,
-				description: 1234,
-				tags: 1234,
-				link: 1234,
-				icon: 1234
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.error;
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			category: 'String',
+			type: 'Type',
+			name: 1234,
+			description: 1234,
+			tags: 1234,
+			link: 1234,
+			icon: 1234
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.error;
+			done();
+		});
 	});
 
 	it('using account with 0 LISK account should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account3.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				done();
-			});
+		node.put('/dapps', {
+			secret: account3.password,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: node.randomDelegateName(),
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			done();
+		});
 	});
 
 	it('using invalid second passphrase should fail', function (done) {
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account2.password,
-				secondSecret: null,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				done();
-			});
+		node.put('/dapps', {
+			secret: account2.password,
+			secondSecret: null,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: node.randomDelegateName(),
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			done();
+		});
 	});
 
 	it('using invalid type should fail', function (done) {
 		DappName = node.randomDelegateName();
 
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				secondSecret: null,
-				category: node.randomProperty(node.dappCategories),
-				type: 'INVALIDTYPE',
-				name: DappName,
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			secondSecret: null,
+			category: node.randomProperty(node.dappCategories),
+			type: 'INVALIDTYPE',
+			name: DappName,
+			description: 'A dapp that should not be added',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			done();
+		});
 	});
 
 	it('using valid link should be ok', function (done) {
 		DappName = node.randomDelegateName();
 
-		node.api.put('/dapps')
-			.set('Accept', 'application/json')
-			.send({
-				secret: account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: DappName,
-				description: 'A dapp added via API autotest',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body.transaction).to.have.property('id');
-				DappToInstall.transactionId = res.body.transaction.id;
-				done();
-			});
+		node.put('/dapps', {
+			secret: account.password,
+			category: node.randomProperty(node.dappCategories),
+			type: node.dappTypes.DAPP,
+			name: DappName,
+			description: 'A dapp added via API autotest',
+			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			link: node.guestbookDapp.link,
+			icon: node.guestbookDapp.icon
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body.transaction).to.have.property('id');
+			DappToInstall.transactionId = res.body.transaction.id;
+			done();
+		});
 	});
 
 	it('using existing dapp name should fail', function (done) {
 		node.onNewBlock(function (err) {
-			node.api.put('/dapps')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					category: node.randomProperty(node.dappCategories),
-					type: node.dappTypes.DAPP,
-					name: DappName,
-					description: 'A dapp that should not be added',
-					tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-					link: node.guestbookDapp.link,
-					icon: node.guestbookDapp.icon
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					done();
-				});
+			node.put('/dapps', {
+				secret: account.password,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
+				name: DappName,
+				description: 'A dapp that should not be added',
+				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+				link: node.guestbookDapp.link,
+				icon: node.guestbookDapp.icon
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				done();
+			});
 		});
 	});
 
 	it('using existing dapp link should fail', function (done) {
 		node.onNewBlock(function (err) {
-			node.api.put('/dapps')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					category: node.randomProperty(node.dappCategories),
-					type: node.dappTypes.DAPP,
-					name: node.randomDelegateName(),
-					description: 'A dapp that should not be added',
-					tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-					link: node.guestbookDapp.link,
-					icon: node.guestbookDapp.icon
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
-					done();
-				});
+			node.put('/dapps', {
+				secret: account.password,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
+				name: node.randomDelegateName(),
+				description: 'A dapp that should not be added',
+				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+				link: node.guestbookDapp.link,
+				icon: node.guestbookDapp.icon
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
 		});
 	});
 });
@@ -423,15 +324,7 @@ describe('PUT /dapps', function () {
 describe('PUT /dapps/transaction', function () {
 
 	function putTransaction (params, done) {
-		node.api.put('/dapps/transaction')
-			.set('Accept', 'application/json')
-			.send(params)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				done(err, res);
-			});
+		node.put('/dapps/transaction', params, done);
 	}
 
 	before(function (done) {
@@ -643,15 +536,7 @@ describe('PUT /dapps/transaction', function () {
 describe('PUT /dapps/withdrawal', function () {
 
 	function putWithdrawal (params, done) {
-		node.api.put('/dapps/withdrawal')
-			.set('Accept', 'application/json')
-			.send(params)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				done(err, res);
-			});
+		node.put('/dapps/withdrawal', params, done);
 	}
 
 	before(function (done) {
@@ -1099,121 +984,57 @@ describe('GET /dapps', function () {
 		node.onNewBlock(done);
 	});
 
-	it('using no limit should be ok', function (done) {
-		var category = ''; var name = ''; var type = ''; var link = '';
-		var icon = ''; var limit = ''; var offset = ''; var orderBy = '';
+	function getDapps (params, done) {
+		node.get('/dapps?' + params, done);
+	}
 
-		node.api.get('/dapps')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					if ((res.body.dapps).length > 0) {
-						Dapp = res.body.dapps[0];
-						DappToInstall = Dapp;
-					}
-				}
-				done();
-			});
-	});
-
-	it('using invalid parameter type (link) should fail', function (done) {
-		var category = 'a category'; var name = 1234; var type = 'type'; var link = 1234; var icon = 1234;
-
-		node.api.get('/dapps?category=' + category + '&name=' + name + '&type=' + type + '&link=' + link + '&icon=' + icon)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
-	});
-
-	it('ordered by ascending category should be ok', function (done) {
-		var orderBy = 'category:asc';
-
-		node.api.get('/dapps?orderBy=' + orderBy)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					if (res.body.dapps[0] != null) {
-						for (var i = 0; i < res.body.dapps.length; i++) {
-							if (res.body.dapps[i+1] != null) {
-								node.expect(res.body.dapps[i].category).to.be.at.most(res.body.dapps[i+1].category);
-							}
+	it('user orderBy == "category:asc" should be ok', function (done) {
+		getDapps('orderBy=' + 'category:asc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				if (res.body.dapps[0] != null) {
+					for (var i = 0; i < res.body.dapps.length; i++) {
+						if (res.body.dapps[i+1] != null) {
+							node.expect(res.body.dapps[i].category).to.be.at.most(res.body.dapps[i+1].category);
 						}
 					}
 				}
-				done();
-			});
+			}
+			done();
+		});
 	});
 
-	it('ordered by descending category should be ok', function (done) {
-		var orderBy = 'category:desc';
-
-		node.api.get('/dapps?orderBy=' + orderBy)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					if (res.body.dapps[0] != null) {
-						for( var i = 0; i < res.body.dapps.length; i++) {
-							if (res.body.dapps[i+1] != null) {
-								node.expect(res.body.dapps[i].category).to.be.at.least(res.body.dapps[i+1].category);
-							}
+	it('user orderBy == "category:desc" should be ok', function (done) {
+		getDapps('orderBy=' + 'category:desc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				if (res.body.dapps[0] != null) {
+					for( var i = 0; i < res.body.dapps.length; i++) {
+						if (res.body.dapps[i+1] != null) {
+							node.expect(res.body.dapps[i].category).to.be.at.least(res.body.dapps[i+1].category);
 						}
 					}
 				}
-				done();
-			});
-	});
-
-	it('using limit should be ok', function (done) {
-		var limit = 3;
-
-		node.api.get('/dapps?limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					node.expect((res.body.dapps).length).to.be.at.most(limit);
-				}
-				done();
-			});
+			}
+			done();
+		});
 	});
 
 	it('using category should be ok', function (done) {
 		var randomCategory = node.randomProperty(node.dappCategories, true);
 
-		node.api.get('/dapps?category=' + randomCategory)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					if((res.body.dapps).length > 0) {
-						node.expect(res.body.dapps[0].category).to.equal(node.dappCategories[randomCategory]);
-					}
+		getDapps('category=' + randomCategory, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				if((res.body.dapps).length > 0) {
+					node.expect(res.body.dapps[0].category).to.equal(node.dappCategories[randomCategory]);
 				}
-				done();
-			});
+			}
+			done();
+		});
 	});
 
 	it('using name should be ok', function (done) {
@@ -1225,196 +1046,185 @@ describe('GET /dapps', function () {
 			name = 'test';
 		}
 
-		node.api.get('/dapps?name=' + name)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				if (name === 'test') {
-					node.expect(res.body).to.have.property('success');
-				} else {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('dapps').that.is.an('array');
-					node.expect(res.body.dapps.length).to.equal(1);
-					if (res.body.success && res.body.dapps != null) {
-						node.expect(res.body.dapps[0].name).to.equal(name);
-					}
+		getDapps('name=' + name, function (err, res) {
+			if (name === 'test') {
+				node.expect(res.body).to.have.property('success');
+			} else {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('dapps').that.is.an('array');
+				node.expect(res.body.dapps.length).to.equal(1);
+				if (res.body.success && res.body.dapps != null) {
+					node.expect(res.body.dapps[0].name).to.equal(name);
 				}
-				done();
-			});
+			}
+			done();
+		});
 	});
 
 	it('using type should be ok', function (done) {
 		var type = node.randomProperty(node.dappTypes);
 
-		node.api.get('/dapps?type=' + type)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					for( var i = 0; i < res.body.dapps.length; i++) {
-						if (res.body.dapps[i] != null) {
-							node.expect(res.body.dapps[i].type).to.equal(type);
-						}
+		getDapps('type=' + type, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				for( var i = 0; i < res.body.dapps.length; i++) {
+					if (res.body.dapps[i] != null) {
+						node.expect(res.body.dapps[i].type).to.equal(type);
 					}
 				}
-				done();
-			});
+			}
+			done();
+		});
 	});
 
-	it('using link should be ok', function (done) {
+	it('using numeric link should fail', function (done) {
+		var link = 12345;
+
+		getDapps('link=' + link, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('using string link should be ok', function (done) {
 		var link = node.guestbookDapp.link;
 
-		node.api.get('/dapps?link=' + link)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					for( var i = 0; i < res.body.dapps.length; i++) {
-						if (res.body.dapps[i] != null) {
-							node.expect(res.body.dapps[i].link).to.equal(link);
-						}
+		getDapps('link=' + link, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				for( var i = 0; i < res.body.dapps.length; i++) {
+					if (res.body.dapps[i] != null) {
+						node.expect(res.body.dapps[i].link).to.equal(link);
 					}
 				}
-				done();
-			});
+			}
+			done();
+		});
+	});
+
+	it('using no limit should be ok', function (done) {
+		getDapps('', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				if ((res.body.dapps).length > 0) {
+					Dapp = res.body.dapps[0];
+					DappToInstall = Dapp;
+				}
+			}
+			done();
+		});
+	});
+
+	it('using limit == 3 should be ok', function (done) {
+		var limit = 3;
+
+		getDapps('limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				node.expect((res.body.dapps).length).to.be.at.most(limit);
+			}
+			done();
+		});
 	});
 
 	it('using offset should be ok', function (done) {
 		var offset = 1;
 		var secondDapp;
 
-		node.api.get('/dapps')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					if (res.body.dapps[1] != null) {
-						secondDapp = res.body.dapps[1];
+		getDapps('', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				if (res.body.dapps[1] != null) {
+					secondDapp = res.body.dapps[1];
 
-						node.api.get('/dapps?offset=' + offset )
-							.expect('Content-Type', /json/)
-							.expect(200)
-							.end(function (err, res) {
-								// console.log(JSON.stringify(res.body));
-								node.expect(res.body).to.have.property('success').to.be.ok;
-								if (res.body.success && res.body.dapps != null) {
-									node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
-								}
-							});
-					}
+					getDapps('offset=' + 1, function (err, res) {
+						node.expect(res.body).to.have.property('success').to.be.ok;
+						if (res.body.success && res.body.dapps != null) {
+							node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
+						}
+					});
 				}
-				done();
-			});
+			}
+			done();
+		});
 	});
 });
 
 describe('GET /dapps?id=', function () {
 
-	it('using unknown id should fail', function (done) {
-		var dappId = 'UNKNOWN_ID';
-
-		node.api.get('/dapps/get?id=' + dappId)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
-	});
+	function getDapps (id, done) {
+		node.get('/dapps?id=' + id, done);
+	}
 
 	it('using no id should fail', function (done) {
-		node.api.get('/dapps/get?id=')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		getDapps('', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('using unknown id should fail', function (done) {
+		getDapps('UNKNOWN_ID', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using valid id should be ok', function (done) {
-		var dappId = DappToInstall.transactionId;
-
-		node.api.get('/dapps/get?id=' + dappId)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapp');
-				node.expect(res.body.dapp.transactionId).to.equal(dappId);
-				done();
-			});
+		getDapps(DappToInstall.transactionId, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapp');
+			node.expect(res.body.dapp.transactionId).to.equal(DappToInstall.transactionId);
+			done();
+		});
 	});
 });
 
 describe('POST /dapps/install', function () {
 
-	it('using no id should fail', function (done) {
-		var dappId = DappToInstall.transactionId;
+	function postInstall (params, done) {
+		node.post('/dapps/install', params, done);
+	}
 
-		node.api.post('/dapps/install')
-			.set('Accept', 'application/json')
-			.send({
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+	it('using no id should fail', function (done) {
+		postInstall({
+			id: null,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
-	it('using invalid id should fail', function (done) {
-		node.api.post('/dapps/install')
-			.set('Accept', 'application/json')
-			.send({
-				id: 'DAPP ID',
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+	it('using unknown id should fail', function (done) {
+		postInstall({
+			id: 'UNKNOWN_ID',
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using valid id should be ok', function (done) {
-		var dappId = DappToInstall.transactionId;
-
-		node.api.post('/dapps/install')
-			.set('Accept', 'application/json')
-			.send({
-				id: dappId,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('path');
-				done();
-			});
+		postInstall({
+			id: DappToInstall.transactionId,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('path');
+			done();
+		});
 	});
 });
 
@@ -1423,25 +1233,21 @@ describe('GET /dapps/installed', function () {
 	it('should be ok', function (done) {
 		var flag = 0;
 
-		node.api.get('/dapps/installed')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				if (res.body.success && res.body.dapps != null) {
-					for (var i = 0; i < res.body.dapps.length; i++) {
-						if (res.body.dapps[i] != null) {
-							if (res.body.dapps[i].transactionId === DappToInstall.transactionId) {
-								flag += 1;
-							}
+		node.get('/dapps/installed', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (res.body.success && res.body.dapps != null) {
+				for (var i = 0; i < res.body.dapps.length; i++) {
+					if (res.body.dapps[i] != null) {
+						if (res.body.dapps[i].transactionId === DappToInstall.transactionId) {
+							flag += 1;
 						}
 					}
-					node.expect(flag).to.equal(1);
 				}
-				done();
-			});
+				node.expect(flag).to.equal(1);
+			}
+			done();
+		});
 	});
 });
 
@@ -1450,42 +1256,42 @@ describe('GET /dapps/installedIds', function () {
 	it('should be ok', function (done) {
 		var flag = 0;
 
-		node.api.get('/dapps/installedIds')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('ids').that.is.an('array');
-				if (res.body.success && res.body.ids != null) {
-					for (var i = 0; i < res.body.ids.length; i++) {
-						if (res.body.ids[i] != null) {
-							if (res.body.ids[i] === DappToInstall.transactionId) {
-								flag += 1;
-							}
+		node.get('/dapps/installedIds', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('ids').that.is.an('array');
+			if (res.body.success && res.body.ids != null) {
+				for (var i = 0; i < res.body.ids.length; i++) {
+					if (res.body.ids[i] != null) {
+						if (res.body.ids[i] === DappToInstall.transactionId) {
+							flag += 1;
 						}
 					}
-					node.expect(flag).to.equal(1);
 				}
-				done();
-			});
+				node.expect(flag).to.equal(1);
+			}
+			done();
+		});
 	});
 });
 
 describe('GET /dapps/search?q=', function () {
 
-	it('using invalid parameters should fail', function (done) {
-		var q = 1234; var category = 'good'; var installed = 'true';
+	function getSearch (params, done) {
+		node.get('/dapps/search?' + params, done);
+	}
 
-		node.api.get('/dapps/search?q=' + q + '&category=' + category + '&installed=' + installed)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+	it('using invalid params should fail', function (done) {
+		var q = 1234;
+		var category = 'good';
+		var installed = 'true';
+
+		var params = 'q=' + q + '&category=' + category + '&installed=' + installed;
+
+		getSearch(params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using valid parameters should be ok', function (done) {
@@ -1493,15 +1299,13 @@ describe('GET /dapps/search?q=', function () {
 		var category = node.randomProperty(node.dappCategories, true);
 		var installed = 1;
 
-		node.api.get('/dapps/search?q=' + q + '&installed='+ installed + '&category=' + node.dappCategories[category])
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				done();
-			});
+		var params = 'q=' + q + '&installed='+ installed + '&category=' + node.dappCategories[category];
+
+		getSearch(params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			done();
+		});
 	});
 
 	it('using installed = 0 should be ok', function (done) {
@@ -1509,222 +1313,160 @@ describe('GET /dapps/search?q=', function () {
 		var category = node.randomProperty(node.dappCategories);
 		var installed = 0;
 
-		node.api.get('/dapps/search?q=' + q + '&installed='+ installed + '&category=' + category)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				done();
-			});
+		var params = 'q=' + q + '&installed='+ installed + '&category=' + category;
+
+		getSearch(params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			done();
+		});
 	});
 });
 
 describe('POST /dapps/launch', function () {
 
-	it('using no id should fail', function (done) {
-		var dappId = DappToInstall.transactionId;
+	function postLaunch (params, done) {
+		node.post('/dapps/launch', params, done);
+	}
 
-		node.api.post('/dapps/launch')
-			.set('Accept', 'application/json')
-			.send({
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+	it('using no id should fail', function (done) {
+		postLaunch({
+			id: null,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using unknown id should fail', function (done) {
-		var dappId = 'UNKNOWN_ID';
-
-		node.api.post('/dapps/launch')
-			.set('Accept', 'application/json')
-			.send({
-				id: dappId,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		postLaunch({
+			id: 'UNKNOWN_ID',
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using valid id should be ok', function (done) {
-		var dappId = DappToInstall.transactionId;
-
-		node.api.post('/dapps/launch')
-			.set('Accept', 'application/json')
-			.send({
-				id: dappId,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
+		postLaunch({
+			id: DappToInstall.transactionId,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.get('/dapps/launched', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.api.get('/dapps/launched')
-					.expect('Content-Type', /json/)
-					.expect(200)
-					.end(function (err, res) {
-						// console.log(JSON.stringify(res.body));
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						node.expect(res.body).to.have.property('launched').that.is.an('array');
-						if (res.body.success && res.body.launched != null) {
-							var flag = 0;
+				node.expect(res.body).to.have.property('launched').that.is.an('array');
+				if (res.body.success && res.body.launched != null) {
+					var flag = 0;
 
-							for (var i = 0; i < res.body.launched.length; i++) {
-								if (res.body.launched[i] != null) {
-									if (res.body.launched[i] === dappId) {
-										flag += 1;
-									}
-								}
+					for (var i = 0; i < res.body.launched.length; i++) {
+						if (res.body.launched[i] != null) {
+							if (res.body.launched[i] === DappToInstall.transactionId) {
+								flag += 1;
 							}
-
-							node.expect(flag).to.equal(1);
 						}
-					});
-				done();
+					}
+
+					node.expect(flag).to.equal(1);
+				}
 			});
+			done();
+		});
 	});
 });
 
 describe('POST /dapps/stop', function () {
 
+	function postStop (params, done) {
+		node.post('/dapps/stop', params, done);
+	}
+
 	it('using no id should fail', function (done) {
-		node.api.post('/dapps/stop')
-			.set('Accept', 'application/json')
-			.send({})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		postStop({
+			id: null,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using unknown id should fail', function (done) {
-		var dappId = 'UNKNOWN_ID';
-
-		node.api.post('/dapps/stop')
-			.set('Accept', 'application/json')
-			.send({
-				id: dappId,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		postStop({
+			id: 'UNKNOWN_ID',
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using valid id should be ok', function (done) {
-		var dappId = DappToInstall.transactionId;
-
-		node.api.post('/dapps/stop')
-			.set('Accept', 'application/json')
-			.send({
-				id: dappId,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				done();
-			});
+		postStop({
+			id: DappToInstall.transactionId,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
 	});
 });
 
 describe('GET /dapps/categories', function () {
 
 	it('should be ok', function (done) {
-		node.api.get('/dapps/categories')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('categories').that.is.an('object');
-				for (var i in node.dappCategories) {
-					node.expect(res.body.categories[i]).to.equal(node.dappCategories[i]);
-				}
-				done();
-			});
+		node.get('/dapps/categories', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('categories').that.is.an('object');
+			for (var i in node.dappCategories) {
+				node.expect(res.body.categories[i]).to.equal(node.dappCategories[i]);
+			}
+			done();
+		});
 	});
 });
 
 describe('POST /dapps/uninstall', function () {
 
+	function postUninstall (params, done) {
+		node.post('/dapps/uninstall', params, done);
+	}
+
 	it('using no id should fail', function (done) {
-		node.api.post('/dapps/uninstall')
-			.set('Accept', 'application/json')
-			.send({
-				id: null,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		postUninstall({
+			id: null,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using unknown id should fail', function (done) {
-		var dappId = 'UNKNOWN_ID';
-
-		node.api.post('/dapps/uninstall')
-			.set('Accept', 'application/json')
-			.send({
-				id: dappId,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		postUninstall({
+			id: 'UNKNOWN_ID',
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using valid id should be ok', function (done) {
-		var dappId = DappToInstall.transactionId;
-
-		node.api.post('/dapps/uninstall')
-			.set('Accept', 'application/json')
-			.send({
-				id: dappId,
-				master: node.config.dapp.masterpassword
-			})
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				done();
-			});
+		postUninstall({
+			id: DappToInstall.transactionId,
+			master: node.config.dapp.masterpassword
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
 	});
 });
