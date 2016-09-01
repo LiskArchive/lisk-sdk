@@ -9,26 +9,6 @@ var account3 = node.randomTxAccount();
 var transactionList = [];
 var offsetTimestamp = 0;
 
-function openAccount (account, done) {
-	node.api.post('/accounts/open')
-		.set('Accept', 'application/json')
-		.send({
-			secret: account.password
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.account != null) {
-				account.address = res.body.account.address;
-				account.publicKey = res.body.account.publicKey;
-				account.balance = res.body.account.balance;
-			}
-			done(err, res);
-		});
-}
-
 function putTransaction (params, done) {
 	node.api.put('/transactions')
 		.set('Accept', 'application/json')
@@ -65,18 +45,6 @@ function sendLISK (account, done) {
 		done(err, res);
 	});
 }
-
-before(function (done) {
-	openAccount(account, done);
-});
-
-before(function (done) {
-	openAccount(account2, done);
-});
-
-before(function (done) {
-	openAccount(account3, done);
-});
 
 before(function (done) {
 	setTimeout(function () {
