@@ -162,9 +162,9 @@ node.addPeers = function (numOfPeers, cb) {
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var ports = [4000, 5000, 7000, 8000];
 
-	var os,version,port;
-
+	var os, version, port;
 	var i = 0;
+
 	node.async.whilst(function () {
 		return i < numOfPeers;
 	}, function (next) {
