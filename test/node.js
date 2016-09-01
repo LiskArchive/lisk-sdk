@@ -109,6 +109,7 @@ node.getHeight = function (cb) {
 	});
 };
 
+// Upon detecting a new block, do something
 node.onNewBlock = function (cb) {
 	node.getHeight(function (err, height) {
 		// console.log('Height: ' + height);
