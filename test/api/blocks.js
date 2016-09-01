@@ -316,7 +316,7 @@ describe('GET /blocks', function () {
 		}
 	});
 
-	it('using orderBy should be ok', function (done) {
+	it('using orderBy == "height:desc" should be ok', function (done) {
 		var orderBy = 'height:desc';
 
 		node.api.get('/blocks?orderBy='+orderBy)
