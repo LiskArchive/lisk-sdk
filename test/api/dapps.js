@@ -1,7 +1,6 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
 var node = require('./../node.js');
-var path = require('path');
 
 var Dapp = {};
 var DappName = '';

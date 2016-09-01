@@ -1,8 +1,6 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
 var node = require('./../node.js');
-var path = require('path');
-var spawn = require('child_process').spawn;
 
 var account = node.randomAccount();
 
