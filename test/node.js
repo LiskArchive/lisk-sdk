@@ -120,7 +120,7 @@ node.onNewBlock = function (cb) {
 	});
 };
 
-// Wait until a new block has been created
+// Waits for a new block to be created
 node.waitForNewBlock = function (height, cb) {
 	var actualHeight = height;
 	var counter = 1;
