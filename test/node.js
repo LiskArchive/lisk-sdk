@@ -320,7 +320,7 @@ module.exports = {
 	get: get,
 	getHeight: getHeight,
 	guestbookDapp: guestbookDapp,
-	lisk : lisk,
+	lisk: lisk,
 	LISK: LISK,
 	normalizer: normalizer,
 	onNewBlock: onNewBlock,
