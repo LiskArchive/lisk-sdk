@@ -149,7 +149,7 @@ describe('POST /accounts/open', function () {
 	});
 });
 
-describe('GET /accounts/getBalance', function () {
+describe('GET /accounts/getBalance?address=', function () {
 
 	it('using known address should be ok', function (done) {
 		getBalance(node.Gaccount.address, function (err, res) {
@@ -187,7 +187,7 @@ describe('GET /accounts/getBalance', function () {
 	});
 });
 
-describe('GET /accounts/getPublicKey', function () {
+describe('GET /accounts/getPublicKey?address=', function () {
 
 	it('using known address should be ok', function (done) {
 		getPublicKey(node.Gaccount.address, function (err, res) {
