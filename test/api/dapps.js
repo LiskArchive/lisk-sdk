@@ -207,7 +207,7 @@ describe('PUT /dapps', function () {
 			link: 1234,
 			icon: 1234
 		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.error;
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			done();
 		});
 	});
