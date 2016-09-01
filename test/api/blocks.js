@@ -220,19 +220,21 @@ describe('GET /blocks', function () {
 	});
 
 	it('using previousBlock should be ok', function (done) {
-		if (block.id != null) {
-			var previousBlock = block.id;
-
-			node.onNewBlock(function (err) {
-				getBlocks('previousBlock=' + block.id, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('blocks').that.is.an('array');
-					node.expect(res.body.blocks).to.have.length(1);
-					node.expect(res.body.blocks[0].previousBlock).to.equal(previousBlock);
-					done();
-				});
-			});
+		if (block.id === null) {
+			this.skip();
 		}
+
+		var previousBlock = block.id;
+
+		node.onNewBlock(function (err) {
+			getBlocks('previousBlock=' + block.id, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('blocks').that.is.an('array');
+				node.expect(res.body.blocks).to.have.length(1);
+				node.expect(res.body.blocks[0].previousBlock).to.equal(previousBlock);
+				done();
+			});
+		});
 	});
 
 	it('using orderBy == "height:desc" should be ok', function (done) {
