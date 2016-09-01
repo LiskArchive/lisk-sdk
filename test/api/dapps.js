@@ -162,6 +162,25 @@ describe('PUT /dapps', function () {
 				done();
 			});
 		});
+
+		it('using invalid second passphrase should fail', function (done) {
+			validParams.secondSecret = node.randomPassword();
+
+			node.put('/dapps', validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
+		});
+
+		it('using valid second passphrase should be ok', function (done) {
+			validParams.secondSecret = account2.secondPassword;
+
+			node.put('/dapps', validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				done();
+			});
+		});
 	});
 
 	it('using unknown type should fail', function (done) {
