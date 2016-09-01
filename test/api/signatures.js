@@ -46,6 +46,10 @@ before(function (done) {
 
 describe('PUT /signatures', function () {
 
+	before(function (done) {
+		node.onNewBlock(done);
+	});
+
 	it('when account has no funds should fail', function (done) {
 		node.api.put('/signatures')
 			.set('Accept', 'application/json')
