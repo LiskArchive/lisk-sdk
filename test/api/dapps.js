@@ -212,20 +212,22 @@ describe('PUT /dapps', function () {
 		});
 	});
 
-	it('using invalid second passphrase should fail', function (done) {
-		node.put('/dapps', {
-			secret: account2.password,
-			secondSecret: null,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: node.randomDelegateName(),
-			description: 'A dapp that should not be added',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			done();
+	describe('from account with second passphase enabled', function (done) {
+		it('using no second passphrase should fail', function (done) {
+			node.put('/dapps', {
+				secret: account2.password,
+				secondSecret: null,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
+				name: node.randomDelegateName(),
+				description: 'A dapp that should not be added',
+				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+				link: node.guestbookDapp.link,
+				icon: node.guestbookDapp.icon
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				done();
+			});
 		});
 	});
 
