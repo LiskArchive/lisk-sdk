@@ -102,8 +102,8 @@ describe('POST /peer/transactions', function () {
 				openAccount(account, function (err, res) {
 					account.address = res.body.account.address;
 					sendLISK({
-						secret: node.Gaccount.password,
-						amount: node.Fees.secondPasswordFee + 100000000,
+						secret: node.gAccount.password,
+						amount: node.fees.secondPasswordFee + 100000000,
 						recipientId: account.address
 					}, function (err, res) {
 						done(err, res);
@@ -113,7 +113,7 @@ describe('POST /peer/transactions', function () {
 
 			it('should be ok', function (done) {
 				var transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
-				transaction.fee = node.Fees.secondPasswordFee;
+				transaction.fee = node.fees.secondPasswordFee;
 
 				postTransaction(transaction, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
@@ -132,7 +132,7 @@ describe('POST /peer/transactions', function () {
 		});
 
 		it('when account does not have one should fail', function (done) {
-			var transaction = node.lisk.transaction.createTransaction('1L', 1, node.Gaccount.password, account.secondPassword);
+			var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, account.secondPassword);
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;

@@ -65,14 +65,14 @@ describe('POST /accounts/open', function () {
 
 	it('using known passphrase should be ok', function (done) {
 		openAccount({
-			secret: node.Gaccount.password
+			secret: node.gAccount.password
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account).to.have.property('address').to.equal(node.Gaccount.address);
+			node.expect(res.body.account).to.have.property('address').to.equal(node.gAccount.address);
 			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
 			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
-			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.gAccount.publicKey);
 			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
 			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
 			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);
@@ -152,7 +152,7 @@ describe('POST /accounts/open', function () {
 describe('GET /accounts/getBalance?address=', function () {
 
 	it('using known address should be ok', function (done) {
-		getBalance(node.Gaccount.address, function (err, res) {
+		getBalance(node.gAccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('balance').that.is.a('string');
 			node.expect(res.body).to.have.property('unconfirmedBalance').that.is.a('string');
@@ -190,9 +190,9 @@ describe('GET /accounts/getBalance?address=', function () {
 describe('GET /accounts/getPublicKey?address=', function () {
 
 	it('using known address should be ok', function (done) {
-		getPublicKey(node.Gaccount.address, function (err, res) {
+		getPublicKey(node.gAccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body).to.have.property('publicKey').to.equal(node.gAccount.publicKey);
 			done();
 		});
 	});
@@ -227,10 +227,10 @@ describe('POST /accounts/generatePublicKey', function () {
 
 	it('using known passphrase should be ok', function (done) {
 		generatePublicKey({
-			secret: node.Gaccount.password
+			secret: node.gAccount.password
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body).to.have.property('publicKey').to.equal(node.gAccount.publicKey);
 			done();
 		});
 	});
@@ -278,13 +278,13 @@ describe('POST /accounts/generatePublicKey', function () {
 describe('GET /accounts?address=', function () {
 
 	it('using known address should be ok', function (done) {
-		getAccount(node.Gaccount.address, function (err, res) {
+		getAccount(node.gAccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account).to.have.property('address').to.equal(node.Gaccount.address);
+			node.expect(res.body.account).to.have.property('address').to.equal(node.gAccount.address);
 			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
 			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
-			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.gAccount.publicKey);
 			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
 			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
 			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);
@@ -295,13 +295,13 @@ describe('GET /accounts?address=', function () {
 	});
 
 	it('using known lowercase address should be ok', function (done) {
-		getAccount(node.Gaccount.address.toLowerCase(), function (err, res) {
+		getAccount(node.gAccount.address.toLowerCase(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account).to.have.property('address').to.equal(node.Gaccount.address);
+			node.expect(res.body.account).to.have.property('address').to.equal(node.gAccount.address);
 			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
 			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
-			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.Gaccount.publicKey);
+			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.gAccount.publicKey);
 			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
 			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
 			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);

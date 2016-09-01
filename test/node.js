@@ -10,9 +10,9 @@ var async = require('async');
 var request = require('request');
 
 var bignum = require('../helpers/bignum.js');
-var DappCategory = require('../helpers/dappCategories.js');
-var DappType = require('../helpers/dappTypes.js');
-var TxTypes = require('../helpers/transactionTypes.js');
+var dappCategories = require('../helpers/dappCategories.js');
+var dappTypes = require('../helpers/dappTypes.js');
+var txTypes = require('../helpers/transactionTypes.js');
 
 // Node configuration
 var config = require('../config.json');
@@ -27,7 +27,7 @@ var blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 var version = '0.0.0'; // Node version
 
 // Transaction fees
-var Fees = {
+var fees = {
 	voteFee: constants.fees.vote,
 	transactionFee: constants.fees.send,
 	secondPasswordFee: constants.fees.secondsignature,
@@ -43,7 +43,7 @@ var guestbookDapp = {
 };
 
 // Existing delegate account
-var Eaccount = {
+var eAccount = {
 	'address': '10881167371402274308L',
 	'publicKey': 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	'password': 'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
@@ -52,7 +52,7 @@ var Eaccount = {
 };
 
 // Genesis account, initially holding 100M total supply
-var Gaccount = {
+var gAccount = {
 	'address': '16313739661670634666L',
 	'publicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	'password': 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
@@ -204,7 +204,7 @@ function randomNumber (min, max) {
 
 // Returns the expected fee for the given amount
 function expectedFee (amount) {
-	return parseInt(Fees.transactionFee);
+	return parseInt(fees.transactionFee);
 }
 
 // Returns a random username
@@ -310,13 +310,13 @@ module.exports = {
 	blockTimePlus: blockTimePlus,
 	chai: chai,
 	config: config,
-	DappCategory: DappCategory,
-	DappType: DappType,
-	Eaccount: Eaccount,
+	dappCategories: dappCategories,
+	dappTypes: dappTypes,
+	eAccount: eAccount,
 	expect: expect,
 	expectedFee: expectedFee,
-	Fees: Fees,
-	Gaccount: Gaccount,
+	fees: fees,
+	gAccount: gAccount,
 	get: get,
 	getHeight: getHeight,
 	guestbookDapp: guestbookDapp,
@@ -337,7 +337,7 @@ module.exports = {
 	randomTxAccount: randomTxAccount,
 	randomUsername: randomUsername,
 	supertest: supertest,
-	TxTypes: TxTypes,
+	txTypes: txTypes,
 	version: version,
 	waitForNewBlock: waitForNewBlock
 };

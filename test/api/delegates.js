@@ -89,7 +89,7 @@ describe('PUT /accounts/delegates without funds', function () {
 	it('when upvoting should fail', function (done) {
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: ['+' + node.Eaccount.publicKey]
+			delegates: ['+' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -101,7 +101,7 @@ describe('PUT /accounts/delegates without funds', function () {
 	it('when downvoting should fail', function (done) {
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: ['-' + node.Eaccount.publicKey]
+			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -130,7 +130,7 @@ describe('PUT /accounts/delegates with funds', function () {
 
 	before(function (done) {
 		sendLISK({
-			secret: node.Gaccount.password,
+			secret: node.gAccount.password,
 			amount: node.LISK,
 			recipientId: account.address
 		}, function (err, res) {
@@ -150,7 +150,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	});
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
+		var votedDelegate = '"+' + node.eAccount.publicKey + '","+' + node.eAccount.publicKey + '"';
 
 		putAccountsDelegates({
 			secret: account.password,
@@ -163,7 +163,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	});
 
 	it('when downvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = '"+' + node.Eaccount.publicKey + '","+' + node.Eaccount.publicKey + '"';
+		var votedDelegate = '"+' + node.eAccount.publicKey + '","+' + node.eAccount.publicKey + '"';
 
 		putAccountsDelegates({
 			secret: account.password,
@@ -176,7 +176,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	});
 
 	it('when upvoting and downvoting within same request should fail', function (done) {
-		var votedDelegate = '"+' + node.Eaccount.publicKey + '","-' + node.Eaccount.publicKey + '"';
+		var votedDelegate = '"+' + node.eAccount.publicKey + '","-' + node.eAccount.publicKey + '"';
 
 		putAccountsDelegates({
 			secret: account.password,
@@ -191,14 +191,14 @@ describe('PUT /accounts/delegates with funds', function () {
 	it('when upvoting should be ok', function (done) {
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: ['+' + node.Eaccount.publicKey]
+			delegates: ['+' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
+			node.expect(res.body.transaction.type).to.equal(node.txTypes.VOTE);
 			node.expect(res.body.transaction.amount).to.equal(0);
 			node.expect(res.body.transaction.senderPublicKey).to.equal(account.publicKey);
-			node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
+			node.expect(res.body.transaction.fee).to.equal(node.fees.voteFee);
 			done();
 		});
 	});
@@ -206,7 +206,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	it('when upvoting again from same account should fail', function (done) {
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: ['+' + node.Eaccount.publicKey]
+			delegates: ['+' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -218,14 +218,14 @@ describe('PUT /accounts/delegates with funds', function () {
 	it('when downvoting should be ok', function (done) {
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: ['-' + node.Eaccount.publicKey]
+			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			node.expect(res.body.transaction.type).to.equal(node.TxTypes.VOTE);
+			node.expect(res.body.transaction.type).to.equal(node.txTypes.VOTE);
 			node.expect(res.body.transaction.amount).to.equal(0);
 			node.expect(res.body.transaction.senderPublicKey).to.equal(account.publicKey);
-			node.expect(res.body.transaction.fee).to.equal(node.Fees.voteFee);
+			node.expect(res.body.transaction.fee).to.equal(node.fees.voteFee);
 			done();
 		});
 	});
@@ -233,7 +233,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	it('when downvoting again from same account should fail', function (done) {
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: ['-' + node.Eaccount.publicKey]
+			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -245,7 +245,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	it('when upvoting using a blank pasphrase should fail', function (done) {
 		putAccountsDelegates({
 			secret: '',
-			delegates: ['+' + node.Eaccount.publicKey]
+			delegates: ['+' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -256,7 +256,7 @@ describe('PUT /accounts/delegates with funds', function () {
 	it('when downvoting using a blank pasphrase should fail', function (done) {
 		putAccountsDelegates({
 			secret: '',
-			delegates: ['-' + node.Eaccount.publicKey]
+			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
@@ -302,7 +302,7 @@ describe('PUT /delegates with funds', function () {
 
 	before(function (done) {
 		sendLISK({
-			secret: node.Gaccount.password,
+			secret: node.gAccount.password,
 			amount: node.LISK,
 			recipientId: account2.address
 		}, function (err, res) {
@@ -383,11 +383,11 @@ describe('PUT /delegates with funds', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			node.expect(res.body.transaction.fee).to.equal(node.Fees.delegateRegistrationFee);
+			node.expect(res.body.transaction.fee).to.equal(node.fees.delegateRegistrationFee);
 			node.expect(res.body.transaction).to.have.property('asset').that.is.an('object');
 			node.expect(res.body.transaction.asset.delegate.username).to.equal(account.username.toLowerCase());
 			node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(account.publicKey);
-			node.expect(res.body.transaction.type).to.equal(node.TxTypes.DELEGATE);
+			node.expect(res.body.transaction.type).to.equal(node.txTypes.DELEGATE);
 			node.expect(res.body.transaction.amount).to.equal(0);
 			done();
 		});
@@ -500,7 +500,7 @@ describe('GET /delegates', function () {
 describe('GET /accounts/delegates?address=', function () {
 
 	it('using valid address should be ok', function (done) {
-		node.api.get('/accounts/delegates?address=' + node.Gaccount.address)
+		node.api.get('/accounts/delegates?address=' + node.gAccount.address)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -554,14 +554,14 @@ describe('GET /delegates/voters', function () {
 	before(function (done) {
 		// console.log(JSON.stringify({
 		//	secret: account.password,
-		//	delegates: ['+' + node.Eaccount.publicKey]
+		//	delegates: ['+' + node.eAccount.publicKey]
 		// }));
 		node.onNewBlock(function (err) {
 			node.api.put('/accounts/delegates')
 				.set('Accept', 'application/json')
 				.send({
 					secret: account.password,
-					delegates: ['+' + node.Eaccount.publicKey]
+					delegates: ['+' + node.eAccount.publicKey]
 				})
 				.expect('Content-Type', /json/)
 				.expect(200)
@@ -606,7 +606,7 @@ describe('GET /delegates/voters', function () {
 
 	it('using valid publicKey should be ok', function (done) {
 		node.onNewBlock(function (err) {
-			node.api.get('/delegates/voters?publicKey=' + node.Eaccount.publicKey)
+			node.api.get('/delegates/voters?publicKey=' + node.eAccount.publicKey)
 				.set('Accept', 'application/json')
 				.expect('Content-Type', /json/)
 				.expect(200)

@@ -26,20 +26,20 @@ function sendLISK (account, done) {
 	var expectedFee = node.expectedFee(randomLISK);
 
 	putTransaction({
-		secret: node.Gaccount.password,
+		secret: node.gAccount.password,
 		amount: randomLISK,
 		recipientId: account.address
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		if (res.body.success && res.body.transactionId != null) {
 			transactionList.push({
-				'sender': node.Gaccount.address,
+				'sender': node.gAccount.address,
 				'recipient': account.address,
 				'grossSent': (randomLISK + expectedFee) / node.normalizer,
 				'fee': expectedFee / node.normalizer,
 				'netSent': randomLISK / node.normalizer,
 				'txId': res.body.transactionId,
-				'type': node.TxTypes.SEND
+				'type': node.txTypes.SEND
 			});
 		}
 		done(err, res);
@@ -67,7 +67,7 @@ before(function (done) {
 describe('GET /api/transactions', function () {
 
 	it('using valid parameters should be ok', function (done) {
-		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
+		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
@@ -93,7 +93,7 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using type should be ok', function (done) {
-		node.api.get('/transactions?type=' + node.TxTypes.SEND)
+		node.api.get('/transactions?type=' + node.txTypes.SEND)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -103,7 +103,7 @@ describe('GET /api/transactions', function () {
 				if (res.body.success && res.body.transactions != null) {
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i]) {
-							node.expect(res.body.transactions[i].type).to.equal(node.TxTypes.SEND);
+							node.expect(res.body.transactions[i].type).to.equal(node.txTypes.SEND);
 						}
 					}
 				} else {
@@ -115,7 +115,7 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using no limit should be ok', function (done) {
-		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
+		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
@@ -137,7 +137,7 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using limit > 100 should fail', function (done) {
-		var senderId = node.Gaccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
+		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
 
 		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
@@ -351,7 +351,7 @@ describe('PUT /api/transactions', function () {
 					'fee': expectedFee / node.normalizer,
 					'netSent': amountToSend / node.normalizer,
 					'txId': res.body.transactionId,
-					'type': node.TxTypes.SEND
+					'type': node.txTypes.SEND
 				});
 			}
 			done();
@@ -479,7 +479,7 @@ describe('PUT /api/transactions', function () {
 			var amountToSend = 110000000;
 
 			putTransaction({
-				secret: node.Gaccount.password,
+				secret: node.gAccount.password,
 				amount: amountToSend,
 				recipientId: recipientId
 			}, function (err, res) {

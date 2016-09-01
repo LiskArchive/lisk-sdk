@@ -73,7 +73,7 @@ describe('POST /peer/transactions', function () {
 
 		it('using undefined transaction.asset', function (done) {
 			var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
-			transaction.fee = node.Fees.delegateRegistrationFee;
+			transaction.fee = node.fees.delegateRegistrationFee;
 
 			delete transaction.asset;
 
@@ -88,7 +88,7 @@ describe('POST /peer/transactions', function () {
 
 			it('should fail', function (done) {
 				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
-				transaction.fee = node.Fees.delegateRegistrationFee;
+				transaction.fee = node.fees.delegateRegistrationFee;
 
 				postTransaction(transaction, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -103,8 +103,8 @@ describe('POST /peer/transactions', function () {
 				openAccount(account, function (err, res) {
 					account.address = res.body.account.address;
 					sendLISK({
-						secret: node.Gaccount.password,
-						amount: node.Fees.delegateRegistrationFee,
+						secret: node.gAccount.password,
+						amount: node.fees.delegateRegistrationFee,
 						recipientId: account.address
 					}, function (err, res) {
 						done();
@@ -114,7 +114,7 @@ describe('POST /peer/transactions', function () {
 
 			it('using invalid username should fail', function (done) {
 				var transaction = node.lisk.delegate.createDelegate(account.password, crypto.randomBytes(64).toString('hex'));
-				transaction.fee = node.Fees.delegateRegistrationFee;
+				transaction.fee = node.fees.delegateRegistrationFee;
 
 				postTransaction(transaction, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -160,8 +160,8 @@ describe('POST /peer/transactions', function () {
 				openAccount(account2, function (err, res) {
 					account2.address = res.body.account.address;
 					sendLISK({
-						secret: node.Gaccount.password,
-						amount: (node.Fees.delegateRegistrationFee * 2),
+						secret: node.gAccount.password,
+						amount: (node.fees.delegateRegistrationFee * 2),
 						recipientId: account2.address
 					}, function (err, res) {
 						done();

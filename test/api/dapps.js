@@ -52,7 +52,7 @@ before(function (done) {
 		var expectedFee = node.expectedFee(randomLISK);
 
 		sendLISK({
-			secret: node.Gaccount.password,
+			secret: node.gAccount.password,
 			amount: randomLISK,
 			recipientId: account.address
 		}, done);
@@ -66,7 +66,7 @@ before(function (done) {
 		var expectedFee = node.expectedFee(randomLISK);
 
 		sendLISK({
-			secret: node.Gaccount.password,
+			secret: node.gAccount.password,
 			amount: randomLISK,
 			recipientId: account2.address
 		}, done);
@@ -100,8 +100,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret: node.randomPassword(),
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: node.randomDelegateName(),
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -124,7 +124,7 @@ describe('PUT /dapps', function () {
 			.send({
 				secret: account.password,
 				category: 'Choo Choo',
-				type: node.DappType.DAPP,
+				type: node.dappTypes.DAPP,
 				name: node.randomDelegateName(),
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -146,8 +146,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
 				link: node.guestbookDapp.link,
@@ -168,8 +168,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret:account.password,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: node.randomDelegateName(),
 				description: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c',
 				link: node.guestbookDapp.link,
@@ -190,8 +190,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: node.randomDelegateName(),
 				description: 'A dapp that should not be added',
 				tags: 'develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist',
@@ -213,8 +213,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: 'Lorem ipsum dolor sit amet, conse',
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -236,8 +236,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: node.randomDelegateName(),
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -279,8 +279,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret: account3.password,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: node.randomDelegateName(),
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -302,8 +302,8 @@ describe('PUT /dapps', function () {
 			.send({
 				secret: account2.password,
 				secondSecret: null,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: node.randomDelegateName(),
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -327,7 +327,7 @@ describe('PUT /dapps', function () {
 			.send({
 				secret: account.password,
 				secondSecret: null,
-				category: node.randomProperty(node.DappCategory),
+				category: node.randomProperty(node.dappCategories),
 				type: 'INVALIDTYPE',
 				name: DappName,
 				description: 'A dapp that should not be added',
@@ -351,8 +351,8 @@ describe('PUT /dapps', function () {
 			.set('Accept', 'application/json')
 			.send({
 				secret: account.password,
-				category: node.randomProperty(node.DappCategory),
-				type: node.DappType.DAPP,
+				category: node.randomProperty(node.dappCategories),
+				type: node.dappTypes.DAPP,
 				name: DappName,
 				description: 'A dapp added via API autotest',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -376,8 +376,8 @@ describe('PUT /dapps', function () {
 				.set('Accept', 'application/json')
 				.send({
 					secret: account.password,
-					category: node.randomProperty(node.DappCategory),
-					type: node.DappType.DAPP,
+					category: node.randomProperty(node.dappCategories),
+					type: node.dappTypes.DAPP,
 					name: DappName,
 					description: 'A dapp that should not be added',
 					tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -400,8 +400,8 @@ describe('PUT /dapps', function () {
 				.set('Accept', 'application/json')
 				.send({
 					secret: account.password,
-					category: node.randomProperty(node.DappCategory),
-					type: node.DappType.DAPP,
+					category: node.randomProperty(node.dappCategories),
+					type: node.dappTypes.DAPP,
 					name: node.randomDelegateName(),
 					description: 'A dapp that should not be added',
 					tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
@@ -1198,7 +1198,7 @@ describe('GET /dapps', function () {
 	});
 
 	it('using category should be ok', function (done) {
-		var randomCategory = node.randomProperty(node.DappCategory, true);
+		var randomCategory = node.randomProperty(node.dappCategories, true);
 
 		node.api.get('/dapps?category=' + randomCategory)
 			.expect('Content-Type', /json/)
@@ -1209,7 +1209,7 @@ describe('GET /dapps', function () {
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
 				if (res.body.success && res.body.dapps != null) {
 					if((res.body.dapps).length > 0) {
-						node.expect(res.body.dapps[0].category).to.equal(node.DappCategory[randomCategory]);
+						node.expect(res.body.dapps[0].category).to.equal(node.dappCategories[randomCategory]);
 					}
 				}
 				done();
@@ -1245,7 +1245,7 @@ describe('GET /dapps', function () {
 	});
 
 	it('using type should be ok', function (done) {
-		var type = node.randomProperty(node.DappType);
+		var type = node.randomProperty(node.dappTypes);
 
 		node.api.get('/dapps?type=' + type)
 			.expect('Content-Type', /json/)
@@ -1490,10 +1490,10 @@ describe('GET /dapps/search?q=', function () {
 
 	it('using valid parameters should be ok', function (done) {
 		var q = 'a';
-		var category = node.randomProperty(node.DappCategory, true);
+		var category = node.randomProperty(node.dappCategories, true);
 		var installed = 1;
 
-		node.api.get('/dapps/search?q=' + q + '&installed='+ installed + '&category=' + node.DappCategory[category])
+		node.api.get('/dapps/search?q=' + q + '&installed='+ installed + '&category=' + node.dappCategories[category])
 			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
@@ -1506,7 +1506,7 @@ describe('GET /dapps/search?q=', function () {
 
 	it('using installed = 0 should be ok', function (done) {
 		var q = 's';
-		var category = node.randomProperty(node.DappCategory);
+		var category = node.randomProperty(node.dappCategories);
 		var installed = 0;
 
 		node.api.get('/dapps/search?q=' + q + '&installed='+ installed + '&category=' + category)
@@ -1664,8 +1664,8 @@ describe('GET /dapps/categories', function () {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('categories').that.is.an('object');
-				for (var i in node.DappCategory) {
-					node.expect(res.body.categories[i]).to.equal(node.DappCategory[i]);
+				for (var i in node.dappCategories) {
+					node.expect(res.body.categories[i]).to.equal(node.dappCategories[i]);
 				}
 				done();
 			});

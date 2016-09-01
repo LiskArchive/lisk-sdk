@@ -57,7 +57,7 @@ function sendLISK (account, i, done) {
 	node.api.put('/transactions')
 		.set('Accept', 'application/json')
 		.send({
-			secret: node.Gaccount.password,
+			secret: node.gAccount.password,
 			amount: randomLISK,
 			recipientId: account.address
 		})
@@ -588,10 +588,10 @@ describe('GET /multisignatures/pending', function () {
 						// console.log(multisigAccount.publicKey);
 						if (res.body.transactions[i].transaction.senderPublicKey === multisigAccount.publicKey) {
 							flag += 1;
-							node.expect(res.body.transactions[i].transaction).to.have.property('type').to.equal(node.TxTypes.MULTI);
+							node.expect(res.body.transactions[i].transaction).to.have.property('type').to.equal(node.txTypes.MULTI);
 							node.expect(res.body.transactions[i].transaction).to.have.property('amount').to.equal(0);
 							node.expect(res.body.transactions[i].transaction).to.have.property('asset').that.is.an('object');
-							node.expect(res.body.transactions[i].transaction).to.have.property('fee').to.equal(node.Fees.multisignatureRegistrationFee * (Keys.length + 1));
+							node.expect(res.body.transactions[i].transaction).to.have.property('fee').to.equal(node.fees.multisignatureRegistrationFee * (Keys.length + 1));
 							node.expect(res.body.transactions[i].transaction).to.have.property('id').to.equal(multiSigTx.txId);
 							node.expect(res.body.transactions[i].transaction).to.have.property('senderPublicKey').to.equal(multisigAccount.publicKey);
 							node.expect(res.body.transactions[i]).to.have.property('lifetime').to.equal(multiSigTx.lifetime);
@@ -610,7 +610,7 @@ describe('GET /multisignatures/pending', function () {
 describe('PUT /api/transactions', function () {
 
 	it('when group transaction is pending should be ok', function (done) {
-		sendLISKfrommultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
+		sendLISKfrommultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
 			node.onNewBlock(function (err) {
 				node.api.get('/transactions/get?id=' + transactionId)
 					.set('Accept', 'application/json')
@@ -725,7 +725,7 @@ describe('POST /multisignatures/sign (group)', function () {
 
 describe('POST /multisignatures/sign (transaction)', function () {
 	before(function (done) {
-		sendLISKfrommultisigAccount(100000000, node.Gaccount.address, function (err, transactionId) {
+		sendLISKfrommultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
 			multiSigTx.txId = transactionId;
 			done();
 		});

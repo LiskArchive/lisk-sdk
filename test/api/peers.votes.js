@@ -155,7 +155,7 @@ describe('POST /peer/transactions', function () {
 			},
 			function (seriesCb) {
 				sendLISK({
-					secret: node.Gaccount.password,
+					secret: node.gAccount.password,
 					amount: 100000000000,
 					recipientId: account.address
 				}, seriesCb);
@@ -381,7 +381,7 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 			},
 			function (seriesCb) {
 				sendLISK({
-					secret: node.Gaccount.password,
+					secret: node.gAccount.password,
 					amount: 100000000000,
 					recipientId: account.address
 				}, seriesCb);

@@ -47,7 +47,7 @@ function sendLISK (account, done) {
 	var expectedFee = node.expectedFee(randomLISK);
 
 	putTransaction({
-		secret: node.Gaccount.password,
+		secret: node.gAccount.password,
 		amount: randomLISK,
 		recipientId: account.address
 	}, function (err, res) {
@@ -114,10 +114,10 @@ describe('PUT /signatures', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 			if (res.body.success && res.body.transaction != null) {
-				node.expect(res.body.transaction).to.have.property('type').to.equal(node.TxTypes.SIGNATURE);
+				node.expect(res.body.transaction).to.have.property('type').to.equal(node.txTypes.SIGNATURE);
 				node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
 				node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);
-				node.expect(res.body.transaction).to.have.property('fee').to.equal(node.Fees.secondPasswordFee);
+				node.expect(res.body.transaction).to.have.property('fee').to.equal(node.fees.secondPasswordFee);
 			}
 			done();
 		});
