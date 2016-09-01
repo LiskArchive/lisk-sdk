@@ -3,9 +3,6 @@
 var node = require('./../node.js');
 
 var dapp = {};
-var dappName = '';
-var installedDapp = {};
-
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
 
@@ -61,34 +58,28 @@ before(function (done) {
 	}, 2000);
 });
 
-before(function (done) {
-	// Add second signature to Account 2
-	node.onNewBlock(function (err) {
-		node.put('/signatures', {
-			secret: account2.password,
-			secondSecret: account2.secondPassword
-		}, function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			done();
-		});
-	});
-});
-
 describe('PUT /dapps', function () {
 
-	it('using account with no funds should fail', function (done) {
-		node.put('/dapps', {
-			secret: node.randomPassword(),
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			secret: account.password,
 			category: node.randomProperty(node.dappCategories),
 			type: node.dappTypes.DAPP,
 			name: node.randomDelegateName(),
-			description: 'A dapp that should not be added',
+			description: 'A dapp added via API autotest',
 			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
+			link: node.guestbookDapp.link.replace(/\.zip/, node.randomDelegateName() + '.zip'),
 			icon: node.guestbookDapp.icon
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using account with no funds should fail', function (done) {
+		validParams.secret = node.randomPassword();
+
+		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -96,32 +87,12 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using unknown category should fail', function (done) {
-		node.put('/dapps', {
-			secret: account.password,
-			category: 'unknown',
-			type: node.dappTypes.DAPP,
-			name: node.randomDelegateName(),
-			description: 'A dapp that should not be added',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
 	});
 
 	it('using no dapp name should fail', function (done) {
-		node.put('/dapps', {
-			secret: account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			description: 'A dapp that should not be added',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
+		delete validParams.name;
+
+		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -129,15 +100,9 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using very long description should fail', function (done) {
-		node.put('/dapps', {
-			secret:account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: node.randomDelegateName(),
-			description: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
+		validParams.description = 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c';
+
+		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -145,16 +110,9 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using very long tag should fail', function (done) {
-		node.put('/dapps', {
-			secret: account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: node.randomDelegateName(),
-			description: 'A dapp that should not be added',
-			tags: 'develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
+		validParams.tags = 'develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist';
+
+		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -162,16 +120,9 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using very long name should fail', function (done) {
-		node.put('/dapps', {
-			secret: account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: 'Lorem ipsum dolor sit amet, conse',
-			description: 'A dapp that should not be added',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
+		validParams.name = 'Lorem ipsum dolor sit amet, conse';
+
+		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -179,51 +130,33 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using no link should fail', function (done) {
-		node.put('/dapps', {
-			secret: account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: node.randomDelegateName(),
-			description: 'A dapp that should not be added',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
 	});
 
 	it('using invalid parameter types should fail', function (done) {
-		node.put('/dapps', {
-			secret: account.password,
-			category: 'String',
-			type: 'Type',
-			name: 1234,
-			description: 1234,
-			tags: 1234,
-			link: 1234,
-			icon: 1234
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
 	});
 
-	describe('from account with second passphase enabled', function (done) {
-		it('using no second passphrase should fail', function (done) {
-			node.put('/dapps', {
+	describe('from account with second signature enabled', function (done) {
+		before(function (done) {
+			node.put('/signatures', {
 				secret: account2.password,
-				secondSecret: null,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
+				secondSecret: account2.secondPassword
 			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
+				node.onNewBlock(done);
+			});
+		});
+
+		beforeEach(function (done) {
+			validParams.secret = account2.password;
+			validParams.secondSecret = account2.secondPassword;
+			done();
+		});
+
+		it('using no second passphrase should fail', function (done) {
+			delete validParams.secondSecret;
+
+			node.put('/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -232,56 +165,23 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using unknown type should fail', function (done) {
-		dappName = node.randomDelegateName();
-
-		node.put('/dapps', {
-			secret: account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: 'unknown',
-			name: dappName,
-			description: 'A dapp that should not be added',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
 	});
 
 	it('using valid link should be ok', function (done) {
-		dappName = node.randomDelegateName();
-
-		node.put('/dapps', {
-			secret: account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: dappName,
-			description: 'A dapp added via API autotest',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link,
-			icon: node.guestbookDapp.icon
-		}, function (err, res) {
+		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body.transaction).to.have.property('id');
-			installedDapp.transactionId = res.body.transaction.id;
+			dapp = validParams;
+			dapp.transactionId = res.body.transaction.id;
 			done();
 		});
 	});
 
 	it('using existing dapp name should fail', function (done) {
+		validParams.name = dapp.name;
+
 		node.onNewBlock(function (err) {
-			node.put('/dapps', {
-				secret: account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: dappName,
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			}, function (err, res) {
+			node.put('/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -290,17 +190,10 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using existing dapp link should fail', function (done) {
+		validParams.link = dapp.link;
+
 		node.onNewBlock(function (err) {
-			node.put('/dapps', {
-				secret: account.password,
-				category: node.randomProperty(node.dappCategories),
-				type: node.dappTypes.DAPP,
-				name: node.randomDelegateName(),
-				description: 'A dapp that should not be added',
-				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: node.guestbookDapp.link,
-				icon: node.guestbookDapp.icon
-			}, function (err, res) {
+			node.put('/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -316,14 +209,14 @@ describe('PUT /dapps/transaction', function () {
 	}
 
 	before(function (done) {
-		node.expect(installedDapp).to.be.a('object');
-		node.expect(installedDapp).to.have.property('transactionId').to.be.not.null;
+		node.expect(dapp).to.be.a('object');
+		node.expect(dapp).to.have.property('transactionId').to.be.not.null;
 		done();
 	});
 
 	it('using no secret should fail', function (done) {
 		putTransaction({
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -335,7 +228,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using random secret should fail', function (done) {
 		putTransaction({
 			secret: node.randomPassword(),
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -347,7 +240,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using secret with length > 100 should fail', function (done) {
 		putTransaction({
 			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -359,7 +252,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using no amount should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: installedDapp.transactionId
+			dappId: dapp.transactionId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: amount');
@@ -370,7 +263,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using amount < 0 should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: -1
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -385,7 +278,7 @@ describe('PUT /dapps/transaction', function () {
 
 			putTransaction({
 				secret: account.password,
-				dappId: installedDapp.transactionId,
+				dappId: dapp.transactionId,
 				amount: amount
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -398,7 +291,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using amount > 100M should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 10000000000000002
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -410,7 +303,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using numeric publicKey should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000,
 			publicKey: 1
 		}, function (err, res) {
@@ -424,7 +317,7 @@ describe('PUT /dapps/transaction', function () {
 		putTransaction({
 			secret: account.password,
 			secondSecret: 1,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -437,7 +330,7 @@ describe('PUT /dapps/transaction', function () {
 		putTransaction({
 			secret: account.password,
 			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -498,7 +391,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000,
 			multisigAccountPublicKey: 1
 		}, function (err, res) {
@@ -511,7 +404,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using valid params should be ok', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -528,8 +421,8 @@ describe('PUT /dapps/withdrawal', function () {
 	}
 
 	before(function (done) {
-		node.expect(installedDapp).to.be.a('object');
-		node.expect(installedDapp).to.have.property('transactionId').to.be.not.null;
+		node.expect(dapp).to.be.a('object');
+		node.expect(dapp).to.have.property('transactionId').to.be.not.null;
 		done();
 	});
 
@@ -540,7 +433,7 @@ describe('PUT /dapps/withdrawal', function () {
 	it('using no secret should fail', function (done) {
 		putWithdrawal({
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -554,7 +447,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: node.randomPassword(),
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -568,7 +461,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -581,7 +474,7 @@ describe('PUT /dapps/withdrawal', function () {
 	it('using no amount should fail', function (done) {
 		putWithdrawal({
 			secret: account.password,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -595,7 +488,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: -1,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -612,7 +505,7 @@ describe('PUT /dapps/withdrawal', function () {
 			putWithdrawal({
 				secret: account.password,
 				amount: amount,
-				dappId: installedDapp.transactionId,
+				dappId: dapp.transactionId,
 				transactionId: '1',
 				recipientId: recipientId
 			}, function (err, res) {
@@ -627,7 +520,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 10000000000000002,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -642,7 +535,7 @@ describe('PUT /dapps/withdrawal', function () {
 			secret: account.password,
 			secondSecret: 1,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -657,7 +550,7 @@ describe('PUT /dapps/withdrawal', function () {
 			secret: account.password,
 			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -756,7 +649,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -769,7 +662,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: 1,
 			recipientId: recipientId
 		}, function (err, res) {
@@ -783,7 +676,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1L',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -797,7 +690,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -811,7 +704,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '012345678901234567890',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -825,7 +718,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -838,7 +731,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: 12
 		}, function (err, res) {
@@ -852,7 +745,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: '1'
 		}, function (err, res) {
@@ -866,7 +759,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: '0123456789012345678901L'
 		}, function (err, res) {
@@ -880,7 +773,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId.replace('L', '')
 		}, function (err, res) {
@@ -894,7 +787,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId,
 			multisigAccountPublicKey: 1
@@ -909,7 +802,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -923,7 +816,7 @@ describe('PUT /dapps/withdrawal', function () {
 		var params = {
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '2',
 			recipientId: recipientId
 		};
@@ -946,7 +839,7 @@ describe('PUT /dapps/withdrawal', function () {
 		var params = {
 			secret: account.password,
 			amount: 100000000,
-			dappId: installedDapp.transactionId,
+			dappId: dapp.transactionId,
 			transactionId: '3',
 			recipientId: recipientId
 		};
@@ -982,8 +875,8 @@ describe('GET /dapps', function () {
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			if (res.body.dapps[0] != null) {
 				for (var i = 0; i < res.body.dapps.length; i++) {
-					if (res.body.dapps[i+1] != null) {
-						node.expect(res.body.dapps[i].category).to.be.at.most(res.body.dapps[i+1].category);
+					if (res.body.dapps[i + 1] != null) {
+						node.expect(res.body.dapps[i].category).to.be.at.most(res.body.dapps[i + 1].category);
 					}
 				}
 			}
@@ -997,8 +890,8 @@ describe('GET /dapps', function () {
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			if (res.body.dapps[0] != null) {
 				for (var i = 0; i < res.body.dapps.length; i++) {
-					if (res.body.dapps[i+1] != null) {
-						node.expect(res.body.dapps[i].category).to.be.at.least(res.body.dapps[i+1].category);
+					if (res.body.dapps[i + 1] != null) {
+						node.expect(res.body.dapps[i].category).to.be.at.least(res.body.dapps[i + 1].category);
 					}
 				}
 			}
@@ -1087,7 +980,7 @@ describe('GET /dapps', function () {
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			if (res.body.dapps.length > 0) {
 				dapp = res.body.dapps[0];
-				installedDapp = dapp;
+				dapp = dapp;
 			}
 			done();
 		});
@@ -1151,10 +1044,10 @@ describe('GET /dapps?id=', function () {
 	});
 
 	it('using valid id should be ok', function (done) {
-		getDapps(installedDapp.transactionId, function (err, res) {
+		getDapps(dapp.transactionId, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapp');
-			node.expect(res.body.dapp.transactionId).to.equal(installedDapp.transactionId);
+			node.expect(res.body.dapp.transactionId).to.equal(dapp.transactionId);
 			done();
 		});
 	});
@@ -1168,7 +1061,6 @@ describe('POST /dapps/install', function () {
 
 	it('using no id should fail', function (done) {
 		postInstall({
-			id: null,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -1190,11 +1082,12 @@ describe('POST /dapps/install', function () {
 
 	it('using valid id should be ok', function (done) {
 		postInstall({
-			id: installedDapp.transactionId,
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('path');
+			dapp = dapp;
 			done();
 		});
 	});
@@ -1210,7 +1103,7 @@ describe('GET /dapps/installed', function () {
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			for (var i = 0; i < res.body.dapps.length; i++) {
 				if (res.body.dapps[i] != null) {
-					if (res.body.dapps[i].transactionId === installedDapp.transactionId) {
+					if (res.body.dapps[i].transactionId === dapp.transactionId) {
 						flag += 1;
 					}
 				}
@@ -1231,7 +1124,7 @@ describe('GET /dapps/installedIds', function () {
 			node.expect(res.body).to.have.property('ids').that.is.an('array');
 			for (var i = 0; i < res.body.ids.length; i++) {
 				if (res.body.ids[i] != null) {
-					if (res.body.ids[i] === installedDapp.transactionId) {
+					if (res.body.ids[i] === dapp.transactionId) {
 						flag += 1;
 					}
 				}
@@ -1299,7 +1192,6 @@ describe('POST /dapps/launch', function () {
 
 	it('using no id should fail', function (done) {
 		postLaunch({
-			id: null,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -1321,7 +1213,7 @@ describe('POST /dapps/launch', function () {
 
 	it('using valid id should be ok', function (done) {
 		postLaunch({
-			id: installedDapp.transactionId,
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -1332,7 +1224,7 @@ describe('POST /dapps/launch', function () {
 
 				for (var i = 0; i < res.body.launched.length; i++) {
 					if (res.body.launched[i] != null) {
-						if (res.body.launched[i] === installedDapp.transactionId) {
+						if (res.body.launched[i] === dapp.transactionId) {
 							flag += 1;
 						}
 					}
@@ -1353,7 +1245,6 @@ describe('POST /dapps/stop', function () {
 
 	it('using no id should fail', function (done) {
 		postStop({
-			id: null,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -1375,7 +1266,7 @@ describe('POST /dapps/stop', function () {
 
 	it('using valid id should be ok', function (done) {
 		postStop({
-			id: installedDapp.transactionId,
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -1406,7 +1297,6 @@ describe('POST /dapps/uninstall', function () {
 
 	it('using no id should fail', function (done) {
 		postUninstall({
-			id: null,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -1428,7 +1318,7 @@ describe('POST /dapps/uninstall', function () {
 
 	it('using valid id should be ok', function (done) {
 		postUninstall({
-			id: installedDapp.transactionId,
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
