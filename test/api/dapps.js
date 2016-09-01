@@ -2,9 +2,9 @@
 
 var node = require('./../node.js');
 
-var Dapp = {};
-var DappName = '';
-var DappToInstall = {};
+var dapp = {};
+var dappName = '';
+var installedDapp = {};
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
@@ -231,13 +231,13 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using unknown type should fail', function (done) {
-		DappName = node.randomDelegateName();
+		dappName = node.randomDelegateName();
 
 		node.put('/dapps', {
 			secret: account.password,
 			category: node.randomProperty(node.dappCategories),
 			type: 'unknown',
-			name: DappName,
+			name: dappName,
 			description: 'A dapp that should not be added',
 			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
 			link: node.guestbookDapp.link,
@@ -249,13 +249,13 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using valid link should be ok', function (done) {
-		DappName = node.randomDelegateName();
+		dappName = node.randomDelegateName();
 
 		node.put('/dapps', {
 			secret: account.password,
 			category: node.randomProperty(node.dappCategories),
 			type: node.dappTypes.DAPP,
-			name: DappName,
+			name: dappName,
 			description: 'A dapp added via API autotest',
 			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
 			link: node.guestbookDapp.link,
@@ -263,7 +263,7 @@ describe('PUT /dapps', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body.transaction).to.have.property('id');
-			DappToInstall.transactionId = res.body.transaction.id;
+			installedDapp.transactionId = res.body.transaction.id;
 			done();
 		});
 	});
@@ -274,7 +274,7 @@ describe('PUT /dapps', function () {
 				secret: account.password,
 				category: node.randomProperty(node.dappCategories),
 				type: node.dappTypes.DAPP,
-				name: DappName,
+				name: dappName,
 				description: 'A dapp that should not be added',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
 				link: node.guestbookDapp.link,
@@ -313,14 +313,14 @@ describe('PUT /dapps/transaction', function () {
 	}
 
 	before(function (done) {
-		node.expect(DappToInstall).to.be.a('object');
-		node.expect(DappToInstall).to.have.property('transactionId').to.be.not.null;
+		node.expect(installedDapp).to.be.a('object');
+		node.expect(installedDapp).to.have.property('transactionId').to.be.not.null;
 		done();
 	});
 
 	it('using no secret should fail', function (done) {
 		putTransaction({
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -332,7 +332,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using random secret should fail', function (done) {
 		putTransaction({
 			secret: node.randomPassword(),
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -344,7 +344,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using secret with length > 100 should fail', function (done) {
 		putTransaction({
 			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -356,7 +356,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using no amount should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: DappToInstall.transactionId
+			dappId: installedDapp.transactionId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: amount');
@@ -367,7 +367,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using amount < 0 should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: -1
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -382,7 +382,7 @@ describe('PUT /dapps/transaction', function () {
 
 			putTransaction({
 				secret: account.password,
-				dappId: DappToInstall.transactionId,
+				dappId: installedDapp.transactionId,
 				amount: amount
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -395,7 +395,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using amount > 100M should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 10000000000000002
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -407,7 +407,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using numeric publicKey should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000,
 			publicKey: 1
 		}, function (err, res) {
@@ -421,7 +421,7 @@ describe('PUT /dapps/transaction', function () {
 		putTransaction({
 			secret: account.password,
 			secondSecret: 1,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -434,7 +434,7 @@ describe('PUT /dapps/transaction', function () {
 		putTransaction({
 			secret: account.password,
 			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -495,7 +495,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000,
 			multisigAccountPublicKey: 1
 		}, function (err, res) {
@@ -508,7 +508,7 @@ describe('PUT /dapps/transaction', function () {
 	it('using valid params should be ok', function (done) {
 		putTransaction({
 			secret: account.password,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			amount: 100000000
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -525,8 +525,8 @@ describe('PUT /dapps/withdrawal', function () {
 	}
 
 	before(function (done) {
-		node.expect(DappToInstall).to.be.a('object');
-		node.expect(DappToInstall).to.have.property('transactionId').to.be.not.null;
+		node.expect(installedDapp).to.be.a('object');
+		node.expect(installedDapp).to.have.property('transactionId').to.be.not.null;
 		done();
 	});
 
@@ -537,7 +537,7 @@ describe('PUT /dapps/withdrawal', function () {
 	it('using no secret should fail', function (done) {
 		putWithdrawal({
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -551,7 +551,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: node.randomPassword(),
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -565,7 +565,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -578,7 +578,7 @@ describe('PUT /dapps/withdrawal', function () {
 	it('using no amount should fail', function (done) {
 		putWithdrawal({
 			secret: account.password,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -592,7 +592,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: -1,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -609,7 +609,7 @@ describe('PUT /dapps/withdrawal', function () {
 			putWithdrawal({
 				secret: account.password,
 				amount: amount,
-				dappId: DappToInstall.transactionId,
+				dappId: installedDapp.transactionId,
 				transactionId: '1',
 				recipientId: recipientId
 			}, function (err, res) {
@@ -624,7 +624,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 10000000000000002,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -639,7 +639,7 @@ describe('PUT /dapps/withdrawal', function () {
 			secret: account.password,
 			secondSecret: 1,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -654,7 +654,7 @@ describe('PUT /dapps/withdrawal', function () {
 			secret: account.password,
 			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -753,7 +753,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			recipientId: recipientId
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -766,7 +766,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: 1,
 			recipientId: recipientId
 		}, function (err, res) {
@@ -780,7 +780,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1L',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -794,7 +794,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -808,7 +808,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '012345678901234567890',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -822,7 +822,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -835,7 +835,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: 12
 		}, function (err, res) {
@@ -849,7 +849,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: '1'
 		}, function (err, res) {
@@ -863,7 +863,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: '0123456789012345678901L'
 		}, function (err, res) {
@@ -877,7 +877,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId.replace('L', '')
 		}, function (err, res) {
@@ -891,7 +891,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId,
 			multisigAccountPublicKey: 1
@@ -906,7 +906,7 @@ describe('PUT /dapps/withdrawal', function () {
 		putWithdrawal({
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '1',
 			recipientId: recipientId
 		}, function (err, res) {
@@ -920,7 +920,7 @@ describe('PUT /dapps/withdrawal', function () {
 		var params = {
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '2',
 			recipientId: recipientId
 		};
@@ -943,7 +943,7 @@ describe('PUT /dapps/withdrawal', function () {
 		var params = {
 			secret: account.password,
 			amount: 100000000,
-			dappId: DappToInstall.transactionId,
+			dappId: installedDapp.transactionId,
 			transactionId: '3',
 			recipientId: recipientId
 		};
@@ -1025,8 +1025,8 @@ describe('GET /dapps', function () {
 	it('using name should be ok', function (done) {
 		var name = '';
 
-		if (Dapp !== {} && Dapp != null) {
-			name = Dapp.name;
+		if (dapp !== {} && dapp != null) {
+			name = dapp.name;
 		} else {
 			name = 'test';
 		}
@@ -1096,8 +1096,8 @@ describe('GET /dapps', function () {
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			if (res.body.success && res.body.dapps != null) {
 				if ((res.body.dapps).length > 0) {
-					Dapp = res.body.dapps[0];
-					DappToInstall = Dapp;
+					dapp = res.body.dapps[0];
+					installedDapp = dapp;
 				}
 			}
 			done();
@@ -1164,10 +1164,10 @@ describe('GET /dapps?id=', function () {
 	});
 
 	it('using valid id should be ok', function (done) {
-		getDapps(DappToInstall.transactionId, function (err, res) {
+		getDapps(installedDapp.transactionId, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapp');
-			node.expect(res.body.dapp.transactionId).to.equal(DappToInstall.transactionId);
+			node.expect(res.body.dapp.transactionId).to.equal(installedDapp.transactionId);
 			done();
 		});
 	});
@@ -1203,7 +1203,7 @@ describe('POST /dapps/install', function () {
 
 	it('using valid id should be ok', function (done) {
 		postInstall({
-			id: DappToInstall.transactionId,
+			id: installedDapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -1224,7 +1224,7 @@ describe('GET /dapps/installed', function () {
 			if (res.body.success && res.body.dapps != null) {
 				for (var i = 0; i < res.body.dapps.length; i++) {
 					if (res.body.dapps[i] != null) {
-						if (res.body.dapps[i].transactionId === DappToInstall.transactionId) {
+						if (res.body.dapps[i].transactionId === installedDapp.transactionId) {
 							flag += 1;
 						}
 					}
@@ -1247,7 +1247,7 @@ describe('GET /dapps/installedIds', function () {
 			if (res.body.success && res.body.ids != null) {
 				for (var i = 0; i < res.body.ids.length; i++) {
 					if (res.body.ids[i] != null) {
-						if (res.body.ids[i] === DappToInstall.transactionId) {
+						if (res.body.ids[i] === installedDapp.transactionId) {
 							flag += 1;
 						}
 					}
@@ -1338,7 +1338,7 @@ describe('POST /dapps/launch', function () {
 
 	it('using valid id should be ok', function (done) {
 		postLaunch({
-			id: DappToInstall.transactionId,
+			id: installedDapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -1350,7 +1350,7 @@ describe('POST /dapps/launch', function () {
 
 					for (var i = 0; i < res.body.launched.length; i++) {
 						if (res.body.launched[i] != null) {
-							if (res.body.launched[i] === DappToInstall.transactionId) {
+							if (res.body.launched[i] === installedDapp.transactionId) {
 								flag += 1;
 							}
 						}
@@ -1394,7 +1394,7 @@ describe('POST /dapps/stop', function () {
 
 	it('using valid id should be ok', function (done) {
 		postStop({
-			id: DappToInstall.transactionId,
+			id: installedDapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -1447,7 +1447,7 @@ describe('POST /dapps/uninstall', function () {
 
 	it('using valid id should be ok', function (done) {
 		postUninstall({
-			id: DappToInstall.transactionId,
+			id: installedDapp.transactionId,
 			master: node.config.dapp.masterpassword
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
