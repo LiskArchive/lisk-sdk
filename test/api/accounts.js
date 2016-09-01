@@ -4,64 +4,11 @@ var node = require('./../node.js');
 
 var account = node.randomAccount();
 
-function openAccount (params, done) {
-	node.api.post('/accounts/open')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
-}
-
-function generatePublicKey (params, done) {
-	node.api.post('/accounts/generatePublicKey')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
-}
-
-function getBalance (address, done) {
-	node.api.get('/accounts/getBalance?address=' + address)
-		.set('Accept', 'application/json')
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
-}
-
-function getPublicKey (address, done) {
-	node.api.get('/accounts/getPublicKey?address=' + address)
-		.set('Accept', 'application/json')
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
-}
-
-function getAccount (address, done) {
-	node.api.get('/accounts?address=' + address)
-		.set('Accept', 'application/json')
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
-}
-
 describe('POST /accounts/open', function () {
+
+	function openAccount (params, done) {
+		node.post('/accounts/open', params, done);
+	}
 
 	it('using known passphrase should be ok', function (done) {
 		openAccount({
@@ -151,6 +98,10 @@ describe('POST /accounts/open', function () {
 
 describe('GET /accounts/getBalance?address=', function () {
 
+	function getBalance (address, done) {
+		node.get('/accounts/getBalance?address=' + address, done);
+	}
+
 	it('using known address should be ok', function (done) {
 		getBalance(node.gAccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -189,6 +140,10 @@ describe('GET /accounts/getBalance?address=', function () {
 
 describe('GET /accounts/getPublicKey?address=', function () {
 
+	function getPublicKey (address, done) {
+		node.get('/accounts/getPublicKey?address=' + address, done);
+	}
+
 	it('using known address should be ok', function (done) {
 		getPublicKey(node.gAccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -224,6 +179,10 @@ describe('GET /accounts/getPublicKey?address=', function () {
 });
 
 describe('POST /accounts/generatePublicKey', function () {
+
+	function generatePublicKey (params, done) {
+		node.post('/accounts/generatePublicKey', params, done);
+	}
 
 	it('using known passphrase should be ok', function (done) {
 		generatePublicKey({
@@ -277,8 +236,12 @@ describe('POST /accounts/generatePublicKey', function () {
 
 describe('GET /accounts?address=', function () {
 
+	function getAccounts (address, done) {
+		node.get('/accounts?address=' + address, done);
+	}
+
 	it('using known address should be ok', function (done) {
-		getAccount(node.gAccount.address, function (err, res) {
+		getAccounts(node.gAccount.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
 			node.expect(res.body.account).to.have.property('address').to.equal(node.gAccount.address);
@@ -295,7 +258,7 @@ describe('GET /accounts?address=', function () {
 	});
 
 	it('using known lowercase address should be ok', function (done) {
-		getAccount(node.gAccount.address.toLowerCase(), function (err, res) {
+		getAccounts(node.gAccount.address.toLowerCase(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('account').that.is.an('object');
 			node.expect(res.body.account).to.have.property('address').to.equal(node.gAccount.address);
@@ -312,7 +275,7 @@ describe('GET /accounts?address=', function () {
 	});
 
 	it('using unknown address should fail', function (done) {
-		getAccount(account.address, function (err, res) {
+		getAccounts(account.address, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.eql('Account not found');
 			done();
@@ -320,7 +283,7 @@ describe('GET /accounts?address=', function () {
 	});
 
 	it('using invalid address should fail', function (done) {
-		getAccount('thisIsNOTAValidLiskAddress', function (err, res) {
+		getAccounts('thisIsNOTAValidLiskAddress', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			node.expect(res.body.error).to.contain('Invalid address');
@@ -329,7 +292,7 @@ describe('GET /accounts?address=', function () {
 	});
 
 	it('using empty address should fail', function (done) {
-		getAccount('', function (err, res) {
+		getAccounts('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			node.expect(res.body.error).to.contain('String is too short (0 chars), minimum 1');
