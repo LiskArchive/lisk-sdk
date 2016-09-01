@@ -207,6 +207,7 @@ describe('PUT /dapps', function () {
 			icon: 1234
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
@@ -225,6 +226,7 @@ describe('PUT /dapps', function () {
 				icon: node.guestbookDapp.icon
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 		});
@@ -244,6 +246,7 @@ describe('PUT /dapps', function () {
 			icon: node.guestbookDapp.icon
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
@@ -281,6 +284,7 @@ describe('PUT /dapps', function () {
 				icon: node.guestbookDapp.icon
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
 				done();
 			});
 		});
