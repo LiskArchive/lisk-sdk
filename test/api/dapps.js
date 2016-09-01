@@ -106,6 +106,16 @@ describe('PUT /dapps', function () {
 		});
 	});
 
+	it('using numeric name should fail', function (done) {
+		validParams.name = 12345;
+
+		node.put('/dapps', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
 	it('using very long description should fail', function (done) {
 		validParams.description = 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c';
 
@@ -116,8 +126,48 @@ describe('PUT /dapps', function () {
 		});
 	});
 
+	it('using numeric description should fail', function (done) {
+		validParams.description = 12345;
+
+		node.put('/dapps', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
 	it('using very long tag should fail', function (done) {
 		validParams.tags = 'develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist';
+
+		node.put('/dapps', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('using numeric tags should fail', function (done) {
+		validParams.tags = 12345;
+
+		node.put('/dapps', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('using numeric link should fail', function (done) {
+		validParams.link = 12345;
+
+		node.put('/dapps', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('using numeric icon should fail', function (done) {
+		validParams.icon = 12345;
 
 		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
