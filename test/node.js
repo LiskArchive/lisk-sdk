@@ -11,6 +11,7 @@ node.expect = require('chai').expect;
 node.chai = require('chai');
 node.lisk = require('./lisk-js');
 node.supertest = require('supertest');
+require('colors');
 
 node.bignum = require('../helpers/bignum.js');
 node.config = require('../config.json');
@@ -61,6 +62,13 @@ node.gAccount = {
 	'password': 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
 	'balance': '10000000000000000'
 };
+
+// Optional logging
+if (process.env.DEBUG === 'true') {
+	node.debug = console.log;
+} else {
+	node.debug = function () {};
+}
 
 // Random LSK amount
 node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
@@ -140,7 +148,7 @@ node.waitForNewBlock = function (height, cb) {
 					height = body.height;
 				}
 
-				console.log('	Waiting for block:', 'Height:', height, 'Second:', counter++);
+				node.debug('	Waiting for block:'.grey, 'Height:'.grey, height, 'Second:'.grey, counter++);
 				setTimeout(cb, 1000);
 			});
 		},
@@ -268,38 +276,43 @@ node.randomPassword = function () {
 
 // Get the given path
 node.get = function (path, done) {
+	node.debug('> Path:'.grey, 'GET ' + path);
 	node.api.get(path)
 		.set('Accept', 'application/json')
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
+			node.debug('> Response:'.grey, JSON.stringify(res.body));
 			done(err, res);
 		});
 };
 
 // Post to the given path
 node.post = function (path, params, done) {
+	node.debug('> Path:'.grey, 'POST ' + path);
+	node.debug('> Params:'.grey, params);
 	node.api.post(path)
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
+			node.debug('> Response:'.grey, JSON.stringify(res.body));
 			done(err, res);
 		});
 };
 
 // Put to the given path
 node.put = function (path, params, done) {
+	node.debug('> Path:'.grey, 'PUT ' + path);
+	node.debug('> Params:'.grey, params);
 	node.api.put(path)
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
+			node.debug('> Response:'.grey, JSON.stringify(res.body));
 			done(err, res);
 		});
 };
