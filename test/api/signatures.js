@@ -6,8 +6,6 @@ var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
 var account3 = node.randomTxAccount();
 
-var transactionList = [];
-
 function putTransaction (params, done) {
 	node.api.put('/transactions')
 		.set('Accept', 'application/json')
@@ -30,17 +28,6 @@ function sendLISK (account, done) {
 		recipientId: account.address
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
-		if (res.body.success && res.body.transactionId != null) {
-			transactionList.push({
-				'sender': node.Gaccount.address,
-				'recipient': account.address,
-				'grossSent': (randomLISK + expectedFee) / node.normalizer,
-				'fee': expectedFee / node.normalizer,
-				'netSent': randomLISK / node.normalizer,
-				'txId': res.body.transactionId,
-				'type': node.TxTypes.SEND
-			});
-		}
 		done(err, res);
 	});
 }
@@ -127,20 +114,6 @@ describe('PUT /signatures', function () {
 					node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
 					node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);
 					node.expect(res.body.transaction).to.have.property('fee').to.equal(node.Fees.secondPasswordFee);
-					account.balance -= node.Fees.secondPasswordFee;
-					transactionList.push({
-						'sender': account.address,
-						'recipient': account.address,
-						'grossSent': 0,
-						'fee': node.Fees.secondPasswordFee,
-						'netSent': 0,
-						'txId': res.body.transaction.id,
-						'type': node.TxTypes.SIGNATURE
-					});
-				} else {
-					// console.log('Transaction failed or transaction object is null');
-					// console.log('Sent: secret: ' + account.password + ', secondSecret: ' + account.secondPassword);
-					node.expect(false).to.equal(true);
 				}
 				done();
 			});
