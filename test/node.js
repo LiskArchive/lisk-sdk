@@ -263,6 +263,44 @@ function randomPassword () {
 	return Math.random().toString(36).substring(7);
 }
 
+// Get the given path
+function get (path, done) {
+	api.get(path)
+		.set('Accept', 'application/json')
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
+// Post to the given path
+function post (path, params, done) {
+	api.post(path)
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
+// Put to the given path
+function put (path, params, done) {
+	api.put(path)
+		.set('Accept', 'application/json')
+		.send(params)
+		.expect('Content-Type', /json/)
+		.expect(200)
+		.end(function (err, res) {
+			// console.log(JSON.stringify(res.body));
+			done(err, res);
+		});
+}
+
 // Exports
 module.exports = {
 	addPeers: addPeers,
@@ -279,6 +317,7 @@ module.exports = {
 	expectedFee: expectedFee,
 	Fees: Fees,
 	Gaccount: Gaccount,
+	get: get,
 	getHeight: getHeight,
 	guestbookDapp: guestbookDapp,
 	lisk : lisk,
@@ -286,6 +325,8 @@ module.exports = {
 	normalizer: normalizer,
 	onNewBlock: onNewBlock,
 	peer: peer,
+	post: post,
+	put: put,
 	randomAccount: randomAccount,
 	randomCapitalUsername: randomCapitalUsername,
 	randomDelegateName: randomDelegateName,
