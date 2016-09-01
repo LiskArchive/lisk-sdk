@@ -86,9 +86,6 @@ describe('PUT /dapps', function () {
 		});
 	});
 
-	it('using unknown category should fail', function (done) {
-	});
-
 	it('using no dapp name should fail', function (done) {
 		delete validParams.name;
 
@@ -127,12 +124,6 @@ describe('PUT /dapps', function () {
 			node.expect(res.body).to.have.property('error');
 			done();
 		});
-	});
-
-	it('using no link should fail', function (done) {
-	});
-
-	it('using invalid parameter types should fail', function (done) {
 	});
 
 	describe('from account with second signature enabled', function (done) {
@@ -181,9 +172,6 @@ describe('PUT /dapps', function () {
 				done();
 			});
 		});
-	});
-
-	it('using unknown type should fail', function (done) {
 	});
 
 	it('using valid link should be ok', function (done) {
