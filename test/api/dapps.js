@@ -15,11 +15,10 @@ function openAccount (account, done) {
 	}, function (err, res) {
 		// console.log(JSON.stringify(res.body));
 		node.expect(res.body).to.have.property('success').to.be.ok;
-		if (res.body.success && res.body.account != null) {
-			account.address = res.body.account.address;
-			account.publicKey = res.body.account.publicKey;
-			account.balance = res.body.account.balance;
-		}
+		node.expect(res.body).to.have.property('account').that.is.an('object');
+		account.address = res.body.account.address;
+		account.publicKey = res.body.account.publicKey;
+		account.balance = res.body.account.balance;
 		done(err, res);
 	});
 }
@@ -981,12 +980,10 @@ describe('GET /dapps', function () {
 		getDapps('orderBy=' + 'category:asc', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				if (res.body.dapps[0] != null) {
-					for (var i = 0; i < res.body.dapps.length; i++) {
-						if (res.body.dapps[i+1] != null) {
-							node.expect(res.body.dapps[i].category).to.be.at.most(res.body.dapps[i+1].category);
-						}
+			if (res.body.dapps[0] != null) {
+				for (var i = 0; i < res.body.dapps.length; i++) {
+					if (res.body.dapps[i+1] != null) {
+						node.expect(res.body.dapps[i].category).to.be.at.most(res.body.dapps[i+1].category);
 					}
 				}
 			}
@@ -998,12 +995,10 @@ describe('GET /dapps', function () {
 		getDapps('orderBy=' + 'category:desc', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				if (res.body.dapps[0] != null) {
-					for( var i = 0; i < res.body.dapps.length; i++) {
-						if (res.body.dapps[i+1] != null) {
-							node.expect(res.body.dapps[i].category).to.be.at.least(res.body.dapps[i+1].category);
-						}
+			if (res.body.dapps[0] != null) {
+				for (var i = 0; i < res.body.dapps.length; i++) {
+					if (res.body.dapps[i+1] != null) {
+						node.expect(res.body.dapps[i].category).to.be.at.least(res.body.dapps[i+1].category);
 					}
 				}
 			}
@@ -1017,10 +1012,8 @@ describe('GET /dapps', function () {
 		getDapps('category=' + randomCategory, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				if((res.body.dapps).length > 0) {
-					node.expect(res.body.dapps[0].category).to.equal(node.dappCategories[randomCategory]);
-				}
+			if (res.body.dapps.length > 0) {
+				node.expect(res.body.dapps[0].category).to.equal(node.dappCategories[randomCategory]);
 			}
 			done();
 		});
@@ -1041,10 +1034,8 @@ describe('GET /dapps', function () {
 			} else {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('dapps').that.is.an('array');
-				node.expect(res.body.dapps.length).to.equal(1);
-				if (res.body.success && res.body.dapps != null) {
-					node.expect(res.body.dapps[0].name).to.equal(name);
-				}
+				node.expect(res.body.dapps).to.have.length.above(0);
+				node.expect(res.body.dapps[0].name).to.equal(name);
 			}
 			done();
 		});
@@ -1056,11 +1047,9 @@ describe('GET /dapps', function () {
 		getDapps('type=' + type, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				for( var i = 0; i < res.body.dapps.length; i++) {
-					if (res.body.dapps[i] != null) {
-						node.expect(res.body.dapps[i].type).to.equal(type);
-					}
+			for (var i = 0; i < res.body.dapps.length; i++) {
+				if (res.body.dapps[i] != null) {
+					node.expect(res.body.dapps[i].type).to.equal(type);
 				}
 			}
 			done();
@@ -1083,11 +1072,9 @@ describe('GET /dapps', function () {
 		getDapps('link=' + link, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				for( var i = 0; i < res.body.dapps.length; i++) {
-					if (res.body.dapps[i] != null) {
-						node.expect(res.body.dapps[i].link).to.equal(link);
-					}
+			for (var i = 0; i < res.body.dapps.length; i++) {
+				if (res.body.dapps[i] != null) {
+					node.expect(res.body.dapps[i].link).to.equal(link);
 				}
 			}
 			done();
@@ -1098,11 +1085,9 @@ describe('GET /dapps', function () {
 		getDapps('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				if ((res.body.dapps).length > 0) {
-					dapp = res.body.dapps[0];
-					installedDapp = dapp;
-				}
+			if (res.body.dapps.length > 0) {
+				dapp = res.body.dapps[0];
+				installedDapp = dapp;
 			}
 			done();
 		});
@@ -1115,7 +1100,7 @@ describe('GET /dapps', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			if (res.body.success && res.body.dapps != null) {
-				node.expect((res.body.dapps).length).to.be.at.most(limit);
+				node.expect(res.body.dapps).to.have.length.at.most(limit);
 			}
 			done();
 		});
@@ -1128,17 +1113,15 @@ describe('GET /dapps', function () {
 		getDapps('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				if (res.body.dapps[1] != null) {
-					secondDapp = res.body.dapps[1];
+			if (res.body.dapps[1] != null) {
+				secondDapp = res.body.dapps[1];
 
-					getDapps('offset=' + 1, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						if (res.body.success && res.body.dapps != null) {
-							node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
-						}
-					});
-				}
+				getDapps('offset=' + 1, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					if (res.body.success && res.body.dapps != null) {
+						node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
+					}
+				});
 			}
 			done();
 		});
@@ -1225,16 +1208,14 @@ describe('GET /dapps/installed', function () {
 		node.get('/dapps/installed', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				for (var i = 0; i < res.body.dapps.length; i++) {
-					if (res.body.dapps[i] != null) {
-						if (res.body.dapps[i].transactionId === installedDapp.transactionId) {
-							flag += 1;
-						}
+			for (var i = 0; i < res.body.dapps.length; i++) {
+				if (res.body.dapps[i] != null) {
+					if (res.body.dapps[i].transactionId === installedDapp.transactionId) {
+						flag += 1;
 					}
 				}
-				node.expect(flag).to.equal(1);
 			}
+			node.expect(flag).to.equal(1);
 			done();
 		});
 	});
@@ -1248,16 +1229,14 @@ describe('GET /dapps/installedIds', function () {
 		node.get('/dapps/installedIds', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('ids').that.is.an('array');
-			if (res.body.success && res.body.ids != null) {
-				for (var i = 0; i < res.body.ids.length; i++) {
-					if (res.body.ids[i] != null) {
-						if (res.body.ids[i] === installedDapp.transactionId) {
-							flag += 1;
-						}
+			for (var i = 0; i < res.body.ids.length; i++) {
+				if (res.body.ids[i] != null) {
+					if (res.body.ids[i] === installedDapp.transactionId) {
+						flag += 1;
 					}
 				}
-				node.expect(flag).to.equal(1);
 			}
+			node.expect(flag).to.equal(1);
 			done();
 		});
 	});
@@ -1349,19 +1328,17 @@ describe('POST /dapps/launch', function () {
 			node.get('/dapps/launched', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('launched').that.is.an('array');
-				if (res.body.success && res.body.launched != null) {
-					var flag = 0;
+				var flag = 0;
 
-					for (var i = 0; i < res.body.launched.length; i++) {
-						if (res.body.launched[i] != null) {
-							if (res.body.launched[i] === installedDapp.transactionId) {
-								flag += 1;
-							}
+				for (var i = 0; i < res.body.launched.length; i++) {
+					if (res.body.launched[i] != null) {
+						if (res.body.launched[i] === installedDapp.transactionId) {
+							flag += 1;
 						}
 					}
-
-					node.expect(flag).to.equal(1);
 				}
+
+				node.expect(flag).to.equal(1);
 			});
 			done();
 		});
