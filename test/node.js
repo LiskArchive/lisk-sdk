@@ -244,6 +244,19 @@ node.randomCapitalUsername = function () {
 	return username;
 };
 
+// Returns a random application name
+node.randomApplicationName = function () {
+	var size = node.randomNumber(1, 32); // Min. username size is 1, Max. username size is 32
+	var name = 'A';
+	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+	for (var i = 0; i < size - 1; i++) {
+		name += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+
+	return name;
+};
+
 // Returns a basic random account
 node.randomAccount = function () {
 	var account = {
