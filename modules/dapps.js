@@ -226,6 +226,11 @@ __private.attachApi = function () {
 		req.sanitize(req.query, {
 			type: 'object',
 			properties: {
+				id: {
+					type: 'string',
+					minLength: 1,
+					maxLength: 20
+				},
 				category: {
 					type: 'string',
 					minLength: 1
