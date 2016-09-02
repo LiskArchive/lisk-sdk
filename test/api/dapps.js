@@ -1150,6 +1150,10 @@ describe('POST /dapps/install', function () {
 			done();
 		});
 	});
+
+	describe('when link is 404 not found', function () {
+		it('should fail');
+	});
 });
 
 describe('GET /dapps/installed', function () {
