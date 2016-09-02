@@ -1087,15 +1087,25 @@ describe('GET /dapps?id=', function () {
 	it('using no id should fail', function (done) {
 		getDapps('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.equal('String is too short (0 chars), minimum 1: #/id');
+			done();
+		});
+	});
+
+	it('using id with length > 20 should fail', function (done) {
+		getDapps('012345678901234567890', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.equal('String is too long (21 chars), maximum 20: #/id');
 			done();
 		});
 	});
 
 	it('using unknown id should be ok', function (done) {
-		getDapps('unknown', function (err, res) {
+		var dappId = '8713095156789756398';
+
+		getDapps(dappId, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('dapps');
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			done();
 		});
 	});
@@ -1103,8 +1113,8 @@ describe('GET /dapps?id=', function () {
 	it('using valid id should be ok', function (done) {
 		getDapps(dapp.transactionId, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('dapp');
-			node.expect(res.body.dapp.transactionId).to.equal(dapp.transactionId);
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			node.expect(res.body.dapps[0].transactionId).to.equal(dapp.transactionId);
 			done();
 		});
 	});
