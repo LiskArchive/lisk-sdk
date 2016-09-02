@@ -225,6 +225,8 @@ describe('PUT /dapps', function () {
 	});
 
 	it('using valid params should be ok', function (done) {
+		validParams.link = node.guestbookDapp.link;
+
 		node.put('/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body.transaction).to.have.property('id');
