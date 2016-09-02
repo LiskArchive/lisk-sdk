@@ -67,10 +67,10 @@ describe('PUT /dapps', function () {
 			secret: account.password,
 			category: node.randomProperty(node.dappCategories),
 			type: node.dappTypes.DAPP,
-			name: node.randomDelegateName(),
+			name: node.randomApplicationName(),
 			description: 'A dapp added via API autotest',
 			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link.replace(/\.zip/, node.randomDelegateName() + '.zip'),
+			link: node.guestbookDapp.link.replace(/\.zip/, node.randomApplicationName() + '.zip'),
 			icon: node.guestbookDapp.icon
 		};
 		done();
