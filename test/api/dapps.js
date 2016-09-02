@@ -981,11 +981,9 @@ describe('GET /dapps', function () {
 		}
 
 		getDapps('name=' + name, function (err, res) {
-			if (name === 'test') {
-				node.expect(res.body).to.have.property('success');
-			} else {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			node.expect(res.body).to.have.property('success');
+			node.expect(res.body).to.have.property('dapps').that.is.an('array');
+			if (name !== 'test') {
 				node.expect(res.body.dapps).to.have.length.above(0);
 				node.expect(res.body.dapps[0].name).to.equal(name);
 			}
