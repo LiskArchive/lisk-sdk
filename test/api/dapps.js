@@ -1092,10 +1092,10 @@ describe('GET /dapps?id=', function () {
 		});
 	});
 
-	it('using unknown id should fail', function (done) {
+	it('using unknown id should be ok', function (done) {
 		getDapps('unknown', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('dapps');
 			done();
 		});
 	});
