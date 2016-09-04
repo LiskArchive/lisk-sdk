@@ -58,22 +58,30 @@ before(function (done) {
 	}, 2000);
 });
 
+var validDapp;
+
+beforeEach(function (done) {
+	validDapp = {
+		secret: account.password,
+		category: node.randomProperty(node.dappCategories),
+		type: node.dappTypes.DAPP,
+		name: node.randomApplicationName(),
+		description: 'A dapp added via API autotest',
+		tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+		link: node.guestbookDapp.link,
+		icon: node.guestbookDapp.icon
+	};
+	done();
+});
+
 describe('PUT /dapps', function () {
 
 	var validParams;
 
 	beforeEach(function (done) {
-		validParams = {
-			secret: account.password,
-			category: node.randomProperty(node.dappCategories),
-			type: node.dappTypes.DAPP,
-			name: node.randomApplicationName(),
-			description: 'A dapp added via API autotest',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			link: node.guestbookDapp.link.replace(/\.zip/, node.randomApplicationName() + '.zip'),
-			icon: node.guestbookDapp.icon
-		};
-		done();
+			validParams = validDapp;
+			validParams.link = validParams.link.replace(/\.zip/, node.randomApplicationName() + '.zip');
+			done();
 	});
 
 	it('using account with no funds should fail', function (done) {
@@ -273,11 +281,21 @@ describe('PUT /dapps/transaction', function () {
 		done();
 	});
 
-	it('using no secret should fail', function (done) {
-		putTransaction({
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			secret: account.password,
 			dappId: dapp.transactionId,
 			amount: 100000000
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using no secret should fail', function (done) {
+		delete validParams.secret;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: secret');
 			done();
@@ -285,11 +303,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using random secret should fail', function (done) {
-		putTransaction({
-			secret: node.randomPassword(),
-			dappId: dapp.transactionId,
-			amount: 100000000
-		}, function (err, res) {
+		validParams.secret = node.randomPassword();
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.match(/Account has no LISK: [0-9]+L balance=0/);
 			done();
@@ -297,11 +313,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using secret with length > 100 should fail', function (done) {
-		putTransaction({
-			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			dappId: dapp.transactionId,
-			amount: 100000000
-		}, function (err, res) {
+		validParams.secret = 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re';
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
@@ -309,10 +323,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using no amount should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: dapp.transactionId
-		}, function (err, res) {
+		delete validParams.amount;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: amount');
 			done();
@@ -320,11 +333,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using amount < 0 should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: dapp.transactionId,
-			amount: -1
-		}, function (err, res) {
+		validParams.amount = -1;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
 			done();
@@ -333,13 +344,9 @@ describe('PUT /dapps/transaction', function () {
 
 	it('using amount > balance should fail', function (done) {
 		openAccount(account, function (err, res) {
-			var amount = node.bignum(account.balance).plus('1').toNumber();
+			validParams.amount = node.bignum(account.balance).plus('1').toNumber();
 
-			putTransaction({
-				secret: account.password,
-				dappId: dapp.transactionId,
-				amount: amount
-			}, function (err, res) {
+			putTransaction(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.not.be.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -348,11 +355,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using amount > 100M should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: dapp.transactionId,
-			amount: 10000000000000002
-		}, function (err, res) {
+		validParams.amount = 10000000000000002;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Value 10000000000000002 is greater than maximum 10000000000000000');
 			done();
@@ -360,12 +365,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using numeric publicKey should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: dapp.transactionId,
-			amount: 100000000,
-			publicKey: 1
-		}, function (err, res) {
+		validParams.publicKey = 1;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -373,12 +375,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using numeric secondSecret should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			secondSecret: 1,
-			dappId: dapp.transactionId,
-			amount: 100000000
-		}, function (err, res) {
+		validParams.secondSecret = 1;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -386,12 +385,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using secondSecret with length > 100 should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			dappId: dapp.transactionId,
-			amount: 100000000
-		}, function (err, res) {
+		validParams.secondSecret = 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re';
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
@@ -399,10 +395,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using no dappId should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: 100000000
-		}, function (err, res) {
+		delete validParams.dappId;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: dappId');
 			done();
@@ -410,11 +405,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using numeric dappId should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: 1,
-			amount: 100000000
-		}, function (err, res) {
+		validParams.dappId = 1;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -422,11 +415,9 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using dappId with length > 20 should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: '012345678901234567890',
-			amount: 100000000
-		}, function (err, res) {
+		validParams.dappId = '012345678901234567890';
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (21 chars), maximum 20');
 			done();
@@ -434,26 +425,19 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using unknown dappId', function (done) {
-		var dappId = '8713095156789756398';
+		validParams.dappId = '8713095156789756398';
 
-		putTransaction({
-			secret: account.password,
-			dappId: dappId,
-			amount: 100000000
-		}, function (err, res) {
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Application not found: ' + dappId);
+			node.expect(res.body).to.have.property('error').to.equal('Application not found: ' + validParams.dappId);
 			done();
 		});
 	});
 
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: dapp.transactionId,
-			amount: 100000000,
-			multisigAccountPublicKey: 1
-		}, function (err, res) {
+		validParams.multisigAccountPublicKey = 1;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -461,11 +445,7 @@ describe('PUT /dapps/transaction', function () {
 	});
 
 	it('using valid params should be ok', function (done) {
-		putTransaction({
-			secret: account.password,
-			dappId: dapp.transactionId,
-			amount: 100000000
-		}, function (err, res) {
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
 			done();
@@ -485,17 +465,30 @@ describe('PUT /dapps/withdrawal', function () {
 		done();
 	});
 
-	var randomAccount = node.randomTxAccount();
-	var keys = node.lisk.crypto.getKeys(account.password);
-	var recipientId = node.lisk.crypto.getAddress(keys.publicKey);
+	var validParams;
 
-	it('using no secret should fail', function (done) {
-		putWithdrawal({
+	beforeEach(function (done) {
+		var keys = node.lisk.crypto.getKeys(account.password);
+		var recipientId = node.lisk.crypto.getAddress(keys.publicKey);
+		var transaction = node.lisk.transaction.createTransaction('1L', 100000000, account.password);
+
+		validParams = {
+			secret: account.password,
 			amount: 100000000,
 			dappId: dapp.transactionId,
-			transactionId: '1',
+			transactionId: transaction.id,
 			recipientId: recipientId
-		}, function (err, res) {
+		};
+
+		done();
+	});
+
+	var randomAccount = node.randomTxAccount();
+
+	it('using no secret should fail', function (done) {
+		delete validParams.secret;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: secret');
 			done();
@@ -503,13 +496,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using random secret should fail', function (done) {
-		putWithdrawal({
-			secret: node.randomPassword(),
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.secret = node.randomPassword();
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.match(/Account has no LISK: [0-9]+L balance=0/);
 			done();
@@ -517,13 +506,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using secret with length > 100 should fail', function (done) {
-		putWithdrawal({
-			secret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.secret = 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
@@ -531,12 +516,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using no amount should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		delete validParams.amount;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: amount');
 			done();
@@ -544,13 +526,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using amount < 0 should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: -1,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.amount = -1;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
 			done();
@@ -559,15 +537,9 @@ describe('PUT /dapps/withdrawal', function () {
 
 	it('using amount > balance should fail', function (done) {
 		openAccount(account, function (err, res) {
-			var amount = node.bignum(account.balance).plus('1').toNumber();
+			validParams.amount = node.bignum(account.balance).plus('1').toNumber();
 
-			putWithdrawal({
-				secret: account.password,
-				amount: amount,
-				dappId: dapp.transactionId,
-				transactionId: '1',
-				recipientId: recipientId
-			}, function (err, res) {
+			putWithdrawal(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.not.be.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -576,13 +548,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using amount > 100M should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 10000000000000002,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.amount = 10000000000000002;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Value 10000000000000002 is greater than maximum 10000000000000000');
 			done();
@@ -590,14 +558,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using numeric secondSecret should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			secondSecret: 1,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.secondSecret = 1;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -605,14 +568,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using secondSecret with length > 100 should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			secondSecret: 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re',
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.secondSecret = 'major patient image mom reject theory glide brisk polar source rely inhale major patient image mom re';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (101 chars), maximum 100');
 			done();
@@ -620,12 +578,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using no dappId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		delete validParams.dappId;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: dappId');
 			done();
@@ -633,13 +588,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using numeric dappId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: 1,
-			transactionId: 1,
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.dappId = 1;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -647,13 +598,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using alphanumeric dappId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: '1L',
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.dappId = '1L';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Application not found: 1L');
 			done();
@@ -661,13 +608,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using blank dappId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: '',
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.dappId = '';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too short (0 chars), minimum 1');
 			done();
@@ -675,13 +618,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using dappId with length > 20 should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: '012345678901234567890',
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.dappId = '012345678901234567890';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (21 chars), maximum 20');
 			done();
@@ -689,28 +628,19 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using unknown dappId', function (done) {
-		var dappId = '8713095156789756398';
+		validParams.dappId = '8713095156789756398';
 
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dappId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Application not found: ' + dappId);
+			node.expect(res.body).to.have.property('error').to.equal('Application not found: ' + validParams.dappId);
 			done();
 		});
 	});
 
 	it('using no transactionId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			recipientId: recipientId
-		}, function (err, res) {
+		delete validParams.transactionId;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: transactionId');
 			done();
@@ -718,13 +648,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using numeric transactionId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: 1,
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.transactionId = 1;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -732,13 +658,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using alphanumeric transactionId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1L',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.transactionId = '1L';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Invalid outTransfer transactionId');
 			done();
@@ -746,13 +668,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using blank transactionId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.transactionId = '';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too short (0 chars), minimum 1');
 			done();
@@ -760,13 +678,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using transactionId with length > 20 should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '012345678901234567890',
-			recipientId: recipientId
-		}, function (err, res) {
+		validParams.transactionId = '012345678901234567890';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (21 chars), maximum 20');
 			done();
@@ -774,12 +688,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using no recipientId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1'
-		}, function (err, res) {
+		delete validParams.recipientId;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: recipientId');
 			done();
@@ -787,13 +698,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using numeric recipientId should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: 12
-		}, function (err, res) {
+		validParams.recipientId = 12;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -801,13 +708,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using recipientId with length < 2 should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: '1'
-		}, function (err, res) {
+		validParams.recipientId = '1';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too short (1 chars), minimum 2');
 			done();
@@ -815,13 +718,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using recipientId with length > 22 should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: '0123456789012345678901L'
-		}, function (err, res) {
+		validParams.recipientId = '0123456789012345678901L';
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('String is too long (23 chars), maximum 22');
 			done();
@@ -829,13 +728,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using recipientId without an "L" should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId.replace('L', '')
-		}, function (err, res) {
+		validParams.recipientId = validParams.recipientId.replace('L', '');
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Invalid recipient');
 			done();
@@ -843,14 +738,9 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId,
-			multisigAccountPublicKey: 1
-		}, function (err, res) {
+		validParams.multisigAccountPublicKey = 1;
+
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
 			done();
@@ -858,13 +748,7 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using valid params should be ok', function (done) {
-		putWithdrawal({
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '1',
-			recipientId: recipientId
-		}, function (err, res) {
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
 			done();
@@ -872,22 +756,14 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using same params twice within current block should fail', function (done) {
-		var params = {
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '2',
-			recipientId: recipientId
-		};
-
-		putWithdrawal(params, function (err, res) {
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
 
 			setTimeout(function () {
-				putWithdrawal(params, function (err, res) {
+				putWithdrawal(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').to.equal('Transaction is already processing: 2');
+					node.expect(res.body).to.have.property('error').to.equal('Transaction is already processing: ' + validParams.transactionId);
 					done();
 				});
 			}, 2000);
@@ -895,22 +771,14 @@ describe('PUT /dapps/withdrawal', function () {
 	});
 
 	it('using already confirmed params after new block should fail', function (done) {
-		var params = {
-			secret: account.password,
-			amount: 100000000,
-			dappId: dapp.transactionId,
-			transactionId: '3',
-			recipientId: recipientId
-		};
-
-		putWithdrawal(params, function (err, res) {
+		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
 
 			node.onNewBlock(function (err) {
-				putWithdrawal(params, function (err, res) {
+				putWithdrawal(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.not.be.ok;
-					node.expect(res.body).to.have.property('error').to.equal('Transaction is already confirmed: 3');
+					node.expect(res.body).to.have.property('error').to.equal('Transaction is already confirmed: ' + validParams.transactionId);
 					done();
 				});
 			});
@@ -1126,10 +994,26 @@ describe('POST /dapps/install', function () {
 		node.post('/dapps/install', params, done);
 	}
 
-	it('using no id should fail', function (done) {
-		postInstall({
+	before(function (done) {
+		node.expect(dapp).to.be.a('object');
+		node.expect(dapp).to.have.property('transactionId').to.be.not.null;
+		done();
+	});
+
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using no id should fail', function (done) {
+		delete validParams.id;
+
+		postInstall(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -1137,21 +1021,17 @@ describe('POST /dapps/install', function () {
 	});
 
 	it('using unknown id should fail', function (done) {
-		postInstall({
-			id: 'unknown',
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		validParams.id = 'unknown';
+
+		postInstall(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
 
-	it('using valid id should be ok', function (done) {
-		postInstall({
-			id: dapp.transactionId,
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+	it('using valid params should be ok', function (done) {
+		postInstall(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('path');
 			dapp = dapp;
@@ -1261,10 +1141,26 @@ describe('POST /dapps/launch', function () {
 		node.post('/dapps/launch', params, done);
 	}
 
-	it('using no id should fail', function (done) {
-		postLaunch({
+	before(function (done) {
+		node.expect(dapp).to.be.a('object');
+		node.expect(dapp).to.have.property('transactionId').to.be.not.null;
+		done();
+	});
+
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using no id should fail', function (done) {
+		delete validParams.id;
+
+		postLaunch(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -1272,21 +1168,17 @@ describe('POST /dapps/launch', function () {
 	});
 
 	it('using unknown id should fail', function (done) {
-		postLaunch({
-			id: 'unknown',
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		validParams.id = 'unknown';
+
+		postLaunch(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
 
-	it('using valid id should be ok', function (done) {
-		postLaunch({
-			id: dapp.transactionId,
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+	it('using valid params should be ok', function (done) {
+		postLaunch(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.get('/dapps/launched', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -1300,7 +1192,6 @@ describe('POST /dapps/launch', function () {
 						}
 					}
 				}
-
 				node.expect(flag).to.equal(1);
 			});
 			done();
@@ -1314,10 +1205,26 @@ describe('POST /dapps/stop', function () {
 		node.post('/dapps/stop', params, done);
 	}
 
-	it('using no id should fail', function (done) {
-		postStop({
+	before(function (done) {
+		node.expect(dapp).to.be.a('object');
+		node.expect(dapp).to.have.property('transactionId').to.be.not.null;
+		done();
+	});
+
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using no id should fail', function (done) {
+		delete validParams.id;
+
+		postStop(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -1325,21 +1232,17 @@ describe('POST /dapps/stop', function () {
 	});
 
 	it('using unknown id should fail', function (done) {
-		postStop({
-			id: 'unknown',
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		validParams.id = 'unknown';
+
+		postStop(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
 
-	it('using valid id should be ok', function (done) {
-		postStop({
-			id: dapp.transactionId,
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+	it('using valid params should be ok', function (done) {
+		postStop(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			done();
 		});
@@ -1366,10 +1269,26 @@ describe('POST /dapps/uninstall', function () {
 		node.post('/dapps/uninstall', params, done);
 	}
 
-	it('using no id should fail', function (done) {
-		postUninstall({
+	before(function (done) {
+		node.expect(dapp).to.be.a('object');
+		node.expect(dapp).to.have.property('transactionId').to.be.not.null;
+		done();
+	});
+
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			id: dapp.transactionId,
 			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using no id should fail', function (done) {
+		delete validParams.id;
+
+		postUninstall(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -1377,21 +1296,17 @@ describe('POST /dapps/uninstall', function () {
 	});
 
 	it('using unknown id should fail', function (done) {
-		postUninstall({
-			id: 'unknown',
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+		validParams.id = 'unknown';
+
+		postUninstall(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
 
-	it('using valid id should be ok', function (done) {
-		postUninstall({
-			id: dapp.transactionId,
-			master: node.config.dapp.masterpassword
-		}, function (err, res) {
+	it('using valid params should be ok', function (done) {
+		postUninstall(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			done();
 		});
