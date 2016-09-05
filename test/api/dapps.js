@@ -1040,7 +1040,29 @@ describe('POST /dapps/install', function () {
 	});
 
 	describe('when link is 404 not found', function () {
-		it('should fail');
+		var toBeNotFound;
+
+		beforeEach(function (done) {
+			toBeNotFound = validDapp;
+			toBeNotFound.link = toBeNotFound.link.replace(/\.zip/, node.randomApplicationName() + '.zip');
+			done();
+		});
+
+		it('should fail', function (done) {
+			node.put('/dapps', toBeNotFound, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body.transaction).to.have.property('id').that.is.not.empty;
+				validParams.id = res.body.transaction.id;
+
+				node.onNewBlock(function (err) {
+					postInstall(validParams, function (err, res) {
+						node.expect(res.body).to.have.property('success').to.be.not.ok;
+						node.expect(res.body).to.have.property('error').to.match(/[0-9]+ Installation failed: Received bad response code: 404/);
+						done();
+					});
+				});
+			});
+		});
 	});
 });
 
