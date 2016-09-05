@@ -934,8 +934,8 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			download.on('error', function (err) {
 				fs.exists(tmpPath, function (exists) {
 					if (exists) { fs.unlink(tmpPath); }
+					return serialCb(err.message);
 				});
-				return serialCb(err.message);
 			});
 
 			file.on('finish', function () {
