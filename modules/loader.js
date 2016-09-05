@@ -448,11 +448,11 @@ __private.loadBlockChain = function () {
 
 		var round = modules.round.calc(count);
 
-		if (library.config.loading.snapshot > 0) {
+		if (library.config.loading.snapshot !== undefined || library.config.loading.snapshot > 0) {
 			library.logger.info('Snapshot mode enabled');
 			verify = true;
 
-			if (library.config.loading.snapshot >= round) {
+			if (isNaN(library.config.loading.snapshot) || library.config.loading.snapshot >= round) {
 				library.config.loading.snapshot = round;
 
 				if ((count === 1) || (count % constants.activeDelegates > 0)) {
