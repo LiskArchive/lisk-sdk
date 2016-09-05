@@ -926,6 +926,8 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			download.on('response', function (response) {
 				if (response.statusCode !== 200) {
 					return serialCb('Received bad response code: ' + response.statusCode);
+				} else {
+					response.pipe(file);
 				}
 			});
 
@@ -936,10 +938,8 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 				return serialCb(err.message);
 			});
 
-			download.pipe(file);
-
 			file.on('finish', function () {
-				file.close(serialCb);
+				return serialCb();
 			});
 		},
 		decompressZip: function (serialCb) {
