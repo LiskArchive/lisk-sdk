@@ -946,9 +946,10 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			var unzipper = new DecompressZip(tmpPath);
 
 			unzipper.on('error', function (err) {
+				library.logger.error(err.message);
 				fs.exists(tmpPath, function (exists) {
 					if (exists) { fs.unlink(tmpPath); }
-					return serialCb('Failed to decompress zip file: ' + err);
+					return serialCb('Failed to decompress zip file');
 				});
 			});
 
