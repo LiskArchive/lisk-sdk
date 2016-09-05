@@ -64,10 +64,10 @@ node.gAccount = {
 };
 
 // Optional logging
-if (process.env.DEBUG === 'true') {
-	node.debug = console.log;
-} else {
+if (process.env.SILENT === 'true') {
 	node.debug = function () {};
+} else {
+	node.debug = console.log;
 }
 
 // Random LSK amount
