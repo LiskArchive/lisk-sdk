@@ -921,13 +921,13 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 		},
 		performDownload: function (serialCb) {
 			var download = request.get(dapp.link, { timeout: 12000 });
-			var file = fs.createWriteStream(tmpPath);
+			var stream = fs.createWriteStream(tmpPath);
 
 			download.on('response', function (response) {
 				if (response.statusCode !== 200) {
 					return serialCb('Received bad response code: ' + response.statusCode);
 				} else {
-					response.pipe(file);
+					response.pipe(stream);
 				}
 			});
 
@@ -938,7 +938,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 				});
 			});
 
-			file.on('finish', function () {
+			stream.on('finish', function () {
 				return serialCb();
 			});
 		},
