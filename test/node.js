@@ -287,16 +287,23 @@ node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
 };
 
-// Get the given path
-node.get = function (path, done) {
-	node.debug('> Path:'.grey, 'GET ' + path);
-	var request = node.api.get(path)
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.expect('Content-Type', /json/)
-		.expect(200);
+// Abstract request
+function abstractRequest (options, done) {
+	var request = node.api[options.verb.toLowerCase()](options.path);
+
+	request.set('Accept', 'application/json');
+	request.set('version', node.version);
+	request.set('nethash', node.config.nethash);
+	request.set('port', node.config.port);
+
+	request.expect('Content-Type', /json/);
+	request.expect(200);
+
+	if (options.params) {
+		request.send(options.params);
+	}
+
+	node.debug(['> Path:'.grey, options.verb.toUpperCase(), options.path].join(' '));
 
 	if (done) {
 		request.end(function (err, res) {
@@ -306,54 +313,21 @@ node.get = function (path, done) {
 	} else {
 		return request;
 	}
+}
+
+// Get the given path
+node.get = function (path, done) {
+	return abstractRequest({ verb: 'GET', path: path, params: null }, done);
 };
 
 // Post to the given path
 node.post = function (path, params, done) {
-	node.debug('> Path:'.grey, 'POST ' + path);
-	node.debug('> Params:'.grey, params);
-
-	var request = node.api.post(path)
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200);
-
-	if (done) {
-		request.end(function (err, res) {
-			node.debug('> Response:'.grey, JSON.stringify(res.body));
-			done(err, res);
-		});
-	} else {
-		return request;
-	}
+	return abstractRequest({ verb: 'POST', path: path, params: params }, done);
 };
 
 // Put to the given path
 node.put = function (path, params, done) {
-	node.debug('> Path:'.grey, 'PUT ' + path);
-	node.debug('> Params:'.grey, params);
-
-	var request = node.api.put(path)
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200);
-
-	if (done) {
-		request.end(function (err, res) {
-			node.debug('> Response:'.grey, JSON.stringify(res.body));
-			done(err, res);
-		});
-	} else {
-		return request;
-	}
+	return abstractRequest({ verb: 'PUT', path: path, params: params }, done);
 };
 
 // Exports
