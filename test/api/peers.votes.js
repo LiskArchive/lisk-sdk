@@ -12,27 +12,19 @@ var votedDelegates = [];
 node.chai.config.includeStack = true;
 
 function getDelegates (done) {
-	node.api.get('/api/delegates')
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			return done(err, res);
-		});
+	node.get('/api/delegates', function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res.body).to.have.property('delegates').that.is.an('array');
+		return done(err, res);
+	});
 }
 
 function getVotes (address, done) {
-	node.api.get('/api/accounts/delegates/?address=' + address)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			return done(err, res);
-		});
+	node.get('/api/accounts/delegates/?address=' + address, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res.body).to.have.property('delegates').that.is.an('array');
+		return done(err, res);
+	});
 }
 
 function postVotes (params, done) {
@@ -65,61 +57,30 @@ function postVotes (params, done) {
 }
 
 function postVote (transaction, done) {
-	node.peer.post('/peer/transactions')
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('port', node.config.port)
-		.set('nethash', node.config.nethash)
-		.send({
-			transaction: transaction
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log('Sent: ' + JSON.stringify(transaction) + ' Got reply: ' + JSON.stringify(res.body));
-			return done(err, res);
-		});
+	node.post('/peer/transactions', { transaction: transaction }, function (err, res) {
+		return done(err, res);
+	});
 }
 
 function sendLISK (params, done) {
-	node.api.put('/api/transactions')
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.onNewBlock(function (err) {
-				return done(err, res);
-			});
+	node.put('/api/transactions', params, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.onNewBlock(function (err) {
+			return done(err, res);
 		});
+	});
 }
 
 function registerDelegate (account, done) {
 	account.username = node.randomDelegateName().toLowerCase();
 	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
-	node.peer.post('/peer/transactions')
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send({
-			transaction: transaction
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log('Sent: ' + JSON.stringify(transaction) + ' Got reply: ' + JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.onNewBlock(function (err) {
-				return done(err, res);
-			});
+	node.post('/peer/transactions', { transaction: transaction }, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.onNewBlock(function (err) {
+			return done(err, res);
 		});
+	});
 }
 
 describe('POST /peer/transactions', function () {
