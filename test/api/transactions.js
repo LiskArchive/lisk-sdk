@@ -62,9 +62,20 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using valid parameters should be ok', function (done) {
-		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
+		var limit = 10;
+		var offset = 0;
+		var orderBy = 'amount:asc';
 
-		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+		var params = [
+			'blockId=',
+			'senderId=' + node.gAccount.address,
+			'recipientId=' + account.address,
+			'limit=' + limit,
+			'offset=' + offset,
+			'orderBy=' + orderBy
+		];
+
+		node.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
@@ -78,22 +89,23 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using type should be ok', function (done) {
-		node.get('/api/transactions?type=' + node.txTypes.SEND, function (err, res) {
+		var type = node.txTypes.SEND;
+		var params = 'type=' + type;
+
+		node.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			for (var i = 0; i < res.body.transactions.length; i++) {
 				if (res.body.transactions[i]) {
-					node.expect(res.body.transactions[i].type).to.equal(node.txTypes.SEND);
+					node.expect(res.body.transactions[i].type).to.equal(type);
 				}
 			}
 			done();
 		});
 	});
 
-	it('using no limit should be ok', function (done) {
-		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
-
-		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+	it('using no params should be ok', function (done) {
+		node.get('/api/transactions', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			for (var i = 0; i < res.body.transactions.length; i++) {
@@ -106,9 +118,10 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using limit > 100 should fail', function (done) {
-		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
+		var limit = 101;
+		var params = 'limit=' + limit;
 
-		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+		node.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -116,12 +129,12 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('ordered by ascending timestamp should be ok', function (done) {
-		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 0, orderBy = 'timestamp:asc';
+		var orderBy = 'timestamp:asc';
+		var params = 'orderBy=' + orderBy;
 
-		node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+		node.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
 
 			var flag = 0;
 			for (var i = 0; i < res.body.transactions.length; i++) {
@@ -139,12 +152,12 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using offset == 1 should be ok', function (done) {
-		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 1, orderBy = 'timestamp:asc';
+		var offset = 1;
+		var params = 'offset=' + offset;
 
-		node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+		node.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
 			if (res.body.transactions.length > 0) {
 				node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
 			}
@@ -153,9 +166,10 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using offset == "one" should fail', function (done) {
-		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 'one', orderBy = 'timestamp:asc';
+		var offset = 'one';
+		var params = 'offset=' + offset;
 
-		node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+		node.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -163,9 +177,16 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using completely invalid fields should fail', function (done) {
-		var senderId = 'invalid', blockId = 'invalid', recipientId = 'invalid', limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
+		var params = [
+			'blockId=invalid',
+			'senderId=invalid',
+			'recipientId=invalid',
+			'limit=invalid',
+			'offset=invalid',
+			'orderBy=invalid'
+		];
 
-		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+		node.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -173,9 +194,16 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using partially invalid fields should fail', function (done) {
-		var senderId = 'invalid', blockId = 'invalid', recipientId = account.address, limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
+		var params = [
+			'blockId=invalid',
+			'senderId=invalid',
+			'recipientId=' + account.address,
+			'limit=invalid',
+			'offset=invalid',
+			'orderBy=blockId:asc'
+		];
 
-		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+		node.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -187,8 +215,9 @@ describe('GET /api/transactions/get?id=', function () {
 
 	it('using valid id should be ok', function (done) {
 		var transactionInCheck = transactionList[0];
+		var params = 'id=' + transactionInCheck.txId;
 
-		node.get('/api/transactions/get?id='+transactionInCheck.txId, function (err, res) {
+		node.get('/api/transactions/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 			node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
@@ -202,7 +231,9 @@ describe('GET /api/transactions/get?id=', function () {
 	});
 
 	it('using invalid id should fail', function (done) {
-		node.get('/api/transactions/get?id=NotTxId', function (err, res) {
+		var params = 'id=invalid';
+
+		node.get('/api/transactions/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -213,7 +244,9 @@ describe('GET /api/transactions/get?id=', function () {
 describe('GET /api/transactions/unconfirmed/get?id=', function () {
 
 	it('using valid id should be ok', function (done) {
-		node.get('/api/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId, function (err, res) {
+		var params = 'id=' + transactionList[transactionList.length - 1].txId;
+
+		node.get('/api/transactions/unconfirmed/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success');
 			if (res.body.success && res.body.transaction != null) {
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
