@@ -5,14 +5,9 @@ var node = require('./../node.js');
 describe('GET /loader/status/ping', function () {
 
 	it('should be ok', function (done) {
-		node.api.get('/loader/status/ping')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				done();
-			});
+		node.get('/loader/status/ping', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
 	});
 });
