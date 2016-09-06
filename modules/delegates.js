@@ -823,8 +823,6 @@ shared.getDelegates = function (req, cb) {
 				}
 			}
 
-			library.logger.debug(result.delegates);
-
 			var delegates = result.delegates.slice(result.offset, result.limit);
 
 			return cb(null, {delegates: delegates, totalCount: result.count});
