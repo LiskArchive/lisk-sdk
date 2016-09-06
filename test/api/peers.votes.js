@@ -9,8 +9,6 @@ var delegate;
 var delegates = [];
 var votedDelegates = [];
 
-node.chai.config.includeStack = true;
-
 function getDelegates (done) {
 	node.get('/api/delegates', function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;

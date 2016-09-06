@@ -9,6 +9,7 @@ node.async = require('async');
 node.request = require('request');
 node.expect = require('chai').expect;
 node.chai = require('chai');
+node.chai.config.includeStack = true;
 node.lisk = require('./lisk-js');
 node.supertest = require('supertest');
 require('colors');
