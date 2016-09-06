@@ -126,7 +126,7 @@ describe('PUT /multisignatures', function () {
 		done();
 	});
 
-	it('when account has 0 LISK should fail', function (done) {
+	it('using random passphase should fail', function (done) {
 		validParams.secret = node.randomPassword();
 
 		node.put('/multisignatures', validParams, function (err, res) {
