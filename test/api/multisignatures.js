@@ -21,33 +21,6 @@ var multiSigTx = {
 	txId: ''
 };
 
-var accountOpenTurn = 0;
-
-function openAccount (account, i, done) {
-	node.api.post('/accounts/open')
-		.set('Accept', 'application/json')
-		.send({
-			secret: account.password,
-			secondSecret: account.secondPassword
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.account && i != null) {
-				accounts[i].address = res.body.account.address;
-				accounts[i].publicKey = res.body.account.publicKey;
-			} else if (account.name === 'nolisk') {
-				noLISKAccount.address = res.body.account.address;
-				noLISKAccount.publicKey = res.body.account.publicKey;
-			} else if (account.name === 'multi') {
-				multisigAccount.address = res.body.account.address;
-				multisigAccount.publicKey = res.body.account.publicKey;
-			}
-			done();
-		});
-}
-
 function sendLISK (account, i, done) {
 	var randomLISK = node.randomLISK();
 
@@ -133,45 +106,24 @@ function makeKeysGroup () {
 }
 
 before(function (done) {
-	async.series([
-		function (seriesCb) {
-			var i = 0;
-			async.eachSeries(accounts, function (account, eachCb) {
-				openAccount(account, i, function () {
-					if (accountOpenTurn < totalMembers) {
-						accountOpenTurn++;
-					}
-					i++;
-					return eachCb();
-				});
-			}, function (err) {
-				return seriesCb();
-			});
-		},
-		function (seriesCb) {
-			return openAccount(noLISKAccount, null, seriesCb);
-		},
-		function (seriesCb) {
-			return openAccount(multisigAccount, null, seriesCb);
-		},
-		function (seriesCb) {
-			var i = 0;
-			async.eachSeries(accounts, function (account, eachCb) {
-				sendLISK(account, i, function () {
-					i++;
-					return eachCb();
-				});
-			}, function (err) {
-				return seriesCb();
-			});
-		},
-		function (seriesCb) {
-			return sendLISK(multisigAccount, null, seriesCb);
-		}
-	], function (err) {
-		node.onNewBlock(function (err) {
-			done(err);
+	var i = 0;
+	async.eachSeries(accounts, function (account, eachCb) {
+		sendLISK(account, i, function () {
+			i++;
+			return eachCb();
 		});
+	}, function (err) {
+		return done(err);
+	});
+});
+
+before(function (done) {
+	sendLISK(multisigAccount, null, done);
+});
+
+before(function (done) {
+	node.onNewBlock(function (err) {
+		done(err);
 	});
 });
 
