@@ -116,13 +116,22 @@ describe('PUT /multisignatures', function () {
 		done();
 	});
 
-	it('when owner\'s public key in keysgroup should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: accounts[accounts.length-1].password,
-			lifetime: 1,
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			secret: multisigAccount.password,
+			lifetime: parseInt(node.randomNumber(1,72)),
 			min: requiredSignatures,
 			keysgroup: Keys
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('when owner\'s public key in keysgroup should fail', function (done) {
+		validParams.secret = accounts[accounts.length - 1].password;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -130,12 +139,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when account has 0 LISK should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: noLISKAccount.password,
-			lifetime: 1,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.secret = noLISKAccount.password;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -143,14 +149,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when keysgroup is empty should fail', function (done) {
-		var emptyKeys = [];
+		validParams.keysgroup = [];
 
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			min: requiredSignatures,
-			keysgroup: emptyKeys
-		}, function (err, res) {
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -158,11 +159,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when no keygroup is given should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			min: requiredSignatures
-		}, function (err, res) {
+		delete validParams.keygroup;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 				// console.log(JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
@@ -171,12 +170,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when keysgroup is a string should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			min: requiredSignatures,
-			keysgroup: 'invalid'
-		}, function (err, res) {
+		validParams.keysgroup = 'invalid';
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -184,11 +180,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when no passphase is given should fail', function (done) {
-		node.put('/multisignatures', {
-			lifetime: 1,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		delete validParams.secret;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -196,12 +190,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when an invalid passphrase is given should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password + 'inv4lid',
-			lifetime: 1,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.secret = multisigAccount.password + 'inv4lid';
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -209,11 +200,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when no lifetime is given should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		delete validParams.lifetime;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -221,12 +210,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when lifetime is a string should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 'invalid',
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.lifetime = 'invalid';
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -234,12 +220,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when lifetime is greater than the maximum allowed should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 73,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.lifetime = 73;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -247,12 +230,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when lifetime is zero should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 0,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.lifetime = 0;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -260,12 +240,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when lifetime is negative should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: -1,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.lifetime = -1;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -273,11 +250,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when no min is given should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			keysgroup: Keys
-		}, function (err, res) {
+		delete validParams.min;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -285,12 +260,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when min is a string should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			min: 'invalid',
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.min = 'invalid';
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -298,12 +270,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when min is greater than the total members should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			min: totalMembers + 5,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.min = totalMembers + 5;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -311,12 +280,9 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when min is zero should fail', function (done) {
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			min: 0,
-			keysgroup: Keys
-		}, function (err, res) {
+		validParams.min = 0;
+
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -324,34 +290,22 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when min is negative should fail', function (done) {
-		var minimum = -1 * requiredSignatures;
+		validParams.min = -1;
 
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: 1,
-			min: minimum,
-			keysgroup: Keys
-		}, function (err, res) {
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
 
-	it('when data is valid should be ok', function (done) {
-		var lifetime = parseInt(node.randomNumber(1,72));
-
-		node.put('/multisignatures', {
-			secret: multisigAccount.password,
-			lifetime: lifetime,
-			min: requiredSignatures,
-			keysgroup: Keys
-		}, function (err, res) {
+	it('when params are valid should be ok', function (done) {
+		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
 			if (res.body.success && res.body.transactionId) {
 				multiSigTx.txId = res.body.transactionId;
-				multiSigTx.lifetime = lifetime;
+				multiSigTx.lifetime = validParams.lifetime;
 				multiSigTx.members = Keys;
 				multiSigTx.min = requiredSignatures;
 			}
