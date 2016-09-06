@@ -385,33 +385,38 @@ describe('PUT /api/transactions', function () {
 
 describe('POST /multisignatures/sign (group)', function () {
 
-	it('using random passphrase should fail', function (done) {
-		var account = node.randomAccount();
+	var validParams;
 
-		node.post('/multisignatures/sign', {
-			secret: account.password,
+	beforeEach(function (done) {
+		validParams = {
+			secret: accounts[0].password,
 			transactionId: multiSigTx.txId
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using random passphrase should fail', function (done) {
+		validParams.secret = node.randomPassword();
+
+		node.post('/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			done();
 		});
 	});
 
 	it('using null passphrase should fail', function (done) {
-		node.post('/multisignatures/sign', {
-			secret: null,
-			transactionId: multiSigTx.txId
-		}, function (err, res) {
+		validParams.secret = null;
+
+		node.post('/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			done();
 		});
 	});
 
 	it('using undefined passphrase should fail', function (done) {
-		node.post('/multisignatures/sign', {
-			secret: undefined,
-			transactionId: multiSigTx.txId
-		}, function (err, res) {
+		validParams.secret = undefined;
+
+		node.post('/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			done();
 		});
