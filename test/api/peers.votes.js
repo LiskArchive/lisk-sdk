@@ -81,26 +81,6 @@ function postVote (transaction, done) {
 		});
 }
 
-function openAccount (account, done) {
-	node.api.post('/api/accounts/open')
-		.set('Accept', 'application/json')
-		.set('version',node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send({
-			secret: account.password
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.onNewBlock(function (err) {
-				return done(err, res);
-			});
-		});
-}
-
 function sendLISK (params, done) {
 	node.api.put('/api/transactions')
 		.set('Accept', 'application/json')
@@ -146,13 +126,6 @@ describe('POST /peer/transactions', function () {
 
 	before(function (done) {
 		async.series([
-			function (seriesCb) {
-				openAccount(account, function (err, res) {
-					account.address = res.body.account.address;
-					account.publicKey = res.body.account.publicKey;
-					return seriesCb();
-				});
-			},
 			function (seriesCb) {
 				sendLISK({
 					secret: node.gAccount.password,
@@ -369,13 +342,6 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 						return delegate.publicKey;
 					}).slice(0, 101);
 
-					return seriesCb();
-				});
-			},
-			function (seriesCb) {
-				openAccount(account, function (err, res) {
-					account.address = res.body.account.address;
-					account.publicKey = res.body.account.publicKey;
 					return seriesCb();
 				});
 			},
