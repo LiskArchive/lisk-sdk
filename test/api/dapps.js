@@ -915,9 +915,7 @@ describe('GET /dapps', function () {
 		getDapps('limit=' + limit, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
-			if (res.body.success && res.body.dapps != null) {
-				node.expect(res.body.dapps).to.have.length.at.most(limit);
-			}
+			node.expect(res.body.dapps).to.have.length.at.most(limit);
 			done();
 		});
 	});
@@ -934,9 +932,8 @@ describe('GET /dapps', function () {
 
 				getDapps('offset=' + 1, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
-					if (res.body.success && res.body.dapps != null) {
-						node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
-					}
+					node.expect(res.body).to.have.property('dapps').that.is.an('array');
+					node.expect(res.body.dapps[0]).to.deep.equal(secondDapp);
 				});
 			}
 			done();

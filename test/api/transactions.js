@@ -23,17 +23,16 @@ function sendLISK (account, done) {
 		recipientId: account.address
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
-		if (res.body.success && res.body.transactionId != null) {
-			transactionList.push({
-				'sender': node.gAccount.address,
-				'recipient': account.address,
-				'grossSent': (randomLISK + expectedFee) / node.normalizer,
-				'fee': expectedFee / node.normalizer,
-				'netSent': randomLISK / node.normalizer,
-				'txId': res.body.transactionId,
-				'type': node.txTypes.SEND
-			});
-		}
+		node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+		transactionList.push({
+			'sender': node.gAccount.address,
+			'recipient': account.address,
+			'grossSent': (randomLISK + expectedFee) / node.normalizer,
+			'fee': expectedFee / node.normalizer,
+			'netSent': randomLISK / node.normalizer,
+			'txId': res.body.transactionId,
+			'type': node.txTypes.SEND
+		});
 		done(err, res);
 	});
 }
@@ -69,15 +68,10 @@ describe('GET /api/transactions', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-			if (res.body.transactions.length > 0) {
-				for (var i = 0; i < res.body.transactions.length; i++) {
-					if (res.body.transactions[i + 1]) {
-						node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
-					}
+			for (var i = 0; i < res.body.transactions.length; i++) {
+				if (res.body.transactions[i + 1]) {
+					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
 				}
-			} else {
-				// console.log('Request failed. Expected success');
-				node.expect(false).to.equal(true);
 			}
 			done();
 		});
@@ -86,15 +80,11 @@ describe('GET /api/transactions', function () {
 	it('using type should be ok', function (done) {
 		node.get('/api/transactions?type=' + node.txTypes.SEND, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.transactions != null) {
-				for (var i = 0; i < res.body.transactions.length; i++) {
-					if (res.body.transactions[i]) {
-						node.expect(res.body.transactions[i].type).to.equal(node.txTypes.SEND);
-					}
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			for (var i = 0; i < res.body.transactions.length; i++) {
+				if (res.body.transactions[i]) {
+					node.expect(res.body.transactions[i].type).to.equal(node.txTypes.SEND);
 				}
-			} else {
-				// console.log('Request failed or transaction list is null');
-				node.expect(false).to.equal(true);
 			}
 			done();
 		});
@@ -106,11 +96,9 @@ describe('GET /api/transactions', function () {
 		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			if (res.body.transactions.length > 0) {
-				for (var i = 0; i < res.body.transactions.length; i++) {
-					if (res.body.transactions[i + 1]) {
-						node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
-					}
+			for (var i = 0; i < res.body.transactions.length; i++) {
+				if (res.body.transactions[i + 1]) {
+					node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
 				}
 			}
 			done();
@@ -134,21 +122,18 @@ describe('GET /api/transactions', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-			if (res.body.transactions.length > 0) {
-				var flag = 0;
-				for (var i = 0; i < res.body.transactions.length; i++) {
-					if (res.body.transactions[i + 1]) {
-						node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
-						if (flag === 0) {
-							offsetTimestamp = res.body.transactions[i + 1].timestamp;
-							flag = 1;
-						}
+
+			var flag = 0;
+			for (var i = 0; i < res.body.transactions.length; i++) {
+				if (res.body.transactions[i + 1]) {
+					node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
+					if (flag === 0) {
+						offsetTimestamp = res.body.transactions[i + 1].timestamp;
+						flag = 1;
 					}
 				}
-			} else {
-				// console.log('Request failed. Expected success');
-				node.expect(false).to.equal(true);
 			}
+
 			done();
 		});
 	});
@@ -206,17 +191,12 @@ describe('GET /api/transactions/get?id=', function () {
 		node.get('/api/transactions/get?id='+transactionInCheck.txId, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			if (res.body.success && res.body.transaction.id != null) {
-				node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
-				node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
-				node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
-				node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
-				node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
-				node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-			} else {
-				// console.log('Transaction failed or transaction list is null');
-				node.expect(false).to.equal(true);
-			}
+			node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
+			node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
+			node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
+			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
+			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
+			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
 			done();
 		});
 	});
@@ -235,12 +215,10 @@ describe('GET /api/transactions/unconfirmed/get?id=', function () {
 	it('using valid id should be ok', function (done) {
 		node.get('/api/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId, function (err, res) {
 			node.expect(res.body).to.have.property('success');
-			if (res.body.success) {
-				if (res.body.transaction != null) {
-					node.expect(res.body.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
-				}
+			if (res.body.success && res.body.transaction != null) {
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
+				node.expect(res.body.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
 			} else {
-				// console.log('Transaction already processed');
 				node.expect(res.body).to.have.property('error');
 			}
 			done();
@@ -270,17 +248,17 @@ describe('PUT /api/transactions', function () {
 			amount: amountToSend,
 			recipientId: account2.address
 		}, function (err, res) {
-			if (res.body.success && res.body.transactionId != null) {
-				transactionList.push({
-					'sender': account.address,
-					'recipient': account2.address,
-					'grossSent': (amountToSend + expectedFee) / node.normalizer,
-					'fee': expectedFee / node.normalizer,
-					'netSent': amountToSend / node.normalizer,
-					'txId': res.body.transactionId,
-					'type': node.txTypes.SEND
-				});
-			}
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+			transactionList.push({
+				'sender': account.address,
+				'recipient': account2.address,
+				'grossSent': (amountToSend + expectedFee) / node.normalizer,
+				'fee': expectedFee / node.normalizer,
+				'netSent': amountToSend / node.normalizer,
+				'txId': res.body.transactionId,
+				'type': node.txTypes.SEND
+			});
 			done();
 		});
 	});

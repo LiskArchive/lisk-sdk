@@ -89,12 +89,10 @@ describe('PUT /api/signatures', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			if (res.body.success && res.body.transaction != null) {
-				node.expect(res.body.transaction).to.have.property('type').to.equal(node.txTypes.SIGNATURE);
-				node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
-				node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);
-				node.expect(res.body.transaction).to.have.property('fee').to.equal(node.fees.secondPasswordFee);
-			}
+			node.expect(res.body.transaction).to.have.property('type').to.equal(node.txTypes.SIGNATURE);
+			node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(account.publicKey);
+			node.expect(res.body.transaction).to.have.property('senderId').to.equal(account.address);
+			node.expect(res.body.transaction).to.have.property('fee').to.equal(node.fees.secondPasswordFee);
 			done();
 		});
 	});

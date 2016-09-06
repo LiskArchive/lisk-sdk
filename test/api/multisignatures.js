@@ -299,13 +299,11 @@ describe('PUT /api/multisignatures', function () {
 	it('using valid params should be ok', function (done) {
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId');
-			if (res.body.success && res.body.transactionId) {
-				multiSigTx.txId = res.body.transactionId;
-				multiSigTx.lifetime = validParams.lifetime;
-				multiSigTx.members = Keys;
-				multiSigTx.min = requiredSignatures;
-			}
+			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+			multiSigTx.txId = res.body.transactionId;
+			multiSigTx.lifetime = validParams.lifetime;
+			multiSigTx.members = Keys;
+			multiSigTx.min = requiredSignatures;
 			done();
 		});
 	});
