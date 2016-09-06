@@ -2,43 +2,28 @@
 
 var crypto = require('crypto');
 var node = require('./../node.js');
+node.api = node.peer;
 
 var account = node.randomAccount();
 var account2 = node.randomAccount();
 
 function sendLISK (params, done) {
-	node.api.put('/transactions')
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.onNewBlock(function (err) {
-				done(err, res);
-			});
+	var transaction = node.lisk.transaction.createTransaction(params.recipientId, params.amount, params.secret);
+
+	postTransaction(transaction, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.onNewBlock(function (err) {
+			done(err, res);
 		});
+	});
 }
 
 function postTransaction (transaction, done) {
-	node.peer.post('/transactions')
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send({
-			transaction: transaction
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.post('/transactions', {
+		transaction: transaction
+	}, function (err, res) {
+		done(err, res);
+	});
 }
 
 describe('POST /peer/transactions', function () {
