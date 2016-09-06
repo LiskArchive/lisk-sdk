@@ -12,7 +12,7 @@ var votedDelegates = [];
 node.chai.config.includeStack = true;
 
 function getDelegates (done) {
-	node.api.get('/delegates')
+	node.api.get('/api/delegates')
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
@@ -24,7 +24,7 @@ function getDelegates (done) {
 }
 
 function getVotes (address, done) {
-	node.api.get('/accounts/delegates/?address=' + address)
+	node.api.get('/api/accounts/delegates/?address=' + address)
 		.expect('Content-Type', /json/)
 		.expect(200)
 		.end(function (err, res) {
@@ -65,7 +65,7 @@ function postVotes (params, done) {
 }
 
 function postVote (transaction, done) {
-	node.peer.post('/transactions')
+	node.peer.post('/peer/transactions')
 		.set('Accept', 'application/json')
 		.set('version', node.version)
 		.set('port', node.config.port)
@@ -82,7 +82,7 @@ function postVote (transaction, done) {
 }
 
 function openAccount (account, done) {
-	node.api.post('/accounts/open')
+	node.api.post('/api/accounts/open')
 		.set('Accept', 'application/json')
 		.set('version',node.version)
 		.set('nethash', node.config.nethash)
@@ -102,7 +102,7 @@ function openAccount (account, done) {
 }
 
 function sendLISK (params, done) {
-	node.api.put('/transactions')
+	node.api.put('/api/transactions')
 		.set('Accept', 'application/json')
 		.set('version', node.version)
 		.set('nethash', node.config.nethash)
@@ -123,7 +123,7 @@ function registerDelegate (account, done) {
 	account.username = node.randomDelegateName().toLowerCase();
 	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
-	node.peer.post('/transactions')
+	node.peer.post('/peer/transactions')
 		.set('Accept', 'application/json')
 		.set('version', node.version)
 		.set('nethash', node.config.nethash)

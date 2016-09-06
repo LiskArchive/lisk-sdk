@@ -6,7 +6,7 @@ var node = require('./../node.js');
 var genesisblock = require('../../genesisBlock.json');
 
 function postTransaction (transaction, done) {
-	node.peer.post('/transactions')
+	node.peer.post('/peer/transactions')
 		.set('Accept', 'application/json')
 		.set('version', node.version)
 		.set('nethash', node.config.nethash)
@@ -23,7 +23,7 @@ function postTransaction (transaction, done) {
 }
 
 function getAddress (address, done) {
-	node.api.get('/accounts?address=' + address)
+	node.api.get('/api/accounts?address=' + address)
 		.set('Accept', 'application/json')
 		.expect('Content-Type', /json/)
 		.expect(200)

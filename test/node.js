@@ -22,8 +22,7 @@ node.txTypes = require('../helpers/transactionTypes.js');
 
 // Node configuration
 node.baseUrl = 'http://' + node.config.address + ':' + node.config.port;
-node.api = node.supertest(node.baseUrl + '/api');
-node.peer = node.supertest(node.baseUrl + '/peer');
+node.api = node.supertest(node.baseUrl);
 
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds

@@ -1,14 +1,13 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
 var node = require('./../node.js');
-node.api = node.peer;
 
 var genesisblock = require('../../genesisBlock.json');
 
 describe('POST /peer/blocks', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.post('/blocks', { dummy: 'dummy' })
+		node.post('/peer/blocks', { dummy: 'dummy' })
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				// node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -22,7 +21,7 @@ describe('POST /peer/blocks', function () {
 describe('GET /peer/blocks', function () {
 
 	it('using correct nethash in headers should be ok', function (done) {
-		node.get('/blocks')
+		node.get('/peer/blocks')
 			.end(function (err, res) {
 				// node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');

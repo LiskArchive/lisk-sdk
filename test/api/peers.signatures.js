@@ -2,14 +2,13 @@
 
 var crypto = require('crypto');
 var node = require('./../node.js');
-node.api = node.peer;
 
 var account = node.randomAccount();
 var account2 = node.randomAccount();
 var account3 = node.randomAccount();
 
 function postTransaction (transaction, done) {
-	node.post('/transactions', {
+	node.post('/peer/transactions', {
 		transaction: transaction
 	}, function (err, res) {
 		done(err, res);

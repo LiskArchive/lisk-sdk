@@ -7,7 +7,7 @@ var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
 
 function openAccount (account, done) {
-	node.post('/accounts/open', {
+	node.post('/api/accounts/open', {
 		secret: account.password
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
@@ -20,7 +20,7 @@ function openAccount (account, done) {
 }
 
 function putTransaction (params, done) {
-	node.put('/transactions', params, function (err, res) {
+	node.put('/api/transactions/', params, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.onNewBlock(function (err) {
 			done(err, res);
@@ -85,7 +85,7 @@ describe('PUT /dapps', function () {
 	it('using account with no funds should fail', function (done) {
 		validParams.secret = node.randomPassword();
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -95,7 +95,7 @@ describe('PUT /dapps', function () {
 	it('using no name should fail', function (done) {
 		delete validParams.name;
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -105,7 +105,7 @@ describe('PUT /dapps', function () {
 	it('using very long name should fail', function (done) {
 		validParams.name = 'Lorem ipsum dolor sit amet, conse';
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -115,7 +115,7 @@ describe('PUT /dapps', function () {
 	it('using numeric name should fail', function (done) {
 		validParams.name = 12345;
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -125,7 +125,7 @@ describe('PUT /dapps', function () {
 	it('using very long description should fail', function (done) {
 		validParams.description = 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient c';
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -135,7 +135,7 @@ describe('PUT /dapps', function () {
 	it('using numeric description should fail', function (done) {
 		validParams.description = 12345;
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -145,7 +145,7 @@ describe('PUT /dapps', function () {
 	it('using very long tag should fail', function (done) {
 		validParams.tags = 'develop,rice,voiceless,zonked,crooked,consist,price,extend,sail,treat,pie,massive,fail,maid,summer,verdant,visitor,bushes,abrupt,beg,black-and-white,flight,twist';
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -155,7 +155,7 @@ describe('PUT /dapps', function () {
 	it('using numeric tags should fail', function (done) {
 		validParams.tags = 12345;
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -165,7 +165,7 @@ describe('PUT /dapps', function () {
 	it('using numeric link should fail', function (done) {
 		validParams.link = 12345;
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -175,7 +175,7 @@ describe('PUT /dapps', function () {
 	it('using numeric icon should fail', function (done) {
 		validParams.icon = 12345;
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -184,7 +184,7 @@ describe('PUT /dapps', function () {
 
 	describe('from account with second signature enabled', function (done) {
 		before(function (done) {
-			node.put('/signatures', {
+			node.put('/api/signatures', {
 				secret: account2.password,
 				secondSecret: account2.secondPassword
 			}, function (err, res) {
@@ -203,7 +203,7 @@ describe('PUT /dapps', function () {
 		it('using no second passphrase should fail', function (done) {
 			delete validParams.secondSecret;
 
-			node.put('/dapps', validParams, function (err, res) {
+			node.put('/api/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -213,7 +213,7 @@ describe('PUT /dapps', function () {
 		it('using invalid second passphrase should fail', function (done) {
 			validParams.secondSecret = node.randomPassword();
 
-			node.put('/dapps', validParams, function (err, res) {
+			node.put('/api/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -223,7 +223,7 @@ describe('PUT /dapps', function () {
 		it('using valid second passphrase should be ok', function (done) {
 			validParams.secondSecret = account2.secondPassword;
 
-			node.put('/dapps', validParams, function (err, res) {
+			node.put('/api/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
@@ -233,7 +233,7 @@ describe('PUT /dapps', function () {
 	it('using valid params should be ok', function (done) {
 		validParams.link = node.guestbookDapp.link;
 
-		node.put('/dapps', validParams, function (err, res) {
+		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body.transaction).to.have.property('id');
 			dapp = validParams;
@@ -246,7 +246,7 @@ describe('PUT /dapps', function () {
 		validParams.name = dapp.name;
 
 		node.onNewBlock(function (err) {
-			node.put('/dapps', validParams, function (err, res) {
+			node.put('/api/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -258,7 +258,7 @@ describe('PUT /dapps', function () {
 		validParams.link = dapp.link;
 
 		node.onNewBlock(function (err) {
-			node.put('/dapps', validParams, function (err, res) {
+			node.put('/api/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error');
 				done();
@@ -267,10 +267,10 @@ describe('PUT /dapps', function () {
 	});
 });
 
-describe('PUT /dapps/transaction', function () {
+describe('PUT /api/dapps/transaction', function () {
 
 	function putTransaction (params, done) {
-		node.put('/dapps/transaction', params, done);
+		node.put('/api/dapps/transaction', params, done);
 	}
 
 	before(function (done) {
@@ -451,10 +451,10 @@ describe('PUT /dapps/transaction', function () {
 	});
 });
 
-describe('PUT /dapps/withdrawal', function () {
+describe('PUT /api/dapps/withdrawal', function () {
 
 	function putWithdrawal (params, done) {
-		node.put('/dapps/withdrawal', params, done);
+		node.put('/api/dapps/withdrawal', params, done);
 	}
 
 	before(function (done) {
@@ -791,7 +791,7 @@ describe('GET /dapps', function () {
 	});
 
 	function getDapps (params, done) {
-		node.get('/dapps?' + params, done);
+		node.get('/api/dapps?' + params, done);
 	}
 
 	it('user orderBy == "category:asc" should be ok', function (done) {
@@ -947,7 +947,7 @@ describe('GET /dapps', function () {
 describe('GET /dapps?id=', function () {
 
 	function getDapps (id, done) {
-		node.get('/dapps?id=' + id, done);
+		node.get('/api/dapps?id=' + id, done);
 	}
 
 	it('using no id should fail', function (done) {
@@ -986,10 +986,10 @@ describe('GET /dapps?id=', function () {
 	});
 });
 
-describe('POST /dapps/install', function () {
+describe('POST /api/dapps/install', function () {
 
 	function postInstall (params, done) {
-		node.post('/dapps/install', params, done);
+		node.post('/api/dapps/install', params, done);
 	}
 
 	before(function (done) {
@@ -1047,7 +1047,7 @@ describe('POST /dapps/install', function () {
 		});
 
 		it('should fail', function (done) {
-			node.put('/dapps', toBeNotFound, function (err, res) {
+			node.put('/api/dapps', toBeNotFound, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body.transaction).to.have.property('id').that.is.not.empty;
 				validParams.id = res.body.transaction.id;
@@ -1064,12 +1064,12 @@ describe('POST /dapps/install', function () {
 	});
 });
 
-describe('GET /dapps/installed', function () {
+describe('GET /api/dapps/installed', function () {
 
 	it('should be ok', function (done) {
 		var flag = 0;
 
-		node.get('/dapps/installed', function (err, res) {
+		node.get('/api/dapps/installed', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');
 			for (var i = 0; i < res.body.dapps.length; i++) {
@@ -1085,12 +1085,12 @@ describe('GET /dapps/installed', function () {
 	});
 });
 
-describe('GET /dapps/installedIds', function () {
+describe('GET /api/dapps/installedIds', function () {
 
 	it('should be ok', function (done) {
 		var flag = 0;
 
-		node.get('/dapps/installedIds', function (err, res) {
+		node.get('/api/dapps/installedIds', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('ids').that.is.an('array');
 			for (var i = 0; i < res.body.ids.length; i++) {
@@ -1106,10 +1106,10 @@ describe('GET /dapps/installedIds', function () {
 	});
 });
 
-describe('GET /dapps/search?q=', function () {
+describe('GET /api/dapps/search?q=', function () {
 
 	function getSearch (params, done) {
-		node.get('/dapps/search?' + params, done);
+		node.get('/api/dapps/search?' + params, done);
 	}
 
 	it('using invalid params should fail', function (done) {
@@ -1155,10 +1155,10 @@ describe('GET /dapps/search?q=', function () {
 	});
 });
 
-describe('POST /dapps/launch', function () {
+describe('POST /api/dapps/launch', function () {
 
 	function postLaunch (params, done) {
-		node.post('/dapps/launch', params, done);
+		node.post('/api/dapps/launch', params, done);
 	}
 
 	before(function (done) {
@@ -1200,7 +1200,7 @@ describe('POST /dapps/launch', function () {
 	it('using valid params should be ok', function (done) {
 		postLaunch(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.get('/dapps/launched', function (err, res) {
+			node.get('/api/dapps/launched', function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('launched').that.is.an('array');
 				var flag = 0;
@@ -1219,10 +1219,10 @@ describe('POST /dapps/launch', function () {
 	});
 });
 
-describe('POST /dapps/stop', function () {
+describe('POST /api/dapps/stop', function () {
 
 	function postStop (params, done) {
-		node.post('/dapps/stop', params, done);
+		node.post('/api/dapps/stop', params, done);
 	}
 
 	before(function (done) {
@@ -1269,10 +1269,10 @@ describe('POST /dapps/stop', function () {
 	});
 });
 
-describe('GET /dapps/categories', function () {
+describe('GET /api/dapps/categories', function () {
 
 	it('should be ok', function (done) {
-		node.get('/dapps/categories', function (err, res) {
+		node.get('/api/dapps/categories', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('categories').that.is.an('object');
 			for (var i in node.dappCategories) {
@@ -1283,10 +1283,10 @@ describe('GET /dapps/categories', function () {
 	});
 });
 
-describe('POST /dapps/uninstall', function () {
+describe('POST /api/dapps/uninstall', function () {
 
 	function postUninstall (params, done) {
-		node.post('/dapps/uninstall', params, done);
+		node.post('/api/dapps/uninstall', params, done);
 	}
 
 	before(function (done) {

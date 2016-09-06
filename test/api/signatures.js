@@ -7,7 +7,7 @@ var account2 = node.randomTxAccount();
 var account3 = node.randomTxAccount();
 
 function putSignature (params, done) {
-	node.api.put('/signatures')
+	node.api.put('/api/signatures')
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
@@ -19,7 +19,7 @@ function putSignature (params, done) {
 }
 
 function putTransaction (params, done) {
-	node.api.put('/transactions')
+	node.api.put('/api/transactions')
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
@@ -31,7 +31,7 @@ function putTransaction (params, done) {
 }
 
 function putDelegate (params, done) {
-	node.api.put('/delegates')
+	node.api.put('/api/delegates')
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
@@ -68,7 +68,7 @@ before(function (done) {
 	}, 2000);
 });
 
-describe('PUT /signatures', function () {
+describe('PUT /api/signatures', function () {
 
 	before(function (done) {
 		node.onNewBlock(done);
@@ -124,7 +124,7 @@ describe('PUT /signatures', function () {
 	});
 });
 
-describe('PUT /transactions from account with second signature enabled', function () {
+describe('PUT /api/transactions from account with second signature enabled', function () {
 
 	before(function (done) {
 		node.onNewBlock(done);
@@ -159,7 +159,7 @@ describe('PUT /transactions from account with second signature enabled', functio
 	});
 });
 
-describe('PUT /delegates from account with second signature enabled', function () {
+describe('PUT /api/delegates from account with second signature enabled', function () {
 
 	it('using no second passphase should fail', function (done) {
 		putDelegate({

@@ -2,10 +2,10 @@
 
 var node = require('./../node.js');
 
-describe('GET /peers/version', function () {
+describe('GET /api/peers/version', function () {
 
 	it('should be ok', function (done) {
-		node.get('/peers/version', function (err, res) {
+		node.get('/api/peers/version', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('build').to.be.a('string');
 			node.expect(res.body).to.have.property('version').to.be.a('string');
@@ -14,7 +14,7 @@ describe('GET /peers/version', function () {
 	});
 });
 
-describe('GET /peers', function () {
+describe('GET /api/peers', function () {
 
 	it('using empty parameters should fail', function (done) {
 		var params = [
@@ -27,7 +27,7 @@ describe('GET /peers', function () {
 			'orderBy='
 		];
 
-		node.get('/peers?' + params.join('&'), function (err, res) {
+		node.get('/api/peers?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -38,7 +38,7 @@ describe('GET /peers', function () {
 		var state = 1;
 		var params = 'state=' + state;
 
-		node.get('/peers?' + params, function (err, res) {
+		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('peers').that.is.an('array');
 			if (res.body.peers.length > 0) {
@@ -54,7 +54,7 @@ describe('GET /peers', function () {
 		var limit = 3;
 		var params = 'limit=' + limit;
 
-		node.get('/peers?' + params, function (err, res) {
+		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('peers').that.is.an('array');
 			node.expect(res.body.peers.length).to.be.at.most(limit);
@@ -66,7 +66,7 @@ describe('GET /peers', function () {
 		var orderBy = 'state:desc';
 		var params = 'orderBy=' + orderBy;
 
-		node.get('/peers?' + params, function (err, res) {
+		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('peers').that.is.an('array');
 
@@ -86,7 +86,7 @@ describe('GET /peers', function () {
 		var limit = 101;
 		var params = 'limit=' + limit;
 
-		node.get('/peers?' + params, function (err, res) {
+		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -104,7 +104,7 @@ describe('GET /peers', function () {
 			'orderBy=invalid'
 		];
 
-		node.get('/peers?' + params.join('&'), function (err, res) {
+		node.get('/api/peers?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();

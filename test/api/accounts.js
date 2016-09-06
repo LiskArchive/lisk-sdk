@@ -4,10 +4,10 @@ var node = require('./../node.js');
 
 var account = node.randomAccount();
 
-describe('POST /accounts/open', function () {
+describe('POST /api/accounts/open', function () {
 
 	function openAccount (params, done) {
-		node.post('/accounts/open', params, done);
+		node.post('/api/accounts/open', params, done);
 	}
 
 	it('using known passphrase should be ok', function (done) {
@@ -96,10 +96,10 @@ describe('POST /accounts/open', function () {
 	});
 });
 
-describe('GET /accounts/getBalance?address=', function () {
+describe('GET /api/accounts/getBalance?address=', function () {
 
 	function getBalance (address, done) {
-		node.get('/accounts/getBalance?address=' + address, done);
+		node.get('/api/accounts/getBalance?address=' + address, done);
 	}
 
 	it('using known address should be ok', function (done) {
@@ -138,10 +138,10 @@ describe('GET /accounts/getBalance?address=', function () {
 	});
 });
 
-describe('GET /accounts/getPublicKey?address=', function () {
+describe('GET /api/accounts/getPublicKey?address=', function () {
 
 	function getPublicKey (address, done) {
-		node.get('/accounts/getPublicKey?address=' + address, done);
+		node.get('/api/accounts/getPublicKey?address=' + address, done);
 	}
 
 	it('using known address should be ok', function (done) {
@@ -178,10 +178,10 @@ describe('GET /accounts/getPublicKey?address=', function () {
 	});
 });
 
-describe('POST /accounts/generatePublicKey', function () {
+describe('POST /api/accounts/generatePublicKey', function () {
 
 	function generatePublicKey (params, done) {
-		node.post('/accounts/generatePublicKey', params, done);
+		node.post('/api/accounts/generatePublicKey', params, done);
 	}
 
 	it('using known passphrase should be ok', function (done) {
@@ -237,7 +237,7 @@ describe('POST /accounts/generatePublicKey', function () {
 describe('GET /accounts?address=', function () {
 
 	function getAccounts (address, done) {
-		node.get('/accounts?address=' + address, done);
+		node.get('/api/accounts?address=' + address, done);
 	}
 
 	it('using known address should be ok', function (done) {

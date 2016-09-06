@@ -10,7 +10,7 @@ var transactionList = [];
 var offsetTimestamp = 0;
 
 function putTransaction (params, done) {
-	node.api.put('/transactions')
+	node.api.put('/api/transactions')
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
@@ -69,7 +69,7 @@ describe('GET /api/transactions', function () {
 	it('using valid parameters should be ok', function (done) {
 		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
 
-		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -93,7 +93,7 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using type should be ok', function (done) {
-		node.api.get('/transactions?type=' + node.txTypes.SEND)
+		node.api.get('/api/transactions?type=' + node.txTypes.SEND)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -117,7 +117,7 @@ describe('GET /api/transactions', function () {
 	it('using no limit should be ok', function (done) {
 		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
 
-		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
+		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -139,7 +139,7 @@ describe('GET /api/transactions', function () {
 	it('using limit > 100 should fail', function (done) {
 		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
 
-		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -155,7 +155,7 @@ describe('GET /api/transactions', function () {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 0, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
-			node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+			node.api.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 				.set('Accept', 'application/json')
 				.expect('Content-Type', /json/)
 				.expect(200)
@@ -188,7 +188,7 @@ describe('GET /api/transactions', function () {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 1, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
-			node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+			node.api.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 				.set('Accept', 'application/json')
 				.expect('Content-Type', /json/)
 				.expect(200)
@@ -208,7 +208,7 @@ describe('GET /api/transactions', function () {
 	it('using offset == "one" should fail', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 'one', orderBy = 'timestamp:asc';
 
-		node.api.get('/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+		node.api.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -223,7 +223,7 @@ describe('GET /api/transactions', function () {
 	it('using completely invalid fields should fail', function (done) {
 		var senderId = 'invalid', blockId = 'invalid', recipientId = 'invalid', limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
-		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -238,7 +238,7 @@ describe('GET /api/transactions', function () {
 	it('using partially invalid fields should fail', function (done) {
 		var senderId = 'invalid', blockId = 'invalid', recipientId = account.address, limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
-		node.api.get('/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
+		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -251,12 +251,12 @@ describe('GET /api/transactions', function () {
 	});
 });
 
-describe('GET /transactions/get?id=', function () {
+describe('GET /api/transactions/get?id=', function () {
 
 	it('using valid id should be ok', function (done) {
 		var transactionInCheck = transactionList[0];
 
-		node.api.get('/transactions/get?id='+transactionInCheck.txId)
+		node.api.get('/api/transactions/get?id='+transactionInCheck.txId)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -280,7 +280,7 @@ describe('GET /transactions/get?id=', function () {
 	});
 
 	it('using invalid id should fail', function (done) {
-		node.api.get('/transactions/get?id=NotTxId')
+		node.api.get('/api/transactions/get?id=NotTxId')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -293,10 +293,10 @@ describe('GET /transactions/get?id=', function () {
 	});
 });
 
-describe('GET /transactions/unconfirmed/get?id=', function () {
+describe('GET /api/transactions/unconfirmed/get?id=', function () {
 
 	it('using valid id should be ok', function (done) {
-		node.api.get('/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId)
+		node.api.get('/api/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId)
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
@@ -316,10 +316,10 @@ describe('GET /transactions/unconfirmed/get?id=', function () {
 	});
 });
 
-describe('GET /transactions/unconfirmed', function () {
+describe('GET /api/transactions/unconfirmed', function () {
 
 	it('should be ok', function (done) {
-		node.api.get('/transactions/unconfirmed')
+		node.api.get('/api/transactions/unconfirmed')
 			.set('Accept', 'application/json')
 			.expect('Content-Type', /json/)
 			.expect(200)
