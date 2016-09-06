@@ -8,6 +8,14 @@ var account = node.randomAccount();
 var account2 = node.randomAccount();
 var account3 = node.randomAccount();
 
+function postTransaction (transaction, done) {
+	node.post('/transactions', {
+		transaction: transaction
+	}, function (err, res) {
+		done(err, res);
+	});
+}
+
 function sendLISK (params, done) {
 	var transaction = node.lisk.transaction.createTransaction(params.recipientId, params.amount, params.secret);
 
@@ -16,14 +24,6 @@ function sendLISK (params, done) {
 		node.onNewBlock(function (err) {
 			done(err, res);
 		});
-	});
-}
-
-function postTransaction (transaction, done) {
-	node.post('/transactions', {
-		transaction: transaction
-	}, function (err, res) {
-		done(err, res);
 	});
 }
 
