@@ -772,6 +772,9 @@ shared.getDelegates = function (req, cb) {
 	library.scheme.validate(query, {
 		type: 'object',
 		properties: {
+			orderBy: {
+				type: 'string'
+			},
 			limit: {
 				type: 'integer',
 				minimum: 0,
@@ -780,9 +783,6 @@ shared.getDelegates = function (req, cb) {
 			offset: {
 				type: 'integer',
 				minimum: 0
-			},
-			orderBy: {
-				type: 'string'
 			}
 		}
 	}, function (err) {
