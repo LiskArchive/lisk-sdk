@@ -7,24 +7,6 @@ var account = node.randomAccount();
 var account2 = node.randomAccount();
 var account3 = node.randomAccount();
 
-function openAccount (account, done) {
-	node.api.post('/accounts/open')
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send({
-			secret: account.password
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done(err, res);
-		});
-}
-
 function sendLISK (params, done) {
 	node.api.put('/transactions')
 		.set('Accept', 'application/json')
@@ -99,16 +81,11 @@ describe('POST /peer/transactions', function () {
 		describe('when account has funds', function () {
 
 			before(function (done) {
-				openAccount(account, function (err, res) {
-					account.address = res.body.account.address;
-					sendLISK({
-						secret: node.gAccount.password,
-						amount: node.fees.secondPasswordFee + 100000000,
-						recipientId: account.address
-					}, function (err, res) {
-						done(err, res);
-					});
-				});
+				sendLISK({
+					secret: node.gAccount.password,
+					amount: node.fees.secondPasswordFee + 100000000,
+					recipientId: account.address
+				}, done);
 			});
 
 			it('should be ok', function (done) {
