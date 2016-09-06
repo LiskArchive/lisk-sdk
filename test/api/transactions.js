@@ -58,6 +58,10 @@ before(function (done) {
 
 describe('GET /api/transactions', function () {
 
+	before(function (done) {
+		node.onNewBlock(done);
+	});
+
 	it('using valid parameters should be ok', function (done) {
 		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
 
@@ -126,44 +130,40 @@ describe('GET /api/transactions', function () {
 	it('ordered by ascending timestamp should be ok', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 0, orderBy = 'timestamp:asc';
 
-		node.onNewBlock(function (err) {
-			node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-				if (res.body.transactions.length > 0) {
-					var flag = 0;
-					for (var i = 0; i < res.body.transactions.length; i++) {
-						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
-							if (flag === 0) {
-								offsetTimestamp = res.body.transactions[i + 1].timestamp;
-								flag = 1;
-							}
+		node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
+			if (res.body.transactions.length > 0) {
+				var flag = 0;
+				for (var i = 0; i < res.body.transactions.length; i++) {
+					if (res.body.transactions[i + 1]) {
+						node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
+						if (flag === 0) {
+							offsetTimestamp = res.body.transactions[i + 1].timestamp;
+							flag = 1;
 						}
 					}
-				} else {
-					// console.log('Request failed. Expected success');
-					node.expect(false).to.equal(true);
 				}
-				done();
-			});
+			} else {
+				// console.log('Request failed. Expected success');
+				node.expect(false).to.equal(true);
+			}
+			done();
 		});
 	});
 
 	it('using offset == 1 should be ok', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 1, orderBy = 'timestamp:asc';
 
-		node.onNewBlock(function (err) {
-			node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-				if (res.body.transactions.length > 0) {
-					node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
-				}
-				done();
-			});
+		node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
+			if (res.body.transactions.length > 0) {
+				node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
+			}
+			done();
 		});
 	});
 
