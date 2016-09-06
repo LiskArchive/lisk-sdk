@@ -290,44 +290,61 @@ node.randomPassword = function () {
 // Get the given path
 node.get = function (path, done) {
 	node.debug('> Path:'.grey, 'GET ' + path);
-	node.api.get(path)
+	var request = node.api.get(path)
 		.set('Accept', 'application/json')
 		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
+		.expect(200);
+
+	if (done) {
+		request.end(function (err, res) {
 			node.debug('> Response:'.grey, JSON.stringify(res.body));
 			done(err, res);
 		});
+	} else {
+		return request;
+	}
 };
 
 // Post to the given path
 node.post = function (path, params, done) {
 	node.debug('> Path:'.grey, 'POST ' + path);
 	node.debug('> Params:'.grey, params);
-	node.api.post(path)
+
+	var request = node.api.post(path)
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
+		.expect(200);
+
+	if (done) {
+		request.end(function (err, res) {
 			node.debug('> Response:'.grey, JSON.stringify(res.body));
 			done(err, res);
 		});
+	} else {
+		return request;
+	}
 };
 
 // Put to the given path
 node.put = function (path, params, done) {
 	node.debug('> Path:'.grey, 'PUT ' + path);
 	node.debug('> Params:'.grey, params);
-	node.api.put(path)
+
+	var request = node.api.put(path)
 		.set('Accept', 'application/json')
 		.send(params)
 		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
+		.expect(200);
+
+	if (done) {
+		request.end(function (err, res) {
 			node.debug('> Response:'.grey, JSON.stringify(res.body));
 			done(err, res);
 		});
+	} else {
+		return request;
+	}
 };
 
 // Exports
