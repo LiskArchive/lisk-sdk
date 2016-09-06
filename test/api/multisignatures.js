@@ -37,7 +37,7 @@ function sendLISK (account, i, done) {
 	});
 }
 
-function sendLISKfrommultisigAccount (amount, recipient, done) {
+function sendLISKFromMultisigAccount (amount, recipient, done) {
 	node.put('/transactions', {
 		secret: multisigAccount.password,
 		amount: amount,
@@ -414,7 +414,7 @@ describe('GET /multisignatures/pending', function () {
 describe('PUT /api/transactions', function () {
 
 	it('when group transaction is pending should be ok', function (done) {
-		sendLISKfrommultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
+		sendLISKFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
 			node.onNewBlock(function (err) {
 				node.get('/transactions/get?id=' + transactionId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
@@ -497,7 +497,7 @@ describe('POST /multisignatures/sign (group)', function () {
 describe('POST /multisignatures/sign (transaction)', function () {
 
 	before(function (done) {
-		sendLISKfrommultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
+		sendLISKFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
 			multiSigTx.txId = transactionId;
 			done();
 		});
