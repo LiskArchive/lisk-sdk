@@ -128,7 +128,7 @@ describe('PUT /multisignatures', function () {
 		done();
 	});
 
-	it('when owner\'s public key in keysgroup should fail', function (done) {
+	it('using owner\'s public key in keysgroup should fail', function (done) {
 		validParams.secret = accounts[accounts.length - 1].password;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -148,7 +148,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when keysgroup is empty should fail', function (done) {
+	it('using empty keysgroup should fail', function (done) {
 		validParams.keysgroup = [];
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -158,8 +158,8 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when no keygroup is given should fail', function (done) {
-		delete validParams.keygroup;
+	it('using no keysgroup should fail', function (done) {
+		delete validParams.keysgroup;
 
 		node.put('/multisignatures', validParams, function (err, res) {
 				// console.log(JSON.stringify(res.body));
@@ -169,7 +169,7 @@ describe('PUT /multisignatures', function () {
 			});
 	});
 
-	it('when keysgroup is a string should fail', function (done) {
+	it('using string keysgroup should fail', function (done) {
 		validParams.keysgroup = 'invalid';
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -179,7 +179,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when no passphase is given should fail', function (done) {
+	it('using no passphase should fail', function (done) {
 		delete validParams.secret;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -189,7 +189,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when an invalid passphrase is given should fail', function (done) {
+	it('using invalid passphrase should fail', function (done) {
 		validParams.secret = multisigAccount.password + 'inv4lid';
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -199,7 +199,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when no lifetime is given should fail', function (done) {
+	it('using no lifetime', function (done) {
 		delete validParams.lifetime;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -209,7 +209,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when lifetime is a string should fail', function (done) {
+	it('using string lifetime should fail', function (done) {
 		validParams.lifetime = 'invalid';
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -219,7 +219,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when lifetime is greater than the maximum allowed should fail', function (done) {
+	it('using lifetime greater than maximum allowed should fail', function (done) {
 		validParams.lifetime = 73;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -229,7 +229,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when lifetime is zero should fail', function (done) {
+	it('using lifetime == 0 should fail', function (done) {
 		validParams.lifetime = 0;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -239,7 +239,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when lifetime is negative should fail', function (done) {
+	it('using negative lifetime should fail', function (done) {
 		validParams.lifetime = -1;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -249,7 +249,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when no min is given should fail', function (done) {
+	it('using no min should fail', function (done) {
 		delete validParams.min;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -259,7 +259,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when min is a string should fail', function (done) {
+	it('using string min should fail', function (done) {
 		validParams.min = 'invalid';
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -269,7 +269,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when min is greater than the total members should fail', function (done) {
+	it('using min greater than the total members should fail', function (done) {
 		validParams.min = totalMembers + 5;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -279,7 +279,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when min is zero should fail', function (done) {
+	it('using min == 0 should fail', function (done) {
 		validParams.min = 0;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -289,7 +289,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when min is negative should fail', function (done) {
+	it('using negative min should fail', function (done) {
 		validParams.min = -1;
 
 		node.put('/multisignatures', validParams, function (err, res) {
@@ -299,7 +299,7 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when params are valid should be ok', function (done) {
+	it('using valid params should be ok', function (done) {
 		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
