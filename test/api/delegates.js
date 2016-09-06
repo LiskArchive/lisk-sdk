@@ -91,7 +91,7 @@ describe('PUT /accounts/delegates with funds', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
-			node.expect(res.body.transactionId).to.be.above(1);
+			node.expect(res.body.transactionId).to.be.not.empty;
 			node.onNewBlock(function (err) {
 				done();
 			});
@@ -273,7 +273,7 @@ describe('PUT /delegates with funds', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
-			node.expect(res.body.transactionId).to.be.above(1);
+			node.expect(res.body.transactionId).to.be.not.empty;
 			node.onNewBlock(function (err) {
 				done();
 			});
@@ -492,7 +492,7 @@ describe('GET /delegates/voters', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
-			node.expect(res.body.transactionId).to.be.above(1);
+			node.expect(res.body.transactionId).to.be.not.empty;
 			node.onNewBlock(function (err) {
 				done();
 			});
