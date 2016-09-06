@@ -10,15 +10,7 @@ var transactionList = [];
 var offsetTimestamp = 0;
 
 function putTransaction (params, done) {
-	node.api.put('/api/transactions')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.put('/api/transactions', params, done);
 }
 
 function sendLISK (account, done) {
@@ -69,19 +61,85 @@ describe('GET /api/transactions', function () {
 	it('using valid parameters should be ok', function (done) {
 		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 10, offset = 0, orderBy = 'amount:asc';
 
-		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
+		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
+			if (res.body.transactions.length > 0) {
+				for (var i = 0; i < res.body.transactions.length; i++) {
+					if (res.body.transactions[i + 1]) {
+						node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+					}
+				}
+			} else {
+				// console.log('Request failed. Expected success');
+				node.expect(false).to.equal(true);
+			}
+			done();
+		});
+	});
+
+	it('using type should be ok', function (done) {
+		node.get('/api/transactions?type=' + node.txTypes.SEND, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			if (res.body.success && res.body.transactions != null) {
+				for (var i = 0; i < res.body.transactions.length; i++) {
+					if (res.body.transactions[i]) {
+						node.expect(res.body.transactions[i].type).to.equal(node.txTypes.SEND);
+					}
+				}
+			} else {
+				// console.log('Request failed or transaction list is null');
+				node.expect(false).to.equal(true);
+			}
+			done();
+		});
+	});
+
+	it('using no limit should be ok', function (done) {
+		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
+
+		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			if (res.body.transactions.length > 0) {
+				for (var i = 0; i < res.body.transactions.length; i++) {
+					if (res.body.transactions[i + 1]) {
+						node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
+					}
+				}
+			}
+			done();
+		});
+	});
+
+	it('using limit > 100 should fail', function (done) {
+		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
+
+		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('ordered by ascending timestamp should be ok', function (done) {
+		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 0, orderBy = 'timestamp:asc';
+
+		node.onNewBlock(function (err) {
+			node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 				node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
 				if (res.body.transactions.length > 0) {
+					var flag = 0;
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+							node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
+							if (flag === 0) {
+								offsetTimestamp = res.body.transactions[i + 1].timestamp;
+								flag = 1;
+							}
 						}
 					}
 				} else {
@@ -90,97 +148,6 @@ describe('GET /api/transactions', function () {
 				}
 				done();
 			});
-	});
-
-	it('using type should be ok', function (done) {
-		node.api.get('/api/transactions?type=' + node.txTypes.SEND)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success && res.body.transactions != null) {
-					for (var i = 0; i < res.body.transactions.length; i++) {
-						if (res.body.transactions[i]) {
-							node.expect(res.body.transactions[i].type).to.equal(node.txTypes.SEND);
-						}
-					}
-				} else {
-					// console.log('Request failed or transaction list is null');
-					node.expect(false).to.equal(true);
-				}
-				done();
-			});
-	});
-
-	it('using no limit should be ok', function (done) {
-		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, offset = 0, orderBy = 'amount:desc';
-
-		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&offset=' + offset + '&orderBy=' + orderBy)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				if (res.body.transactions.length > 0) {
-					for (var i = 0; i < res.body.transactions.length; i++) {
-						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
-						}
-					}
-				}
-				done();
-			});
-	});
-
-	it('using limit > 100 should fail', function (done) {
-		var senderId = node.gAccount.address, blockId = '', recipientId = account.address, limit = 999999, offset = 0, orderBy = 'amount:asc';
-
-		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
-	});
-
-	it('ordered by ascending timestamp should be ok', function (done) {
-		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 0, orderBy = 'timestamp:asc';
-
-		node.onNewBlock(function (err) {
-			node.api.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
-				.set('Accept', 'application/json')
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactions').that.is.an('array');
-					node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-					if (res.body.transactions.length > 0) {
-						var flag = 0;
-						for (var i = 0; i < res.body.transactions.length; i++) {
-							if (res.body.transactions[i + 1]) {
-								node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
-								if (flag === 0) {
-									offsetTimestamp = res.body.transactions[i + 1].timestamp;
-									flag = 1;
-								}
-							}
-						}
-					} else {
-						// console.log('Request failed. Expected success');
-						node.expect(false).to.equal(true);
-					}
-					done();
-				});
 		});
 	});
 
@@ -188,66 +155,46 @@ describe('GET /api/transactions', function () {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 1, orderBy = 'timestamp:asc';
 
 		node.onNewBlock(function (err) {
-			node.api.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
-				.set('Accept', 'application/json')
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactions').that.is.an('array');
-					node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-					if (res.body.transactions.length > 0) {
-						node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
-					}
-					done();
-				});
+			node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactions').that.is.an('array');
+				node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
+				if (res.body.transactions.length > 0) {
+					node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
+				}
+				done();
+			});
 		});
 	});
 
 	it('using offset == "one" should fail', function (done) {
 		var senderId = '', blockId = '', recipientId = '', limit = 100, offset = 'one', orderBy = 'timestamp:asc';
 
-		node.api.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			 });
+		node.get('/api/transactions?blockId=' + blockId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		 });
 	});
 
 	it('using completely invalid fields should fail', function (done) {
 		var senderId = 'invalid', blockId = 'invalid', recipientId = 'invalid', limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
-		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using partially invalid fields should fail', function (done) {
 		var senderId = 'invalid', blockId = 'invalid', recipientId = account.address, limit = 'invalid', offset = 'invalid', orderBy = 'blockId:asc';
 
-		node.api.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/api/transactions?blockId=' + blockId + '&senderId=' + senderId + '&recipientId=' + recipientId + '&limit=' + limit + '&offset=' + offset + '&orderBy=' + orderBy, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 });
 
@@ -256,79 +203,59 @@ describe('GET /api/transactions/get?id=', function () {
 	it('using valid id should be ok', function (done) {
 		var transactionInCheck = transactionList[0];
 
-		node.api.get('/api/transactions/get?id='+transactionInCheck.txId)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				if (res.body.success && res.body.transaction.id != null) {
-					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
-					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
-					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
-					node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
-					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
-					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-				} else {
-					// console.log('Transaction failed or transaction list is null');
-					node.expect(false).to.equal(true);
-				}
-				done();
-			});
+		node.get('/api/transactions/get?id='+transactionInCheck.txId, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			if (res.body.success && res.body.transaction.id != null) {
+				node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
+				node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
+				node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
+				node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
+				node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
+				node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+			} else {
+				// console.log('Transaction failed or transaction list is null');
+				node.expect(false).to.equal(true);
+			}
+			done();
+		});
 	});
 
 	it('using invalid id should fail', function (done) {
-		node.api.get('/api/transactions/get?id=NotTxId')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/api/transactions/get?id=NotTxId', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 });
 
 describe('GET /api/transactions/unconfirmed/get?id=', function () {
 
 	it('using valid id should be ok', function (done) {
-		node.api.get('/api/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success');
-				if (res.body.success) {
-					if (res.body.transaction != null) {
-						node.expect(res.body.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
-					}
-				} else {
-					// console.log('Transaction already processed');
-					node.expect(res.body).to.have.property('error');
+		node.get('/api/transactions/unconfirmed/get?id=' + transactionList[transactionList.length - 1].txId, function (err, res) {
+			node.expect(res.body).to.have.property('success');
+			if (res.body.success) {
+				if (res.body.transaction != null) {
+					node.expect(res.body.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
 				}
-				done();
-			});
+			} else {
+				// console.log('Transaction already processed');
+				node.expect(res.body).to.have.property('error');
+			}
+			done();
+		});
 	});
 });
 
 describe('GET /api/transactions/unconfirmed', function () {
 
 	it('should be ok', function (done) {
-		node.api.get('/api/transactions/unconfirmed')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				done();
-			});
+		node.get('/api/transactions/unconfirmed', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			done();
+		});
 	});
 });
 
