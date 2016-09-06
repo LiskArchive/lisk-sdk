@@ -447,7 +447,9 @@ describe('GET /api/delegates', function () {
 describe('GET /api/accounts/delegates?address=', function () {
 
 	it('using valid address should be ok', function (done) {
-		node.get('/api/accounts/delegates?address=' + node.gAccount.address, function (err, res) {
+		var params = 'address=' + node.gAccount.address;
+
+		node.get('/api/accounts/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			node.expect(res.body.delegates).to.have.length.of.at.least(1);
@@ -462,7 +464,9 @@ describe('GET /api/accounts/delegates?address=', function () {
 	});
 
 	it('using invalid address should fail', function (done) {
-		node.get('/api/accounts/delegates?address=NOTaLiskAddress', function (err, res) {
+		var params = 'address=' + 'notALiskAddress';
+
+		node.get('/api/accounts/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -512,7 +516,9 @@ describe('GET /api/delegates/voters', function () {
 	});
 
 	it('using no publicKey should be ok', function (done) {
-		node.get('/api/delegates/voters?publicKey=', function (err, res) {
+		var params = 'publicKey=';
+
+		node.get('/api/delegates/voters?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('accounts').that.is.an('array').that.is.empty;
 			done();
@@ -520,7 +526,9 @@ describe('GET /api/delegates/voters', function () {
 	});
 
 	it('using invalid publicKey should fail', function (done) {
-		node.get('/api/delegates/voters?publicKey=NotAPublicKey', function (err, res) {
+		var params = 'publicKey=' + 'notAPublicKey';
+
+		node.get('/api/delegates/voters?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -528,8 +536,10 @@ describe('GET /api/delegates/voters', function () {
 	});
 
 	it('using valid publicKey should be ok', function (done) {
+		var params = 'publicKey=' + node.eAccount.publicKey;
+
 		node.onNewBlock(function (err) {
-			node.get('/api/delegates/voters?publicKey=' + node.eAccount.publicKey, function (err, res) {
+			node.get('/api/delegates/voters?' + params, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('accounts').that.is.an('array');
 				var flag = 0;
@@ -737,10 +747,10 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when orderBy is invalid should fail', function (done) {
+	it('when orderBy == "unknown:asc" should fail', function (done) {
 		var q = 'genesis_';
 
-		node.get('/api/delegates/search?q=' + q + '&orderBy=unknown:abc', function (err, res) {
+		node.get('/api/delegates/search?q=' + q + '&orderBy=unknown:asc', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
