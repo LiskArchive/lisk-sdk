@@ -34,32 +34,6 @@ function putDelegates (params, done) {
 	});
 }
 
-before(function (done) {
-	openAccount({
-		secret: account.password
-	}, function (err, res) {
-		node.expect(res.body).to.have.property('success').to.be.ok;
-		node.expect(res.body).to.have.property('account').that.is.an('object');
-		account.address = res.body.account.address;
-		account.publicKey = res.body.account.publicKey;
-		account.balance = res.body.account.balance;
-		done();
-	});
-});
-
-before(function (done) {
-	openAccount({
-		secret: account2.password
-	}, function (err, res) {
-		node.expect(res.body).to.have.property('success').to.be.ok;
-		node.expect(res.body).to.have.property('account').that.is.an('object');
-		account2.address = res.body.account.address;
-		account2.publicKey = res.body.account.publicKey;
-		account2.balance = res.body.account.balance;
-		done();
-	});
-});
-
 describe('PUT /accounts/delegates without funds', function () {
 
 	it('when upvoting should fail', function (done) {
