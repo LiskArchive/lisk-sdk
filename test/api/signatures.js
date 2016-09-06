@@ -50,11 +50,21 @@ describe('PUT /api/signatures', function () {
 		node.onNewBlock(done);
 	});
 
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
+			secret: account.password,
+			secondSecret: account.secondPassword
+		};
+		done();
+	});
+
 	it('when account has no funds should fail', function (done) {
-		putSignature({
-			secret: account3.password,
-			secondSecret: account3.password
-		}, function (err, res) {
+		validParams.secret = account3.password;
+		validParams.secondSecret = account3.password;
+
+		putSignature(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -62,10 +72,9 @@ describe('PUT /api/signatures', function () {
 	});
 
 	it('using invalid passphrase should fail', function (done) {
-		putSignature({
-			secret: 'account.password',
-			secondSecret: account.password
-		}, function (err, res) {
+		validParams.secret = 'invalid';
+
+		putSignature(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -73,9 +82,9 @@ describe('PUT /api/signatures', function () {
 	});
 
 	it('using no second passphrase should fail', function (done) {
-		putSignature({
-			secret: account.password
-		}, function (err, res) {
+		delete validParams.secondSecret;
+
+		putSignature(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -83,10 +92,7 @@ describe('PUT /api/signatures', function () {
 	});
 
 	it('using valid parameters should be ok', function (done) {
-		putSignature({
-			secret: account.password,
-			secondSecret: account.secondPassword
-		}, function (err, res) {
+		putSignature(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 			node.expect(res.body.transaction).to.have.property('type').to.equal(node.txTypes.SIGNATURE);
@@ -104,14 +110,22 @@ describe('PUT /api/transactions from account with second signature enabled', fun
 		node.onNewBlock(done);
 	});
 
-	it('using no second passphase should fail', function (done) {
-		var amountToSend = 100000000;
+	var validParams;
 
-		putTransaction({
+	beforeEach(function (done) {
+		validParams = {
 			secret: account.password,
+			secondSecret: account.password,
 			recipientId: account2.address,
-			amount: amountToSend
-		}, function (err, res) {
+			amount: 100000000
+		};
+		done();
+	});
+
+	it('using no second passphase should fail', function (done) {
+		delete validParams.secondSecret;
+
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -119,13 +133,9 @@ describe('PUT /api/transactions from account with second signature enabled', fun
 	});
 
 	it('using second passphase but no primary passphase should fail', function (done) {
-		var amountToSend = 100000000;
+		delete validParams.secret;
 
-		putTransaction({
-			secondSecret: account.secondPassword,
-			recipientId: account2.address,
-			amount: amountToSend
-		}, function (err, res) {
+		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -135,11 +145,21 @@ describe('PUT /api/transactions from account with second signature enabled', fun
 
 describe('PUT /api/delegates from account with second signature enabled', function () {
 
-	it('using no second passphase should fail', function (done) {
-		putDelegate({
+	var validParams;
+
+	beforeEach(function (done) {
+		validParams = {
 			secret: account.password,
+			secondSecret: account.password,
 			username: account.delegateName
-		}, function (err, res) {
+		};
+		done();
+	});
+
+	it('using no second passphase should fail', function (done) {
+		delete validParams.secondSecret;
+
+		putDelegate(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
