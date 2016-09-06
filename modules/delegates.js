@@ -464,9 +464,9 @@ Delegates.prototype.getDelegates = function (query, cb) {
 			return cb(err);
 		}
 
-		var limit = query.limit || constants.activeDelegates,
-		    offset = query.offset || 0,
-		    active = query.active;
+		var limit = query.limit || constants.activeDelegates;
+		var offset = query.offset || 0;
+		var active = query.active;
 
 		limit = limit > constants.activeDelegates ? constants.activeDelegates : limit;
 
@@ -795,7 +795,7 @@ shared.getDelegates = function (req, cb) {
 				return cb(err);
 			}
 
-			function compareNumber(a, b) {
+			function compareNumber (a, b) {
 				var sorta = parseFloat(a[result.sortField]);
 				var sortb = parseFloat(b[result.sortField]);
 				if (result.sortMethod === 'ASC') {
@@ -805,7 +805,7 @@ shared.getDelegates = function (req, cb) {
 				}
 			}
 
-			function compareString(a, b) {
+			function compareString (a, b) {
 				var sorta = a[result.sortField];
 				var sortb = b[result.sortField];
 				if (result.sortMethod === 'ASC') {
