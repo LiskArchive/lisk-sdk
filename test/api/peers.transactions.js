@@ -6,31 +6,17 @@ var node = require('./../node.js');
 var genesisblock = require('../../genesisBlock.json');
 
 function postTransaction (transaction, done) {
-	node.peer.post('/peer/transactions')
-		.set('Accept', 'application/json')
-		.set('version', node.version)
-		.set('nethash', node.config.nethash)
-		.set('port', node.config.port)
-		.send({
-			transaction: transaction
-		})
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.post('/peer/transactions', {
+		transaction: transaction
+	}, function (err, res) {
+		done(err, res);
+	});
 }
 
 function getAddress (address, done) {
-	node.api.get('/api/accounts?address=' + address)
-		.set('Accept', 'application/json')
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.get('/api/accounts?address=' + address, function (err, res) {
+		done(err, res);
+	});
 }
 
 describe('POST /peer/transactions', function () {
@@ -65,16 +51,15 @@ describe('POST /peer/transactions', function () {
 
 		var transaction = node.lisk.transaction.createTransaction(address, 100000000, node.gAccount.password);
 		postTransaction(transaction, function (err, res) {
-			// console.log(JSON.stringify(res.body));
 			node.expect(res.body).to.have.property('success').to.be.ok;
+
 			node.onNewBlock(function (err) {
 				var transaction2 = node.lisk.transaction.createTransaction(address.toLowerCase(), 100000000, node.gAccount.password);
 				postTransaction(transaction2, function (err, res) {
-					// console.log(JSON.stringify(res.body));
 					node.expect(res.body).to.have.property('success').to.be.ok;
+
 					node.onNewBlock(function (err) {
 						getAddress(address, function (err, res) {
-							// console.log(JSON.stringify(res.body));
 							node.expect(res.body).to.have.property('success').to.be.ok;
 							node.expect(res.body).to.have.property('account').that.is.an('object');
 							node.expect(res.body.account).to.have.property('balance').to.equal('200000000');
