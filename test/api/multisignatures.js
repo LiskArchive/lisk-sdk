@@ -360,10 +360,9 @@ describe('GET /multisignatures/pending', function () {
 					node.expect(res.body.transactions[i]).to.have.property('min').to.equal(multiSigTx.min);
 				}
 			}
+
 			node.expect(flag).to.equal(1);
-			node.onNewBlock(function (err) {
-				done();
-			});
+			done();
 		});
 	});
 });
