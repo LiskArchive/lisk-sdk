@@ -511,10 +511,10 @@ describe('GET /api/delegates/voters', function () {
 		});
 	});
 
-	it('using no publicKey should fail', function (done) {
+	it('using no publicKey should be ok', function (done) {
 		node.get('/api/delegates/voters?publicKey=', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('accounts').that.is.an('array').that.is.empty;
 			done();
 		});
 	});
