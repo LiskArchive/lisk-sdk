@@ -7,10 +7,7 @@ var totalMembers = node.randomNumber(2, 16);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);
 
 var noLISKAccount = node.randomAccount();
-noLISKAccount.name = 'nolisk';
-
 var multisigAccount = node.randomAccount();
-multisigAccount.name = 'multi';
 
 var accounts = [];
 for (var i = 0; i < totalMembers; i++) {
