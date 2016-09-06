@@ -316,6 +316,10 @@ describe('PUT /multisignatures', function () {
 
 describe('GET /multisignatures/pending', function () {
 
+	before(function (done) {
+		node.onNewBlock(done);
+	});
+
 	it('using invalid public key should fail', function (done) {
 		var publicKey = 1234;
 
@@ -337,29 +341,28 @@ describe('GET /multisignatures/pending', function () {
 	});
 
 	it('using valid public key should be ok', function (done) {
-		node.onNewBlock(function (err) {
-			node.get('/multisignatures/pending?publicKey=' + multisigAccount.publicKey, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				node.expect(res.body.transactions.length).to.be.at.least(1);
-				var flag = 0;
-				for (var i = 0; i < res.body.transactions.length; i++) {
-					if (res.body.transactions[i].transaction.senderPublicKey === multisigAccount.publicKey) {
-						flag += 1;
-						node.expect(res.body.transactions[i].transaction).to.have.property('type').to.equal(node.txTypes.MULTI);
-						node.expect(res.body.transactions[i].transaction).to.have.property('amount').to.equal(0);
-						node.expect(res.body.transactions[i].transaction).to.have.property('asset').that.is.an('object');
-						node.expect(res.body.transactions[i].transaction).to.have.property('fee').to.equal(node.fees.multisignatureRegistrationFee * (Keys.length + 1));
-						node.expect(res.body.transactions[i].transaction).to.have.property('id').to.equal(multiSigTx.txId);
-						node.expect(res.body.transactions[i].transaction).to.have.property('senderPublicKey').to.equal(multisigAccount.publicKey);
-						node.expect(res.body.transactions[i]).to.have.property('lifetime').to.equal(multiSigTx.lifetime);
-						node.expect(res.body.transactions[i]).to.have.property('min').to.equal(multiSigTx.min);
-					}
+		node.get('/multisignatures/pending?publicKey=' + multisigAccount.publicKey, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			node.expect(res.body.transactions.length).to.be.at.least(1);
+
+			var flag = 0;
+			for (var i = 0; i < res.body.transactions.length; i++) {
+				if (res.body.transactions[i].transaction.senderPublicKey === multisigAccount.publicKey) {
+					flag += 1;
+					node.expect(res.body.transactions[i].transaction).to.have.property('type').to.equal(node.txTypes.MULTI);
+					node.expect(res.body.transactions[i].transaction).to.have.property('amount').to.equal(0);
+					node.expect(res.body.transactions[i].transaction).to.have.property('asset').that.is.an('object');
+					node.expect(res.body.transactions[i].transaction).to.have.property('fee').to.equal(node.fees.multisignatureRegistrationFee * (Keys.length + 1));
+					node.expect(res.body.transactions[i].transaction).to.have.property('id').to.equal(multiSigTx.txId);
+					node.expect(res.body.transactions[i].transaction).to.have.property('senderPublicKey').to.equal(multisigAccount.publicKey);
+					node.expect(res.body.transactions[i]).to.have.property('lifetime').to.equal(multiSigTx.lifetime);
+					node.expect(res.body.transactions[i]).to.have.property('min').to.equal(multiSigTx.min);
 				}
-				node.expect(flag).to.equal(1);
-				node.onNewBlock(function (err) {
-					done();
-				});
+			}
+			node.expect(flag).to.equal(1);
+			node.onNewBlock(function (err) {
+				done();
 			});
 		});
 	});
