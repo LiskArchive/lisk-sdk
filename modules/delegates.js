@@ -777,7 +777,7 @@ shared.getDelegates = function (req, cb) {
 			},
 			limit: {
 				type: 'integer',
-				minimum: 0,
+				minimum: 1,
 				maximum: constants.activeDelegates
 			},
 			offset: {
