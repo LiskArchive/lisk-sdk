@@ -10,7 +10,6 @@ function openAccount (account, done) {
 	node.post('/accounts/open', {
 		secret: account.password
 	}, function (err, res) {
-		// console.log(JSON.stringify(res.body));
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.expect(res.body).to.have.property('account').that.is.an('object');
 		account.address = res.body.account.address;
@@ -22,7 +21,6 @@ function openAccount (account, done) {
 
 function putTransaction (params, done) {
 	node.put('/transactions', params, function (err, res) {
-		// console.log(JSON.stringify(res.body));
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.onNewBlock(function (err) {
 			done(err, res);
