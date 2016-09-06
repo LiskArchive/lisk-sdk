@@ -816,10 +816,12 @@ shared.getDelegates = function (req, cb) {
 			}
 
 			if (result.sortField) {
-				if (['approval', 'productivity', 'rate', 'vote', 'missedblocks', 'producedblocks'].indexOf(result.sortField) > -1) {
+				if (['approval', 'productivity', 'rate', 'vote'].indexOf(result.sortField) > -1) {
 					result.delegates = result.delegates.sort(compareNumber);
-				} else {
+				} else if (['username', 'address', 'publicKey'].indexOf(result.sortField) > -1) {
 					result.delegates = result.delegates.sort(compareString);
+				} else {
+					return cb('Invalid sort field');
 				}
 			}
 
