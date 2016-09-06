@@ -11,51 +11,27 @@ var account2 = node.randomAccount();
 account2.username = account.username.toUpperCase();
 
 function openAccount (params, done) {
-	node.api.post('/accounts/open')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.post('/accounts/open', params, function (err, res) {
+		done(err, res);
+	});
 }
 
 function sendLISK (params, done) {
-	node.api.put('/transactions')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.put('/transactions', params, function (err, res) {
+		done(err, res);
+	});
 }
 
 function putAccountsDelegates (params, done) {
-	node.api.put('/accounts/delegates')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.put('/accounts/delegates', params, function (err, res) {
+		done(err, res);
+	});
 }
 
 function putDelegates (params, done) {
-	node.api.put('/delegates')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.put('/delegates', params, function (err, res) {
+		done(err, res);
+	});
 }
 
 before(function (done) {
@@ -422,207 +398,152 @@ describe('GET /delegates', function () {
 		var limit = 10;
 		var offset = 0;
 
-		node.api.get('/delegates?limit='+limit+'&offset='+offset+'&orderBy=vote:asc')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
-				node.expect(res.body.delegates).to.have.length.of.at.most(limit);
-				var num_of_delegates = res.body.delegates.length;
-				if (num_of_delegates >= 1) {
-					for (var i = 0; i < num_of_delegates; i++) {
-						if (res.body.delegates[i + 1] != null) {
-							node.expect(res.body.delegates[i].vote).to.be.at.most(res.body.delegates[i + 1].vote);
-							node.expect(res.body.delegates[i]).to.have.property('username');
-							node.expect(res.body.delegates[i]).to.have.property('address');
-							node.expect(res.body.delegates[i]).to.have.property('publicKey');
-							node.expect(res.body.delegates[i]).to.have.property('vote');
-							node.expect(res.body.delegates[i]).to.have.property('rate');
-							node.expect(res.body.delegates[i]).to.have.property('productivity');
-						}
+		node.get('/delegates?limit='+limit+'&offset='+offset+'&orderBy=vote:asc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
+			node.expect(res.body.delegates).to.have.length.of.at.most(limit);
+			var num_of_delegates = res.body.delegates.length;
+			if (num_of_delegates >= 1) {
+				for (var i = 0; i < num_of_delegates; i++) {
+					if (res.body.delegates[i + 1] != null) {
+						node.expect(res.body.delegates[i].vote).to.be.at.most(res.body.delegates[i + 1].vote);
+						node.expect(res.body.delegates[i]).to.have.property('username');
+						node.expect(res.body.delegates[i]).to.have.property('address');
+						node.expect(res.body.delegates[i]).to.have.property('publicKey');
+						node.expect(res.body.delegates[i]).to.have.property('vote');
+						node.expect(res.body.delegates[i]).to.have.property('rate');
+						node.expect(res.body.delegates[i]).to.have.property('productivity');
 					}
-				} else {
-					node.expect(false).to.equal(true);
 				}
-				done();
-			});
+			} else {
+				node.expect(false).to.equal(true);
+			}
+			done();
+		});
 	});
 
 	it('using valid parameters should be ok', function (done) {
 		var limit = 20;
 		var offset = 10;
 
-		node.api.get('/delegates?limit='+limit+'&offset='+offset+'&orderBy=rate:desc')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
-				node.expect(res.body.delegates).to.have.length.of.at.most(limit);
-				var num_of_delegates = res.body.delegates.length;
-				if (num_of_delegates >= 1) {
-					for (var i = 0; i < num_of_delegates; i++) {
-						if (res.body.delegates[i + 1] != null) {
-							node.expect(res.body.delegates[i].rate).to.be.at.least(res.body.delegates[i + 1].rate);
-						}
+		node.get('/delegates?limit='+limit+'&offset='+offset+'&orderBy=rate:desc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body).to.have.property('totalCount').that.is.at.least(0);
+			node.expect(res.body.delegates).to.have.length.of.at.most(limit);
+			var num_of_delegates = res.body.delegates.length;
+			if (num_of_delegates >= 1) {
+				for (var i = 0; i < num_of_delegates; i++) {
+					if (res.body.delegates[i + 1] != null) {
+						node.expect(res.body.delegates[i].rate).to.be.at.least(res.body.delegates[i + 1].rate);
 					}
-				} else {
-					node.expect(false).to.equal(true);
 				}
-				done();
-			});
+			} else {
+				node.expect(false).to.equal(true);
+			}
+			done();
+		});
 	});
 
 	it('using invalid parameters should be ok', function (done) {
 		var limit = 'invalid';
 		var offset = 'invalid';
 
-		node.api.get('/delegates?limit='+limit+'&offset='+offset+'&orderBy=invalid')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates?limit='+limit+'&offset='+offset+'&orderBy=invalid', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 });
 
 describe('GET /accounts/delegates?address=', function () {
 
 	it('using valid address should be ok', function (done) {
-		node.api.get('/accounts/delegates?address=' + node.gAccount.address)
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length.of.at.least(1);
-				node.expect(res.body.delegates[0]).to.have.property('username');
-				node.expect(res.body.delegates[0]).to.have.property('address');
-				node.expect(res.body.delegates[0]).to.have.property('publicKey');
-				node.expect(res.body.delegates[0]).to.have.property('vote');
-				node.expect(res.body.delegates[0]).to.have.property('rate');
-				node.expect(res.body.delegates[0]).to.have.property('productivity');
-				done();
-			});
+		node.get('/accounts/delegates?address=' + node.gAccount.address, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length.of.at.least(1);
+			node.expect(res.body.delegates[0]).to.have.property('username');
+			node.expect(res.body.delegates[0]).to.have.property('address');
+			node.expect(res.body.delegates[0]).to.have.property('publicKey');
+			node.expect(res.body.delegates[0]).to.have.property('vote');
+			node.expect(res.body.delegates[0]).to.have.property('rate');
+			node.expect(res.body.delegates[0]).to.have.property('productivity');
+			done();
 		});
+	});
 
 	it('using invalid address should fail', function (done) {
-		node.api.get('/accounts/delegates?address=NOTaLiskAddress')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/accounts/delegates?address=NOTaLiskAddress', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 });
 
 describe('GET /delegates/count', function () {
 
 	it('should be ok', function (done) {
-		node.api.get('/delegates/count')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('count').to.be.at.least(101);
-				done();
-			});
+		node.get('/delegates/count', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('count').to.be.at.least(101);
+			done();
+		});
 	});
 });
 
 describe('GET /delegates/voters', function () {
 
 	before(function (done) {
-		// console.log(JSON.stringify({
-		//	secret: account.password,
-		//	delegates: ['+' + node.eAccount.publicKey]
-		// }));
 		node.onNewBlock(function (err) {
-			node.api.put('/accounts/delegates')
-				.set('Accept', 'application/json')
-				.send({
-					secret: account.password,
-					delegates: ['+' + node.eAccount.publicKey]
-				})
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					done();
-				});
+			node.put('/accounts/delegates', {
+				secret: account.password,
+				delegates: ['+' + node.eAccount.publicKey]
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				done();
+			});
 		});
 	});
 
 	it('using no publicKey should fail', function (done) {
-		node.api.get('/delegates/voters?publicKey=')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success');
-				if(!res.body.success) {
-					node.expect(res.body).to.have.property('error');
-				} else {
-					node.expect(res.body).to.have.property('accounts').that.is.an('array');
-					node.expect(res.body.accounts.length).to.equal(0);
-				}
-				done();
-			});
+		node.get('/delegates/voters?publicKey=', function (err, res) {
+			node.expect(res.body).to.have.property('success');
+			if (!res.body.success) {
+				node.expect(res.body).to.have.property('error');
+			} else {
+				node.expect(res.body).to.have.property('accounts').that.is.an('array');
+				node.expect(res.body.accounts.length).to.equal(0);
+			}
+			done();
+		});
 	});
 
 	it('using invalid publicKey should fail', function (done) {
-		node.api.get('/delegates/voters?publicKey=NotAPublicKey')
-			.set('Accept', 'application/json')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/voters?publicKey=NotAPublicKey', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using valid publicKey should be ok', function (done) {
 		node.onNewBlock(function (err) {
-			node.api.get('/delegates/voters?publicKey=' + node.eAccount.publicKey)
-				.set('Accept', 'application/json')
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.end(function (err, res) {
-					// console.log(JSON.stringify(res.body));
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('accounts').that.is.an('array');
-					var flag = 0;
-					for (var i = 0; i < res.body.accounts.length; i++) {
-						if (res.body.accounts[i].address === account.address) {
-							flag = 1;
-						}
+			node.get('/delegates/voters?publicKey=' + node.eAccount.publicKey, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('accounts').that.is.an('array');
+				var flag = 0;
+				for (var i = 0; i < res.body.accounts.length; i++) {
+					if (res.body.accounts[i].address === account.address) {
+						flag = 1;
 					}
-					node.expect(flag).to.equal(1);
-					done();
-				});
+				}
+				node.expect(flag).to.equal(1);
+				done();
+			});
 		});
 	});
 });
@@ -632,329 +553,245 @@ describe('GET /delegates/search', function () {
 	it('when criteria is missing should fail', function (done) {
 		var q = '';
 
-		node.api.get('/delegates/search')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when criteria is an empty string should fail', function (done) {
 		var q = '';
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when criteria length is 1 character should be ok', function (done) {
 		var q = 'g'; // 1 character
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			done();
+		});
 	});
 
 	it('when criteria length is 20 characters should be ok', function (done) {
 		var q = 'genesis_123456789012'; // 20 characters
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			done();
+		});
 	});
 
 	it('when criteria length is greater than 20 characters should fail', function (done) {
 		var q = 'genesis_1234567890123'; // 21 characters
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when critera == "genesis_1" should return 13 delegates', function (done) {
 		var q = 'genesis_1';
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(13);
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(13);
+			done();
+		});
 	});
 
 	it('when critera == "genesis_10" should return 3 delegates', function (done) {
 		var q = 'genesis_10';
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(3);
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(3);
+			done();
+		});
 	});
 
 	it('when critera == "genesis_101" should return 1 delegate', function (done) {
 		var q = 'genesis_101';
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(1);
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(1);
+			done();
+		});
 	});
 
 	it('when critera == "genesis_101" should have all properties', function (done) {
 		var q = 'genesis_101';
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(1);
-				node.expect(res.body.delegates[0]).to.have.property('username').that.is.an('string');
-				node.expect(res.body.delegates[0]).to.have.property('address').that.is.an('string');
-				node.expect(res.body.delegates[0]).to.have.property('publicKey').that.is.an('string');
-				node.expect(res.body.delegates[0]).to.have.property('vote').that.is.an('string');
-				node.expect(res.body.delegates[0]).to.have.property('producedblocks').that.is.an('number');
-				node.expect(res.body.delegates[0]).to.have.property('missedblocks').that.is.an('number');
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(1);
+			node.expect(res.body.delegates[0]).to.have.property('username').that.is.an('string');
+			node.expect(res.body.delegates[0]).to.have.property('address').that.is.an('string');
+			node.expect(res.body.delegates[0]).to.have.property('publicKey').that.is.an('string');
+			node.expect(res.body.delegates[0]).to.have.property('vote').that.is.an('string');
+			node.expect(res.body.delegates[0]).to.have.property('producedblocks').that.is.an('number');
+			node.expect(res.body.delegates[0]).to.have.property('missedblocks').that.is.an('number');
+			done();
+		});
 	});
 
 	it('when limit is missing should be ok', function (done) {
 		var q = 'genesis_';
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(100);
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(100);
+			done();
+		});
 	});
 
 	it('when limit is a string should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 'one';
 
-		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when limit == -100 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = -100;
 
-		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when limit == -1 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = -1;
 
-		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when limit == 0 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 0;
 
-		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when limit == 1 should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 1;
 
-		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(1);
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(1);
+			done();
+		});
 	});
 
 	it('when limit == 100 should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 100;
 
-		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(100);
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(100);
+			done();
+		});
 	});
 
 	it('when limit > 100 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 101;
 
-		node.api.get('/delegates/search?q=' + q + '&limit=' + limit)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when orderBy is invalid should fail', function (done) {
 		var q = 'genesis_';
 
-		node.api.get('/delegates/search?q=' + q + '&orderBy=unknown:abc')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&orderBy=unknown:abc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('when orderBy is missing should be ordered by ascending username', function (done) {
 		var q = 'genesis_';
 
-		node.api.get('/delegates/search?q=' + q)
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(100);
-				node.expect(res.body.delegates[0]).to.have.property('username');
-				node.expect(res.body.delegates[0].username).to.equal('genesis_1');
-				node.expect(res.body.delegates[24]).to.have.property('username');
-				node.expect(res.body.delegates[24].username).to.equal('genesis_3');
-				done();
-			});
+		node.get('/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates[0]).to.have.property('username');
+			node.expect(res.body.delegates[0].username).to.equal('genesis_1');
+			node.expect(res.body.delegates[24]).to.have.property('username');
+			node.expect(res.body.delegates[24].username).to.equal('genesis_3');
+			done();
+		});
 	});
 
 	it('when orderBy == "username:asc" should be ordered by ascending username', function (done) {
 		var q = 'genesis_';
 
-		node.api.get('/delegates/search?q=' + q + '&orderBy=username:asc')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(100);
-				node.expect(res.body.delegates[0]).to.have.property('username');
-				node.expect(res.body.delegates[0].username).to.equal('genesis_1');
-				node.expect(res.body.delegates[24]).to.have.property('username');
-				node.expect(res.body.delegates[24].username).to.equal('genesis_3');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&orderBy=username:asc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates[0]).to.have.property('username');
+			node.expect(res.body.delegates[0].username).to.equal('genesis_1');
+			node.expect(res.body.delegates[24]).to.have.property('username');
+			node.expect(res.body.delegates[24].username).to.equal('genesis_3');
+			done();
+		});
 	});
 
 	it('when orderBy == "username:desc" should be ordered by descending username', function (done) {
 		var q = 'genesis_';
 
-		node.api.get('/delegates/search?q=' + q + '&orderBy=username:desc')
-			.expect('Content-Type', /json/)
-			.expect(200)
-			.end(function (err, res) {
-				// console.log(JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				node.expect(res.body.delegates).to.have.length(100);
-				node.expect(res.body.delegates[0]).to.have.property('username');
-				node.expect(res.body.delegates[0].username).to.equal('genesis_99');
-				node.expect(res.body.delegates[24]).to.have.property('username');
-				node.expect(res.body.delegates[24].username).to.equal('genesis_77');
-				done();
-			});
+		node.get('/delegates/search?q=' + q + '&orderBy=username:desc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates[0]).to.have.property('username');
+			node.expect(res.body.delegates[0].username).to.equal('genesis_99');
+			node.expect(res.body.delegates[24]).to.have.property('username');
+			node.expect(res.body.delegates[24].username).to.equal('genesis_77');
+			done();
+		});
 	});
 });
