@@ -720,8 +720,6 @@ describe('GET /api/delegates/voters', function () {
 describe('GET /api/delegates/search', function () {
 
 	it('using no criteria should fail', function (done) {
-		var q = '';
-
 		node.get('/api/delegates/search', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
