@@ -719,7 +719,7 @@ describe('GET /api/delegates/voters', function () {
 
 describe('GET /api/delegates/search', function () {
 
-	it('when criteria is missing should fail', function (done) {
+	it('using no criteria should fail', function (done) {
 		var q = '';
 
 		node.get('/api/delegates/search', function (err, res) {
@@ -729,7 +729,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when criteria is an empty string should fail', function (done) {
+	it('using blank criteria should fail', function (done) {
 		var q = '';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -739,7 +739,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when criteria length is 1 character should be ok', function (done) {
+	it('using criteria with length == 1 should be ok', function (done) {
 		var q = 'g'; // 1 character
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -749,7 +749,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when criteria length is 20 characters should be ok', function (done) {
+	it('using criteria with length == 20 should be ok', function (done) {
 		var q = 'genesis_123456789012'; // 20 characters
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -759,7 +759,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when criteria length is greater than 20 characters should fail', function (done) {
+	it('using criteria with length > 20 should fail', function (done) {
 		var q = 'genesis_1234567890123'; // 21 characters
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -769,7 +769,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when critera == "genesis_1" should return 13 delegates', function (done) {
+	it('using critera == "genesis_1" should return 13 delegates', function (done) {
 		var q = 'genesis_1';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -780,7 +780,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when critera == "genesis_10" should return 3 delegates', function (done) {
+	it('using critera == "genesis_10" should return 3 delegates', function (done) {
 		var q = 'genesis_10';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -791,7 +791,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when critera == "genesis_101" should return 1 delegate', function (done) {
+	it('using critera == "genesis_101" should return 1 delegate', function (done) {
 		var q = 'genesis_101';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -802,7 +802,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when critera == "genesis_101" should have all properties', function (done) {
+	it('using critera == "genesis_101" should have all properties', function (done) {
 		var q = 'genesis_101';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -819,7 +819,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit is missing should be ok', function (done) {
+	it('using no limit should be ok', function (done) {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -830,7 +830,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit is a string should be ok', function (done) {
+	it('using string limit should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 'one';
 
@@ -841,7 +841,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit == -100 should fail', function (done) {
+	it('using limit == -100 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = -100;
 
@@ -852,7 +852,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit == -1 should fail', function (done) {
+	it('using limit == -1 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = -1;
 
@@ -863,7 +863,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit == 0 should fail', function (done) {
+	it('using limit == 0 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 0;
 
@@ -874,7 +874,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit == 1 should be ok', function (done) {
+	it('using limit == 1 should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 1;
 
@@ -886,7 +886,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit == 100 should be ok', function (done) {
+	it('using limit == 100 should be ok', function (done) {
 		var q = 'genesis_';
 		var limit = 100;
 
@@ -898,7 +898,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when limit > 100 should fail', function (done) {
+	it('using limit > 100 should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 101;
 
@@ -909,7 +909,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when orderBy == "unknown:asc" should fail', function (done) {
+	it('using orderBy == "unknown:asc" should fail', function (done) {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q + '&orderBy=unknown:asc', function (err, res) {
@@ -919,7 +919,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when orderBy is missing should be ordered by ascending username', function (done) {
+	it('using no orderBy should be ordered by ascending username', function (done) {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
@@ -934,7 +934,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when orderBy == "username:asc" should be ordered by ascending username', function (done) {
+	it('using orderBy == "username:asc" should be ordered by ascending username', function (done) {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q + '&orderBy=username:asc', function (err, res) {
@@ -949,7 +949,7 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('when orderBy == "username:desc" should be ordered by descending username', function (done) {
+	it('using orderBy == "username:desc" should be ordered by descending username', function (done) {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q + '&orderBy=username:desc', function (err, res) {
