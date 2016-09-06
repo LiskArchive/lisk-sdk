@@ -5,8 +5,6 @@ var node = require('./../node.js');
 
 var totalMembers = node.randomNumber(2, 16);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);
-
-var noLISKAccount = node.randomAccount();
 var multisigAccount = node.randomAccount();
 
 var accounts = [];
@@ -129,7 +127,7 @@ describe('PUT /multisignatures', function () {
 	});
 
 	it('when account has 0 LISK should fail', function (done) {
-		validParams.secret = noLISKAccount.password;
+		validParams.secret = node.randomPassword();
 
 		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
