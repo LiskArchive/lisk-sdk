@@ -128,8 +128,8 @@ describe('PUT /multisignatures', function () {
 		done();
 	});
 
-	it('using owner\'s public key in keysgroup should fail', function (done) {
-		validParams.secret = accounts[accounts.length - 1].password;
+	it('when account has 0 LISK should fail', function (done) {
+		validParams.secret = noLISKAccount.password;
 
 		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -138,8 +138,8 @@ describe('PUT /multisignatures', function () {
 		});
 	});
 
-	it('when account has 0 LISK should fail', function (done) {
-		validParams.secret = noLISKAccount.password;
+	it('using owner\'s public key in keysgroup should fail', function (done) {
+		validParams.secret = accounts[accounts.length - 1].password;
 
 		node.put('/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
