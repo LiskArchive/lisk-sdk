@@ -86,47 +86,44 @@ function registerDelegate (account, done) {
 describe('POST /peer/transactions', function () {
 
 	before(function (done) {
-		async.series([
-			function (seriesCb) {
-				sendLISK({
-					secret: node.gAccount.password,
-					amount: 100000000000,
-					recipientId: account.address
-				}, seriesCb);
-			},
-			function (seriesCb) {
-				getDelegates(function (err, res) {
-					delegates = res.body.delegates.map(function (delegate) {
-						return delegate.publicKey;
-					}).slice(0, 101);
+		sendLISK({
+			secret: node.gAccount.password,
+			amount: 100000000000,
+			recipientId: account.address
+		}, done);
+	});
 
-					delegate = res.body.delegates[0].publicKey;
+	before(function (done) {
+		getDelegates(function (err, res) {
+			delegates = res.body.delegates.map(function (delegate) {
+				return delegate.publicKey;
+			}).slice(0, 101);
 
-					return seriesCb();
-				});
-			},
-			function (seriesCb) {
-				getVotes(account.address, function (err, res) {
-					votedDelegates = res.body.delegates.map(function (delegate) {
-						return delegate.publicKey;
-					});
+			delegate = res.body.delegates[0].publicKey;
 
-					return seriesCb();
-				});
-			},
-			function (seriesCb) {
-				postVotes({
-					delegates: votedDelegates,
-					passphrase: account.password,
-					action: '-',
-					voteCb: function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-					}
-				}, seriesCb);
-			}
-		], function (err) {
-			return done(err);
+			done();
 		});
+	});
+
+	before(function (done) {
+		getVotes(account.address, function (err, res) {
+			votedDelegates = res.body.delegates.map(function (delegate) {
+				return delegate.publicKey;
+			});
+
+			done();
+		});
+	});
+
+	before(function (done) {
+		postVotes({
+			delegates: votedDelegates,
+			passphrase: account.password,
+			action: '-',
+			voteCb: function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+			}
+		}, done);
 	});
 
 	it('using undefined transaction', function (done) {
@@ -296,29 +293,25 @@ describe('POST /peer/transactions', function () {
 describe('POST /peer/transactions after registering a new delegate', function () {
 
 	before(function (done) {
-		async.series([
-			function (seriesCb) {
-				getDelegates(function (err, res) {
-					delegates = res.body.delegates.map(function (delegate) {
-						return delegate.publicKey;
-					}).slice(0, 101);
+		getDelegates(function (err, res) {
+			delegates = res.body.delegates.map(function (delegate) {
+				return delegate.publicKey;
+			}).slice(0, 101);
 
-					return seriesCb();
-				});
-			},
-			function (seriesCb) {
-				sendLISK({
-					secret: node.gAccount.password,
-					amount: 100000000000,
-					recipientId: account.address
-				}, seriesCb);
-			},
-			function (seriesCb) {
-				registerDelegate(account, seriesCb);
-			}
-		], function (err) {
-			return done(err);
+			done();
 		});
+	});
+
+	before(function (done) {
+		sendLISK({
+			secret: node.gAccount.password,
+			amount: 100000000000,
+			recipientId: account.address
+		}, done);
+	});
+
+	before(function (done) {
+		registerDelegate(account, done);
 	});
 
 	it('voting for self should be ok', function (done) {
