@@ -292,6 +292,9 @@ node.get = function (path, done) {
 	node.debug('> Path:'.grey, 'GET ' + path);
 	var request = node.api.get(path)
 		.set('Accept', 'application/json')
+		.set('version', node.version)
+		.set('nethash', node.config.nethash)
+		.set('port', node.config.port)
 		.expect('Content-Type', /json/)
 		.expect(200);
 
@@ -312,6 +315,9 @@ node.post = function (path, params, done) {
 
 	var request = node.api.post(path)
 		.set('Accept', 'application/json')
+		.set('version', node.version)
+		.set('nethash', node.config.nethash)
+		.set('port', node.config.port)
 		.send(params)
 		.expect('Content-Type', /json/)
 		.expect(200);
@@ -333,6 +339,9 @@ node.put = function (path, params, done) {
 
 	var request = node.api.put(path)
 		.set('Accept', 'application/json')
+		.set('version', node.version)
+		.set('nethash', node.config.nethash)
+		.set('port', node.config.port)
 		.send(params)
 		.expect('Content-Type', /json/)
 		.expect(200);
