@@ -7,39 +7,15 @@ var account2 = node.randomTxAccount();
 var account3 = node.randomTxAccount();
 
 function putSignature (params, done) {
-	node.api.put('/api/signatures')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.put('/api/signatures', params, done);
 }
 
 function putTransaction (params, done) {
-	node.api.put('/api/transactions')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.put('/api/transactions', params, done);
 }
 
 function putDelegate (params, done) {
-	node.api.put('/api/delegates')
-		.set('Accept', 'application/json')
-		.send(params)
-		.expect('Content-Type', /json/)
-		.expect(200)
-		.end(function (err, res) {
-			// console.log(JSON.stringify(res.body));
-			done(err, res);
-		});
+	node.put('/api/delegates', params, done);
 }
 
 function sendLISK (account, done) {
