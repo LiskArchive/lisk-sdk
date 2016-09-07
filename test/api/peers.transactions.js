@@ -8,15 +8,11 @@ var genesisblock = require('../../genesisBlock.json');
 function postTransaction (transaction, done) {
 	node.post('/peer/transactions', {
 		transaction: transaction
-	}, function (err, res) {
-		done(err, res);
-	});
+	}, done);
 }
 
 function getAddress (address, done) {
-	node.get('/api/accounts?address=' + address, function (err, res) {
-		done(err, res);
-	});
+	node.get('/api/accounts?address=' + address, done);
 }
 
 describe('POST /peer/transactions', function () {
