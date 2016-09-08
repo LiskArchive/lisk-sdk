@@ -194,6 +194,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		cb = requester;
 	}
 
+	// Check transaction type
 	if (!__private.types[trs.type]) {
 		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	}
@@ -202,6 +203,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	// 	return setImmediate(cb, 'Transaction is not ready: ' + trs.id);
 	// }
 
+	// Get transaction id
 	var txId;
 
 	try {
@@ -211,25 +213,29 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Failed to get transaction id');
 	}
 
+	// Check transaction id
 	if (trs.id && trs.id !== txId) {
 		return setImmediate(cb, 'Invalid transaction id');
 	} else {
 		trs.id = txId;
 	}
 
+	// Check sender
 	if (!sender) {
 		return setImmediate(cb, 'Invalid sender');
 	}
 
+	// Equalize sender address
 	trs.senderId = sender.address;
 
-	// Verify that requester belongs to multisignature keysgroup
+	// Check requester public key
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
 			return setImmediate(cb, 'Requester does not belong to multisignature keysgroup');
 		}
 	}
 
+	// Verify signature
 	if (trs.requesterPublicKey) {
 		if (!this.verifySignature(trs, trs.requesterPublicKey, trs.signature)) {
 			return setImmediate(cb, 'Failed to verify signature');
@@ -240,11 +246,13 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		}
 	}
 
+	// Call process on transaction type
 	__private.types[trs.type].process.call(this, trs, sender, function (err, trs) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
+		// Check for already confirmed transaction
 		this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
 			if (row.count > 0) {
 				return cb('Ignoring already confirmed transaction');
@@ -265,6 +273,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		cb = requester;
 	}
 
+	// Check transaction type
 	if (!__private.types[trs.type]) {
 		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	}
@@ -274,6 +283,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid sender');
 	}
 
+	// Check requester public key
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
 			return setImmediate(cb, 'Failed to verify signature');
@@ -323,7 +333,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		}
 	}
 
-	// Check that signatures unique
+	// Check that signatures are unique
 	if (trs.signatures && trs.signatures.length) {
 		var signatures = trs.signatures.reduce(function (p, c) {
 			if (p.indexOf(c) < 0) { p.push(c); }
@@ -335,6 +345,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		}
 	}
 
+	// Determine multisignatures from sender or transaction asset
 	var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
 	if (multisignatures.length === 0) {
 		if (trs.asset && trs.asset.multisignature && trs.asset.multisignature.keysgroup) {
@@ -345,10 +356,12 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		}
 	}
 
+	// Add sender to multisignatures
 	if (trs.requesterPublicKey) {
 		multisignatures.push(trs.senderPublicKey);
 	}
 
+	// Verify multisignatures
 	if (trs.signatures) {
 		var verify;
 
@@ -371,12 +384,12 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		}
 	}
 
-	// Check sender
+	// Check sender address
 	if (String(trs.senderId).toUpperCase() !== String(sender.address).toUpperCase()) {
 		return setImmediate(cb, 'Invalid sender');
 	}
 
-	// Calc fee
+	// Calculate fee
 	var fee = __private.types[trs.type].calculateFee.call(this, trs, sender) || false;
 	if (!fee || trs.fee !== fee) {
 		return setImmediate(cb, 'Invalid transaction fee');
@@ -392,7 +405,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid transaction timestamp');
 	}
 
-	// Spec
+	// Call verify on transaction type
 	__private.types[trs.type].verify.call(this, trs, sender, function (err) {
 		return cb(err);
 	});

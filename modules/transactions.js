@@ -249,7 +249,7 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 };
 
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	// If no transaction we raise an error
+	// Check transaction
 	if (!transaction) {
 		return cb('No transaction to process!');
 	}
