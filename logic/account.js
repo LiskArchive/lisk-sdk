@@ -300,6 +300,15 @@ function Account (scope, cb) {
 			},
 			conv: Number,
 			expression: '("rewards")::bigint'
+		},
+		{
+			name: 'virgin',
+			type: 'SmallInt',
+			filter: {
+				type: 'boolean'
+			},
+			conv: Boolean,
+			immutable: true
 		}
 	];
 
