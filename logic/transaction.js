@@ -283,6 +283,11 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Missing sender');
 	}
 
+	// Check sender address
+	if (String(trs.senderId).toUpperCase() !== String(sender.address).toUpperCase()) {
+		return setImmediate(cb, 'Invalid sender address');
+	}
+
 	// Check requester public key
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
@@ -382,11 +387,6 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 				return setImmediate(cb, 'Failed to verify multisignature');
 			}
 		}
-	}
-
-	// Check sender address
-	if (String(trs.senderId).toUpperCase() !== String(sender.address).toUpperCase()) {
-		return setImmediate(cb, 'Invalid sender');
 	}
 
 	// Calculate fee
