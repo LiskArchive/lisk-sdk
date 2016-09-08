@@ -196,7 +196,7 @@ shared.pending = function (req, cb) {
 				}
 
 				if (!sender) {
-					return cb('Invalid sender');
+					return cb('Sender not found');
 				}
 
 				var hasUnconfirmed = (
@@ -410,11 +410,11 @@ shared.sign = function (req, cb) {
 				address: transaction.senderId
 			}, function (err, account) {
 				if (err) {
-					return cb('Multisignature account not found');
+					return cb(err);
 				}
 
 				if (!account) {
-					return cb('Account not found');
+					return cb('Sender not found');
 				}
 
 				if (!transaction.requesterPublicKey) {

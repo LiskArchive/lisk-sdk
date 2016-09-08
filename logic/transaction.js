@@ -222,7 +222,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 
 	// Check sender
 	if (!sender) {
-		return setImmediate(cb, 'Invalid sender');
+		return setImmediate(cb, 'Missing sender');
 	}
 
 	// Equalize sender address
@@ -231,7 +231,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	// Check requester public key
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Requester does not belong to multisignature keysgroup');
+			return setImmediate(cb, 'Invalid requester public key');
 		}
 	}
 
@@ -280,13 +280,13 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Check sender
 	if (!sender) {
-		return setImmediate(cb, 'Invalid sender');
+		return setImmediate(cb, 'Missing sender');
 	}
 
 	// Check requester public key
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Failed to verify signature');
+			return setImmediate(cb, 'Invalid requester public key');
 		}
 
 		if (sender.publicKey !== trs.senderPublicKey) {

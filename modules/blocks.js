@@ -825,14 +825,14 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						// DATABASE: write
 						modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 							if (err) {
-								library.logger.error('Failed to apply transactions: ' + transaction.id);
+								library.logger.error('Failed to apply transaction: ' + transaction.id);
 								// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 								process.exit(0);
 							}
 							// DATABASE: write
 							modules.transactions.apply(transaction, block, sender, function (err) {
 								if (err) {
-									library.logger.error('Failed to apply transactions: ' + transaction.id);
+									library.logger.error('Failed to apply transaction: ' + transaction.id);
 									// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 									process.exit(0);
 								}
@@ -1081,7 +1081,7 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
 		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
 			if (err || !sender) {
-				return setImmediate(cb, 'Invalid sender');
+				return setImmediate(cb, 'Sender not found');
 			}
 
 			if (library.logic.transaction.ready(transaction, sender)) {

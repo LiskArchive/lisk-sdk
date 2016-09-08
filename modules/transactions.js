@@ -174,7 +174,7 @@ __private.list = function (filter, cb) {
 __private.getById = function (id, cb) {
 	library.db.query(sql.getById, { id: id }).then(function (rows) {
 		if (!rows.length) {
-			return cb('Can\'t find transaction: ' + id);
+			return cb('Transaction not found: ' + id);
 		}
 
 		var transacton = library.logic.transaction.dbRead(rows[0]);
@@ -251,7 +251,7 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
 	// Check transaction
 	if (!transaction) {
-		return cb('No transaction to process!');
+		return cb('Missing transaction');
 	}
 
 	// Check transaction indexes
@@ -288,7 +288,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 				}
 
 				if (!requester) {
-					return cb('Invalid requester');
+					return cb('Requester not found');
 				}
 
 				library.logic.transaction.process(transaction, sender, requester, function (err, transaction) {
@@ -397,7 +397,7 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 				}
 
 				if (!requester) {
-					return cb('Invalid requester');
+					return cb('Requester not found');
 				}
 
 				library.logic.transaction.applyUnconfirmed(transaction, sender, requester, cb);
@@ -698,15 +698,15 @@ shared.addTransactions = function (req, cb) {
 							}
 
 							if (!requester || !requester.publicKey) {
-								return cb('Invalid requester');
+								return cb('Requester not found');
 							}
 
 							if (requester.secondSignature && !body.secondSecret) {
-								return cb('Invalid second passphrase');
+								return cb('Missing requester second passphrase');
 							}
 
 							if (requester.publicKey === account.publicKey) {
-								return cb('Invalid requester');
+								return cb('Invalid requester public key');
 							}
 
 							var secondKeypair = null;
@@ -746,7 +746,7 @@ shared.addTransactions = function (req, cb) {
 						}
 
 						if (account.secondSignature && !body.secondSecret) {
-							return cb('Invalid second passphrase');
+							return cb('Missing second passphrase');
 						}
 
 						var secondKeypair = null;

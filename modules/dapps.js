@@ -1362,15 +1362,15 @@ __private.addTransactions = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb('Invalid requester');
+							return cb('Requester not found');
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb('Invalid second passphrase');
+							return cb('Missing requester second passphrase');
 						}
 
 						if (requester.publicKey === account.publicKey) {
-							return cb('Invalid requester');
+							return cb('Invalid requester public key');
 						}
 
 						var secondKeypair = null;
@@ -1529,15 +1529,15 @@ __private.sendWithdrawal = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb('Invalid requester');
+							return cb('Requester not found');
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb('Invalid second passphrase');
+							return cb('Missing requester second passphrase');
 						}
 
 						if (requester.publicKey === account.publicKey) {
-							return cb('Invalid requester');
+							return cb('Invalid requester public key');
 						}
 
 						var secondKeypair = null;
@@ -1579,7 +1579,7 @@ __private.sendWithdrawal = function (req, cb) {
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb('Invalid second passphrase');
+						return cb('Missing second passphrase');
 					}
 
 					var secondKeypair = null;

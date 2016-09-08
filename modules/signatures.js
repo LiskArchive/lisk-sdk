@@ -138,7 +138,7 @@ shared.addSignature = function (req, cb) {
 					}
 
 					if (account.secondSignature || account.u_secondSignature) {
-						return cb('Invalid second passphrase');
+						return cb('Account already has a second passphrase');
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
@@ -147,15 +147,15 @@ shared.addSignature = function (req, cb) {
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb('Invalid requester');
+							return cb('Requester not found');
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb('Invalid second passphrase');
+							return cb('Missing requester second passphrase');
 						}
 
 						if (requester.publicKey === account.publicKey) {
-							return cb('Invalid requester');
+							return cb('Invalid requester public key');
 						}
 
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
@@ -189,7 +189,7 @@ shared.addSignature = function (req, cb) {
 					}
 
 					if (account.secondSignature || account.u_secondSignature) {
-						return cb('Invalid second passphrase');
+						return cb('Account already has a second passphrase');
 					}
 
 					var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
