@@ -33,7 +33,7 @@ function Account (scope, cb) {
 				minLength: 1
 			},
 			conv: String,
-			constante: true
+			immutable: true
 		},
 		{
 			name: 'isDelegate',
@@ -77,7 +77,7 @@ function Account (scope, cb) {
 				minLength: 1
 			},
 			conv: String,
-			constante: true
+			immutable: true
 		},
 		{
 			name: 'address',
@@ -90,7 +90,7 @@ function Account (scope, cb) {
 				maxLength: 22
 			},
 			conv: String,
-			constante: true,
+			immutable: true,
 			expression: 'UPPER("address")'
 		},
 		{
@@ -101,7 +101,7 @@ function Account (scope, cb) {
 				format: 'publicKey'
 			},
 			conv: String,
-			constante: true,
+			immutable: true,
 			expression: 'ENCODE("publicKey", \'hex\')'
 		},
 		{
@@ -112,7 +112,7 @@ function Account (scope, cb) {
 				format: 'publicKey'
 			},
 			conv: String,
-			constante: true,
+			immutable: true,
 			expression: 'ENCODE("secondPublicKey", \'hex\')'
 		},
 		{
@@ -340,7 +340,7 @@ function Account (scope, cb) {
 
 	this.editable = [];
 	this.model.forEach(function (field) {
-		if (!field.constante && !field.readonly) {
+		if (!field.immutable) {
 			this.editable.push(field.name);
 		}
 	}.bind(this));
