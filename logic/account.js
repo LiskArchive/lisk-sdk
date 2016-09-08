@@ -396,6 +396,25 @@ Account.prototype.objectNormalize = function (account) {
 	return account;
 };
 
+Account.prototype.verifyPublicKey = function (publicKey) {
+	if (publicKey !== undefined) {
+		// Check type
+		if (typeof publicKey !== 'string') {
+			throw Error('Invalid public key, must be a string');
+		}
+		// Check length
+		if (publicKey.length < 64) {
+			throw Error('Invalid public key, must be 64 characters long');
+		}
+		// Check format
+		try {
+			new Buffer(publicKey, 'hex');
+		} catch (e) {
+			throw Error('Invalid public key, must be a hex string');
+		}
+	}
+};
+
 Account.prototype.toDB = function (raw) {
 	this.binary.forEach(function (field) {
 		if (raw[field]) {
@@ -484,9 +503,8 @@ Account.prototype.getAll = function (filter, fields, cb) {
 };
 
 Account.prototype.set = function (address, fields, cb) {
-	if (fields.publicKey !== undefined && !fields.publicKey) {
-		console.log('!!!!!!!!!!!!!!!!!!!!!!!', address, fields);
-	}
+	// Verify public key
+	this.verifyPublicKey(fields.publicKey);
 
 	// Normalize address
 	address = String(address).toUpperCase();
@@ -511,9 +529,8 @@ Account.prototype.set = function (address, fields, cb) {
 Account.prototype.merge = function (address, diff, cb) {
 	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
 
-	if (diff.publicKey !== undefined && !diff.publicKey) {
-		console.log('!!!!!!!!!!!!!!!!!!!!!!!', address, diff);
-	}
+	// Verify public key
+	this.verifyPublicKey(diff.publicKey);
 
 	// Normalize address
 	address = String(address).toUpperCase();
