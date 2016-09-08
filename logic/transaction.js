@@ -283,6 +283,11 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Missing sender');
 	}
 
+	// Check sender public key
+	if (sender.publicKey !== trs.senderPublicKey) {
+		return setImmediate(cb, 'Invalid sender public key');
+	}
+
 	// Check sender address
 	if (String(trs.senderId).toUpperCase() !== String(sender.address).toUpperCase()) {
 		return setImmediate(cb, 'Invalid sender address');
@@ -292,10 +297,6 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	if (trs.requesterPublicKey) {
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
 			return setImmediate(cb, 'Invalid requester public key');
-		}
-
-		if (sender.publicKey !== trs.senderPublicKey) {
-			return setImmediate(cb, 'Invalid public key');
 		}
 	}
 
