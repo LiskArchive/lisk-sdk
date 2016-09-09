@@ -4,6 +4,7 @@ var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var exceptions = require('../helpers/exceptions.js');
 var ed = require('ed25519');
 var extend = require('util-extend');
 var slots = require('../helpers/slots.js');
@@ -285,7 +286,14 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Check sender public key
 	if (sender.publicKey !== trs.senderPublicKey) {
-		return setImmediate(cb, 'Invalid sender public key');
+		var err = 'Invalid sender public key';
+
+		if (exceptions.senderPublicKey.indexOf(trs.id) > -1) {
+			this.scope.logger.debug(err);
+			this.scope.logger.debug(JSON.stringify(trs));
+		} else {
+			return setImmediate(cb, err);
+		}
 	}
 
 	// Check sender address
