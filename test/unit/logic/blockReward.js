@@ -10,9 +10,11 @@ constants.rewards.distance = 3000000;
 constants.rewards.offset = 1451520;
 
 describe('BlockReward', function () {
+
 	var blockReward = new BlockReward();
 
 	describe('returning calcMilestone', function () {
+
 		it('when height is undefined should throw an error', function () {
 			expect(blockReward.calcMilestone).to.throw(/Invalid block height/);
 		});
@@ -127,6 +129,7 @@ describe('BlockReward', function () {
 	});
 
 	describe('returning calcReward', function () {
+
 		it('when height is undefined should throw an error', function () {
 			expect(blockReward.calcReward).to.throw(/Invalid block height/);
 		});
@@ -241,6 +244,7 @@ describe('BlockReward', function () {
 	});
 
 	describe('returning calcSupply', function () {
+
 		it('when height is undefined should throw an error', function () {
 			expect(blockReward.calcSupply).to.throw(/Invalid block height/);
 		});
