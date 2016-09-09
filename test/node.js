@@ -4,22 +4,23 @@
 var node = {};
 
 // Requires
-node._ = require('lodash');
-node.async = require('async');
-node.request = require('request');
-node.expect = require('chai').expect;
-node.chai = require('chai');
-node.chai.config.includeStack = true;
-node.lisk = require('./lisk-js');
-node.supertest = require('supertest');
-require('colors');
-
 node.bignum = require('../helpers/bignum.js');
 node.config = require('../config.json');
 node.constants = require('../helpers/constants.js');
 node.dappCategories = require('../helpers/dappCategories.js');
 node.dappTypes = require('../helpers/dappTypes.js');
 node.txTypes = require('../helpers/transactionTypes.js');
+
+node._ = require('lodash');
+node.async = require('async');
+node.request = require('request');
+node.expect = require('chai').expect;
+node.chai = require('chai');
+node.chai.config.includeStack = true;
+node.chai.use(require('chai-bignumber')(node.bignum));
+node.lisk = require('./lisk-js');
+node.supertest = require('supertest');
+require('colors');
 
 // Node configuration
 node.baseUrl = 'http://' + node.config.address + ':' + node.config.port;
