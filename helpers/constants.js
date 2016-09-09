@@ -35,9 +35,4 @@ module.exports = {
 	signatureLength: 196,
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
-	voteExceptions: [
-		'5524930565698900323',  // 20407
-		'11613486949732674475', // 123300
-		'14164134775432642506'  // 123333
-	]
 };

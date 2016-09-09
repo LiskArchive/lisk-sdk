@@ -1,6 +1,7 @@
 'use strict';
 
 var constants = require('../helpers/constants.js');
+var exceptions = require('../helpers/exceptions.js');
 var Diff = require('../helpers/diff.js');
 
 // Private fields
@@ -45,7 +46,7 @@ function Vote () {
 		}
 
 		modules.delegates.checkDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
-			if (err && constants.voteExceptions.indexOf(trs.id) > -1) {
+			if (err && exceptions.votes.indexOf(trs.id) > -1) {
 				library.logger.debug(err);
 				library.logger.debug(JSON.stringify(trs));
 				err = null;
@@ -97,7 +98,7 @@ function Vote () {
 	this.applyUnconfirmed = function (trs, sender, cb) {
 		modules.delegates.checkUnconfirmedDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
 			if (err) {
-				if (constants.voteExceptions.indexOf(trs.id) > -1) {
+				if (exceptions.votes.indexOf(trs.id) > -1) {
 					library.logger.debug(err);
 					library.logger.debug(JSON.stringify(trs));
 					err = null;
