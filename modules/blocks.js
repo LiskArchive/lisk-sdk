@@ -5,7 +5,6 @@ var async = require('async');
 var BlockReward = require('../logic/blockReward.js');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
-var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var ed = require('ed25519');
 var genesisblock = null;
