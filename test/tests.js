@@ -755,11 +755,10 @@ describe("Lisk JS", function () {
 				(getTime).should.be.type("function");
 			});
 
-			it("should return epoch time as number, equal to 196144", function () {
-				var d = 1428733744000;
+			it("should return epoch time as number, equal to 10", function () {
+				var d = 1464109210000;
 				var time = getTime(d);
-				(time).should.be.ok;
-				(time).should.be.type("number").and.equal(196144);
+				(time).should.be.type("number").and.equal(10);
 			});
 		});
 
@@ -774,11 +773,11 @@ describe("Lisk JS", function () {
 				(getRealTime).should.be.type("function");
 			});
 
-			it("should return return real time, convert 196144 to 1428733744000", function () {
-				var d = 196144;
+			it("should return return real time, convert 10 to 1464109210000", function () {
+				var d = 10;
 				var real = getRealTime(d);
 				(real).should.be.ok;
-				(real).should.be.type("number").and.equal(1428733744000);
+				(real).should.be.type("number").and.equal(1464109210000);
 			});
 		});
 
@@ -793,11 +792,9 @@ describe("Lisk JS", function () {
 				(getSlotNumber).should.be.type("function");
 			});
 
-			it("should return slot number, equal to 19614", function () {
-				var d = 196144;
-				var slot = getSlotNumber(d);
-				(slot).should.be.ok;
-				(slot).should.be.type("number").and.equal(19614);
+			it("should return slot number, equal to 1", function () {
+				var slot = getSlotNumber(10);
+				(slot).should.be.type("number").and.equal(1);
 			});
 		});
 
