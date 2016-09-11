@@ -37,7 +37,6 @@
     "lisk-sandbox": "https://github.com/LiskHQ/lisk-sandbox/tarball/master",
     "long": "=3.1.0",
     "method-override": "=2.3.5",
-    "node-schedule": "=1.1.0",
     "npm": "*",
     "pg-monitor": "^0.5.3",
     "pg-native": "^1.10.0",
