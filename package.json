@@ -17,7 +17,7 @@
     "commander": "=2.9.0",
     "compression": "^1.6.1",
     "cors": "^2.7.1",
-    "decompress-zip": "https://github.com/LiskHQ/decompress-zip/tarball/master",
+    "decompress-zip": "LiskHQ/decompress-zip#f46b0a3",
     "ed25519": "=0.0.4",
     "ejs": "=2.5.2",
     "express": "=4.14.0",
