@@ -1,12 +1,12 @@
 'use strict';
 
+var _ = require('lodash');
 var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var exceptions = require('../helpers/exceptions.js');
 var ed = require('ed25519');
-var extend = require('util-extend');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
@@ -820,7 +820,7 @@ Transaction.prototype.dbRead = function (raw) {
 		var asset = __private.types[tx.type].dbRead.call(this, raw);
 
 		if (asset) {
-			tx.asset = extend(tx.asset, asset);
+			tx.asset = _.extend(tx.asset, asset);
 		}
 
 		return tx;

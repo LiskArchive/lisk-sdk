@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('underscore');
+var _ = require('lodash');
 var async = require('async');
 var bignum = require('../helpers/bignum.js');
 var crypto = require('crypto');

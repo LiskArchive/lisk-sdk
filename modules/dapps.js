@@ -1,6 +1,6 @@
 /*jslint strict:false */
 
-var _ = require('underscore');
+var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');

@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('underscore');
+var _ = require('lodash');
 var async = require('async');
 var BlockReward = require('../logic/blockReward.js');
 var ByteBuffer = require('bytebuffer');
@@ -383,12 +383,12 @@ __private.getIdSequence = function (height, cb) {
 				height: genesisblock.block.height
 			};
 
-			if (!_.contains(rows, __genesisblock.id)) {
+			if (!_.includes(rows, __genesisblock.id)) {
 				rows.push(__genesisblock);
 			}
 		}
 
-		if (__private.lastBlock && !_.contains(rows, __private.lastBlock.id)) {
+		if (__private.lastBlock && !_.includes(rows, __private.lastBlock.id)) {
 			rows.unshift({
 				id: __private.lastBlock.id,
 				height: __private.lastBlock.height
@@ -396,7 +396,7 @@ __private.getIdSequence = function (height, cb) {
 		}
 
 		rows.forEach(function (row) {
-			if (!_.contains(ids, row.id)) {
+			if (!_.includes(ids, row.id)) {
 				ids.push('\'' + row.id + '\'');
 			}
 		});
