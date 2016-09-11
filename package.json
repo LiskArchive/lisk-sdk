@@ -1,6 +1,6 @@
 {
   "name": "lisk-js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "JavaScript library for sending Lisk transactions from the client or server",
   "main": "index.js",
   "scripts": {
