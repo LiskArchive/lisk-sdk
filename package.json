@@ -22,13 +22,13 @@
     "ejs": "=2.5.2",
     "express": "=4.14.0",
     "express-domain-middleware": "=0.1.0",
-    "express-query-int": "https://github.com/LiskHQ/express-query-int/tarball/master",
+    "express-query-int": "=1.0.1",
     "express-rate-limit": "^2.4.0",
     "extend": "=3.0.0",
     "ip": "=1.1.3",
     "json-schema": "=0.2.2",
     "json-sql": "https://github.com/LiskHQ/json-sql/tarball/master",
-    "lisk-sandbox": "https://github.com/LiskHQ/lisk-sandbox/tarball/master",
+    "lisk-sandbox": "=1.0.5",
     "lodash": "=4.15.0",
     "method-override": "=2.3.6",
     "npm": "*",
@@ -43,7 +43,7 @@
     "valid-url": "=1.0.9",
     "validator": "=5.7.0",
     "validator.js": "=2.0.3",
-    "z-schema": "https://github.com/LiskHQ/z-schema/tarball/master"
+    "z-schema": "=3.17.0"
   },
   "devDependencies": {
     "bitcore-mnemonic": "^1.0.1",
