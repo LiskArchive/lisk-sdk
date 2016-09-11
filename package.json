@@ -33,7 +33,6 @@
     "ip": "=1.1.2",
     "json-schema": "=0.2.2",
     "json-sql": "https://github.com/LiskHQ/json-sql/tarball/master",
-    "knuth-shuffle": "=1.0.1",
     "lisk-sandbox": "https://github.com/LiskHQ/lisk-sandbox/tarball/master",
     "long": "=3.1.0",
     "method-override": "=2.3.5",
