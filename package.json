@@ -22,7 +22,6 @@
     "cycle": "=1.0.3",
     "decompress-zip": "https://github.com/LiskHQ/decompress-zip/tarball/master",
     "ed25519": "=0.0.4",
-    "ed2curve": "=0.1.4",
     "ejs": "=2.4.1",
     "esprima": "=2.7.2",
     "express": "=4.13.4",
