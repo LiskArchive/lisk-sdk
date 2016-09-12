@@ -1,7 +1,9 @@
+'use strict';
+
 var program = require('commander');
 var packageJson = require('./package.json');
 var Logger = require('./logger.js');
-var appConfig = require("./config.json");
+var appConfig = require('./config.json');
 var genesisblock = require('./genesisBlock.json');
 var async = require('async');
 var extend = require('extend');
@@ -10,27 +12,28 @@ var https = require('https');
 var fs = require('fs');
 var z_schema = require('z-schema');
 var util = require('util');
+var checkIpInList = require('./helpers/checkIpInList.js');
 var Sequence = require('./helpers/sequence.js');
 
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
-program
-	.version(packageJson.version)
-	.option('-c, --config <path>', 'Config file path')
-	.option('-p, --port <port>', 'Listening port number')
-	.option('-a, --address <ip>', 'Listening host name or ip')
-	.option('-b, --blockchain <path>', 'Blockchain db path')
-	.option('-x, --peers [peers...]', 'Peers list')
-	.option('-l, --log <level>', 'Log level')
-	.parse(process.argv);
-
 if (typeof gc !== 'undefined') {
 	setInterval(function () {
 		gc();
 	}, 60000);
 }
+
+program
+	.version(packageJson.version)
+	.option('-c, --config <path>', 'config file path')
+	.option('-p, --port <port>', 'listening port number')
+	.option('-a, --address <ip>', 'listening host name or ip')
+	.option('-x, --peers [peers...]', 'peers list')
+	.option('-l, --log <level>', 'log level')
+	.option('-s, --snapshot <round>', 'verify snapshot')
+	.parse(process.argv);
 
 if (program.config) {
 	appConfig = require(path.resolve(process.cwd(), program.config));
@@ -47,7 +50,7 @@ if (program.address) {
 if (program.peers) {
 	if (typeof program.peers === 'string') {
 		appConfig.peers.list = program.peers.split(',').map(function (peer) {
-			peer = peer.split(":");
+			peer = peer.split(':');
 			return {
 				ip: peer.shift(),
 				port: peer.shift() || appConfig.port
@@ -62,53 +65,68 @@ if (program.log) {
 	appConfig.consoleLogLevel = program.log;
 }
 
-process.on('uncaughtException', function (err) {
-	// handle the error safely
-	logger.fatal('System error', { message: err.message, stack: err.stack });
-	process.emit('cleanup');
-});
-
-var config = {
-	"db": program.blockchain || "./blockchain.db",
-	"modules": {
-		"server": "./modules/server.js",
-		"accounts": "./modules/accounts.js",
-		"transactions": "./modules/transactions.js",
-		"blocks": "./modules/blocks.js",
-		"signatures": "./modules/signatures.js",
-		"transport": "./modules/transport.js",
-		"loader": "./modules/loader.js",
-		"system": "./modules/system.js",
-		"peer": "./modules/peer.js",
-		"delegates": "./modules/delegates.js",
-		"round": "./modules/round.js",
-		"multisignatures": "./modules/multisignatures.js",
-		"dapps": "./modules/dapps.js",
-		"crypto": "./modules/crypto.js",
-		"sql": "./modules/sql.js"
-	}
+if (program.snapshot) {
+	appConfig.loading.snapshot = Math.abs(
+		Math.floor(program.snapshot)
+	);
 }
 
-var logger = new Logger({echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel});
+var config = {
+	'db': appConfig.db,
+	'modules': {
+		'server': './modules/server.js',
+		'accounts': './modules/accounts.js',
+		'transactions': './modules/transactions.js',
+		'blocks': './modules/blocks.js',
+		'signatures': './modules/signatures.js',
+		'transport': './modules/transport.js',
+		'loader': './modules/loader.js',
+		'system': './modules/system.js',
+		'peer': './modules/peer.js',
+		'delegates': './modules/delegates.js',
+		'round': './modules/round.js',
+		'multisignatures': './modules/multisignatures.js',
+		'dapps': './modules/dapps.js',
+		'crypto': './modules/crypto.js',
+		'sql': './modules/sql.js'
+	}
+};
+
+var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, filename: appConfig.logFileName });
 
 var d = require('domain').create();
+
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
+
 d.run(function () {
 	var modules = [];
 	async.auto({
 		config: function (cb) {
+			try {
+				appConfig.nethash = new Buffer(genesisblock.payloadHash, 'hex').toString('hex');
+			} catch (e) {
+				logger.error('Failed to assign nethash from genesis block');
+				throw Error(e);
+			}
+
 			if (appConfig.dapp.masterrequired && !appConfig.dapp.masterpassword) {
-				var randomstring = require("randomstring");
+				var randomstring = require('randomstring');
+
 				appConfig.dapp.masterpassword = randomstring.generate({
 					length: 12,
 					readable: true,
 					charset: 'alphanumeric'
 				});
-				fs.writeFile("./config.json", JSON.stringify(appConfig, null, 4), "utf8", function (err) {
-					cb(err, appConfig)
+
+				if (appConfig.loading.snapshot != null) {
+					delete appConfig.loading.snapshot;
+				}
+
+				fs.writeFile('./config.json', JSON.stringify(appConfig, null, 4), 'utf8', function (err) {
+					cb(err, appConfig);
 				});
 			} else {
 				cb(null, appConfig);
@@ -134,9 +152,9 @@ d.run(function () {
 		},
 
 		scheme: function (cb) {
-			z_schema.registerFormat("hex", function (str) {
+			z_schema.registerFormat('hex', function (str) {
 				try {
-					new Buffer(str, "hex");
+					new Buffer(str, 'hex');
 				} catch (e) {
 					return false;
 				}
@@ -145,14 +163,14 @@ d.run(function () {
 			});
 
 			z_schema.registerFormat('publicKey', function (str) {
-				if (str.length == 0) {
+				if (str.length === 0) {
 					return true;
 				}
 
 				try {
-					var publicKey = new Buffer(str, "hex");
+					var publicKey = new Buffer(str, 'hex');
 
-					return publicKey.length == 32;
+					return publicKey.length === 32;
 				} catch (e) {
 					return false;
 				}
@@ -172,17 +190,17 @@ d.run(function () {
 			});
 
 			z_schema.registerFormat('signature', function (str) {
-				if (str.length == 0) {
+				if (str.length === 0) {
 					return true;
 				}
 
 				try {
-					var signature = new Buffer(str, "hex");
-					return signature.length == 64;
+					var signature = new Buffer(str, 'hex');
+					return signature.length === 64;
 				} catch (e) {
 					return false;
 				}
-			})
+			});
 
 			z_schema.registerFormat('listQuery', function (obj) {
 				obj.limit = 100;
@@ -195,6 +213,7 @@ d.run(function () {
 			});
 
 			z_schema.registerFormat('checkInt', function (value) {
+				/*jslint eqeq: true*/
 				if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 					return false;
 				}
@@ -207,28 +226,37 @@ d.run(function () {
 
 			});
 
-			cb(null, new z_schema())
+			cb(null, new z_schema());
 		},
 
 		network: ['config', function (cb, scope) {
 			var express = require('express');
+			var compression = require('compression');
+			var cors = require('cors');
 			var app = express();
+
+			require('./helpers/request-limiter')(app, appConfig);
+
+			app.use(compression({ level: 6 }));
+			app.use(cors());
+			app.options('*', cors());
+
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
 
-			if (scope.config.ssl.enabled) {
-				var privateKey = fs.readFileSync(scope.config.ssl.options.key);
-				var certificate = fs.readFileSync(scope.config.ssl.options.cert);
+			var privateKey, certificate, https, https_io;
 
-				var https = require('https').createServer({
+			if (scope.config.ssl.enabled) {
+				privateKey = fs.readFileSync(scope.config.ssl.options.key);
+				certificate = fs.readFileSync(scope.config.ssl.options.cert);
+
+				https = require('https').createServer({
 					key: privateKey,
 					cert: certificate,
-					ciphers: "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:"
-					       + "ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:"
-					       + "!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA"
+					ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
 				}, app);
 
-				var https_io = require('socket.io')(https);
+				https_io = require('socket.io')(https);
 			}
 
 			cb(null, {
@@ -241,28 +269,28 @@ d.run(function () {
 			});
 		}],
 
-		dbSequence: ["logger", function (cb, scope) {
+		dbSequence: ['logger', function (cb, scope) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
-					scope.logger.warn("DB queue", current)
+					scope.logger.warn('DB queue', current);
 				}
 			});
 			cb(null, sequence);
 		}],
 
-		sequence: ["logger", function (cb, scope) {
+		sequence: ['logger', function (cb, scope) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
-					scope.logger.warn("Main queue", current)
+					scope.logger.warn('Main queue', current);
 				}
 			});
 			cb(null, sequence);
 		}],
 
-		balancesSequence: ["logger", function (cb, scope) {
+		balancesSequence: ['logger', function (cb, scope) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
-					scope.logger.warn("Balance queue", current)
+					scope.logger.warn('Balance queue', current);
 				}
 			});
 			cb(null, sequence);
@@ -280,17 +308,20 @@ d.run(function () {
 			scope.network.app.set('view engine', 'ejs');
 			scope.network.app.set('views', path.join(__dirname, 'public'));
 			scope.network.app.use(scope.network.express.static(path.join(__dirname, 'public')));
-			scope.network.app.use(bodyParser.urlencoded({extended: true, parameterLimit: 5000}));
-			scope.network.app.use(bodyParser.json());
+			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
+			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
+			scope.network.app.use(bodyParser.json({limit: '2mb'}));
 			scope.network.app.use(methodOverride());
 
 			var ignore = ['id', 'name', 'lastBlockId', 'blockId', 'transactionId', 'address', 'recipientId', 'senderId', 'previousBlock'];
+
 			scope.network.app.use(queryParser({
 				parser: function (value, radix, name) {
 					if (ignore.indexOf(name) >= 0) {
 						return value;
 					}
 
+					/*jslint eqeq: true*/
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;
 					}
@@ -305,6 +336,9 @@ d.run(function () {
 				var parts = req.url.split('/');
 				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
+				// Log client connections
+				logger.log(req.method + ' ' + req.url + ' from ' + ip);
+
 				/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
 				 *
 				 * RFC -> https://tools.ietf.org/html/rfc7034
@@ -317,26 +351,18 @@ d.run(function () {
 				 *
 				 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
 				 */
-				res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
+				res.setHeader('Content-Security-Policy', 'frame-ancestors \'none\'');
 
 				if (parts.length > 1) {
-					if (parts[1] == 'api') {
-						if (scope.config.api.access.whiteList.length > 0) {
-							if (scope.config.api.access.whiteList.indexOf(ip) < 0) {
-								res.sendStatus(403);
-							} else {
-								next();
-							}
+					if (parts[1] === 'api') {
+						if (!checkIpInList(scope.config.api.access.whiteList, ip, true)) {
+							res.sendStatus(403);
 						} else {
 							next();
 						}
-					} else if (parts[1] == 'peer') {
-						if (scope.config.peers.blackList.length > 0) {
-							if (scope.config.peers.blackList.indexOf(ip) >= 0) {
-								res.sendStatus(403);
-							} else {
-								next();
-							}
+					} else if (parts[1] === 'peer') {
+						if (checkIpInList(scope.config.peers.blackList, ip, false)) {
+							res.sendStatus(403);
 						} else {
 							next();
 						}
@@ -349,12 +375,12 @@ d.run(function () {
 			});
 
 			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
-				scope.logger.log("Lisk started: " + scope.config.address + ":" + scope.config.port);
+				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {
 						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
-							scope.logger.log("Lisk https started: " + scope.config.ssl.options.address + ":" + scope.config.ssl.options.port);
+							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
 
 							cb(err, scope.network);
 						});
@@ -377,21 +403,21 @@ d.run(function () {
 					var topic = args.shift();
 					modules.forEach(function (module) {
 						var eventName = 'on' + changeCase.pascalCase(topic);
-						if (typeof(module[eventName]) == 'function') {
+						if (typeof(module[eventName]) === 'function') {
 							module[eventName].apply(module[eventName], args);
 						}
-					})
-				}
-			}
-			cb(null, new bus)
+					});
+				};
+			};
+			cb(null, new bus());
 		},
 
-		dbLite: function (cb) {
-			var dbLite = require('./helpers/dbLite.js');
-			dbLite.connect(config.db, cb);
+		db: function (cb) {
+			var db = require('./helpers/database.js');
+			db.connect(config.db, logger, cb);
 		},
 
-		logic: ['dbLite', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
+		logic: ['db', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
@@ -400,8 +426,11 @@ d.run(function () {
 				bus: function (cb) {
 					cb(null, scope.bus);
 				},
-				dbLite: function (cb) {
-					cb(null, scope.dbLite);
+				db: function (cb) {
+					cb(null, scope.db);
+				},
+				logger: function (cb) {
+					cb(null, logger);
 				},
 				scheme: function (cb) {
 					cb(null, scope.scheme);
@@ -411,20 +440,21 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ["dbLite", "bus", "scheme", 'genesisblock', function (cb, scope) {
+				account: ['db', 'bus', 'scheme', 'genesisblock', function (cb, scope) {
 					new Account(scope, cb);
 				}],
-				transaction: ["dbLite", "bus", "scheme", 'genesisblock', "account", function (cb, scope) {
+				transaction: ['db', 'bus', 'scheme', 'genesisblock', 'account', function (cb, scope) {
 					new Transaction(scope, cb);
 				}],
-				block: ["dbLite", "bus", "scheme", 'genesisblock', "account", "transaction", function (cb, scope) {
+				block: ['db', 'bus', 'scheme', 'genesisblock', 'account', 'transaction', function (cb, scope) {
 					new Block(scope, cb);
 				}]
 			}, cb);
 		}],
 
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'dbLite', 'logic', function (cb, scope) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (cb, scope) {
 			var tasks = {};
+
 			Object.keys(config.modules).forEach(function (name) {
 				tasks[name] = function (cb) {
 					var d = require('domain').create();
@@ -434,41 +464,42 @@ d.run(function () {
 					});
 
 					d.run(function () {
-						logger.debug('Loading module', name)
+						logger.debug('Loading module', name);
 						var Klass = require(config.modules[name]);
-						var obj = new Klass(cb, scope)
+						var obj = new Klass(cb, scope);
 						modules.push(obj);
 					});
-				}
+				};
 			});
+
 			async.parallel(tasks, function (err, results) {
 				cb(err, results);
 			});
 		}],
 
 		ready: ['modules', 'bus', function (cb, scope) {
-			scope.bus.message("bind", scope.modules);
+			scope.bus.message('bind', scope.modules);
 			cb();
 		}]
 	}, function (err, scope) {
 		if (err) {
-			logger.fatal(err)
+			logger.fatal(err);
 		} else {
-			scope.logger.info("Modules ready and launched");
+			scope.logger.info('Modules ready and launched');
 
 			process.once('cleanup', function () {
-				scope.logger.info("Cleaning up...");
+				scope.logger.info('Cleaning up...');
 				async.eachSeries(modules, function (module, cb) {
-					if (typeof(module.cleanup) == 'function'){
+					if (typeof(module.cleanup) === 'function') {
 						module.cleanup(cb);
-					}else{
+					} else {
 						setImmediate(cb);
 					}
 				}, function (err) {
 					if (err) {
-							scope.logger.error(err);
+						scope.logger.error(err);
 					} else {
-							scope.logger.info("Cleaned up successfully");
+						scope.logger.info('Cleaned up successfully');
 					}
 					process.exit(1);
 				});
@@ -476,7 +507,7 @@ d.run(function () {
 
 			process.once('SIGTERM', function () {
 				process.emit('cleanup');
-			})
+			});
 
 			process.once('exit', function () {
 				process.emit('cleanup');
@@ -487,4 +518,10 @@ d.run(function () {
 			});
 		}
 	});
+});
+
+process.on('uncaughtException', function (err) {
+	// Handle error safely
+	logger.fatal('System error', { message: err.message, stack: err.stack });
+	process.emit('cleanup');
 });

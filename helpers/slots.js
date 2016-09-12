@@ -1,29 +1,33 @@
+'use strict';
+
+var constants = require('./constants.js');
+
 /**
  * Get time from Lisk epoch.
  * @param {number|undefined} time Time in unix seconds
  * @returns {number}
  */
 
-function beginEpochTime() {
-	var d = new Date(Date.UTC(2015, 3, 9, 0, 0, 0, 0));
+function beginEpochTime () {
+	var d = constants.epochTime;
 
 	return d;
 }
 
-function getEpochTime(time) {
+function getEpochTime (time) {
 	if (time === undefined) {
 		time = (new Date()).getTime();
 	}
+
 	var d = beginEpochTime();
 	var t = d.getTime();
+
 	return Math.floor((time - t) / 1000);
 }
 
 module.exports = {
-
 	interval: 10,
-
-	delegates: 101,
+	delegates: constants.activeDelegates,
 
 	getTime: function (time) {
 		return getEpochTime(time);
@@ -31,17 +35,20 @@ module.exports = {
 
 	getRealTime: function (epochTime) {
 		if (epochTime === undefined) {
-			epochTime = this.getTime()
+			epochTime = this.getTime();
 		}
+
 		var d = beginEpochTime();
 		var t = Math.floor(d.getTime() / 1000) * 1000;
+
 		return t + epochTime * 1000;
 	},
 
 	getSlotNumber: function (epochTime) {
 		if (epochTime === undefined) {
-			epochTime = this.getTime()
+			epochTime = this.getTime();
 		}
+
 		return Math.floor(epochTime / this.interval);
 	},
 
@@ -60,6 +67,6 @@ module.exports = {
 	},
 
 	roundTime: function (date) {
-		Math.floor(date.getTime() / 1000) * 1000
+		return Math.floor(date.getTime() / 1000) * 1000;
 	}
-}
+};
