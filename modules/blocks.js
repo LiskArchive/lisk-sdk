@@ -619,7 +619,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 					var check = self.verifyBlock(block);
 
 					if (!check.verified) {
-						library.logger.error('Block is erroneous:', check.errors);
+						library.logger.error(['Block verification failed for:', block.id, 'at:', block.height].join(' '), check.errors.join(', '));
 						return setImmediate(cb, check.errors[0]);
 					}
 				}
@@ -676,32 +676,36 @@ Blocks.prototype.verifyBlock = function (block) {
 	}
 
 	if (!valid) {
-		result.errors.push('Can\'t verify signature: ' + block.id);
+		result.errors.push('Failed to verify block signature');
 	}
 
 	if (block.previousBlock !== __private.lastBlock.id) {
 		// Fork: Same height but different previous block id.
 		modules.delegates.fork(block, 1);
-		result.errors.push('Can\'t verify previous block: ' + block.id);
+		result.errors.push('Invalid previous block');
 	}
 
 	if (block.version > 0) {
-		result.errors.push('Invalid block version: ' + block.id);
+		result.errors.push('Invalid block version');
 	}
 
 	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
 	var lastBlockSlotNumber = slots.getSlotNumber(__private.lastBlock.timestamp);
 
 	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-		result.errors.push('Can\'t verify block timestamp: ' + block.id);
+		result.errors.push('Invalid block timestamp');
 	}
 
 	if (block.payloadLength > constants.maxPayloadLength) {
-		result.errors.push('Can\'t verify payload length of block: ' + block.id);
+		result.errors.push('Payload length is too high');
 	}
 
-	if (block.transactions.length !== block.numberOfTransactions || block.transactions.length > constants.maxTxsPerBlock) {
-		result.errors.push('Invalid amount of block assets: ' + block.id);
+	if (block.transactions.length !== block.numberOfTransactions) {
+		result.errors.push('Invalid number of transactions');
+	}
+
+	if (block.transactions.length > constants.maxTxsPerBlock) {
+		result.errors.push('Transactions length is too high');
 	}
 
 	// Checking if transactions of the block adds up to block values.
@@ -721,7 +725,7 @@ Blocks.prototype.verifyBlock = function (block) {
 		}
 
 		if (appliedTransactions[transaction.id]) {
-			result.errors.push('Duplicate transaction id in block ' + block.id);
+			result.errors.push('Encountered duplicate transaction: ' + transaction.id);
 		}
 
 		appliedTransactions[transaction.id] = transaction;
@@ -731,15 +735,15 @@ Blocks.prototype.verifyBlock = function (block) {
 	}
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-		result.errors.push('Invalid payload hash: ' + block.id);
+		result.errors.push('Invalid payload hash');
 	}
 
 	if (totalAmount !== block.totalAmount) {
-		result.errors.push('Invalid total amount: ' + block.id);
+		result.errors.push('Invalid total amount');
 	}
 
 	if (totalFee !== block.totalFee) {
-		result.errors.push('Invalid total fee: ' + block.id);
+		result.errors.push('Invalid total fee');
 	}
 
 	result.verified = result.errors.length === 0;
@@ -922,7 +926,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	var check = self.verifyBlock(block);
 
 	if (!check.verified) {
-		library.logger.error('Block is erroneous: ', check.errors);
+		library.logger.error(['Block verification failed for:', block.id, 'at:', block.height].join(' '), check.errors.join(', '));
 		return setImmediate(cb, check.errors[0]);
 	}
 
@@ -1035,9 +1039,9 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 					if (!err) {
 						var lastCommonBlockId = block.id;
 						lastValidBlock = block;
-						library.logger.info('Block ' + block.id + ' loaded from ' + peer.string + ' at', block.height);
+						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 					} else {
-						library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', peer.string);
+						library.logger.warn(['Block', (block ? block.id : 'null'), 'is not valid, ban 60 min'].join(' '), peer.string);
 						library.logger.warn(err.toString());
 						modules.peer.state(peer.ip, peer.port, 0, 3600);
 					}

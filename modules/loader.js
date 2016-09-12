@@ -534,7 +534,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 					var lastBlockId = modules.blocks.getLastBlock().id;
 					modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 						if (err) {
-							library.logger.error('Could not load blocks from ' + peer.ip, err);
+							library.logger.error('Could not load blocks from: ' + peer.ip, err);
 							library.logger.info('Trying to reload from another random peer');
 							counterrorload = counterrorload + 1;
 						}
@@ -690,7 +690,7 @@ Loader.prototype.getNetwork = function (cb) {
 						});
 
 						if (isheightvalid) {
-							library.logger.info('Checking blockchain on ' + result.peer.string + ' - received height: ' + result.body.height);
+							library.logger.info('Checking blockchain on: ' + result.peer.string, 'received height: ' + result.body.height);
 							var peer = modules.peer.inspect(result.peer);
 							return cb(null, {peer: peer, height: result.body.height});
 						}
@@ -700,7 +700,7 @@ Loader.prototype.getNetwork = function (cb) {
 				__private.network = __private.findGoodPeers(heights);
 
 				if (!__private.network) {
-					return setImmediate(cb, 'Could not find enough good peers to connect');
+					return setImmediate(cb, 'Could not find enough good peers to sync from');
 				} else {
 					return setImmediate(cb, null, __private.network);
 				}
