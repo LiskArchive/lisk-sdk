@@ -34,5 +34,5 @@ module.exports = {
 	},
 	signatureLength: 196,
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
 };

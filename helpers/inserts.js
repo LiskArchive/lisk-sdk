@@ -2,7 +2,7 @@
 
 var pgp = require('pg-promise');
 
-function Inserts(record, values, concat) {
+function Inserts (record, values, concat) {
 	if (!(this instanceof Inserts)) {
 		return new Inserts(record, values, concat);
 	}
