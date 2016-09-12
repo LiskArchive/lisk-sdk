@@ -662,13 +662,13 @@ Blocks.prototype.verifyBlock = function (block) {
 	} else if (block.previousBlock !== __private.lastBlock.id) {
 		// Fork: Same height but different previous block id.
 		modules.delegates.fork(block, 1);
-		result.errors.push('Invalid previous block');
+		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', __private.lastBlock.id].join(' '));
 	}
 
 	var expectedReward = __private.blockReward.calcReward(block.height);
 
 	if (block.height !== 1 && expectedReward !== block.reward) {
-		result.errors.push('Invalid block reward');
+		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
 	}
 
 	var valid;
