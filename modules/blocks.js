@@ -659,6 +659,10 @@ Blocks.prototype.verifyBlock = function (block) {
 
 	if (!block.previousBlock && block.height !== 1) {
 		result.errors.push('Invalid previous block');
+	} else if (block.previousBlock !== __private.lastBlock.id) {
+		// Fork: Same height but different previous block id.
+		modules.delegates.fork(block, 1);
+		result.errors.push('Invalid previous block');
 	}
 
 	var expectedReward = __private.blockReward.calcReward(block.height);
@@ -677,12 +681,6 @@ Blocks.prototype.verifyBlock = function (block) {
 
 	if (!valid) {
 		result.errors.push('Failed to verify block signature');
-	}
-
-	if (block.previousBlock !== __private.lastBlock.id) {
-		// Fork: Same height but different previous block id.
-		modules.delegates.fork(block, 1);
-		result.errors.push('Invalid previous block');
 	}
 
 	if (block.version > 0) {
