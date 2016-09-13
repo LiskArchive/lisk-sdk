@@ -433,9 +433,10 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
 		if (err) {
 			return cb(err);
 		}
-		var seedSource = modules.round.calc(height).toString();
 
+		var seedSource = modules.round.calc(height).toString();
 		var currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest();
+
 		for (var i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
 			for (var x = 0; x < 4 && i < delCount; i++, x++) {
 				var newIndex = currentSeed[x] % delCount;
