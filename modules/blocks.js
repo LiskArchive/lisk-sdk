@@ -1044,7 +1044,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 						modules.peer.state(peer.ip, peer.port, 0, 3600);
 					}
 					return cb(err);
-				});
+				}, true);
 			}, function (err) {
 				if (err) {
 					return setImmediate(callback, 'Error loading blocks: ' + err, lastValidBlock);
