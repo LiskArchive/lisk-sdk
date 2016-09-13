@@ -727,7 +727,7 @@ Blocks.prototype.verifyBlock = function (block) {
 		}
 
 		appliedTransactions[transaction.id] = transaction;
-		payloadHash.update(bytes);
+		if (bytes) { payloadHash.update(bytes); }
 		totalAmount += transaction.amount;
 		totalFee += transaction.fee;
 	}
