@@ -257,8 +257,13 @@ function Multisignature () {
 			var multisignature = {
 				min: raw.m_min,
 				lifetime: raw.m_lifetime,
-				keysgroup: raw.m_keysgroup
 			};
+
+			if (typeof raw.m_keysgroup === 'string') {
+				multisignature.keysgroup = raw.m_keysgroup.split(',');
+			} else {
+				multisignature.keysgroup = [];
+			}
 
 			return {multisignature: multisignature};
 		}
