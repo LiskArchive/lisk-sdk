@@ -1,53 +1,54 @@
 'use strict';
 
-var os = require('os');
-var sandboxHelper = require('../helpers/sandbox.js');
+const os = require("os");
+const { sandboxHelper } = require("../helpers");
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+let modules, library, self, __private = {}, shared = {};
 
 // Constructor
-function System (cb, scope) {
-	library = scope;
-	self = this;
+class System {
 
-	__private.version = library.config.version;
-	__private.port = library.config.port;
-	__private.nethash = library.config.nethash;
-	__private.osName = os.platform() + os.release();
+	constructor(cb, scope) {
+		library = scope;
+		self = this;
 
-	setImmediate(cb, null, self);
+		__private.version = library.config.version;
+		__private.port = library.config.port;
+		__private.nethash = library.config.nethash;
+		__private.osName = os.platform() + os.release();
+
+		setImmediate(cb, null, self);
+	}
+
+	// Private methods
+
+	// Public methods
+	getOS() {
+		return __private.osName;
+	}
+
+	getVersion() {
+		return __private.version;
+	}
+
+	getPort() {
+		return __private.port;
+	}
+
+	getNethash() {
+		return __private.nethash;
+	}
+
+	sandboxApi(call, args, cb) {
+		sandboxHelper.callMethod(shared, call, args, cb);
+	}
+
+	// Events
+	onBind(scope) {
+		modules = scope;
+	}
 }
-
-// Private methods
-
-// Public methods
-System.prototype.getOS = function () {
-	return __private.osName;
-};
-
-System.prototype.getVersion = function () {
-	return __private.version;
-};
-
-System.prototype.getPort = function () {
-	return __private.port;
-};
-
-System.prototype.getNethash = function () {
-	return __private.nethash;
-};
-
-System.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
-
-// Events
-System.prototype.onBind = function (scope) {
-	modules = scope;
-};
-
-// Shared
 
 // Export
 module.exports = System;

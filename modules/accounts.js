@@ -1,36 +1,128 @@
 'use strict';
 
-var bignum = require('../helpers/bignum.js');
-var BlockReward = require('../logic/blockReward.js');
-var constants = require('../helpers/constants.js');
-var crypto = require('crypto');
-var ed = require('ed25519');
-var extend = require('extend');
-var Router = require('../helpers/router.js');
-var sandboxHelper = require('../helpers/sandbox.js');
-var slots = require('../helpers/slots.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
-var util = require('util');
+const {
+	bignum,
+	constants,
+	Router,
+	sandboxHelper,
+	slots,
+	transactionTypes
+} = require("../helpers");
+
+const BlockReward = require('../logic/blockReward.js');
+const crypto = require('crypto');
+const ed = require('ed25519');
+const extend = require('extend');
+const util = require('util');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+let modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
 __private.blockReward = new BlockReward();
 
 // Constructor
-function Accounts (cb, scope) {
-	library = scope;
-	self = this;
+class Accounts {
+	
+	constructor(cb, scope) {
+		library = scope;
+		self = this;
 
-	__private.attachApi();
+		__private.attachApi();
 
-	var Vote = require('../logic/vote.js');
-	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
-		transactionTypes.VOTE, new Vote()
-	);
+		var Vote = require('../logic/vote.js');
+		__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
+			transactionTypes.VOTE, new Vote()
+		);
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
+
+	// Public methods
+	generateAddressByPublicKey(publicKey) {
+		var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
+		var temp = new Buffer(8);
+
+		for (var i = 0; i < 8; i++) {
+			temp[i] = publicKeyHash[7 - i];
+		}
+
+		var address = bignum.fromBuffer(temp).toString() + 'L';
+
+		if (!address) {
+			throw Error('Invalid public key: ' + publicKey);
+		}
+
+		return address;
+	}
+
+	getAccount(filter, fields, cb) {
+		if (filter.publicKey) {
+			filter.address = self.generateAddressByPublicKey(filter.publicKey);
+			delete filter.publicKey;
+		}
+
+		library.logic.account.get(filter, fields, cb);
+	}
+
+	getAccounts(filter, fields, cb) {
+		library.logic.account.getAll(filter, fields, cb);
+	}
+
+	setAccountAndGet(data, cb) {
+		var address = data.address || null;
+
+		if (address === null) {
+			if (data.publicKey) {
+				address = self.generateAddressByPublicKey(data.publicKey);
+			} else {
+				return cb('Missing address or public key');
+			}
+		}
+
+		if (!address) {
+			throw cb('Invalid public key');
+		}
+
+		library.logic.account.set(address, data, function (err) {
+			if (err) {
+				return cb(err);
+			}
+			return library.logic.account.get({ address: address }, cb);
+		});
+	}
+
+	mergeAccountAndGet(data, cb) {
+		var address = data.address || null;
+
+		if (address === null) {
+			if (data.publicKey) {
+				address = self.generateAddressByPublicKey(data.publicKey);
+			} else {
+				return cb('Missing address or public key');
+			}
+		}
+
+		if (!address) {
+			throw cb('Invalid public key');
+		}
+
+		return library.logic.account.merge(address, data, cb);
+	}
+
+	sandboxApi(call, args, cb) {
+		sandboxHelper.callMethod(shared, call, args, cb);
+	}
+
+	// Events
+	onBind(scope) {
+		modules = scope;
+
+		__private.assetTypes[transactionTypes.VOTE].bind({
+			modules: modules, library: library
+		});
+	}
+
 }
 
 // Private methods
@@ -147,90 +239,6 @@ __private.openAccount = function (secret, cb) {
 	});
 };
 
-// Public methods
-Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
-	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
-	var temp = new Buffer(8);
-
-	for (var i = 0; i < 8; i++) {
-		temp[i] = publicKeyHash[7 - i];
-	}
-
-	var address = bignum.fromBuffer(temp).toString() + 'L';
-
-	if (!address) {
-		throw Error('Invalid public key: ' + publicKey);
-	}
-
-	return address;
-};
-
-Accounts.prototype.getAccount = function (filter, fields, cb) {
-	if (filter.publicKey) {
-		filter.address = self.generateAddressByPublicKey(filter.publicKey);
-		delete filter.publicKey;
-	}
-
-	library.logic.account.get(filter, fields, cb);
-};
-
-Accounts.prototype.getAccounts = function (filter, fields, cb) {
-	library.logic.account.getAll(filter, fields, cb);
-};
-
-Accounts.prototype.setAccountAndGet = function (data, cb) {
-	var address = data.address || null;
-
-	if (address === null) {
-		if (data.publicKey) {
-			address = self.generateAddressByPublicKey(data.publicKey);
-		} else {
-			return cb('Missing address or public key');
-		}
-	}
-
-	if (!address) {
-		throw cb('Invalid public key');
-	}
-
-	library.logic.account.set(address, data, function (err) {
-		if (err) {
-			return cb(err);
-		}
-		return library.logic.account.get({ address: address }, cb);
-	});
-};
-
-Accounts.prototype.mergeAccountAndGet = function (data, cb) {
-	var address = data.address || null;
-
-	if (address === null) {
-		if (data.publicKey) {
-			address = self.generateAddressByPublicKey(data.publicKey);
-		} else {
-			return cb('Missing address or public key');
-		}
-	}
-
-	if (!address) {
-		throw cb('Invalid public key');
-	}
-
-	return library.logic.account.merge(address, data, cb);
-};
-
-Accounts.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
-
-// Events
-Accounts.prototype.onBind = function (scope) {
-	modules = scope;
-
-	__private.assetTypes[transactionTypes.VOTE].bind({
-		modules: modules, library: library
-	});
-};
 
 // Shared
 shared.open = function (req, cb) {
