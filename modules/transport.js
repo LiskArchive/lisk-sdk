@@ -7,6 +7,7 @@ var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
 var request = require('request');
+var RequestSanitizer = require('../helpers/request-sanitizer.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
