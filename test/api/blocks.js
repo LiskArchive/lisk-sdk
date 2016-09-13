@@ -158,7 +158,7 @@ describe('GET /blocks', function () {
 
 	it('using height < 100 should be ok', function (done) {
 		if (!testBlocksUnder101) {
-			this.skip();
+			return this.skip();
 		}
 
 		getBlocks('height=' + 10, function (err, res) {
@@ -217,7 +217,7 @@ describe('GET /blocks', function () {
 
 	it('using previousBlock should be ok', function (done) {
 		if (block.id === null) {
-			this.skip();
+			return this.skip();
 		}
 
 		var previousBlock = block.id;
