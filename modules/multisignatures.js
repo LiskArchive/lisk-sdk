@@ -5,7 +5,6 @@ var crypto = require('crypto');
 var ed = require('ed25519');
 var extend = require('extend');
 var genesisblock = null;
-var RequestSanitizer = require('../helpers/request-sanitizer.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
