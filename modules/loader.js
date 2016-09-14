@@ -617,7 +617,6 @@ Loader.prototype.getNetwork = function (cb) {
 		return setImmediate(cb, null, __private.network);
 	}
 	// Fetch a list of 100 random peers
-	// TODO: Get the list from database?
 	modules.transport.getFromRandomPeer({
 		api: '/list',
 		method: 'GET'
