@@ -331,15 +331,31 @@ __private.loadBlocksFromNetwork = function (cb) {
 				},
 				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
-					var lastBlockId = modules.blocks.getLastBlock().id;
-					modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
-						if (err) {
-							library.logger.error('Could not load blocks from: ' + peer.ip, err);
+					var lastBlock = modules.blocks.getLastBlock();
+
+					library.logger.info('Looking for common block with: ' + peer.ip);
+
+					modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
+						if (!commonBlock) {
+							if (err) { library.logger.error(err.toString()); }
+							library.logger.error('Could not find common block with: ' + peer.ip);
 							library.logger.info('Trying to reload from another random peer');
 							loadErrorCount += 1;
+							return next();
 						}
-						loaded = lastValidBlock.id === lastBlockId;
-						next();
+
+						library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.ip].join(' '));
+
+						modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
+							if (err) {
+								library.logger.error(err.toString());
+								library.logger.error('Could not load blocks from: ' + peer.ip);
+								library.logger.info('Trying to reload from another random peer');
+								loadErrorCount += 1;
+							}
+							loaded = lastValidBlock.id === lastBlock.id;
+							next();
+						});
 					});
 				},
 				function (err) {

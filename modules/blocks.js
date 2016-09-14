@@ -397,7 +397,7 @@ __private.getIdSequence = function (height, cb) {
 
 		rows.forEach(function (row) {
 			if (!_.includes(ids, row.id)) {
-				ids.push('\'' + row.id + '\'');
+				ids.push(row.id);
 			}
 		});
 
