@@ -701,7 +701,10 @@ Loader.prototype.getNetwork = function (cb) {
 						if (isheightvalid) {
 							library.logger.info('Checking blockchain on: ' + result.peer.string, 'received height: ' + result.body.height);
 							var peer = modules.peer.inspect(result.peer);
-							return cb(null, {peer: peer, height: result.body.height});
+							return cb(null, { peer: peer, height: result.body.height });
+						} else {
+							library.logger.warn('Checking blockchain on: ' + result.peer.string, 'received invalid height');
+							return cb();
 						}
 					});
 				}
