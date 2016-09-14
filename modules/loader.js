@@ -14,9 +14,12 @@ require('colors');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
+__private.network = {
+	height: 0, // Network height
+	peers: [], // "Good" peers and with height close to network height
+};
+
 __private.loaded = false;
-// Network height (network.height) and 'good peers' (i.e. reachable peers and with height close to network.height).
-__private.network = null;
 __private.isActive = false;
 __private.loadingLastBlock = null;
 __private.genesisBlock = null;
@@ -567,7 +570,7 @@ __private.findGoodPeers = function (heights) {
 
 	// Assuming that the node reached at least 10% of the network
 	if (heights.length < 10) {
-		return null;
+		return { height: 0, peers: [] };
 	} else {
 		// Ordering the peers with descending height
 		heights = heights.sort(function (a,b) {
@@ -598,7 +601,7 @@ __private.findGoodPeers = function (heights) {
 			item.peer.height = item.height;
 			return item.peer;
 		});
-		return {height: height, peers: peers};
+		return { height: height, peers: peers };
 	}
 };
 
@@ -609,8 +612,8 @@ __private.findGoodPeers = function (heights) {
 // - Then for each of them we grab the height of their blockchain.
 // - With this list we try to get a peer with sensibly good blockchain height (see __private.findGoodPeers for actual strategy).
 Loader.prototype.getNetwork = function (cb) {
-	// If __private.network is not so far (i.e. 1 round) from current node height, just return the cached one.
-	if(__private.network && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < 101){
+	// If __private.network.height is not so far (i.e. 1 round) from current node height, just return the cached one.
+	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < 101) {
 		return setImmediate(cb, null, __private.network);
 	}
 	// Fetch a list of 100 random peers
@@ -699,7 +702,7 @@ Loader.prototype.getNetwork = function (cb) {
 			},function (err, heights) {
 				__private.network = __private.findGoodPeers(heights);
 
-				if (!__private.network) {
+				if (!__private.network.peers.length) {
 					return setImmediate(cb, 'Could not find enough good peers to sync from');
 				} else {
 					return setImmediate(cb, null, __private.network);
