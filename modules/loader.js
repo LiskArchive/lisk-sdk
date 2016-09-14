@@ -26,6 +26,7 @@ __private.genesisBlock = null;
 __private.total = 0;
 __private.blocksToSync = 0;
 __private.syncIntervalId = null;
+__private.retryInterval = 10000;
 
 // Constructor
 function Loader (cb, scope) {
@@ -526,7 +527,9 @@ __private.loadBlocksFromNetwork = function (cb) {
 	var loaded = false;
 	self.getNetwork(function (err, network) {
 		if (err) {
-			__private.loadBlocksFromNetwork(cb);
+			return setTimeout(function () {
+				__private.loadBlocksFromNetwork(cb);
+			}, __private.retryInterval);
 		} else {
 			async.whilst(
 				function () {
@@ -548,7 +551,9 @@ __private.loadBlocksFromNetwork = function (cb) {
 				function (err) {
 					if (counterrorload === 5) {
 						library.logger.info('Peer is not well connected to network, resyncing from network');
-						return __private.loadBlocksFromNetwork(cb);
+						return setTimeout(function () {
+							__private.loadBlocksFromNetwork(cb);
+						}, __private.retryInterval);
 					}
 					if (err) {
 						library.logger.error('Could not load blocks from network', err);
@@ -624,7 +629,9 @@ Loader.prototype.getNetwork = function (cb) {
 		if (err) {
 			library.logger.info('Could not connect properly to the network', err);
 			library.logger.info('Retrying...', err);
-			return self.getNetwork(cb); // TODO: Use setImmediate to prevent from stack overflow?
+			return setTimeout(function () {
+				self.getNetwork(cb);
+			}, __private.retryInterval);
 		}
 
 		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
