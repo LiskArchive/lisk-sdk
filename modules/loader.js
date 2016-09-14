@@ -523,7 +523,7 @@ __private.loadBlockChain = function () {
 };
 
 __private.loadBlocksFromNetwork = function (cb) {
-	var counterrorload = 0;
+	var loadErrorCount = 0;
 	var loaded = false;
 	self.getNetwork(function (err, network) {
 		if (err) {
@@ -533,7 +533,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 		} else {
 			async.whilst(
 				function () {
-					return !loaded && counterrorload < 5;
+					return !loaded && loadErrorCount < 5;
 				},
 				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
@@ -542,14 +542,14 @@ __private.loadBlocksFromNetwork = function (cb) {
 						if (err) {
 							library.logger.error('Could not load blocks from: ' + peer.ip, err);
 							library.logger.info('Trying to reload from another random peer');
-							counterrorload += 1;
+							loadErrorCount += 1;
 						}
 						loaded = lastValidBlock.id === lastBlockId;
 						next();
 					});
 				},
 				function (err) {
-					if (counterrorload === 5) {
+					if (loadErrorCount === 5) {
 						library.logger.info('Peer is not well connected to network, resyncing from network');
 						return setTimeout(function () {
 							__private.loadBlocksFromNetwork(cb);
@@ -654,7 +654,7 @@ Loader.prototype.getNetwork = function (cb) {
 
 			// For each peer, we will get the height
 			async.map(peers, function (peer, cb) {
-				var ispeervalid = library.scheme.validate(peer, {
+				var peerIsValid = library.scheme.validate(peer, {
 					type: 'object',
 					properties: {
 						ip: {
@@ -680,7 +680,7 @@ Loader.prototype.getNetwork = function (cb) {
 					required: ['ip', 'port', 'state']
 				});
 
-				if (ispeervalid) {
+				if (peerIsValid) {
 					modules.transport.getFromPeer(peer, {
 						api: '/height',
 						method: 'GET'
@@ -688,7 +688,7 @@ Loader.prototype.getNetwork = function (cb) {
 						if (err) {
 							return cb(err);
 						}
-						var isheightvalid = library.scheme.validate(result.body, {
+						var heightIsValid = library.scheme.validate(result.body, {
 							type: 'object',
 							properties: {
 								'height': {
@@ -698,7 +698,7 @@ Loader.prototype.getNetwork = function (cb) {
 							}, required: ['height']
 						});
 
-						if (isheightvalid) {
+						if (heightIsValid) {
 							library.logger.info('Checking blockchain on: ' + result.peer.string, 'received height: ' + result.body.height);
 							var peer = modules.peer.inspect(result.peer);
 							return cb(null, { peer: peer, height: result.body.height });
