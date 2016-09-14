@@ -542,7 +542,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 						if (err) {
 							library.logger.error('Could not load blocks from: ' + peer.ip, err);
 							library.logger.info('Trying to reload from another random peer');
-							counterrorload = counterrorload + 1;
+							counterrorload += 1;
 						}
 						loaded = lastValidBlock.id === lastBlockId;
 						next();
