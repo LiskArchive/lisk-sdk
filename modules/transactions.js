@@ -212,18 +212,6 @@ Transactions.prototype.addDoubleSpending = function (transaction) {
 	__private.doubleSpendingTransactions[transaction.id] = transaction;
 };
 
-Transactions.prototype.pushHiddenTransaction = function (transaction) {
-	__private.hiddenTransactions.push(transaction);
-};
-
-Transactions.prototype.shiftHiddenTransaction = function () {
-	return __private.hiddenTransactions.shift();
-};
-
-Transactions.prototype.deleteHiddenTransaction = function () {
-	__private.hiddenTransactions = [];
-};
-
 Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit) {
 	var a = [];
 
