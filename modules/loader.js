@@ -332,6 +332,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlock = modules.blocks.getLastBlock();
+					__private.blocksToSync = peer.height;
 
 					library.logger.info('Looking for common block with: ' + peer.ip);
 
