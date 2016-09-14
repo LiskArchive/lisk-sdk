@@ -612,7 +612,7 @@ __private.findGoodPeers = function (heights) {
 // - Then for each of them we grab the height of their blockchain.
 // - With this list we try to get a peer with sensibly good blockchain height (see __private.findGoodPeers for actual strategy).
 Loader.prototype.getNetwork = function (cb) {
-	// If __private.network.height is not so far (i.e. 1 round) from current node height, just return the cached one.
+	// If __private.network.height is not so far (i.e. 1 round) from current node height, just return cached __private.network.
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < 101) {
 		return setImmediate(cb, null, __private.network);
 	}
