@@ -319,6 +319,7 @@ __private.loadBlockChain = function () {
 __private.loadBlocksFromNetwork = function (cb) {
 	var errorCount = 0;
 	var loaded = false;
+
 	self.getNetwork(function (err, network) {
 		if (err) {
 			return cb(err);
@@ -332,23 +333,23 @@ __private.loadBlocksFromNetwork = function (cb) {
 					var lastBlock = modules.blocks.getLastBlock();
 					__private.blocksToSync = peer.height;
 
-					library.logger.info('Looking for common block with: ' + peer.ip);
+					library.logger.info('Looking for common block with: ' + peer.string);
 
 					modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 						if (!commonBlock) {
 							if (err) { library.logger.error(err.toString()); }
-							library.logger.error('Could not find common block with: ' + peer.ip);
+							library.logger.error('Could not find common block with: ' + peer.string);
 							library.logger.info('Trying to reload from another random peer');
 							errorCount += 1;
 							return next();
 						}
 
-						library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.ip].join(' '));
+						library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
 
 						modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
 								library.logger.error(err.toString());
-								library.logger.error('Could not load blocks from: ' + peer.ip);
+								library.logger.error('Could not load blocks from: ' + peer.string);
 								library.logger.info('Trying to reload from another random peer');
 								errorCount += 1;
 							}
@@ -359,7 +360,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 				},
 				function (err) {
 					if (err) {
-						library.logger.error('Could not load blocks from network', err);
+						library.logger.error('Failed to load blocks from network', err);
 						return cb(err);
 					} else {
 						return cb();
@@ -431,7 +432,7 @@ Loader.prototype.getNetwork = function (cb) {
 		method: 'GET'
 	}, function (err, data) {
 		if (err) {
-			library.logger.info('Could not connect properly to the network', err);
+			library.logger.info('Failed to connect properly with network', err);
 			return setImmediate(cb, err);
 		}
 
@@ -513,7 +514,7 @@ Loader.prototype.getNetwork = function (cb) {
 				__private.network = __private.findGoodPeers(heights);
 
 				if (!__private.network.peers.length) {
-					return setImmediate(cb, 'Could not find enough good peers to sync from');
+					return setImmediate(cb, 'Failed to find enough good peers to sync with');
 				} else {
 					return setImmediate(cb, null, __private.network);
 				}
