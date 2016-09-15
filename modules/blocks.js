@@ -641,6 +641,14 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 };
 
 Blocks.prototype.getLastBlock = function () {
+	if (__private.lastBlock) {
+		var epoch = constants.epochTime / 1000;
+		var lastBlockTime = epoch + __private.lastBlock.timestamp;
+		var currentTime = new Date().getTime() / 1000;
+
+		__private.lastBlock.secondsAgo = currentTime - lastBlockTime;
+	}
+
 	return __private.lastBlock;
 };
 

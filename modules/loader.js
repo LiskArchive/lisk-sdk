@@ -626,12 +626,9 @@ Loader.prototype.cleanup = function (cb) {
 
 // Private
 __private.ping = function (cb) {
-	var epoch = constants.epochTime / 1000;
-	var lastBlockTime = epoch + modules.blocks.getLastBlock().timestamp;
-	var currentTime = new Date().getTime() / 1000;
-	var blockAge = currentTime - lastBlockTime;
+	var lastBlock = modules.blocks.getLastBlock();
 
-	if (blockAge < 120) {
+	if (lastBlock && lastBlock.secondsAgo < 120) {
 		return cb(200, {success: true});
 	} else {
 		return cb(503, {success: false});
