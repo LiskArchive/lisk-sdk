@@ -503,9 +503,8 @@ Loader.prototype.getNetwork = function (cb) {
 						});
 
 						if (heightIsValid) {
-							var peer = modules.peer.inspect(result.peer);
-							return cb(null, { peer: peer, height: result.body.height });
 							library.logger.info(['Checking blockchain on:', result.peer.string, 'received height:', result.body.height].join(' '));
+							return cb(null, { peer: modules.peer.inspect(result.peer), height: result.body.height });
 						} else {
 							library.logger.warn(['Checking blockchain on:', result.peer.string, 'received invalid height'].join(' '));
 							return cb();
