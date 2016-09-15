@@ -543,42 +543,56 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 // Events
 Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadBlock () {
-		library.sequence.add(function (cb) {
-			__private.isActive = true;
-			__private.syncTrigger(true);
-			__private.loadBlocksFromNetwork(cb);
-		}, function (err) {
-			if (err) {
-				library.logger.error('Blocks timer', err);
-			}
-			__private.isActive = false;
-			__private.syncTrigger(false);
-			__private.blocksToSync = 0;
-		});
-		library.logger.debug('Checking blockchain for new block in 10 seconds');
-		setTimeout(nextLoadBlock, 10 * 1000);
+		if (__private.loaded && !self.syncing()) {
+			library.logger.debug('Loading blocks from network');
+			library.sequence.add(function (cb) {
+				__private.isActive = true;
+				__private.syncTrigger(true);
+				__private.loadBlocksFromNetwork(cb);
+			}, function (err) {
+				if (err) {
+					library.logger.warn('Blocks timer', err);
+				}
+
+				__private.isActive = false;
+				__private.syncTrigger(false);
+				__private.blocksToSync = 0;
+
+				setTimeout(nextLoadBlock, 10000);
+			});
+		} else {
+			setTimeout(nextLoadBlock, 10000);
+		}
 	});
 
 	setImmediate(function nextLoadUnconfirmedTransactions () {
-		if (!__private.loaded || self.syncing()) { return; }
+		if (__private.loaded && !self.syncing()) {
+			library.logger.debug('Loading unconfirmed transactions');
+			__private.loadUnconfirmedTransactions(function (err) {
+				if (err) {
+					library.logger.warn('Unconfirmed transactions timer', err);
+				}
 
-		__private.loadUnconfirmedTransactions(function (err) {
-			if (err) {
-				library.logger.error('Unconfirmed transactions timer:', err);
-			}
-			setTimeout(nextLoadUnconfirmedTransactions, 14 * 1000);
-		});
+				setTimeout(nextLoadUnconfirmedTransactions, 14000);
+			});
+		} else {
+			setTimeout(nextLoadUnconfirmedTransactions, 14000);
+		}
 	});
 
 	setImmediate(function nextLoadSignatures () {
-		if (!__private.loaded || self.syncing()) { return; }
+		if (__private.loaded && !self.syncing()) {
+			library.logger.debug('Loading signatures');
+			__private.loadSignatures(function (err) {
+				if (err) {
+					library.logger.warn('Signatures timer', err);
+				}
 
-		__private.loadSignatures(function (err) {
-			if (err) {
-				library.logger.error('Signatures timer:', err);
-			}
-			setTimeout(nextLoadSignatures, 14 * 1000);
-		});
+				setTimeout(nextLoadSignatures, 14000);
+			});
+		} else {
+			setTimeout(nextLoadSignatures, 14000);
+		}
 	});
 };
 
