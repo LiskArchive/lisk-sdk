@@ -503,11 +503,11 @@ Loader.prototype.getNetwork = function (cb) {
 						});
 
 						if (heightIsValid) {
-							library.logger.info('Checking blockchain on: ' + result.peer.string, 'received height: ' + result.body.height);
 							var peer = modules.peer.inspect(result.peer);
 							return cb(null, { peer: peer, height: result.body.height });
+							library.logger.info(['Checking blockchain on:', result.peer.string, 'received height:', result.body.height].join(' '));
 						} else {
-							library.logger.warn('Checking blockchain on: ' + result.peer.string, 'received invalid height');
+							library.logger.warn(['Checking blockchain on:', result.peer.string, 'received invalid height'].join(' '));
 							return cb();
 						}
 					});
