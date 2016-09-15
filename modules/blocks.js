@@ -1039,8 +1039,8 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 						lastValidBlock = block;
 						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 					} else {
-						library.logger.warn(['Block', (block ? block.id : 'null'), 'is not valid, ban 60 min'].join(' '), peer.string);
 						library.logger.warn(err.toString());
+						library.logger.warn(['Block', (block ? block.id : 'null'), 'is not valid, ban 60 min'].join(' '), peer.string);
 						modules.peer.state(peer.ip, peer.port, 0, 3600);
 					}
 					return cb(err);

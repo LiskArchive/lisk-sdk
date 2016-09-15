@@ -150,8 +150,8 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
-				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
 				library.logger.warn(e.toString());
+				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
 				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
