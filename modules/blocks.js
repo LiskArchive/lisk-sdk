@@ -475,6 +475,11 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 		__private.lastReceipt = lastReceipt;
 	}
 
+	if (__private.lastReceipt) {
+		var timeNow = new Date();
+		__private.lastReceipt.secondAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
+	}
+
 	return __private.lastReceipt;
 };
 

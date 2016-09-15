@@ -614,12 +614,10 @@ __private.toggleForgingOnReceipt = function () {
 
 	if (lastReceipt) {
 		var timeOut = Number(constants.forgingTimeOut);
-		var timeNow = new Date();
-		var seconds = Math.floor((timeNow.getTime() - lastReceipt.getTime()) / 1000);
 
-		library.logger.debug('Last block received: ' + seconds + ' seconds ago');
+		library.logger.debug('Last block received: ' + lastReceipt.secondsAgo + ' seconds ago');
 
-		if (seconds > timeOut) {
+		if (lastReceipt.secondsAgo > timeOut) {
 			return self.disableForging('timeout');
 		} else {
 			return self.enableForging();
