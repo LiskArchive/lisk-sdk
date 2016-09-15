@@ -331,7 +331,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlock = modules.blocks.getLastBlock();
-					__private.blocksToSync = peer.height;
 
 					library.logger.info('Looking for common block with: ' + peer.string);
 					modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
@@ -341,9 +340,10 @@ __private.loadBlocksFromNetwork = function (cb) {
 							library.logger.info('Trying to reload from another random peer');
 							errorCount += 1;
 							return next();
+						} else {
+							library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
+							__private.blocksToSync = peer.height;
 						}
-
-						library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
 
 						modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
