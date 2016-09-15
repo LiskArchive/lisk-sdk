@@ -490,7 +490,8 @@ Loader.prototype.getNetwork = function (cb) {
 						method: 'GET'
 					}, function (err, result) {
 						if (err) {
-							return cb(err);
+							library.logger.warn(['Checking blockchain on:', peer.string, 'failed to get height'].join(' '));
+							return cb();
 						}
 						var heightIsValid = library.scheme.validate(result.body, {
 							type: 'object',
