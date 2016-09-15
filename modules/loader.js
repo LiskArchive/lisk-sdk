@@ -334,7 +334,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 					__private.blocksToSync = peer.height;
 
 					library.logger.info('Looking for common block with: ' + peer.string);
-
 					modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 						if (!commonBlock) {
 							if (err) { library.logger.error(err.toString()); }
@@ -371,7 +370,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 	});
 };
 
-// Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
+// Given a list of peers with associated blockchain height (heights = { peer: peer, height: height }), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 __private.findGoodPeers = function (heights) {
 	// Removing unreachable peers
 	heights = heights.filter(function (item) {
@@ -386,11 +385,13 @@ __private.findGoodPeers = function (heights) {
 		heights = heights.sort(function (a,b) {
 			return b.height - a.height;
 		});
+
 		var histogram = {};
 		var max = 0;
 		var height;
 
-		var aggregation = 2; // Aggregating height by 2. TODO: To be changed if node latency increases?
+		// Aggregating height by 2. TODO: To be changed if node latency increases?
+		var aggregation = 2;
 
 		// Histogram calculation, together with histogram maximum
 		for (var i in heights) {
@@ -426,6 +427,7 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < 101) {
 		return setImmediate(cb, null, __private.network);
 	}
+
 	// Fetch a list of 100 random peers
 	modules.transport.getFromRandomPeer({
 		api: '/list',
