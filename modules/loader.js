@@ -519,7 +519,7 @@ Loader.prototype.getNetwork = function (cb) {
 						}
 					});
 				}
-			},function (err, heights) {
+			}, function (err, heights) {
 				__private.network = __private.findGoodPeers(heights);
 
 				if (!__private.network.peers.length) {
