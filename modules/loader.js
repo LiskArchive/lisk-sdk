@@ -337,7 +337,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 						if (!commonBlock) {
 							if (err) { library.logger.error(err.toString()); }
 							library.logger.error('Could not find common block with: ' + peer.string);
-							library.logger.info('Trying to reload from another random peer');
 							errorCount += 1;
 							return next();
 						} else {
@@ -349,7 +348,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 							if (err) {
 								library.logger.error(err.toString());
 								library.logger.error('Could not load blocks from: ' + peer.string);
-								library.logger.info('Trying to reload from another random peer');
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
