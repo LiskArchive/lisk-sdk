@@ -332,17 +332,8 @@ __private.loadBlocksFromNetwork = function (cb) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlock = modules.blocks.getLastBlock();
 
-					library.logger.info('Looking for common block with: ' + peer.string);
-					modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
-						if (!commonBlock) {
-							if (err) { library.logger.error(err.toString()); }
-							library.logger.error('Failed to find common block with: ' + peer.string);
-							errorCount += 1;
-							return next();
-						} else {
-							library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
-							__private.blocksToSync = peer.height;
-						}
+					function loadBlocks () {
+						__private.blocksToSync = peer.height;
 
 						modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
@@ -353,7 +344,28 @@ __private.loadBlocksFromNetwork = function (cb) {
 							loaded = lastValidBlock.id === lastBlock.id;
 							next();
 						});
-					});
+					}
+
+					function getCommonBlock (cb) {
+						library.logger.info('Looking for common block with: ' + peer.string);
+						modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
+							if (!commonBlock) {
+								if (err) { library.logger.error(err.toString()); }
+								library.logger.error('Failed to find common block with: ' + peer.string);
+								errorCount += 1;
+								return next();
+							} else {
+								library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
+								return cb();
+							}
+						});
+					}
+
+					if (lastBlock.height === 1) {
+						loadBlocks();
+					} else {
+						getCommonBlock(loadBlocks);
+					}
 				},
 				function (err) {
 					if (err) {
