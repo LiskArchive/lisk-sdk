@@ -269,19 +269,19 @@ __private.getBlockSlotData = function (slot, height, cb) {
 
 __private.loop = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
-		library.logger.debug('Loop:', 'no delegates');
+		library.logger.debug('No delegates found to forge with');
 		return setImmediate(cb);
 	}
 
 	if (!__private.forging) {
-		library.logger.debug('Loop:', 'forging disabled');
+		library.logger.debug('Forging disabled due to timeout');
 		return setImmediate(cb);
 	}
 
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
 	if (!__private.loaded || modules.loader.syncing() || !modules.round.loaded() || modules.round.ticking()) {
-		library.logger.debug('Loop:', 'client not ready');
+		library.logger.debug('Client not ready to forge');
 		return setImmediate(cb);
 	}
 
@@ -289,13 +289,13 @@ __private.loop = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Loop:', 'lastBlock is in the same slot');
+		library.logger.debug('Last block within same delegate slot');
 		return setImmediate(cb);
 	}
 
 	__private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.debug('Loop:', 'skipping slot');
+			library.logger.debug('Skipping delegate slot');
 			return setImmediate(cb);
 		}
 
@@ -307,12 +307,12 @@ __private.loop = function (cb) {
 					return setImmediate(cb, err);
 				});
 			} else {
-				// library.logger.debug('Loop:', _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
+				library.logger.debug('Delegate slot', slots.getSlotNumber());
 				return setImmediate(cb);
 			}
 		}, function (err) {
 			if (err) {
-				library.logger.error('Failed generate block within slot', err);
+				library.logger.error('Failed generate block within delegate slot', err);
 			}
 			return setImmediate(cb);
 		});
@@ -570,7 +570,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	__private.loadMyDelegates(function nextLoop(err) {
 		if (err) {
-			library.logger.error('Failed to load delegates:', err);
+			library.logger.error('Failed to load delegates', err);
 		}
 
 		__private.toggleForgingOnReceipt();

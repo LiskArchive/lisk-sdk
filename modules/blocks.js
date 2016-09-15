@@ -606,13 +606,13 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
 
-	library.logger.debug('loadBlocksOffset', { limit: limit, offset: offset, verify: verify });
+	library.logger.debug('Loading blocks offset', { limit: limit, offset: offset, verify: verify });
 	library.dbSequence.add(function (cb) {
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
 			var blocks = __private.readDbRows(rows);
 
 			async.eachSeries(blocks, function (block, cb) {
-				library.logger.debug('Processing block:', block.id);
+				library.logger.debug('Processing block', block.id);
 				if (verify && block.id !== genesisblock.block.id) {
 					// Sanity check of the block, if values are coherent.
 					// No access to database.
@@ -1007,7 +1007,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 	var lastValidBlock = __private.lastBlock;
 
 	peer = modules.peer.inspect(peer);
-	library.logger.info('Loading blocks from', peer.string);
+	library.logger.info('Loading blocks from: ' + peer.string);
 
 	modules.transport.getFromPeer(peer, {
 		method: 'GET',
