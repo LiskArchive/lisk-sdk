@@ -336,7 +336,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 					modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 						if (!commonBlock) {
 							if (err) { library.logger.error(err.toString()); }
-							library.logger.error('Could not find common block with: ' + peer.string);
+							library.logger.error('Failed to find common block with: ' + peer.string);
 							errorCount += 1;
 							return next();
 						} else {
@@ -347,7 +347,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 						modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
 								library.logger.error(err.toString());
-								library.logger.error('Could not load blocks from: ' + peer.string);
+								library.logger.error('Failed to load blocks from: ' + peer.string);
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
