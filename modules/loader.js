@@ -321,9 +321,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 	var loaded = false;
 	self.getNetwork(function (err, network) {
 		if (err) {
-			return setTimeout(function () {
-				__private.loadBlocksFromNetwork(cb);
-			}, __private.retryInterval);
+			return cb(err);
 		} else {
 			async.whilst(
 				function () {
@@ -360,17 +358,12 @@ __private.loadBlocksFromNetwork = function (cb) {
 					});
 				},
 				function (err) {
-					if (errorCount === 5) {
-						library.logger.info('Peer is not well connected to network, resyncing from network');
-						return setTimeout(function () {
-							__private.loadBlocksFromNetwork(cb);
-						}, __private.retryInterval);
-					}
 					if (err) {
 						library.logger.error('Could not load blocks from network', err);
 						return cb(err);
+					} else {
+						return cb();
 					}
-					return cb();
 				}
 			);
 		}
@@ -439,10 +432,7 @@ Loader.prototype.getNetwork = function (cb) {
 	}, function (err, data) {
 		if (err) {
 			library.logger.info('Could not connect properly to the network', err);
-			library.logger.info('Retrying...', err);
-			return setTimeout(function () {
-				self.getNetwork(cb);
-			}, __private.retryInterval);
+			return setImmediate(cb, err);
 		}
 
 		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
