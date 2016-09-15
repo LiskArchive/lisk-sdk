@@ -7,7 +7,6 @@ var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
 var request = require('request');
-var RequestSanitizer = require('../helpers/request-sanitizer.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
@@ -153,7 +152,7 @@ __private.attachApi = function () {
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
 
 				if (report) {
-					modules.peer.state(req.peer.ip, RequestSanitizer.int(req.peer.port), 0, 3600);
+					modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
 				}
 
 				return res.json({success: false, error: 'Invalid block id sequence'});
