@@ -285,8 +285,8 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check sender public key
-	if (sender.publicKey !== trs.senderPublicKey) {
 		var err = 'Invalid sender public key';
+	if (sender.publicKey && sender.publicKey !== trs.senderPublicKey) {
 
 		if (exceptions.senderPublicKey.indexOf(trs.id) > -1) {
 			this.scope.logger.debug(err);
