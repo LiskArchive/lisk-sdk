@@ -317,7 +317,7 @@ __private.loadBlockChain = function () {
 };
 
 __private.loadBlocksFromNetwork = function (cb) {
-	var loadErrorCount = 0;
+	var errorCount = 0;
 	var loaded = false;
 	self.getNetwork(function (err, network) {
 		if (err) {
@@ -327,7 +327,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 		} else {
 			async.whilst(
 				function () {
-					return !loaded && loadErrorCount < 5;
+					return !loaded && errorCount < 5;
 				},
 				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
@@ -341,7 +341,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 							if (err) { library.logger.error(err.toString()); }
 							library.logger.error('Could not find common block with: ' + peer.ip);
 							library.logger.info('Trying to reload from another random peer');
-							loadErrorCount += 1;
+							errorCount += 1;
 							return next();
 						}
 
@@ -352,7 +352,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 								library.logger.error(err.toString());
 								library.logger.error('Could not load blocks from: ' + peer.ip);
 								library.logger.info('Trying to reload from another random peer');
-								loadErrorCount += 1;
+								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
 							next();
@@ -360,7 +360,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 					});
 				},
 				function (err) {
-					if (loadErrorCount === 5) {
+					if (errorCount === 5) {
 						library.logger.info('Peer is not well connected to network, resyncing from network');
 						return setTimeout(function () {
 							__private.loadBlocksFromNetwork(cb);
