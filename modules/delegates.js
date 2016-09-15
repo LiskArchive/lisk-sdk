@@ -267,7 +267,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 	});
 };
 
-__private.loop = function (cb) {
+__private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
 		library.logger.debug('No delegates found to forge with');
 		return setImmediate(cb);
@@ -568,15 +568,14 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadMyDelegates(function nextLoop(err) {
+	__private.loadMyDelegates(function nextForge (err) {
 		if (err) {
 			library.logger.error('Failed to load delegates', err);
 		}
 
 		__private.toggleForgingOnReceipt();
-
-		__private.loop(function () {
-			setTimeout(nextLoop, 1000);
+		__private.forge(function () {
+			setTimeout(nextForge, 1000);
 		});
 	});
 };
