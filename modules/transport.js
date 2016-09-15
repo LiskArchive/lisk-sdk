@@ -333,7 +333,7 @@ __private.attachApi = function () {
 			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
-				modules.peer.state(req.peer.ip, req.port, 0, 3600);
+				modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
 			return res.status(200).json({success: false, message: 'Invalid transaction body'});
