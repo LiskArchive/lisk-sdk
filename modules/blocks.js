@@ -1052,6 +1052,10 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 					return cb(err);
 				}, true);
 			}, function (err) {
+				// Nullify large array of blocks.
+				// Prevents memory leak during synchronisation.
+				blocks = null;
+
 				if (err) {
 					return setImmediate(callback, 'Error loading blocks: ' + err, lastValidBlock);
 				}
