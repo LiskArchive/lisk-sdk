@@ -4,7 +4,6 @@ var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
-var ed = require('ed25519');
 var extend = require('extend');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
@@ -121,7 +120,7 @@ __private.attachApi = function () {
 
 __private.openAccount = function (secret, cb) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
-	var keypair = ed.MakeKeypair(hash);
+	var keypair = library.ed.makeKeypair(hash);
 	var publicKey = keypair.publicKey.toString('hex');
 
 	self.getAccount({ publicKey: publicKey }, function (err, account) {
@@ -447,7 +446,7 @@ shared.addDelegates = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = ed.MakeKeypair(hash);
+		var keypair = library.ed.makeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -495,7 +494,7 @@ shared.addDelegates = function (req, cb) {
 
 						if (requester.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-							secondKeypair = ed.MakeKeypair(secondHash);
+							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
 						var transaction;
@@ -534,7 +533,7 @@ shared.addDelegates = function (req, cb) {
 
 					if (account.secondSignature) {
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						secondKeypair = ed.MakeKeypair(secondHash);
+						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
 					var transaction;

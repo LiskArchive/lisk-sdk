@@ -7,7 +7,6 @@ var crypto = require('crypto');
 var dappCategories = require('../helpers/dappCategories.js');
 var dappTypes = require('../helpers/dappTypes.js');
 var DecompressZip = require('decompress-zip');
-var ed = require('ed25519');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
@@ -162,7 +161,7 @@ __private.attachApi = function () {
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
 			var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-			var keypair = ed.MakeKeypair(hash);
+			var keypair = library.ed.makeKeypair(hash);
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -188,7 +187,7 @@ __private.attachApi = function () {
 
 					if (account.secondSignature) {
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						secondKeypair = ed.MakeKeypair(secondHash);
+						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
 					var transaction;
@@ -1327,7 +1326,7 @@ __private.addTransactions = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = ed.MakeKeypair(hash);
+		var keypair = library.ed.makeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -1377,7 +1376,7 @@ __private.addTransactions = function (req, cb) {
 
 						if (requester.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-							secondKeypair = ed.MakeKeypair(secondHash);
+							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
 						var transaction;
@@ -1417,7 +1416,7 @@ __private.addTransactions = function (req, cb) {
 
 					if (account.secondSignature) {
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						secondKeypair = ed.MakeKeypair(secondHash);
+						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
 					var transaction;
@@ -1496,7 +1495,7 @@ __private.sendWithdrawal = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = ed.MakeKeypair(hash);
+		var keypair = library.ed.makeKeypair(hash);
 		var query = {};
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;
@@ -1544,7 +1543,7 @@ __private.sendWithdrawal = function (req, cb) {
 
 						if (requester.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-							secondKeypair = ed.MakeKeypair(secondHash);
+							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
 						var transaction;
@@ -1586,7 +1585,7 @@ __private.sendWithdrawal = function (req, cb) {
 
 					if (account.secondSignature) {
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						secondKeypair = ed.MakeKeypair(secondHash);
+						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
 					var transaction;

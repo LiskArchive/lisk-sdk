@@ -6,7 +6,6 @@ var BlockReward = require('../logic/blockReward.js');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
-var ed = require('ed25519');
 var genesisblock = null;
 var Inserts = require('../helpers/inserts.js');
 var ip = require('ip');

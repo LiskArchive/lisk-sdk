@@ -4,7 +4,6 @@ var async = require('async');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
-var ed = require('ed25519');
 var extend = require('extend');
 var genesisblock = null;
 var OrderBy = require('../helpers/orderBy.js');
@@ -640,7 +639,7 @@ shared.addTransactions = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = ed.MakeKeypair(hash);
+		var keypair = library.ed.makeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -701,7 +700,7 @@ shared.addTransactions = function (req, cb) {
 
 							if (requester.secondSignature) {
 								var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-								secondKeypair = ed.MakeKeypair(secondHash);
+								secondKeypair = library.ed.makeKeypair(secondHash);
 							}
 
 							var transaction;
@@ -741,7 +740,7 @@ shared.addTransactions = function (req, cb) {
 
 						if (account.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-							secondKeypair = ed.MakeKeypair(secondHash);
+							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
 						var transaction;
