@@ -1021,14 +1021,12 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 	modules.transport.getFromPeer(peer, {
 		method: 'GET',
 		api: '/blocks?lastBlockId=' + lastValidBlock.id
-	}, function (err, data) {
-		if (err || data.body.error) {
+	}, function (err, res) {
+		if (err || res.body.error) {
 			return setImmediate(callback, err, lastValidBlock);
 		}
 
-		var blocks = data.body.blocks;
-
-		var report = library.scheme.validate(blocks, {
+		var report = library.scheme.validate(res.body.blocks, {
 			type: 'array'
 		});
 
@@ -1036,7 +1034,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 			return setImmediate(callback, 'Received invalid blocks data', lastValidBlock);
 		}
 
-		blocks = __private.readDbRows(blocks);
+		var blocks = __private.readDbRows(res.body.blocks);
 
 		if (blocks.length === 0) {
 			return setImmediate(callback, null, lastValidBlock);
