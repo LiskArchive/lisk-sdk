@@ -409,24 +409,24 @@ __private.readDbRows = function (rows) {
 	var order = [];
 
 	for (var i = 0, length = rows.length; i < length; i++) {
-		var __block = library.logic.block.dbRead(rows[i]);
+		var block = library.logic.block.dbRead(rows[i]);
 
-		if (__block) {
-			if (!blocks[__block.id]) {
-				if (__block.id === genesisblock.block.id) {
-					__block.generationSignature = (new Array(65)).join('0');
+		if (block) {
+			if (!blocks[block.id]) {
+				if (block.id === genesisblock.block.id) {
+					block.generationSignature = (new Array(65)).join('0');
 				}
 
-				order.push(__block.id);
-				blocks[__block.id] = __block;
+				order.push(block.id);
+				blocks[block.id] = block;
 			}
 
-			var __transaction = library.logic.transaction.dbRead(rows[i]);
-			blocks[__block.id].transactions = blocks[__block.id].transactions || {};
+			var transaction = library.logic.transaction.dbRead(rows[i]);
+			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
-			if (__transaction) {
-				if (!blocks[__block.id].transactions[__transaction.id]) {
-					blocks[__block.id].transactions[__transaction.id] = __transaction;
+			if (transaction) {
+				if (!blocks[block.id].transactions[transaction.id]) {
+					blocks[block.id].transactions[transaction.id] = transaction;
 				}
 			}
 		}
