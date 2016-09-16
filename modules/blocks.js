@@ -1044,7 +1044,6 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 			async.eachSeries(blocks, function (block, cb) {
 				self.processBlock(block, false, function (err) {
 					if (!err) {
-						var lastCommonBlockId = block.id;
 						lastValidBlock = block;
 						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 					} else {
