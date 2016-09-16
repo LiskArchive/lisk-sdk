@@ -284,13 +284,9 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 		return t;
 	}
 
-	var promises = [];
-
 	var transactionIterator = function (transaction) {
 		transaction.blockId = block.id;
-		promises = promises.concat(
-			library.logic.transaction.dbSave(transaction)
-		);
+		return library.logic.transaction.dbSave(transaction);
 	};
 
 	var promiseGrouper = function (promise) {
@@ -316,7 +312,7 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 		t.none(inserts.template(), inserts);
 	};
 
-	_.each(block.transactions, transactionIterator);
+	var promises = _.flatMap(block.transactions, transactionIterator);
 	_.each(_.groupBy(promises, promiseGrouper), typeIterator);
 
 	return t;
