@@ -60,18 +60,19 @@ function Multisignature () {
 		if (this.ready(trs, sender)) {
 			try {
 				for (var s = 0; s < trs.asset.multisignature.keysgroup.length; s++) {
-					var verify = false;
+					var valid = false;
+
 					if (trs.signatures) {
-						for (var d = 0; d < trs.signatures.length && !verify; d++) {
+						for (var d = 0; d < trs.signatures.length && !valid; d++) {
 							if (trs.asset.multisignature.keysgroup[s][0] !== '-' && trs.asset.multisignature.keysgroup[s][0] !== '+') {
-								verify = false;
+								valid = false;
 							} else {
-								verify = library.logic.transaction.verifySignature(trs, trs.asset.multisignature.keysgroup[s].substring(1), trs.signatures[d]);
+								valid = library.logic.transaction.verifySignature(trs, trs.asset.multisignature.keysgroup[s].substring(1), trs.signatures[d]);
 							}
 						}
 					}
 
-					if (!verify) {
+					if (!valid) {
 						return setImmediate(cb, 'Failed to verify signature in multisignature keysgroup');
 					}
 				}
