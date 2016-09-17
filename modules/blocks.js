@@ -853,16 +853,16 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						// DATABASE: write
 						if (saveBlock) {
 							__private.saveBlock(block, function (err) {
-							 if (err) {
-								 library.logger.error('Failed to save block...');
-								 // TODO: Send a numbered signal to be caught by forever to trigger a normal restart (i.e. restarting the db).
-								 process.exit(0);
-							 }
+								if (err) {
+									library.logger.error('Failed to save block...');
+									// TODO: Send a numbered signal to be caught by forever to trigger a normal restart (i.e. restarting the db).
+									process.exit(0);
+								}
 
-							 library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
-							 library.bus.message('newBlock', block, broadcast);
-							 // DATABASE write. Update delegates accounts
-							 modules.round.tick(block, done);
+								library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
+								library.bus.message('newBlock', block, broadcast);
+								// DATABASE write. Update delegates accounts
+								modules.round.tick(block, done);
 						 });
 						} else {
 							library.bus.message('newBlock', block, broadcast);
