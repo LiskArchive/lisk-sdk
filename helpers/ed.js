@@ -9,15 +9,15 @@ nacl_factory.instantiate(function (nacl_instance) {
     var keypair = nacl_instance.crypto_sign_keypair_from_seed(hash);
 
     return {
-      publicKey: new Buffer(keypair.signPk, 'hex'),
-      privateKey: new Buffer(keypair.signSk, 'hex')
+      publicKey: new Buffer(keypair.signPk),
+      privateKey: new Buffer(keypair.signSk)
     };
   };
 
   ed.sign = function (hash, keypair) {
     var signature = nacl_instance.crypto_sign_detached(hash, new Buffer(keypair.privateKey, 'hex'));
 
-    return new Buffer(signature, 'hex');
+    return new Buffer(signature);
   };
 
   ed.verify = function (hash, signatureBuffer, publicKeyBuffer) {
