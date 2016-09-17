@@ -871,7 +871,15 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						} else {
 							library.bus.message('newBlock', block, broadcast);
 							// DATABASE write. Update delegates accounts
-							modules.round.tick(block, done);
+							modules.round.tick(block, function (err) {
+								if (err === 'Snapshot finished') {
+									__private.isActive = false;
+									library.logger.info(err);
+									process.emit('SIGTERM');
+								} else {
+									done(err);
+								}
+							});
 						}
 					});
 				}
