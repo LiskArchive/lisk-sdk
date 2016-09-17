@@ -274,7 +274,7 @@ __private.loadBlockChain = function () {
 		}
 
 		var unapplied = results[2].filter(function (row) {
-			return (row.round !== round);
+			return (row.round !== String(round));
 		});
 
 		if (unapplied.length > 0) {
