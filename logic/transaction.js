@@ -237,14 +237,8 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	}
 
 	// Verify signature
-	if (trs.requesterPublicKey) {
-		if (!this.verifySignature(trs, trs.requesterPublicKey, trs.signature)) {
-			return setImmediate(cb, 'Failed to verify signature');
-		}
-	} else {
-		if (!this.verifySignature(trs, trs.senderPublicKey, trs.signature)) {
-			return setImmediate(cb, 'Failed to verify signature');
-		}
+	if (!this.verifySignature(trs, (trs.requesterPublicKey || trs.senderPublicKey), trs.signature)) {
+		return setImmediate(cb, 'Failed to verify signature');
 	}
 
 	// Call process on transaction type
@@ -311,12 +305,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	// Verify signature
 	try {
 		valid = false;
-
-		if (trs.requesterPublicKey) {
-			valid = this.verifySignature(trs, trs.requesterPublicKey, trs.signature);
-		} else {
-			valid = this.verifySignature(trs, trs.senderPublicKey, trs.signature);
-		}
+		valid = this.verifySignature(trs, (trs.requesterPublicKey || trs.senderPublicKey), trs.signature);
 	} catch (e) {
 		this.scope.logger.error(e.toString());
 		return setImmediate(cb, e.toString());
@@ -327,21 +316,14 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Verify second signature
-	if (!trs.requesterPublicKey && sender.secondSignature) {
+	if (requester.secondSignature || sender.secondSignature) {
 		try {
-			valid = this.verifySecondSignature(trs, sender.secondPublicKey, trs.signSignature);
+			valid = false;
+			valid = this.verifySecondSignature(trs, (requester.secondPublicKey || sender.secondPublicKey), trs.signSignature);
 		} catch (e) {
 			return setImmediate(cb, e.toString());
 		}
-		if (!valid) {
-			return setImmediate(cb, 'Failed to verify second signature');
-		}
-	} else if (trs.requesterPublicKey && requester.secondSignature) {
-		try {
-			valid = this.verifySecondSignature(trs, requester.secondPublicKey, trs.signSignature);
-		} catch (e) {
-			return setImmediate(cb, e.toString());
-		}
+
 		if (!valid) {
 			return setImmediate(cb, 'Failed to verify second signature');
 		}
