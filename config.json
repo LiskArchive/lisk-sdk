@@ -5,6 +5,7 @@
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
     "consoleLogLevel": "log",
+    "trustProxy": false,
     "db": {
         "host": "localhost",
         "port": 5432,
