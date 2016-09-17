@@ -1054,8 +1054,9 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 
 				if (err) {
 					return setImmediate(callback, 'Error loading blocks: ' + err, lastValidBlock);
+				} else {
+					return setImmediate(callback, null, lastValidBlock);
 				}
-				return setImmediate(callback, null, lastValidBlock);
 			});
 		}
 	});
