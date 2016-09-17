@@ -611,17 +611,7 @@ Loader.prototype.onBlockchainReady = function () {
 
 Loader.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	if (!__private.isActive) {
-		return cb();
-	} else {
-		setImmediate(function nextWatch () {
-			if (__private.isActive) {
-				setTimeout(nextWatch, 1 * 1000);
-			} else {
-				return cb();
-			}
-		});
-	}
+	return cb();
 };
 
 // Private
