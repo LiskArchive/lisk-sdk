@@ -72,12 +72,12 @@ function Multisignature () {
 					}
 
 					if (!verify) {
-						return setImmediate(cb, 'Failed to verify signatures in multisignature keysgroup');
+						return setImmediate(cb, 'Failed to verify signature in multisignature keysgroup');
 					}
 				}
 			} catch (e) {
 				library.logger.error(e.toString());
-				return setImmediate(cb, 'Failed to verify signatures in multisignature keysgroup');
+				return setImmediate(cb, 'Failed to verify signature in multisignature keysgroup');
 			}
 		}
 
