@@ -1,5 +1,4 @@
 var crypto = require("crypto");
-var ed = require("ed25519");
 var ip = require("ip");
 var ByteBuffer = require("bytebuffer");
 var constants = require("../helpers/constants.js");

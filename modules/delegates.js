@@ -1,6 +1,5 @@
 var crypto = require("crypto");
 var extend = require("extend");
-var ed = require("ed25519");
 var async = require("async");
 var shuffle = require("knuth-shuffle").knuthShuffle;
 var bignum = require("../helpers/bignum.js");
@@ -352,7 +351,7 @@ private.attachApi = function () {
 				return res.json({success: false, error: "Access denied"});
 			}
 
-			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
@@ -406,7 +405,7 @@ private.attachApi = function () {
 				return res.json({success: false, error: "Access denied"});
 			}
 
-			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') != body.publicKey) {
@@ -640,7 +639,7 @@ private.loadMyDelegates = function (cb) {
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
-		var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+		var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 
 		modules.accounts.getAccount({
 			publicKey: keypair.publicKey.toString('hex')
@@ -1127,7 +1126,7 @@ shared.addDelegate = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = ed.MakeKeypair(hash);
+		var keypair = library.ed.makeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
@@ -1175,7 +1174,7 @@ shared.addDelegate = function (req, cb) {
 
 						if (requester.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-							secondKeypair = ed.MakeKeypair(secondHash);
+							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
 						try {
@@ -1211,7 +1210,7 @@ shared.addDelegate = function (req, cb) {
 
 					if (account.secondSignature) {
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						secondKeypair = ed.MakeKeypair(secondHash);
+						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
 					try {

@@ -1,5 +1,4 @@
 var slots = require("../helpers/slots.js");
-var ed = require("ed25519");
 var crypto = require("crypto");
 var genesisblock = null;
 var constants = require("../helpers/constants.js");
@@ -76,13 +75,13 @@ Transaction.prototype.attachAssetType = function (typeId, instance) {
 
 Transaction.prototype.sign = function (keypair, trs) {
 	var hash = this.getHash(trs);
-	return ed.Sign(hash, keypair).toString('hex');
+	return this.scope.ed.sign(hash, keypair).toString('hex');
 }
 
 Transaction.prototype.multisign = function (keypair, trs) {
 	var bytes = this.getBytes(trs, true, true);
 	var hash = crypto.createHash('sha256').update(bytes).digest();
-	return ed.Sign(hash, keypair).toString('hex');
+	return this.scope.ed.sign(hash, keypair).toString('hex');
 }
 
 Transaction.prototype.getId = function (trs) {
@@ -286,7 +285,16 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	if (!valid) {
-		return setImmediate(cb, "Failed to verify signature");
+		var err = 'Failed to verify signature';
+
+		if (constants.signatureExceptions.indexOf(trs.id) > -1) {
+			this.scope.logger.debug(err);
+			this.scope.logger.debug(JSON.stringify(trs));
+			valid = true;
+			err = null;
+		} else {
+			return setImmediate(cb, err);
+		}
 	}
 
 	// Verify second signature
@@ -428,7 +436,7 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
 		var hash = crypto.createHash('sha256').update(data2).digest();
 		var signatureBuffer = new Buffer(signature, 'hex');
 		var publicKeyBuffer = new Buffer(publicKey, 'hex');
-		var res = ed.Verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
+		var res = this.scope.ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
 	} catch (e) {
 		throw Error(e.toString());
 	}

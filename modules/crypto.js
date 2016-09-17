@@ -2,7 +2,6 @@ var util = require("util");
 var request = require("request");
 var fs = require("fs");
 var crypto = require("crypto");
-var ed = require("ed25519");
 var sandboxHelper = require("../helpers/sandbox.js");
 
 // Private fields
