@@ -262,7 +262,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 };
 
 Transaction.prototype.verify = function (trs, sender, requester, cb) {
-	var valid;
+	var valid = false;
 
 	if (typeof requester === 'function') {
 		cb = requester;
@@ -359,10 +359,8 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Verify multisignatures
 	if (trs.signatures) {
-		var verify;
-
 		for (var d = 0; d < trs.signatures.length; d++) {
-			verify = false;
+			valid = false;
 
 			for (var s = 0; s < multisignatures.length; s++) {
 				if (trs.requesterPublicKey && multisignatures[s] === trs.requesterPublicKey) {
@@ -370,11 +368,11 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 				}
 
 				if (this.verifySignature(trs, multisignatures[s], trs.signatures[d])) {
-					verify = true;
+					valid = true;
 				}
 			}
 
-			if (!verify) {
+			if (!valid) {
 				return setImmediate(cb, 'Failed to verify multisignature');
 			}
 		}
