@@ -609,6 +609,10 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			var blocks = __private.readDbRows(rows);
 
 			async.eachSeries(blocks, function (block, cb) {
+				if (__private.cleanup) {
+					return cb();
+				}
+
 				library.logger.debug('Processing block', block.id);
 				if (verify && block.id !== genesisblock.block.id) {
 					// Sanity check of the block, if values are coherent.
@@ -913,7 +917,9 @@ __private.applyGenesisBlock = function (block, cb) {
 // * Verify the block is compatible with database state (DATABASE readonly)
 // * Apply the block to database if both verifications are ok
 Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
-	if (!__private.loaded) {
+	if (__private.cleanup) {
+		return setImmediate(cb, 'Cleaning up');
+	} else if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
@@ -1036,6 +1042,10 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 			return setImmediate(callback, null, lastValidBlock);
 		} else {
 			async.eachSeries(blocks, function (block, cb) {
+				if (__private.cleanup) {
+					return cb();
+				}
+
 				self.processBlock(block, false, function (err) {
 					if (!err) {
 						lastValidBlock = block;
@@ -1167,11 +1177,14 @@ Blocks.prototype.onBind = function (scope) {
 
 Blocks.prototype.cleanup = function (cb) {
 	__private.loaded = false;
+	__private.cleanup = true;
+
 	if (!__private.isActive) {
 		return cb();
 	} else {
 		setImmediate(function nextWatch () {
 			if (__private.isActive) {
+				library.logger.info('Waiting for block processing to finish...');
 				setTimeout(nextWatch, 1 * 1000);
 			} else {
 				return cb();
