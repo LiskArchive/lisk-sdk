@@ -10,7 +10,6 @@ var request = require('request');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
-var util = require('util');
 var zlib = require('zlib');
 
 // Private fields
@@ -533,7 +532,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		headers: _.extend({}, __private.headers, options.headers),
 		timeout: library.config.peers.options.timeout
 	};
-	if (Object.prototype.toString.call(options.data) === '[object Object]' || util.isArray(options.data)) {
+	if (Object.prototype.toString.call(options.data) === '[object Object]' || Array.isArray(options.data)) {
 		req.json = options.data;
 	} else {
 		req.body = options.data;
