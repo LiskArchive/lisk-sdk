@@ -22,7 +22,7 @@
     "express": "=4.14.0",
     "express-domain-middleware": "=0.1.0",
     "express-query-int": "=1.0.1",
-    "express-rate-limit": "=2.4.0",
+    "express-rate-limit": "=2.5.0",
     "extend": "=3.0.0",
     "ip": "=1.1.3",
     "js-nacl": "LiskHQ/js-nacl#6dc1417",
