@@ -9,7 +9,7 @@
   },
   "author": "Boris Povod <boris@crypti.me>, Pavel Nekrasov <landgraf.paul@gmail.com>",
   "dependencies": {
-    "async": "=1.5.2",
+    "async": "=2.0.1",
     "body-parser": "=1.15.2",
     "bytebuffer": "=5.0.1",
     "change-case": "=3.0.0",
