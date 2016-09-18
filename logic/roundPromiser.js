@@ -5,123 +5,124 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/round.js');
 
 function RoundPromiser (scope, t) {
-	var modules = scope.modules;
-	var __private = scope.__private;
-	var self = this;
+	this.scope = scope;
+	this.t = t;
+}
 
-	function RoundChanges (round) {
-		var roundFees = Math.floor(__private.feesByRound[round]) || 0;
-		var roundRewards = (__private.rewardsByRound[round] || []);
+RoundPromiser.prototype.mergeBlockGenerator = function () {
+	return this.t.none(
+		this.scope.modules.accounts.mergeAccountAndGet({
+			publicKey: this.scope.block.generatorPublicKey,
+			producedblocks: (this.scope.backwards ? -1 : 1),
+			blockId: this.scope.block.id,
+			round: this.scope.round
+		})
+	);
+};
 
-		this.at = function (index) {
-			var fees = Math.floor(roundFees / slots.delegates),
-			    feesRemaining = roundFees - (fees * slots.delegates),
-			    rewards = Math.floor(roundRewards[index]) || 0;
-
-			return {
-				fees : fees,
-				feesRemaining : feesRemaining,
-				rewards : rewards,
-				balance : fees + rewards
-			};
-		};
+RoundPromiser.prototype.updateMissedBlocks = function () {
+	if (this.scope.outsiders.length === 0) {
+		return this.t;
 	}
 
-	this.mergeBlockGenerator = function () {
-		return t.none(
-			modules.accounts.mergeAccountAndGet({
-				publicKey: scope.block.generatorPublicKey,
-				producedblocks: (scope.backwards ? -1 : 1),
-				blockId: scope.block.id,
-				round: scope.round
-			})
-		);
-	};
+	return this.t.none(sql.updateMissedBlocks, [this.scope.outsiders]);
+};
 
-	this.updateMissedBlocks = function () {
-		if (scope.outsiders.length === 0) {
-			return t;
-		}
+RoundPromiser.prototype.getVotes = function () {
+	return this.t.query(sql.getVotes, { round: this.scope.round });
+};
 
-		return t.none(sql.updateMissedBlocks, [scope.outsiders]);
-	};
+RoundPromiser.prototype.updateVotes = function () {
+	var self = this;
 
-	this.getVotes = function () {
-		return t.query(sql.getVotes, { round: scope.round });
-	};
-
-	this.updateVotes = function () {
-		return self.getVotes(scope.round).then(function (votes) {
-			var queries = votes.map(function (vote) {
-				return pgp.as.format(sql.updateVotes, {
-					address: modules.accounts.generateAddressByPublicKey(vote.delegate),
-					amount: Math.floor(vote.amount)
-				});
-			}).join('');
-
-			if (queries.length > 0) {
-				return t.none(queries);
-			} else {
-				return t;
-			}
-		});
-	};
-
-	this.flushRound = function () {
-		return t.none(sql.flush, { round: scope.round });
-	};
-
-	this.truncateBlocks = function () {
-		return t.none(sql.truncateBlocks, { height: scope.block.height });
-	};
-
-	this.applyRound = function () {
-		var roundChanges = new RoundChanges(scope.round, __private);
-		var queries = [];
-
-		for (var i = 0; i < scope.delegates.length; i++) {
-			var delegate = scope.delegates[i],
-					changes	= roundChanges.at(i);
-
-			queries.push(modules.accounts.mergeAccountAndGet({
-				publicKey: delegate,
-				balance: (scope.backwards ? -changes.balance : changes.balance),
-				u_balance: (scope.backwards ? -changes.balance : changes.balance),
-				blockId: scope.block.id,
-				round: scope.round,
-				fees: (scope.backwards ? -changes.fees : changes.fees),
-				rewards: (scope.backwards ? -changes.rewards : changes.rewards)
-			}));
-
-			if (i === scope.delegates.length - 1) {
-				queries.push(modules.accounts.mergeAccountAndGet({
-					publicKey: delegate,
-					balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-					u_balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-					blockId: scope.block.id,
-					round: scope.round,
-					fees: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-				}));
-			}
-		}
-
-		return t.none(queries.join(''));
-	};
-
-	this.land = function () {
-		__private.ticking = true;
-		return this.updateVotes()
-			.then(this.updateMissedBlocks)
-			.then(this.flushRound)
-			.then(this.applyRound)
-			.then(this.updateVotes)
-			.then(this.flushRound)
-			.then(function () {
-				__private.ticking = false;
-				return t;
+	return self.getVotes(self.scope.round).then(function (votes) {
+		var queries = votes.map(function (vote) {
+			return pgp.as.format(sql.updateVotes, {
+				address: self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate),
+				amount: Math.floor(vote.amount)
 			});
-	};
+		}).join('');
+
+		if (queries.length > 0) {
+			return self.t.none(queries);
+		} else {
+			return self.t;
+		}
+	});
+};
+
+RoundPromiser.prototype.flushRound = function () {
+	return this.t.none(sql.flush, { round: this.scope.round });
+};
+
+RoundPromiser.prototype.truncateBlocks = function () {
+	return this.t.none(sql.truncateBlocks, { height: this.scope.block.height });
+};
+
+RoundPromiser.prototype.applyRound = function () {
+	var roundChanges = new RoundChanges(this.scope);
+	var queries = [];
+
+	for (var i = 0; i < this.scope.delegates.length; i++) {
+		var delegate = this.scope.delegates[i],
+				changes	= roundChanges.at(i);
+
+		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
+			publicKey: delegate,
+			balance: (this.scope.backwards ? -changes.balance : changes.balance),
+			u_balance: (this.scope.backwards ? -changes.balance : changes.balance),
+			blockId: this.scope.block.id,
+			round: this.scope.round,
+			fees: (this.scope.backwards ? -changes.fees : changes.fees),
+			rewards: (this.scope.backwards ? -changes.rewards : changes.rewards)
+		}));
+
+		if (i === this.scope.delegates.length - 1) {
+			queries.push(this.scope.modules.accounts.mergeAccountAndGet({
+				publicKey: delegate,
+				balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
+				u_balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
+				blockId: this.scope.block.id,
+				round: this.scope.round,
+				fees: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
+			}));
+		}
+	}
+
+	return this.t.none(queries.join(''));
+};
+
+RoundPromiser.prototype.land = function () {
+	this.scope.__private.ticking = true;
+	return this.updateVotes()
+		.then(this.updateMissedBlocks.bind(this))
+		.then(this.flushRound.bind(this))
+		.then(this.applyRound.bind(this))
+		.then(this.updateVotes.bind(this))
+		.then(this.flushRound.bind(this))
+		.then(function () {
+			this.scope.__private.ticking = false;
+			return this.t;
+		}.bind(this));
+};
+
+function RoundChanges (scope) {
+	this.roundFees = Math.floor(scope.__private.feesByRound[scope.round]) || 0;
+	this.roundRewards = (scope.__private.rewardsByRound[scope.round] || []);
 }
+
+RoundChanges.prototype.at = function (index) {
+	var fees = Math.floor(this.roundFees / slots.delegates);
+	var feesRemaining = this.roundFees - (fees * slots.delegates);
+	var rewards = Math.floor(this.roundRewards[index]) || 0;
+
+	return {
+		fees: fees,
+		feesRemaining: feesRemaining,
+		rewards: rewards,
+		balance: fees + rewards
+	};
+};
 
 // Export
 module.exports = RoundPromiser;
