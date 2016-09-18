@@ -77,13 +77,13 @@ function RoundPromiser (scope, t) {
 
 	this.applyRound = function () {
 		var roundChanges = new RoundChanges(scope.round, __private);
-		var queries = '';
+		var queries = [];
 
 		for (var i = 0; i < scope.delegates.length; i++) {
 			var delegate = scope.delegates[i],
 					changes	= roundChanges.at(i);
 
-			queries += modules.accounts.mergeAccountAndGet({
+			queries.push(modules.accounts.mergeAccountAndGet({
 				publicKey: delegate,
 				balance: (scope.backwards ? -changes.balance : changes.balance),
 				u_balance: (scope.backwards ? -changes.balance : changes.balance),
@@ -91,21 +91,21 @@ function RoundPromiser (scope, t) {
 				round: scope.round,
 				fees: (scope.backwards ? -changes.fees : changes.fees),
 				rewards: (scope.backwards ? -changes.rewards : changes.rewards)
-			});
+			}));
 
 			if (i === scope.delegates.length - 1) {
-				queries += modules.accounts.mergeAccountAndGet({
+				queries.push(modules.accounts.mergeAccountAndGet({
 					publicKey: delegate,
 					balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
 					u_balance: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
 					blockId: scope.block.id,
 					round: scope.round,
 					fees: (scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-				});
+				}));
 			}
 		}
 
-		return t.none(queries);
+		return t.none(queries.join(''));
 	};
 
 	this.land = function () {
