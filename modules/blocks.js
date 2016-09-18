@@ -202,7 +202,7 @@ __private.list = function (filter, cb) {
 	}
 
 	var orderBy = OrderBy(
-		filter.orderBy, {
+		(filter.orderBy || 'height:desc'), {
 			sortFields: sql.sortFields,
 			fieldPrefix: 'b_'
 		}
