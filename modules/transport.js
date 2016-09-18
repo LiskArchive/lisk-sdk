@@ -7,11 +7,9 @@ var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
 var request = require('request');
-var RequestSanitizer = require('../helpers/request-sanitizer.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
-var util = require('util');
 var zlib = require('zlib');
 
 // Private fields
@@ -153,7 +151,7 @@ __private.attachApi = function () {
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
 
 				if (report) {
-					modules.peer.state(req.peer.ip, RequestSanitizer.int(req.peer.port), 0, 3600);
+					modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
 				}
 
 				return res.json({success: false, error: 'Invalid block id sequence'});
@@ -334,7 +332,7 @@ __private.attachApi = function () {
 			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
-				modules.peer.state(req.peer.ip, req.port, 0, 3600);
+				modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
 			return res.status(200).json({success: false, message: 'Invalid transaction body'});
@@ -534,7 +532,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		headers: _.extend({}, __private.headers, options.headers),
 		timeout: library.config.peers.options.timeout
 	};
-	if (Object.prototype.toString.call(options.data) === '[object Object]' || util.isArray(options.data)) {
+	if (Object.prototype.toString.call(options.data) === '[object Object]' || Array.isArray(options.data)) {
 		req.json = options.data;
 	} else {
 		req.body = options.data;

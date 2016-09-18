@@ -150,8 +150,8 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
-				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
 				library.logger.warn(e.toString());
+				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
 				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
@@ -274,7 +274,7 @@ __private.loadBlockChain = function () {
 		}
 
 		var unapplied = results[2].filter(function (row) {
-			return (row.round !== round);
+			return (row.round !== String(round));
 		});
 
 		if (unapplied.length > 0) {
@@ -317,67 +317,70 @@ __private.loadBlockChain = function () {
 };
 
 __private.loadBlocksFromNetwork = function (cb) {
-	var loadErrorCount = 0;
+	var errorCount = 0;
 	var loaded = false;
+
 	self.getNetwork(function (err, network) {
 		if (err) {
-			return setTimeout(function () {
-				__private.loadBlocksFromNetwork(cb);
-			}, __private.retryInterval);
+			return cb(err);
 		} else {
 			async.whilst(
 				function () {
-					return !loaded && loadErrorCount < 5;
+					return !loaded && errorCount < 5;
 				},
 				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlock = modules.blocks.getLastBlock();
-					__private.blocksToSync = peer.height;
 
-					library.logger.info('Looking for common block with: ' + peer.ip);
-
-					modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
-						if (!commonBlock) {
-							if (err) { library.logger.error(err.toString()); }
-							library.logger.error('Could not find common block with: ' + peer.ip);
-							library.logger.info('Trying to reload from another random peer');
-							loadErrorCount += 1;
-							return next();
-						}
-
-						library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.ip].join(' '));
+					function loadBlocks () {
+						__private.blocksToSync = peer.height;
 
 						modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
 								library.logger.error(err.toString());
-								library.logger.error('Could not load blocks from: ' + peer.ip);
-								library.logger.info('Trying to reload from another random peer');
-								loadErrorCount += 1;
+								library.logger.error('Failed to load blocks from: ' + peer.string);
+								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
 							next();
 						});
-					});
+					}
+
+					function getCommonBlock (cb) {
+						library.logger.info('Looking for common block with: ' + peer.string);
+						modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
+							if (!commonBlock) {
+								if (err) { library.logger.error(err.toString()); }
+								library.logger.error('Failed to find common block with: ' + peer.string);
+								errorCount += 1;
+								return next();
+							} else {
+								library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
+								return cb();
+							}
+						});
+					}
+
+					if (lastBlock.height === 1) {
+						loadBlocks();
+					} else {
+						getCommonBlock(loadBlocks);
+					}
 				},
 				function (err) {
-					if (loadErrorCount === 5) {
-						library.logger.info('Peer is not well connected to network, resyncing from network');
-						return setTimeout(function () {
-							__private.loadBlocksFromNetwork(cb);
-						}, __private.retryInterval);
-					}
 					if (err) {
-						library.logger.error('Could not load blocks from network', err);
+						library.logger.error('Failed to load blocks from network', err);
 						return cb(err);
+					} else {
+						return cb();
 					}
-					return cb();
 				}
 			);
 		}
 	});
 };
 
-// Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
+// Given a list of peers with associated blockchain height (heights = { peer: peer, height: height }), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 __private.findGoodPeers = function (heights) {
 	// Removing unreachable peers
 	heights = heights.filter(function (item) {
@@ -392,11 +395,13 @@ __private.findGoodPeers = function (heights) {
 		heights = heights.sort(function (a,b) {
 			return b.height - a.height;
 		});
+
 		var histogram = {};
 		var max = 0;
 		var height;
 
-		var aggregation = 2; // Aggregating height by 2. TODO: To be changed if node latency increases?
+		// Aggregating height by 2. TODO: To be changed if node latency increases?
+		var aggregation = 2;
 
 		// Histogram calculation, together with histogram maximum
 		for (var i in heights) {
@@ -432,17 +437,15 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < 101) {
 		return setImmediate(cb, null, __private.network);
 	}
+
 	// Fetch a list of 100 random peers
 	modules.transport.getFromRandomPeer({
 		api: '/list',
 		method: 'GET'
 	}, function (err, data) {
 		if (err) {
-			library.logger.info('Could not connect properly to the network', err);
-			library.logger.info('Retrying...', err);
-			return setTimeout(function () {
-				self.getNetwork(cb);
-			}, __private.retryInterval);
+			library.logger.info('Failed to connect properly with network', err);
+			return setImmediate(cb, err);
 		}
 
 		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
@@ -497,7 +500,8 @@ Loader.prototype.getNetwork = function (cb) {
 						method: 'GET'
 					}, function (err, result) {
 						if (err) {
-							return cb(err);
+							library.logger.warn(['Checking blockchain on:', peer.string, 'failed to get height'].join(' '));
+							return cb();
 						}
 						var heightIsValid = library.scheme.validate(result.body, {
 							type: 'object',
@@ -510,20 +514,19 @@ Loader.prototype.getNetwork = function (cb) {
 						});
 
 						if (heightIsValid) {
-							library.logger.info('Checking blockchain on: ' + result.peer.string, 'received height: ' + result.body.height);
-							var peer = modules.peer.inspect(result.peer);
-							return cb(null, { peer: peer, height: result.body.height });
+							library.logger.info(['Checking blockchain on:', result.peer.string, 'received height:', result.body.height].join(' '));
+							return cb(null, { peer: modules.peer.inspect(result.peer), height: result.body.height });
 						} else {
-							library.logger.warn('Checking blockchain on: ' + result.peer.string, 'received invalid height');
+							library.logger.warn(['Checking blockchain on:', result.peer.string, 'received invalid height'].join(' '));
 							return cb();
 						}
 					});
 				}
-			},function (err, heights) {
+			}, function (err, heights) {
 				__private.network = __private.findGoodPeers(heights);
 
 				if (!__private.network.peers.length) {
-					return setImmediate(cb, 'Could not find enough good peers to sync from');
+					return setImmediate(cb, 'Failed to find enough good peers to sync with');
 				} else {
 					return setImmediate(cb, null, __private.network);
 				}
@@ -543,42 +546,56 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 // Events
 Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadBlock () {
-		library.sequence.add(function (cb) {
-			__private.isActive = true;
-			__private.syncTrigger(true);
-			__private.loadBlocksFromNetwork(cb);
-		}, function (err) {
-			if (err) {
-				library.logger.error('Blocks timer', err);
-			}
-			__private.isActive = false;
-			__private.syncTrigger(false);
-			__private.blocksToSync = 0;
-		});
-		library.logger.debug('Checking blockchain for new block in 10 seconds');
-		setTimeout(nextLoadBlock, 10 * 1000);
+		if (__private.loaded && !self.syncing()) {
+			library.logger.debug('Loading blocks from network');
+			library.sequence.add(function (cb) {
+				__private.isActive = true;
+				__private.syncTrigger(true);
+				__private.loadBlocksFromNetwork(cb);
+			}, function (err) {
+				if (err) {
+					library.logger.warn('Blocks timer', err);
+				}
+
+				__private.isActive = false;
+				__private.syncTrigger(false);
+				__private.blocksToSync = 0;
+
+				setTimeout(nextLoadBlock, 10000);
+			});
+		} else {
+			setTimeout(nextLoadBlock, 10000);
+		}
 	});
 
 	setImmediate(function nextLoadUnconfirmedTransactions () {
-		if (!__private.loaded || self.syncing()) { return; }
+		if (__private.loaded && !self.syncing()) {
+			library.logger.debug('Loading unconfirmed transactions');
+			__private.loadUnconfirmedTransactions(function (err) {
+				if (err) {
+					library.logger.warn('Unconfirmed transactions timer', err);
+				}
 
-		__private.loadUnconfirmedTransactions(function (err) {
-			if (err) {
-				library.logger.error('Unconfirmed transactions timer:', err);
-			}
-			setTimeout(nextLoadUnconfirmedTransactions, 14 * 1000);
-		});
+				setTimeout(nextLoadUnconfirmedTransactions, 14000);
+			});
+		} else {
+			setTimeout(nextLoadUnconfirmedTransactions, 14000);
+		}
 	});
 
 	setImmediate(function nextLoadSignatures () {
-		if (!__private.loaded || self.syncing()) { return; }
+		if (__private.loaded && !self.syncing()) {
+			library.logger.debug('Loading signatures');
+			__private.loadSignatures(function (err) {
+				if (err) {
+					library.logger.warn('Signatures timer', err);
+				}
 
-		__private.loadSignatures(function (err) {
-			if (err) {
-				library.logger.error('Signatures timer:', err);
-			}
-			setTimeout(nextLoadSignatures, 14 * 1000);
-		});
+				setTimeout(nextLoadSignatures, 14000);
+			});
+		} else {
+			setTimeout(nextLoadSignatures, 14000);
+		}
 	});
 };
 
@@ -594,27 +611,14 @@ Loader.prototype.onBlockchainReady = function () {
 
 Loader.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	if (!__private.isActive) {
-		return cb();
-	} else {
-		setImmediate(function nextWatch () {
-			if (__private.isActive) {
-				setTimeout(nextWatch, 1 * 1000);
-			} else {
-				return cb();
-			}
-		});
-	}
+	return cb();
 };
 
 // Private
 __private.ping = function (cb) {
-	var epoch = constants.epochTime / 1000;
-	var lastBlockTime = epoch + modules.blocks.getLastBlock().timestamp;
-	var currentTime = new Date().getTime() / 1000;
-	var blockAge = currentTime - lastBlockTime;
+	var lastBlock = modules.blocks.getLastBlock();
 
-	if (blockAge < 120) {
+	if (lastBlock && lastBlock.secondsAgo < 120) {
 		return cb(200, {success: true});
 	} else {
 		return cb(503, {success: false});

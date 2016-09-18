@@ -7,7 +7,6 @@ var BlockReward = require('../logic/blockReward.js');
 var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
-var ed = require('ed25519');
 var extend = require('extend');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
@@ -113,7 +112,7 @@ __private.attachApi = function () {
 				return res.json({success: false, error: 'Access denied'});
 			}
 
-			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -168,7 +167,7 @@ __private.attachApi = function () {
 				return res.json({success: false, error: 'Access denied'});
 			}
 
-			var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
 
 			if (body.publicKey) {
 				if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -267,21 +266,21 @@ __private.getBlockSlotData = function (slot, height, cb) {
 	});
 };
 
-__private.loop = function (cb) {
+__private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
-		library.logger.debug('Loop:', 'no delegates');
+		library.logger.debug('No delegates found to forge with');
 		return setImmediate(cb);
 	}
 
 	if (!__private.forging) {
-		library.logger.debug('Loop:', 'forging disabled');
+		library.logger.debug('Forging disabled due to timeout');
 		return setImmediate(cb);
 	}
 
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
 	if (!__private.loaded || modules.loader.syncing() || !modules.round.loaded() || modules.round.ticking()) {
-		library.logger.debug('Loop:', 'client not ready');
+		library.logger.debug('Client not ready to forge');
 		return setImmediate(cb);
 	}
 
@@ -289,13 +288,13 @@ __private.loop = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Loop:', 'lastBlock is in the same slot');
+		library.logger.debug('Last block within same delegate slot');
 		return setImmediate(cb);
 	}
 
 	__private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.debug('Loop:', 'skipping slot');
+			library.logger.debug('Skipping delegate slot');
 			return setImmediate(cb);
 		}
 
@@ -303,16 +302,25 @@ __private.loop = function (cb) {
 			if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()) {
 				modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
 					modules.blocks.lastReceipt(new Date());
-					library.logger.info('Forged new block id: ' + modules.blocks.getLastBlock().id + ' height: ' + modules.blocks.getLastBlock().height + ' round: ' + modules.round.calc(modules.blocks.getLastBlock().height) + ' slot: ' + slots.getSlotNumber(currentBlockData.time) + ' reward: ' + modules.blocks.getLastBlock().reward);
+
+					library.logger.info([
+						'Forged new block id:',
+						modules.blocks.getLastBlock().id,
+						'height:', modules.blocks.getLastBlock().height,
+						'round:', modules.round.calc(modules.blocks.getLastBlock().height),
+						'slot:', slots.getSlotNumber(currentBlockData.time),
+						'reward:' + modules.blocks.getLastBlock().reward
+					].join(' '));
+
 					return setImmediate(cb, err);
 				});
 			} else {
-				// library.logger.debug('Loop:', _activeDelegates[slots.getSlotNumber() % slots.delegates] + ' delegate slot');
+				library.logger.debug('Delegate slot', slots.getSlotNumber());
 				return setImmediate(cb);
 			}
 		}, function (err) {
 			if (err) {
-				library.logger.error('Failed generate block within slot', err);
+				library.logger.error('Failed generate block within delegate slot', err);
 			}
 			return setImmediate(cb);
 		});
@@ -403,7 +411,7 @@ __private.loadMyDelegates = function (cb) {
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
-		var keypair = ed.MakeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+		var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 
 		modules.accounts.getAccount({
 			publicKey: keypair.publicKey.toString('hex')
@@ -568,15 +576,14 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadMyDelegates(function nextLoop(err) {
+	__private.loadMyDelegates(function nextForge (err) {
 		if (err) {
-			library.logger.error('Failed to load delegates:', err);
+			library.logger.error('Failed to load delegates', err);
 		}
 
 		__private.toggleForgingOnReceipt();
-
-		__private.loop(function () {
-			setTimeout(nextLoop, 1000);
+		__private.forge(function () {
+			setTimeout(nextForge, 1000);
 		});
 	});
 };
@@ -615,12 +622,10 @@ __private.toggleForgingOnReceipt = function () {
 
 	if (lastReceipt) {
 		var timeOut = Number(constants.forgingTimeOut);
-		var timeNow = new Date();
-		var seconds = Math.floor((timeNow.getTime() - lastReceipt.getTime()) / 1000);
 
-		library.logger.debug('Last block received: ' + seconds + ' seconds ago');
+		library.logger.debug('Last block received: ' + lastReceipt.secondsAgo + ' seconds ago');
 
-		if (seconds > timeOut) {
+		if (lastReceipt.secondsAgo > timeOut) {
 			return self.disableForging('timeout');
 		} else {
 			return self.enableForging();
@@ -898,7 +903,7 @@ shared.addDelegate = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = ed.MakeKeypair(hash);
+		var keypair = library.ed.makeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -946,7 +951,7 @@ shared.addDelegate = function (req, cb) {
 
 						if (requester.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-							secondKeypair = ed.MakeKeypair(secondHash);
+							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
 						var transaction;
@@ -984,7 +989,7 @@ shared.addDelegate = function (req, cb) {
 
 					if (account.secondSignature) {
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						secondKeypair = ed.MakeKeypair(secondHash);
+						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
 					var transaction;

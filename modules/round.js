@@ -196,7 +196,7 @@ Round.prototype.tick = function (block, done) {
 		}
 	], function (err) {
 		if (scope.finishSnapshot) {
-			process.emit('SIGTERM');
+			return done('Snapshot finished');
 		} else {
 			return done(err);
 		}

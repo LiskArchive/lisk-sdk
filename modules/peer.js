@@ -68,6 +68,7 @@ __private.updatePeerList = function (cb) {
 		}
 
 		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
+
 		library.scheme.validate(data.body, {
 			type: 'object',
 			properties: {
@@ -110,7 +111,6 @@ __private.updatePeerList = function (cb) {
 			library.logger.debug('Picked only: ' + peers.length);
 
 			async.eachLimit(peers, 2, function (peer, cb) {
-
 				library.scheme.validate(peer, {
 					type: 'object',
 					properties: {

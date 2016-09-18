@@ -6,7 +6,6 @@ var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var exceptions = require('../helpers/exceptions.js');
-var ed = require('ed25519');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
@@ -83,13 +82,13 @@ Transaction.prototype.attachAssetType = function (typeId, instance) {
 
 Transaction.prototype.sign = function (keypair, trs) {
 	var hash = this.getHash(trs);
-	return ed.Sign(hash, keypair).toString('hex');
+	return this.scope.ed.sign(hash, keypair).toString('hex');
 };
 
 Transaction.prototype.multisign = function (keypair, trs) {
 	var bytes = this.getBytes(trs, true, true);
 	var hash = crypto.createHash('sha256').update(bytes).digest();
-	return ed.Sign(hash, keypair).toString('hex');
+	return this.scope.ed.sign(hash, keypair).toString('hex');
 };
 
 Transaction.prototype.getId = function (trs) {
@@ -237,14 +236,8 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	}
 
 	// Verify signature
-	if (trs.requesterPublicKey) {
-		if (!this.verifySignature(trs, trs.requesterPublicKey, trs.signature)) {
-			return setImmediate(cb, 'Failed to verify signature');
-		}
-	} else {
-		if (!this.verifySignature(trs, trs.senderPublicKey, trs.signature)) {
-			return setImmediate(cb, 'Failed to verify signature');
-		}
+	if (!this.verifySignature(trs, (trs.requesterPublicKey || trs.senderPublicKey), trs.signature)) {
+		return setImmediate(cb, 'Failed to verify signature');
 	}
 
 	// Call process on transaction type
@@ -268,7 +261,8 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 };
 
 Transaction.prototype.verify = function (trs, sender, requester, cb) {
-	var valid;
+	var valid = false;
+	var err = null;
 
 	if (typeof requester === 'function') {
 		cb = requester;
@@ -285,8 +279,8 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check sender public key
-	if (sender.publicKey !== trs.senderPublicKey) {
-		var err = 'Invalid sender public key';
+	if (sender.publicKey && sender.publicKey !== trs.senderPublicKey) {
+		err = ['Invalid sender public key:', trs.senderPublicKey, 'expected:', sender.publicKey].join(' ');
 
 		if (exceptions.senderPublicKey.indexOf(trs.id) > -1) {
 			this.scope.logger.debug(err);
@@ -311,37 +305,34 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	// Verify signature
 	try {
 		valid = false;
-
-		if (trs.requesterPublicKey) {
-			valid = this.verifySignature(trs, trs.requesterPublicKey, trs.signature);
-		} else {
-			valid = this.verifySignature(trs, trs.senderPublicKey, trs.signature);
-		}
+		valid = this.verifySignature(trs, (trs.requesterPublicKey || trs.senderPublicKey), trs.signature);
 	} catch (e) {
 		this.scope.logger.error(e.toString());
 		return setImmediate(cb, e.toString());
 	}
 
 	if (!valid) {
-		return setImmediate(cb, 'Failed to verify signature');
+		err = 'Failed to verify signature';
+
+		if (exceptions.signatures.indexOf(trs.id) > -1) {
+			this.scope.logger.debug(err);
+			this.scope.logger.debug(JSON.stringify(trs));
+			valid = true;
+			err = null;
+		} else {
+			return setImmediate(cb, err);
+		}
 	}
 
 	// Verify second signature
-	if (!trs.requesterPublicKey && sender.secondSignature) {
+	if (requester.secondSignature || sender.secondSignature) {
 		try {
-			valid = this.verifySecondSignature(trs, sender.secondPublicKey, trs.signSignature);
+			valid = false;
+			valid = this.verifySecondSignature(trs, (requester.secondPublicKey || sender.secondPublicKey), trs.signSignature);
 		} catch (e) {
 			return setImmediate(cb, e.toString());
 		}
-		if (!valid) {
-			return setImmediate(cb, 'Failed to verify second signature');
-		}
-	} else if (trs.requesterPublicKey && requester.secondSignature) {
-		try {
-			valid = this.verifySecondSignature(trs, requester.secondPublicKey, trs.signSignature);
-		} catch (e) {
-			return setImmediate(cb, e.toString());
-		}
+
 		if (!valid) {
 			return setImmediate(cb, 'Failed to verify second signature');
 		}
@@ -377,10 +368,8 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Verify multisignatures
 	if (trs.signatures) {
-		var verify;
-
 		for (var d = 0; d < trs.signatures.length; d++) {
-			verify = false;
+			valid = false;
 
 			for (var s = 0; s < multisignatures.length; s++) {
 				if (trs.requesterPublicKey && multisignatures[s] === trs.requesterPublicKey) {
@@ -388,11 +377,11 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 				}
 
 				if (this.verifySignature(trs, multisignatures[s], trs.signatures[d])) {
-					verify = true;
+					valid = true;
 				}
 			}
 
-			if (!verify) {
+			if (!valid) {
 				return setImmediate(cb, 'Failed to verify multisignature');
 			}
 		}
@@ -472,7 +461,7 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
 		var signatureBuffer = new Buffer(signature, 'hex');
 		var publicKeyBuffer = new Buffer(publicKey, 'hex');
 
-		res = ed.Verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
+		res = this.scope.ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
 	} catch (e) {
 		throw Error(e.toString());
 	}

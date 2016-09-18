@@ -1,7 +1,6 @@
 'use strict';
 
 var crypto = require('crypto');
-var ed = require('ed25519');
 var fs = require('fs');
 var request = require('request');
 var sandboxHelper = require('../helpers/sandbox.js');
