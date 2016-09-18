@@ -9,6 +9,12 @@ var account3 = node.randomTxAccount();
 var transactionList = [];
 var offsetTimestamp = 0;
 
+function openAccount (params, done) {
+	node.post('/api/accounts/open', params, function (err, res) {
+		done(err, res);
+	});
+}
+
 function putTransaction (params, done) {
 	node.put('/api/transactions', params, done);
 }
@@ -325,14 +331,20 @@ describe('PUT /api/transactions', function () {
 	});
 
 	it('using entire balance should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: account.balance,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
+		openAccount({ secret: account.password }, function (err, res) {
+			node.expect(res.body).to.have.property('account').that.is.an('object');
+			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
+			account.balance = res.body.account.balance;
+
+			putTransaction({
+				secret: account.password,
+				amount: Math.floor(account.balance),
+				recipientId: account2.address
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: [0-9.]+/);
+				done();
+			});
 		});
 	});
 

@@ -40,8 +40,7 @@ describe('PUT /api/accounts/delegates without funds', function () {
 			delegates: ['+' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
 		});
 	});
@@ -52,8 +51,7 @@ describe('PUT /api/accounts/delegates without funds', function () {
 			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.contain('Failed to remove vote');
+			node.expect(res.body).to.have.property('error').to.match(/Failed to remove vote/);
 			done();
 		});
 	});
@@ -73,8 +71,7 @@ describe('PUT /api/delegates without funds', function () {
 			username: account.username
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.match(/Account has no LISK: [0-9]+/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
 		});
 	});
