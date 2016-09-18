@@ -545,6 +545,10 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeerReady = function () {
+	if (library.config.forging.force) {
+		return;
+		}
+
 	setImmediate(function nextLoadBlock () {
 		if (__private.loaded && !self.syncing()) {
 			library.logger.debug('Loading blocks from network');
