@@ -647,6 +647,7 @@ Blocks.prototype.getLastBlock = function () {
 		var currentTime = new Date().getTime() / 1000;
 
 		__private.lastBlock.secondsAgo = currentTime - lastBlockTime;
+		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < 120);
 	}
 
 	return __private.lastBlock;

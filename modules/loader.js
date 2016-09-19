@@ -620,7 +620,7 @@ Loader.prototype.cleanup = function (cb) {
 __private.ping = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
-	if (lastBlock && lastBlock.secondsAgo < 120) {
+	if (lastBlock && lastBlock.fresh) {
 		return cb(200, {success: true});
 	} else {
 		return cb(503, {success: false});
