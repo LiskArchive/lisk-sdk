@@ -87,7 +87,7 @@ describe('PUT /dapps', function () {
 
 		node.put('/api/dapps', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
 		});
 	});
@@ -305,7 +305,7 @@ describe('PUT /api/dapps/transaction', function () {
 
 		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Account has no LISK: [0-9]+L balance=0/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
 		});
 	});
@@ -498,7 +498,7 @@ describe('PUT /api/dapps/withdrawal', function () {
 
 		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Account has no LISK: [0-9]+L balance=0/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance=0/);
 			done();
 		});
 	});

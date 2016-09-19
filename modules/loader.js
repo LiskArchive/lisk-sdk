@@ -546,7 +546,9 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 // Events
 Loader.prototype.onPeerReady = function () {
 	setImmediate(function nextLoadBlock () {
-		if (__private.loaded && !self.syncing()) {
+		var lastReceipt = modules.blocks.lastReceipt();
+
+		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
 			library.logger.debug('Loading blocks from network');
 			library.sequence.add(function (cb) {
 				__private.isActive = true;
@@ -618,7 +620,7 @@ Loader.prototype.cleanup = function (cb) {
 __private.ping = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
-	if (lastBlock && lastBlock.secondsAgo < 120) {
+	if (lastBlock && lastBlock.fresh) {
 		return cb(200, {success: true});
 	} else {
 		return cb(503, {success: false});

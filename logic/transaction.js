@@ -482,7 +482,10 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 	var exceedsBalance = bignum(sender.balance.toString()).lessThan(amount);
 
 	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
-		return setImmediate(cb, 'Account has no LISK: ' + sender.address + ' balance=' + sender.balance);
+		return setImmediate(cb, [
+			'Account does not have enough LSK:', sender.address,
+			'balance:', bignum(sender.u_balance || 0).div(Math.pow(10,8))
+		].join(' '));
 	}
 
 	amount = amount.toNumber();
@@ -573,7 +576,10 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 	var exceedsBalance = bignum(sender.u_balance.toString()).lessThan(amount);
 
 	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
-		return setImmediate(cb, 'Account has no LISK: ' + sender.address + ' balance=' + sender.u_balance);
+		return setImmediate(cb, [
+			'Account does not have enough LSK:', sender.address,
+			'balance:', bignum(sender.balance || 0).div(Math.pow(10,8))
+		].join(' '));
 	}
 
 	amount = amount.toNumber();

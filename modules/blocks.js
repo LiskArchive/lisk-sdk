@@ -203,7 +203,7 @@ __private.list = function (filter, cb) {
 	}
 
 	var orderBy = OrderBy(
-		filter.orderBy, {
+		(filter.orderBy || 'height:desc'), {
 			sortFields: sql.sortFields,
 			fieldPrefix: 'b_'
 		}
@@ -474,6 +474,7 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 	if (__private.lastReceipt) {
 		var timeNow = new Date();
 		__private.lastReceipt.secondAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
+		__private.lastReceipt.stale = (__private.lastReceipt.secondAgo > 120);
 	}
 
 	return __private.lastReceipt;
@@ -621,7 +622,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 					var check = self.verifyBlock(block);
 
 					if (!check.verified) {
-						library.logger.error(['Block verification failed for:', block.id, 'at:', block.height].join(' '), check.errors.join(', '));
+						library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
 						return setImmediate(cb, check.errors[0]);
 					}
 				}
@@ -647,6 +648,7 @@ Blocks.prototype.getLastBlock = function () {
 		var currentTime = new Date().getTime() / 1000;
 
 		__private.lastBlock.secondsAgo = currentTime - lastBlockTime;
+		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < 120);
 	}
 
 	return __private.lastBlock;
@@ -963,7 +965,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	var check = self.verifyBlock(block);
 
 	if (!check.verified) {
-		library.logger.error(['Block', block.id, ' verification failed'].join(' '), check.errors.join(', '));
+		library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
 		return setImmediate(cb, check.errors[0]);
 	}
 

@@ -233,8 +233,34 @@ describe('GET /blocks', function () {
 		});
 	});
 
+	it('using orderBy == "height:asc" should be ok', function (done) {
+		getBlocks('orderBy=' + 'height:asc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('blocks').that.is.an('array');
+			for (var i = 0; i < res.body.blocks.length; i++) {
+				if (res.body.blocks[i + 1] != null) {
+					node.expect(res.body.blocks[i].height).to.be.below(res.body.blocks[i + 1].height);
+				}
+			}
+			done();
+		});
+	});
+
 	it('using orderBy == "height:desc" should be ok', function (done) {
 		getBlocks('orderBy=' + 'height:desc', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('blocks').that.is.an('array');
+			for (var i = 0; i < res.body.blocks.length; i++) {
+				if (res.body.blocks[i + 1] != null) {
+					node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
+				}
+			}
+			done();
+		});
+	});
+
+	it('should be ordered by "height:desc" by default', function (done) {
+		getBlocks('', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('blocks').that.is.an('array');
 			for (var i = 0; i < res.body.blocks.length; i++) {
