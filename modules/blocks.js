@@ -621,7 +621,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 					var check = self.verifyBlock(block);
 
 					if (!check.verified) {
-						library.logger.error(['Block verification failed for:', block.id, 'at:', block.height].join(' '), check.errors.join(', '));
+						library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
 						return setImmediate(cb, check.errors[0]);
 					}
 				}
@@ -964,7 +964,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	var check = self.verifyBlock(block);
 
 	if (!check.verified) {
-		library.logger.error(['Block', block.id, ' verification failed'].join(' '), check.errors.join(', '));
+		library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
 		return setImmediate(cb, check.errors[0]);
 	}
 
