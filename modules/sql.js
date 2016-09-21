@@ -26,8 +26,8 @@ __private.escape = function (what) {
 	switch (typeof what) {
 		case 'string':
 			return '\'' + what.replace(
-					__private.SINGLE_QUOTES, __private.SINGLE_QUOTES_DOUBLED
-				) + '\'';
+				__private.SINGLE_QUOTES, __private.SINGLE_QUOTES_DOUBLED
+			) + '\'';
 		case 'object':
 			if (what == null) {
 				return 'null';
