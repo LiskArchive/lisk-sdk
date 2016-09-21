@@ -399,7 +399,7 @@ Account.prototype.objectNormalize = function (account) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize account: ' + this.scope.scheme.getLastError());
+		throw 'Failed to normalize account: ' + this.scope.scheme.getLastError();
 	}
 
 	return account;
@@ -409,17 +409,17 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 	if (publicKey !== undefined) {
 		// Check type
 		if (typeof publicKey !== 'string') {
-			throw Error('Invalid public key, must be a string');
+			throw 'Invalid public key, must be a string';
 		}
 		// Check length
 		if (publicKey.length < 64) {
-			throw Error('Invalid public key, must be 64 characters long');
+			throw 'Invalid public key, must be 64 characters long';
 		}
 		// Check format
 		try {
 			new Buffer(publicKey, 'hex');
 		} catch (e) {
-			throw Error('Invalid public key, must be a hex string');
+			throw 'Invalid public key, must be a hex string';
 		}
 	}
 };

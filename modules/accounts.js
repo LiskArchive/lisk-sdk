@@ -158,7 +158,7 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 	var address = bignum.fromBuffer(temp).toString() + 'L';
 
 	if (!address) {
-		throw Error('Invalid public key: ' + publicKey);
+		throw 'Invalid public key: ' + publicKey;
 	}
 
 	return address;

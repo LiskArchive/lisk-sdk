@@ -68,7 +68,7 @@ Vote.prototype.getBytes = function (trs) {
 	try {
 		buf = trs.asset.votes ? new Buffer(trs.asset.votes.join(''), 'utf8') : null;
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return buf;
@@ -143,7 +143,7 @@ Vote.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize vote: ' + library.scheme.getLastError());
+		throw 'Failed to normalize vote: ' + library.scheme.getLastError();
 	}
 
 	return trs;

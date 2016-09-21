@@ -88,7 +88,7 @@ Block.prototype.create = function (data) {
 
 		block = this.objectNormalize(block);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return block;
@@ -148,7 +148,7 @@ Block.prototype.getBytes = function (block) {
 		bb.flip();
 		b = bb.toBuffer();
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return b;
@@ -170,7 +170,7 @@ Block.prototype.verifySignature = function (block) {
 		var generatorPublicKeyBuffer = new Buffer(block.generatorPublicKey, 'hex');
 		res = this.scope.ed.verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ');
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return res;
@@ -202,7 +202,7 @@ Block.prototype.dbSave = function (block) {
 		generatorPublicKey = new Buffer(block.generatorPublicKey, 'hex');
 		blockSignature = new Buffer(block.blockSignature, 'hex');
 	} catch (e) {
-		throw e.toString();
+		throw e;
 	}
 
 	return {
@@ -293,7 +293,7 @@ Block.prototype.objectNormalize = function (block) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize block: ' + this.scope.scheme.getLastError());
+		throw 'Failed to normalize block: ' + this.scope.scheme.getLastError();
 	}
 
 	try {
@@ -301,7 +301,7 @@ Block.prototype.objectNormalize = function (block) {
 			block.transactions[i] = this.scope.transaction.objectNormalize(block.transactions[i]);
 		}
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return block;

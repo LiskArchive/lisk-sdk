@@ -44,7 +44,7 @@ __private.escape = function (what) {
 		case 'number':
 			if (isFinite(what)) { return '' + what; }
 	}
-	throw new Error('Unsupported data', typeof what);
+	throw 'Unsupported data ' + typeof what;
 };
 
 __private.pass = function (obj, dappid) {

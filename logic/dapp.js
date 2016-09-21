@@ -171,7 +171,7 @@ DApp.prototype.getBytes = function (trs) {
 
 		buf = Buffer.concat([buf, bb.toBuffer()]);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return buf;
@@ -276,7 +276,7 @@ DApp.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize dapp: ' + library.scheme.getLastError());
+		throw 'Failed to normalize dapp: ' + library.scheme.getLastError();
 	}
 
 	return trs;

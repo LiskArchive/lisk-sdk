@@ -248,7 +248,7 @@ Multisignature.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize multisignature: ' + library.scheme.getLastError());
+		throw 'Failed to normalize multisignature: ' + library.scheme.getLastError();
 	}
 
 	return trs;

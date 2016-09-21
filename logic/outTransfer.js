@@ -94,7 +94,7 @@ OutTransfer.prototype.getBytes = function (trs) {
 		var transactionIdBuff = new Buffer(trs.asset.outTransfer.transactionId, 'utf8');
 		buf = Buffer.concat([buf, dappIdBuf, transactionIdBuff]);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return buf;
@@ -166,7 +166,7 @@ OutTransfer.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize outTransfer: ' + library.scheme.getLastError());
+		throw 'Failed to normalize outTransfer: ' + library.scheme.getLastError();
 	}
 
 	return trs;

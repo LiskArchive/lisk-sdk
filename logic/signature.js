@@ -66,7 +66,7 @@ Signature.prototype.getBytes = function (trs) {
 
 		bb.flip();
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 	return bb.toBuffer();
 };
@@ -114,7 +114,7 @@ Signature.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize signature: ' + library.scheme.getLastError());
+		throw 'Failed to normalize signature: ' + library.scheme.getLastError();
 	}
 
 	return trs;
@@ -146,7 +146,7 @@ Signature.prototype.dbSave = function (trs) {
 	try {
 		publicKey = new Buffer(trs.asset.signature.publicKey, 'hex');
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return {

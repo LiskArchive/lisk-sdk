@@ -69,7 +69,7 @@ InTransfer.prototype.getBytes = function (trs) {
 		var nameBuf = new Buffer(trs.asset.inTransfer.dappId, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return buf;
@@ -130,7 +130,7 @@ InTransfer.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize inTransfer: ' + library.scheme.getLastError());
+		throw 'Failed to normalize inTransfer: ' + library.scheme.getLastError();
 	}
 
 	return trs;

@@ -108,7 +108,7 @@ Delegate.prototype.getBytes = function (trs) {
 	try {
 		buf = new Buffer(trs.asset.delegate.username, 'utf8');
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return buf;
@@ -209,7 +209,7 @@ Delegate.prototype.objectNormalize = function (trs) {
 	});
 
 	if (!report) {
-		throw Error('Failed to normalize delegate: ' + library.scheme.getLastError());
+		throw 'Failed to normalize delegate: ' + library.scheme.getLastError();
 	}
 
 	return trs;

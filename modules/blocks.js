@@ -292,7 +292,7 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 		if (promise && promise.table) {
 			return promise.table;
 		} else {
-			throw new Error('Invalid promise');
+			throw 'Invalid promise';
 		}
 	};
 
@@ -303,7 +303,7 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 			if (promise && promise.values) {
 				values = values.concat(promise.values);
 			} else {
-				throw new Error('Invalid promise');
+				throw 'Invalid promise';
 			}
 		});
 
