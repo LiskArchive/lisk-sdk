@@ -85,7 +85,7 @@ __private.loadSignatures = function (cb) {
 		not_ban: true
 	}, function (err, data) {
 		if (err) {
-			return cb();
+			return setImmediate(cb);
 		}
 
 		library.scheme.validate(data.body, {
@@ -99,7 +99,7 @@ __private.loadSignatures = function (cb) {
 			required: ['signatures']
 		}, function (err) {
 			if (err) {
-				return cb();
+				return setImmediate(cb);
 			}
 
 			library.sequence.add(function (cb) {
@@ -124,7 +124,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 		method: 'GET'
 	}, function (err, data) {
 		if (err) {
-			return cb();
+			return setImmediate(cb);
 		}
 
 		var report = library.scheme.validate(data.body, {
@@ -139,7 +139,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 		});
 
 		if (!report) {
-			return cb();
+			return setImmediate(cb);
 		}
 
 		data.peer = modules.peer.inspect(data.peer);
@@ -189,13 +189,13 @@ __private.loadBlockChain = function () {
 								return setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
 										if (err) {
-											return cb(err);
+											return setImmediate(cb, err);
 										}
 
 										offset = offset + limit;
 										__private.loadingLastBlock = lastBlockOffset;
 
-										return cb();
+										return setImmediate(cb);
 									});
 								});
 							}, function (err) {
@@ -322,7 +322,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 
 	self.getNetwork(function (err, network) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		} else {
 			async.whilst(
 				function () {
@@ -356,7 +356,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 								return next();
 							} else {
 								library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
-								return cb();
+								return setImmediate(cb);
 							}
 						});
 					}
@@ -370,9 +370,9 @@ __private.loadBlocksFromNetwork = function (cb) {
 				function (err) {
 					if (err) {
 						library.logger.error('Failed to load blocks from network', err);
-						return cb(err);
+						return setImmediate(cb, err);
 					} else {
-						return cb();
+						return setImmediate(cb);
 					}
 				}
 			);
@@ -461,7 +461,7 @@ Loader.prototype.getNetwork = function (cb) {
 			required: ['peers']
 		}, function (err) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
 			var peers = data.body.peers;
@@ -501,7 +501,7 @@ Loader.prototype.getNetwork = function (cb) {
 					}, function (err, result) {
 						if (err) {
 							library.logger.warn(['Checking blockchain on:', peer.string, 'failed to get height'].join(' '));
-							return cb();
+							return setImmediate(cb);
 						}
 						var heightIsValid = library.scheme.validate(result.body, {
 							type: 'object',
@@ -515,10 +515,10 @@ Loader.prototype.getNetwork = function (cb) {
 
 						if (heightIsValid) {
 							library.logger.info(['Checking blockchain on:', result.peer.string, 'received height:', result.body.height].join(' '));
-							return cb(null, { peer: modules.peer.inspect(result.peer), height: result.body.height });
+							return setImmediate(cb, null, { peer: modules.peer.inspect(result.peer), height: result.body.height });
 						} else {
 							library.logger.warn(['Checking blockchain on:', result.peer.string, 'received invalid height'].join(' '));
-							return cb();
+							return setImmediate(cb);
 						}
 					});
 				}
@@ -613,7 +613,7 @@ Loader.prototype.onBlockchainReady = function () {
 
 Loader.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	return cb();
+	return setImmediate(cb);
 };
 
 // Private
@@ -621,15 +621,15 @@ __private.ping = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (lastBlock && lastBlock.fresh) {
-		return cb(200, {success: true});
+		return setImmediate(cb, 200, {success: true});
 	} else {
-		return cb(503, {success: false});
+		return setImmediate(cb, 503, {success: false});
 	}
 };
 
 // Shared
 shared.status = function (req, cb) {
-	return cb(null, {
+	return setImmediate(cb, null, {
 		loaded: __private.loaded,
 		now: __private.loadingLastBlock.height,
 		blocksCount: __private.total
@@ -637,7 +637,7 @@ shared.status = function (req, cb) {
 };
 
 shared.sync = function (req, cb) {
-	return cb(null, {
+	return setImmediate(cb, null, {
 		syncing: self.syncing(),
 		blocks: __private.blocksToSync,
 		height: modules.blocks.getLastBlock().height

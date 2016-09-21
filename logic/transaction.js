@@ -249,13 +249,13 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		// Check for already confirmed transaction
 		this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
 			if (row.count > 0) {
-				return cb('Ignoring already confirmed transaction');
+				return setImmediate(cb, 'Ignoring already confirmed transaction');
 			}
 
-			return cb(null, trs);
+			return setImmediate(cb, null, trs);
 		}).catch(function (err) {
 			this.scope.logger.error(err.toString());
-			return cb('Transaction#process error');
+			return setImmediate(cb, 'Transaction#process error');
 		});
 	}.bind(this));
 };
@@ -405,7 +405,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Call verify on transaction type
 	__private.types[trs.type].verify.call(this, trs, sender, function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -496,7 +496,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 		round: calc(block.height)
 	}, function (err, sender) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		__private.types[trs.type].apply.call(this, trs, block, sender, function (err) {
@@ -506,7 +506,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 					blockId: block.id,
 					round: calc(block.height)
 				}, function (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				});
 			} else {
 				return setImmediate(cb);
@@ -528,7 +528,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 		round: calc(block.height)
 	}, function (err, sender) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		__private.types[trs.type].undo.call(this, trs, block, sender, function (err) {
@@ -538,7 +538,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 					blockId: block.id,
 					round: calc(block.height)
 				}, function (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				});
 			} else {
 				return setImmediate(cb);
@@ -694,12 +694,12 @@ Transaction.prototype.afterSave = function (trs, cb) {
 	var tx_type = __private.types[trs.type];
 
 	if (!tx_type) {
-		return cb('Unknown transaction type ' + trs.type);
+		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	} else {
 		if (typeof tx_type.afterSave === 'function') {
 			return tx_type.afterSave.call(this, trs, cb);
 		} else {
-			return cb();
+			return setImmediate(cb);
 		}
 	}
 };

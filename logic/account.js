@@ -361,10 +361,10 @@ Account.prototype.createTables = function (cb) {
 	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), { minify: true });
 
 	db.query(sql).then(function () {
-		return cb();
+		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Account#createTables error');
+		return setImmediate(cb, 'Account#createTables error');
 	});
 };
 
@@ -385,10 +385,10 @@ Account.prototype.removeTables = function (cb) {
 	});
 
 	db.query(sqles.join('')).then(function () {
-		return cb();
+		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Account#removeTables error');
+		return setImmediate(cb, 'Account#removeTables error');
 	});
 };
 
@@ -446,7 +446,7 @@ Account.prototype.get = function (filter, fields, cb) {
 	}
 
 	this.getAll(filter, fields, function (err, data) {
-		return cb(err, data && data.length ? data[0] : null);
+		return setImmediate(cb, err, data && data.length ? data[0] : null);
 	});
 };
 
@@ -504,10 +504,10 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	});
 
 	db.query(sql.query, sql.values).then(function (rows) {
-		return cb(null, rows);
+		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Account#getAll error');
+		return setImmediate(cb, 'Account#getAll error');
 	});
 };
 
@@ -528,10 +528,10 @@ Account.prototype.set = function (address, fields, cb) {
 	});
 
 	db.none(sql.query, sql.values).then(function () {
-		return cb();
+		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Account#set error');
+		return setImmediate(cb, 'Account#set error');
 	});
 };
 
@@ -556,7 +556,7 @@ Account.prototype.merge = function (address, diff, cb) {
 				case Number:
 					if (isNaN(trueValue) || trueValue === Infinity) {
 						console.log(diff);
-						return cb('Encountered unsane number: ' + trueValue);
+						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
 					}
 					else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
@@ -741,10 +741,10 @@ Account.prototype.merge = function (address, diff, cb) {
 
 	function done (err) {
 		if (cb.length !== 2) {
-			return cb(err);
+			return setImmediate(cb, err);
 		} else {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 			self.get({ address: address }, cb);
 		}
@@ -779,10 +779,10 @@ Account.prototype.remove = function (address, cb) {
 		}
 	});
 	db.none(sql.query, sql.values).then(function () {
-		return cb(null, address);
+		return setImmediate(cb, null, address);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Account#remove error');
+		return setImmediate(cb, 'Account#remove error');
 	});
 };
 

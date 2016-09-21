@@ -148,7 +148,7 @@ Delegate.prototype.undo = function (trs, block, sender, cb) {
 
 Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	if (sender.u_isDelegate) {
-		return cb('Account is already a delegate');
+		return setImmediate(cb, 'Account is already a delegate');
 	}
 
 	function done () {
@@ -170,11 +170,11 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		u_username: trs.asset.delegate.username
 	}, function (err, account) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		if (account) {
-			return cb('Username already exists');
+			return setImmediate(cb, 'Username already exists');
 		}
 
 		done();

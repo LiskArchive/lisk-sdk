@@ -78,7 +78,7 @@ InTransfer.prototype.getBytes = function (trs) {
 InTransfer.prototype.apply = function (trs, block, sender, cb) {
 	shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: res.authorId,
@@ -87,7 +87,7 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	});
 };
@@ -95,7 +95,7 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
 InTransfer.prototype.undo = function (trs, block, sender, cb) {
 	shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: res.authorId,
@@ -104,7 +104,7 @@ InTransfer.prototype.undo = function (trs, block, sender, cb) {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	});
 };
@@ -167,7 +167,7 @@ InTransfer.prototype.dbSave = function (trs) {
 };
 
 InTransfer.prototype.afterSave = function (trs, cb) {
-	return cb();
+	return setImmediate(cb);
 };
 
 InTransfer.prototype.ready = function (trs, sender) {

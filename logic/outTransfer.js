@@ -62,26 +62,26 @@ OutTransfer.prototype.process = function (trs, sender, cb) {
 		id: trs.asset.outTransfer.dappId
 	}).then(function (row) {
 		if (row.count === 0) {
-			return cb('Application not found: ' + trs.asset.outTransfer.dappId);
+			return setImmediate(cb, 'Application not found: ' + trs.asset.outTransfer.dappId);
 		}
 
 		if (__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId]) {
-			return cb('Transaction is already processing: ' + trs.asset.outTransfer.transactionId);
+			return setImmediate(cb, 'Transaction is already processing: ' + trs.asset.outTransfer.transactionId);
 		}
 
 		library.db.one(sql.countByOutTransactionId, {
 			transactionId: trs.asset.outTransfer.transactionId
 		}).then(function (row) {
 			if (row.count > 0) {
-				return cb('Transaction is already confirmed: ' + trs.asset.outTransfer.transactionId);
+				return setImmediate(cb, 'Transaction is already confirmed: ' + trs.asset.outTransfer.transactionId);
 			} else {
-				return cb(null, trs);
+				return setImmediate(cb, null, trs);
 			}
 		}).catch(function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	}).catch(function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -105,7 +105,7 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 
 	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		modules.accounts.mergeAccountAndGet({
@@ -115,7 +115,7 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	});
 };
@@ -125,7 +125,7 @@ OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 
 	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: trs.recipientId,
@@ -134,7 +134,7 @@ OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	});
 };
@@ -215,7 +215,7 @@ OutTransfer.prototype.afterSave = function (trs, cb) {
 		if (err) {
 			library.logger.debug(err);
 		}
-		return cb();
+		return setImmediate(cb);
 	});
 };
 

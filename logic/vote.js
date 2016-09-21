@@ -80,12 +80,12 @@ Vote.prototype.apply = function (trs, block, sender, cb) {
 		blockId: block.id,
 		round: modules.round.calc(block.height)
 	}, function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
 Vote.prototype.undo = function (trs, block, sender, cb) {
-	if (trs.asset.votes === null) { return cb(); }
+	if (trs.asset.votes === null) { return setImmediate(cb); }
 
 	var votesInvert = Diff.reverse(trs.asset.votes);
 
@@ -94,7 +94,7 @@ Vote.prototype.undo = function (trs, block, sender, cb) {
 		blockId: block.id,
 		round: modules.round.calc(block.height)
 	}, function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -113,18 +113,18 @@ Vote.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		this.scope.account.merge(sender.address, {
 			u_delegates: trs.asset.votes
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	}.bind(this));
 };
 
 Vote.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	if (trs.asset.votes === null) { return cb(); }
+	if (trs.asset.votes === null) { return setImmediate(cb); }
 
 	var votesInvert = Diff.reverse(trs.asset.votes);
 
 	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 

@@ -44,10 +44,10 @@ Round.prototype.calc = function (height) {
 
 Round.prototype.flush = function (round, cb) {
 	library.db.none(sql.flush, { round: round }).then(function () {
-		return cb();
+		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Round#flush error');
+		return setImmediate(cb, 'Round#flush error');
 	});
 };
 
@@ -111,15 +111,15 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 			if (scope.finishRound) {
 				return __private.getOutsiders(scope, cb);
 			} else {
-				return cb();
+				return setImmediate(cb);
 			}
 		},
 		function (cb) {
 			library.db.tx(BackwardTick).then(function () {
-				return cb();
+				return setImmediate(cb);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				return cb(err);
+				return setImmediate(cb, err);
 			});
 		}
 	], function (err) {
@@ -183,15 +183,15 @@ Round.prototype.tick = function (block, done) {
 			if (scope.finishRound) {
 				return __private.getOutsiders(scope, cb);
 			} else {
-				return cb();
+				return setImmediate(cb);
 			}
 		},
 		function (cb) {
 			library.db.tx(Tick).then(function () {
-				return cb();
+				return setImmediate(cb);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				return cb(err);
+				return setImmediate(cb, err);
 			});
 		}
 	], function (err) {
@@ -239,7 +239,7 @@ Round.prototype.onFinishRound = function (round) {
 
 Round.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	return cb();
+	return setImmediate(cb);
 };
 
 // Private
@@ -248,19 +248,19 @@ __private.getOutsiders = function (scope, cb) {
 	scope.outsiders = [];
 
 	if (scope.block.height === 1) {
-		return cb();
+		return setImmediate(cb);
 	}
 	modules.delegates.generateDelegateList(scope.block.height, function (err, roundDelegates) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 		async.eachSeries(roundDelegates, function (delegate, eachCb) {
 			if (scope.delegates.indexOf(delegate) === -1) {
 				scope.outsiders.push(modules.accounts.generateAddressByPublicKey(delegate));
 			}
-			return eachCb();
+			return setImmediate(eachCb);
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	});
 };

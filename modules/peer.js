@@ -64,7 +64,7 @@ __private.updatePeerList = function (cb) {
 		method: 'GET'
 	}, function (err, data) {
 		if (err) {
-			return cb();
+			return setImmediate(cb);
 		}
 
 		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
@@ -80,7 +80,7 @@ __private.updatePeerList = function (cb) {
 			required: ['peers']
 		}, function (err) {
 			if (err) {
-				return cb();
+				return setImmediate(cb);
 			}
 
 			// Removing nodes not behaving well
@@ -154,19 +154,19 @@ __private.updatePeerList = function (cb) {
 __private.count = function (cb) {
 	library.db.query(sql.count).then(function (rows) {
 		var res = rows.length && rows[0].count;
-		return cb(null, res);
+		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Peer#count error');
+		return setImmediate(cb, 'Peer#count error');
 	});
 };
 
 __private.banManager = function (cb) {
 	library.db.query(sql.banManager, { now: Date.now() }).then(function (res) {
-		return cb(null, res);
+		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Peer#banManager error');
+		return setImmediate(cb, 'Peer#banManager error');
 	});
 };
 
@@ -212,7 +212,7 @@ __private.getByFilter = function (filter, cb) {
 	}
 
 	if (params.limit > 100) {
-		return cb('Invalid limit. Maximum is 100');
+		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
 	var orderBy = OrderBy(
@@ -222,7 +222,7 @@ __private.getByFilter = function (filter, cb) {
 	);
 
 	if (orderBy.error) {
-		return cb(orderBy.error);
+		return setImmediate(cb, orderBy.error);
 	}
 
 	library.db.query(sql.getByFilter({
@@ -230,10 +230,10 @@ __private.getByFilter = function (filter, cb) {
 		sortField: orderBy.sortField,
 		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
-		return cb(null, rows);
+		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Peer#getByFilter error');
+		return setImmediate(cb, 'Peer#getByFilter error');
 	});
 };
 
@@ -270,10 +270,10 @@ Peer.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
 	library.db.query(sql.randomList(options), options).then(function (rows) {
-		return cb(null, rows);
+		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Peer#list error');
+		return setImmediate(cb, 'Peer#list error');
 	});
 };
 
@@ -282,7 +282,7 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 		return peer.ip === pip && peer.port === port;
 	});
 	if (isFrozenList !== undefined && cb) {
-		return cb('Peer in white list');
+		return setImmediate(cb, 'Peer in white list');
 	}
 	var clock;
 	if (state === 0) {
@@ -297,10 +297,10 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 		ip: pip,
 		port: port
 	}).then(function (res) {
-		return cb && cb(null, res);
+		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb && cb();
+		return cb && setImmediate(cb);
 	});
 };
 
@@ -309,17 +309,17 @@ Peer.prototype.remove = function (pip, port, cb) {
 		return peer.ip === pip && peer.port === port;
 	});
 	if (isFrozenList !== undefined && cb) {
-		return cb('Peer in white list');
+		return setImmediate(cb, 'Peer in white list');
 	}
 	removed.push(pip);
 	library.db.query(sql.remove, {
 		ip: pip,
 		port: port
 	}).then(function (res) {
-		return cb && cb(null, res);
+		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb && cb();
+		return cb && setImmediate(cb);
 	});
 };
 
@@ -329,7 +329,7 @@ Peer.prototype.addDapp = function (config, cb) {
 		port: config.port
 	}).then(function (rows) {
 		if (!rows.length) {
-			return cb();
+			return setImmediate(cb);
 		}
 		var peerId = rows[0].id;
 
@@ -337,14 +337,14 @@ Peer.prototype.addDapp = function (config, cb) {
 			dappId: config.dappid,
 			peerId: peerId
 		}).then(function (res) {
-			return cb(null, res);
+			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return cb('Peer#addDapp error');
+			return setImmediate(cb, 'Peer#addDapp error');
 		});
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return cb('Peer#addDapp error');
+		return setImmediate(cb, 'Peer#addDapp error');
 	});
 };
 
@@ -360,10 +360,10 @@ Peer.prototype.update = function (peer, cb) {
 	async.series([
 		function (cb) {
 			library.db.query(sql.insert, extend({}, params, { state: 1 })).then(function (res) {
-				return cb(null, res);
+				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				return cb('Peer#update error');
+				return setImmediate(cb, 'Peer#update error');
 			});
 		},
 		function (cb) {
@@ -371,10 +371,10 @@ Peer.prototype.update = function (peer, cb) {
 				params.state = peer.state;
 			}
 			library.db.query(sql.update(params), params).then(function (res) {
-				return cb(null, res);
+				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				return cb('Peer#update error');
+				return setImmediate(cb, 'Peer#update error');
 			});
 		},
 		function (cb) {
@@ -388,7 +388,7 @@ Peer.prototype.update = function (peer, cb) {
 		if (err) {
 			library.logger.error(err);
 		}
-		return cb && cb();
+		return cb && setImmediate(cb);
 	});
 };
 
@@ -408,10 +408,10 @@ Peer.prototype.onBlockchainReady = function () {
 			port: peer.port,
 			state: 2
 		}).then(function (res) {
-			return cb(null, res);
+			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return cb('Peer#onBlockchainReady error');
+			return setImmediate(cb, 'Peer#onBlockchainReady error');
 		});
 	}, function (err) {
 		if (err) {
@@ -493,19 +493,19 @@ shared.getPeers = function (req, cb) {
 		}
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		if (query.limit < 0 || query.limit > 100) {
-			return cb('Invalid limit. Maximum is 100');
+			return setImmediate(cb, 'Invalid limit. Maximum is 100');
 		}
 
 		__private.getByFilter(query, function (err, peers) {
 			if (err) {
-				return cb('Peer not found');
+				return setImmediate(cb, 'Peer not found');
 			}
 
-			return cb(null, {peers: peers});
+			return setImmediate(cb, null, {peers: peers});
 		});
 	});
 };
@@ -529,7 +529,7 @@ shared.getPeer = function (req, cb) {
 		required: ['ip', 'port']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		__private.getByFilter({
@@ -537,18 +537,18 @@ shared.getPeer = function (req, cb) {
 			port: query.port
 		}, function (err, peers) {
 			if (err) {
-				return cb('Peer not found');
+				return setImmediate(cb, 'Peer not found');
 			}
 
 			var peer = peers.length ? peers[0] : null;
 
-			return cb(null, {peer: peer || {}});
+			return setImmediate(cb, null, {peer: peer || {}});
 		});
 	});
 };
 
 shared.version = function (req, cb) {
-	return cb(null, {version: library.config.version, build: library.build});
+	return setImmediate(cb, null, {version: library.config.version, build: library.build});
 };
 
 // Export

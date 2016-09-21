@@ -88,7 +88,7 @@ __private.query = function (action, config, cb) {
 			err = err;
 		}
 
-		return cb(err, data);
+		return setImmediate(cb, err, data);
 	}
 
 	if (action !== 'batch') {
@@ -134,10 +134,10 @@ __private.query = function (action, config, cb) {
 				});
 				sql = sql + ' ' + rows.join(' UNION ');
 				library.db.none(sql).then(function () {
-					return cb();
+					return setImmediate(cb);
 				}).catch(function (err) {
 					library.logger.error(err.toString());
-					return cb('Sql#query error');
+					return setImmediate(cb, 'Sql#query error');
 				});
 			}, done);
 	}
@@ -146,7 +146,7 @@ __private.query = function (action, config, cb) {
 // Public methods
 Sql.prototype.createTables = function (dappid, config, cb) {
 	if (!config) {
-		return cb('Invalid table format');
+		return setImmediate(cb, 'Invalid table format');
 	}
 
 	var sqles = [];
@@ -171,9 +171,9 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 
 	async.eachSeries(sqles, function (command, cb) {
 		library.db.none(command).then(function () {
-			return cb();
+			return setImmediate(cb);
 		}).then(function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	}, function (err) {
 		if (err) {

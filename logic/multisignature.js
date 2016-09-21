@@ -94,23 +94,23 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		var publicKey = key.slice(1);
 
 		if (math !== '+') {
-			return cb('Invalid math operator in multisignature keysgroup');
+			return setImmediate(cb, 'Invalid math operator in multisignature keysgroup');
 		}
 
 		try {
 			var b = new Buffer(publicKey, 'hex');
 			if (b.length !== 32) {
-				return cb('Invalid public key in multisignature keysgroup');
+				return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 			}
 		} catch (e) {
 			library.logger.error(e.toString());
-			return cb('Invalid public key in multisignature keysgroup');
+			return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 		}
 
 		return setImmediate(cb);
 	}, function (err) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		var keysgroup = trs.asset.multisignature.keysgroup.reduce(function (p, c) {
@@ -155,7 +155,7 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 		round: modules.round.calc(block.height)
 	}, function (err) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		// Get public keys
@@ -168,7 +168,7 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 				address: address,
 				publicKey: key
 			}, function (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			});
 		}, cb);
 	});
@@ -186,7 +186,7 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 		blockId: block.id,
 		round: modules.round.calc(block.height)
 	}, function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -206,7 +206,7 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		u_multimin: trs.asset.multisignature.min,
 		u_multilifetime: trs.asset.multisignature.lifetime
 	}, function (err) {
-		return cb();
+		return setImmediate(cb);
 	});
 };
 
@@ -220,7 +220,7 @@ Multisignature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 		u_multimin: -trs.asset.multisignature.min,
 		u_multilifetime: -trs.asset.multisignature.lifetime
 	}, function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -297,7 +297,7 @@ Multisignature.prototype.dbSave = function (trs) {
 
 Multisignature.prototype.afterSave = function (trs, cb) {
 	library.network.io.sockets.emit('multisignatures/change', {});
-	return cb();
+	return setImmediate(cb);
 };
 
 Multisignature.prototype.ready = function (trs, sender) {

@@ -28,14 +28,14 @@ Transfer.prototype.calculateFee = function (trs, sender) {
 Transfer.prototype.verify = function (trs, sender, cb) {
 	var isAddress = /^[0-9]{1,21}[L|l]$/g;
 	if (!trs.recipientId || !isAddress.test(trs.recipientId)) {
-		return cb('Invalid recipient');
+		return setImmediate(cb, 'Invalid recipient');
 	}
 
 	if (trs.amount <= 0) {
-		return cb('Invalid transaction amount');
+		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	return cb(null, trs);
+	return setImmediate(cb, null, trs);
 };
 
 Transfer.prototype.process = function (trs, sender, cb) {
@@ -49,7 +49,7 @@ Transfer.prototype.getBytes = function (trs) {
 Transfer.prototype.apply = function (trs, block, sender, cb) {
 	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		modules.accounts.mergeAccountAndGet({
@@ -59,7 +59,7 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	});
 };
@@ -67,7 +67,7 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
 Transfer.prototype.undo = function (trs, block, sender, cb) {
 	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		modules.accounts.mergeAccountAndGet({
@@ -77,7 +77,7 @@ Transfer.prototype.undo = function (trs, block, sender, cb) {
 			blockId: block.id,
 			round: modules.round.calc(block.height)
 		}, function (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	});
 };

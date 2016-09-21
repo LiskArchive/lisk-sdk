@@ -470,7 +470,7 @@ Transport.prototype.broadcast = function (config, options, cb) {
 				return setImmediate(cb);
 			}, function () {
 				if (cb) {
-					return cb(null, {body: null, peer: peers});
+					return setImmediate(cb, null, {body: null, peer: peers});
 				}
 			});
 		} else if (cb) {
@@ -492,11 +492,11 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 				var peer = peers[0];
 				self.getFromPeer(peer, options, cb);
 			} else {
-				return cb(err || 'No peers in db');
+				return setImmediate(cb, err || 'No peers in db');
 			}
 		});
 	}, function (err, results) {
-		return cb(err, results);
+		return setImmediate(cb, err, results);
 	});
 };
 
@@ -564,14 +564,14 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				}
 			}
 			if (cb) {
-				return cb(err || ('Request status code: ' + response.statusCode));
+				return setImmediate(cb, err || ('Request status code: ' + response.statusCode));
 			} else {
 				return;
 			}
 		}
 
 		if (response.headers.nethash !== library.config.nethash) {
-			return cb && cb('Peer is not on the same network', null);
+			return cb && setImmediate(cb, 'Peer is not on the same network', null);
 		}
 
 		response.headers.port = parseInt(response.headers.port);
@@ -601,7 +601,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		});
 
 		if (!report) {
-			return cb && cb(null, {body: body, peer: peer});
+			return cb && setImmediate(cb, null, {body: body, peer: peer});
 		}
 
 		if (!peer.loopback && (response.headers.version === library.config.version)) {
@@ -615,7 +615,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		}
 
 		if (cb) {
-			return cb(null, {body: body, peer: peer});
+			return setImmediate(cb, null, {body: body, peer: peer});
 		}
 	});
 };
@@ -669,7 +669,7 @@ Transport.prototype.onMessage = function (msg, broadcast) {
 
 Transport.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	return cb();
+	return setImmediate(cb);
 };
 
 // Shared
@@ -679,7 +679,7 @@ shared.message = function (msg, cb) {
 
 	self.broadcast({limit: 100, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 
-	return cb(null, {});
+	return setImmediate(cb, null, {});
 };
 
 shared.request = function (msg, cb) {

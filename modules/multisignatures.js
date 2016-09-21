@@ -87,7 +87,7 @@ shared.getAccounts = function (req, cb) {
 		required: ['publicKey']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		library.db.one(sql.getAccounts, { publicKey: query.publicKey }).then(function (row) {
@@ -98,7 +98,7 @@ shared.getAccounts = function (req, cb) {
 				sort: 'balance'
 			}, ['address', 'balance', 'multisignatures', 'multilifetime', 'multimin'], function (err, rows) {
 				if (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				}
 
 				async.eachSeries(rows, function (account, cb) {
@@ -111,23 +111,23 @@ shared.getAccounts = function (req, cb) {
 						address: { $in: addresses }
 					}, ['address', 'publicKey', 'balance'], function (err, multisigaccounts) {
 						if (err) {
-							return cb(err);
+							return setImmediate(cb, err);
 						}
 
 						account.multisigaccounts = multisigaccounts;
-						return cb();
+						return setImmediate(cb);
 					});
 				}, function (err) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
-					return cb(null, { accounts: rows });
+					return setImmediate(cb, null, { accounts: rows });
 				});
 			});
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return cb('Multisignature#getAccounts error');
+			return setImmediate(cb, 'Multisignature#getAccounts error');
 		});
 	});
 };
@@ -147,7 +147,7 @@ shared.pending = function (req, cb) {
 		required: ['publicKey']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		var transactions = modules.transactions.getUnconfirmedTransactionList();
@@ -190,11 +190,11 @@ shared.pending = function (req, cb) {
 				publicKey: transaction.senderPublicKey
 			}, function (err, sender) {
 				if (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				}
 
 				if (!sender) {
-					return cb('Sender not found');
+					return setImmediate(cb, 'Sender not found');
 				}
 
 				var hasUnconfirmed = (
@@ -223,10 +223,10 @@ shared.pending = function (req, cb) {
 					});
 				}
 
-				return cb();
+				return setImmediate(cb);
 			});
 		}, function () {
-			return cb(null, {transactions: pendings});
+			return setImmediate(cb, null, {transactions: pendings});
 		});
 	});
 };
@@ -239,26 +239,26 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			var transaction = modules.transactions.getUnconfirmedTransaction(tx.transaction);
 
 			if (!transaction) {
-				return cb('Transaction not found');
+				return setImmediate(cb, 'Transaction not found');
 			}
 
 			transaction.signatures = transaction.signatures || [];
 			transaction.signatures.push(tx.signature);
 			library.bus.message('signature', transaction, true);
 
-			return cb();
+			return setImmediate(cb);
 		}, cb);
 	}
 
 	if (!transaction) {
-		return cb('Transaction not found');
+		return setImmediate(cb, 'Transaction not found');
 	}
 
 	if (transaction.type === transactionTypes.MULTI) {
 		transaction.signatures = transaction.signatures || [];
 
 		if (transaction.asset.multisignature.signatures || transaction.signatures.indexOf(tx.signature) !== -1) {
-			return cb('Permission to sign transaction denied');
+			return setImmediate(cb, 'Permission to sign transaction denied');
 		}
 
 		// Find public key
@@ -271,11 +271,11 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			}
 		} catch (e) {
 			library.logger.error(e.toString());
-			return cb('Failed to verify signature');
+			return setImmediate(cb, 'Failed to verify signature');
 		}
 
 		if (!verify) {
-			return cb('Failed to verify signature');
+			return setImmediate(cb, 'Failed to verify signature');
 		}
 
 		return done(cb);
@@ -284,7 +284,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			address: transaction.senderId
 		}, function (err, account) {
 			if (err) {
-				return cb('Multisignature account not found');
+				return setImmediate(cb, 'Multisignature account not found');
 			}
 
 			var verify = false;
@@ -295,13 +295,13 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			}
 
 			if (!account) {
-				return cb('Account not found');
+				return setImmediate(cb, 'Account not found');
 			}
 
 			transaction.signatures = transaction.signatures || [];
 
 			if (transaction.signatures.indexOf(tx.signature) >= 0) {
-				return cb('Signature already exists');
+				return setImmediate(cb, 'Signature already exists');
 			}
 
 			try {
@@ -310,11 +310,11 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 				}
 			} catch (e) {
 				library.logger.error(e.toString());
-				return cb('Failed to verify signature');
+				return setImmediate(cb, 'Failed to verify signature');
 			}
 
 			if (!verify) {
-				return cb('Failed to verify signature');
+				return setImmediate(cb, 'Failed to verify signature');
 			}
 
 			library.network.io.sockets.emit('multisignatures/signature/change', {});
@@ -350,13 +350,13 @@ shared.sign = function (req, cb) {
 		required: ['transactionId', 'secret']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		var transaction = modules.transactions.getUnconfirmedTransaction(body.transactionId);
 
 		if (!transaction) {
-			return cb('Transaction not found');
+			return setImmediate(cb, 'Transaction not found');
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
@@ -364,7 +364,7 @@ shared.sign = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') !== body.publicKey) {
-				return cb('Invalid passphrase');
+				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
@@ -375,7 +375,7 @@ shared.sign = function (req, cb) {
 				var transaction = modules.transactions.getUnconfirmedTransaction(body.transactionId);
 
 				if (!transaction) {
-					return cb('Transaction not found');
+					return setImmediate(cb, 'Transaction not found');
 				}
 
 				transaction.signatures = transaction.signatures || [];
@@ -386,19 +386,19 @@ shared.sign = function (req, cb) {
 					transaction: transaction.id
 				}, true);
 
-				return cb();
+				return setImmediate(cb);
 			}, function (err) {
 				if (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				}
 
-				return cb(null, {transactionId: transaction.id});
+				return setImmediate(cb, null, {transactionId: transaction.id});
 			});
 		}
 
 		if (transaction.type === transactionTypes.MULTI) {
 			if (transaction.asset.multisignature.keysgroup.indexOf('+' + keypair.publicKey.toString('hex')) === -1 || (transaction.signatures && transaction.signatures.indexOf(sign.toString('hex')) !== -1)) {
-				return cb('Permission to sign transaction denied');
+				return setImmediate(cb, 'Permission to sign transaction denied');
 			}
 
 			library.network.io.sockets.emit('multisignatures/signature/change', {});
@@ -408,25 +408,25 @@ shared.sign = function (req, cb) {
 				address: transaction.senderId
 			}, function (err, account) {
 				if (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				}
 
 				if (!account) {
-					return cb('Sender not found');
+					return setImmediate(cb, 'Sender not found');
 				}
 
 				if (!transaction.requesterPublicKey) {
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb('Permission to sign transaction denied');
+						return setImmediate(cb, 'Permission to sign transaction denied');
 					}
 				} else {
 					if (account.publicKey !== keypair.publicKey.toString('hex') || transaction.senderPublicKey !== keypair.publicKey.toString('hex')) {
-						return cb('Permission to sign transaction denied');
+						return setImmediate(cb, 'Permission to sign transaction denied');
 					}
 				}
 
 				if (transaction.signatures && transaction.signatures.indexOf(sign) !== -1) {
-					return cb('Permission to sign transaction denied');
+					return setImmediate(cb, 'Permission to sign transaction denied');
 				}
 
 				library.network.io.sockets.emit('multisignatures/signature/change', {});
@@ -475,7 +475,7 @@ shared.addMultisignature = function (req, cb) {
 		required: ['min', 'lifetime', 'keysgroup', 'secret']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
@@ -483,22 +483,22 @@ shared.addMultisignature = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') !== body.publicKey) {
-				return cb('Invalid passphrase');
+				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
 		library.balancesSequence.add(function (cb) {
 			modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 				if (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				}
 
 				if (!account || !account.publicKey) {
-					return cb('Account not found');
+					return setImmediate(cb, 'Account not found');
 				}
 
 				if (account.secondSignature && !body.secondSecret) {
-					return cb('Invalid second passphrase');
+					return setImmediate(cb, 'Invalid second passphrase');
 				}
 
 				var secondKeypair = null;
@@ -521,18 +521,18 @@ shared.addMultisignature = function (req, cb) {
 						lifetime: body.lifetime
 					});
 				} catch (e) {
-					return cb(e.toString());
+					return setImmediate(cb, e.toString());
 				}
 
 				modules.transactions.receiveTransactions([transaction], cb);
 			});
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
 			library.network.io.sockets.emit('multisignatures/change', {});
-			return cb(null, {transactionId: transaction[0].id});
+			return setImmediate(cb, null, {transactionId: transaction[0].id});
 		});
 	});
 };

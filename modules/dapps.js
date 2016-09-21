@@ -68,7 +68,7 @@ function DApps (cb, scope) {
 			__private.stop({
 				transactionId: id
 			}, function (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			});
 		}, function (err) {
 			library.logger.error(err);
@@ -172,15 +172,15 @@ __private.attachApi = function () {
 			library.balancesSequence.add(function (cb) {
 				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
 					if (!account || !account.publicKey) {
-						return cb('Account not found');
+						return setImmediate(cb, 'Account not found');
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb('Invalid second passphrase');
+						return setImmediate(cb, 'Invalid second passphrase');
 					}
 
 					var secondKeypair = null;
@@ -207,7 +207,7 @@ __private.attachApi = function () {
 							icon: body.icon
 						});
 					} catch (e) {
-						return cb(e.toString());
+						return setImmediate(cb, e.toString());
 					}
 
 					modules.transactions.receiveTransactions([transaction], cb);
@@ -756,7 +756,7 @@ __private.list = function (filter, cb) {
 	}
 
 	if (params.limit > 100) {
-		return cb('Invalid limit. Maximum is 100');
+		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
 	var orderBy = OrderBy(
@@ -766,7 +766,7 @@ __private.list = function (filter, cb) {
 	);
 
 	if (orderBy.error) {
-		return cb(orderBy.error);
+		return setImmediate(cb, orderBy.error);
 	}
 
 	library.db.query(sql.list({
@@ -774,9 +774,9 @@ __private.list = function (filter, cb) {
 		sortField: orderBy.sortField,
 		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
-		return cb(null, rows);
+		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -871,7 +871,7 @@ __private.removeDApp = function (dapp, cb) {
 			if (err) {
 				return setImmediate(cb, 'Failed to remove application folder: ' + err);
 			} else {
-				return cb();
+				return setImmediate(cb);
 			}
 		});
 	}
@@ -906,13 +906,13 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 		makeDirectory: function (serialCb) {
 			fs.exists(tmpDir, function (exists) {
 				if (exists) {
-					return serialCb(null);
+					return setImmediate(serialCb, null);
 				} else {
 					fs.mkdir(tmpDir , function (err) {
 						if (err) {
-							return serialCb('Failed to make tmp directory');
+							return setImmediate(serialCb, 'Failed to make tmp directory');
 						} else {
-							return serialCb(null);
+							return setImmediate(serialCb, null);
 						}
 					});
 				}
@@ -924,7 +924,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 
 			download.on('response', function (response) {
 				if (response.statusCode !== 200) {
-					return serialCb('Received bad response code: ' + response.statusCode);
+					return setImmediate(serialCb, 'Received bad response code: ' + response.statusCode);
 				} else {
 					response.pipe(stream);
 				}
@@ -933,12 +933,12 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			download.on('error', function (err) {
 				fs.exists(tmpPath, function (exists) {
 					if (exists) { fs.unlink(tmpPath); }
-					return serialCb(err.message);
+					return setImmediate(serialCb, err.message);
 				});
 			});
 
 			stream.on('finish', function () {
-				return serialCb();
+				return setImmediate(serialCb);
 			});
 		},
 		decompressZip: function (serialCb) {
@@ -948,7 +948,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 				library.logger.error(err.message);
 				fs.exists(tmpPath, function (exists) {
 					if (exists) { fs.unlink(tmpPath); }
-					return serialCb('Failed to decompress zip file');
+					return setImmediate(serialCb, 'Failed to decompress zip file');
 				});
 			});
 
@@ -956,7 +956,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 				library.logger.info(dapp.transactionId + ' Finished extracting');
 				fs.exists(tmpPath, function (exists) {
 					if (exists) { fs.unlink(tmpPath); }
-					return serialCb(null);
+					return setImmediate(serialCb, null);
 				});
 			});
 
@@ -971,7 +971,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 		}
 	},
 	function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -982,18 +982,18 @@ __private.installDApp = function (dapp, cb) {
 		checkInstalled: function (serialCb) {
 			fs.exists(dappPath, function (exists) {
 				if (exists) {
-					return serialCb('Application is already installed');
+					return setImmediate(serialCb, 'Application is already installed');
 				} else {
-					return serialCb(null);
+					return setImmediate(serialCb, null);
 				}
 			});
 		},
 		makeDirectory: function (serialCb) {
 			fs.mkdir(dappPath, function (err) {
 				if (err) {
-					return serialCb('Failed to make application directory');
+					return setImmediate(serialCb, 'Failed to make application directory');
 				} else {
-					return serialCb(null);
+					return setImmediate(serialCb, null);
 				}
 			});
 		},
@@ -1118,11 +1118,11 @@ __private.launch = function (body, cb) {
 		required: ['id']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		if (__private.launched[body.id]) {
-			return cb('Application already launched');
+			return setImmediate(cb, 'Application already launched');
 		}
 
 		body.params = body.params || [''];
@@ -1137,26 +1137,26 @@ __private.launch = function (body, cb) {
 			if (err) {
 				__private.launched[body.id] = false;
 				library.logger.error(err);
-				return cb('Dapp not found');
+				return setImmediate(cb, 'Dapp not found');
 			} else {
 				__private.getInstalledIds(function (err, files) {
 					if (err) {
 						__private.launched[body.id] = false;
 						library.logger.error(err);
-						return cb('Failed to get installed applications');
+						return setImmediate(cb, 'Failed to get installed applications');
 					} else {
 						if (files.indexOf(body.id) >= 0) {
 							__private.symlink(dapp, function (err) {
 								if (err) {
 									__private.launched[body.id] = false;
 									library.logger.error(err);
-									return cb('Failed to create public link for: ' + body.id);
+									return setImmediate(cb, 'Failed to create public link for: ' + body.id);
 								} else {
 									__private.launchApp(dapp, body.params || ['', 'modules.full.json'], function (err) {
 										if (err) {
 											__private.launched[body.id] = false;
 											library.logger.error(err);
-											return cb('Failed to launch application, check logs: ' + body.id);
+											return setImmediate(cb, 'Failed to launch application, check logs: ' + body.id);
 										} else {
 											__private.dappRoutes(dapp, function (err) {
 												if (err) {
@@ -1165,13 +1165,13 @@ __private.launch = function (body, cb) {
 													__private.stop(dapp, function (err) {
 														if (err) {
 															library.logger.error(err);
-															return cb('Failed to stop application, check logs: ' + body.id);
+															return setImmediate(cb, 'Failed to stop application, check logs: ' + body.id);
 														}
 
-														return cb('Failed to launch application');
+														return setImmediate(cb, 'Failed to launch application');
 													});
 												} else {
-													return cb(null);
+													return setImmediate(cb, null);
 												}
 											});
 										}
@@ -1180,7 +1180,7 @@ __private.launch = function (body, cb) {
 							});
 						} else {
 							__private.launched[body.id] = false;
-							return cb('Application not installed');
+							return setImmediate(cb, 'Application not installed');
 						}
 					}
 				});
@@ -1322,7 +1322,7 @@ __private.addTransactions = function (req, cb) {
 		required: ['secret', 'amount', 'dappId']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
@@ -1330,7 +1330,7 @@ __private.addTransactions = function (req, cb) {
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') !== body.publicKey) {
-				return cb('Invalid passphrase');
+				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
@@ -1340,36 +1340,36 @@ __private.addTransactions = function (req, cb) {
 			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
 				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
 					if (!account || !account.publicKey) {
-						return cb('Multisignature account not found');
+						return setImmediate(cb, 'Multisignature account not found');
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb('Account does not have multisignatures enabled');
+						return setImmediate(cb, 'Account does not have multisignatures enabled');
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb('Account does not belong to multisignature group');
+						return setImmediate(cb, 'Account does not belong to multisignature group');
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
 						if (err) {
-							return cb(err);
+							return setImmediate(cb, err);
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb('Requester not found');
+							return setImmediate(cb, 'Requester not found');
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb('Missing requester second passphrase');
+							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
 						if (requester.publicKey === account.publicKey) {
-							return cb('Invalid requester public key');
+							return setImmediate(cb, 'Invalid requester public key');
 						}
 
 						var secondKeypair = null;
@@ -1392,7 +1392,7 @@ __private.addTransactions = function (req, cb) {
 								dappId: body.dappId
 							});
 						} catch (e) {
-							return cb(e.toString());
+							return setImmediate(cb, e.toString());
 						}
 
 						modules.transactions.receiveTransactions([transaction], cb);
@@ -1401,15 +1401,15 @@ __private.addTransactions = function (req, cb) {
 			} else {
 				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
 					if (!account || !account.publicKey) {
-						return cb('Account not found');
+						return setImmediate(cb, 'Account not found');
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb('Invalid second passphrase');
+						return setImmediate(cb, 'Invalid second passphrase');
 					}
 
 					var secondKeypair = null;
@@ -1431,7 +1431,7 @@ __private.addTransactions = function (req, cb) {
 							dappId: body.dappId
 						});
 					} catch (e) {
-						return cb(e.toString());
+						return setImmediate(cb, e.toString());
 					}
 
 					modules.transactions.receiveTransactions([transaction], cb);
@@ -1439,10 +1439,10 @@ __private.addTransactions = function (req, cb) {
 			}
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
-			return cb(null, {transactionId: transaction[0].id});
+			return setImmediate(cb, null, {transactionId: transaction[0].id});
 		});
 	});
 };
@@ -1491,7 +1491,7 @@ __private.sendWithdrawal = function (req, cb) {
 		required: ['secret', 'recipientId', 'amount', 'dappId', 'transactionId']
 	}, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
@@ -1500,43 +1500,43 @@ __private.sendWithdrawal = function (req, cb) {
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;
 		if (!isAddress.test(body.recipientId)) {
-			return cb('Invalid recipient');
+			return setImmediate(cb, 'Invalid recipient');
 		}
 
 		library.balancesSequence.add(function (cb) {
 			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
 				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
 					if (!account || !account.publicKey) {
-						return cb('Multisignature account not found');
+						return setImmediate(cb, 'Multisignature account not found');
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb('Account does not have multisignatures enabled');
+						return setImmediate(cb, 'Account does not have multisignatures enabled');
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb('Account does not belong to multisignature group');
+						return setImmediate(cb, 'Account does not belong to multisignature group');
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
 						if (err) {
-							return cb(err);
+							return setImmediate(cb, err);
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb('Requester not found');
+							return setImmediate(cb, 'Requester not found');
 						}
 
 						if (requester.secondSignature && !body.secondSecret) {
-							return cb('Missing requester second passphrase');
+							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
 						if (requester.publicKey === account.publicKey) {
-							return cb('Invalid requester public key');
+							return setImmediate(cb, 'Invalid requester public key');
 						}
 
 						var secondKeypair = null;
@@ -1561,7 +1561,7 @@ __private.sendWithdrawal = function (req, cb) {
 								transactionId: body.transactionId
 							});
 						} catch (e) {
-							return cb(e.toString());
+							return setImmediate(cb, e.toString());
 						}
 
 						modules.transactions.receiveTransactions([transaction], cb);
@@ -1570,15 +1570,15 @@ __private.sendWithdrawal = function (req, cb) {
 			} else {
 				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
 					if (!account || !account.publicKey) {
-						return cb('Account not found');
+						return setImmediate(cb, 'Account not found');
 					}
 
 					if (account.secondSignature && !body.secondSecret) {
-						return cb('Missing second passphrase');
+						return setImmediate(cb, 'Missing second passphrase');
 					}
 
 					var secondKeypair = null;
@@ -1602,7 +1602,7 @@ __private.sendWithdrawal = function (req, cb) {
 							transactionId: body.transactionId
 						});
 					} catch (e) {
-						return cb(e.toString());
+						return setImmediate(cb, e.toString());
 					}
 
 					modules.transactions.receiveTransactions([transaction], cb);
@@ -1610,10 +1610,10 @@ __private.sendWithdrawal = function (req, cb) {
 			}
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
-			return cb(null, {transactionId: transaction[0].id});
+			return setImmediate(cb, null, {transactionId: transaction[0].id});
 		});
 	});
 };
@@ -1629,10 +1629,10 @@ DApps.prototype.message = function (dappid, body, cb) {
 
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!__private.sandboxes[dappid]) {
-		return cb('Application sandbox not found');
+		return setImmediate(cb, 'Application sandbox not found');
 	}
 	if (!__private.dappready[dappid]) {
-		return cb('Application not ready');
+		return setImmediate(cb, 'Application not ready');
 	}
 	__private.sandboxes[dappid].sendMessage({
 		method: method,
@@ -1674,7 +1674,7 @@ DApps.prototype.onBlockchainReady = function () {
 					console.log('Launched application', dapp.dappid, 'successfully');
 				}
 
-				return cb();
+				return setImmediate(cb);
 			});
 		});
 	}, 1000);
@@ -1712,11 +1712,11 @@ DApps.prototype.onNewBlock = function (block, broadcast) {
 shared.getGenesis = function (req, cb) {
 	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
 		if (rows.length === 0) {
-			return cb('Application genesis block not found');
+			return setImmediate(cb, 'Application genesis block not found');
 		} else {
 			var row = rows[0];
 
-			return cb(null, {
+			return setImmediate(cb, null, {
 				pointId: row.id,
 				pointHeight: row.height,
 				authorId: row.authorId,
@@ -1724,13 +1724,13 @@ shared.getGenesis = function (req, cb) {
 			});
 		}
 	}).catch(function (err) {
-		return cb('DApp#getGenesis error');
+		return setImmediate(cb, 'DApp#getGenesis error');
 	});
 };
 
 shared.setReady = function (req, cb) {
 	__private.dappready[req.dappid] = true;
-	return cb(null, {});
+	return setImmediate(cb, null, {});
 };
 
 shared.getCommonBlock = function (req, cb) {
@@ -1738,9 +1738,9 @@ shared.getCommonBlock = function (req, cb) {
 		dappid: req.dappid,
 		type: transactionTypes.IN_TRANSFER
 	}).then(function (rows) {
-		return cb(null, rows);
+		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
-		return cb('DApp#getCommonBlock error');
+		return setImmediate(cb, 'DApp#getCommonBlock error');
 	});
 };
 
@@ -1753,9 +1753,9 @@ shared.getWithdrawalLastTransaction = function (req, cb) {
 		dappid: req.dappid,
 		type: transactionTypes.OUT_TRANSFER
 	}).then(function (rows) {
-		return cb(null, rows[0]);
+		return setImmediate(cb, null, rows[0]);
 	}).catch(function (err) {
-		return cb('DApp#getWithdrawalLastTransaction error');
+		return setImmediate(cb, 'DApp#getWithdrawalLastTransaction error');
 	});
 };
 
@@ -1767,9 +1767,9 @@ shared.getBalanceTransactions = function (req, cb) {
 		type: transactionTypes.IN_TRANSFER,
 		lastId: req.body.lastTransactionId
 	}).then(function (rows) {
-		return cb(null, rows);
+		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
-		return cb('DApp#getBalanceTransaction error');
+		return setImmediate(cb, 'DApp#getBalanceTransaction error');
 	});
 };
 
