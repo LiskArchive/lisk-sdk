@@ -987,11 +987,11 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			// Check against the mem_* tables that we can perform the transactions included in the block.
 			async.eachSeries(block.transactions, function (transaction, cb) {
 				async.waterfall([
-					function (callback) {
+					function (cb) {
 						try {
 							transaction.id = library.logic.transaction.getId(transaction);
 						} catch (e) {
-							return callback(e.toString());
+							return cb(e.toString());
 						}
 						transaction.blockId = block.id;
 						// Check if transaction is already in database, otherwise fork 2.
@@ -999,21 +999,21 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
 							if (rows.length > 0) {
 								modules.delegates.fork(block, 2);
-								callback(['Transaction', transaction.id, 'already exists'].join(' '));
+								cb(['Transaction', transaction.id, 'already exists'].join(' '));
 							} else {
 								// Get account from database if any (otherwise cold wallet).
 								// DATABASE: read only
-								modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, callback);
+								modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, cb);
 							}
 						}).catch(function (err) {
 							library.logger.error(err.toString());
-							callback('Blocks#processBlock error');
+							cb('Blocks#processBlock error');
 						});
 					},
-					function (sender, callback) {
+					function (sender, cb) {
 						// Check if transaction id valid against database state (mem_* tables).
 						// DATABASE: read only
-						library.logic.transaction.verify(transaction, sender, callback);
+						library.logic.transaction.verify(transaction, sender, cb);
 					}
 				],
 				function (err) {
@@ -1044,7 +1044,7 @@ Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 	});
 };
 
-Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
+Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = __private.lastBlock;
 
 	peer = modules.peer.inspect(peer);
@@ -1055,7 +1055,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 		api: '/blocks?lastBlockId=' + lastValidBlock.id
 	}, function (err, res) {
 		if (err || res.body.error) {
-			return setImmediate(callback, err, lastValidBlock);
+			return setImmediate(cb, err, lastValidBlock);
 		}
 
 		var report = library.scheme.validate(res.body.blocks, {
@@ -1063,13 +1063,13 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 		});
 
 		if (!report) {
-			return setImmediate(callback, 'Received invalid blocks data', lastValidBlock);
+			return setImmediate(cb, 'Received invalid blocks data', lastValidBlock);
 		}
 
 		var blocks = __private.readDbRows(res.body.blocks);
 
 		if (blocks.length === 0) {
-			return setImmediate(callback, null, lastValidBlock);
+			return setImmediate(cb, null, lastValidBlock);
 		} else {
 			async.eachSeries(blocks, function (block, cb) {
 				if (__private.cleanup) {
@@ -1093,9 +1093,9 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 				blocks = null;
 
 				if (err) {
-					return setImmediate(callback, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
+					return setImmediate(cb, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
 				} else {
-					return setImmediate(callback, null, lastValidBlock);
+					return setImmediate(cb, null, lastValidBlock);
 				}
 			});
 		}
