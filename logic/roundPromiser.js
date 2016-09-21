@@ -4,11 +4,13 @@ var pgp = require('pg-promise');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/round.js');
 
+// Constructor
 function RoundPromiser (scope, t) {
 	this.scope = scope;
 	this.t = t;
 }
 
+// Public methods
 RoundPromiser.prototype.mergeBlockGenerator = function () {
 	return this.t.none(
 		this.scope.modules.accounts.mergeAccountAndGet({
@@ -106,11 +108,13 @@ RoundPromiser.prototype.land = function () {
 		}.bind(this));
 };
 
+// Constructor
 function RoundChanges (scope) {
 	this.roundFees = Math.floor(scope.__private.feesByRound[scope.round]) || 0;
 	this.roundRewards = (scope.__private.rewardsByRound[scope.round] || []);
 }
 
+// Public methods
 RoundChanges.prototype.at = function (index) {
 	var fees = Math.floor(this.roundFees / slots.delegates);
 	var feesRemaining = this.roundFees - (fees * slots.delegates);
