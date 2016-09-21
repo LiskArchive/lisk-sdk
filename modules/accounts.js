@@ -189,7 +189,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 	}
 
 	if (!address) {
-		throw cb('Invalid public key');
+		return cb('Invalid public key');
 	}
 
 	library.logic.account.set(address, data, function (err) {
@@ -212,7 +212,7 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	}
 
 	if (!address) {
-		throw cb('Invalid public key');
+		return cb('Invalid public key');
 	}
 
 	return library.logic.account.merge(address, data, cb);
