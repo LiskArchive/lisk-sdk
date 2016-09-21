@@ -10,23 +10,23 @@ module.exports = function (config) {
 	var exports = {};
 
 	config.levels = config.levels || {
-		'trace': 0,
-		'debug': 1,
-		'log': 2,
-		'info': 3,
-		'warn': 4,
-		'error': 5,
-		'fatal': 6
+		trace: 0,
+		debug: 1,
+		log: 2,
+		info: 3,
+		warn: 4,
+		error: 5,
+		fatal: 6
 	};
 
 	config.level_abbr = config.level_abbr || {
-		'trace': 'trc',
-		'debug': 'dbg',
-		'log': 'log',
-		'info': 'inf',
-		'warn': 'WRN',
-		'error': 'ERR',
-		'fatal': 'FTL'
+		trace: 'trc',
+		debug: 'dbg',
+		log: 'log',
+		info: 'inf',
+		warn: 'WRN',
+		error: 'ERR',
+		fatal: 'FTL'
 	};
 
 	config.filename = config.filename || __dirname + '/logs.log';
@@ -51,9 +51,9 @@ module.exports = function (config) {
 	Object.keys(config.levels).forEach(function (name) {
 		function log(caption, data) {
 			var log = {
-				'level': name,
-				'message': caption,
-				'timestamp': strftime('%F %T', new Date())
+				level: name,
+				message: caption,
+				timestamp: strftime('%F %T', new Date())
 			};
 
 			if (data) {
