@@ -1081,7 +1081,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 						lastValidBlock = block;
 						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 					} else {
-						library.logger.warn(err.toString());
+						library.logger.warn(err.message || err);
 						library.logger.warn(['Block', (block ? block.id : 'null'), 'is not valid, ban 60 min'].join(' '), peer.string);
 						modules.peer.state(peer.ip, peer.port, 0, 3600);
 					}
@@ -1093,7 +1093,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, callback) {
 				blocks = null;
 
 				if (err) {
-					return setImmediate(callback, 'Error loading blocks: ' + err, lastValidBlock);
+					return setImmediate(callback, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
 				} else {
 					return setImmediate(callback, null, lastValidBlock);
 				}
