@@ -4,7 +4,6 @@ var crypto = require('crypto');
 var fs = require('fs');
 var request = require('request');
 var sandboxHelper = require('../helpers/sandbox.js');
-var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

@@ -6,7 +6,6 @@ var RoundPromiser = require('../logic/roundPromiser.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/round.js');
-var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

@@ -9,7 +9,6 @@ var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
-var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
