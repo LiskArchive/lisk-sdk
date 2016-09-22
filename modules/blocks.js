@@ -480,58 +480,45 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 };
 
 Blocks.prototype.getCommonBlock = function (peer, height, cb) {
-	var commonBlock = null;
-	var lastBlockHeight = height;
-	var count = 0;
-
-	async.whilst(
-		function () {
-			return !commonBlock && count < 30 && lastBlockHeight > 1;
-		},
-		function (next) {
-			count++;
-			__private.getIdSequence(lastBlockHeight, function (err, data) {
-				if (err) {
-					return next(err);
-				}
-
-				modules.transport.getFromPeer(peer, {
-					api: '/blocks/common?ids=' + data.ids,
-					method: 'GET'
-				}, function (err, data) {
-					if (err || data.body.error) {
-						return next(err || data.body.error.toString());
-					}
-
-					if (!data.body.common) {
-						return next();
-					}
-
-					library.db.query(sql.getCommonBlock(data.body.common.previousBlock), {
-						id: data.body.common.id,
-						previousBlock: data.body.common.previousBlock,
-						height: data.body.common.height
-					}).then(function (rows) {
-						if (!rows.length) {
-							return next('Chain comparison failed with peer: ' + peer.string);
-						}
-
-						if (rows[0].count) {
-							commonBlock = data.body.common;
-						}
-
-						return next();
-					}).catch(function (err) {
-						library.logger.error(err.toString());
-						return next('Blocks#getCommonBlock error');
-					});
-				});
+	async.waterfall([
+		function (waterCb) {
+			__private.getIdSequence(height, function (err, res) {
+				return setImmediate(waterCb, err, res);
 			});
 		},
-		function (err) {
-			return setImmediate(cb, err, commonBlock);
+		function (res, waterCb) {
+			modules.transport.getFromPeer(peer, {
+				api: '/blocks/common?ids=' + res.ids,
+				method: 'GET'
+			}, function (err, res) {
+				if (err || res.body.error) {
+					return setImmediate(waterCb, err || res.body.error.toString());
+				} else if (!res.body.common) {
+					return setImmediate(waterCb, 'Failed to get common block ids');
+				} else {
+					return setImmediate(waterCb, null, res);
+				}
+			});
+		},
+		function (res, waterCb) {
+			library.db.query(sql.getCommonBlock(res.body.common.previousBlock), {
+				id: res.body.common.id,
+				previousBlock: res.body.common.previousBlock,
+				height: res.body.common.height
+			}).then(function (rows) {
+				if (!rows.length || !rows[0].count) {
+					return setImmediate(waterCb, 'Chain comparison failed with peer: ' + peer.string);
+				} else {
+					return setImmediate(waterCb, null, res.body.common);
+				}
+			}).catch(function (err) {
+				library.logger.error(err.toString());
+				return setImmediate(waterCb, 'Blocks#getCommonBlock error');
+			});
 		}
-	);
+	], function (err, res) {
+		return setImmediate(cb, err, res);
+	});
 };
 
 Blocks.prototype.count = function (cb) {
