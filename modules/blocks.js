@@ -1089,7 +1089,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 			}, function (err) {
 				// Nullify large array of blocks.
 				// Prevents memory leak during synchronisation.
-				blocks = null;
+				res = blocks = null;
 
 				if (err) {
 					return setImmediate(cb, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
