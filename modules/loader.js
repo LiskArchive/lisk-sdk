@@ -341,6 +341,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
+							lastValidBlock = lastBlock = null;
 							next();
 						});
 					}
