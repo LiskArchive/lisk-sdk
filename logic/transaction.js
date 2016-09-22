@@ -704,6 +704,63 @@ Transaction.prototype.afterSave = function (trs, cb) {
 	}
 };
 
+Transaction.prototype.schema = {
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string'
+		},
+		height: {
+			type: 'integer'
+		},
+		blockId: {
+			type: 'string'
+		},
+		type: {
+			type: 'integer'
+		},
+		timestamp: {
+			type: 'integer'
+		},
+		senderPublicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		requesterPublicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		senderId: {
+			type: 'string'
+		},
+		recipientId: {
+			type: 'string'
+		},
+		amount: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		fee: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		signature: {
+			type: 'string',
+			format: 'signature'
+		},
+		signSignature: {
+			type: 'string',
+			format: 'signature'
+		},
+		asset: {
+			type: 'object'
+		}
+	},
+	required: ['type', 'timestamp', 'senderPublicKey', 'signature']
+};
+
 Transaction.prototype.objectNormalize = function (trs) {
 	if (!__private.types[trs.type]) {
 		throw 'Unknown transaction type ' + trs.type;
@@ -715,62 +772,7 @@ Transaction.prototype.objectNormalize = function (trs) {
 		}
 	}
 
-	var report = this.scope.scheme.validate(trs, {
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string'
-			},
-			height: {
-				type: 'integer'
-			},
-			blockId: {
-				type: 'string'
-			},
-			type: {
-				type: 'integer'
-			},
-			timestamp: {
-				type: 'integer'
-			},
-			senderPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			requesterPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			senderId: {
-				type: 'string'
-			},
-			recipientId: {
-				type: 'string'
-			},
-			amount: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
-			fee: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
-			signature: {
-				type: 'string',
-				format: 'signature'
-			},
-			signSignature: {
-				type: 'string',
-				format: 'signature'
-			},
-			asset: {
-				type: 'object'
-			}
-		},
-		required: ['type', 'timestamp', 'senderPublicKey', 'signature']
-	});
+	var report = this.scope.scheme.validate(trs, Transaction.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize transaction: ' + this.scope.scheme.getLastError();

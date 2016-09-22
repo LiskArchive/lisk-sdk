@@ -117,17 +117,19 @@ InTransfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	return setImmediate(cb);
 };
 
-InTransfer.prototype.objectNormalize = function (trs) {
-	var report = library.scheme.validate(trs.asset.inTransfer, {
-		object: true,
-		properties: {
-			dappId: {
-				type: 'string',
-				minLength: 1
-			},
+InTransfer.prototype.schema = {
+	object: true,
+	properties: {
+		dappId: {
+			type: 'string',
+			minLength: 1
 		},
-		required: ['dappId']
-	});
+	},
+	required: ['dappId']
+};
+
+InTransfer.prototype.objectNormalize = function (trs) {
+	var report = library.scheme.validate(trs.asset.inTransfer, InTransfer.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize inTransfer: ' + library.scheme.getLastError();

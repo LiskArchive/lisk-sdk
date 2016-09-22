@@ -128,19 +128,21 @@ Vote.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	});
 };
 
+Vote.prototype.schema = {
+	type: 'object',
+	properties: {
+		votes: {
+			type: 'array',
+			minLength: 1,
+			maxLength: constants.activeDelegates,
+			uniqueItems: true
+		}
+	},
+	required: ['votes']
+};
+
 Vote.prototype.objectNormalize = function (trs) {
-	var report = library.scheme.validate(trs.asset, {
-		type: 'object',
-		properties: {
-			votes: {
-				type: 'array',
-				minLength: 1,
-				maxLength: constants.activeDelegates,
-				uniqueItems: true
-			}
-		},
-		required: ['votes']
-	});
+	var report = library.scheme.validate(trs.asset, Vote.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize vote: ' + library.scheme.getLastError();

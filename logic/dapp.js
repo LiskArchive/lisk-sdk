@@ -227,6 +227,47 @@ DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	return setImmediate(cb);
 };
 
+DApp.prototype.schema = {
+	type: 'object',
+	properties: {
+		category: {
+			type: 'integer',
+			minimum: 0,
+			maximum: 8
+		},
+		name: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 32
+		},
+		description: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 160
+		},
+		tags: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 160
+		},
+		type: {
+			type: 'integer',
+			minimum: 0
+		},
+		link: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 2000
+		},
+		icon: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 2000
+		}
+	},
+	required: ['type', 'name', 'category']
+};
+
 DApp.prototype.objectNormalize = function (trs) {
 	for (var i in trs.asset.dapp) {
 		if (trs.asset.dapp[i] === null || typeof trs.asset.dapp[i] === 'undefined') {
@@ -234,46 +275,7 @@ DApp.prototype.objectNormalize = function (trs) {
 		}
 	}
 
-	var report = library.scheme.validate(trs.asset.dapp, {
-		type: 'object',
-		properties: {
-			category: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 8
-			},
-			name: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 32
-			},
-			description: {
-				type: 'string',
-				minLength: 0,
-				maxLength: 160
-			},
-			tags: {
-				type: 'string',
-				minLength: 0,
-				maxLength: 160
-			},
-			type: {
-				type: 'integer',
-				minimum: 0
-			},
-			link: {
-				type: 'string',
-				minLength: 0,
-				maxLength: 2000
-			},
-			icon: {
-				type: 'string',
-				minLength: 0,
-				maxLength: 2000
-			}
-		},
-		required: ['type', 'name', 'category']
-	});
+	var report = library.scheme.validate(trs.asset.dapp, DApp.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize dapp: ' + library.scheme.getLastError();

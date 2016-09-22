@@ -149,21 +149,23 @@ OutTransfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	return setImmediate(cb);
 };
 
-OutTransfer.prototype.objectNormalize = function (trs) {
-	var report = library.scheme.validate(trs.asset.outTransfer, {
-		object: true,
-		properties: {
-			dappId: {
-				type: 'string',
-				minLength: 1
-			},
-			transactionId: {
-				type: 'string',
-				minLength: 1
-			}
+OutTransfer.prototype.schema = {
+	object: true,
+	properties: {
+		dappId: {
+			type: 'string',
+			minLength: 1
 		},
-		required: ['dappId', 'transactionId']
-	});
+		transactionId: {
+			type: 'string',
+			minLength: 1
+		}
+	},
+	required: ['dappId', 'transactionId']
+};
+
+OutTransfer.prototype.objectNormalize = function (trs) {
+	var report = library.scheme.validate(trs.asset.outTransfer, OutTransfer.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize outTransfer: ' + library.scheme.getLastError();

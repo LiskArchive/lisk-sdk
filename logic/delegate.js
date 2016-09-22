@@ -196,17 +196,19 @@ Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	modules.accounts.setAccountAndGet(data, cb);
 };
 
+Delegate.prototype.schema = {
+	type: 'object',
+	properties: {
+		publicKey: {
+			type: 'string',
+			format: 'publicKey'
+		}
+	},
+	required: ['publicKey']
+};
+
 Delegate.prototype.objectNormalize = function (trs) {
-	var report = library.scheme.validate(trs.asset.delegate, {
-		type: 'object',
-		properties: {
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['publicKey']
-	});
+	var report = library.scheme.validate(trs.asset.delegate, Delegate.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize delegate: ' + library.scheme.getLastError();

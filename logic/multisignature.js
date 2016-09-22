@@ -224,28 +224,30 @@ Multisignature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	});
 };
 
-Multisignature.prototype.objectNormalize = function (trs) {
-	var report = library.scheme.validate(trs.asset.multisignature, {
-		type: 'object',
-		properties: {
-			min: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 15
-			},
-			keysgroup: {
-				type: 'array',
-				minLength: 1,
-				maxLength: 16
-			},
-			lifetime: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 72
-			}
+Multisignature.prototype.schema = {
+	type: 'object',
+	properties: {
+		min: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 15
 		},
-		required: ['min', 'keysgroup', 'lifetime']
-	});
+		keysgroup: {
+			type: 'array',
+			minLength: 1,
+			maxLength: 16
+		},
+		lifetime: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 72
+		}
+	},
+	required: ['min', 'keysgroup', 'lifetime']
+};
+
+Multisignature.prototype.objectNormalize = function (trs) {
+	var report = library.scheme.validate(trs.asset.multisignature, Multisignature.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize multisignature: ' + library.scheme.getLastError();

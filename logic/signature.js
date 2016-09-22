@@ -101,17 +101,19 @@ Signature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 0}, cb);
 };
 
+Signature.prototype.schema = {
+	object: true,
+	properties: {
+		publicKey: {
+			type: 'string',
+			format: 'publicKey'
+		}
+	},
+	required: ['publicKey']
+};
+
 Signature.prototype.objectNormalize = function (trs) {
-	var report = library.scheme.validate(trs.asset.signature, {
-		object: true,
-		properties: {
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['publicKey']
-	});
+	var report = library.scheme.validate(trs.asset.signature, Signature.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize signature: ' + library.scheme.getLastError();

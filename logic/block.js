@@ -226,6 +226,63 @@ Block.prototype.dbSave = function (block) {
 	};
 };
 
+Block.prototype.schema = {
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string'
+		},
+		height: {
+			type: 'integer'
+		},
+		blockSignature: {
+			type: 'string',
+			format: 'signature'
+		},
+		generatorPublicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		numberOfTransactions: {
+			type: 'integer'
+		},
+		payloadHash: {
+			type: 'string',
+			format: 'hex'
+		},
+		payloadLength: {
+			type: 'integer'
+		},
+		previousBlock: {
+			type: 'string'
+		},
+		timestamp: {
+			type: 'integer'
+		},
+		totalAmount: {
+			type: 'integer',
+			minimum: 0
+		},
+		totalFee: {
+			type: 'integer',
+			minimum: 0
+		},
+		reward: {
+			type: 'integer',
+			minimum: 0
+		},
+		transactions: {
+			type: 'array',
+			uniqueItems: true
+		},
+		version: {
+			type: 'integer',
+			minimum: 0
+		}
+	},
+	required: ['blockSignature', 'generatorPublicKey', 'numberOfTransactions', 'payloadHash', 'payloadLength', 'timestamp', 'totalAmount', 'totalFee', 'reward', 'transactions', 'version']
+};
+
 Block.prototype.objectNormalize = function (block) {
 	var i;
 
@@ -235,62 +292,7 @@ Block.prototype.objectNormalize = function (block) {
 		}
 	}
 
-	var report = this.scope.scheme.validate(block, {
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string'
-			},
-			height: {
-				type: 'integer'
-			},
-			blockSignature: {
-				type: 'string',
-				format: 'signature'
-			},
-			generatorPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			numberOfTransactions: {
-				type: 'integer'
-			},
-			payloadHash: {
-				type: 'string',
-				format: 'hex'
-			},
-			payloadLength: {
-				type: 'integer'
-			},
-			previousBlock: {
-				type: 'string'
-			},
-			timestamp: {
-				type: 'integer'
-			},
-			totalAmount: {
-				type: 'integer',
-				minimum: 0
-			},
-			totalFee: {
-				type: 'integer',
-				minimum: 0
-			},
-			reward: {
-				type: 'integer',
-				minimum: 0
-			},
-			transactions: {
-				type: 'array',
-				uniqueItems: true
-			},
-			version: {
-				type: 'integer',
-				minimum: 0
-			}
-		},
-		required: ['blockSignature', 'generatorPublicKey', 'numberOfTransactions', 'payloadHash', 'payloadLength', 'timestamp', 'totalAmount', 'totalFee', 'reward', 'transactions', 'version']
-	});
+	var report = this.scope.scheme.validate(block, Block.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to normalize block: ' + this.scope.scheme.getLastError();
