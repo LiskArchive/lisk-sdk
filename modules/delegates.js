@@ -12,6 +12,7 @@ var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/delegates.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/delegates.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -85,23 +86,7 @@ __private.attachApi = function () {
 	}
 
 	router.post('/forging/enable', function (req, res) {
-		var body = req.body;
-
-		library.scheme.validate(body, {
-			type: 'object',
-			properties: {
-				secret: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 100
-				},
-				publicKey: {
-					type: 'string',
-					format: 'publicKey'
-				}
-			},
-			required: ['secret']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -112,10 +97,10 @@ __private.attachApi = function () {
 				return res.json({success: false, error: 'Access denied'});
 			}
 
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
 
-			if (body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== body.publicKey) {
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 					return res.json({success: false, error: 'Invalid passphrase'});
 				}
 			}
@@ -140,23 +125,7 @@ __private.attachApi = function () {
 	});
 
 	router.post('/forging/disable', function (req, res) {
-		var body = req.body;
-
-		library.scheme.validate(body, {
-			type: 'object',
-			properties: {
-				secret: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 100
-				},
-				publicKey: {
-					type: 'string',
-					format: 'publicKey'
-				}
-			},
-			required: ['secret']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -167,10 +136,10 @@ __private.attachApi = function () {
 				return res.json({success: false, error: 'Access denied'});
 			}
 
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
 
-			if (body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== body.publicKey) {
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 					return res.json({success: false, error: 'Invalid passphrase'});
 				}
 			}
@@ -195,23 +164,12 @@ __private.attachApi = function () {
 	});
 
 	router.get('/forging/status', function (req, res) {
-		var query = req.query;
-
-		library.scheme.validate(query, {
-			type: 'object',
-			properties: {
-				publicKey: {
-					type: 'string',
-					format: 'publicKey'
-				}
-			},
-			required: ['publicKey']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.forgingStatus, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
 
-			return res.json({success: true, enabled: !!__private.keypairs[query.publicKey]});
+			return res.json({success: true, enabled: !!__private.keypairs[req.body.publicKey]});
 		});
 	});
 
@@ -635,33 +593,21 @@ __private.toggleForgingOnReceipt = function () {
 
 // Shared
 shared.getDelegate = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			publicKey: {
-				type: 'string'
-			},
-			username: {
-				type: 'string'
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getDelegate, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		modules.delegates.getDelegates(query, function (err, result) {
+		modules.delegates.getDelegates(req.body, function (err, data) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
-			var delegate = _.find(result.delegates, function (delegate) {
-				if (query.publicKey) {
-					return delegate.publicKey === query.publicKey;
-				} else if (query.username) {
-					return delegate.username === query.username;
+			var delegate = _.find(data.delegates, function (delegate) {
+				if (req.body.publicKey) {
+					return delegate.publicKey === req.body.publicKey;
+				} else if (req.body.username) {
+					return delegate.username === req.body.username;
 				}
 
 				return false;
@@ -677,30 +623,13 @@ shared.getDelegate = function (req, cb) {
 };
 
 shared.search = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			q: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
-			limit: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 100
-			}
-		},
-		required: ['q']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.search, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
 		var orderBy = OrderBy(
-			query.orderBy, {
+			req.body.orderBy, {
 				sortFields: sql.sortFields,
 				sortField: 'username'
 			}
@@ -711,8 +640,8 @@ shared.search = function (req, cb) {
 		}
 
 		library.db.query(sql.search({
-			q: query.q,
-			limit: query.limit || 100,
+			q: req.body.q,
+			limit: req.body.limit || 100,
 			sortField: orderBy.sortField,
 			sortMethod: orderBy.sortMethod
 		})).then(function (rows) {
@@ -734,23 +663,12 @@ shared.count = function (req, cb) {
 };
 
 shared.getVoters = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['publicKey']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getVoters, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		library.db.one(sql.getVoters, { publicKey: query.publicKey }).then(function (row) {
+		library.db.one(sql.getVoters, { publicKey: req.body.publicKey }).then(function (row) {
 			var addresses = (row.accountIds) ? row.accountIds : [];
 
 			modules.accounts.getAccounts({
@@ -765,104 +683,70 @@ shared.getVoters = function (req, cb) {
 			});
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return setImmediate(cb, 'Failed to get voters for delegate: ' + query.publicKey);
+			return setImmediate(cb, 'Failed to get voters for delegate: ' + req.body.publicKey);
 		});
 	});
 };
 
 shared.getDelegates = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			orderBy: {
-				type: 'string'
-			},
-			limit: {
-				type: 'integer',
-				minimum: 1,
-				maximum: constants.activeDelegates
-			},
-			offset: {
-				type: 'integer',
-				minimum: 0
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getDelegates, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		modules.delegates.getDelegates(query, function (err, result) {
+		modules.delegates.getDelegates(req.body, function (err, data) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
 			function compareNumber (a, b) {
-				var sorta = parseFloat(a[result.sortField]);
-				var sortb = parseFloat(b[result.sortField]);
-				if (result.sortMethod === 'ASC') {
+				var sorta = parseFloat(a[data.sortField]);
+				var sortb = parseFloat(b[data.sortField]);
+				if (data.sortMethod === 'ASC') {
 					return sorta - sortb;
 				} else {
 				 	return sortb - sorta;
 				}
 			}
 
-			function compareString (a, b) {
-				var sorta = a[result.sortField];
-				var sortb = b[result.sortField];
-				if (result.sortMethod === 'ASC') {
+			function compadatatring (a, b) {
+				var sorta = a[data.sortField];
+				var sortb = b[data.sortField];
+				if (data.sortMethod === 'ASC') {
 				  return sorta.localeCompare(sortb);
 				} else {
 				  return sortb.localeCompare(sorta);
 				}
 			}
 
-			if (result.sortField) {
-				if (['approval', 'productivity', 'rate', 'vote'].indexOf(result.sortField) > -1) {
-					result.delegates = result.delegates.sort(compareNumber);
-				} else if (['username', 'address', 'publicKey'].indexOf(result.sortField) > -1) {
-					result.delegates = result.delegates.sort(compareString);
+			if (data.sortField) {
+				if (['approval', 'productivity', 'rate', 'vote'].indexOf(data.sortField) > -1) {
+					data.delegates = data.delegates.sort(compareNumber);
+				} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
+					data.delegates = data.delegates.sort(compadatatring);
 				} else {
 					return setImmediate(cb, 'Invalid sort field');
 				}
 			}
 
-			var delegates = result.delegates.slice(result.offset, result.limit);
+			var delegates = data.delegates.slice(data.offset, data.limit);
 
-			return setImmediate(cb, null, {delegates: delegates, totalCount: result.count});
+			return setImmediate(cb, null, {delegates: delegates, totalCount: data.count});
 		});
 	});
 };
 
 shared.getFee = function (req, cb) {
-	var query = req.body;
-	var fee = null;
-
-	fee = constants.fees.delegate;
-
-	return setImmediate(cb, null, {fee: fee});
+	return setImmediate(cb, null, {fee: constants.fees.delegate});
 };
 
 shared.getForgedByAccount = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			generatorPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['generatorPublicKey']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getForgedByAccount, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		modules.accounts.getAccount({publicKey: query.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
+		modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
 			if (err || !account) {
 				return setImmediate(cb, err || 'Account not found');
 			}
@@ -873,47 +757,23 @@ shared.getForgedByAccount = function (req, cb) {
 };
 
 shared.addDelegate = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			username: {
-				type: 'string'
-			}
-		},
-		required: ['secret']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.addDelegate, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
-		if (body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== body.publicKey) {
+		if (req.body.publicKey) {
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
+			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
@@ -939,7 +799,7 @@ shared.addDelegate = function (req, cb) {
 							return setImmediate(cb, 'Requester not found');
 						}
 
-						if (requester.secondSignature && !body.secondSecret) {
+						if (requester.secondSignature && !req.body.secondSecret) {
 							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
@@ -950,7 +810,7 @@ shared.addDelegate = function (req, cb) {
 						var secondKeypair = null;
 
 						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
@@ -959,7 +819,7 @@ shared.addDelegate = function (req, cb) {
 						try {
 							transaction = library.logic.transaction.create({
 								type: transactionTypes.DELEGATE,
-								username: body.username,
+								username: req.body.username,
 								sender: account,
 								keypair: keypair,
 								secondKeypair: secondKeypair,
@@ -981,14 +841,14 @@ shared.addDelegate = function (req, cb) {
 						return setImmediate(cb, 'Account not found');
 					}
 
-					if (account.secondSignature && !body.secondSecret) {
+					if (account.secondSignature && !req.body.secondSecret) {
 						return setImmediate(cb, 'Invalid second passphrase');
 					}
 
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
@@ -997,7 +857,7 @@ shared.addDelegate = function (req, cb) {
 					try {
 						transaction = library.logic.transaction.create({
 							type: transactionTypes.DELEGATE,
-							username: body.username,
+							username: req.body.username,
 							sender: account,
 							keypair: keypair,
 							secondKeypair: secondKeypair

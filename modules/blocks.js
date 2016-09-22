@@ -12,6 +12,7 @@ var ip = require('ip');
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/blocks.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/blocks.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -1057,9 +1058,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 			return setImmediate(cb, err, lastValidBlock);
 		}
 
-		var report = library.scheme.validate(res.body.blocks, {
-			type: 'array'
-		});
+		var report = library.scheme.validate(res.body.blocks, schema.loadBlocksFromPeer);
 
 		if (!report) {
 			return setImmediate(cb, 'Received invalid blocks data', lastValidBlock);
@@ -1228,24 +1227,13 @@ shared.getBlock = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['id']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getBlock, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
 		library.dbSequence.add(function (cb) {
-			__private.getById(query.id, function (err, block) {
+			__private.getById(req.body.id, function (err, block) {
 				if (!block || err) {
 					return setImmediate(cb, 'Block not found');
 				}
@@ -1260,55 +1248,13 @@ shared.getBlocks = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			limit: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 100
-			},
-			orderBy: {
-				type: 'string'
-			},
-			offset: {
-				type: 'integer',
-				minimum: 0
-			},
-			generatorPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			totalAmount: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
-			totalFee: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
-			reward: {
-				type: 'integer',
-				minimum: 0
-			},
-			previousBlock: {
-				type: 'string'
-			},
-			height: {
-				type: 'integer'
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getBlocks, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
 		library.dbSequence.add(function (cb) {
-			__private.list(query, function (err, data) {
+			__private.list(req.body, function (err, data) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
@@ -1323,8 +1269,6 @@ shared.getEpoch = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body;
-
 	return setImmediate(cb, null, {epoch: constants.epochTime});
 };
 
@@ -1332,8 +1276,6 @@ shared.getHeight = function (req, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
-
-	var query = req.body;
 
 	return setImmediate(cb, null, {height: __private.lastBlock.height});
 };
@@ -1343,8 +1285,6 @@ shared.getFee = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body;
-
 	return setImmediate(cb, null, {fee: library.logic.block.calculateFee()});
 };
 
@@ -1352,8 +1292,6 @@ shared.getFees = function (req, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
-
-	var query = req.body;
 
 	return setImmediate(cb, null, {fees: constants.fees});
 };
@@ -1363,8 +1301,6 @@ shared.getNethash = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body;
-
 	return setImmediate(cb, null, {nethash: library.config.nethash});
 };
 
@@ -1373,9 +1309,7 @@ shared.getMilestone = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body, height = __private.lastBlock.height;
-
-	return setImmediate(cb, null, {milestone: __private.blockReward.calcMilestone(height)});
+	return setImmediate(cb, null, {milestone: __private.blockReward.calcMilestone(__private.lastBlock.height)});
 };
 
 shared.getReward = function (req, cb) {
@@ -1383,9 +1317,7 @@ shared.getReward = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body, height = __private.lastBlock.height;
-
-	return setImmediate(cb, null, {reward: __private.blockReward.calcReward(height)});
+	return setImmediate(cb, null, {reward: __private.blockReward.calcReward(__private.lastBlock.height)});
 };
 
 shared.getSupply = function (req, cb) {
@@ -1393,9 +1325,7 @@ shared.getSupply = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body, height = __private.lastBlock.height;
-
-	return setImmediate(cb, null, {supply: __private.blockReward.calcSupply(height)});
+	return setImmediate(cb, null, {supply: __private.blockReward.calcSupply(__private.lastBlock.height)});
 };
 
 shared.getStatus = function (req, cb) {
@@ -1403,16 +1333,14 @@ shared.getStatus = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	var query = req.body, height = __private.lastBlock.height;
-
 	return setImmediate(cb, null, {
 		epoch:     constants.epochTime,
-		height:    height,
+		height:    __private.lastBlock.height,
 		fee:       library.logic.block.calculateFee(),
-		milestone: __private.blockReward.calcMilestone(height),
+		milestone: __private.blockReward.calcMilestone(__private.lastBlock.height),
 		nethash:   library.config.nethash,
-		reward:    __private.blockReward.calcReward(height),
-		supply:    __private.blockReward.calcSupply(height)
+		reward:    __private.blockReward.calcReward(__private.lastBlock.height),
+		supply:    __private.blockReward.calcSupply(__private.lastBlock.height)
 	});
 };
 

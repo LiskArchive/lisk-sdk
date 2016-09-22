@@ -102,6 +102,7 @@ module.exports = function (grunt) {
 				'helpers/**/*.js',
 				'modules/**/*.js',
 				'logic/**/*.js',
+				'schema/**/*.js',
 				'sql/**/*.js',
 				'tasks/**/*.js',
 				'test/*.js',

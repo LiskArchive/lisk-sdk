@@ -6,6 +6,7 @@ var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var Router = require('../helpers/router.js');
+var schema = require('../schema/accounts.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -44,7 +45,7 @@ __private.attachApi = function () {
 		'post /open': 'open',
 		'get /getBalance': 'getBalance',
 		'get /getPublicKey': 'getPublickey',
-		'post /generatePublicKey': 'generatePublickey',
+		'post /generatePublicKey': 'generatePublicKey',
 		'get /delegates': 'getDelegates',
 		'get /delegates/fee': 'getDelegatesFee',
 		'put /delegates': 'addDelegates',
@@ -59,20 +60,7 @@ __private.attachApi = function () {
 
 	if (process.env.TOP && process.env.TOP.toUpperCase() === 'TRUE') {
 		router.get('/top', function (req, res, next) {
-			req.sanitize(req.query, {
-				type: 'object',
-				properties: {
-					limit: {
-						type: 'integer',
-						minimum: 0,
-						maximum: 100
-					},
-					offset: {
-						type: 'integer',
-						minimum: 0
-					}
-				}
-			}, function (err, report, query) {
+			req.sanitize(req.query, schema.top, function (err, report, query) {
 				if (err) { return next(err); }
 				if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -232,24 +220,12 @@ Accounts.prototype.onBind = function (scope) {
 
 // Shared
 shared.open = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			}
-		},
-		required: ['secret']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.open, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		__private.openAccount(body.secret, function (err, account) {
+		__private.openAccount(req.body.secret, function (err, account) {
 			if (!err) {
 				var accountData = {
 					address: account.address,
@@ -272,28 +248,17 @@ shared.open = function (req, cb) {
 };
 
 shared.getBalance = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['address']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getBalance, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(query.address)) {
+		if (!isAddress.test(req.body.address)) {
 			return setImmediate(cb, 'Invalid address');
 		}
 
-		self.getAccount({ address: query.address }, function (err, account) {
+		self.getAccount({ address: req.body.address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -307,28 +272,17 @@ shared.getBalance = function (req, cb) {
 };
 
 shared.getPublickey = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['address']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getPublicKey, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(query.address)) {
+		if (!isAddress.test(req.body.address)) {
 			return setImmediate(cb, 'Invalid address');
 		}
 
-		self.getAccount({ address: query.address }, function (err, account) {
+		self.getAccount({ address: req.body.address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -342,24 +296,13 @@ shared.getPublickey = function (req, cb) {
 	});
 };
 
-shared.generatePublickey = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['secret']
-	}, function (err) {
+shared.generatePublicKey = function (req, cb) {
+	library.scheme.validate(req.body, schema.generatePublicKey, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		__private.openAccount(body.secret, function (err, account) {
+		__private.openAccount(req.body.secret, function (err, account) {
 			var publicKey = null;
 
 			if (!err && account) {
@@ -374,23 +317,12 @@ shared.generatePublickey = function (req, cb) {
 };
 
 shared.getDelegates = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['address']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getDelegates, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		self.getAccount({ address: query.address }, function (err, account) {
+		self.getAccount({ address: req.body.address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -400,8 +332,8 @@ shared.getDelegates = function (req, cb) {
 			}
 
 			if (account.delegates) {
-				modules.delegates.getDelegates(query, function (err, result) {
-					var delegates = result.delegates.filter(function (delegate) {
+				modules.delegates.getDelegates(req.body, function (err, res) {
+					var delegates = res.delegates.filter(function (delegate) {
 						return account.delegates.indexOf(delegate.publicKey) !== -1;
 					});
 
@@ -415,47 +347,27 @@ shared.getDelegates = function (req, cb) {
 };
 
 shared.getDelegatesFee = function (req, cb) {
-	var query = req.body;
-
 	return setImmediate(cb, null, {fee: constants.fees.delegate});
 };
 
 shared.addDelegates = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.addDelegates, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
-		if (body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== body.publicKey) {
+		if (req.body.publicKey) {
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({ publicKey: body.multisigAccountPublicKey }, function (err, account) {
+			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+				modules.accounts.getAccount({ publicKey: req.body.multisigAccountPublicKey }, function (err, account) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
@@ -481,7 +393,7 @@ shared.addDelegates = function (req, cb) {
 							return setImmediate(cb, 'Requester not found');
 						}
 
-						if (requester.secondSignature && !body.secondSecret) {
+						if (requester.secondSignature && !req.body.secondSecret) {
 							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
@@ -492,7 +404,7 @@ shared.addDelegates = function (req, cb) {
 						var secondKeypair = null;
 
 						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
@@ -501,7 +413,7 @@ shared.addDelegates = function (req, cb) {
 						try {
 							transaction = library.logic.transaction.create({
 								type: transactionTypes.VOTE,
-								votes: body.delegates,
+								votes: req.body.delegates,
 								sender: account,
 								keypair: keypair,
 								secondKeypair: secondKeypair,
@@ -524,14 +436,14 @@ shared.addDelegates = function (req, cb) {
 						return setImmediate(cb, 'Account not found');
 					}
 
-					if (account.secondSignature && !body.secondSecret) {
+					if (account.secondSignature && !req.body.secondSecret) {
 						return setImmediate(cb, 'Invalid second passphrase');
 					}
 
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
@@ -540,7 +452,7 @@ shared.addDelegates = function (req, cb) {
 					try {
 						transaction = library.logic.transaction.create({
 							type: transactionTypes.VOTE,
-							votes: body.delegates,
+							votes: req.body.delegates,
 							sender: account,
 							keypair: keypair,
 							secondKeypair: secondKeypair
@@ -563,28 +475,17 @@ shared.addDelegates = function (req, cb) {
 };
 
 shared.getAccount = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['address']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getAccount, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(query.address)) {
+		if (!isAddress.test(req.body.address)) {
 			return setImmediate(cb, 'Invalid address');
 		}
 
-		self.getAccount({ address: query.address }, function (err, account) {
+		self.getAccount({ address: req.body.address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
 			}

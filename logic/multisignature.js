@@ -225,6 +225,7 @@ Multisignature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 };
 
 Multisignature.prototype.schema = {
+	id: 'Multisignature',
 	type: 'object',
 	properties: {
 		min: {

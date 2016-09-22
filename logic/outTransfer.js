@@ -150,6 +150,7 @@ OutTransfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
 };
 
 OutTransfer.prototype.schema = {
+	id: 'OutTransfer',
 	object: true,
 	properties: {
 		dappId: {

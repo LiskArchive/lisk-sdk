@@ -9,6 +9,7 @@ var genesisblock = null;
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/transactions.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -438,65 +439,12 @@ Transactions.prototype.onPeerReady = function () {
 
 // Shared
 shared.getTransactions = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			blockId: {
-				type: 'string'
-			},
-			limit: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 100
-			},
-			type: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 10
-			},
-			orderBy: {
-				type: 'string'
-			},
-			offset: {
-				type: 'integer',
-				minimum: 0
-			},
-			senderPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			ownerPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			ownerAddress: {
-				type: 'string'
-			},
-			senderId: {
-				type: 'string'
-			},
-			recipientId: {
-				type: 'string'
-			},
-			amount: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.fixedPoint
-			},
-			fee: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.fixedPoint
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		__private.list(query, function (err, data) {
+		__private.list(req.body, function (err, data) {
 			if (err) {
 				return setImmediate(cb, 'Failed to get transactions: ' + err);
 			}
@@ -507,23 +455,12 @@ shared.getTransactions = function (req, cb) {
 };
 
 shared.getTransaction = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['id']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getTransaction, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		__private.getById(query.id, function (err, transaction) {
+		__private.getById(req.body.id, function (err, transaction) {
 			if (!transaction || err) {
 				return setImmediate(cb, 'Transaction not found');
 			}
@@ -533,23 +470,12 @@ shared.getTransaction = function (req, cb) {
 };
 
 shared.getUnconfirmedTransaction = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string',
-				minLength: 1
-			}
-		},
-		required: ['id']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getUnconfirmedTransaction, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var unconfirmedTransaction = self.getUnconfirmedTransaction(query.id);
+		var unconfirmedTransaction = self.getUnconfirmedTransaction(req.body.id);
 
 		if (!unconfirmedTransaction) {
 			return setImmediate(cb, 'Transaction not found');
@@ -560,20 +486,7 @@ shared.getUnconfirmedTransaction = function (req, cb) {
 };
 
 shared.getUnconfirmedTransactions = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			senderPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			address: {
-				type: 'string'
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getUnconfirmedTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -581,9 +494,9 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 		var transactions = self.getUnconfirmedTransactionList(true);
 		var i, toSend = [];
 
-		if (query.senderPublicKey || query.address) {
+		if (req.body.senderPublicKey || req.body.address) {
 			for (i = 0; i < transactions.length; i++) {
-				if (transactions[i].senderPublicKey === query.senderPublicKey || transactions[i].recipientId === query.address) {
+				if (transactions[i].senderPublicKey === req.body.senderPublicKey || transactions[i].recipientId === req.body.address) {
 					toSend.push(transactions[i]);
 				}
 			}
@@ -598,55 +511,21 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 };
 
 shared.addTransactions = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			amount: {
-				type: 'integer',
-				minimum: 1,
-				maximum: constants.totalAmount
-			},
-			recipientId: {
-				type: 'string',
-				minLength: 1
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['secret', 'amount', 'recipientId']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.addTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
-		if (body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== body.publicKey) {
+		if (req.body.publicKey) {
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
-		var query = { address: body.recipientId };
+		var query = { address: req.body.recipientId };
 
 		library.balancesSequence.add(function (cb) {
 			modules.accounts.getAccount(query, function (err, recipient) {
@@ -654,14 +533,14 @@ shared.addTransactions = function (req, cb) {
 					return setImmediate(cb, err);
 				}
 
-				var recipientId = recipient ? recipient.address : body.recipientId;
+				var recipientId = recipient ? recipient.address : req.body.recipientId;
 
 				if (!recipientId) {
 					return setImmediate(cb, 'Invalid recipient');
 				}
 
-				if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-					modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
+				if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+					modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 						if (err) {
 							return setImmediate(cb, err);
 						}
@@ -687,7 +566,7 @@ shared.addTransactions = function (req, cb) {
 								return setImmediate(cb, 'Requester not found');
 							}
 
-							if (requester.secondSignature && !body.secondSecret) {
+							if (requester.secondSignature && !req.body.secondSecret) {
 								return setImmediate(cb, 'Missing requester second passphrase');
 							}
 
@@ -698,7 +577,7 @@ shared.addTransactions = function (req, cb) {
 							var secondKeypair = null;
 
 							if (requester.secondSignature) {
-								var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+								var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 								secondKeypair = library.ed.makeKeypair(secondHash);
 							}
 
@@ -707,7 +586,7 @@ shared.addTransactions = function (req, cb) {
 							try {
 								transaction = library.logic.transaction.create({
 									type: transactionTypes.SEND,
-									amount: body.amount,
+									amount: req.body.amount,
 									sender: account,
 									recipientId: recipientId,
 									keypair: keypair,
@@ -731,14 +610,14 @@ shared.addTransactions = function (req, cb) {
 							return setImmediate(cb, 'Account not found');
 						}
 
-						if (account.secondSignature && !body.secondSecret) {
+						if (account.secondSignature && !req.body.secondSecret) {
 							return setImmediate(cb, 'Missing second passphrase');
 						}
 
 						var secondKeypair = null;
 
 						if (account.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
@@ -747,7 +626,7 @@ shared.addTransactions = function (req, cb) {
 						try {
 							transaction = library.logic.transaction.create({
 								type: transactionTypes.SEND,
-								amount: body.amount,
+								amount: req.body.amount,
 								sender: account,
 								recipientId: recipientId,
 								keypair: keypair,

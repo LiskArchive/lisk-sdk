@@ -9,6 +9,7 @@ var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/peer.js');
 var sql = require('../sql/peer.js');
 var util = require('util');
 
@@ -62,30 +63,19 @@ __private.updatePeerList = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/list',
 		method: 'GET'
-	}, function (err, data) {
+	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
 		}
 
-		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
-
-		library.scheme.validate(data.body, {
-			type: 'object',
-			properties: {
-				peers: {
-					type: 'array',
-					uniqueItems: true
-				}
-			},
-			required: ['peers']
-		}, function (err) {
+		library.scheme.validate(res.body, schema.updatePeerList.peers, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
 
 			// Removing nodes not behaving well
 			library.logger.debug('Removed peers list size: ' + removed.length);
-			var peers = data.body.peers.filter(function (peer) {
+			var peers = res.body.peers.filter(function (peer) {
 					return removed.indexOf(peer.ip);
 			});
 
@@ -111,31 +101,7 @@ __private.updatePeerList = function (cb) {
 			library.logger.debug('Picked only: ' + peers.length);
 
 			async.eachLimit(peers, 2, function (peer, cb) {
-				library.scheme.validate(peer, {
-					type: 'object',
-					properties: {
-						ip: {
-							type: 'string'
-						},
-						port: {
-							type: 'integer',
-							minimum: 1,
-							maximum: 65535
-						},
-						state: {
-							type: 'integer',
-							minimum: 0,
-							maximum: 3
-						},
-						os: {
-							type: 'string'
-						},
-						version: {
-							type: 'string'
-						}
-					},
-					required: ['ip', 'port', 'state']
-				}, function (err) {
+				library.scheme.validate(peer, schema.updatePeerList.peer, function (err) {
 					if (err) {
 						err.forEach(function (e) {
 							library.logger.error('Rejecting invalid peer: ' + peer.ip + ' ' + e.path + ' ' + e.message);
@@ -457,50 +423,16 @@ Peer.prototype.onPeerReady = function () {
 // Shared
 
 shared.getPeers = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			state: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 3
-			},
-			os: {
-				type: 'string'
-			},
-			version: {
-				type: 'string'
-			},
-			limit: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 100
-			},
-			orderBy: {
-				type: 'string'
-			},
-			offset: {
-				type: 'integer',
-				minimum: 0
-			},
-			port: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 65535
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getPeers, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		if (query.limit < 0 || query.limit > 100) {
+		if (req.body.limit < 0 || req.body.limit > 100) {
 			return setImmediate(cb, 'Invalid limit. Maximum is 100');
 		}
 
-		__private.getByFilter(query, function (err, peers) {
+		__private.getByFilter(req.body, function (err, peers) {
 			if (err) {
 				return setImmediate(cb, 'Peer not found');
 			}
@@ -511,30 +443,14 @@ shared.getPeers = function (req, cb) {
 };
 
 shared.getPeer = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			ip: {
-				type: 'string',
-				minLength: 1
-			},
-			port: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 65535
-			}
-		},
-		required: ['ip', 'port']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getPeer, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
 		__private.getByFilter({
-			ip: query.ip,
-			port: query.port
+			ip: req.body.ip,
+			port: req.body.port
 		}, function (err, peers) {
 			if (err) {
 				return setImmediate(cb, 'Peer not found');

@@ -118,6 +118,7 @@ InTransfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
 };
 
 InTransfer.prototype.schema = {
+	id: 'InTransfer',
 	object: true,
 	properties: {
 		dappId: {

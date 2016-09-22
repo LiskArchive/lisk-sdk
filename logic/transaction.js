@@ -705,6 +705,7 @@ Transaction.prototype.afterSave = function (trs, cb) {
 };
 
 Transaction.prototype.schema = {
+	id: 'Transaction',
 	type: 'object',
 	properties: {
 		id: {

@@ -227,6 +227,7 @@ Block.prototype.dbSave = function (block) {
 };
 
 Block.prototype.schema = {
+	id: 'Block',
 	type: 'object',
 	properties: {
 		id: {

@@ -6,6 +6,7 @@ var crypto = require('crypto');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/signatures.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
@@ -80,46 +81,23 @@ shared.getFee = function (req, cb) {
 };
 
 shared.addSignature = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['secret', 'secondSecret']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.addSignature, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
-		if (body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== body.publicKey) {
+		if (req.body.publicKey) {
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
+			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
@@ -149,7 +127,7 @@ shared.addSignature = function (req, cb) {
 							return setImmediate(cb, 'Requester not found');
 						}
 
-						if (requester.secondSignature && !body.secondSecret) {
+						if (requester.secondSignature && !req.body.secondSecret) {
 							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
@@ -157,7 +135,7 @@ shared.addSignature = function (req, cb) {
 							return setImmediate(cb, 'Invalid requester public key');
 						}
 
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 						var secondKeypair = library.ed.makeKeypair(secondHash);
 						var transaction;
 
@@ -191,7 +169,7 @@ shared.addSignature = function (req, cb) {
 						return setImmediate(cb, 'Account already has a second passphrase');
 					}
 
-					var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+					var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 					var secondKeypair = library.ed.makeKeypair(secondHash);
 					var transaction;
 

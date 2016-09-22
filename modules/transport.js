@@ -8,6 +8,7 @@ var extend = require('extend');
 var ip = require('ip');
 var request = require('request');
 var Router = require('../helpers/router.js');
+var schema = require('../schema/transport.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
 var zlib = require('zlib');
@@ -57,29 +58,7 @@ __private.attachApi = function () {
 
 		req.headers.port = req.peer.port;
 
-		req.sanitize(req.headers, {
-			type: 'object',
-			properties: {
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				os: {
-					type: 'string',
-					maxLength: 64
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				},
-				version: {
-					type: 'string',
-					maxLength: 11
-				}
-			},
-			required: ['port', 'nethash', 'version']
-		}, function (err, report, headers) {
+		req.sanitize(req.headers, schema.headers, function (err, report, headers) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.status(500).send({status: false, error: report.issues}); }
 
@@ -114,16 +93,7 @@ __private.attachApi = function () {
 	router.get('/blocks/common', function (req, res, next) {
 		res.set(__private.headers);
 
-		req.sanitize(req.query, {
-			type: 'object',
-			properties: {
-				ids: {
-					type: 'string',
-					format: 'splitarray'
-				}
-			},
-			required: ['ids']
-		}, function (err, report, query) {
+		req.sanitize(req.query, schema.commonBlock.query, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -136,17 +106,7 @@ __private.attachApi = function () {
 			});
 
 			if (!escapedIds.length) {
-				report = library.scheme.validate(req.headers, {
-					type: 'object',
-					properties: {
-						port: {
-							type: 'integer',
-							minimum: 1,
-							maximum: 65535
-						}
-					},
-					required: ['port']
-				});
+				report = library.scheme.validate(req.headers, schema.commonBlock.result);
 
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
 
@@ -170,10 +130,7 @@ __private.attachApi = function () {
 	router.get('/blocks', function (req, res, next) {
 		res.set(__private.headers);
 
-		req.sanitize(req.query, {
-			type: 'object',
-			properties: {lastBlockId: {type: 'string'}}
-		}, function (err, report, query) {
+		req.sanitize(req.query, schema.blocks.query, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -198,21 +155,7 @@ __private.attachApi = function () {
 	router.post('/blocks', function (req, res) {
 		res.set(__private.headers);
 
-		var report = library.scheme.validate(req.headers, {
-			type: 'object',
-			properties: {
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				}
-			},
-			required: ['port','nethash']
-		});
+		var report = library.scheme.validate(req.headers, schema.blocks.result);
 
 		if (req.headers.nethash !== library.config.nethash) {
 			return res.status(200).send({success: false, 'message': 'Request is made on the wrong network', 'expected': library.config.nethash, 'received': req.headers.nethash});
@@ -241,25 +184,7 @@ __private.attachApi = function () {
 	router.post('/signatures', function (req, res) {
 		res.set(__private.headers);
 
-		library.scheme.validate(req.body, {
-			type: 'object',
-			properties: {
-				signature: {
-					type: 'object',
-					properties: {
-						transaction: {
-							type: 'string'
-						},
-						signature: {
-							type: 'string',
-							format: 'signature'
-						}
-					},
-					required: ['transaction', 'signature']
-				}
-			},
-			required: ['signature']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.signatures, function (err) {
 			if (err) {
 				return res.status(200).json({success: false, error: 'Signature validation failed'});
 			}
@@ -303,21 +228,7 @@ __private.attachApi = function () {
 	router.post('/transactions', function (req, res) {
 		res.set(__private.headers);
 
-		var report = library.scheme.validate(req.headers, {
-			type: 'object',
-			properties: {
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				}
-			},
-			required: ['port','nethash']
-		});
+		var report = library.scheme.validate(req.headers, schema.transactions);
 
 		if (req.headers.nethash !== library.config.nethash) {
 			return res.status(200).send({success: false, 'message': 'Request is made on the wrong network', 'expected': library.config.nethash, 'received': req.headers.nethash});
@@ -538,11 +449,11 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		req.body = options.data;
 	}
 
-	return request(req, function (err, response, body) {
-		if (err || response.statusCode !== 200) {
+	return request(req, function (err, res, body) {
+		if (err || res.statusCode !== 200) {
 			library.logger.debug('Request', {
 				url: req.url,
-				statusCode: response ? response.statusCode : 'unknown',
+				statusCode: res ? res.statusCode : 'unknown',
 				err: err
 			});
 
@@ -564,53 +475,31 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				}
 			}
 			if (cb) {
-				return setImmediate(cb, err || ('Request status code: ' + response.statusCode));
+				return setImmediate(cb, err || ('Request status code: ' + res.statusCode));
 			} else {
 				return;
 			}
 		}
 
-		if (response.headers.nethash !== library.config.nethash) {
+		if (res.headers.nethash !== library.config.nethash) {
 			return cb && setImmediate(cb, 'Peer is not on the same network', null);
 		}
 
-		response.headers.port = parseInt(response.headers.port);
+		res.headers.port = parseInt(res.headers.port);
 
-		var report = library.scheme.validate(response.headers, {
-			type: 'object',
-			properties: {
-				os: {
-					type: 'string',
-					maxLength: 64
-				},
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				},
-				version: {
-					type: 'string',
-					maxLength: 11
-				}
-			},
-			required: ['port', 'nethash', 'version']
-		});
+		var report = library.scheme.validate(res.headers, schema.getFromPeer);
 
 		if (!report) {
 			return cb && setImmediate(cb, null, {body: body, peer: peer});
 		}
 
-		if (!peer.loopback && (response.headers.version === library.config.version)) {
+		if (!peer.loopback && (res.headers.version === library.config.version)) {
 			modules.peer.update({
 				ip: peer.ip,
-				port: response.headers.port,
+				port: res.headers.port,
 				state: 2,
-				os: response.headers.os,
-				version: response.headers.version
+				os: res.headers.os,
+				version: res.headers.version
 			});
 		}
 

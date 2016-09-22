@@ -197,6 +197,7 @@ Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {
 };
 
 Delegate.prototype.schema = {
+	id: 'Delegate',
 	type: 'object',
 	properties: {
 		publicKey: {

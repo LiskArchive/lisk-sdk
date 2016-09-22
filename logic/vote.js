@@ -129,6 +129,7 @@ Vote.prototype.undoUnconfirmed = function (trs, sender, cb) {
 };
 
 Vote.prototype.schema = {
+	id: 'Vote',
 	type: 'object',
 	properties: {
 		votes: {

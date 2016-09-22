@@ -102,6 +102,7 @@ Signature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 };
 
 Signature.prototype.schema = {
+	id: 'Signature',
 	object: true,
 	properties: {
 		publicKey: {

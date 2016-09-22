@@ -18,6 +18,7 @@ var rmdir = require('rimraf');
 var Router = require('../helpers/router.js');
 var Sandbox = require('lisk-sandbox');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/dapps.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/dapps.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -103,60 +104,7 @@ __private.attachApi = function () {
 	});
 
 	router.put('/', function (req, res, next) {
-		req.sanitize(req.body, {
-			type: 'object',
-			properties: {
-				secret: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 100
-				},
-				secondSecret: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 100
-				},
-				publicKey: {
-					type: 'string',
-					format: 'publicKey'
-				},
-				category: {
-					type: 'integer',
-					minimum: 0,
-					maximum: 8
-				},
-				name: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 32
-				},
-				description: {
-					type: 'string',
-					minLength: 0,
-					maxLength: 160
-				},
-				tags: {
-					type: 'string',
-					minLength: 0,
-					maxLength: 160
-				},
-				type: {
-					type: 'integer',
-					minimum: 0
-				},
-				link: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 2000
-				},
-				icon: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 2000
-				}
-			},
-			required: ['secret', 'type', 'name', 'category']
-		}, function (err, report, body) {
+		req.sanitize(req.body, schema.put, function (err, report, body) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -222,52 +170,7 @@ __private.attachApi = function () {
 	});
 
 	router.get('/', function (req, res, next) {
-		req.sanitize(req.query, {
-			type: 'object',
-			properties: {
-				id: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 20
-				},
-				category: {
-					type: 'string',
-					minLength: 1
-				},
-				name: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 32
-				},
-				type: {
-					type: 'integer',
-					minimum: 0
-				},
-				link: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 2000
-				},
-				icon: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 2000
-				},
-				limit: {
-					type: 'integer',
-					minimum: 0,
-					maximum: 100
-				},
-				offset: {
-					type: 'integer',
-					minimum: 0
-				},
-				orderBy: {
-					type: 'string',
-					minLength: 1
-				}
-			}
-		}, function (err, report, query) {
+		req.sanitize(req.query, schema.list, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -282,16 +185,7 @@ __private.attachApi = function () {
 	});
 
 	router.get('/get', function (req, res, next) {
-		req.sanitize(req.query, {
-			type: 'object',
-			properties: {
-				id: {
-					type: 'string',
-					minLength: 1
-				}
-			},
-			required: ['id']
-		}, function (err, report, query) {
+		req.sanitize(req.query, schema.get, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -306,26 +200,7 @@ __private.attachApi = function () {
 	});
 
 	router.get('/search', function (req, res, next) {
-		req.sanitize(req.query, {
-			type: 'object',
-			properties: {
-				q: {
-					type: 'string',
-					minLength: 1
-				},
-				category: {
-					type: 'integer',
-					minimum: 0,
-					maximum: 8
-				},
-				installed: {
-					type: 'integer',
-					minimum: 0,
-					maximum: 1
-				}
-			},
-			required: ['q']
-		}, function (err, report, query) {
+		req.sanitize(req.query, schema.search, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -389,20 +264,7 @@ __private.attachApi = function () {
 	});
 
 	router.post('/install', function (req, res, next) {
-		req.sanitize(req.body, {
-			type: 'object',
-			properties: {
-				id: {
-					type: 'string',
-					minLength: 1
-				},
-				master: {
-					type: 'string',
-					minLength: 1
-				}
-			},
-			required: ['id']
-		}, function (err, report, body) {
+		req.sanitize(req.body, schema.install, function (err, report, body) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -511,20 +373,7 @@ __private.attachApi = function () {
 	});
 
 	router.post('/uninstall', function (req, res, next) {
-		req.sanitize(req.body, {
-			type: 'object',
-			properties: {
-				id: {
-					type: 'string',
-					minLength: 1
-				},
-				master: {
-					type: 'string',
-					minLength: 1
-				}
-			},
-			required: ['id']
-		}, function (err, report, body) {
+		req.sanitize(req.body, schema.uninstall, function (err, report, body) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -634,20 +483,7 @@ __private.attachApi = function () {
 	});
 
 	router.post('/stop', function (req, res, next) {
-		req.sanitize(req.body, {
-			type: 'object',
-			properties: {
-				id: {
-					type: 'string',
-					minLength: 1
-				},
-				master: {
-					type: 'string',
-					minLength: 1
-				}
-			},
-			required: ['id']
-		}, function (err, report, body) {
+		req.sanitize(req.body, schema.stop, function (err, report, body) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -1099,24 +935,7 @@ __private.dappRoutes = function (dapp, cb) {
 };
 
 __private.launch = function (body, cb) {
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			params: {
-				type: 'array',
-				minLength: 1
-			},
-			id: {
-				type: 'string',
-				minLength: 1
-			},
-			master: {
-				type: 'string',
-				minLength: 0
-			}
-		},
-		required: ['id']
-	}, function (err) {
+	library.scheme.validate(body, schema.launch, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -1285,51 +1104,16 @@ __private.stop = function (dapp, cb) {
 };
 
 __private.addTransactions = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			amount: {
-				type: 'integer',
-				minimum: 1,
-				maximum: constants.totalAmount
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			dappId: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['secret', 'amount', 'dappId']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.addTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
-		if (body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== body.publicKey) {
+		if (req.body.publicKey) {
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
@@ -1337,8 +1121,8 @@ __private.addTransactions = function (req, cb) {
 		var query = {};
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
+			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
@@ -1364,7 +1148,7 @@ __private.addTransactions = function (req, cb) {
 							return setImmediate(cb, 'Requester not found');
 						}
 
-						if (requester.secondSignature && !body.secondSecret) {
+						if (requester.secondSignature && !req.body.secondSecret) {
 							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
@@ -1375,7 +1159,7 @@ __private.addTransactions = function (req, cb) {
 						var secondKeypair = null;
 
 						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
@@ -1384,12 +1168,12 @@ __private.addTransactions = function (req, cb) {
 						try {
 							transaction = library.logic.transaction.create({
 								type: transactionTypes.IN_TRANSFER,
-								amount: body.amount,
+								amount: req.body.amount,
 								sender: account,
 								keypair: keypair,
 								requester: keypair,
 								secondKeypair: secondKeypair,
-								dappId: body.dappId
+								dappId: req.body.dappId
 							});
 						} catch (e) {
 							return setImmediate(cb, e.toString());
@@ -1408,14 +1192,14 @@ __private.addTransactions = function (req, cb) {
 						return setImmediate(cb, 'Account not found');
 					}
 
-					if (account.secondSignature && !body.secondSecret) {
+					if (account.secondSignature && !req.body.secondSecret) {
 						return setImmediate(cb, 'Invalid second passphrase');
 					}
 
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
@@ -1424,11 +1208,11 @@ __private.addTransactions = function (req, cb) {
 					try {
 						transaction = library.logic.transaction.create({
 							type: transactionTypes.IN_TRANSFER,
-							amount: body.amount,
+							amount: req.body.amount,
 							sender: account,
 							keypair: keypair,
 							secondKeypair: secondKeypair,
-							dappId: body.dappId
+							dappId: req.body.dappId
 						});
 					} catch (e) {
 						return setImmediate(cb, e.toString());
@@ -1448,64 +1232,23 @@ __private.addTransactions = function (req, cb) {
 };
 
 __private.sendWithdrawal = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			amount: {
-				type: 'integer',
-				minimum: 1,
-				maximum: constants.totalAmount
-			},
-			recipientId: {
-				type: 'string',
-				minLength: 2,
-				maxLength: 22
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			dappId: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
-			transactionId: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['secret', 'recipientId', 'amount', 'dappId', 'transactionId']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.sendWithdrawal, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 		var query = {};
 
 		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(body.recipientId)) {
+		if (!isAddress.test(req.body.recipientId)) {
 			return setImmediate(cb, 'Invalid recipient');
 		}
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
+			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
@@ -1531,7 +1274,7 @@ __private.sendWithdrawal = function (req, cb) {
 							return setImmediate(cb, 'Requester not found');
 						}
 
-						if (requester.secondSignature && !body.secondSecret) {
+						if (requester.secondSignature && !req.body.secondSecret) {
 							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
@@ -1542,7 +1285,7 @@ __private.sendWithdrawal = function (req, cb) {
 						var secondKeypair = null;
 
 						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
@@ -1551,14 +1294,14 @@ __private.sendWithdrawal = function (req, cb) {
 						try {
 							transaction = library.logic.transaction.create({
 								type: transactionTypes.OUT_TRANSFER,
-								amount: body.amount,
+								amount: req.body.amount,
 								sender: account,
-								recipientId: body.recipientId,
+								recipientId: req.body.recipientId,
 								keypair: keypair,
 								secondKeypair: secondKeypair,
 								requester: keypair,
-								dappId: body.dappId,
-								transactionId: body.transactionId
+								dappId: req.body.dappId,
+								transactionId: req.body.transactionId
 							});
 						} catch (e) {
 							return setImmediate(cb, e.toString());
@@ -1577,14 +1320,14 @@ __private.sendWithdrawal = function (req, cb) {
 						return setImmediate(cb, 'Account not found');
 					}
 
-					if (account.secondSignature && !body.secondSecret) {
+					if (account.secondSignature && !req.body.secondSecret) {
 						return setImmediate(cb, 'Missing second passphrase');
 					}
 
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
@@ -1593,13 +1336,13 @@ __private.sendWithdrawal = function (req, cb) {
 					try {
 						transaction = library.logic.transaction.create({
 							type: transactionTypes.OUT_TRANSFER,
-							amount: body.amount,
+							amount: req.body.amount,
 							sender: account,
-							recipientId: body.recipientId,
+							recipientId: req.body.recipientId,
 							keypair: keypair,
 							secondKeypair: secondKeypair,
-							dappId: body.dappId,
-							transactionId: body.transactionId
+							dappId: req.body.dappId,
+							transactionId: req.body.transactionId
 						});
 					} catch (e) {
 						return setImmediate(cb, e.toString());

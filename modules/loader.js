@@ -6,6 +6,7 @@ var constants = require('../helpers/constants.js');
 var ip = require('ip');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/loader.js');
 var sql = require('../sql/loader.js');
 
 require('colors');
@@ -82,27 +83,18 @@ __private.loadSignatures = function (cb) {
 		api: '/signatures',
 		method: 'GET',
 		not_ban: true
-	}, function (err, data) {
+	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
 		}
 
-		library.scheme.validate(data.body, {
-			type: 'object',
-			properties: {
-				signatures: {
-					type: 'array',
-					uniqueItems: true
-				}
-			},
-			required: ['signatures']
-		}, function (err) {
+		library.scheme.validate(res.body, schema.loadSignatures, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
 
 			library.sequence.add(function (cb) {
-				async.eachSeries(data.body.signatures, function (signature, cb) {
+				async.eachSeries(res.body.signatures, function (signature, cb) {
 					async.eachSeries(signature.signatures, function (s, cb) {
 						modules.multisignatures.processSignature({
 							signature: s,
@@ -121,37 +113,28 @@ __private.loadUnconfirmedTransactions = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/transactions',
 		method: 'GET'
-	}, function (err, data) {
+	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
 		}
 
-		var report = library.scheme.validate(data.body, {
-			type: 'object',
-			properties: {
-				transactions: {
-					type: 'array',
-					uniqueItems: true
-				}
-			},
-			required: ['transactions']
-		});
+		var report = library.scheme.validate(res.body, schema.loadUnconfirmedTransactions);
 
 		if (!report) {
 			return setImmediate(cb);
 		}
 
-		data.peer = modules.peer.inspect(data.peer);
+		var peer = modules.peer.inspect(res.peer);
 
-		var transactions = data.body.transactions;
+		var transactions = res.body.transactions;
 
 		for (var i = 0; i < transactions.length; i++) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
 				library.logger.warn(e.toString());
-				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
-				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
+				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peer.string);
+				modules.peer.state(peer.ip, peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
 		}
@@ -442,82 +425,40 @@ Loader.prototype.getNetwork = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/list',
 		method: 'GET'
-	}, function (err, data) {
+	}, function (err, res) {
 		if (err) {
 			library.logger.info('Failed to connect properly with network', err);
 			return setImmediate(cb, err);
 		}
 
-		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
-
-		library.scheme.validate(data.body, {
-			type: 'object',
-			properties: {
-				peers: {
-					type: 'array',
-					uniqueItems: true
-				}
-			},
-			required: ['peers']
-		}, function (err) {
+		library.scheme.validate(res.body, schema.getNetwork.peers, function (err) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
-			var peers = data.body.peers;
+			var peers = res.body.peers;
 
 			// For each peer, we will get the height
 			async.map(peers, function (peer, cb) {
-				var peerIsValid = library.scheme.validate(peer, {
-					type: 'object',
-					properties: {
-						ip: {
-							type: 'string'
-						},
-						port: {
-							type: 'integer',
-							minimum: 1,
-							maximum: 65535
-						},
-						state: {
-							type: 'integer',
-							minimum: 0,
-							maximum: 3
-						},
-						os: {
-							type: 'string'
-						},
-						version: {
-							type: 'string'
-						}
-					},
-					required: ['ip', 'port', 'state']
-				});
+				var peerIsValid = library.scheme.validate(peer, schema.getNetwork.peer);
 
 				if (peerIsValid) {
 					modules.transport.getFromPeer(peer, {
 						api: '/height',
 						method: 'GET'
-					}, function (err, result) {
+					}, function (err, res) {
 						if (err) {
 							library.logger.warn(['Checking blockchain on:', peer.string, 'failed to get height'].join(' '));
 							return setImmediate(cb);
 						}
-						var heightIsValid = library.scheme.validate(result.body, {
-							type: 'object',
-							properties: {
-								'height': {
-									type: 'integer',
-									minimum: 0
-								}
-							}, required: ['height']
-						});
+
+						var heightIsValid = library.scheme.validate(res.body, schema.getNetwork.height);
 
 						if (heightIsValid) {
-							library.logger.info(['Checking blockchain on:', result.peer.string, 'received height:', result.body.height].join(' '));
-							return setImmediate(cb, null, { peer: modules.peer.inspect(result.peer), height: result.body.height });
+							library.logger.info(['Checking blockchain on:', peer.string, 'received height:', res.body.height].join(' '));
+							return setImmediate(cb, null, { peer: peer, height: res.body.height });
 						} else {
-							library.logger.warn(['Checking blockchain on:', result.peer.string, 'received invalid height'].join(' '));
+							library.logger.warn(['Checking blockchain on:', peer.string, 'received invalid height'].join(' '));
 							return setImmediate(cb);
 						}
 					});

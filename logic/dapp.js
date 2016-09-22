@@ -228,6 +228,7 @@ DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
 };
 
 DApp.prototype.schema = {
+	id: 'DApp',
 	type: 'object',
 	properties: {
 		category: {

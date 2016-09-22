@@ -394,6 +394,7 @@ Account.prototype.removeTables = function (cb) {
 
 Account.prototype.objectNormalize = function (account) {
 	var report = this.scope.scheme.validate(account, {
+		id: 'Account',
 		object: true,
 		properties: this.filter
 	});
