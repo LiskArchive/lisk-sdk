@@ -13,7 +13,7 @@ node.txTypes = require('../helpers/transactionTypes.js');
 
 node._ = require('lodash');
 node.async = require('async');
-node.request = require('request');
+node.popsicle = require('popsicle');
 node.expect = require('chai').expect;
 node.chai = require('chai');
 node.chai.config.includeStack = true;
@@ -105,16 +105,20 @@ node.randomLISK = function () {
 
 // Returns current block height
 node.getHeight = function (cb) {
-	node.request({
-		type: 'GET',
-		url: node.baseUrl + '/api/blocks/getHeight',
-		json: true
-	}, function (err, resp, body) {
-		if (err || resp.statusCode !== 200) {
-			return cb(err || 'Status code is not 200 (getHeight)');
+	var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+
+	request.use(node.popsicle.plugins.parse(['json']));
+
+	request.then(function (res) {
+		if (res.status !== 200) {
+			return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
 		} else {
-			return cb(null, body.height);
+			return setImmediate(cb, null, res.body.height);
 		}
+	});
+
+	request.catch(function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
@@ -136,21 +140,25 @@ node.waitForNewBlock = function (height, cb) {
 
 	node.async.doWhilst(
 		function (cb) {
-			node.request({
-				type: 'GET',
-				url: node.baseUrl + '/api/blocks/getHeight',
-				json: true
-			}, function (err, resp, body) {
-				if (err || resp.statusCode !== 200) {
-					return cb(err || 'Got incorrect status');
+			var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+
+			request.use(node.popsicle.plugins.parse(['json']));
+
+			request.then(function (res) {
+				if (res.status !== 200) {
+					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				if (height + 2 === body.height) {
-					height = body.height;
+				if (height + 2 === res.body.height) {
+					height = res.body.height;
 				}
 
 				node.debug('	Waiting for block:'.grey, 'Height:'.grey, height, 'Second:'.grey, counter++);
 				setTimeout(cb, 1000);
+			});
+
+			request.catch(function (err) {
+				return cb(err);
 			});
 		},
 		function () {
@@ -181,23 +189,29 @@ node.addPeers = function (numOfPeers, cb) {
 		version = node.config.version;
 		port = ports[node.randomizeSelection(ports.length)];
 
-		node.request({
-			type: 'GET',
+		var request = node.popsicle.get({
 			url: node.baseUrl + '/peer/height',
-			json: true,
 			headers: {
 				'version': version,
 				'port': port,
 				'nethash': node.config.nethash,
 				'os': os
 			}
-		}, function (err, resp, body) {
-			if (err || resp.statusCode !== 200) {
-				return next(err || 'Status code is not 200 (getHeight)');
+		});
+
+		request.use(node.popsicle.plugins.parse(['json']));
+
+		request.then(function (res) {
+			if (res.code !== 200) {
+				return next(['Received bad response code', res.status, res.url].join(' '));
 			} else {
 				i++;
 				next();
 			}
+		});
+
+		request.catch(function (err) {
+			return next(err);
 		});
 	}, function (err) {
 		return cb(err);

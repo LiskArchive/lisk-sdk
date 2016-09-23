@@ -13,7 +13,7 @@ var ip = require('ip');
 var npm = require('npm');
 var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
-var request = require('request');
+var popsicle = require('popsicle');
 var rmdir = require('rimraf');
 var Router = require('../helpers/router.js');
 var Sandbox = require('lisk-sandbox');
@@ -755,27 +755,41 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			});
 		},
 		performDownload: function (serialCb) {
-			var download = request.get(dapp.link, { timeout: 12000 });
-			var stream = fs.createWriteStream(tmpPath);
+			library.logger.info(dapp.transactionId, 'Downloading: ' + dapp.link);
 
-			download.on('response', function (response) {
-				if (response.statusCode !== 200) {
-					return setImmediate(serialCb, 'Received bad response code: ' + response.statusCode);
-				} else {
-					response.pipe(stream);
-				}
-			});
+			function cleanup (err) {
+				library.logger.error(dapp.transactionId, 'Download failed: ' + err.message);
 
-			download.on('error', function (err) {
 				fs.exists(tmpPath, function (exists) {
 					if (exists) { fs.unlink(tmpPath); }
 					return setImmediate(serialCb, err.message);
 				});
+			}
+
+			var request = popsicle.get({
+				url: dapp.link,
+				timeout: 12000,
+				transport: popsicle.createTransport({ type: 'stream' })
 			});
 
-			stream.on('finish', function () {
-				return setImmediate(serialCb);
+			request.then(function (res) {
+				if (res.status !== 200) {
+					return setImmediate(serialCb, ['Received bad response code', res.status].join(' '));
+				}
+
+				var stream = fs.createWriteStream(tmpPath);
+
+				stream.on('error', cleanup);
+
+				stream.on('finish', function () {
+					library.logger.info(dapp.transactionId, 'Finished downloading');
+					stream.close(serialCb);
+				});
+
+				res.body.pipe(stream);
 			});
+
+			request.catch(cleanup);
 		},
 		decompressZip: function (serialCb) {
 			var unzipper = new DecompressZip(tmpPath);

@@ -6,7 +6,7 @@ var bignum = require('../helpers/bignum.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
-var request = require('request');
+var popsicle = require('popsicle');
 var Router = require('../helpers/router.js');
 var schema = require('../schema/transport.js');
 var sandboxHelper = require('../helpers/sandbox.js');
@@ -376,10 +376,8 @@ Transport.prototype.broadcast = function (config, options, cb) {
 	modules.peer.list(config, function (err, peers) {
 		if (!err) {
 			async.eachLimit(peers, 3, function (peer, cb) {
-				self.getFromPeer(peer, options);
-
-				return setImmediate(cb);
-			}, function () {
+				return self.getFromPeer(peer, options, cb);
+			}, function (err) {
 				if (cb) {
 					return setImmediate(cb, null, {body: null, peer: peers});
 				}
@@ -411,23 +409,9 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	});
 };
 
-/**
- * Send request to selected peer
- * @param {object} peer Peer object
- * @param {object} options Request lib params with special value `api` which should be string name of peer's module
- * web method
- * @param {function} cb Result Callback
- * @returns {*|exports} Request lib request instance
- * @private
- * @example
- *
- * // Send gzipped request to peer's web method /peer/blocks.
- * .getFromPeer(peer, { api: '/blocks', gzip: true }, function (err, data) {
- * 	// Process request
- * });
- */
 Transport.prototype.getFromPeer = function (peer, options, cb) {
 	var url;
+
 	if (options.api) {
 		url = '/peer' + options.api;
 	} else {
@@ -439,73 +423,68 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
 		method: options.method,
-		json: true,
 		headers: _.extend({}, __private.headers, options.headers),
 		timeout: library.config.peers.options.timeout
 	};
-	if (Object.prototype.toString.call(options.data) === '[object Object]' || Array.isArray(options.data)) {
-		req.json = options.data;
-	} else {
+
+	if (options.data) {
 		req.body = options.data;
 	}
 
-	return request(req, function (err, res, body) {
-		if (err || res.statusCode !== 200) {
-			library.logger.debug('Request', {
-				url: req.url,
-				statusCode: res ? res.statusCode : 'unknown',
-				err: err
-			});
+	var request = popsicle.request(req);
 
-			if (peer) {
-				if (err && (err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT' || err.code === 'ECONNREFUSED')) {
-					modules.peer.remove(peer.ip, peer.port, function (err) {
-						if (!err) {
-							library.logger.warn('Removing peer ' + req.method + ' ' + req.url);
+	request.use(popsicle.plugins.parse(['json']));
+
+	request.then(function (res) {
+		if (res.status !== 200) {
+			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
+		} else {
+			var headers = res.headers;
+			headers.port = parseInt(headers.port);
+
+			var report = library.scheme.validate(headers, schema.getFromPeer);
+			if (!report) {
+				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
+			}
+
+			if (res.headers.nethash !== library.config.nethash) {
+				return setImmediate(cb, ['Peer is not on the same network', res.headers.nethash, req.method, req.url].join(' '));
+			}
+
+			if (!peer.loopback && (res.headers.version === library.config.version)) {
+				modules.peer.update({
+					ip: peer.ip,
+					port: res.headers.port,
+					state: 2,
+					os: res.headers.os,
+					version: res.headers.version
+				});
+			}
+
+			return setImmediate(cb, null, {body: res.body, peer: peer});
+		}
+	});
+
+	request.catch(function (err) {
+		if (peer) {
+			if (err.code === 'EUNAVAILABLE') {
+				modules.peer.remove(peer.ip, peer.port, function (err2) {
+					if (!err2) {
+						library.logger.warn([err.code, 'Removing peer', req.method, req.url].join(' '));
+					}
+				});
+			} else {
+				if (!options.not_ban) {
+					modules.peer.state(peer.ip, peer.port, 0, 600, function (err2) {
+						if (!err2) {
+							library.logger.warn([err.code, 'Ban 10 min', req.method, req.url].join(' '));
 						}
 					});
-				} else {
-					if (!options.not_ban) {
-						modules.peer.state(peer.ip, peer.port, 0, 600, function (err) {
-							if (!err) {
-								library.logger.warn('Ban 10 min ' + req.method + ' ' + req.url);
-							}
-						});
-					}
 				}
 			}
-			if (cb) {
-				return setImmediate(cb, err || ('Request status code: ' + res.statusCode));
-			} else {
-				return;
-			}
 		}
 
-		if (res.headers.nethash !== library.config.nethash) {
-			return cb && setImmediate(cb, 'Peer is not on the same network', null);
-		}
-
-		res.headers.port = parseInt(res.headers.port);
-
-		var report = library.scheme.validate(res.headers, schema.getFromPeer);
-
-		if (!report) {
-			return cb && setImmediate(cb, null, {body: body, peer: peer});
-		}
-
-		if (!peer.loopback && (res.headers.version === library.config.version)) {
-			modules.peer.update({
-				ip: peer.ip,
-				port: res.headers.port,
-				state: 2,
-				os: res.headers.os,
-				version: res.headers.version
-			});
-		}
-
-		if (cb) {
-			return setImmediate(cb, null, {body: body, peer: peer});
-		}
+		return setImmediate(cb, [err.code, 'Request failed', req.method, req.url].join(' '));
 	});
 };
 
