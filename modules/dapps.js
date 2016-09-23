@@ -951,80 +951,107 @@ __private.dappRoutes = function (dapp, cb) {
 };
 
 __private.launch = function (body, cb) {
-	library.scheme.validate(body, schema.launch, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		if (__private.launched[body.id]) {
-			return setImmediate(cb, 'Application already launched');
-		}
-
-		body.params = body.params || [''];
-
-		if (body.params.length > 0) {
-			body.params.push('modules.full.json');
-		}
-
-		__private.launched[body.id] = true;
-
-		__private.get(body.id, function (err, dapp) {
-			if (err) {
-				__private.launched[body.id] = false;
-				library.logger.error(err);
-				return setImmediate(cb, 'Application not found');
+	async.waterfall([
+		function (waterCb) {
+			library.scheme.validate(body, schema.launch, function (err) {
+				if (err) {
+					return setImmediate(waterCb, err[0].message);
+				} else {
+					return setImmediate(waterCb);
+				}
+			});
+		},
+		function (waterCb) {
+			if (__private.launched[body.id]) {
+				return setImmediate(waterCb, 'Application already launched');
 			} else {
-				__private.getInstalledIds(function (err, files) {
-					if (err) {
-						__private.launched[body.id] = false;
-						library.logger.error(err);
-						return setImmediate(cb, 'Failed to get installed applications');
-					} else {
-						if (files.indexOf(body.id) >= 0) {
-							__private.symlink(dapp, function (err) {
-								if (err) {
-									__private.launched[body.id] = false;
-									library.logger.error(err);
-									return setImmediate(cb, 'Failed to create public link for: ' + body.id);
-								} else {
-									__private.launchApp(dapp, body.params || ['', 'modules.full.json'], function (err) {
-										if (err) {
-											__private.launched[body.id] = false;
-											library.logger.error(err);
-											return setImmediate(cb, 'Failed to launch application, check logs: ' + body.id);
-										} else {
-											__private.dappRoutes(dapp, function (err) {
-												if (err) {
-													__private.launched[body.id] = false;
-													library.logger.error(err);
-													__private.stop(dapp, function (err) {
-														if (err) {
-															library.logger.error(err);
-															return setImmediate(cb, 'Failed to stop application, check logs: ' + body.id);
-														}
+				body.params = body.params || [''];
 
-														return setImmediate(cb, 'Failed to launch application');
-													});
-												} else {
-													return setImmediate(cb, null);
-												}
-											});
-										}
-									});
-								}
-							});
-						} else {
-							__private.launched[body.id] = false;
-							return setImmediate(cb, 'Application not installed');
-						}
-					}
-				});
+				if (body.params.length > 0) {
+					body.params.push('modules.full.json');
+				}
+
+				__private.launched[body.id] = true;
+
+				return setImmediate(waterCb);
 			}
-		});
+		},
+		function (waterCb) {
+			__private.get(body.id, function (err, dapp) {
+				if (err) {
+					library.logger.error(err);
+					__private.launched[body.id] = false;
+					return setImmediate(waterCb, 'Application not found');
+				} else {
+					return setImmediate(waterCb, null, dapp);
+				}
+			});
+		},
+		function (dapp, waterCb) {
+			__private.getInstalledIds(function (err, ids) {
+				if (err) {
+					library.logger.error(err);
+					__private.launched[body.id] = false;
+					return setImmediate(waterCb, 'Failed to get installed applications');
+				} else if (ids.indexOf(body.id) < 0) {
+					__private.launched[body.id] = false;
+					return setImmediate(waterCb, 'Application not installed');
+				} else {
+					return setImmediate(waterCb, null, dapp);
+				}
+			});
+		},
+		function (dapp, waterCb) {
+			__private.symlink(dapp, function (err) {
+				if (err) {
+					library.logger.error(err);
+					__private.launched[body.id] = false;
+					return setImmediate(waterCb, 'Failed to create public link for: ' + body.id);
+				} else {
+					return setImmediate(waterCb, null, dapp);
+				}
+			});
+		},
+		function (dapp, waterCb) {
+			__private.run(dapp, body.params || ['', 'modules.full.json'], function (err) {
+				if (err) {
+					library.logger.error(err);
+					__private.launched[body.id] = false;
+					return setImmediate(waterCb, 'Failed to launch application, check logs: ' + body.id);
+				} else {
+					return setImmediate(waterCb, null, dapp);
+				}
+			});
+		},
+		function (dapp, waterCb) {
+			__private.dappRoutes(dapp, function (err) {
+				if (err) {
+					library.logger.error(err);
+					__private.launched[body.id] = false;
+					__private.stop(dapp, function (err) {
+						if (err) {
+							library.logger.error(err);
+							return setImmediate(waterCb, 'Failed to stop application, check logs: ' + body.id);
+						} else {
+							return setImmediate(waterCb, 'Failed to launch application');
+						}
+					});
+				} else {
+					return setImmediate(waterCb, null, dapp);
+				}
+			});
+		}
+	], function (err, dapp) {
+		if (err) {
+			library.logger.error('Failed to launch application', err);
+		} else {
+			library.logger.info('Application launched successfully');
+		}
+		return setImmediate(cb, err);
 	});
 };
 
-__private.launchApp = function (dapp, params, cb) {
+__private.run = function (dapp, params, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 	var dappPublicPath = path.join(dappPath, 'public');
 	var dappPublicLink = path.join(__private.appPath, 'public', 'dapps', dapp.transactionId);
