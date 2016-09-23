@@ -72,23 +72,23 @@ if (program.snapshot) {
 }
 
 var config = {
-	'db': appConfig.db,
-	'modules': {
-		'server': './modules/server.js',
-		'accounts': './modules/accounts.js',
-		'transactions': './modules/transactions.js',
-		'blocks': './modules/blocks.js',
-		'signatures': './modules/signatures.js',
-		'transport': './modules/transport.js',
-		'loader': './modules/loader.js',
-		'system': './modules/system.js',
-		'peers': './modules/peers.js',
-		'delegates': './modules/delegates.js',
-		'rounds': './modules/rounds.js',
-		'multisignatures': './modules/multisignatures.js',
-		'dapps': './modules/dapps.js',
-		'crypto': './modules/crypto.js',
-		'sql': './modules/sql.js'
+	db: appConfig.db,
+	modules: {
+		server: './modules/server.js',
+		accounts: './modules/accounts.js',
+		transactions: './modules/transactions.js',
+		blocks: './modules/blocks.js',
+		signatures: './modules/signatures.js',
+		transport: './modules/transport.js',
+		loader: './modules/loader.js',
+		system: './modules/system.js',
+		peers: './modules/peers.js',
+		delegates: './modules/delegates.js',
+		rounds: './modules/rounds.js',
+		multisignatures: './modules/multisignatures.js',
+		dapps: './modules/dapps.js',
+		crypto: './modules/crypto.js',
+		sql: './modules/sql.js'
 	}
 };
 
