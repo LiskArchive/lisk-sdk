@@ -353,7 +353,7 @@ Transactions.prototype.expireUnconfirmedList = function (cb) {
 				} else {
 					ids.push(transaction.id);
 					self.removeUnconfirmedTransaction(transaction.id);
-					library.logger.log('Expired unconfirmed transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
+					library.logger.info('Expired unconfirmed transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
 					return setImmediate(cb);
 				}
 			});
