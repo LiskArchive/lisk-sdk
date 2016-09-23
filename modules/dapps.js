@@ -338,17 +338,17 @@ __private.attachApi = function () {
 	});
 
 	router.get('/installed', function (req, res, next) {
-		__private.getInstalledIds(function (err, files) {
+		__private.getInstalledIds(function (err, ids) {
 			if (err) {
 				library.logger.error(err);
 				return res.json({success: false, error: 'Failed to get installed application ids'});
 			}
 
-			if (files.length === 0) {
+			if (ids.length === 0) {
 				return res.json({success: true, dapps: []});
 			}
 
-			__private.getByIds(files, function (err, dapps) {
+			__private.getByIds(ids, function (err, dapps) {
 				if (err) {
 					library.logger.error(err);
 					return res.json({success: false, error: 'Failed to get applications by id'});
@@ -360,13 +360,13 @@ __private.attachApi = function () {
 	});
 
 	router.get('/installedIds', function (req, res, next) {
-		__private.getInstalledIds(function (err, files) {
+		__private.getInstalledIds(function (err, ids) {
 			if (err) {
 				library.logger.error(err);
 				return res.json({success: false, error: 'Failed to get installed application ids'});
 			}
 
-			return res.json({success: true, ids: files});
+			return res.json({success: true, ids: ids});
 		});
 	});
 
@@ -683,17 +683,17 @@ __private.installDependencies = function (dapp, cb) {
 };
 
 __private.getInstalledIds = function (cb) {
-	fs.readdir(__private.dappsPath, function (err, files) {
+	fs.readdir(__private.dappsPath, function (err, ids) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
 			var regExp = new RegExp(/[0-9]{18,20}/);
 
-			files = _.filter(files, function (f) {
+			ids = _.filter(ids, function (f) {
 				return regExp.test(f.toString());
 			});
 
-			return setImmediate(cb, null, files);
+			return setImmediate(cb, null, ids);
 		}
 	});
 };
