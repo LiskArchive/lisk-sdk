@@ -771,7 +771,6 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 
 			var request = popsicle.get({
 				url: dapp.link,
-				timeout: 12000,
 				transport: popsicle.createTransport({ type: 'stream' })
 			});
 
