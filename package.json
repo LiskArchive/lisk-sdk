@@ -31,7 +31,7 @@
     "lisk-sandbox": "=1.0.5",
     "lodash": "=4.16.1",
     "method-override": "=2.3.6",
-    "npm": "=3.10.7",
+    "npm": "=2.15.10",
     "pg-monitor": "=0.5.11",
     "pg-native": "=1.10.0",
     "pg-promise": "=5.3.3",
