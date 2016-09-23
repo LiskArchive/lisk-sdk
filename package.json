@@ -29,7 +29,7 @@
     "json-schema": "=0.2.3",
     "json-sql": "LiskHQ/json-sql#27e1ed1",
     "lisk-sandbox": "=1.0.5",
-    "lodash": "=4.15.0",
+    "lodash": "=4.16.1",
     "method-override": "=2.3.6",
     "npm": "=3.10.7",
     "pg-monitor": "^0.5.3",
