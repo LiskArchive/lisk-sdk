@@ -49,19 +49,19 @@ node.guestbookDapp = {
 
 // Existing delegate account
 node.eAccount = {
-	'address': '10881167371402274308L',
-	'publicKey': 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-	'password': 'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
-	'balance': '0',
-	'delegateName': 'genesis_100'
+	address: '10881167371402274308L',
+	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+	password: 'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
+	balance: '0',
+	delegateName: 'genesis_100'
 };
 
 // Genesis account, initially holding 100M total supply
 node.gAccount = {
-	'address': '16313739661670634666L',
-	'publicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	'password': 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
-	'balance': '10000000000000000'
+	address: '16313739661670634666L',
+	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+	password: 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
+	balance: '10000000000000000'
 };
 
 // Optional logging
@@ -192,10 +192,10 @@ node.addPeers = function (numOfPeers, cb) {
 		var request = node.popsicle.get({
 			url: node.baseUrl + '/peer/height',
 			headers: {
-				'version': version,
-				'port': port,
-				'nethash': node.config.nethash,
-				'os': os
+				version: version,
+				port: port,
+				nethash: node.config.nethash,
+				os: os
 			}
 		});
 
@@ -275,7 +275,7 @@ node.randomApplicationName = function () {
 // Returns a basic random account
 node.randomAccount = function () {
 	var account = {
-		'balance': '0'
+		balance: '0'
 	};
 
 	account.password = node.randomPassword();
