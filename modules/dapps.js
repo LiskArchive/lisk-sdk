@@ -224,7 +224,7 @@ __private.attachApi = function () {
 						if (err) {
 							return res.json({
 								success: false,
-								error: 'Failed to obtain installed ids'
+								error: 'Failed to get installed ids'
 							});
 						}
 
@@ -243,7 +243,7 @@ __private.attachApi = function () {
 						if (err) {
 							return res.json({
 								success: false,
-								error: 'Failed to obtain installed ids'
+								error: 'Failed to get installed ids'
 							});
 						}
 
@@ -274,11 +274,13 @@ __private.attachApi = function () {
 
 			__private.get(body.id, function (err, dapp) {
 				if (err) {
+					library.logger.error(err);
 					return res.json({success: false, error: err});
 				}
 
 				__private.getInstalledIds(function (err, ids) {
 					if (err) {
+						library.logger.error(err);
 						return res.json({success: false, error: err});
 					}
 
@@ -286,8 +288,8 @@ __private.attachApi = function () {
 						return res.json({success: false, error: 'Application is already installed'});
 					}
 
-					if (__private.uninstalling[body.id] || __private.loading[body.id]) {
-						return res.json({success: false, error: 'Application is already being downloaded or uninstalled'});
+					if (__private.loading[body.id] || __private.uninstalling[body.id]) {
+						return res.json({success: false, error: 'Application is loading or being uninstalled'});
 					}
 
 					__private.loading[body.id] = true;
@@ -312,7 +314,7 @@ __private.attachApi = function () {
 											__private.loading[body.id] = false;
 											return res.json({
 												success: false,
-												error: 'Failed to install application dependencies, check logs'
+												error: 'Failed to install application dependencies'
 											});
 										});
 									} else {
@@ -339,7 +341,7 @@ __private.attachApi = function () {
 		__private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
-				return res.json({success: false, error: 'Failed to obtain installed application ids, see logs'});
+				return res.json({success: false, error: 'Failed to get installed application ids'});
 			}
 
 			if (files.length === 0) {
@@ -349,7 +351,7 @@ __private.attachApi = function () {
 			__private.getByIds(files, function (err, dapps) {
 				if (err) {
 					library.logger.error(err);
-					return res.json({success: false, error: 'Failed to obtain installed applications, see logs'});
+					return res.json({success: false, error: 'Failed to get applications by id'});
 				}
 
 				return res.json({success: true, dapps: dapps});
@@ -361,7 +363,7 @@ __private.attachApi = function () {
 		__private.getInstalledIds(function (err, files) {
 			if (err) {
 				library.logger.error(err);
-				return res.json({success: false, error: 'Failed to obtain installed application ids, see logs'});
+				return res.json({success: false, error: 'Failed to get installed application ids'});
 			}
 
 			return res.json({success: true, ids: files});
@@ -383,11 +385,12 @@ __private.attachApi = function () {
 
 			__private.get(body.id, function (err, dapp) {
 				if (err) {
+					library.logger.error(err);
 					return res.json({success: false, error: err});
 				}
 
-				if (__private.uninstalling[body.id] || __private.loading[body.id]) {
-					return res.json({success: true, error: 'Application is already being installed / uninstalled'});
+				if (__private.loading[body.id] || __private.uninstalling[body.id]) {
+					return res.json({success: true, error: 'Application is loading or being uninstalled'});
 				}
 
 				__private.uninstalling[body.id] = true;
@@ -397,7 +400,7 @@ __private.attachApi = function () {
 					__private.stop(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
-							return res.json({success: false, error: 'Failed to stop application, check logs'});
+							return res.json({success: false, error: 'Failed to stop application'});
 						} else {
 							__private.launched[body.id] = false;
 							__private.removeDApp(dapp, function (err) {
@@ -503,9 +506,8 @@ __private.attachApi = function () {
 					__private.stop(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
-							return res.json({success: false, error: 'Failed to stop application, check logs'});
+							return res.json({success: false, error: 'Failed to stop application'});
 						} else {
-
 							library.network.io.sockets.emit('dapps/change', {});
 							__private.launched[body.id] = false;
 							return res.json({success: true});
@@ -663,7 +665,7 @@ __private.installDependencies = function (dapp, cb) {
 	try {
 		config = JSON.parse(fs.readFileSync(packageJson));
 	} catch (e) {
-		return setImmediate(cb, 'Failed to open package.json file for: ' + dapp.transactionId);
+		return setImmediate(cb, 'Failed to open package.json file');
 	}
 
 	npm.load(config, function (err) {
@@ -701,12 +703,12 @@ __private.removeDApp = function (dapp, cb) {
 
 	function remove(err) {
 		if (err) {
-			library.logger.error('Failed to uninstall application: ' + err);
+			library.logger.error('Failed to uninstall application');
 		}
 
 		rmdir(dappPath, function (err) {
 			if (err) {
-				return setImmediate(cb, 'Failed to remove application folder: ' + err);
+				return setImmediate(cb, 'Failed to remove application folder');
 			} else {
 				return setImmediate(cb);
 			}
@@ -727,7 +729,7 @@ __private.removeDApp = function (dapp, cb) {
 
 			modules.sql.dropTables(dapp.transactionId, blockchain, function (err) {
 				if (err) {
-					library.logger.error('Failed to drop application tables: ' + err);
+					library.logger.error('Failed to drop application tables');
 				}
 				remove(err);
 			});
@@ -914,7 +916,7 @@ __private.dappRoutes = function (dapp, cb) {
 			try {
 				routes = require(dappRoutesPath);
 			} catch (e) {
-				return setImmediate(cb, 'Failed to open routes.json file for: ' + dapp.transactionId);
+				return setImmediate(cb, 'Failed to open routes.json file');
 			}
 
 			__private.routes[dapp.transactionId] = new Router();
@@ -980,7 +982,6 @@ __private.launch = function (body, cb) {
 		function (waterCb) {
 			__private.get(body.id, function (err, dapp) {
 				if (err) {
-					library.logger.error(err);
 					__private.launched[body.id] = false;
 					return setImmediate(waterCb, 'Application not found');
 				} else {
@@ -991,7 +992,6 @@ __private.launch = function (body, cb) {
 		function (dapp, waterCb) {
 			__private.getInstalledIds(function (err, ids) {
 				if (err) {
-					library.logger.error(err);
 					__private.launched[body.id] = false;
 					return setImmediate(waterCb, 'Failed to get installed applications');
 				} else if (ids.indexOf(body.id) < 0) {
@@ -1005,9 +1005,8 @@ __private.launch = function (body, cb) {
 		function (dapp, waterCb) {
 			__private.symlink(dapp, function (err) {
 				if (err) {
-					library.logger.error(err);
 					__private.launched[body.id] = false;
-					return setImmediate(waterCb, 'Failed to create public link for: ' + body.id);
+					return setImmediate(waterCb, 'Failed to create public link');
 				} else {
 					return setImmediate(waterCb, null, dapp);
 				}
@@ -1016,9 +1015,8 @@ __private.launch = function (body, cb) {
 		function (dapp, waterCb) {
 			__private.run(dapp, body.params || ['', 'modules.full.json'], function (err) {
 				if (err) {
-					library.logger.error(err);
 					__private.launched[body.id] = false;
-					return setImmediate(waterCb, 'Failed to launch application, check logs: ' + body.id);
+					return setImmediate(waterCb, err);
 				} else {
 					return setImmediate(waterCb, null, dapp);
 				}
@@ -1027,14 +1025,12 @@ __private.launch = function (body, cb) {
 		function (dapp, waterCb) {
 			__private.dappRoutes(dapp, function (err) {
 				if (err) {
-					library.logger.error(err);
 					__private.launched[body.id] = false;
 					__private.stop(dapp, function (err) {
 						if (err) {
-							library.logger.error(err);
-							return setImmediate(waterCb, 'Failed to stop application, check logs: ' + body.id);
+							return setImmediate(waterCb, 'Failed to stop application');
 						} else {
-							return setImmediate(waterCb, 'Failed to launch application');
+							return setImmediate(waterCb, 'Failed to create application routes');
 						}
 					});
 				} else {
@@ -1062,7 +1058,7 @@ __private.run = function (dapp, params, cb) {
 	try {
 		dappConfig = require(path.join(dappPath, 'config.json'));
 	} catch (e) {
-		return setImmediate(cb, 'Failed to open config.json file for: ' + dapp.transactionId);
+		return setImmediate(cb, 'Failed to open config.json file');
 	}
 
 	async.eachSeries(dappConfig.peers, function (peer, eachSeriesCb) {
@@ -1081,7 +1077,7 @@ __private.run = function (dapp, params, cb) {
 		try {
 			blockchain = require(path.join(dappPath, 'blockchain.json'));
 		} catch (e) {
-			return setImmediate(cb, 'Failed to open blockchain.json file for: ' + dapp.transactionId);
+			return setImmediate(cb, 'Failed to open blockchain.json file');
 		}
 
 		modules.sql.createTables(dapp.transactionId, blockchain, function (err) {
@@ -1093,19 +1089,22 @@ __private.run = function (dapp, params, cb) {
 			__private.sandboxes[dapp.transactionId] = sandbox;
 
 			sandbox.on('exit', function () {
-				library.logger.info('Application', dapp.transactionId, 'closed'].join(' '));
 				__private.stop(dapp, function (err) {
 					if (err) {
-						library.logger.error('Encountered error while stopping application: ' + err);
+						library.logger.error('Failed to stop application', dapp.transactionId);
+					} else {
+						library.logger.info(['Application', dapp.transactionId, 'closed'].join(' '));
 					}
 				});
 			});
 
 			sandbox.on('error', function (err) {
-				library.logger.error('Encountered error in application ' + dapp.transactionId + ' ' + err);
+				library.logger.error(['Encountered error in application', dapp.transactionId].join(' '), err);
 				__private.stop(dapp, function (err) {
 					if (err) {
-						library.logger.error('Encountered error while stopping application: ' + err);
+						library.logger.error('Failed to stop application', dapp.transactionId);
+					} else {
+						library.logger.info(['Application', dapp.transactionId, 'closed'].join(' '));
 					}
 				});
 			});
@@ -1456,9 +1455,9 @@ DApps.prototype.onBlockchainReady = function () {
 				master: library.config.dapp.masterpassword
 			}, function (err) {
 				if (err) {
-					library.logger.error(['Failed to launch application', dapp.dappid].join(' '), err);
+					library.logger.error('Failed to launch application', err);
 				} else {
-					library.logger.info(['Launched application', dapp.dappid, 'successfully'].join(' '));
+					library.logger.info('Application launched successfully');
 				}
 
 				return setImmediate(cb);
