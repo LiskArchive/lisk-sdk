@@ -5,13 +5,13 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/round.js');
 
 // Constructor
-function RoundPromiser (scope, t) {
+function Round (scope, t) {
 	this.scope = scope;
 	this.t = t;
 }
 
 // Public methods
-RoundPromiser.prototype.mergeBlockGenerator = function () {
+Round.prototype.mergeBlockGenerator = function () {
 	return this.t.none(
 		this.scope.modules.accounts.mergeAccountAndGet({
 			publicKey: this.scope.block.generatorPublicKey,
@@ -22,7 +22,7 @@ RoundPromiser.prototype.mergeBlockGenerator = function () {
 	);
 };
 
-RoundPromiser.prototype.updateMissedBlocks = function () {
+Round.prototype.updateMissedBlocks = function () {
 	if (this.scope.outsiders.length === 0) {
 		return this.t;
 	}
@@ -30,11 +30,11 @@ RoundPromiser.prototype.updateMissedBlocks = function () {
 	return this.t.none(sql.updateMissedBlocks, [this.scope.outsiders]);
 };
 
-RoundPromiser.prototype.getVotes = function () {
+Round.prototype.getVotes = function () {
 	return this.t.query(sql.getVotes, { round: this.scope.round });
 };
 
-RoundPromiser.prototype.updateVotes = function () {
+Round.prototype.updateVotes = function () {
 	var self = this;
 
 	return self.getVotes(self.scope.round).then(function (votes) {
@@ -53,15 +53,15 @@ RoundPromiser.prototype.updateVotes = function () {
 	});
 };
 
-RoundPromiser.prototype.flushRound = function () {
+Round.prototype.flushRound = function () {
 	return this.t.none(sql.flush, { round: this.scope.round });
 };
 
-RoundPromiser.prototype.truncateBlocks = function () {
+Round.prototype.truncateBlocks = function () {
 	return this.t.none(sql.truncateBlocks, { height: this.scope.block.height });
 };
 
-RoundPromiser.prototype.applyRound = function () {
+Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
 	var queries = [];
 
@@ -94,7 +94,7 @@ RoundPromiser.prototype.applyRound = function () {
 	return this.t.none(queries.join(''));
 };
 
-RoundPromiser.prototype.land = function () {
+Round.prototype.land = function () {
 	this.scope.__private.ticking = true;
 	return this.updateVotes()
 		.then(this.updateMissedBlocks.bind(this))
@@ -129,4 +129,4 @@ RoundChanges.prototype.at = function (index) {
 };
 
 // Export
-module.exports = RoundPromiser;
+module.exports = Round;

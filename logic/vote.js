@@ -78,7 +78,7 @@ Vote.prototype.apply = function (trs, block, sender, cb) {
 	this.scope.account.merge(sender.address, {
 		delegates: trs.asset.votes,
 		blockId: block.id,
-		round: modules.round.calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
@@ -92,7 +92,7 @@ Vote.prototype.undo = function (trs, block, sender, cb) {
 	this.scope.account.merge(sender.address, {
 		delegates: votesInvert,
 		blockId: block.id,
-		round: modules.round.calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err) {
 		return setImmediate(cb, err);
 	});

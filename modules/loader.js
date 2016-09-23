@@ -124,7 +124,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			return setImmediate(cb);
 		}
 
-		var peer = modules.peer.inspect(res.peer);
+		var peer = modules.peers.inspect(res.peer);
 
 		var transactions = res.body.transactions;
 
@@ -134,7 +134,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			} catch (e) {
 				library.logger.warn(e.toString());
 				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peer.string);
-				modules.peer.state(peer.ip, peer.port, 0, 3600);
+				modules.peers.state(peer.ip, peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
 		}
@@ -226,7 +226,7 @@ __private.loadBlockChain = function () {
 
 		library.logger.info('Blocks ' + count);
 
-		var round = modules.round.calc(count);
+		var round = modules.rounds.calc(count);
 
 		if (library.config.loading.snapshot !== undefined || library.config.loading.snapshot > 0) {
 			library.logger.info('Snapshot mode enabled');

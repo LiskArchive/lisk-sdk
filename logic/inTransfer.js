@@ -85,7 +85,7 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
 			balance: trs.amount,
 			u_balance: trs.amount,
 			blockId: block.id,
-			round: modules.round.calc(block.height)
+			round: modules.rounds.calc(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -102,7 +102,7 @@ InTransfer.prototype.undo = function (trs, block, sender, cb) {
 			balance: -trs.amount,
 			u_balance: -trs.amount,
 			blockId: block.id,
-			round: modules.round.calc(block.height)
+			round: modules.rounds.calc(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});

@@ -23,7 +23,7 @@ var removed = [];
 __private.loopback = ['0.0.0.0', '127.0.0.1'];
 
 // Constructor
-function Peer (cb, scope) {
+function Peers (cb, scope) {
 	library = scope;
 	self = this;
 
@@ -44,7 +44,7 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getPeers',
 		'get /version': 'version',
-		'get /get': 'getPeer'
+		'get /get': 'getPeers'
 	});
 
 	router.use(function (req, res) {
@@ -123,7 +123,7 @@ __private.count = function (cb) {
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return setImmediate(cb, 'Peer#count error');
+		return setImmediate(cb, 'Peers#count error');
 	});
 };
 
@@ -132,7 +132,7 @@ __private.banManager = function (cb) {
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return setImmediate(cb, 'Peer#banManager error');
+		return setImmediate(cb, 'Peers#banManager error');
 	});
 };
 
@@ -199,12 +199,12 @@ __private.getByFilter = function (filter, cb) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return setImmediate(cb, 'Peer#getByFilter error');
+		return setImmediate(cb, 'Peers#getByFilter error');
 	});
 };
 
 // Public methods
-Peer.prototype.inspect = function (peer) {
+Peers.prototype.inspect = function (peer) {
 	if (peer.ip) {
 		peer.string = (peer.ip + ':' + peer.port || 'unknown');
 	} else {
@@ -214,7 +214,7 @@ Peer.prototype.inspect = function (peer) {
 	return peer;
 };
 
-Peer.prototype.accept = function (peer) {
+Peers.prototype.accept = function (peer) {
 	if (/^[0-9]+$/.test(peer.ip)) {
 		peer.ip = ip.fromLong(peer.ip);
 	}
@@ -232,18 +232,18 @@ Peer.prototype.accept = function (peer) {
 	}
 };
 
-Peer.prototype.list = function (options, cb) {
+Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 
 	library.db.query(sql.randomList(options), options).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return setImmediate(cb, 'Peer#list error');
+		return setImmediate(cb, 'Peers#list error');
 	});
 };
 
-Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
+Peers.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	var isFrozenList = _.find(library.config.peers, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
@@ -270,7 +270,7 @@ Peer.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	});
 };
 
-Peer.prototype.remove = function (pip, port, cb) {
+Peers.prototype.remove = function (pip, port, cb) {
 	var isFrozenList = _.find(library.config.peers.list, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
@@ -289,7 +289,7 @@ Peer.prototype.remove = function (pip, port, cb) {
 	});
 };
 
-Peer.prototype.addDapp = function (config, cb) {
+Peers.prototype.addDapp = function (config, cb) {
 	library.db.query(sql.getByIdPort, {
 		ip: config.ip,
 		port: config.port
@@ -306,15 +306,15 @@ Peer.prototype.addDapp = function (config, cb) {
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return setImmediate(cb, 'Peer#addDapp error');
+			return setImmediate(cb, 'Peers#addDapp error');
 		});
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return setImmediate(cb, 'Peer#addDapp error');
+		return setImmediate(cb, 'Peers#addDapp error');
 	});
 };
 
-Peer.prototype.update = function (peer, cb) {
+Peers.prototype.update = function (peer, cb) {
 	var dappid = peer.dappid;
 	var params = {
 		ip: peer.ip,
@@ -329,7 +329,7 @@ Peer.prototype.update = function (peer, cb) {
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				return setImmediate(cb, 'Peer#update error');
+				return setImmediate(cb, 'Peers#update error');
 			});
 		},
 		function (cb) {
@@ -340,7 +340,7 @@ Peer.prototype.update = function (peer, cb) {
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.toString());
-				return setImmediate(cb, 'Peer#update error');
+				return setImmediate(cb, 'Peers#update error');
 			});
 		},
 		function (cb) {
@@ -358,16 +358,16 @@ Peer.prototype.update = function (peer, cb) {
 	});
 };
 
-Peer.prototype.sandboxApi = function (call, args, cb) {
+Peers.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
-Peer.prototype.onBind = function (scope) {
+Peers.prototype.onBind = function (scope) {
 	modules = scope;
 };
 
-Peer.prototype.onBlockchainReady = function () {
+Peers.prototype.onBlockchainReady = function () {
 	async.eachSeries(library.config.peers.list, function (peer, cb) {
 		library.db.query(sql.insertSeed, {
 			ip: peer.ip,
@@ -377,7 +377,7 @@ Peer.prototype.onBlockchainReady = function () {
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.toString());
-			return setImmediate(cb, 'Peer#onBlockchainReady error');
+			return setImmediate(cb, 'Peers#onBlockchainReady error');
 		});
 	}, function (err) {
 		if (err) {
@@ -388,7 +388,7 @@ Peer.prototype.onBlockchainReady = function () {
 			if (count) {
 				__private.updatePeerList(function (err) {
 					if (err) {
-						library.logger.error('Peer#updatePeerList error', err);
+						library.logger.error('Peers#updatePeerList error', err);
 					}
 					library.bus.message('peerReady');
 				});
@@ -400,13 +400,13 @@ Peer.prototype.onBlockchainReady = function () {
 	});
 };
 
-Peer.prototype.onPeerReady = function () {
-	setImmediate(function nextUpdatePeerList () {
-		__private.updatePeerList(function (err) {
+Peers.prototype.onPeersReady = function () {
+	setImmediate(function nextUpdatePeersList () {
+		__private.updatePeersList(function (err) {
 			if (err) {
 				library.logger.error('Peers timer:', err);
 			}
-			setTimeout(nextUpdatePeerList, 60 * 1000);
+			setTimeout(nextUpdatePeersList, 60 * 1000);
 		});
 	});
 
@@ -434,7 +434,7 @@ shared.getPeers = function (req, cb) {
 
 		__private.getByFilter(req.body, function (err, peers) {
 			if (err) {
-				return setImmediate(cb, 'Peer not found');
+				return setImmediate(cb, 'Peers not found');
 			}
 
 			return setImmediate(cb, null, {peers: peers});
@@ -443,7 +443,7 @@ shared.getPeers = function (req, cb) {
 };
 
 shared.getPeer = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPeer, function (err) {
+	library.scheme.validate(req.body, schema.getPeers, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -468,4 +468,4 @@ shared.version = function (req, cb) {
 };
 
 // Export
-module.exports = Peer;
+module.exports = Peers;

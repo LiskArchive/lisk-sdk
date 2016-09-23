@@ -2,7 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
-var RoundPromiser = require('../logic/roundPromiser.js');
+var Round = require('../logic/round.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/round.js');
@@ -21,7 +21,7 @@ __private.unRewardsByRound = {};
 __private.unDelegatesByRound = {};
 
 // Constructor
-function Round (cb, scope) {
+function Rounds (cb, scope) {
 	library = scope;
 	self = this;
 
@@ -29,28 +29,28 @@ function Round (cb, scope) {
 }
 
 // Public methods
-Round.prototype.loaded = function () {
+Rounds.prototype.loaded = function () {
 	return __private.loaded;
 };
 
-Round.prototype.ticking = function () {
+Rounds.prototype.ticking = function () {
 	return __private.ticking;
 };
 
-Round.prototype.calc = function (height) {
+Rounds.prototype.calc = function (height) {
 	return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
 };
 
-Round.prototype.flush = function (round, cb) {
+Rounds.prototype.flush = function (round, cb) {
 	library.db.none(sql.flush, { round: round }).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.toString());
-		return setImmediate(cb, 'Round#flush error');
+		return setImmediate(cb, 'Rounds#flush error');
 	});
 };
 
-Round.prototype.directionSwap = function (direction, lastBlock, cb) {
+Rounds.prototype.directionSwap = function (direction, lastBlock, cb) {
 	if (direction === 'backward') {
 		__private.feesByRound = {};
 		__private.rewardsByRound = {};
@@ -64,7 +64,7 @@ Round.prototype.directionSwap = function (direction, lastBlock, cb) {
 	}
 };
 
-Round.prototype.backwardTick = function (block, previousBlock, done) {
+Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	var round = self.calc(block.height);
 	var prevRound = self.calc(previousBlock.height);
 
@@ -92,7 +92,7 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 	);
 
 	function BackwardTick (t) {
-		var promised = new RoundPromiser(scope, t);
+		var promised = new Round(scope, t);
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
@@ -126,7 +126,7 @@ Round.prototype.backwardTick = function (block, previousBlock, done) {
 	});
 };
 
-Round.prototype.tick = function (block, done) {
+Rounds.prototype.tick = function (block, done) {
 	var round = self.calc(block.height);
 	var nextRound = self.calc(block.height + 1);
 
@@ -158,7 +158,7 @@ Round.prototype.tick = function (block, done) {
 	);
 
 	function Tick (t) {
-		var promised = new RoundPromiser(scope, t);
+		var promised = new Round(scope, t);
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
@@ -202,16 +202,16 @@ Round.prototype.tick = function (block, done) {
 	});
 };
 
-Round.prototype.sandboxApi = function (call, args, cb) {
+Rounds.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
-Round.prototype.onBind = function (scope) {
+Rounds.prototype.onBind = function (scope) {
 	modules = scope;
 };
 
-Round.prototype.onBlockchainReady = function () {
+Rounds.prototype.onBlockchainReady = function () {
 	var round = self.calc(modules.blocks.getLastBlock().height);
 
 	library.db.query(sql.summedRound, { round: round, activeDelegates:constants.activeDelegates }).then(function (rows) {
@@ -232,11 +232,11 @@ Round.prototype.onBlockchainReady = function () {
 	});
 };
 
-Round.prototype.onFinishRound = function (round) {
+Rounds.prototype.onFinishRound = function (round) {
 	library.network.io.sockets.emit('rounds/change', {number: round});
 };
 
-Round.prototype.cleanup = function (cb) {
+Rounds.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	return setImmediate(cb);
 };
@@ -267,4 +267,4 @@ __private.getOutsiders = function (scope, cb) {
 // Shared
 
 // Export
-module.exports = Round;
+module.exports = Rounds;

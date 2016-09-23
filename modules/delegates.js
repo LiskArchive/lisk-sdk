@@ -237,7 +237,7 @@ __private.forge = function (cb) {
 
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
-	if (!__private.loaded || modules.loader.syncing() || !modules.round.loaded() || modules.round.ticking()) {
+	if (!__private.loaded || modules.loader.syncing() || !modules.rounds.loaded() || modules.rounds.ticking()) {
 		library.logger.debug('Client not ready to forge');
 		return setImmediate(cb);
 	}
@@ -265,7 +265,7 @@ __private.forge = function (cb) {
 						'Forged new block id:',
 						modules.blocks.getLastBlock().id,
 						'height:', modules.blocks.getLastBlock().height,
-						'round:', modules.round.calc(modules.blocks.getLastBlock().height),
+						'round:', modules.rounds.calc(modules.blocks.getLastBlock().height),
 						'slot:', slots.getSlotNumber(currentBlockData.time),
 						'reward:' + modules.blocks.getLastBlock().reward
 					].join(' '));
@@ -400,7 +400,7 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
 			return setImmediate(cb, err);
 		}
 
-		var seedSource = modules.round.calc(height).toString();
+		var seedSource = modules.rounds.calc(height).toString();
 		var currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest();
 
 		for (var i = 0, delCount = truncDelegateList.length; i < delCount; i++) {

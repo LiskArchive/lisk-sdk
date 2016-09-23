@@ -41,7 +41,7 @@ __private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		try {
-			req.peer = modules.peer.accept(
+			req.peer = modules.peers.accept(
 				{
 					ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
 					port: req.headers.port
@@ -75,7 +75,7 @@ __private.attachApi = function () {
 					modules.delegates.enableForging();
 				}
 
-				modules.peer.update(req.peer);
+				modules.peers.update(req.peer);
 			}
 
 			next();
@@ -85,7 +85,7 @@ __private.attachApi = function () {
 
 	router.get('/list', function (req, res) {
 		res.set(__private.headers);
-		modules.peer.list({limit: 100}, function (err, peers) {
+		modules.peers.list({limit: 100}, function (err, peers) {
 			return res.status(200).json({peers: !err ? peers : []});
 		});
 	});
@@ -111,7 +111,7 @@ __private.attachApi = function () {
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
 
 				if (report) {
-					modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
+					modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 				}
 
 				return res.json({success: false, error: 'Invalid block id sequence'});
@@ -170,7 +170,7 @@ __private.attachApi = function () {
 			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
-				modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
+				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
 			return res.sendStatus(200);
@@ -243,7 +243,7 @@ __private.attachApi = function () {
 			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
-				modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
+				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
 			return res.status(200).json({success: false, message: 'Invalid transaction body'});
@@ -373,7 +373,7 @@ __private.hashsum = function (obj) {
 // Public methods
 Transport.prototype.broadcast = function (config, options, cb) {
 	config.limit = config.limit || 1;
-	modules.peer.list(config, function (err, peers) {
+	modules.peers.list(config, function (err, peers) {
 		if (!err) {
 			async.eachLimit(peers, 3, function (peer, cb) {
 				return self.getFromPeer(peer, options, cb);
@@ -396,7 +396,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	}
 	config.limit = 1;
 	async.retry(20, function (cb) {
-		modules.peer.list(config, function (err, peers) {
+		modules.peers.list(config, function (err, peers) {
 			if (!err && peers.length) {
 				var peer = peers[0];
 				self.getFromPeer(peer, options, cb);
@@ -418,7 +418,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		url = options.url;
 	}
 
-	peer = modules.peer.accept(peer);
+	peer = modules.peers.accept(peer);
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
@@ -452,7 +452,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			}
 
 			if (!peer.loopback && (res.headers.version === library.config.version)) {
-				modules.peer.update({
+				modules.peers.update({
 					ip: peer.ip,
 					port: res.headers.port,
 					state: 2,
@@ -468,14 +468,14 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	request.catch(function (err) {
 		if (peer) {
 			if (err.code === 'EUNAVAILABLE') {
-				modules.peer.remove(peer.ip, peer.port, function (err2) {
+				modules.peers.remove(peer.ip, peer.port, function (err2) {
 					if (!err2) {
 						library.logger.warn([err.code, 'Removing peer', req.method, req.url].join(' '));
 					}
 				});
 			} else {
 				if (!options.not_ban) {
-					modules.peer.state(peer.ip, peer.port, 0, 600, function (err2) {
+					modules.peers.state(peer.ip, peer.port, 0, 600, function (err2) {
 						if (!err2) {
 							library.logger.warn([err.code, 'Ban 10 min', req.method, req.url].join(' '));
 						}

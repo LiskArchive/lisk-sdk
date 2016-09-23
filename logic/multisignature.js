@@ -152,7 +152,7 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 		multimin: trs.asset.multisignature.min,
 		multilifetime: trs.asset.multisignature.lifetime,
 		blockId: block.id,
-		round: modules.round.calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -184,7 +184,7 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 		multimin: -trs.asset.multisignature.min,
 		multilifetime: -trs.asset.multisignature.lifetime,
 		blockId: block.id,
-		round: modules.round.calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err) {
 		return setImmediate(cb, err);
 	});

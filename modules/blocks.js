@@ -350,7 +350,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					}
 				], cb);
 			}, function (err) {
-				modules.round.backwardTick(oldLastBlock, previousBlock, function () {
+				modules.rounds.backwardTick(oldLastBlock, previousBlock, function () {
 					__private.deleteBlock(oldLastBlock.id, function (err) {
 						if (err) {
 							return setImmediate(cb, err);
@@ -861,13 +861,13 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						library.bus.message('newBlock', block, broadcast);
 
 						// DATABASE write. Update delegates accounts
-						modules.round.tick(block, seriesCb);
+						modules.rounds.tick(block, seriesCb);
 					});
 				} else {
 					library.bus.message('newBlock', block, broadcast);
 
 					// DATABASE write. Update delegates accounts
-					modules.round.tick(block, seriesCb);
+					modules.rounds.tick(block, seriesCb);
 				}
 			},
 			// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
@@ -924,7 +924,7 @@ __private.applyGenesisBlock = function (block, cb) {
 			return process.exit(0);
 		} else {
 			__private.lastBlock = block;
-			modules.round.tick(__private.lastBlock, cb);
+			modules.rounds.tick(__private.lastBlock, cb);
 		}
 	});
 };
@@ -1034,7 +1034,7 @@ Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = __private.lastBlock;
 
-	peer = modules.peer.inspect(peer);
+	peer = modules.peers.inspect(peer);
 	library.logger.info('Loading blocks from: ' + peer.string);
 
 	modules.transport.getFromPeer(peer, {
@@ -1068,7 +1068,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 					} else {
 						library.logger.warn(err.message || err);
 						library.logger.warn(['Block', (block ? block.id : 'null'), 'is not valid, ban 60 min'].join(' '), peer.string);
-						modules.peer.state(peer.ip, peer.port, 0, 3600);
+						modules.peers.state(peer.ip, peer.port, 0, 3600);
 					}
 					return setImmediate(cb, err);
 				}, true);
@@ -1153,7 +1153,7 @@ Blocks.prototype.sandboxApi = function (call, args, cb) {
 Blocks.prototype.onReceiveBlock = function (block) {
 	// When client is not loaded, is syncing or round is ticking
 	// Do not receive new blocks as client is not ready to receive them
-	if (!__private.loaded || modules.loader.syncing() || modules.round.ticking()) {
+	if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
 		library.logger.debug('Client not ready to receive block');
 		return;
 	}
@@ -1163,7 +1163,7 @@ Blocks.prototype.onReceiveBlock = function (block) {
 			library.logger.info([
 				'Received new block id:', block.id,
 				'height:', block.height,
-				'round:',  modules.round.calc(modules.blocks.getLastBlock().height),
+				'round:',  modules.rounds.calc(modules.blocks.getLastBlock().height),
 				'slot:', slots.getSlotNumber(block.timestamp),
 				'reward:', modules.blocks.getLastBlock().reward
 			].join(' '));
