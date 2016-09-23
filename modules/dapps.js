@@ -803,7 +803,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			});
 
 			unzipper.on('extract', function (log) {
-				library.logger.info(dapp.transactionId + ' Finished extracting');
+				library.logger.info(dapp.transactionId, 'Finished extracting');
 				fs.exists(tmpPath, function (exists) {
 					if (exists) { fs.unlink(tmpPath); }
 					return setImmediate(serialCb, null);
@@ -811,7 +811,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 			});
 
 			unzipper.on('progress', function (fileIndex, fileCount) {
-				library.logger.info(dapp.transactionId + ' Extracted file ' + (fileIndex + 1) + ' of ' + fileCount);
+				library.logger.info(dapp.transactionId, ['Extracted file', (fileIndex + 1), 'of', fileCount].join(' '));
 			});
 
 			unzipper.extract({
