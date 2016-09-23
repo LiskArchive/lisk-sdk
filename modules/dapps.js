@@ -1446,7 +1446,7 @@ DApps.prototype.onDeleteBlocksBefore = function (block) {
 			message: {pointId: block.id, pointHeight: block.height}
 		}, function (err) {
 			if (err) {
-				library.logger.error('onDeleteBlocksBefore message', err);
+				library.logger.error('DApps#onDeleteBlocksBefore error', err);
 			}
 		});
 	});
