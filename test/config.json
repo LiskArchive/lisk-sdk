@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
-    "consoleLogLevel": "log",
+    "consoleLogLevel": "info",
     "trustProxy": false,
     "db": {
         "host": "localhost",
