@@ -61,15 +61,15 @@ function DApps (cb, scope) {
 	process.on('exit', function () {
 		var keys = Object.keys(__private.launched);
 
-		async.eachSeries(keys, function (id, cb) {
+		async.eachSeries(keys, function (id, eachSeriesCb) {
 			if (!__private.launched[id]) {
-				return setImmediate(cb);
+				return setImmediate(eachSeriesCb);
 			}
 
 			__private.stop({
 				transactionId: id
 			}, function (err) {
-				return setImmediate(cb, err);
+				return setImmediate(eachSeriesCb, err);
 			});
 		}, function (err) {
 			library.logger.error(err);
