@@ -1052,7 +1052,7 @@ describe('POST /api/dapps/install', function () {
 				node.onNewBlock(function (err) {
 					postInstall(validParams, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
-						node.expect(res.body).to.have.property('error').to.match(/[0-9]+ Installation failed: Received bad response code: 404/);
+						node.expect(res.body).to.have.property('error').to.match(/[0-9]+ Installation failed: Received bad response code 404/);
 						done();
 					});
 				});
