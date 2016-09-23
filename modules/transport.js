@@ -354,8 +354,8 @@ __private.attachApi = function () {
 
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 };
 
