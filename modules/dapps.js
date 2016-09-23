@@ -1037,12 +1037,12 @@ __private.launchApp = function (dapp, params, cb) {
 		return setImmediate(cb, 'Failed to open config.json file for: ' + dapp.transactionId);
 	}
 
-	async.eachSeries(dappConfig.peers, function (peer, cb) {
+	async.eachSeries(dappConfig.peers, function (peer, eachSeriesCb) {
 		modules.peers.addDapp({
 			ip: peer.ip,
 			port: peer.port,
 			dappid: dapp.transactionId
-		}, cb);
+		}, eachSeriesCb);
 	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
