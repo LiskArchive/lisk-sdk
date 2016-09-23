@@ -348,7 +348,7 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 
 				postVote(transaction, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('message').to.equal('Maximum number of 101 votes exceeded (1 too many).');
+					node.expect(res.body).to.have.property('message').to.equal('Maximum number of 101 votes exceeded (1 too many)');
 					seriesCb();
 				});
 			}
