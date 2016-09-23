@@ -617,38 +617,39 @@ __private.list = function (filter, cb) {
 };
 
 __private.createBasePathes = function (cb) {
-	async.series([
-		function (cb) {
-			var iconsPath = path.join(library.public, 'images', 'dapps');
-			fs.exists(iconsPath, function (exists) {
+	async.series({
+		createImagesDappsPath: function (seriesCb) {
+			var imagesPath = path.join(library.public, 'images', 'dapps');
+
+			fs.exists(imagesPath, function (exists) {
 				if (exists) {
-					return setImmediate(cb);
+					return setImmediate(seriesCb);
 				} else {
-					fs.mkdir(iconsPath, cb);
+					fs.mkdir(imagesPath, seriesCb);
 				}
 			});
 		},
-		function (cb) {
+		createDappsPath: function (seriesCb) {
 			fs.exists(__private.dappsPath, function (exists) {
 				if (exists) {
-					return setImmediate(cb);
+					return setImmediate(seriesCb);
 				} else {
-					fs.mkdir(__private.dappsPath, cb);
+					fs.mkdir(__private.dappsPath, seriesCb);
 				}
 			});
 		},
-		function (cb) {
+		createPublicDappsPath: function (seriesCb) {
 			var dappsPublic = path.join(__private.appPath, 'public', 'dapps');
 
 			fs.exists(dappsPublic, function (exists) {
 				if (exists) {
-					return setImmediate(cb);
+					return setImmediate(seriesCb);
 				} else {
-					fs.mkdir(dappsPublic, cb);
+					fs.mkdir(dappsPublic, seriesCb);
 				}
 			});
 		}
-	], function (err) {
+	}, function (err) {
 		return setImmediate(cb, err);
 	});
 };
@@ -1119,29 +1120,29 @@ __private.run = function (dapp, params, cb) {
 __private.stop = function (dapp, cb) {
 	var dappPublicLink = path.join(__private.appPath, 'public', 'dapps', dapp.transactionId);
 
-	async.series([
-		function (cb) {
+	async.series({
+		checkInstalled: function (seriesCb) {
 			fs.exists(dappPublicLink, function (exists) {
 				if (exists) {
-					return setImmediate(cb);
+					return setImmediate(seriesCb);
 				} else {
-					return setImmediate(cb);
+					return setImmediate(seriesCb, 'Application not found');
 				}
 			});
 		},
-		function (cb) {
+		deleteSandbox: function (seriesCb) {
 			if (__private.sandboxes[dapp.transactionId]) {
 				__private.sandboxes[dapp.transactionId].exit();
 			}
 
 			delete __private.sandboxes[dapp.transactionId];
-			return setImmediate(cb);
+			return setImmediate(seriesCb);
 		},
-		function (cb) {
+		deleteRoutes: function (seriesCb) {
 			delete __private.routes[dapp.transactionId];
-			return setImmediate(cb);
+			return setImmediate(seriesCb);
 		}
-	], function (err) {
+	}, function (err) {
 		return setImmediate(cb, err);
 	});
 };
