@@ -438,10 +438,10 @@ __private.attachApi = function () {
 		__private.launch(req.body, function (err) {
 			if (err) {
 				return res.json({'success': false, 'error': err});
+			} else {
+				library.network.io.sockets.emit('dapps/change', {});
+				return res.json({'success': true});
 			}
-
-			library.network.io.sockets.emit('dapps/change', {});
-			res.json({'success': true});
 		});
 	});
 
