@@ -1426,9 +1426,9 @@ DApps.prototype.onBlockchainReady = function () {
 				master: library.config.dapp.masterpassword
 			}, function (err) {
 				if (err) {
-					console.log('Failed to launch application', dapp.dappid + ':', err);
+					library.logger.error(['Failed to launch application', dapp.dappid].join(' '), err);
 				} else {
-					console.log('Launched application', dapp.dappid, 'successfully');
+					library.logger.info(['Launched application', dapp.dappid, 'successfully'].join(' '));
 				}
 
 				return setImmediate(cb);
