@@ -972,7 +972,7 @@ __private.launch = function (body, cb) {
 			if (err) {
 				__private.launched[body.id] = false;
 				library.logger.error(err);
-				return setImmediate(cb, 'Dapp not found');
+				return setImmediate(cb, 'Application not found');
 			} else {
 				__private.getInstalledIds(function (err, files) {
 					if (err) {
@@ -1065,7 +1065,7 @@ __private.launchApp = function (dapp, params, cb) {
 			__private.sandboxes[dapp.transactionId] = sandbox;
 
 			sandbox.on('exit', function () {
-				library.logger.info('Dapp ' + dapp.transactionId + ' closed ');
+				library.logger.info('Application', dapp.transactionId, 'closed'].join(' '));
 				__private.stop(dapp, function (err) {
 					if (err) {
 						library.logger.error('Encountered error while stopping application: ' + err);
