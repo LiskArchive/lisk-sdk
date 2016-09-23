@@ -172,7 +172,7 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 	async.eachSeries(sqles, function (command, cb) {
 		library.db.none(command).then(function () {
 			return setImmediate(cb);
-		}).then(function (err) {
+		}).catch(function (err) {
 			return setImmediate(cb, err);
 		});
 	}, function (err) {
