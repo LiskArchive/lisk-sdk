@@ -99,13 +99,15 @@ __private.attachApi = function () {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
-			var ids = query.ids.split(',').filter(function (id) {
-				return /^['0-9]+$/.test(id);
-			});
-
-			var escapedIds = ids.map(function (id) {
-				return id.replace(/'/g, '');
-			});
+			var escapedIds = query.ids
+				// Remove quotes
+				.replace(/['"]+/g, '')
+				// Separate by comma into an array
+				.split(',')
+				// Reject any non-numeric values
+				.filter(function (id) {
+					return /^[0-9]+$/.test(id);
+				});
 
 			if (!escapedIds.length) {
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
