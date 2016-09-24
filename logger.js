@@ -49,36 +49,43 @@ module.exports = function (config) {
 	}
 
 	Object.keys(config.levels).forEach(function (name) {
-		function log(caption, data) {
+		function log (message, data) {
 			var log = {
 				level: name,
-				message: caption,
 				timestamp: strftime('%F %T', new Date())
 			};
 
-			if (data) {
-				log.data = snipsecret(data);
+			if (message instanceof Error) {
+				log.message = message.stack;
+			} else {
+				log.message = message;
 			}
 
-			var data_str = util.isObject(log.data) ? JSON.stringify(log.data) : String(log.data);
-			var level_str = config.level_abbr[log.level] ? config.level_abbr[log.level] : '???';
+			if (util.isObject(data)) {
+				log.data = JSON.stringify(snipsecret(data));
+			} else {
+				log.data = data;
+			}
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
+				log.symbol = config.level_abbr[log.level] ? config.level_abbr[log.level] : '???';
+
 				if (log.data) {
-					log_file.write(util.format('[%s] %s | %s - %s\n', level_str, log.timestamp, log.message, data_str));
+					log_file.write(util.format('[%s] %s | %s - %s\n', log.symbol, log.timestamp, log.message, log.data));
 				} else {
-					log_file.write(util.format('[%s] %s | %s\n', level_str, log.timestamp, log.message));
+					log_file.write(util.format('[%s] %s | %s\n', log.symbol, log.timestamp, log.message));
 				}
 			}
+
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
 					if (log.data) {
-						console.log('['+level_str.bgYellow.black+']', log.timestamp.grey, '|', log.message, '-', data_str);
+						console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message, '-', log.data);
 					} else {
-						console.log('['+level_str.bgYellow.black+']', log.timestamp.grey, '|', log.message);
+						console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message);
 					}
-				} catch (e){
-					console.log(e);
+				} catch (e) {
+					console.log(e.stack);
 				}
 			}
 		}
