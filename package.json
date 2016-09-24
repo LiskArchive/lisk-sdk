@@ -32,7 +32,7 @@
     "lodash": "=4.16.1",
     "method-override": "=2.3.6",
     "npm": "=3.10.7",
-    "pg-monitor": "=0.5.3",
+    "pg-monitor": "=0.5.11",
     "pg-native": "=1.10.0",
     "pg-promise": "=5.3.3",
     "popsicle": "=8.2.0",
