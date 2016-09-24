@@ -397,7 +397,6 @@ __private.attachApi = function () {
 				__private.uninstalling[body.id] = true;
 
 				if (__private.launched[body.id]) {
-					// Stop dapp first
 					__private.stop(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
@@ -889,7 +888,6 @@ __private.symlink = function (dapp, cb) {
 };
 
 __private.apiHandler = function (message, callback) {
-	// Get all modules
 	try {
 		var strs = message.call.split('#');
 		var module = strs[0], call = strs[1];
