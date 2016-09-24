@@ -97,7 +97,7 @@ __private.attachApi = function () {
 	router.get('/blocks/common', function (req, res, next) {
 		res.set(__private.headers);
 
-		req.sanitize(req.query, schema.commonBlock.query, function (err, report, query) {
+		req.sanitize(req.query, schema.commonBlock, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -110,13 +110,7 @@ __private.attachApi = function () {
 			});
 
 			if (!escapedIds.length) {
-				report = library.scheme.validate(req.headers, schema.commonBlock.result);
-
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
-
-				if (report) {
-					modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
-				}
 
 				return res.json({success: false, error: 'Invalid block id sequence'});
 			}
@@ -134,7 +128,7 @@ __private.attachApi = function () {
 	router.get('/blocks', function (req, res, next) {
 		res.set(__private.headers);
 
-		req.sanitize(req.query, schema.blocks.query, function (err, report, query) {
+		req.sanitize(req.query, schema.blocks, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -159,8 +153,6 @@ __private.attachApi = function () {
 	router.post('/blocks', function (req, res) {
 		res.set(__private.headers);
 
-		var report = library.scheme.validate(req.headers, schema.blocks.result);
-
 		var block;
 
 		try {
@@ -169,7 +161,7 @@ __private.attachApi = function () {
 			library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
 			library.logger.warn(e.toString());
 
-			if (req.peer && report) {
+			if (req.peer) {
 				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
@@ -221,18 +213,11 @@ __private.attachApi = function () {
 
 	router.get('/transactions', function (req, res) {
 		res.set(__private.headers);
-		// Need to process headers from peer
 		res.status(200).json({transactions: modules.transactions.getUnconfirmedTransactionList()});
 	});
 
 	router.post('/transactions', function (req, res) {
 		res.set(__private.headers);
-
-		var report = library.scheme.validate(req.headers, schema.transactions);
-
-		if (req.headers.nethash !== library.config.nethash) {
-			return res.status(200).send({success: false, 'message': 'Request is made on the wrong network', 'expected': library.config.nethash, 'received': req.headers.nethash});
-		}
 
 		var transaction;
 
@@ -242,7 +227,7 @@ __private.attachApi = function () {
 			library.logger.warn('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
 			library.logger.warn(e.toString());
 
-			if (req.peer && report) {
+			if (req.peer) {
 				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
@@ -442,7 +427,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			var headers = res.headers;
 			headers.port = parseInt(headers.port);
 
-			var report = library.scheme.validate(headers, schema.getFromPeer);
+			var report = library.scheme.validate(headers, schema.headers);
 			if (!report) {
 				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
 			}
