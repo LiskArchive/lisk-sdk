@@ -78,14 +78,10 @@ module.exports = function (config) {
 			}
 
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
-				try {
-					if (log.data) {
-						console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message, '-', log.data);
-					} else {
-						console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message);
-					}
-				} catch (e) {
-					console.log(e.stack);
+				if (log.data) {
+					console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message, '-', log.data);
+				} else {
+					console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message);
 				}
 			}
 		}
