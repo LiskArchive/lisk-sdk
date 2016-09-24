@@ -849,7 +849,7 @@ __private.installDApp = function (dapp, cb) {
 	});
 };
 
-__private.symlink = function (dapp, cb) {
+__private.createSymlink = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 	var dappPublicPath = path.join(dappPath, 'public');
 	var dappPublicLink = path.join(__private.appPath, 'public', 'dapps', dapp.transactionId);
@@ -986,7 +986,7 @@ __private.launch = function (body, cb) {
 			});
 		},
 		function (dapp, waterCb) {
-			__private.symlink(dapp, function (err) {
+			__private.createSymlink(dapp, function (err) {
 				if (err) {
 					__private.launched[body.id] = false;
 					return setImmediate(waterCb, 'Failed to create public link');
