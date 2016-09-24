@@ -161,11 +161,11 @@ __private.list = function (filter, cb) {
 
 			return setImmediate(cb, null, data);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err.stack);
 			return setImmediate(cb, 'Transactions#list error');
 		});
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Transactions#list error');
 	});
 };
@@ -180,7 +180,7 @@ __private.getById = function (id, cb) {
 
 		return setImmediate(cb, null, transacton);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Transactions#getById error');
 	});
 };

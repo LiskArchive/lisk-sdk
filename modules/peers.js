@@ -122,7 +122,7 @@ __private.count = function (cb) {
 		var res = rows.length && rows[0].count;
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Peers#count error');
 	});
 };
@@ -131,7 +131,7 @@ __private.banManager = function (cb) {
 	library.db.query(sql.banManager, { now: Date.now() }).then(function (res) {
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Peers#banManager error');
 	});
 };
@@ -198,7 +198,7 @@ __private.getByFilter = function (filter, cb) {
 	}), params).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Peers#getByFilter error');
 	});
 };
@@ -238,7 +238,7 @@ Peers.prototype.list = function (options, cb) {
 	library.db.query(sql.randomList(options), options).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Peers#list error');
 	});
 };
@@ -265,7 +265,7 @@ Peers.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	}).then(function (res) {
 		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return cb && setImmediate(cb);
 	});
 };
@@ -284,7 +284,7 @@ Peers.prototype.remove = function (pip, port, cb) {
 	}).then(function (res) {
 		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return cb && setImmediate(cb);
 	});
 };
@@ -305,11 +305,11 @@ Peers.prototype.addDapp = function (config, cb) {
 		}).then(function (res) {
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err.stack);
 			return setImmediate(cb, 'Peers#addDapp error');
 		});
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Peers#addDapp error');
 	});
 };
@@ -328,7 +328,7 @@ Peers.prototype.update = function (peer, cb) {
 			library.db.query(sql.insert, extend({}, params, { state: 1 })).then(function (res) {
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err.stack);
 				return setImmediate(cb, 'Peers#update error');
 			});
 		},
@@ -339,7 +339,7 @@ Peers.prototype.update = function (peer, cb) {
 			library.db.query(sql.update(params), params).then(function (res) {
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err.stack);
 				return setImmediate(cb, 'Peers#update error');
 			});
 		},
@@ -376,7 +376,7 @@ Peers.prototype.onBlockchainReady = function () {
 		}).then(function (res) {
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err.stack);
 			return setImmediate(cb, 'Peers#onBlockchainReady error');
 		});
 	}, function (err) {

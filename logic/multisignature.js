@@ -80,7 +80,7 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 				}
 			}
 		} catch (e) {
-			library.logger.error(e.toString());
+			library.logger.error(e.stack);
 			return setImmediate(cb, 'Failed to verify signature in multisignature keysgroup');
 		}
 	}
@@ -103,7 +103,7 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 				return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 			}
 		} catch (e) {
-			library.logger.error(e.toString());
+			library.logger.error(e.stack);
 			return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 		}
 

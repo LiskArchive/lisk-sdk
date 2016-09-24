@@ -293,7 +293,7 @@ __private.loadBlockChain = function () {
 			});
 		});
 	}).catch(function (err) {
-		library.logger.error(err);
+		library.logger.error(err.stack);
 		return process.exit(0);
 	});
 };

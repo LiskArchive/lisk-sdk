@@ -121,7 +121,7 @@ __private.attachApi = function () {
 				var commonBlock = rows.length ? rows[0] : null;
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err.stack);
 				return res.json({ success: false, error: 'Failed to get common block' });
 			});
 		});
@@ -287,7 +287,7 @@ __private.attachApi = function () {
 				return res.status(200).json({success: false, message: 'Invalid hash sum'});
 			}
 		} catch (e) {
-			library.logger.error(e.toString());
+			library.logger.error(e.stack);
 			return res.status(200).json({success: false, message: e.toString()});
 		}
 
@@ -329,7 +329,7 @@ __private.attachApi = function () {
 				return res.status(200).json({success: false, message: 'Invalid hash sum'});
 			}
 		} catch (e) {
-			library.logger.error(e.toString());
+			library.logger.error(e.stack);
 			return res.status(200).json({success: false, message: e.toString()});
 		}
 

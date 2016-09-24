@@ -321,7 +321,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			try {
 				new Buffer(publicKey, 'hex');
 			} catch (e) {
-				library.logger.error(e.toString());
+				library.logger.error(e.stack);
 				return setImmediate(cb, 'Invalid public key');
 			}
 
@@ -647,7 +647,7 @@ shared.search = function (req, cb) {
 		})).then(function (rows) {
 			return setImmediate(cb, null, { delegates: rows });
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err.stack);
 			return setImmediate(cb, 'Database search failed');
 		});
 	});
@@ -657,7 +657,7 @@ shared.count = function (req, cb) {
 	library.db.one(sql.count).then(function (row) {
 		return setImmediate(cb, null, { count: row.count });
 	}).catch(function (err) {
-		library.logger.error(err.toString());
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'Failed to count delegates');
 	});
 };
@@ -682,7 +682,7 @@ shared.getVoters = function (req, cb) {
 				return setImmediate(cb, null, { accounts: rows });
 			});
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err.stack);
 			return setImmediate(cb, 'Failed to get voters for delegate: ' + req.body.publicKey);
 		});
 	});

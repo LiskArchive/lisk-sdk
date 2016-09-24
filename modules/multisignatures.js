@@ -116,7 +116,7 @@ shared.getAccounts = function (req, cb) {
 				});
 			});
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err.stack);
 			return setImmediate(cb, 'Multisignature#getAccounts error');
 		});
 	});
@@ -147,7 +147,7 @@ shared.pending = function (req, cb) {
 					try {
 						verify = library.logic.transaction.verifySignature(transaction, req.body.publicKey, transaction.signatures[i]);
 					} catch (e) {
-						library.logger.error(e.toString());
+						library.logger.error(e.stack);
 						verify = false;
 					}
 
@@ -249,7 +249,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 				verify = library.logic.transaction.verifySignature(transaction, key, tx.signature);
 			}
 		} catch (e) {
-			library.logger.error(e.toString());
+			library.logger.error(e.stack);
 			return setImmediate(cb, 'Failed to verify signature');
 		}
 
@@ -288,7 +288,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 					verify = library.logic.transaction.verifySignature(transaction, multisignatures[i], tx.signature);
 				}
 			} catch (e) {
-				library.logger.error(e.toString());
+				library.logger.error(e.stack);
 				return setImmediate(cb, 'Failed to verify signature');
 			}
 

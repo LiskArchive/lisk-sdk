@@ -209,7 +209,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	try {
 		txId = this.getId(trs);
 	} catch (e) {
-		this.scope.logger.error(e.toString());
+		this.scope.logger.error(e.stack);
 		return setImmediate(cb, 'Failed to get transaction id');
 	}
 
@@ -254,7 +254,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 
 			return setImmediate(cb, null, trs);
 		}).catch(function (err) {
-			this.scope.logger.error(err.toString());
+			this.scope.logger.error(err.stack);
 			return setImmediate(cb, 'Transaction#process error');
 		});
 	}.bind(this));
@@ -307,7 +307,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		valid = false;
 		valid = this.verifySignature(trs, (trs.requesterPublicKey || trs.senderPublicKey), trs.signature);
 	} catch (e) {
-		this.scope.logger.error(e.toString());
+		this.scope.logger.error(e.stack);
 		return setImmediate(cb, e.toString());
 	}
 

@@ -42,7 +42,7 @@ Signature.prototype.verify = function (trs, sender, cb) {
 			return setImmediate(cb, 'Invalid public key');
 		}
 	} catch (e) {
-		library.logger.error(e.toString());
+		library.logger.error(e.stack);
 		return setImmediate(cb, 'Invalid public key');
 	}
 
