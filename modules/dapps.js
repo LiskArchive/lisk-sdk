@@ -996,7 +996,7 @@ __private.launch = function (body, cb) {
 			});
 		},
 		function (dapp, waterCb) {
-			__private.run(dapp, body.params || ['', 'modules.full.json'], function (err) {
+			__private.createSandbox(dapp, body.params || ['', 'modules.full.json'], function (err) {
 				if (err) {
 					__private.launched[body.id] = false;
 					return setImmediate(waterCb, err);
@@ -1031,7 +1031,7 @@ __private.launch = function (body, cb) {
 	});
 };
 
-__private.run = function (dapp, params, cb) {
+__private.createSandbox = function (dapp, params, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 	var dappPublicPath = path.join(dappPath, 'public');
 	var dappPublicLink = path.join(__private.appPath, 'public', 'dapps', dapp.transactionId);
