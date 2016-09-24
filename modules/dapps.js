@@ -258,6 +258,7 @@ __private.attachApi = function () {
 					});
 				}
 			}).catch(function (err) {
+				library.logger.error(err.stack);
 				return res.json({success: false, error: 'Database search failed'});
 			});
 		});
@@ -540,6 +541,7 @@ __private.get = function (id, cb) {
 			return setImmediate(cb, null, rows[0]);
 		}
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#get error');
 	});
 };
@@ -548,6 +550,7 @@ __private.getByIds = function (ids, cb) {
 	library.db.query(sql.getByIds, [ids]).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#getByIds error');
 	});
 };
@@ -614,6 +617,7 @@ __private.list = function (filter, cb) {
 	}), params).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, err);
 	});
 };
@@ -1509,6 +1513,7 @@ shared.getGenesis = function (req, cb) {
 			});
 		}
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#getGenesis error');
 	});
 };
@@ -1525,6 +1530,7 @@ shared.getCommonBlock = function (req, cb) {
 	}).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#getCommonBlock error');
 	});
 };
@@ -1540,6 +1546,7 @@ shared.getWithdrawalLastTransaction = function (req, cb) {
 	}).then(function (rows) {
 		return setImmediate(cb, null, rows[0]);
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#getWithdrawalLastTransaction error');
 	});
 };
@@ -1554,6 +1561,7 @@ shared.getBalanceTransactions = function (req, cb) {
 	}).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#getBalanceTransaction error');
 	});
 };
