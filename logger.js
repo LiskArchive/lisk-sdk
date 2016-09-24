@@ -61,7 +61,7 @@ module.exports = function (config) {
 				log.message = message;
 			}
 
-			if (util.isObject(data)) {
+			if (data && util.isObject(data)) {
 				log.data = JSON.stringify(snipsecret(data));
 			} else {
 				log.data = data;
