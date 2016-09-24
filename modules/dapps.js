@@ -438,7 +438,7 @@ __private.attachApi = function () {
 			return res.json({success: false, error: 'Invalid master passphrase'});
 		}
 
-		__private.launch(req.body, function (err) {
+		__private.launchDApp(req.body, function (err) {
 			if (err) {
 				return res.json({'success': false, 'error': err});
 			} else {
@@ -936,7 +936,7 @@ __private.dappRoutes = function (dapp, cb) {
 	});
 };
 
-__private.launch = function (body, cb) {
+__private.launchDApp = function (body, cb) {
 	async.waterfall([
 		function (waterCb) {
 			library.scheme.validate(body, schema.launch, function (err) {
@@ -1432,7 +1432,7 @@ DApps.prototype.onBlockchainReady = function () {
 		if (!library.config.dapp) { return; }
 
 		async.eachSeries(library.config.dapp.autoexec || [], function (dapp, cb) {
-			__private.launch({
+			__private.launchDApp({
 				params: dapp.params,
 				id: dapp.dappid,
 				master: library.config.dapp.masterpassword
