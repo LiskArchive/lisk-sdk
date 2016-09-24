@@ -66,7 +66,7 @@ function DApps (cb, scope) {
 				return setImmediate(eachSeriesCb);
 			}
 
-			__private.stop({
+			__private.stopDApp({
 				transactionId: id
 			}, function (err) {
 				return setImmediate(eachSeriesCb, err);
@@ -397,7 +397,7 @@ __private.attachApi = function () {
 				__private.uninstalling[body.id] = true;
 
 				if (__private.launched[body.id]) {
-					__private.stop(dapp, function (err) {
+					__private.stopDApp(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
 							return res.json({success: false, error: 'Failed to stop application'});
@@ -503,7 +503,7 @@ __private.attachApi = function () {
 					library.logger.error(err);
 					return res.json({success: false, error: 'Application not found'});
 				} else {
-					__private.stop(dapp, function (err) {
+					__private.stopDApp(dapp, function (err) {
 						if (err) {
 							library.logger.error(err);
 							return res.json({success: false, error: 'Failed to stop application'});
@@ -1009,7 +1009,7 @@ __private.launch = function (body, cb) {
 			__private.dappRoutes(dapp, function (err) {
 				if (err) {
 					__private.launched[body.id] = false;
-					__private.stop(dapp, function (err) {
+					__private.stopDApp(dapp, function (err) {
 						if (err) {
 							return setImmediate(waterCb, 'Failed to stop application');
 						} else {
@@ -1072,7 +1072,7 @@ __private.run = function (dapp, params, cb) {
 			__private.sandboxes[dapp.transactionId] = sandbox;
 
 			sandbox.on('exit', function () {
-				__private.stop(dapp, function (err) {
+				__private.stopDApp(dapp, function (err) {
 					if (err) {
 						library.logger.error('Failed to stop application', dapp.transactionId);
 					} else {
@@ -1083,7 +1083,7 @@ __private.run = function (dapp, params, cb) {
 
 			sandbox.on('error', function (err) {
 				library.logger.error(['Encountered error in application', dapp.transactionId].join(' '), err);
-				__private.stop(dapp, function (err) {
+				__private.stopDApp(dapp, function (err) {
 					if (err) {
 						library.logger.error('Failed to stop application', dapp.transactionId);
 					} else {
@@ -1099,7 +1099,7 @@ __private.run = function (dapp, params, cb) {
 	});
 };
 
-__private.stop = function (dapp, cb) {
+__private.stopDApp = function (dapp, cb) {
 	var dappPublicLink = path.join(__private.appPath, 'public', 'dapps', dapp.transactionId);
 
 	async.series({
