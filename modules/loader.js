@@ -168,17 +168,15 @@ __private.loadBlockChain = function () {
 								if (count > 1) {
 									library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
 								}
-								return setImmediate(function () {
-									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
-										if (err) {
-											return setImmediate(cb, err);
-										}
+								modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
+									if (err) {
+										return setImmediate(cb, err);
+									}
 
-										offset = offset + limit;
-										__private.loadingLastBlock = lastBlockOffset;
+									offset = offset + limit;
+									__private.loadingLastBlock = lastBlockOffset;
 
-										return setImmediate(cb);
-									});
+									return setImmediate(cb);
 								});
 							}, function (err) {
 								if (err) {
