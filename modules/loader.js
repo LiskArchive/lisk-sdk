@@ -166,7 +166,7 @@ __private.loadBlockChain = function () {
 								return count < offset;
 							}, function (cb) {
 								if (count > 1) {
-									library.logger.info('Rebuilding blockchain, current block height: ' + offset);
+									library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
 								}
 								return setImmediate(function () {
 									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
