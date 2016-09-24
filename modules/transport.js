@@ -62,6 +62,10 @@ __private.attachApi = function () {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.status(500).send({status: false, error: report.issues}); }
 
+			if (req.headers.nethash !== library.config.nethash) {
+				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: library.config.nethash, received: req.headers.nethash});
+			}
+
 			req.peer.state = 2;
 			req.peer.os = headers.os;
 			req.peer.version = headers.version;
@@ -156,10 +160,6 @@ __private.attachApi = function () {
 		res.set(__private.headers);
 
 		var report = library.scheme.validate(req.headers, schema.blocks.result);
-
-		if (req.headers.nethash !== library.config.nethash) {
-			return res.status(200).send({success: false, 'message': 'Request is made on the wrong network', 'expected': library.config.nethash, 'received': req.headers.nethash});
-		}
 
 		var block;
 
