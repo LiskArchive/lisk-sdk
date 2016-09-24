@@ -888,7 +888,7 @@ __private.apiHandler = function (message, callback) {
 	}
 };
 
-__private.dappRoutes = function (dapp, cb) {
+__private.createRoutes = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 	var dappRoutesPath = path.join(dappPath, 'routes.json');
 
@@ -1006,7 +1006,7 @@ __private.launchDApp = function (body, cb) {
 			});
 		},
 		function (dapp, waterCb) {
-			__private.dappRoutes(dapp, function (err) {
+			__private.createRoutes(dapp, function (err) {
 				if (err) {
 					__private.launched[body.id] = false;
 					__private.stopDApp(dapp, function (err) {
