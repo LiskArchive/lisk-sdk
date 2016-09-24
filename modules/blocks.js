@@ -71,6 +71,7 @@ __private.blocksDataFields = {
 // @formatter:on
 
 __private.loaded = false;
+__private.cleanup = false;
 __private.isActive = false;
 
 // Constructor
