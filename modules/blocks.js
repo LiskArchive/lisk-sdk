@@ -541,18 +541,14 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 
 	options = options || {};
 
-	if (filter.lastId && filter.id) {
-		return setImmediate(cb, 'Invalid filter');
-	}
-
 	var params = { limit: filter.limit || 1 };
 
-	if (filter.lastId) {
-		params.lastId = filter.lastId;
-	}
-
-	if (filter.id && !filter.lastId) {
+	if (filter.id && filter.lastId) {
+		return setImmediate(cb, 'Invalid filter: Received both id and lastId');
+	} else if (filter.id) {
 		params.id = filter.id;
+	} else if (filter.lastId) {
+		params.lastId = filter.lastId;
 	}
 
 	var fields = __private.blocksDataFields;
