@@ -52,10 +52,6 @@ __private.attachApi = function () {
 			return res.status(406).send({success: false, error: 'Invalid request headers'});
 		}
 
-		if (req.peer.loopback) {
-			return next();
-		}
-
 		req.headers.port = req.peer.port;
 
 		req.sanitize(req.headers, schema.headers, function (err, report, headers) {
@@ -79,10 +75,12 @@ __private.attachApi = function () {
 					modules.delegates.enableForging();
 				}
 
-				modules.peers.update(req.peer);
+				if (!req.peer.loopback) {
+					modules.peers.update(req.peer);
+				}
 			}
 
-			next();
+			return next();
 		});
 
 	});
