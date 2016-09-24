@@ -83,12 +83,12 @@ function DApps (cb, scope) {
 					library.logger.error(err);
 				}
 
-				__private.createBasePathes(function (err) {
+				__private.createBasePaths(function (err) {
 					return setImmediate(cb, err, self);
 				});
 			});
 		} else {
-			__private.createBasePathes(function (err) {
+			__private.createBasePaths(function (err) {
 				return setImmediate(cb, null, self);
 			});
 		}
@@ -621,7 +621,7 @@ __private.list = function (filter, cb) {
 	});
 };
 
-__private.createBasePathes = function (cb) {
+__private.createBasePaths = function (cb) {
 	var basePaths = [
 		__private.dappsPath,                             // -> /dapps
 		path.join(__private.appPath, 'public', 'dapps'), // -> /public/dapps
