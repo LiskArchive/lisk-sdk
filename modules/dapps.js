@@ -622,38 +622,20 @@ __private.list = function (filter, cb) {
 };
 
 __private.createBasePathes = function (cb) {
-	async.series({
-		createImagesDappsPath: function (seriesCb) {
-			var imagesPath = path.join(library.public, 'images', 'dapps');
+	var basePaths = [
+		__private.dappsPath,                             // -> /dapps
+		path.join(__private.appPath, 'public', 'dapps'), // -> /public/dapps
+		path.join(library.public, 'images', 'dapps'),    // -> /public/images/dapps
+	];
 
-			fs.exists(imagesPath, function (exists) {
-				if (exists) {
-					return setImmediate(seriesCb);
-				} else {
-					fs.mkdir(imagesPath, seriesCb);
-				}
-			});
-		},
-		createDappsPath: function (seriesCb) {
-			fs.exists(__private.dappsPath, function (exists) {
-				if (exists) {
-					return setImmediate(seriesCb);
-				} else {
-					fs.mkdir(__private.dappsPath, seriesCb);
-				}
-			});
-		},
-		createPublicDappsPath: function (seriesCb) {
-			var dappsPublic = path.join(__private.appPath, 'public', 'dapps');
-
-			fs.exists(dappsPublic, function (exists) {
-				if (exists) {
-					return setImmediate(seriesCb);
-				} else {
-					fs.mkdir(dappsPublic, seriesCb);
-				}
-			});
-		}
+	async.eachSeries(basePaths, function (path, eachSeriesCb) {
+		fs.exists(path, function (exists) {
+			if (exists) {
+				return setImmediate(eachSeriesCb);
+			} else {
+				return fs.mkdir(path, eachSeriesCb);
+			}
+		});
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
