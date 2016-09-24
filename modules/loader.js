@@ -456,7 +456,7 @@ Loader.prototype.getNetwork = function (cb) {
 
 						if (heightIsValid) {
 							library.logger.info(['Checking blockchain on:', peer.string, 'received height:', res.body.height].join(' '));
-							return setImmediate(cb, null, { peer: peer, height: res.body.height });
+							return setImmediate(cb, null, {peer: peer, height: res.body.height});
 						} else {
 							library.logger.warn(['Checking blockchain on:', peer.string, 'received invalid height'].join(' '));
 							return setImmediate(cb);
