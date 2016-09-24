@@ -29,21 +29,21 @@
     "json-schema": "=0.2.3",
     "json-sql": "LiskHQ/json-sql#27e1ed1",
     "lisk-sandbox": "=1.0.5",
-    "lodash": "=4.15.0",
+    "lodash": "=4.16.1",
     "method-override": "=2.3.6",
-    "npm": "=3.10.7",
-    "pg-monitor": "^0.5.3",
-    "pg-native": "^1.10.0",
-    "pg-promise": "^5.3.3",
+    "npm": "=2.15.10",
+    "pg-monitor": "=0.5.11",
+    "pg-native": "=1.10.0",
+    "pg-promise": "=5.3.3",
+    "popsicle": "=8.2.0",
     "randomstring": "=1.1.5",
-    "request": "=2.75.0",
     "rimraf": "=2.5.4",
     "socket.io": "=1.4.8",
     "strftime": "=0.9.2",
     "valid-url": "=1.0.9",
     "validator": "=5.7.0",
     "validator.js": "=2.0.3",
-    "z-schema": "=3.17.0"
+    "z-schema": "=3.18.0"
   },
   "devDependencies": {
     "bitcore-mnemonic": "=1.1.1",
@@ -65,7 +65,7 @@
     "jsdox": "=0.4.10",
     "jshint": "=2.9.3",
     "mocha": "=3.0.2",
-    "moment": "=2.15.0",
+    "moment": "=2.15.1",
     "supertest": "=2.0.0"
   },
   "config": {

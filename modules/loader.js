@@ -6,8 +6,8 @@ var constants = require('../helpers/constants.js');
 var ip = require('ip');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/loader.js');
 var sql = require('../sql/loader.js');
-var util = require('util');
 
 require('colors');
 
@@ -83,27 +83,18 @@ __private.loadSignatures = function (cb) {
 		api: '/signatures',
 		method: 'GET',
 		not_ban: true
-	}, function (err, data) {
+	}, function (err, res) {
 		if (err) {
-			return cb();
+			return setImmediate(cb);
 		}
 
-		library.scheme.validate(data.body, {
-			type: 'object',
-			properties: {
-				signatures: {
-					type: 'array',
-					uniqueItems: true
-				}
-			},
-			required: ['signatures']
-		}, function (err) {
+		library.scheme.validate(res.body, schema.loadSignatures, function (err) {
 			if (err) {
-				return cb();
+				return setImmediate(cb);
 			}
 
 			library.sequence.add(function (cb) {
-				async.eachSeries(data.body.signatures, function (signature, cb) {
+				async.eachSeries(res.body.signatures, function (signature, cb) {
 					async.eachSeries(signature.signatures, function (s, cb) {
 						modules.multisignatures.processSignature({
 							signature: s,
@@ -122,37 +113,28 @@ __private.loadUnconfirmedTransactions = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/transactions',
 		method: 'GET'
-	}, function (err, data) {
+	}, function (err, res) {
 		if (err) {
-			return cb();
+			return setImmediate(cb);
 		}
 
-		var report = library.scheme.validate(data.body, {
-			type: 'object',
-			properties: {
-				transactions: {
-					type: 'array',
-					uniqueItems: true
-				}
-			},
-			required: ['transactions']
-		});
+		var report = library.scheme.validate(res.body, schema.loadUnconfirmedTransactions);
 
 		if (!report) {
-			return cb();
+			return setImmediate(cb);
 		}
 
-		data.peer = modules.peer.inspect(data.peer);
+		var peer = modules.peers.inspect(res.peer);
 
-		var transactions = data.body.transactions;
+		var transactions = res.body.transactions;
 
 		for (var i = 0; i < transactions.length; i++) {
 			try {
 				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
 			} catch (e) {
 				library.logger.warn(e.toString());
-				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', data.peer.string);
-				modules.peer.state(data.peer.ip, data.peer.port, 0, 3600);
+				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peer.string);
+				modules.peers.state(peer.ip, peer.port, 0, 3600);
 				return setImmediate(cb);
 			}
 		}
@@ -184,19 +166,17 @@ __private.loadBlockChain = function () {
 								return count < offset;
 							}, function (cb) {
 								if (count > 1) {
-									library.logger.info('Rebuilding blockchain, current block height: ' + offset);
+									library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
 								}
-								return setImmediate(function () {
-									modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
-										if (err) {
-											return cb(err);
-										}
+								modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlockOffset) {
+									if (err) {
+										return setImmediate(cb, err);
+									}
 
-										offset = offset + limit;
-										__private.loadingLastBlock = lastBlockOffset;
+									offset = offset + limit;
+									__private.loadingLastBlock = lastBlockOffset;
 
-										return cb();
-									});
+									return setImmediate(cb);
 								});
 							}, function (err) {
 								if (err) {
@@ -244,7 +224,7 @@ __private.loadBlockChain = function () {
 
 		library.logger.info('Blocks ' + count);
 
-		var round = modules.round.calc(count);
+		var round = modules.rounds.calc(count);
 
 		if (library.config.loading.snapshot !== undefined || library.config.loading.snapshot > 0) {
 			library.logger.info('Snapshot mode enabled');
@@ -311,7 +291,7 @@ __private.loadBlockChain = function () {
 			});
 		});
 	}).catch(function (err) {
-		library.logger.error(err);
+		library.logger.error(err.stack);
 		return process.exit(0);
 	});
 };
@@ -322,7 +302,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 
 	self.getNetwork(function (err, network) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		} else {
 			async.whilst(
 				function () {
@@ -342,6 +322,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
+							lastValidBlock = lastBlock = null;
 							next();
 						});
 					}
@@ -356,7 +337,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 								return next();
 							} else {
 								library.logger.info(['Found common block:', commonBlock.id, 'with:', peer.string].join(' '));
-								return cb();
+								return setImmediate(cb);
 							}
 						});
 					}
@@ -370,9 +351,9 @@ __private.loadBlocksFromNetwork = function (cb) {
 				function (err) {
 					if (err) {
 						library.logger.error('Failed to load blocks from network', err);
-						return cb(err);
+						return setImmediate(cb, err);
 					} else {
-						return cb();
+						return setImmediate(cb);
 					}
 				}
 			);
@@ -442,83 +423,41 @@ Loader.prototype.getNetwork = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/list',
 		method: 'GET'
-	}, function (err, data) {
+	}, function (err, res) {
 		if (err) {
 			library.logger.info('Failed to connect properly with network', err);
 			return setImmediate(cb, err);
 		}
 
-		var report = library.scheme.validate(data.body.peers, {type: 'array', required: true, uniqueItems: true});
-
-		library.scheme.validate(data.body, {
-			type: 'object',
-			properties: {
-				peers: {
-					type: 'array',
-					uniqueItems: true
-				}
-			},
-			required: ['peers']
-		}, function (err) {
+		library.scheme.validate(res.body, schema.getNetwork.peers, function (err) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
-			var peers = data.body.peers;
+			var peers = res.body.peers;
 
 			// For each peer, we will get the height
 			async.map(peers, function (peer, cb) {
-				var peerIsValid = library.scheme.validate(peer, {
-					type: 'object',
-					properties: {
-						ip: {
-							type: 'string'
-						},
-						port: {
-							type: 'integer',
-							minimum: 1,
-							maximum: 65535
-						},
-						state: {
-							type: 'integer',
-							minimum: 0,
-							maximum: 3
-						},
-						os: {
-							type: 'string'
-						},
-						version: {
-							type: 'string'
-						}
-					},
-					required: ['ip', 'port', 'state']
-				});
+				var peerIsValid = library.scheme.validate(peer, schema.getNetwork.peer);
 
 				if (peerIsValid) {
 					modules.transport.getFromPeer(peer, {
 						api: '/height',
 						method: 'GET'
-					}, function (err, result) {
+					}, function (err, res) {
 						if (err) {
 							library.logger.warn(['Checking blockchain on:', peer.string, 'failed to get height'].join(' '));
-							return cb();
+							return setImmediate(cb);
 						}
-						var heightIsValid = library.scheme.validate(result.body, {
-							type: 'object',
-							properties: {
-								'height': {
-									type: 'integer',
-									minimum: 0
-								}
-							}, required: ['height']
-						});
+
+						var heightIsValid = library.scheme.validate(res.body, schema.getNetwork.height);
 
 						if (heightIsValid) {
-							library.logger.info(['Checking blockchain on:', result.peer.string, 'received height:', result.body.height].join(' '));
-							return cb(null, { peer: modules.peer.inspect(result.peer), height: result.body.height });
+							library.logger.info(['Checking blockchain on:', peer.string, 'received height:', res.body.height].join(' '));
+							return setImmediate(cb, null, {peer: peer, height: res.body.height});
 						} else {
-							library.logger.warn(['Checking blockchain on:', result.peer.string, 'received invalid height'].join(' '));
-							return cb();
+							library.logger.warn(['Checking blockchain on:', peer.string, 'received invalid height'].join(' '));
+							return setImmediate(cb);
 						}
 					});
 				}
@@ -613,7 +552,7 @@ Loader.prototype.onBlockchainReady = function () {
 
 Loader.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	return cb();
+	return setImmediate(cb);
 };
 
 // Private
@@ -621,15 +560,15 @@ __private.ping = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (lastBlock && lastBlock.fresh) {
-		return cb(200, {success: true});
+		return setImmediate(cb, 200, {success: true});
 	} else {
-		return cb(503, {success: false});
+		return setImmediate(cb, 503, {success: false});
 	}
 };
 
 // Shared
 shared.status = function (req, cb) {
-	return cb(null, {
+	return setImmediate(cb, null, {
 		loaded: __private.loaded,
 		now: __private.loadingLastBlock.height,
 		blocksCount: __private.total
@@ -637,7 +576,7 @@ shared.status = function (req, cb) {
 };
 
 shared.sync = function (req, cb) {
-	return cb(null, {
+	return setImmediate(cb, null, {
 		syncing: self.syncing(),
 		blocks: __private.blocksToSync,
 		height: modules.blocks.getLastBlock().height

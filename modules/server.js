@@ -4,7 +4,6 @@ var async = require('async');
 var path = require('path');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
-var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -66,7 +65,7 @@ Server.prototype.onBlockchainReady = function () {
 
 Server.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	return cb();
+	return setImmediate(cb);
 };
 
 // Shared

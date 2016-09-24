@@ -26,8 +26,8 @@ __private.escape = function (what) {
 	switch (typeof what) {
 		case 'string':
 			return '\'' + what.replace(
-					__private.SINGLE_QUOTES, __private.SINGLE_QUOTES_DOUBLED
-				) + '\'';
+				__private.SINGLE_QUOTES, __private.SINGLE_QUOTES_DOUBLED
+			) + '\'';
 		case 'object':
 			if (what == null) {
 				return 'null';
@@ -44,7 +44,7 @@ __private.escape = function (what) {
 		case 'number':
 			if (isFinite(what)) { return '' + what; }
 	}
-	throw new Error('Unsupported data', typeof what);
+	throw 'Unsupported data ' + typeof what;
 };
 
 __private.pass = function (obj, dappid) {
@@ -88,7 +88,7 @@ __private.query = function (action, config, cb) {
 			err = err;
 		}
 
-		return cb(err, data);
+		return setImmediate(cb, err, data);
 	}
 
 	if (action !== 'batch') {
@@ -109,7 +109,7 @@ __private.query = function (action, config, cb) {
 		library.db.query(sql.query, sql.values).then(function (rows) {
 			return done(null, rows);
 		}).catch(function (err) {
-			library.logger.error(err.toString());
+			library.logger.error(err.stack);
 			return done('Sql#query error');
 		});
 	} else {
@@ -134,10 +134,10 @@ __private.query = function (action, config, cb) {
 				});
 				sql = sql + ' ' + rows.join(' UNION ');
 				library.db.none(sql).then(function () {
-					return cb();
+					return setImmediate(cb);
 				}).catch(function (err) {
-					library.logger.error(err.toString());
-					return cb('Sql#query error');
+					library.logger.error(err.stack);
+					return setImmediate(cb, 'Sql#query error');
 				});
 			}, done);
 	}
@@ -146,7 +146,7 @@ __private.query = function (action, config, cb) {
 // Public methods
 Sql.prototype.createTables = function (dappid, config, cb) {
 	if (!config) {
-		return cb('Invalid table format');
+		return setImmediate(cb, 'Invalid table format');
 	}
 
 	var sqles = [];
@@ -171,9 +171,9 @@ Sql.prototype.createTables = function (dappid, config, cb) {
 
 	async.eachSeries(sqles, function (command, cb) {
 		library.db.none(command).then(function () {
-			return cb();
-		}).then(function (err) {
-			return cb(err);
+			return setImmediate(cb);
+		}).catch(function (err) {
+			return setImmediate(cb, err);
 		});
 	}, function (err) {
 		if (err) {
@@ -195,14 +195,14 @@ Sql.prototype.dropTables = function (dappid, config, cb) {
 			library.db.none('DROP TABLE IF EXISTS ' + table.name + ' CASCADE').then(function () {
 				return setImmediate(cb, null);
 			}).catch(function (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err.stack);
 				return setImmediate(cb, 'Sql#dropTables error');
 			});
 		} else if (table.type === 'index') {
 			library.db.none('DROP INDEX IF EXISTS ' + table.name).then(function () {
 				return setImmediate(cb, null);
 			}).catch(function (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err.stack);
 				return setImmediate(cb, 'Sql#dropTables error');
 			});
 		} else {

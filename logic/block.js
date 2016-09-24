@@ -88,7 +88,7 @@ Block.prototype.create = function (data) {
 
 		block = this.objectNormalize(block);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return block;
@@ -148,7 +148,7 @@ Block.prototype.getBytes = function (block) {
 		bb.flip();
 		b = bb.toBuffer();
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return b;
@@ -170,7 +170,7 @@ Block.prototype.verifySignature = function (block) {
 		var generatorPublicKeyBuffer = new Buffer(block.generatorPublicKey, 'hex');
 		res = this.scope.ed.verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ');
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return res;
@@ -202,7 +202,7 @@ Block.prototype.dbSave = function (block) {
 		generatorPublicKey = new Buffer(block.generatorPublicKey, 'hex');
 		blockSignature = new Buffer(block.blockSignature, 'hex');
 	} catch (e) {
-		throw e.toString();
+		throw e;
 	}
 
 	return {
@@ -226,6 +226,64 @@ Block.prototype.dbSave = function (block) {
 	};
 };
 
+Block.prototype.schema = {
+	id: 'Block',
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string'
+		},
+		height: {
+			type: 'integer'
+		},
+		blockSignature: {
+			type: 'string',
+			format: 'signature'
+		},
+		generatorPublicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		numberOfTransactions: {
+			type: 'integer'
+		},
+		payloadHash: {
+			type: 'string',
+			format: 'hex'
+		},
+		payloadLength: {
+			type: 'integer'
+		},
+		previousBlock: {
+			type: 'string'
+		},
+		timestamp: {
+			type: 'integer'
+		},
+		totalAmount: {
+			type: 'integer',
+			minimum: 0
+		},
+		totalFee: {
+			type: 'integer',
+			minimum: 0
+		},
+		reward: {
+			type: 'integer',
+			minimum: 0
+		},
+		transactions: {
+			type: 'array',
+			uniqueItems: true
+		},
+		version: {
+			type: 'integer',
+			minimum: 0
+		}
+	},
+	required: ['blockSignature', 'generatorPublicKey', 'numberOfTransactions', 'payloadHash', 'payloadLength', 'timestamp', 'totalAmount', 'totalFee', 'reward', 'transactions', 'version']
+};
+
 Block.prototype.objectNormalize = function (block) {
 	var i;
 
@@ -235,65 +293,10 @@ Block.prototype.objectNormalize = function (block) {
 		}
 	}
 
-	var report = this.scope.scheme.validate(block, {
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string'
-			},
-			height: {
-				type: 'integer'
-			},
-			blockSignature: {
-				type: 'string',
-				format: 'signature'
-			},
-			generatorPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			numberOfTransactions: {
-				type: 'integer'
-			},
-			payloadHash: {
-				type: 'string',
-				format: 'hex'
-			},
-			payloadLength: {
-				type: 'integer'
-			},
-			previousBlock: {
-				type: 'string'
-			},
-			timestamp: {
-				type: 'integer'
-			},
-			totalAmount: {
-				type: 'integer',
-				minimum: 0
-			},
-			totalFee: {
-				type: 'integer',
-				minimum: 0
-			},
-			reward: {
-				type: 'integer',
-				minimum: 0
-			},
-			transactions: {
-				type: 'array',
-				uniqueItems: true
-			},
-			version: {
-				type: 'integer',
-				minimum: 0
-			}
-		},
-		required: ['blockSignature', 'generatorPublicKey', 'numberOfTransactions', 'payloadHash', 'payloadLength', 'timestamp', 'totalAmount', 'totalFee', 'reward', 'transactions', 'version']
-	});
+	var report = this.scope.scheme.validate(block, Block.prototype.schema);
 
 	if (!report) {
-		throw Error('Failed to normalize block: ' + this.scope.scheme.getLastError());
+		throw 'Failed to normalize block: ' + this.scope.scheme.getLastError();
 	}
 
 	try {
@@ -301,7 +304,7 @@ Block.prototype.objectNormalize = function (block) {
 			block.transactions[i] = this.scope.transaction.objectNormalize(block.transactions[i]);
 		}
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return block;

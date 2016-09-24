@@ -4,7 +4,7 @@
     "version": "0.4.0b",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
-    "consoleLogLevel": "log",
+    "consoleLogLevel": "info",
     "trustProxy": false,
     "db": {
         "host": "localhost",
@@ -63,6 +63,7 @@
                 "delayAfter": 0,
                 "windowMs": 60000
             },
+            "maxUpdatePeers": 20,
             "timeout": 4000
         }
     },

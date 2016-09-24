@@ -12,6 +12,7 @@ var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
+var schema = require('../schema/delegates.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/delegates.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -85,23 +86,7 @@ __private.attachApi = function () {
 	}
 
 	router.post('/forging/enable', function (req, res) {
-		var body = req.body;
-
-		library.scheme.validate(body, {
-			type: 'object',
-			properties: {
-				secret: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 100
-				},
-				publicKey: {
-					type: 'string',
-					format: 'publicKey'
-				}
-			},
-			required: ['secret']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -112,10 +97,10 @@ __private.attachApi = function () {
 				return res.json({success: false, error: 'Access denied'});
 			}
 
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
 
-			if (body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== body.publicKey) {
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 					return res.json({success: false, error: 'Invalid passphrase'});
 				}
 			}
@@ -140,23 +125,7 @@ __private.attachApi = function () {
 	});
 
 	router.post('/forging/disable', function (req, res) {
-		var body = req.body;
-
-		library.scheme.validate(body, {
-			type: 'object',
-			properties: {
-				secret: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 100
-				},
-				publicKey: {
-					type: 'string',
-					format: 'publicKey'
-				}
-			},
-			required: ['secret']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -167,10 +136,10 @@ __private.attachApi = function () {
 				return res.json({success: false, error: 'Access denied'});
 			}
 
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
 
-			if (body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== body.publicKey) {
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 					return res.json({success: false, error: 'Invalid passphrase'});
 				}
 			}
@@ -195,23 +164,12 @@ __private.attachApi = function () {
 	});
 
 	router.get('/forging/status', function (req, res) {
-		var query = req.query;
-
-		library.scheme.validate(query, {
-			type: 'object',
-			properties: {
-				publicKey: {
-					type: 'string',
-					format: 'publicKey'
-				}
-			},
-			required: ['publicKey']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.forgingStatus, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
 
-			return res.json({success: true, enabled: !!__private.keypairs[query.publicKey]});
+			return res.json({success: true, enabled: !!__private.keypairs[req.body.publicKey]});
 		});
 	});
 
@@ -236,9 +194,9 @@ __private.getKeysSortByVote = function (cb) {
 		limit: slots.delegates
 	}, ['publicKey'], function (err, rows) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
-		return cb(null, rows.map(function (el) {
+		return setImmediate(cb, null, rows.map(function (el) {
 			return el.publicKey;
 		}));
 	});
@@ -247,7 +205,7 @@ __private.getKeysSortByVote = function (cb) {
 __private.getBlockSlotData = function (slot, height, cb) {
 	self.generateDelegateList(height, function (err, activeDelegates) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		var currentSlot = slot;
@@ -258,11 +216,11 @@ __private.getBlockSlotData = function (slot, height, cb) {
 			var delegate_id = activeDelegates[delegate_pos];
 
 			if (delegate_id && __private.keypairs[delegate_id]) {
-				return cb(null, {time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegate_id]});
+				return setImmediate(cb, null, {time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegate_id]});
 			}
 		}
 
-		return cb(null, null);
+		return setImmediate(cb, null, null);
 	});
 };
 
@@ -279,7 +237,7 @@ __private.forge = function (cb) {
 
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
-	if (!__private.loaded || modules.loader.syncing() || !modules.round.loaded() || modules.round.ticking()) {
+	if (!__private.loaded || modules.loader.syncing() || !modules.rounds.loaded() || modules.rounds.ticking()) {
 		library.logger.debug('Client not ready to forge');
 		return setImmediate(cb);
 	}
@@ -307,7 +265,7 @@ __private.forge = function (cb) {
 						'Forged new block id:',
 						modules.blocks.getLastBlock().id,
 						'height:', modules.blocks.getLastBlock().height,
-						'round:', modules.round.calc(modules.blocks.getLastBlock().height),
+						'round:', modules.rounds.calc(modules.blocks.getLastBlock().height),
 						'slot:', slots.getSlotNumber(currentBlockData.time),
 						'reward:' + modules.blocks.getLastBlock().reward
 					].join(' '));
@@ -334,11 +292,11 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 
 	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		if (!account) {
-			return cb('Account not found');
+			return setImmediate(cb, 'Account not found');
 		}
 
 		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
@@ -349,7 +307,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			var math = action[0];
 
 			if (math !== '+' && math !== '-') {
-				return cb('Invalid math operator');
+				return setImmediate(cb, 'Invalid math operator');
 			}
 
 			if (math === '+') {
@@ -363,32 +321,32 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			try {
 				new Buffer(publicKey, 'hex');
 			} catch (e) {
-				library.logger.error(e.toString());
-				return cb('Invalid public key');
+				library.logger.error(e.stack);
+				return setImmediate(cb, 'Invalid public key');
 			}
 
 			if (math === '+' && (delegates != null && delegates.indexOf(publicKey) !== -1)) {
-				return cb('Failed to add vote, account has already voted for this delegate');
+				return setImmediate(cb, 'Failed to add vote, account has already voted for this delegate');
 			}
 
 			if (math === '-' && (delegates === null || delegates.indexOf(publicKey) === -1)) {
-				return cb('Failed to remove vote, account has not voted for this delegate');
+				return setImmediate(cb, 'Failed to remove vote, account has not voted for this delegate');
 			}
 
 			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
 				if (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				}
 
 				if (!account) {
-					return cb('Delegate not found');
+					return setImmediate(cb, 'Delegate not found');
 				}
 
-				return cb();
+				return setImmediate(cb);
 			});
 		}, function (err) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
 			var total_votes = (existing_votes + additions) - removals;
@@ -396,9 +354,9 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			if (total_votes > constants.activeDelegates) {
 				var exceeded = total_votes - constants.activeDelegates;
 
-				return cb('Maximum number of ' + constants.activeDelegates + ' votes exceeded (' + exceeded + ' too many).');
+				return setImmediate(cb, 'Maximum number of ' + constants.activeDelegates + ' votes exceeded (' + exceeded + ' too many)');
 			} else {
-				return cb();
+				return setImmediate(cb);
 			}
 		});
 	});
@@ -417,11 +375,11 @@ __private.loadMyDelegates = function (cb) {
 			publicKey: keypair.publicKey.toString('hex')
 		}, function (err, account) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
 			if (!account) {
-				return cb('Account ' + keypair.publicKey.toString('hex') + ' not found');
+				return setImmediate(cb, 'Account ' + keypair.publicKey.toString('hex') + ' not found');
 			}
 
 			if (account.isDelegate) {
@@ -430,7 +388,7 @@ __private.loadMyDelegates = function (cb) {
 			} else {
 				library.logger.warn('Delegate with this public key not found: ' + keypair.publicKey.toString('hex'));
 			}
-			return cb();
+			return setImmediate(cb);
 		});
 	}, cb);
 };
@@ -439,10 +397,10 @@ __private.loadMyDelegates = function (cb) {
 Delegates.prototype.generateDelegateList = function (height, cb) {
 	__private.getKeysSortByVote(function (err, truncDelegateList) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
-		var seedSource = modules.round.calc(height).toString();
+		var seedSource = modules.rounds.calc(height).toString();
 		var currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest();
 
 		for (var i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
@@ -455,7 +413,7 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
 			currentSeed = crypto.createHash('sha256').update(currentSeed).digest();
 		}
 
-		return cb(null, truncDelegateList);
+		return setImmediate(cb, null, truncDelegateList);
 	});
 };
 
@@ -468,7 +426,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		sort: { 'vote': -1, 'publicKey': 1 }
 	}, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks'], function (err, delegates) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		var limit = query.limit || constants.activeDelegates;
@@ -499,10 +457,10 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		var orderBy = OrderBy(query.orderBy, { quoteField: false });
 
 		if (orderBy.error) {
-			return cb(orderBy.error);
+			return setImmediate(cb, orderBy.error);
 		}
 
-		return cb(null, {
+		return setImmediate(cb, null, {
 			delegates: delegates,
 			sortField: orderBy.sortField,
 			sortMethod: orderBy.sortMethod,
@@ -543,7 +501,7 @@ Delegates.prototype.fork = function (block, cause) {
 Delegates.prototype.validateBlockSlot = function (block, cb) {
 	self.generateDelegateList(block.height, function (err, activeDelegates) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		var currentSlot = slots.getSlotNumber(block.timestamp);
@@ -552,10 +510,10 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 		// var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
 
 		if (delegate_id && block.generatorPublicKey === delegate_id) {
-			return cb();
+			return setImmediate(cb);
 		} else {
 			library.logger.error('Expected generator: ' + delegate_id + ' Received generator: ' + block.generatorPublicKey);
-			return cb('Failed to verify slot: ' + currentSlot);
+			return setImmediate(cb, 'Failed to verify slot: ' + currentSlot);
 		}
 	});
 };
@@ -590,7 +548,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 Delegates.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	return cb();
+	return setImmediate(cb);
 };
 
 Delegates.prototype.enableForging = function () {
@@ -635,122 +593,82 @@ __private.toggleForgingOnReceipt = function () {
 
 // Shared
 shared.getDelegate = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			publicKey: {
-				type: 'string'
-			},
-			username: {
-				type: 'string'
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getDelegate, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
-		modules.delegates.getDelegates(query, function (err, result) {
+		modules.delegates.getDelegates(req.body, function (err, data) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
-			var delegate = _.find(result.delegates, function (delegate) {
-				if (query.publicKey) {
-					return delegate.publicKey === query.publicKey;
-				} else if (query.username) {
-					return delegate.username === query.username;
+			var delegate = _.find(data.delegates, function (delegate) {
+				if (req.body.publicKey) {
+					return delegate.publicKey === req.body.publicKey;
+				} else if (req.body.username) {
+					return delegate.username === req.body.username;
 				}
 
 				return false;
 			});
 
 			if (delegate) {
-				return cb(null, {delegate: delegate});
+				return setImmediate(cb, null, {delegate: delegate});
 			} else {
-				return cb('Delegate not found');
+				return setImmediate(cb, 'Delegate not found');
 			}
 		});
 	});
 };
 
 shared.search = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			q: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
-			limit: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 100
-			}
-		},
-		required: ['q']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.search, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
 		var orderBy = OrderBy(
-			query.orderBy, {
+			req.body.orderBy, {
 				sortFields: sql.sortFields,
 				sortField: 'username'
 			}
 		);
 
 		if (orderBy.error) {
-			return cb(orderBy.error);
+			return setImmediate(cb, orderBy.error);
 		}
 
 		library.db.query(sql.search({
-			q: query.q,
-			limit: query.limit || 100,
+			q: req.body.q,
+			limit: req.body.limit || 100,
 			sortField: orderBy.sortField,
 			sortMethod: orderBy.sortMethod
 		})).then(function (rows) {
-			return cb(null, { delegates: rows });
+			return setImmediate(cb, null, { delegates: rows });
 		}).catch(function (err) {
-			library.logger.error(err.toString());
-			return cb('Database search failed');
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Database search failed');
 		});
 	});
 };
 
 shared.count = function (req, cb) {
 	library.db.one(sql.count).then(function (row) {
-		return cb(null, { count: row.count });
+		return setImmediate(cb, null, { count: row.count });
 	}).catch(function (err) {
-		library.logger.error(err.toString());
-		return cb('Failed to count delegates');
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Failed to count delegates');
 	});
 };
 
 shared.getVoters = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['publicKey']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getVoters, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
-		library.db.one(sql.getVoters, { publicKey: query.publicKey }).then(function (row) {
+		library.db.one(sql.getVoters, { publicKey: req.body.publicKey }).then(function (row) {
 			var addresses = (row.accountIds) ? row.accountIds : [];
 
 			modules.accounts.getAccounts({
@@ -758,199 +676,141 @@ shared.getVoters = function (req, cb) {
 				sort: 'balance'
 			}, ['address', 'balance', 'username', 'publicKey'], function (err, rows) {
 				if (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				}
 
-				return cb(null, { accounts: rows });
+				return setImmediate(cb, null, { accounts: rows });
 			});
 		}).catch(function (err) {
-			library.logger.error(err.toString());
-			return cb('Failed to get voters for delegate: ' + query.publicKey);
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Failed to get voters for delegate: ' + req.body.publicKey);
 		});
 	});
 };
 
 shared.getDelegates = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			orderBy: {
-				type: 'string'
-			},
-			limit: {
-				type: 'integer',
-				minimum: 1,
-				maximum: constants.activeDelegates
-			},
-			offset: {
-				type: 'integer',
-				minimum: 0
-			}
-		}
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getDelegates, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
-		modules.delegates.getDelegates(query, function (err, result) {
+		modules.delegates.getDelegates(req.body, function (err, data) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
 			function compareNumber (a, b) {
-				var sorta = parseFloat(a[result.sortField]);
-				var sortb = parseFloat(b[result.sortField]);
-				if (result.sortMethod === 'ASC') {
+				var sorta = parseFloat(a[data.sortField]);
+				var sortb = parseFloat(b[data.sortField]);
+				if (data.sortMethod === 'ASC') {
 					return sorta - sortb;
 				} else {
 				 	return sortb - sorta;
 				}
 			}
 
-			function compareString (a, b) {
-				var sorta = a[result.sortField];
-				var sortb = b[result.sortField];
-				if (result.sortMethod === 'ASC') {
+			function compadatatring (a, b) {
+				var sorta = a[data.sortField];
+				var sortb = b[data.sortField];
+				if (data.sortMethod === 'ASC') {
 				  return sorta.localeCompare(sortb);
 				} else {
 				  return sortb.localeCompare(sorta);
 				}
 			}
 
-			if (result.sortField) {
-				if (['approval', 'productivity', 'rate', 'vote'].indexOf(result.sortField) > -1) {
-					result.delegates = result.delegates.sort(compareNumber);
-				} else if (['username', 'address', 'publicKey'].indexOf(result.sortField) > -1) {
-					result.delegates = result.delegates.sort(compareString);
+			if (data.sortField) {
+				if (['approval', 'productivity', 'rate', 'vote'].indexOf(data.sortField) > -1) {
+					data.delegates = data.delegates.sort(compareNumber);
+				} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
+					data.delegates = data.delegates.sort(compadatatring);
 				} else {
-					return cb('Invalid sort field');
+					return setImmediate(cb, 'Invalid sort field');
 				}
 			}
 
-			var delegates = result.delegates.slice(result.offset, result.limit);
+			var delegates = data.delegates.slice(data.offset, data.limit);
 
-			return cb(null, {delegates: delegates, totalCount: result.count});
+			return setImmediate(cb, null, {delegates: delegates, totalCount: data.count});
 		});
 	});
 };
 
 shared.getFee = function (req, cb) {
-	var query = req.body;
-	var fee = null;
-
-	fee = constants.fees.delegate;
-
-	return cb(null, {fee: fee});
+	return setImmediate(cb, null, {fee: constants.fees.delegate});
 };
 
 shared.getForgedByAccount = function (req, cb) {
-	var query = req.body;
-
-	library.scheme.validate(query, {
-		type: 'object',
-		properties: {
-			generatorPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['generatorPublicKey']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.getForgedByAccount, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
-		modules.accounts.getAccount({publicKey: query.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
+		modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
 			if (err || !account) {
-				return cb(err || 'Account not found');
+				return setImmediate(cb, err || 'Account not found');
 			}
 			var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
-			return cb(null, {fees: account.fees, rewards: account.rewards, forged: forged});
+			return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
 		});
 	});
 };
 
 shared.addDelegate = function (req, cb) {
-	var body = req.body;
-
-	library.scheme.validate(body, {
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			username: {
-				type: 'string'
-			}
-		},
-		required: ['secret']
-	}, function (err) {
+	library.scheme.validate(req.body, schema.addDelegate, function (err) {
 		if (err) {
-			return cb(err[0].message);
+			return setImmediate(cb, err[0].message);
 		}
 
-		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
-		if (body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== body.publicKey) {
-				return cb('Invalid passphrase');
+		if (req.body.publicKey) {
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
 		library.balancesSequence.add(function (cb) {
-			if (body.multisigAccountPublicKey && body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: body.multisigAccountPublicKey}, function (err, account) {
+			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
 					if (!account || !account.publicKey) {
-						return cb('Multisignature account not found');
+						return setImmediate(cb, 'Multisignature account not found');
 					}
 
 					if (!account.multisignatures || !account.multisignatures) {
-						return cb('Account does not have multisignatures enabled');
+						return setImmediate(cb, 'Account does not have multisignatures enabled');
 					}
 
 					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return cb('Account does not belong to multisignature group');
+						return setImmediate(cb, 'Account does not belong to multisignature group');
 					}
 
 					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
 						if (err) {
-							return cb(err);
+							return setImmediate(cb, err);
 						}
 
 						if (!requester || !requester.publicKey) {
-							return cb('Requester not found');
+							return setImmediate(cb, 'Requester not found');
 						}
 
-						if (requester.secondSignature && !body.secondSecret) {
-							return cb('Missing requester second passphrase');
+						if (requester.secondSignature && !req.body.secondSecret) {
+							return setImmediate(cb, 'Missing requester second passphrase');
 						}
 
 						if (requester.publicKey === account.publicKey) {
-							return cb('Invalid requester public key');
+							return setImmediate(cb, 'Invalid requester public key');
 						}
 
 						var secondKeypair = null;
 
 						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
 
@@ -959,14 +819,14 @@ shared.addDelegate = function (req, cb) {
 						try {
 							transaction = library.logic.transaction.create({
 								type: transactionTypes.DELEGATE,
-								username: body.username,
+								username: req.body.username,
 								sender: account,
 								keypair: keypair,
 								secondKeypair: secondKeypair,
 								requester: keypair
 							});
 						} catch (e) {
-							return cb(e.toString());
+							return setImmediate(cb, e.toString());
 						}
 						modules.transactions.receiveTransactions([transaction], cb);
 					});
@@ -974,21 +834,21 @@ shared.addDelegate = function (req, cb) {
 			} else {
 				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 					if (err) {
-						return cb(err);
+						return setImmediate(cb, err);
 					}
 
 					if (!account || !account.publicKey) {
-						return cb('Account not found');
+						return setImmediate(cb, 'Account not found');
 					}
 
-					if (account.secondSignature && !body.secondSecret) {
-						return cb('Invalid second passphrase');
+					if (account.secondSignature && !req.body.secondSecret) {
+						return setImmediate(cb, 'Invalid second passphrase');
 					}
 
 					var secondKeypair = null;
 
 					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
+						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 						secondKeypair = library.ed.makeKeypair(secondHash);
 					}
 
@@ -997,23 +857,23 @@ shared.addDelegate = function (req, cb) {
 					try {
 						transaction = library.logic.transaction.create({
 							type: transactionTypes.DELEGATE,
-							username: body.username,
+							username: req.body.username,
 							sender: account,
 							keypair: keypair,
 							secondKeypair: secondKeypair
 						});
 					} catch (e) {
-						return cb(e.toString());
+						return setImmediate(cb, e.toString());
 					}
 					modules.transactions.receiveTransactions([transaction], cb);
 				});
 			}
 		}, function (err, transaction) {
 			if (err) {
-				return cb(err);
+				return setImmediate(cb, err);
 			}
 
-			return cb(null, {transaction: transaction[0]});
+			return setImmediate(cb, null, {transaction: transaction[0]});
 		});
 	});
 };

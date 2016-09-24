@@ -31,15 +31,15 @@ function calc (height) {
 // Public methods
 Transaction.prototype.create = function (data) {
 	if (!__private.types[data.type]) {
-		throw Error('Unknown transaction type ' + data.type);
+		throw 'Unknown transaction type ' + data.type;
 	}
 
 	if (!data.sender) {
-		throw Error('Invalid sender');
+		throw 'Invalid sender';
 	}
 
 	if (!data.keypair) {
-		throw Error('Invalid keypair');
+		throw 'Invalid keypair';
 	}
 
 	var trs = {
@@ -76,7 +76,7 @@ Transaction.prototype.attachAssetType = function (typeId, instance) {
 		__private.types[typeId] = instance;
 		return instance;
 	} else {
-		throw Error('Invalid instance interface');
+		throw 'Invalid instance interface';
 	}
 };
 
@@ -108,7 +108,7 @@ Transaction.prototype.getHash = function (trs) {
 
 Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignature) {
 	if (!__private.types[trs.type]) {
-		throw Error('Unknown transaction type ' + trs.type);
+		throw 'Unknown transaction type ' + trs.type;
 	}
 
 	var bb;
@@ -171,7 +171,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 		bb.flip();
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return bb.toBuffer();
@@ -179,7 +179,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 Transaction.prototype.ready = function (trs, sender) {
 	if (!__private.types[trs.type]) {
-		throw Error('Unknown transaction type ' + trs.type);
+		throw 'Unknown transaction type ' + trs.type;
 	}
 
 	if (!sender) {
@@ -209,7 +209,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	try {
 		txId = this.getId(trs);
 	} catch (e) {
-		this.scope.logger.error(e.toString());
+		this.scope.logger.error(e.stack);
 		return setImmediate(cb, 'Failed to get transaction id');
 	}
 
@@ -249,13 +249,13 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		// Check for already confirmed transaction
 		this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
 			if (row.count > 0) {
-				return cb('Ignoring already confirmed transaction');
+				return setImmediate(cb, 'Ignoring already confirmed transaction');
 			}
 
-			return cb(null, trs);
+			return setImmediate(cb, null, trs);
 		}).catch(function (err) {
-			this.scope.logger.error(err.toString());
-			return cb('Transaction#process error');
+			this.scope.logger.error(err.stack);
+			return setImmediate(cb, 'Transaction#process error');
 		});
 	}.bind(this));
 };
@@ -307,7 +307,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		valid = false;
 		valid = this.verifySignature(trs, (trs.requesterPublicKey || trs.senderPublicKey), trs.signature);
 	} catch (e) {
-		this.scope.logger.error(e.toString());
+		this.scope.logger.error(e.stack);
 		return setImmediate(cb, e.toString());
 	}
 
@@ -405,13 +405,13 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Call verify on transaction type
 	__private.types[trs.type].verify.call(this, trs, sender, function (err) {
-		return cb(err);
+		return setImmediate(cb, err);
 	});
 };
 
 Transaction.prototype.verifySignature = function (trs, publicKey, signature) {
 	if (!__private.types[trs.type]) {
-		throw Error('Unknown transaction type ' + trs.type);
+		throw 'Unknown transaction type ' + trs.type;
 	}
 
 	if (!signature) { return false; }
@@ -422,7 +422,7 @@ Transaction.prototype.verifySignature = function (trs, publicKey, signature) {
 		var bytes = this.getBytes(trs, true, true);
 		res = this.verifyBytes(bytes, publicKey, signature);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return res;
@@ -430,7 +430,7 @@ Transaction.prototype.verifySignature = function (trs, publicKey, signature) {
 
 Transaction.prototype.verifySecondSignature = function (trs, publicKey, signature) {
 	if (!__private.types[trs.type]) {
-		throw Error('Unknown transaction type ' + trs.type);
+		throw 'Unknown transaction type ' + trs.type;
 	}
 
 	if (!signature) { return false; }
@@ -441,7 +441,7 @@ Transaction.prototype.verifySecondSignature = function (trs, publicKey, signatur
 		var bytes = this.getBytes(trs, false, true);
 		res = this.verifyBytes(bytes, publicKey, signature);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return res;
@@ -463,7 +463,7 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
 
 		res = this.scope.ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return res;
@@ -496,7 +496,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 		round: calc(block.height)
 	}, function (err, sender) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		__private.types[trs.type].apply.call(this, trs, block, sender, function (err) {
@@ -506,7 +506,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 					blockId: block.id,
 					round: calc(block.height)
 				}, function (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				});
 			} else {
 				return setImmediate(cb);
@@ -528,7 +528,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 		round: calc(block.height)
 	}, function (err, sender) {
 		if (err) {
-			return cb(err);
+			return setImmediate(cb, err);
 		}
 
 		__private.types[trs.type].undo.call(this, trs, block, sender, function (err) {
@@ -538,7 +538,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 					blockId: block.id,
 					round: calc(block.height)
 				}, function (err) {
-					return cb(err);
+					return setImmediate(cb, err);
 				});
 			} else {
 				return setImmediate(cb);
@@ -645,7 +645,7 @@ Transaction.prototype.dbFields = [
 
 Transaction.prototype.dbSave = function (trs) {
 	if (!__private.types[trs.type]) {
-		throw Error('Unknown transaction type ' + trs.type);
+		throw 'Unknown transaction type ' + trs.type;
 	}
 
 	var senderPublicKey, signature, signSignature, requesterPublicKey;
@@ -656,7 +656,7 @@ Transaction.prototype.dbSave = function (trs) {
 		signSignature = trs.signSignature ? new Buffer(trs.signSignature, 'hex') : null;
 		requesterPublicKey = trs.requesterPublicKey ? new Buffer(trs.requesterPublicKey, 'hex') : null;
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	var promises = [
@@ -694,19 +694,77 @@ Transaction.prototype.afterSave = function (trs, cb) {
 	var tx_type = __private.types[trs.type];
 
 	if (!tx_type) {
-		return cb('Unknown transaction type ' + trs.type);
+		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	} else {
 		if (typeof tx_type.afterSave === 'function') {
 			return tx_type.afterSave.call(this, trs, cb);
 		} else {
-			return cb();
+			return setImmediate(cb);
 		}
 	}
 };
 
+Transaction.prototype.schema = {
+	id: 'Transaction',
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string'
+		},
+		height: {
+			type: 'integer'
+		},
+		blockId: {
+			type: 'string'
+		},
+		type: {
+			type: 'integer'
+		},
+		timestamp: {
+			type: 'integer'
+		},
+		senderPublicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		requesterPublicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		senderId: {
+			type: 'string'
+		},
+		recipientId: {
+			type: 'string'
+		},
+		amount: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		fee: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		signature: {
+			type: 'string',
+			format: 'signature'
+		},
+		signSignature: {
+			type: 'string',
+			format: 'signature'
+		},
+		asset: {
+			type: 'object'
+		}
+	},
+	required: ['type', 'timestamp', 'senderPublicKey', 'signature']
+};
+
 Transaction.prototype.objectNormalize = function (trs) {
 	if (!__private.types[trs.type]) {
-		throw Error('Unknown transaction type ' + trs.type);
+		throw 'Unknown transaction type ' + trs.type;
 	}
 
 	for (var i in trs) {
@@ -715,71 +773,16 @@ Transaction.prototype.objectNormalize = function (trs) {
 		}
 	}
 
-	var report = this.scope.scheme.validate(trs, {
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string'
-			},
-			height: {
-				type: 'integer'
-			},
-			blockId: {
-				type: 'string'
-			},
-			type: {
-				type: 'integer'
-			},
-			timestamp: {
-				type: 'integer'
-			},
-			senderPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			requesterPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			senderId: {
-				type: 'string'
-			},
-			recipientId: {
-				type: 'string'
-			},
-			amount: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
-			fee: {
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
-			signature: {
-				type: 'string',
-				format: 'signature'
-			},
-			signSignature: {
-				type: 'string',
-				format: 'signature'
-			},
-			asset: {
-				type: 'object'
-			}
-		},
-		required: ['type', 'timestamp', 'senderPublicKey', 'signature']
-	});
+	var report = this.scope.scheme.validate(trs, Transaction.prototype.schema);
 
 	if (!report) {
-		throw Error('Failed to normalize transaction: ' + this.scope.scheme.getLastError());
+		throw 'Failed to normalize transaction: ' + this.scope.scheme.getLastError();
 	}
 
 	try {
 		trs = __private.types[trs.type].objectNormalize.call(this, trs);
 	} catch (e) {
-		throw Error(e.toString());
+		throw e;
 	}
 
 	return trs;
@@ -809,7 +812,7 @@ Transaction.prototype.dbRead = function (raw) {
 		};
 
 		if (!__private.types[tx.type]) {
-			throw Error('Unknown transaction type ' + tx.type);
+			throw 'Unknown transaction type ' + tx.type;
 		}
 
 		var asset = __private.types[tx.type].dbRead.call(this, raw);

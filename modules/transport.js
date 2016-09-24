@@ -6,8 +6,9 @@ var bignum = require('../helpers/bignum.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
-var request = require('request');
+var popsicle = require('popsicle');
 var Router = require('../helpers/router.js');
+var schema = require('../schema/transport.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
 var zlib = require('zlib');
@@ -40,7 +41,7 @@ __private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		try {
-			req.peer = modules.peer.accept(
+			req.peer = modules.peers.accept(
 				{
 					ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
 					port: req.headers.port
@@ -57,29 +58,7 @@ __private.attachApi = function () {
 
 		req.headers.port = req.peer.port;
 
-		req.sanitize(req.headers, {
-			type: 'object',
-			properties: {
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				os: {
-					type: 'string',
-					maxLength: 64
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				},
-				version: {
-					type: 'string',
-					maxLength: 11
-				}
-			},
-			required: ['port', 'nethash', 'version']
-		}, function (err, report, headers) {
+		req.sanitize(req.headers, schema.headers, function (err, report, headers) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.status(500).send({status: false, error: report.issues}); }
 
@@ -96,7 +75,7 @@ __private.attachApi = function () {
 					modules.delegates.enableForging();
 				}
 
-				modules.peer.update(req.peer);
+				modules.peers.update(req.peer);
 			}
 
 			next();
@@ -106,7 +85,7 @@ __private.attachApi = function () {
 
 	router.get('/list', function (req, res) {
 		res.set(__private.headers);
-		modules.peer.list({limit: 100}, function (err, peers) {
+		modules.peers.list({limit: 100}, function (err, peers) {
 			return res.status(200).json({peers: !err ? peers : []});
 		});
 	});
@@ -114,16 +93,7 @@ __private.attachApi = function () {
 	router.get('/blocks/common', function (req, res, next) {
 		res.set(__private.headers);
 
-		req.sanitize(req.query, {
-			type: 'object',
-			properties: {
-				ids: {
-					type: 'string',
-					format: 'splitarray'
-				}
-			},
-			required: ['ids']
-		}, function (err, report, query) {
+		req.sanitize(req.query, schema.commonBlock.query, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -136,22 +106,12 @@ __private.attachApi = function () {
 			});
 
 			if (!escapedIds.length) {
-				report = library.scheme.validate(req.headers, {
-					type: 'object',
-					properties: {
-						port: {
-							type: 'integer',
-							minimum: 1,
-							maximum: 65535
-						}
-					},
-					required: ['port']
-				});
+				report = library.scheme.validate(req.headers, schema.commonBlock.result);
 
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
 
 				if (report) {
-					modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
+					modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 				}
 
 				return res.json({success: false, error: 'Invalid block id sequence'});
@@ -161,7 +121,7 @@ __private.attachApi = function () {
 				var commonBlock = rows.length ? rows[0] : null;
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {
-				library.logger.error(err.toString());
+				library.logger.error(err.stack);
 				return res.json({ success: false, error: 'Failed to get common block' });
 			});
 		});
@@ -170,10 +130,7 @@ __private.attachApi = function () {
 	router.get('/blocks', function (req, res, next) {
 		res.set(__private.headers);
 
-		req.sanitize(req.query, {
-			type: 'object',
-			properties: {lastBlockId: {type: 'string'}}
-		}, function (err, report, query) {
+		req.sanitize(req.query, schema.blocks.query, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
@@ -198,21 +155,7 @@ __private.attachApi = function () {
 	router.post('/blocks', function (req, res) {
 		res.set(__private.headers);
 
-		var report = library.scheme.validate(req.headers, {
-			type: 'object',
-			properties: {
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				}
-			},
-			required: ['port','nethash']
-		});
+		var report = library.scheme.validate(req.headers, schema.blocks.result);
 
 		if (req.headers.nethash !== library.config.nethash) {
 			return res.status(200).send({success: false, 'message': 'Request is made on the wrong network', 'expected': library.config.nethash, 'received': req.headers.nethash});
@@ -227,7 +170,7 @@ __private.attachApi = function () {
 			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
-				modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
+				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
 			return res.sendStatus(200);
@@ -241,25 +184,7 @@ __private.attachApi = function () {
 	router.post('/signatures', function (req, res) {
 		res.set(__private.headers);
 
-		library.scheme.validate(req.body, {
-			type: 'object',
-			properties: {
-				signature: {
-					type: 'object',
-					properties: {
-						transaction: {
-							type: 'string'
-						},
-						signature: {
-							type: 'string',
-							format: 'signature'
-						}
-					},
-					required: ['transaction', 'signature']
-				}
-			},
-			required: ['signature']
-		}, function (err) {
+		library.scheme.validate(req.body, schema.signatures, function (err) {
 			if (err) {
 				return res.status(200).json({success: false, error: 'Signature validation failed'});
 			}
@@ -303,21 +228,7 @@ __private.attachApi = function () {
 	router.post('/transactions', function (req, res) {
 		res.set(__private.headers);
 
-		var report = library.scheme.validate(req.headers, {
-			type: 'object',
-			properties: {
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				}
-			},
-			required: ['port','nethash']
-		});
+		var report = library.scheme.validate(req.headers, schema.transactions);
 
 		if (req.headers.nethash !== library.config.nethash) {
 			return res.status(200).send({success: false, 'message': 'Request is made on the wrong network', 'expected': library.config.nethash, 'received': req.headers.nethash});
@@ -332,7 +243,7 @@ __private.attachApi = function () {
 			library.logger.warn(e.toString());
 
 			if (req.peer && report) {
-				modules.peer.state(req.peer.ip, req.peer.port, 0, 3600);
+				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
 			return res.status(200).json({success: false, message: 'Invalid transaction body'});
@@ -376,7 +287,7 @@ __private.attachApi = function () {
 				return res.status(200).json({success: false, message: 'Invalid hash sum'});
 			}
 		} catch (e) {
-			library.logger.error(e.toString());
+			library.logger.error(e.stack);
 			return res.status(200).json({success: false, message: e.toString()});
 		}
 
@@ -418,7 +329,7 @@ __private.attachApi = function () {
 				return res.status(200).json({success: false, message: 'Invalid hash sum'});
 			}
 		} catch (e) {
-			library.logger.error(e.toString());
+			library.logger.error(e.stack);
 			return res.status(200).json({success: false, message: e.toString()});
 		}
 
@@ -443,8 +354,8 @@ __private.attachApi = function () {
 
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error(req.url, err.toString());
-		res.status(500).send({success: false, error: err.toString()});
+		library.logger.error(req.url, err);
+		res.status(500).send({success: false, error: err});
 	});
 };
 
@@ -462,15 +373,13 @@ __private.hashsum = function (obj) {
 // Public methods
 Transport.prototype.broadcast = function (config, options, cb) {
 	config.limit = config.limit || 1;
-	modules.peer.list(config, function (err, peers) {
+	modules.peers.list(config, function (err, peers) {
 		if (!err) {
 			async.eachLimit(peers, 3, function (peer, cb) {
-				self.getFromPeer(peer, options);
-
-				return setImmediate(cb);
-			}, function () {
+				return self.getFromPeer(peer, options, cb);
+			}, function (err) {
 				if (cb) {
-					return cb(null, {body: null, peer: peers});
+					return setImmediate(cb, null, {body: null, peer: peers});
 				}
 			});
 		} else if (cb) {
@@ -487,136 +396,95 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	}
 	config.limit = 1;
 	async.retry(20, function (cb) {
-		modules.peer.list(config, function (err, peers) {
+		modules.peers.list(config, function (err, peers) {
 			if (!err && peers.length) {
 				var peer = peers[0];
 				self.getFromPeer(peer, options, cb);
 			} else {
-				return cb(err || 'No peers in db');
+				return setImmediate(cb, err || 'No peers in db');
 			}
 		});
 	}, function (err, results) {
-		return cb(err, results);
+		return setImmediate(cb, err, results);
 	});
 };
 
-/**
- * Send request to selected peer
- * @param {object} peer Peer object
- * @param {object} options Request lib params with special value `api` which should be string name of peer's module
- * web method
- * @param {function} cb Result Callback
- * @returns {*|exports} Request lib request instance
- * @private
- * @example
- *
- * // Send gzipped request to peer's web method /peer/blocks.
- * .getFromPeer(peer, { api: '/blocks', gzip: true }, function (err, data) {
- * 	// Process request
- * });
- */
 Transport.prototype.getFromPeer = function (peer, options, cb) {
 	var url;
+
 	if (options.api) {
 		url = '/peer' + options.api;
 	} else {
 		url = options.url;
 	}
 
-	peer = modules.peer.accept(peer);
+	peer = modules.peers.accept(peer);
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
 		method: options.method,
-		json: true,
 		headers: _.extend({}, __private.headers, options.headers),
 		timeout: library.config.peers.options.timeout
 	};
-	if (Object.prototype.toString.call(options.data) === '[object Object]' || Array.isArray(options.data)) {
-		req.json = options.data;
-	} else {
+
+	if (options.data) {
 		req.body = options.data;
 	}
 
-	return request(req, function (err, response, body) {
-		if (err || response.statusCode !== 200) {
-			library.logger.debug('Request', {
-				url: req.url,
-				statusCode: response ? response.statusCode : 'unknown',
-				err: err
-			});
+	var request = popsicle.request(req);
 
-			if (peer) {
-				if (err && (err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT' || err.code === 'ECONNREFUSED')) {
-					modules.peer.remove(peer.ip, peer.port, function (err) {
-						if (!err) {
-							library.logger.warn('Removing peer ' + req.method + ' ' + req.url);
+	request.use(popsicle.plugins.parse(['json']));
+
+	request.then(function (res) {
+		if (res.status !== 200) {
+			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
+		} else {
+			var headers = res.headers;
+			headers.port = parseInt(headers.port);
+
+			var report = library.scheme.validate(headers, schema.getFromPeer);
+			if (!report) {
+				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
+			}
+
+			if (res.headers.nethash !== library.config.nethash) {
+				return setImmediate(cb, ['Peer is not on the same network', res.headers.nethash, req.method, req.url].join(' '));
+			}
+
+			if (!peer.loopback && (res.headers.version === library.config.version)) {
+				modules.peers.update({
+					ip: peer.ip,
+					port: res.headers.port,
+					state: 2,
+					os: res.headers.os,
+					version: res.headers.version
+				});
+			}
+
+			return setImmediate(cb, null, {body: res.body, peer: peer});
+		}
+	});
+
+	request.catch(function (err) {
+		if (peer) {
+			if (err.code === 'EUNAVAILABLE') {
+				modules.peers.remove(peer.ip, peer.port, function (err2) {
+					if (!err2) {
+						library.logger.warn([err.code, 'Removing peer', req.method, req.url].join(' '));
+					}
+				});
+			} else {
+				if (!options.not_ban) {
+					modules.peers.state(peer.ip, peer.port, 0, 600, function (err2) {
+						if (!err2) {
+							library.logger.warn([err.code, 'Ban 10 min', req.method, req.url].join(' '));
 						}
 					});
-				} else {
-					if (!options.not_ban) {
-						modules.peer.state(peer.ip, peer.port, 0, 600, function (err) {
-							if (!err) {
-								library.logger.warn('Ban 10 min ' + req.method + ' ' + req.url);
-							}
-						});
-					}
 				}
 			}
-			if (cb) {
-				return cb(err || ('Request status code: ' + response.statusCode));
-			} else {
-				return;
-			}
 		}
 
-		if (response.headers.nethash !== library.config.nethash) {
-			return cb && cb('Peer is not on the same network', null);
-		}
-
-		response.headers.port = parseInt(response.headers.port);
-
-		var report = library.scheme.validate(response.headers, {
-			type: 'object',
-			properties: {
-				os: {
-					type: 'string',
-					maxLength: 64
-				},
-				port: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535
-				},
-				nethash: {
-					type: 'string',
-					maxLength: 64
-				},
-				version: {
-					type: 'string',
-					maxLength: 11
-				}
-			},
-			required: ['port', 'nethash', 'version']
-		});
-
-		if (!report) {
-			return cb && cb(null, {body: body, peer: peer});
-		}
-
-		if (!peer.loopback && (response.headers.version === library.config.version)) {
-			modules.peer.update({
-				ip: peer.ip,
-				port: response.headers.port,
-				state: 2,
-				os: response.headers.os,
-				version: response.headers.version
-			});
-		}
-
-		if (cb) {
-			return cb(null, {body: body, peer: peer});
-		}
+		return setImmediate(cb, [err.code, 'Request failed', req.method, req.url].join(' '));
 	});
 };
 
@@ -669,7 +537,7 @@ Transport.prototype.onMessage = function (msg, broadcast) {
 
 Transport.prototype.cleanup = function (cb) {
 	__private.loaded = false;
-	return cb();
+	return setImmediate(cb);
 };
 
 // Shared
@@ -679,7 +547,7 @@ shared.message = function (msg, cb) {
 
 	self.broadcast({limit: 100, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 
-	return cb(null, {});
+	return setImmediate(cb, null, {});
 };
 
 shared.request = function (msg, cb) {
