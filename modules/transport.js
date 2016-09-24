@@ -120,7 +120,7 @@ __private.attachApi = function () {
 				return res.json({ success: true, common: commonBlock });
 			}).catch(function (err) {
 				library.logger.error(err.stack);
-				return res.json({ success: false, error: 'Failed to get common block' });
+				return res.json({success: false, error: 'Failed to get common block'});
 			});
 		});
 	});
