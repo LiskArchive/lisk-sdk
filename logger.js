@@ -70,10 +70,14 @@ module.exports = function (config) {
 			log.symbol = config.level_abbr[log.level] ? config.level_abbr[log.level] : '???';
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
-				if (log.data) {
-					log_file.write(util.format('[%s] %s | %s - %s\n', log.symbol, log.timestamp, log.message, log.data));
-				} else {
-					log_file.write(util.format('[%s] %s | %s\n', log.symbol, log.timestamp, log.message));
+				try {
+					if (log.data) {
+						log_file.write(util.format('[%s] %s | %s - %s\n', log.symbol, log.timestamp, log.message, log.data));
+					} else {
+						log_file.write(util.format('[%s] %s | %s\n', log.symbol, log.timestamp, log.message));
+					}
+				} catch (e) {
+					console.log(e.stack);
 				}
 			}
 
