@@ -75,9 +75,7 @@ __private.attachApi = function () {
 					modules.delegates.enableForging();
 				}
 
-				if (!req.peer.loopback) {
-					modules.peers.update(req.peer);
-				}
+				modules.peers.update(req.peer);
 			}
 
 			return next();
@@ -433,7 +431,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
 			}
 
-			if (!peer.loopback && (headers.version === library.config.version)) {
+			if (headers.version === library.config.version) {
 				modules.peers.update({
 					ip: peer.ip,
 					port: headers.port,

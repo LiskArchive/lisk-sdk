@@ -20,8 +20,6 @@ var modules, library, self, __private = {}, shared = {};
 // reset when we restart
 var removed = [];
 
-__private.loopback = ['0.0.0.0', '127.0.0.1'];
-
 // Constructor
 function Peers (cb, scope) {
 	library = scope;
@@ -211,7 +209,6 @@ Peers.prototype.inspect = function (peer) {
 	} else {
 		peer.string = 'unknown';
 	}
-	peer.loopback = (__private.loopback.indexOf(peer.ip) >= 0);
 	return peer;
 };
 
