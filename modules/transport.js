@@ -52,7 +52,7 @@ __private.attachApi = function () {
 			return res.status(406).send({success: false, error: 'Invalid request headers'});
 		}
 
-		req.headers.port = req.peer.port;
+		res.headers.port = parseInt(res.headers.port);
 
 		req.sanitize(req.headers, schema.headers, function (err, report, headers) {
 			if (err) { return next(err); }
