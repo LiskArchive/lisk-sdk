@@ -58,8 +58,8 @@ __private.attachApi = function () {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.status(500).send({status: false, error: report.issues}); }
 
-			if (req.headers.nethash !== library.config.nethash) {
-				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: library.config.nethash, received: req.headers.nethash});
+			if (headers.nethash !== library.config.nethash) {
+				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: library.config.nethash, received: headers.nethash});
 			}
 
 			req.peer.state = 2;
@@ -70,7 +70,7 @@ __private.attachApi = function () {
 				req.peer.dappid = req.body.dappid;
 			}
 
-			if ((req.peer.version === library.config.version) && (req.headers.nethash === library.config.nethash)) {
+			if ((req.peer.version === library.config.version) && (headers.nethash === library.config.nethash)) {
 				if (!modules.blocks.lastReceipt()) {
 					modules.delegates.enableForging();
 				}
