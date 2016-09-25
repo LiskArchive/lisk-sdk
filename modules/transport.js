@@ -381,7 +381,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	async.retry(20, function (cb) {
 		modules.peers.list(config, function (err, peers) {
 			if (!err && peers.length) {
-				self.getFromPeer(peers[0], options, cb);
+				return self.getFromPeer(peers[0], options, cb);
 			} else {
 				return setImmediate(cb, err || 'No peers in db');
 			}
