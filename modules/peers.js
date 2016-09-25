@@ -258,12 +258,14 @@ Peers.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	} else {
 		clock = null;
 	}
-	library.db.query(sql.state, {
+	var params = {
 		state: state,
 		clock: clock,
 		ip: pip,
 		port: port
-	}).then(function (res) {
+	};
+	library.db.query(sql.state, params).then(function (res) {
+		library.logger.debug('Updated peer state', params);
 		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -279,10 +281,12 @@ Peers.prototype.remove = function (pip, port, cb) {
 		return setImmediate(cb, 'Peer in white list');
 	}
 	removed.push(pip);
-	library.db.query(sql.remove, {
+	var params = {
 		ip: pip,
 		port: port
-	}).then(function (res) {
+	};
+	library.db.query(sql.remove, params).then(function (res) {
+		library.logger.debug('Removed peer', params);
 		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -298,12 +302,13 @@ Peers.prototype.addDapp = function (config, cb) {
 		if (!rows.length) {
 			return setImmediate(cb);
 		}
-		var peerId = rows[0].id;
 
-		library.db.query(sql.addDapp, {
+		var params = {
 			dappId: config.dappid,
-			peerId: peerId
-		}).then(function (res) {
+			peerId: rows[0].id
+		};
+		library.db.query(sql.addDapp, params).then(function (res) {
+			library.logger.debug('Added dapp peer', params);
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.stack);
@@ -323,10 +328,10 @@ Peers.prototype.update = function (peer, cb) {
 		os: peer.os || null,
 		version: peer.version || null
 	};
-
 	async.series([
 		function (cb) {
 			library.db.query(sql.insert, extend({}, params, { state: 1 })).then(function (res) {
+				library.logger.debug('Inserted peer', params);
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.stack);
@@ -338,6 +343,7 @@ Peers.prototype.update = function (peer, cb) {
 				params.state = peer.state;
 			}
 			library.db.query(sql.update(params), params).then(function (res) {
+				library.logger.debug('Updated peer', params);
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.stack);
@@ -370,11 +376,13 @@ Peers.prototype.onBind = function (scope) {
 
 Peers.prototype.onBlockchainReady = function () {
 	async.eachSeries(library.config.peers.list, function (peer, cb) {
-		library.db.query(sql.insertSeed, {
+		var params = {
 			ip: peer.ip,
 			port: peer.port,
 			state: 2
-		}).then(function (res) {
+		};
+		library.db.query(sql.insertSeed, params).then(function (res) {
+			library.logger.debug('Inserted seed peer', params);
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.stack);
