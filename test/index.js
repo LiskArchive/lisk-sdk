@@ -12,4 +12,5 @@ require('./api/peer.votes.js');
 require('./api/signatures.js');
 require('./api/transactions.js');
 
+require('./unit/helpers/request-limiter.js');
 require('./unit/logic/blockReward.js');
