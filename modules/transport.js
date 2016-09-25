@@ -457,7 +457,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 					}
 				});
 			} else {
-				if (!options.not_ban) {
+				if (options.ban) {
 					modules.peers.state(peer.ip, peer.port, 0, 600, function (err2) {
 						if (!err2) {
 							library.logger.warn([err.code, 'Ban 10 min', req.method, req.url].join(' '));
@@ -544,7 +544,7 @@ shared.request = function (msg, cb) {
 			method: 'POST'
 		}, cb);
 	} else {
-		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST'}, cb);
+		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST', ban: true}, cb);
 	}
 };
 

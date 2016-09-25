@@ -62,7 +62,8 @@ __private.attachApi = function () {
 __private.updatePeerList = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/list',
-		method: 'GET'
+		method: 'GET',
+		ban: true
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
