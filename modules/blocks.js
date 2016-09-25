@@ -488,14 +488,16 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		},
 		function (res, waterCb) {
+			var ids = res.ids;
+
 			modules.transport.getFromPeer(peer, {
-				api: '/blocks/common?ids=' + res.ids,
+				api: '/blocks/common?ids=' + ids,
 				method: 'GET'
 			}, function (err, res) {
 				if (err || res.body.error) {
 					return setImmediate(waterCb, err || res.body.error.toString());
 				} else if (!res.body.common) {
-					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', res.ids].join(' '));
+					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
 				} else {
 					return setImmediate(waterCb, null, res);
 				}
