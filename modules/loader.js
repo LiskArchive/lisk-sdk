@@ -462,11 +462,16 @@ Loader.prototype.getNetwork = function (cb) {
 							return setImmediate(cb);
 						}
 					});
+				} else {
+					library.logger.warn(['Checking blockchain on:', peer.string, 'failed to validate peer'].join(' '));
+					return setImmediate(cb);
 				}
 			}, function (err, heights) {
 				__private.network = __private.findGoodPeers(heights);
 
-				if (!__private.network.peers.length) {
+				if (err) {
+					return setImmediate(cb, err);
+				} else if (!__private.network.peers.length) {
 					return setImmediate(cb, 'Failed to find enough good peers to sync with');
 				} else {
 					return setImmediate(cb, null, __private.network);
