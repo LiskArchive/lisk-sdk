@@ -2,7 +2,7 @@
 
 var pgp = require('pg-promise');
 var slots = require('../helpers/slots.js');
-var sql = require('../sql/round.js');
+var sql = require('../sql/rounds.js');
 
 // Constructor
 function Round (scope, t) {

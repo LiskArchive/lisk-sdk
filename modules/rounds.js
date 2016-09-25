@@ -5,7 +5,7 @@ var constants = require('../helpers/constants.js');
 var Round = require('../logic/round.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
-var sql = require('../sql/round.js');
+var sql = require('../sql/rounds.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

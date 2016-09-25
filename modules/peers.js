@@ -9,8 +9,8 @@ var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
-var schema = require('../schema/peer.js');
-var sql = require('../sql/peer.js');
+var schema = require('../schema/peers.js');
+var sql = require('../sql/peers.js');
 var util = require('util');
 
 // Private fields
