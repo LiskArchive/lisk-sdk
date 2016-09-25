@@ -430,17 +430,17 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
 			}
 
-			if (res.headers.nethash !== library.config.nethash) {
-				return setImmediate(cb, ['Peer is not on the same network', res.headers.nethash, req.method, req.url].join(' '));
+			if (headers.nethash !== library.config.nethash) {
+				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
 			}
 
-			if (!peer.loopback && (res.headers.version === library.config.version)) {
+			if (!peer.loopback && (headers.version === library.config.version)) {
 				modules.peers.update({
 					ip: peer.ip,
-					port: res.headers.port,
+					port: headers.port,
 					state: 2,
-					os: res.headers.os,
-					version: res.headers.version
+					os: headers.os,
+					version: headers.version
 				});
 			}
 
