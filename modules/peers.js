@@ -75,7 +75,7 @@ __private.updatePeerList = function (cb) {
 			}
 
 			// Removing nodes not behaving well
-			library.logger.debug('Removed peers list size: ' + removed.length);
+			library.logger.debug('Removed peers: ' + removed.length);
 			var peers = res.body.peers.filter(function (peer) {
 					return removed.indexOf(peer.ip);
 			});
@@ -99,7 +99,7 @@ __private.updatePeerList = function (cb) {
 				removed.pop();
 			}
 
-			library.logger.debug('Picked only: ' + peers.length);
+			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
 
 			async.eachLimit(peers, 2, function (peer, cb) {
 				library.scheme.validate(peer, schema.updatePeerList.peer, function (err) {
