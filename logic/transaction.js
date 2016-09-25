@@ -249,7 +249,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		// Check for already confirmed transaction
 		this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
 			if (row.count > 0) {
-				return setImmediate(cb, 'Ignoring already confirmed transaction');
+				return setImmediate(cb, 'Ignoring already confirmed transaction: ' + trs.id);
 			}
 
 			return setImmediate(cb, null, trs);
