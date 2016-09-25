@@ -451,22 +451,22 @@ Loader.prototype.getNetwork = function (cb) {
 					}, function (err, res) {
 						if (err) {
 							library.logger.error(err);
-							library.logger.warn(['Checking blockchain on:', peer.string, 'failed to get height'].join(' '));
+							library.logger.warn('Failed to get height from peer', peer.string);
 							return setImmediate(cb);
 						}
 
 						var heightIsValid = library.scheme.validate(res.body, schema.getNetwork.height);
 
 						if (heightIsValid) {
-							library.logger.info(['Checking blockchain on:', peer.string, 'received height:', res.body.height].join(' '));
+							library.logger.info(['Received height:', res.body.height, 'from peer'].join(' '), peer.string);
 							return setImmediate(cb, null, {peer: peer, height: res.body.height});
 						} else {
-							library.logger.warn(['Checking blockchain on:', peer.string, 'received invalid height'].join(' '));
+							library.logger.warn('Received invalid height from peer', peer.string);
 							return setImmediate(cb);
 						}
 					});
 				} else {
-					library.logger.warn(['Checking blockchain on:', peer.string, 'failed to validate peer'].join(' '));
+					library.logger.warn('Failed to validate peer', peer);
 					return setImmediate(cb);
 				}
 			}, function (err, heights) {
