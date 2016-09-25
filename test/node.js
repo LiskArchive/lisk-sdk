@@ -202,7 +202,7 @@ node.addPeers = function (numOfPeers, cb) {
 		request.use(node.popsicle.plugins.parse(['json']));
 
 		request.then(function (res) {
-			if (res.code !== 200) {
+			if (res.status !== 200) {
 				return next(['Received bad response code', res.status, res.url].join(' '));
 			} else {
 				i++;
