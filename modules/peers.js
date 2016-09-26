@@ -42,7 +42,7 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getPeers',
 		'get /version': 'version',
-		'get /get': 'getPeers'
+		'get /get': 'getPeer'
 	});
 
 	router.use(function (req, res) {
@@ -449,7 +449,7 @@ shared.getPeers = function (req, cb) {
 };
 
 shared.getPeer = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPeers, function (err) {
+	library.scheme.validate(req.body, schema.getPeer, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
