@@ -57,7 +57,7 @@ __private.attachApi = function () {
 	});
 };
 
-__private.updatePeerList = function (cb) {
+__private.updatePeersList = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/list',
 		method: 'GET',
@@ -67,7 +67,7 @@ __private.updatePeerList = function (cb) {
 			return setImmediate(cb);
 		}
 
-		library.scheme.validate(res.body, schema.updatePeerList.peers, function (err) {
+		library.scheme.validate(res.body, schema.updatePeersList.peers, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
@@ -100,7 +100,7 @@ __private.updatePeerList = function (cb) {
 			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
 
 			async.eachLimit(peers, 2, function (peer, cb) {
-				library.scheme.validate(peer, schema.updatePeerList.peer, function (err) {
+				library.scheme.validate(peer, schema.updatePeersList.peer, function (err) {
 					if (err) {
 						err.forEach(function (e) {
 							library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
@@ -392,9 +392,9 @@ Peers.prototype.onBlockchainReady = function () {
 
 		__private.count(function (err, count) {
 			if (count) {
-				__private.updatePeerList(function (err) {
+				__private.updatePeersList(function (err) {
 					if (err) {
-						library.logger.error('Peers#updatePeerList error', err);
+						library.logger.error('Peers#updatePeersList error', err);
 					}
 					library.bus.message('peerReady');
 				});
