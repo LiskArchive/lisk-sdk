@@ -400,7 +400,9 @@ Account.prototype.objectNormalize = function (account) {
 	});
 
 	if (!report) {
-		throw 'Failed to normalize account: ' + this.scope.scheme.getLastError();
+		throw 'Failed to validate account schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
 	}
 
 	return account;

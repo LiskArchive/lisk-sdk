@@ -57,8 +57,8 @@ __private.attachApi = function () {
 	library.network.app.use('/api/loader', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error(req.url, err);
-		res.status(500).send({success: false, error: err});
+		library.logger.error('API error ' + req.url, err);
+		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
 
@@ -82,7 +82,7 @@ __private.loadSignatures = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/signatures',
 		method: 'GET',
-		not_ban: true
+		ban: false
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
@@ -112,7 +112,8 @@ __private.loadSignatures = function (cb) {
 __private.loadUnconfirmedTransactions = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/transactions',
-		method: 'GET'
+		method: 'GET',
+		ban: true
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
@@ -422,7 +423,8 @@ Loader.prototype.getNetwork = function (cb) {
 	// Fetch a list of 100 random peers
 	modules.transport.getFromRandomPeer({
 		api: '/list',
-		method: 'GET'
+		method: 'GET',
+		ban: true
 	}, function (err, res) {
 		if (err) {
 			library.logger.info('Failed to connect properly with network', err);
@@ -436,7 +438,9 @@ Loader.prototype.getNetwork = function (cb) {
 
 			var peers = res.body.peers;
 
-			// For each peer, we will get the height
+			library.logger.debug(['Received', res.body.peers.length, 'peers from'].join(' '), res.peer.string);
+
+			// Validate each peer and then attempt to get its height
 			async.map(peers, function (peer, cb) {
 				var peerIsValid = library.scheme.validate(peer, schema.getNetwork.peer);
 
@@ -446,25 +450,31 @@ Loader.prototype.getNetwork = function (cb) {
 						method: 'GET'
 					}, function (err, res) {
 						if (err) {
-							library.logger.warn(['Checking blockchain on:', peer.string, 'failed to get height'].join(' '));
+							library.logger.error(err);
+							library.logger.warn('Failed to get height from peer', peer.string);
 							return setImmediate(cb);
 						}
 
 						var heightIsValid = library.scheme.validate(res.body, schema.getNetwork.height);
 
 						if (heightIsValid) {
-							library.logger.info(['Checking blockchain on:', peer.string, 'received height:', res.body.height].join(' '));
+							library.logger.info(['Received height:', res.body.height, 'from peer'].join(' '), peer.string);
 							return setImmediate(cb, null, {peer: peer, height: res.body.height});
 						} else {
-							library.logger.warn(['Checking blockchain on:', peer.string, 'received invalid height'].join(' '));
+							library.logger.warn('Received invalid height from peer', peer.string);
 							return setImmediate(cb);
 						}
 					});
+				} else {
+					library.logger.warn('Failed to validate peer', peer);
+					return setImmediate(cb);
 				}
 			}, function (err, heights) {
 				__private.network = __private.findGoodPeers(heights);
 
-				if (!__private.network.peers.length) {
+				if (err) {
+					return setImmediate(cb, err);
+				} else if (!__private.network.peers.length) {
 					return setImmediate(cb, 'Failed to find enough good peers to sync with');
 				} else {
 					return setImmediate(cb, null, __private.network);

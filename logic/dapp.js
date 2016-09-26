@@ -279,7 +279,9 @@ DApp.prototype.objectNormalize = function (trs) {
 	var report = library.scheme.validate(trs.asset.dapp, DApp.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to normalize dapp: ' + library.scheme.getLastError();
+		throw 'Failed to validate dapp schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
 	}
 
 	return trs;

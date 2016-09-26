@@ -164,12 +164,12 @@ __private.attachApi = function () {
 	});
 
 	router.get('/forging/status', function (req, res) {
-		library.scheme.validate(req.body, schema.forgingStatus, function (err) {
+		library.scheme.validate(req.query, schema.forgingStatus, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
 
-			return res.json({success: true, enabled: !!__private.keypairs[req.body.publicKey]});
+			return res.json({success: true, enabled: !!__private.keypairs[req.query.publicKey]});
 		});
 	});
 
@@ -182,8 +182,8 @@ __private.attachApi = function () {
 	library.network.app.use('/api/delegates', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error(req.url, err);
-		res.status(500).send({success: false, error: err});
+		library.logger.error('API error ' + req.url, err);
+		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
 

@@ -212,7 +212,9 @@ Delegate.prototype.objectNormalize = function (trs) {
 	var report = library.scheme.validate(trs.asset.delegate, Delegate.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to normalize delegate: ' + library.scheme.getLastError();
+		throw 'Failed to validate delegate schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
 	}
 
 	return trs;

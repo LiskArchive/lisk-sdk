@@ -249,7 +249,7 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		// Check for already confirmed transaction
 		this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
 			if (row.count > 0) {
-				return setImmediate(cb, 'Ignoring already confirmed transaction');
+				return setImmediate(cb, 'Ignoring already confirmed transaction: ' + trs.id);
 			}
 
 			return setImmediate(cb, null, trs);
@@ -776,7 +776,9 @@ Transaction.prototype.objectNormalize = function (trs) {
 	var report = this.scope.scheme.validate(trs, Transaction.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to normalize transaction: ' + this.scope.scheme.getLastError();
+		throw 'Failed to validate transaction schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
 	}
 
 	try {

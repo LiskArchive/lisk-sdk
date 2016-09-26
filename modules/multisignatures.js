@@ -55,8 +55,8 @@ __private.attachApi = function () {
 	library.network.app.use('/api/multisignatures', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error(req.url, err);
-		res.status(500).send({success: false, error: err});
+		library.logger.error('API error ' + req.url, err);
+		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
 
@@ -230,7 +230,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 	}
 
 	if (!transaction) {
-		return setImmediate(cb, 'Transaction not found');
+		return setImmediate(cb, 'Missing transaction');
 	}
 
 	if (transaction.type === transactionTypes.MULTI) {

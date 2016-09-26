@@ -1,6 +1,6 @@
 'use strict';
 
-var PeerSql = {
+var PeersSql = {
   sortFields: ['ip', 'port', 'state', 'os', 'version'],
 
   count: 'SELECT COUNT(*)::int FROM peers',
@@ -45,4 +45,4 @@ var PeerSql = {
   }
 };
 
-module.exports = PeerSql;
+module.exports = PeersSql;

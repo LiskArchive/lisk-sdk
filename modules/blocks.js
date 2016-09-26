@@ -118,8 +118,8 @@ __private.attachApi = function () {
 	library.network.app.use('/api/blocks', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error(req.url, err);
-		res.status(500).send({success: false, error: err});
+		library.logger.error('API error ' + req.url, err);
+		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
 
@@ -474,8 +474,8 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 
 	if (__private.lastReceipt) {
 		var timeNow = new Date();
-		__private.lastReceipt.secondAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
-		__private.lastReceipt.stale = (__private.lastReceipt.secondAgo > 120);
+		__private.lastReceipt.secondsAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
+		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > 120);
 	}
 
 	return __private.lastReceipt;
@@ -489,14 +489,16 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		},
 		function (res, waterCb) {
+			var ids = res.ids;
+
 			modules.transport.getFromPeer(peer, {
-				api: '/blocks/common?ids=' + res.ids,
+				api: '/blocks/common?ids=' + ids,
 				method: 'GET'
 			}, function (err, res) {
 				if (err || res.body.error) {
 					return setImmediate(waterCb, err || res.body.error.toString());
 				} else if (!res.body.common) {
-					return setImmediate(waterCb, 'Failed to get common block ids');
+					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
 				} else {
 					return setImmediate(waterCb, null, res);
 				}
@@ -509,7 +511,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 				height: res.body.common.height
 			}).then(function (rows) {
 				if (!rows.length || !rows[0].count) {
-					return setImmediate(waterCb, 'Chain comparison failed with peer: ' + peer.string);
+					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using block:', JSON.stringify(res.body.common)].join(' '));
 				} else {
 					return setImmediate(waterCb, null, res.body.common);
 				}
@@ -542,18 +544,14 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 
 	options = options || {};
 
-	if (filter.lastId && filter.id) {
-		return setImmediate(cb, 'Invalid filter');
-	}
-
 	var params = { limit: filter.limit || 1 };
 
-	if (filter.lastId) {
-		params.lastId = filter.lastId;
-	}
-
-	if (filter.id && !filter.lastId) {
+	if (filter.id && filter.lastId) {
+		return setImmediate(cb, 'Invalid filter: Received both id and lastId');
+	} else if (filter.id) {
 		params.id = filter.id;
+	} else if (filter.lastId) {
+		params.lastId = filter.lastId;
 	}
 
 	var fields = __private.blocksDataFields;

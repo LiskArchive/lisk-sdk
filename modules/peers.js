@@ -9,8 +9,8 @@ var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
-var schema = require('../schema/peer.js');
-var sql = require('../sql/peer.js');
+var schema = require('../schema/peers.js');
+var sql = require('../sql/peers.js');
 var util = require('util');
 
 // Private fields
@@ -19,8 +19,6 @@ var modules, library, self, __private = {}, shared = {};
 // List of peers not behaving well
 // reset when we restart
 var removed = [];
-
-__private.loopback = ['0.0.0.0', '127.0.0.1'];
 
 // Constructor
 function Peers (cb, scope) {
@@ -44,7 +42,7 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getPeers',
 		'get /version': 'version',
-		'get /get': 'getPeers'
+		'get /get': 'getPeer'
 	});
 
 	router.use(function (req, res) {
@@ -54,27 +52,28 @@ __private.attachApi = function () {
 	library.network.app.use('/api/peers', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error(req.url, err);
-		res.status(500).send({success: false, error: err});
+		library.logger.error('API error ' + req.url, err);
+		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
 
-__private.updatePeerList = function (cb) {
+__private.updatePeersList = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/list',
-		method: 'GET'
+		method: 'GET',
+		ban: true
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
 		}
 
-		library.scheme.validate(res.body, schema.updatePeerList.peers, function (err) {
+		library.scheme.validate(res.body, schema.updatePeersList.peers, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
 
 			// Removing nodes not behaving well
-			library.logger.debug('Removed peers list size: ' + removed.length);
+			library.logger.debug('Removed peers: ' + removed.length);
 			var peers = res.body.peers.filter(function (peer) {
 					return removed.indexOf(peer.ip);
 			});
@@ -82,7 +81,7 @@ __private.updatePeerList = function (cb) {
 			// Update only a subset of the peers to decrease the noise on the network.
 			// Default is 20 peers. To be fined tuned. Node gets checked by a peer every 3s on average.
 			// Maybe increasing schedule (every 60s right now).
-			var maxUpdatePeers = Math.floor(library.config.peers.maxUpdatePeers) || 20;
+			var maxUpdatePeers = Math.floor(library.config.peers.options.maxUpdatePeers) || 20;
 			if (peers.length > maxUpdatePeers) {
 				peers = peers.slice(0, maxUpdatePeers);
 			}
@@ -98,13 +97,13 @@ __private.updatePeerList = function (cb) {
 				removed.pop();
 			}
 
-			library.logger.debug('Picked only: ' + peers.length);
+			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
 
 			async.eachLimit(peers, 2, function (peer, cb) {
-				library.scheme.validate(peer, schema.updatePeerList.peer, function (err) {
+				library.scheme.validate(peer, schema.updatePeersList.peer, function (err) {
 					if (err) {
 						err.forEach(function (e) {
-							library.logger.error('Rejecting invalid peer: ' + peer.ip + ' ' + e.path + ' ' + e.message);
+							library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
 						});
 
 						return setImmediate(cb);
@@ -210,7 +209,6 @@ Peers.prototype.inspect = function (peer) {
 	} else {
 		peer.string = 'unknown';
 	}
-	peer.loopback = (__private.loopback.indexOf(peer.ip) >= 0);
 	return peer;
 };
 
@@ -257,12 +255,14 @@ Peers.prototype.state = function (pip, port, state, timeoutSeconds, cb) {
 	} else {
 		clock = null;
 	}
-	library.db.query(sql.state, {
+	var params = {
 		state: state,
 		clock: clock,
 		ip: pip,
 		port: port
-	}).then(function (res) {
+	};
+	library.db.query(sql.state, params).then(function (res) {
+		library.logger.debug('Updated peer state', params);
 		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -278,10 +278,12 @@ Peers.prototype.remove = function (pip, port, cb) {
 		return setImmediate(cb, 'Peer in white list');
 	}
 	removed.push(pip);
-	library.db.query(sql.remove, {
+	var params = {
 		ip: pip,
 		port: port
-	}).then(function (res) {
+	};
+	library.db.query(sql.remove, params).then(function (res) {
+		library.logger.debug('Removed peer', params);
 		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -297,12 +299,13 @@ Peers.prototype.addDapp = function (config, cb) {
 		if (!rows.length) {
 			return setImmediate(cb);
 		}
-		var peerId = rows[0].id;
 
-		library.db.query(sql.addDapp, {
+		var params = {
 			dappId: config.dappid,
-			peerId: peerId
-		}).then(function (res) {
+			peerId: rows[0].id
+		};
+		library.db.query(sql.addDapp, params).then(function (res) {
+			library.logger.debug('Added dapp peer', params);
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.stack);
@@ -322,10 +325,10 @@ Peers.prototype.update = function (peer, cb) {
 		os: peer.os || null,
 		version: peer.version || null
 	};
-
 	async.series([
 		function (cb) {
 			library.db.query(sql.insert, extend({}, params, { state: 1 })).then(function (res) {
+				library.logger.debug('Inserted peer', params);
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.stack);
@@ -337,6 +340,7 @@ Peers.prototype.update = function (peer, cb) {
 				params.state = peer.state;
 			}
 			library.db.query(sql.update(params), params).then(function (res) {
+				library.logger.debug('Updated peer', params);
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
 				library.logger.error(err.stack);
@@ -369,11 +373,13 @@ Peers.prototype.onBind = function (scope) {
 
 Peers.prototype.onBlockchainReady = function () {
 	async.eachSeries(library.config.peers.list, function (peer, cb) {
-		library.db.query(sql.insertSeed, {
+		var params = {
 			ip: peer.ip,
 			port: peer.port,
 			state: 2
-		}).then(function (res) {
+		};
+		library.db.query(sql.insertSeed, params).then(function (res) {
+			library.logger.debug('Inserted seed peer', params);
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.stack);
@@ -386,9 +392,9 @@ Peers.prototype.onBlockchainReady = function () {
 
 		__private.count(function (err, count) {
 			if (count) {
-				__private.updatePeerList(function (err) {
+				__private.updatePeersList(function (err) {
 					if (err) {
-						library.logger.error('Peers#updatePeerList error', err);
+						library.logger.error('Peers#updatePeersList error', err);
 					}
 					library.bus.message('peerReady');
 				});
@@ -434,7 +440,7 @@ shared.getPeers = function (req, cb) {
 
 		__private.getByFilter(req.body, function (err, peers) {
 			if (err) {
-				return setImmediate(cb, 'Peers not found');
+				return setImmediate(cb, 'Failed to get peers');
 			}
 
 			return setImmediate(cb, null, {peers: peers});
@@ -443,7 +449,7 @@ shared.getPeers = function (req, cb) {
 };
 
 shared.getPeer = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPeers, function (err) {
+	library.scheme.validate(req.body, schema.getPeer, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -453,12 +459,14 @@ shared.getPeer = function (req, cb) {
 			port: req.body.port
 		}, function (err, peers) {
 			if (err) {
-				return setImmediate(cb, 'Peer not found');
+				return setImmediate(cb, 'Failed to get peer');
 			}
 
-			var peer = peers.length ? peers[0] : null;
-
-			return setImmediate(cb, null, {peer: peer || {}});
+			if (peers.length) {
+				return setImmediate(cb, null, {success: true, peer: peers[0]});
+			} else {
+				return setImmediate(cb, null, {success: false, error: 'Peer not found'});
+			}
 		});
 	});
 };

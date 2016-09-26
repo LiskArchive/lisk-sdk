@@ -79,6 +79,7 @@ describe('POST /peer/transactions', function () {
 
 				postTransaction(transaction, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
 					done();
 				});
 			});
@@ -127,6 +128,7 @@ describe('POST /peer/transactions', function () {
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
 				done();
 			});
 		});

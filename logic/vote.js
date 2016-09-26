@@ -146,7 +146,9 @@ Vote.prototype.objectNormalize = function (trs) {
 	var report = library.scheme.validate(trs.asset, Vote.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to normalize vote: ' + library.scheme.getLastError();
+		throw 'Failed to validate vote schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
 	}
 
 	return trs;

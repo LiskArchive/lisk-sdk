@@ -67,9 +67,9 @@ module.exports = function (config) {
 				log.data = data;
 			}
 
-			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
-				log.symbol = config.level_abbr[log.level] ? config.level_abbr[log.level] : '???';
+			log.symbol = config.level_abbr[log.level] ? config.level_abbr[log.level] : '???';
 
+			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
 				if (log.data) {
 					log_file.write(util.format('[%s] %s | %s - %s\n', log.symbol, log.timestamp, log.message, log.data));
 				} else {
