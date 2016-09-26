@@ -24,7 +24,7 @@ describe('GET /peer/list', function () {
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
-				node.expect(res.body.peers).to.have.length.of.at.least(2);
+				node.expect(res.body.peers).to.have.length.of.at.least(1);
 				res.body.peers.forEach(function (peer) {
 					node.expect(peer).to.have.property('ip').that.is.a('string');
 					node.expect(peer).to.have.property('port').that.is.a('number');
