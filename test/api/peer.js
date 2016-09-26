@@ -54,6 +54,7 @@ describe('GET /peer/height', function () {
 		node.get('/peer/height')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.be.an('object').that.has.property('height');
 				node.expect(res.body.height).to.be.a('number').to.be.above(1);
 				done();

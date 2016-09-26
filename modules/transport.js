@@ -246,6 +246,7 @@ __private.attachApi = function () {
 	router.get('/height', function (req, res) {
 		res.set(__private.headers);
 		res.status(200).json({
+			success: true,
 			height: modules.blocks.getLastBlock().height
 		});
 	});
