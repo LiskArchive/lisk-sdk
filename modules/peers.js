@@ -462,9 +462,11 @@ shared.getPeer = function (req, cb) {
 				return setImmediate(cb, 'Peer not found');
 			}
 
-			var peer = peers.length ? peers[0] : null;
-
-			return setImmediate(cb, null, {peer: peer || {}});
+			if (peers.length) {
+				return setImmediate(cb, null, {success: true, peer: peers[0]});
+			} else {
+				return setImmediate(cb, null, {success: false, error: 'Peer not found'});
+			}
 		});
 	});
 };
