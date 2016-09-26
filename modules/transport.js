@@ -209,7 +209,7 @@ __private.attachApi = function () {
 
 	router.get('/transactions', function (req, res) {
 		res.set(__private.headers);
-		res.status(200).json({transactions: modules.transactions.getUnconfirmedTransactionList()});
+		res.status(200).json({success: true, transactions: modules.transactions.getUnconfirmedTransactionList()});
 	});
 
 	router.post('/transactions', function (req, res) {
