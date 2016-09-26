@@ -440,7 +440,7 @@ shared.getPeers = function (req, cb) {
 
 		__private.getByFilter(req.body, function (err, peers) {
 			if (err) {
-				return setImmediate(cb, 'Peers not found');
+				return setImmediate(cb, 'Failed to get peers');
 			}
 
 			return setImmediate(cb, null, {peers: peers});
@@ -459,7 +459,7 @@ shared.getPeer = function (req, cb) {
 			port: req.body.port
 		}, function (err, peers) {
 			if (err) {
-				return setImmediate(cb, 'Peer not found');
+				return setImmediate(cb, 'Failed to get peer');
 			}
 
 			if (peers.length) {
