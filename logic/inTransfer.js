@@ -133,7 +133,9 @@ InTransfer.prototype.objectNormalize = function (trs) {
 	var report = library.scheme.validate(trs.asset.inTransfer, InTransfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to normalize inTransfer: ' + library.scheme.getLastError();
+		throw 'Failed to validate inTransfer schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
 	}
 
 	return trs;

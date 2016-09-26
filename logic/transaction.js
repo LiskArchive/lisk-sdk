@@ -776,7 +776,9 @@ Transaction.prototype.objectNormalize = function (trs) {
 	var report = this.scope.scheme.validate(trs, Transaction.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to normalize transaction: ' + this.scope.scheme.getLastError();
+		throw 'Failed to validate transaction schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
 	}
 
 	try {
