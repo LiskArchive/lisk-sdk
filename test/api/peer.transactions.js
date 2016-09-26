@@ -41,17 +41,14 @@ describe('GET /peer/transactions', function () {
 describe('POST /peer/transactions', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
-
-		var validHash = node.config.nethash;
-		node.config.nethash = 'incorrect';
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body.expected).to.equal(validHash);
-			node.config.nethash = validHash;
-			done();
-		});
+		node.post('/peer/transactions')
+			.set('nethash', 'incorrect')
+			.end(function (err, res) {
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body.expected).to.equal(node.config.nethash);
+				done();
+			});
 	});
 
 	it('using correct nethash in headers should be ok', function (done) {
