@@ -88,9 +88,7 @@ describe('POST /api/accounts/open', function () {
 			secret: data
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').that.is.an('object');
-			node.expect(res.body.error).to.have.property('message').to.equal('request entity too large');
-			node.expect(res.body.error).to.have.property('limit').to.equal(2097152);
+			node.expect(res.body).to.have.property('error').to.equal('API error: request entity too large');
 			done();
 		});
 	});

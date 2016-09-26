@@ -52,7 +52,7 @@ __private.attachApi = function () {
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
 		library.logger.error('API error ' + req.url, err);
-		res.status(500).send({success: false, error: 'API error'});
+		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
 
