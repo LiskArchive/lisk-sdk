@@ -161,12 +161,12 @@ __private.attachApi = function () {
 				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
 			}
 
-			return res.sendStatus(200);
+			return res.status(200).json({success: false, error: e.toString()});
 		}
 
 		library.bus.message('receiveBlock', block);
 
-		res.sendStatus(200);
+		return res.status(200).json({success: true, blockId: block.id});
 	});
 
 	router.post('/signatures', function (req, res) {
