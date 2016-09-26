@@ -72,4 +72,43 @@ describe('POST /peer/blocks', function () {
 				done();
 			});
 	});
+
+	it('using no block should fail', function (done) {
+		node.post('/peer/blocks')
+			.end(function (err, res) {
+				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error').to.contain('Failed to validate block schema');
+				done();
+			});
+	});
+
+	it('using invalid block schema should fail', function (done) {
+		var blockSignature = genesisblock.blockSignature;
+		genesisblock.blockSignature = null;
+
+		node.post('/peer/blocks', { block: genesisblock })
+			.end(function (err, res) {
+				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error').to.contain('Failed to validate block schema');
+				genesisblock.blockSignature = blockSignature;
+				done();
+			});
+	});
+
+	it('using valid block schema should be ok', function (done) {
+		genesisblock.transactions.forEach(function (transaction) {
+			if (transaction.asset && transaction.asset.delegate) {
+				transaction.asset.delegate.publicKey = transaction.senderPublicKey;
+			}
+		});
+		node.post('/peer/blocks', { block: genesisblock })
+			.end(function (err, res) {
+				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('blockId').to.equal('6524861224470851795');
+				done();
+			});
+	});
 });
