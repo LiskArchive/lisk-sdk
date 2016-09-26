@@ -115,8 +115,7 @@ __private.attachApi = function () {
 			}
 
 			library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
-				var commonBlock = rows.length ? rows[0] : null;
-				return res.json({ success: true, common: commonBlock });
+				return res.json({ success: true, common: rows[0] || null });
 			}).catch(function (err) {
 				library.logger.error(err.stack);
 				return res.json({success: false, error: 'Failed to get common block'});
