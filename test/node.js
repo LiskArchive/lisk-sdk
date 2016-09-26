@@ -214,7 +214,7 @@ node.addPeers = function (numOfPeers, cb) {
 			return next(err);
 		});
 	}, function (err) {
-		return cb(err);
+		return cb(err, {os: os, version: version, port: port});
 	});
 };
 
