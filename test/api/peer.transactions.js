@@ -51,7 +51,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('using correct nethash in headers should be ok', function (done) {
+	it('using valid headers should be ok', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
