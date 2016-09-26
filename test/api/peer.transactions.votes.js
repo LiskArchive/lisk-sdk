@@ -260,7 +260,7 @@ describe('POST /peer/transactions', function () {
 				action: '+',
 				voteCb: function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res.body).to.have.property('transactionId').that.is.a('string');
 				}
 			}, done);
 		});
@@ -287,7 +287,7 @@ describe('POST /peer/transactions', function () {
 			action: '-',
 			voteCb: function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res.body).to.have.property('transactionId').that.is.a('string');
 			}
 		}, done);
 	});
