@@ -39,7 +39,6 @@ __private.attachApi = function () {
 		res.status(500).send({success: false, error: 'Blockchain is loading'});
 	});
 
-
 	router.map(shared, {
 		'get /fee': 'getFee',
 		'put /': 'addSignature'
