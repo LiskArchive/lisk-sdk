@@ -238,7 +238,7 @@ __private.attachApi = function () {
 				library.logger.error(err);
 				res.status(200).json({success: false, message: err.toString()});
 			} else {
-				res.status(200).json({success: true});
+				res.status(200).json({success: true, transactionId: transaction.id});
 			}
 		});
 	});
