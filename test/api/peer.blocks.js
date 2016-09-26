@@ -6,7 +6,7 @@ var genesisblock = require('../../genesisBlock.json');
 
 describe('GET /peer/blocks', function () {
 
-	it('using correct nethash in headers should be ok', function (done) {
+	it('using valid headers should be ok', function (done) {
 		node.get('/peer/blocks')
 			.end(function (err, res) {
 				// node.debug('> Response:'.grey, JSON.stringify(res.body));
