@@ -9,7 +9,7 @@ describe('GET /peer/blocks', function () {
 	it('using valid headers should be ok', function (done) {
 		node.get('/peer/blocks')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				res.body.blocks.forEach(function (block) {
 					node.expect(block).to.have.property('b_id').that.is.a('string');
@@ -66,7 +66,7 @@ describe('GET /peer/blocks/common', function () {
 		node.get('/peer/blocks/common')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body.expected).to.equal(node.config.nethash);
 				done();
@@ -76,7 +76,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using no params should fail', function (done) {
 		node.get('/peer/blocks/common')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.equal('Missing required property: ids: #/');
 				done();
@@ -86,7 +86,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids == "";"";"" should fail', function (done) {
 		node.get('/peer/blocks/common?ids="";"";""')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.equal('Invalid block id sequence');
 				done();
@@ -96,7 +96,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids == \'\',\'\',\'\' should fail', function (done) {
 		node.get('/peer/blocks/common?ids=\'\',\'\',\'\'')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.equal('Invalid block id sequence');
 				done();
@@ -106,7 +106,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids == "","","" should fail', function (done) {
 		node.get('/peer/blocks/common?ids="","",""')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.equal('Invalid block id sequence');
 				done();
@@ -116,7 +116,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids == one,two,three should fail', function (done) {
 		node.get('/peer/blocks/common?ids=one,two,three')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.equal('Invalid block id sequence');
 				done();
@@ -126,7 +126,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids == "1","2","3" should be ok and return null common block', function (done) {
 		node.get('/peer/blocks/common?ids="1","2","3"')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('common').to.be.null;
 				done();
@@ -136,7 +136,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids == \'1\',\'2\',\'3\' should be ok and return null common block', function (done) {
 		node.get('/peer/blocks/common?ids=\'1\',\'2\',\'3\'')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('common').to.be.null;
 				done();
@@ -146,7 +146,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids == 1,2,3 should be ok and return null common block', function (done) {
 		node.get('/peer/blocks/common?ids=1,2,3')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('common').to.be.null;
 				done();
@@ -156,7 +156,7 @@ describe('GET /peer/blocks/common', function () {
 	it('using ids which include genesisblock.id should be ok', function (done) {
 		node.get('/peer/blocks/common?ids=' + [genesisblock.id.toString(),'2','3'].join(','))
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('common').to.be.an('object');
 				node.expect(res.body.common).to.have.property('height').that.is.a('number');
@@ -174,7 +174,7 @@ describe('POST /peer/blocks', function () {
 		node.post('/peer/blocks', { dummy: 'dummy' })
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body.expected).to.equal(node.config.nethash);
 				done();
@@ -184,7 +184,7 @@ describe('POST /peer/blocks', function () {
 	it('using no block should fail', function (done) {
 		node.post('/peer/blocks')
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.contain('Failed to validate block schema');
 				done();
@@ -197,7 +197,7 @@ describe('POST /peer/blocks', function () {
 
 		node.post('/peer/blocks', { block: genesisblock })
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body).to.have.property('error').to.contain('Failed to validate block schema');
 				genesisblock.blockSignature = blockSignature;
@@ -213,7 +213,7 @@ describe('POST /peer/blocks', function () {
 		});
 		node.post('/peer/blocks', { block: genesisblock })
 			.end(function (err, res) {
-				// node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blockId').to.equal('6524861224470851795');
 				done();
