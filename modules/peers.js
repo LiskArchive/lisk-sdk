@@ -219,6 +219,9 @@ Peers.prototype.inspect = function (peer) {
 		peer.string = 'unknown';
 	}
 
+	peer.os = peer.os || 'unknown';
+	peer.version = peer.version || '0.0.0';
+
 	return peer;
 };
 
