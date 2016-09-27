@@ -1,18 +1,18 @@
 'use strict';
 
-var program = require('commander');
-var packageJson = require('./package.json');
-var Logger = require('./logger.js');
 var appConfig = require('./config.json');
-var genesisblock = require('./genesisBlock.json');
 var async = require('async');
-var extend = require('extend');
-var path = require('path');
-var https = require('https');
-var fs = require('fs');
-var util = require('util');
 var checkIpInList = require('./helpers/checkIpInList.js');
+var extend = require('extend');
+var fs = require('fs');
+var genesisblock = require('./genesisBlock.json');
+var https = require('https');
+var Logger = require('./logger.js');
+var packageJson = require('./package.json');
+var path = require('path');
+var program = require('commander');
 var Sequence = require('./helpers/sequence.js');
+var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
 
 process.stdin.resume();
