@@ -74,5 +74,8 @@ z_schema.registerFormat('parsedInt', function (value) {
 
 z_schema.registerFormat('ip', function (value) {});
 
+// var registeredFormats = z_schema.getRegisteredFormats();
+// console.log(registeredFormats);
+
 // Exports
 module.exports = z_schema;
