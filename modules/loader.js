@@ -493,7 +493,7 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 };
 
 // Events
-Loader.prototype.onPeerReady = function () {
+Loader.prototype.onPeersReady = function () {
 	setImmediate(function nextLoadBlock () {
 		var lastReceipt = modules.blocks.lastReceipt();
 

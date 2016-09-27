@@ -425,7 +425,7 @@ Transactions.prototype.onBind = function (scope) {
 	});
 };
 
-Transactions.prototype.onPeerReady = function () {
+Transactions.prototype.onPeersReady = function () {
 	setImmediate(function nextUnconfirmedExpiry () {
 		self.expireUnconfirmedList(function (err, ids) {
 			if (err) {
