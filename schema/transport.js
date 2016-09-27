@@ -31,7 +31,7 @@ module.exports = {
 		properties: {
 			ids: {
 				type: 'string',
-				format: 'splitarray'
+				format: 'csv'
 			}
 		},
 		required: ['ids']

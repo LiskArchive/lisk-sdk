@@ -26,7 +26,7 @@ z_schema.registerFormat('publicKey', function (str) {
   }
 });
 
-z_schema.registerFormat('splitarray', function (str) {
+z_schema.registerFormat('csv', function (str) {
   try {
     var a = str.split(',');
     if (a.length > 0 && a.length <= 1000) {
@@ -52,17 +52,17 @@ z_schema.registerFormat('signature', function (str) {
   }
 });
 
-z_schema.registerFormat('listQuery', function (obj) {
+z_schema.registerFormat('queryList', function (obj) {
   obj.limit = 100;
   return true;
 });
 
-z_schema.registerFormat('listDelegates', function (obj) {
+z_schema.registerFormat('delegatesList', function (obj) {
   obj.limit = 101;
   return true;
 });
 
-z_schema.registerFormat('checkInt', function (value) {
+z_schema.registerFormat('parsedInt', function (value) {
   /*jslint eqeq: true*/
   if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
     return false;
