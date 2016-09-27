@@ -18,7 +18,8 @@ module.exports = {
 			type: 'object',
 			properties: {
 				ip: {
-					type: 'string'
+					type: 'string',
+					format: 'ip'
 				},
 				port: {
 					type: 'integer',
@@ -84,7 +85,7 @@ module.exports = {
 		properties: {
 			ip: {
 				type: 'string',
-				minLength: 1
+				format: 'ip'
 			},
 			port: {
 				type: 'integer',
