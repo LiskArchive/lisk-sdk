@@ -256,7 +256,7 @@ d.run(function () {
 				}
 			}));
 
-			scope.network.app.use(require('./helpers/zscheme-express.js')(scope.scheme));
+			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.scheme));
 
 			scope.network.app.use(function (req, res, next) {
 				var parts = req.url.split('/');
