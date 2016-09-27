@@ -203,30 +203,21 @@ __private.getByFilter = function (filter, cb) {
 
 // Public methods
 Peers.prototype.inspect = function (peer) {
+	peer = peer || {};
+
+	if (/^[0-9]+$/.test(peer.ip)) {
+		peer.ip = ip.fromLong(peer.ip);
+	}
+
+	peer.port = parseInt(peer.port);
+
 	if (peer.ip) {
 		peer.string = (peer.ip + ':' + peer.port || 'unknown');
 	} else {
 		peer.string = 'unknown';
 	}
+
 	return peer;
-};
-
-Peers.prototype.accept = function (peer) {
-	if (/^[0-9]+$/.test(peer.ip)) {
-		peer.ip = ip.fromLong(peer.ip);
-	}
-	peer.port = parseInt(peer.port);
-
-	if (!peer || !peer.ip || !peer.port) {
-		throw 'Rejecting invalid peer: ' + util.inspect(peer);
-	} else if (!ip.isV4Format(peer.ip) && !ip.isV6Format(peer.ip)) {
-		throw 'Rejecting peer with invalid ip address: ' + peer.ip;
-	} else if (isNaN(peer.port) || peer.port === 0 || peer.port > 65535) {
-		throw 'Rejecting peer with invalid port: ' + peer.port;
-	} else {
-		peer = this.inspect(peer);
-		return peer;
-	}
 };
 
 Peers.prototype.list = function (options, cb) {

@@ -41,7 +41,7 @@ __private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		try {
-			req.peer = modules.peers.accept(
+			req.peer = modules.peers.inspect(
 				{
 					ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
 					port: req.headers.port
@@ -424,7 +424,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		url = options.url;
 	}
 
-	peer = modules.peers.accept(peer);
+	peer = modules.peers.inspect(peer);
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
