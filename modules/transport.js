@@ -443,7 +443,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 	var request = popsicle.request(req);
 
-	request.use(popsicle.plugins.parse(['json']));
+	request.use(popsicle.plugins.parse(['json'], false));
 
 	request.then(function (res) {
 		if (res.status !== 200) {
