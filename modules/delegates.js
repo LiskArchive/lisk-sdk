@@ -709,7 +709,7 @@ shared.getDelegates = function (req, cb) {
 				}
 			}
 
-			function compadatatring (a, b) {
+			function compareString (a, b) {
 				var sorta = a[data.sortField];
 				var sortb = b[data.sortField];
 				if (data.sortMethod === 'ASC') {
@@ -723,7 +723,7 @@ shared.getDelegates = function (req, cb) {
 				if (['approval', 'productivity', 'rate', 'vote'].indexOf(data.sortField) > -1) {
 					data.delegates = data.delegates.sort(compareNumber);
 				} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
-					data.delegates = data.delegates.sort(compadatatring);
+					data.delegates = data.delegates.sort(compareString);
 				} else {
 					return setImmediate(cb, 'Invalid sort field');
 				}
