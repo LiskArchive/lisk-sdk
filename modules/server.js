@@ -42,7 +42,6 @@ __private.attachApi = function () {
 			return res.redirect('/');
 		}
 		next();
-		// res.status(500).send({ success: false, error: 'api not found' });
 	});
 
 	library.network.app.use('/', router);
