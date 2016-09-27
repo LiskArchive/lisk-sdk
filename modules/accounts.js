@@ -110,7 +110,7 @@ __private.openAccount = function (secret, cb) {
 	var keypair = library.ed.makeKeypair(hash);
 	var publicKey = keypair.publicKey.toString('hex');
 
-	self.getAccount({ publicKey: publicKey }, function (err, account) {
+	self.getAccount({publicKey: publicKey}, function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -183,7 +183,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.logic.account.get({ address: address }, cb);
+		return library.logic.account.get({address: address}, cb);
 	});
 };
 

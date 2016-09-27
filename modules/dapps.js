@@ -533,7 +533,7 @@ __private.attachApi = function () {
 
 // Private methods
 __private.get = function (id, cb) {
-	library.db.query(sql.get, { id: id }).then(function (rows) {
+	library.db.query(sql.get, {id: id}).then(function (rows) {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Application not found');
 		} else {
@@ -756,7 +756,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 
 			var request = popsicle.get({
 				url: dapp.link,
-				transport: popsicle.createTransport({ type: 'stream' })
+				transport: popsicle.createTransport({type: 'stream'})
 			});
 
 			request.then(function (res) {

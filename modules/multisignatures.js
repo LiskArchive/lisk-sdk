@@ -112,7 +112,7 @@ shared.getAccounts = function (req, cb) {
 						return setImmediate(cb, err);
 					}
 
-					return setImmediate(cb, null, { accounts: rows });
+					return setImmediate(cb, null, {accounts: rows});
 				});
 			});
 		}).catch(function (err) {

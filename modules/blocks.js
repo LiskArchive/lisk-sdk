@@ -140,7 +140,7 @@ __private.saveGenesisBlock = function (cb) {
 };
 
 __private.deleteBlock = function (blockId, cb) {
-	library.db.none(sql.deleteBlock, { id: blockId }).then(function () {
+	library.db.none(sql.deleteBlock, {id: blockId}).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -246,7 +246,7 @@ __private.list = function (filter, cb) {
 };
 
 __private.getById = function (id, cb) {
-	library.db.query(sql.getById, { id: id }).then(function (rows) {
+	library.db.query(sql.getById, {id: id}).then(function (rows) {
 		if (!rows.length) {
 			return setImmediate(cb, 'Block not found');
 		}
@@ -590,7 +590,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
 
-	library.logger.debug('Loading blocks offset', { limit: limit, offset: offset, verify: verify });
+	library.logger.debug('Loading blocks offset', {limit: limit, offset: offset, verify: verify});
 	library.dbSequence.add(function (cb) {
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
 			var blocks = __private.readDbRows(rows);
@@ -1022,7 +1022,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 };
 
 Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
-	library.db.query(sql.simpleDeleteAfterBlock, { id: blockId }).then(function (res) {
+	library.db.query(sql.simpleDeleteAfterBlock, {id: blockId}).then(function (res) {
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);

@@ -76,7 +76,7 @@ function Migrator (pgp, db) {
 		var appliedMigrations = [];
 
 		async.eachSeries(pendingMigrations, function (file, eachCb) {
-			var sql = new pgp.QueryFile(file.path, { minify: true });
+			var sql = new pgp.QueryFile(file.path, {minify: true});
 
 			db.query(sql).then(function () {
 				appliedMigrations.push(file);
@@ -102,7 +102,7 @@ function Migrator (pgp, db) {
 	};
 
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var sql = new pgp.QueryFile(path.join('sql', 'runtime.sql'), { minify: true });
+		var sql = new pgp.QueryFile(path.join('sql', 'runtime.sql'), {minify: true});
 
 		db.query(sql).then(function () {
 			return waterCb();

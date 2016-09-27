@@ -362,7 +362,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 	});
 };
 
-// Given a list of peers with associated blockchain height (heights = { peer: peer, height: height }), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
+// Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 __private.findGoodPeers = function (heights) {
 	// Removing unreachable peers
 	heights = heights.filter(function (item) {
@@ -404,7 +404,7 @@ __private.findGoodPeers = function (heights) {
 			item.peer.height = item.height;
 			return item.peer;
 		});
-		return { height: height, peers: peers };
+		return {height: height, peers: peers};
 	}
 };
 

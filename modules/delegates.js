@@ -454,7 +454,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 			delegates[i].productivity = (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0;
 		}
 
-		var orderBy = OrderBy(query.orderBy, { quoteField: false });
+		var orderBy = OrderBy(query.orderBy, {quoteField: false});
 
 		if (orderBy.error) {
 			return setImmediate(cb, orderBy.error);
@@ -645,7 +645,7 @@ shared.search = function (req, cb) {
 			sortField: orderBy.sortField,
 			sortMethod: orderBy.sortMethod
 		})).then(function (rows) {
-			return setImmediate(cb, null, { delegates: rows });
+			return setImmediate(cb, null, {delegates: rows});
 		}).catch(function (err) {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Database search failed');
@@ -679,7 +679,7 @@ shared.getVoters = function (req, cb) {
 					return setImmediate(cb, err);
 				}
 
-				return setImmediate(cb, null, { accounts: rows });
+				return setImmediate(cb, null, {accounts: rows});
 			});
 		}).catch(function (err) {
 			library.logger.error(err.stack);

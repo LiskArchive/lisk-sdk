@@ -358,7 +358,7 @@ function Account (scope, cb) {
 }
 
 Account.prototype.createTables = function (cb) {
-	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), { minify: true });
+	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), {minify: true});
 
 	db.query(sql).then(function () {
 		return setImmediate(cb);
@@ -749,7 +749,7 @@ Account.prototype.merge = function (address, diff, cb) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			self.get({ address: address }, cb);
+			self.get({address: address}, cb);
 		}
 	}
 

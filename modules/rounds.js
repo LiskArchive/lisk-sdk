@@ -42,7 +42,7 @@ Rounds.prototype.calc = function (height) {
 };
 
 Rounds.prototype.flush = function (round, cb) {
-	library.db.none(sql.flush, { round: round }).then(function () {
+	library.db.none(sql.flush, {round: round}).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
