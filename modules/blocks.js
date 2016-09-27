@@ -781,6 +781,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							if (err) {
 								err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 								library.logger.error(err);
+								library.logger.error('Transaction', transaction);
 								return setImmediate(eachSeriesCb, err);
 							}
 
@@ -823,14 +824,18 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 				async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
 					modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 						if (err) {
-							library.logger.error('Failed to apply transaction: ' + transaction.id);
+							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
 							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 							process.exit(0);
 						}
 						// DATABASE: write
 						modules.transactions.apply(transaction, block, sender, function (err) {
 							if (err) {
-								library.logger.error('Failed to apply transaction: ' + transaction.id);
+								err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+								library.logger.error(err);
+								library.logger.error('Transaction', transaction);
 								// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 								process.exit(0);
 							}
@@ -852,6 +857,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					__private.saveBlock(block, function (err) {
 						if (err) {
 							library.logger.error('Failed to save block...');
+							library.logger.error('Block', block);
 							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 							process.exit(0);
 						}
@@ -1065,8 +1071,12 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 						lastValidBlock = block;
 						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 					} else {
-						library.logger.warn(err.message || err);
-						library.logger.warn(['Block', (block ? block.id : 'null'), 'is not valid, ban 60 min'].join(' '), peer.string);
+						var id = (block ? block.id : 'null');
+
+						library.logger.error(['Block', id].join(' '), err.toString());
+						if (block) { library.logger.error('Block', block); }
+
+						library.logger.warn(['Block', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 						modules.peers.state(peer.ip, peer.port, 0, 3600);
 					}
 					return setImmediate(cb, err);

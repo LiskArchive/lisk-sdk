@@ -160,13 +160,14 @@ __private.attachApi = function () {
 	router.post('/blocks', function (req, res) {
 		res.set(__private.headers);
 
-		var block;
+		var block = req.body.block;
+		var id = (block ? block.id : 'null');
 
 		try {
-			block = library.logic.block.objectNormalize(req.body.block);
+			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
-			library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
-			library.logger.warn(e.toString());
+			library.logger.error(['Block', id].join(' '), e.toString());
+			if (block) { library.logger.error('Block', block); }
 
 			if (req.peer) {
 				// Ban peer for 60 minutes
@@ -227,13 +228,14 @@ __private.attachApi = function () {
 	router.post('/transactions', function (req, res) {
 		res.set(__private.headers);
 
-		var transaction;
+		var transaction = req.body.transaction;
+		var id = (transaction? transaction.id : 'null');
 
 		try {
-			transaction = library.logic.transaction.objectNormalize(req.body.transaction);
+			transaction = library.logic.transaction.objectNormalize(transaction);
 		} catch (e) {
-			library.logger.warn('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
-			library.logger.warn(e.toString());
+			library.logger.error(['Transaction', id].join(' '), e.toString());
+			if (transaction) { library.logger.error('Transaction', transaction); }
 
 			if (req.peer) {
 				// Ban peer for 60 minutes
@@ -248,7 +250,9 @@ __private.attachApi = function () {
 			modules.transactions.receiveTransactions([transaction], cb);
 		}, function (err) {
 			if (err) {
-				library.logger.error(err);
+				library.logger.error(['Transaction', id].join(' '), err.toString());
+				if (transaction) { library.logger.error('Transaction', transaction); }
+
 				res.status(200).json({success: false, message: err.toString()});
 			} else {
 				res.status(200).json({success: true, transactionId: transaction.id});

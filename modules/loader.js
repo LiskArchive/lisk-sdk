@@ -124,16 +124,21 @@ __private.loadUnconfirmedTransactions = function (cb) {
 		}
 
 		var peer = modules.peers.inspect(res.peer);
-
 		var transactions = res.body.transactions;
 
 		for (var i = 0; i < transactions.length; i++) {
+			var transaction = transactions[i];
+			var id = (transaction ? transactions.id : 'null');
+
 			try {
-				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
+				transaction = library.logic.transaction.objectNormalize(transaction);
 			} catch (e) {
-				library.logger.warn(e.toString());
-				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peer.string);
+				library.logger.error(['Transaction', id].join(' '), e.toString());
+				if (transaction) { library.logger.error('Transaction', transaction); }
+
+				library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 				modules.peers.state(peer.ip, peer.port, 0, 3600);
+
 				return setImmediate(cb);
 			}
 		}
