@@ -226,7 +226,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
-		library.logger.debug('No delegates found to forge with');
+		library.logger.debug('No delegates enabled');
 		return setImmediate(cb);
 	}
 
