@@ -81,8 +81,7 @@ __private.syncTrigger = function (turnOn) {
 __private.loadSignatures = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/signatures',
-		method: 'GET',
-		ban: false
+		method: 'GET'
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
@@ -112,8 +111,7 @@ __private.loadSignatures = function (cb) {
 __private.loadUnconfirmedTransactions = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/transactions',
-		method: 'GET',
-		ban: true
+		method: 'GET'
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
@@ -423,8 +421,7 @@ Loader.prototype.getNetwork = function (cb) {
 	// Fetch a list of 100 random peers
 	modules.transport.getFromRandomPeer({
 		api: '/list',
-		method: 'GET',
-		ban: true
+		method: 'GET'
 	}, function (err, res) {
 		if (err) {
 			library.logger.info('Failed to connect properly with network', err);

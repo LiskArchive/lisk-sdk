@@ -485,7 +485,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			if (err.code === 'EUNAVAILABLE') {
 				// Remove peer
 				__private.removePeer({peer: peer, code: err.code, req: req});
-			} else if (options.ban) {
+			} else {
 				// Ban peer for 10 minutes
 				__private.banPeer({peer: peer, code: err.code, req: req, clock: 600});
 			}
@@ -568,7 +568,7 @@ shared.request = function (msg, cb) {
 			method: 'POST'
 		}, cb);
 	} else {
-		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST', ban: true}, cb);
+		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST'}, cb);
 	}
 };
 
