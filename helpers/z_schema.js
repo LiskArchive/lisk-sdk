@@ -1,5 +1,6 @@
 'use strict';
 
+var ip = require('ip');
 var z_schema = require('z-schema');
 
 z_schema.registerFormat('hex', function (str) {
@@ -72,7 +73,9 @@ z_schema.registerFormat('parsedInt', function (value) {
   return true;
 });
 
-z_schema.registerFormat('ip', function (value) {});
+z_schema.registerFormat('ip', function (value) {
+  return ip.isV4Format(value) || ip.isV6Format(value);
+});
 
 // var registeredFormats = z_schema.getRegisteredFormats();
 // console.log(registeredFormats);
