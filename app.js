@@ -151,7 +151,7 @@ d.run(function () {
 			cb(null, path.join(__dirname, 'public'));
 		},
 
-		scheme: function (cb) {
+		schema: function (cb) {
 			cb(null, new z_schema());
 		},
 
@@ -256,7 +256,7 @@ d.run(function () {
 				}
 			}));
 
-			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.scheme));
+			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.schema));
 
 			scope.network.app.use(function (req, res, next) {
 				var parts = req.url.split('/');
@@ -347,7 +347,7 @@ d.run(function () {
 			db.connect(config.db, logger, cb);
 		},
 
-		logic: ['db', 'bus', 'scheme', 'genesisblock', function (scope, cb) {
+		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
@@ -365,21 +365,21 @@ d.run(function () {
 				logger: function (cb) {
 					cb(null, logger);
 				},
-				scheme: function (cb) {
-					cb(null, scope.scheme);
+				schema: function (cb) {
+					cb(null, scope.schema);
 				},
 				genesisblock: function (cb) {
 					cb(null, {
 						block: genesisblock
 					});
 				},
-				account: ['db', 'bus', 'ed', 'scheme', 'genesisblock', function (scope, cb) {
+				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', function (scope, cb) {
 					new Account(scope, cb);
 				}],
-				transaction: ['db', 'bus', 'ed', 'scheme', 'genesisblock', 'account', function (scope, cb) {
+				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', function (scope, cb) {
 					new Transaction(scope, cb);
 				}],
-				block: ['db', 'bus', 'ed', 'scheme', 'genesisblock', 'account', 'transaction', function (scope, cb) {
+				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 					new Block(scope, cb);
 				}]
 			}, cb);

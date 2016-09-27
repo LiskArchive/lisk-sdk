@@ -220,7 +220,7 @@ Accounts.prototype.onBind = function (scope) {
 
 // Shared
 shared.open = function (req, cb) {
-	library.scheme.validate(req.body, schema.open, function (err) {
+	library.schema.validate(req.body, schema.open, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -248,7 +248,7 @@ shared.open = function (req, cb) {
 };
 
 shared.getBalance = function (req, cb) {
-	library.scheme.validate(req.body, schema.getBalance, function (err) {
+	library.schema.validate(req.body, schema.getBalance, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -272,7 +272,7 @@ shared.getBalance = function (req, cb) {
 };
 
 shared.getPublickey = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPublicKey, function (err) {
+	library.schema.validate(req.body, schema.getPublicKey, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -297,7 +297,7 @@ shared.getPublickey = function (req, cb) {
 };
 
 shared.generatePublicKey = function (req, cb) {
-	library.scheme.validate(req.body, schema.generatePublicKey, function (err) {
+	library.schema.validate(req.body, schema.generatePublicKey, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -317,7 +317,7 @@ shared.generatePublicKey = function (req, cb) {
 };
 
 shared.getDelegates = function (req, cb) {
-	library.scheme.validate(req.body, schema.getDelegates, function (err) {
+	library.schema.validate(req.body, schema.getDelegates, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -351,7 +351,7 @@ shared.getDelegatesFee = function (req, cb) {
 };
 
 shared.addDelegates = function (req, cb) {
-	library.scheme.validate(req.body, schema.addDelegates, function (err) {
+	library.schema.validate(req.body, schema.addDelegates, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -475,7 +475,7 @@ shared.addDelegates = function (req, cb) {
 };
 
 shared.getAccount = function (req, cb) {
-	library.scheme.validate(req.body, schema.getAccount, function (err) {
+	library.schema.validate(req.body, schema.getAccount, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

@@ -184,7 +184,7 @@ __private.attachApi = function () {
 	router.post('/signatures', function (req, res) {
 		res.set(__private.headers);
 
-		library.scheme.validate(req.body, schema.signatures, function (err) {
+		library.schema.validate(req.body, schema.signatures, function (err) {
 			if (err) {
 				return res.status(200).json({success: false, error: 'Signature validation failed'});
 			}
@@ -451,7 +451,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			var headers = res.headers;
 			headers.port = parseInt(headers.port);
 
-			var report = library.scheme.validate(headers, schema.headers);
+			var report = library.schema.validate(headers, schema.headers);
 			if (!report) {
 				// Remove peer
 				__private.removePeer({peer: peer, code: 'EHEADERS', req: req});

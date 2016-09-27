@@ -86,7 +86,7 @@ __private.attachApi = function () {
 	}
 
 	router.post('/forging/enable', function (req, res) {
-		library.scheme.validate(req.body, schema.enableForging, function (err) {
+		library.schema.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -125,7 +125,7 @@ __private.attachApi = function () {
 	});
 
 	router.post('/forging/disable', function (req, res) {
-		library.scheme.validate(req.body, schema.disableForging, function (err) {
+		library.schema.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -164,7 +164,7 @@ __private.attachApi = function () {
 	});
 
 	router.get('/forging/status', function (req, res) {
-		library.scheme.validate(req.query, schema.forgingStatus, function (err) {
+		library.schema.validate(req.query, schema.forgingStatus, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -593,7 +593,7 @@ __private.toggleForgingOnReceipt = function () {
 
 // Shared
 shared.getDelegate = function (req, cb) {
-	library.scheme.validate(req.body, schema.getDelegate, function (err) {
+	library.schema.validate(req.body, schema.getDelegate, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -623,7 +623,7 @@ shared.getDelegate = function (req, cb) {
 };
 
 shared.search = function (req, cb) {
-	library.scheme.validate(req.body, schema.search, function (err) {
+	library.schema.validate(req.body, schema.search, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -663,7 +663,7 @@ shared.count = function (req, cb) {
 };
 
 shared.getVoters = function (req, cb) {
-	library.scheme.validate(req.body, schema.getVoters, function (err) {
+	library.schema.validate(req.body, schema.getVoters, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -689,7 +689,7 @@ shared.getVoters = function (req, cb) {
 };
 
 shared.getDelegates = function (req, cb) {
-	library.scheme.validate(req.body, schema.getDelegates, function (err) {
+	library.schema.validate(req.body, schema.getDelegates, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -741,7 +741,7 @@ shared.getFee = function (req, cb) {
 };
 
 shared.getForgedByAccount = function (req, cb) {
-	library.scheme.validate(req.body, schema.getForgedByAccount, function (err) {
+	library.schema.validate(req.body, schema.getForgedByAccount, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -757,7 +757,7 @@ shared.getForgedByAccount = function (req, cb) {
 };
 
 shared.addDelegate = function (req, cb) {
-	library.scheme.validate(req.body, schema.addDelegate, function (err) {
+	library.schema.validate(req.body, schema.addDelegate, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

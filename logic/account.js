@@ -393,14 +393,14 @@ Account.prototype.removeTables = function (cb) {
 };
 
 Account.prototype.objectNormalize = function (account) {
-	var report = this.scope.scheme.validate(account, {
+	var report = this.scope.schema.validate(account, {
 		id: 'Account',
 		object: true,
 		properties: this.filter
 	});
 
 	if (!report) {
-		throw 'Failed to validate account schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

@@ -439,7 +439,7 @@ Transactions.prototype.onPeersReady = function () {
 
 // Shared
 shared.getTransactions = function (req, cb) {
-	library.scheme.validate(req.body, schema.getTransactions, function (err) {
+	library.schema.validate(req.body, schema.getTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -455,7 +455,7 @@ shared.getTransactions = function (req, cb) {
 };
 
 shared.getTransaction = function (req, cb) {
-	library.scheme.validate(req.body, schema.getTransaction, function (err) {
+	library.schema.validate(req.body, schema.getTransaction, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -470,7 +470,7 @@ shared.getTransaction = function (req, cb) {
 };
 
 shared.getUnconfirmedTransaction = function (req, cb) {
-	library.scheme.validate(req.body, schema.getUnconfirmedTransaction, function (err) {
+	library.schema.validate(req.body, schema.getUnconfirmedTransaction, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -486,7 +486,7 @@ shared.getUnconfirmedTransaction = function (req, cb) {
 };
 
 shared.getUnconfirmedTransactions = function (req, cb) {
-	library.scheme.validate(req.body, schema.getUnconfirmedTransactions, function (err) {
+	library.schema.validate(req.body, schema.getUnconfirmedTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -511,7 +511,7 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 };
 
 shared.addTransactions = function (req, cb) {
-	library.scheme.validate(req.body, schema.addTransactions, function (err) {
+	library.schema.validate(req.body, schema.addTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

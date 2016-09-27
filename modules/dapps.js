@@ -939,7 +939,7 @@ __private.createRoutes = function (dapp, cb) {
 __private.launchDApp = function (body, cb) {
 	async.waterfall([
 		function (waterCb) {
-			library.scheme.validate(body, schema.launch, function (err) {
+			library.schema.validate(body, schema.launch, function (err) {
 				if (err) {
 					return setImmediate(waterCb, err[0].message);
 				} else {
@@ -1130,7 +1130,7 @@ __private.stopDApp = function (dapp, cb) {
 };
 
 __private.addTransactions = function (req, cb) {
-	library.scheme.validate(req.body, schema.addTransactions, function (err) {
+	library.schema.validate(req.body, schema.addTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -1258,7 +1258,7 @@ __private.addTransactions = function (req, cb) {
 };
 
 __private.sendWithdrawal = function (req, cb) {
-	library.scheme.validate(req.body, schema.sendWithdrawal, function (err) {
+	library.schema.validate(req.body, schema.sendWithdrawal, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

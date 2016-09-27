@@ -1044,7 +1044,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 			return setImmediate(cb, err, lastValidBlock);
 		}
 
-		var report = library.scheme.validate(res.body.blocks, schema.loadBlocksFromPeer);
+		var report = library.schema.validate(res.body.blocks, schema.loadBlocksFromPeer);
 
 		if (!report) {
 			return setImmediate(cb, 'Received invalid blocks data', lastValidBlock);
@@ -1213,7 +1213,7 @@ shared.getBlock = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.scheme.validate(req.body, schema.getBlock, function (err) {
+	library.schema.validate(req.body, schema.getBlock, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -1234,7 +1234,7 @@ shared.getBlocks = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.scheme.validate(req.body, schema.getBlocks, function (err) {
+	library.schema.validate(req.body, schema.getBlocks, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

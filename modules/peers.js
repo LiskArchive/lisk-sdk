@@ -66,7 +66,7 @@ __private.updatePeersList = function (cb) {
 			return setImmediate(cb);
 		}
 
-		library.scheme.validate(res.body, schema.updatePeersList.peers, function (err) {
+		library.schema.validate(res.body, schema.updatePeersList.peers, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
@@ -99,7 +99,7 @@ __private.updatePeersList = function (cb) {
 			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
 
 			async.eachLimit(peers, 2, function (peer, cb) {
-				library.scheme.validate(peer, schema.updatePeersList.peer, function (err) {
+				library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
 					if (err) {
 						err.forEach(function (e) {
 							library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
@@ -429,7 +429,7 @@ Peers.prototype.onPeersReady = function () {
 // Shared
 
 shared.getPeers = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPeers, function (err) {
+	library.schema.validate(req.body, schema.getPeers, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -449,7 +449,7 @@ shared.getPeers = function (req, cb) {
 };
 
 shared.getPeer = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPeer, function (err) {
+	library.schema.validate(req.body, schema.getPeer, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

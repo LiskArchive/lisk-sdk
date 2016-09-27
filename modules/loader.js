@@ -87,7 +87,7 @@ __private.loadSignatures = function (cb) {
 			return setImmediate(cb);
 		}
 
-		library.scheme.validate(res.body, schema.loadSignatures, function (err) {
+		library.schema.validate(res.body, schema.loadSignatures, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
@@ -117,7 +117,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			return setImmediate(cb);
 		}
 
-		var report = library.scheme.validate(res.body, schema.loadUnconfirmedTransactions);
+		var report = library.schema.validate(res.body, schema.loadUnconfirmedTransactions);
 
 		if (!report) {
 			return setImmediate(cb);
@@ -428,7 +428,7 @@ Loader.prototype.getNetwork = function (cb) {
 			return setImmediate(cb, err);
 		}
 
-		library.scheme.validate(res.body, schema.getNetwork.peers, function (err) {
+		library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -439,7 +439,7 @@ Loader.prototype.getNetwork = function (cb) {
 
 			// Validate each peer and then attempt to get its height
 			async.map(peers, function (peer, cb) {
-				var peerIsValid = library.scheme.validate(peer, schema.getNetwork.peer);
+				var peerIsValid = library.schema.validate(peer, schema.getNetwork.peer);
 
 				if (peerIsValid) {
 					modules.transport.getFromPeer(peer, {
@@ -452,7 +452,7 @@ Loader.prototype.getNetwork = function (cb) {
 							return setImmediate(cb);
 						}
 
-						var heightIsValid = library.scheme.validate(res.body, schema.getNetwork.height);
+						var heightIsValid = library.schema.validate(res.body, schema.getNetwork.height);
 
 						if (heightIsValid) {
 							library.logger.info(['Received height:', res.body.height, 'from peer'].join(' '), peer.string);

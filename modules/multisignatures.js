@@ -75,7 +75,7 @@ Multisignatures.prototype.onBind = function (scope) {
 };
 
 shared.getAccounts = function (req, cb) {
-	library.scheme.validate(req.body, schema.getAccounts, function (err) {
+	library.schema.validate(req.body, schema.getAccounts, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -124,7 +124,7 @@ shared.getAccounts = function (req, cb) {
 
 // Shared
 shared.pending = function (req, cb) {
-	library.scheme.validate(req.body, schema.pending, function (err) {
+	library.schema.validate(req.body, schema.pending, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -303,7 +303,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 };
 
 shared.sign = function (req, cb) {
-	library.scheme.validate(req.body, schema.sign, function (err) {
+	library.schema.validate(req.body, schema.sign, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -392,7 +392,7 @@ shared.sign = function (req, cb) {
 };
 
 shared.addMultisignature = function (req, cb) {
-	library.scheme.validate(req.body, schema.addMultisignature, function (err) {
+	library.schema.validate(req.body, schema.addMultisignature, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
