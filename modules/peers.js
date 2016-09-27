@@ -60,14 +60,13 @@ __private.attachApi = function () {
 __private.updatePeersList = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/list',
-		method: 'GET',
-		ban: true
+		method: 'GET'
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
 		}
 
-		library.scheme.validate(res.body, schema.updatePeersList.peers, function (err) {
+		library.schema.validate(res.body, schema.updatePeersList.peers, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
@@ -100,7 +99,9 @@ __private.updatePeersList = function (cb) {
 			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
 
 			async.eachLimit(peers, 2, function (peer, cb) {
-				library.scheme.validate(peer, schema.updatePeersList.peer, function (err) {
+				peer = self.inspect(peer);
+
+				library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
 					if (err) {
 						err.forEach(function (e) {
 							library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
@@ -204,30 +205,24 @@ __private.getByFilter = function (filter, cb) {
 
 // Public methods
 Peers.prototype.inspect = function (peer) {
+	peer = peer || {};
+
+	if (/^[0-9]+$/.test(peer.ip)) {
+		peer.ip = ip.fromLong(peer.ip);
+	}
+
+	peer.port = parseInt(peer.port);
+
 	if (peer.ip) {
 		peer.string = (peer.ip + ':' + peer.port || 'unknown');
 	} else {
 		peer.string = 'unknown';
 	}
+
+	peer.os = peer.os || 'unknown';
+	peer.version = peer.version || '0.0.0';
+
 	return peer;
-};
-
-Peers.prototype.accept = function (peer) {
-	if (/^[0-9]+$/.test(peer.ip)) {
-		peer.ip = ip.fromLong(peer.ip);
-	}
-	peer.port = parseInt(peer.port);
-
-	if (!peer || !peer.ip || !peer.port) {
-		throw 'Rejecting invalid peer data: ' + util.inspect(peer);
-	} else if (!ip.isV4Format(peer.ip) && !ip.isV6Format(peer.ip)) {
-		throw 'Rejecting peer with invalid ip address: ' + peer.ip;
-	} else if (isNaN(peer.port) || peer.port === 0 || peer.port > 65535) {
-		throw 'Rejecting peer with invalid port: ' + peer.port;
-	} else {
-		peer = this.inspect(peer);
-		return peer;
-	}
 };
 
 Peers.prototype.list = function (options, cb) {
@@ -396,11 +391,12 @@ Peers.prototype.onBlockchainReady = function () {
 					if (err) {
 						library.logger.error('Peers#updatePeersList error', err);
 					}
-					library.bus.message('peerReady');
+					library.bus.message('peersReady');
 				});
 				library.logger.info('Peers ready, stored ' + count);
 			} else {
 				library.logger.warn('Peers list is empty');
+				library.bus.message('peersReady');
 			}
 		});
 	});
@@ -429,7 +425,7 @@ Peers.prototype.onPeersReady = function () {
 // Shared
 
 shared.getPeers = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPeers, function (err) {
+	library.schema.validate(req.body, schema.getPeers, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -449,7 +445,7 @@ shared.getPeers = function (req, cb) {
 };
 
 shared.getPeer = function (req, cb) {
-	library.scheme.validate(req.body, schema.getPeer, function (err) {
+	library.schema.validate(req.body, schema.getPeer, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

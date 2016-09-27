@@ -33,7 +33,7 @@ module.exports = function (config) {
 
 	config.errorLevel = config.errorLevel || 'log';
 
-	var log_file = fs.createWriteStream(config.filename, { flags: 'a' });
+	var log_file = fs.createWriteStream(config.filename, {flags: 'a'});
 
 	exports.setLevel = function (errorLevel) {
 		config.errorLevel = errorLevel;

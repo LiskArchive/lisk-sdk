@@ -1,19 +1,19 @@
 'use strict';
 
-var program = require('commander');
-var packageJson = require('./package.json');
-var Logger = require('./logger.js');
 var appConfig = require('./config.json');
-var genesisblock = require('./genesisBlock.json');
 var async = require('async');
-var extend = require('extend');
-var path = require('path');
-var https = require('https');
-var fs = require('fs');
-var z_schema = require('z-schema');
-var util = require('util');
 var checkIpInList = require('./helpers/checkIpInList.js');
+var extend = require('extend');
+var fs = require('fs');
+var genesisblock = require('./genesisBlock.json');
+var https = require('https');
+var Logger = require('./logger.js');
+var packageJson = require('./package.json');
+var path = require('path');
+var program = require('commander');
 var Sequence = require('./helpers/sequence.js');
+var util = require('util');
+var z_schema = require('./helpers/z_schema.js');
 
 process.stdin.resume();
 
@@ -151,81 +151,7 @@ d.run(function () {
 			cb(null, path.join(__dirname, 'public'));
 		},
 
-		scheme: function (cb) {
-			z_schema.registerFormat('hex', function (str) {
-				try {
-					new Buffer(str, 'hex');
-				} catch (e) {
-					return false;
-				}
-
-				return true;
-			});
-
-			z_schema.registerFormat('publicKey', function (str) {
-				if (str.length === 0) {
-					return true;
-				}
-
-				try {
-					var publicKey = new Buffer(str, 'hex');
-
-					return publicKey.length === 32;
-				} catch (e) {
-					return false;
-				}
-			});
-
-			z_schema.registerFormat('splitarray', function (str) {
-				try {
-					var a = str.split(',');
-					if (a.length > 0 && a.length <= 1000) {
-						return true;
-					} else {
-						return false;
-					}
-				} catch (e) {
-					return false;
-				}
-			});
-
-			z_schema.registerFormat('signature', function (str) {
-				if (str.length === 0) {
-					return true;
-				}
-
-				try {
-					var signature = new Buffer(str, 'hex');
-					return signature.length === 64;
-				} catch (e) {
-					return false;
-				}
-			});
-
-			z_schema.registerFormat('listQuery', function (obj) {
-				obj.limit = 100;
-				return true;
-			});
-
-			z_schema.registerFormat('listDelegates', function (obj) {
-				obj.limit = 101;
-				return true;
-			});
-
-			z_schema.registerFormat('checkInt', function (value) {
-				/*jslint eqeq: true*/
-				if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
-					return false;
-				}
-
-				value = parseInt(value);
-				return true;
-			});
-
-			z_schema.registerFormat('ip', function (value) {
-
-			});
-
+		schema: function (cb) {
 			cb(null, new z_schema());
 		},
 
@@ -330,7 +256,7 @@ d.run(function () {
 				}
 			}));
 
-			scope.network.app.use(require('./helpers/zscheme-express.js')(scope.scheme));
+			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.schema));
 
 			scope.network.app.use(function (req, res, next) {
 				var parts = req.url.split('/');
@@ -421,7 +347,7 @@ d.run(function () {
 			db.connect(config.db, logger, cb);
 		},
 
-		logic: ['db', 'bus', 'scheme', 'genesisblock', function (scope, cb) {
+		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
@@ -439,21 +365,21 @@ d.run(function () {
 				logger: function (cb) {
 					cb(null, logger);
 				},
-				scheme: function (cb) {
-					cb(null, scope.scheme);
+				schema: function (cb) {
+					cb(null, scope.schema);
 				},
 				genesisblock: function (cb) {
 					cb(null, {
 						block: genesisblock
 					});
 				},
-				account: ['db', 'bus', 'ed', 'scheme', 'genesisblock', function (scope, cb) {
+				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', function (scope, cb) {
 					new Account(scope, cb);
 				}],
-				transaction: ['db', 'bus', 'ed', 'scheme', 'genesisblock', 'account', function (scope, cb) {
+				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', function (scope, cb) {
 					new Transaction(scope, cb);
 				}],
-				block: ['db', 'bus', 'ed', 'scheme', 'genesisblock', 'account', 'transaction', function (scope, cb) {
+				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 					new Block(scope, cb);
 				}]
 			}, cb);

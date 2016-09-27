@@ -773,10 +773,10 @@ Transaction.prototype.objectNormalize = function (trs) {
 		}
 	}
 
-	var report = this.scope.scheme.validate(trs, Transaction.prototype.schema);
+	var report = this.scope.schema.validate(trs, Transaction.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate transaction schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+		throw 'Failed to validate transaction schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

@@ -81,14 +81,13 @@ __private.syncTrigger = function (turnOn) {
 __private.loadSignatures = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/signatures',
-		method: 'GET',
-		ban: false
+		method: 'GET'
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
 		}
 
-		library.scheme.validate(res.body, schema.loadSignatures, function (err) {
+		library.schema.validate(res.body, schema.loadSignatures, function (err) {
 			if (err) {
 				return setImmediate(cb);
 			}
@@ -112,30 +111,34 @@ __private.loadSignatures = function (cb) {
 __private.loadUnconfirmedTransactions = function (cb) {
 	modules.transport.getFromRandomPeer({
 		api: '/transactions',
-		method: 'GET',
-		ban: true
+		method: 'GET'
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb);
 		}
 
-		var report = library.scheme.validate(res.body, schema.loadUnconfirmedTransactions);
+		var report = library.schema.validate(res.body, schema.loadUnconfirmedTransactions);
 
 		if (!report) {
 			return setImmediate(cb);
 		}
 
 		var peer = modules.peers.inspect(res.peer);
-
 		var transactions = res.body.transactions;
 
 		for (var i = 0; i < transactions.length; i++) {
+			var transaction = transactions[i];
+			var id = (transaction ? transactions.id : 'null');
+
 			try {
-				transactions[i] = library.logic.transaction.objectNormalize(transactions[i]);
+				transaction = library.logic.transaction.objectNormalize(transaction);
 			} catch (e) {
-				library.logger.warn(e.toString());
-				library.logger.warn('Transaction ' + (transactions[i] ? transactions[i].id : 'null') + ' is not valid, ban 60 min', peer.string);
+				library.logger.error(['Transaction', id].join(' '), e.toString());
+				if (transaction) { library.logger.error('Transaction', transaction); }
+
+				library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 				modules.peers.state(peer.ip, peer.port, 0, 3600);
+
 				return setImmediate(cb);
 			}
 		}
@@ -362,7 +365,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 	});
 };
 
-// Given a list of peers with associated blockchain height (heights = { peer: peer, height: height }), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
+// Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 __private.findGoodPeers = function (heights) {
 	// Removing unreachable peers
 	heights = heights.filter(function (item) {
@@ -404,7 +407,7 @@ __private.findGoodPeers = function (heights) {
 			item.peer.height = item.height;
 			return item.peer;
 		});
-		return { height: height, peers: peers };
+		return {height: height, peers: peers};
 	}
 };
 
@@ -423,15 +426,14 @@ Loader.prototype.getNetwork = function (cb) {
 	// Fetch a list of 100 random peers
 	modules.transport.getFromRandomPeer({
 		api: '/list',
-		method: 'GET',
-		ban: true
+		method: 'GET'
 	}, function (err, res) {
 		if (err) {
 			library.logger.info('Failed to connect properly with network', err);
 			return setImmediate(cb, err);
 		}
 
-		library.scheme.validate(res.body, schema.getNetwork.peers, function (err) {
+		library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -442,7 +444,7 @@ Loader.prototype.getNetwork = function (cb) {
 
 			// Validate each peer and then attempt to get its height
 			async.map(peers, function (peer, cb) {
-				var peerIsValid = library.scheme.validate(peer, schema.getNetwork.peer);
+				var peerIsValid = library.schema.validate(modules.peers.inspect(peer), schema.getNetwork.peer);
 
 				if (peerIsValid) {
 					modules.transport.getFromPeer(peer, {
@@ -455,7 +457,7 @@ Loader.prototype.getNetwork = function (cb) {
 							return setImmediate(cb);
 						}
 
-						var heightIsValid = library.scheme.validate(res.body, schema.getNetwork.height);
+						var heightIsValid = library.schema.validate(res.body, schema.getNetwork.height);
 
 						if (heightIsValid) {
 							library.logger.info(['Received height:', res.body.height, 'from peer'].join(' '), peer.string);
@@ -493,7 +495,7 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 };
 
 // Events
-Loader.prototype.onPeerReady = function () {
+Loader.prototype.onPeersReady = function () {
 	setImmediate(function nextLoadBlock () {
 		var lastReceipt = modules.blocks.lastReceipt();
 

@@ -141,7 +141,7 @@ __private.saveGenesisBlock = function (cb) {
 };
 
 __private.deleteBlock = function (blockId, cb) {
-	library.db.none(sql.deleteBlock, { id: blockId }).then(function () {
+	library.db.none(sql.deleteBlock, {id: blockId}).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -247,7 +247,7 @@ __private.list = function (filter, cb) {
 };
 
 __private.getById = function (id, cb) {
-	library.db.query(sql.getById, { id: id }).then(function (rows) {
+	library.db.query(sql.getById, {id: id}).then(function (rows) {
 		if (!rows.length) {
 			return setImmediate(cb, 'Block not found');
 		}
@@ -591,7 +591,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
 
-	library.logger.debug('Loading blocks offset', { limit: limit, offset: offset, verify: verify });
+	library.logger.debug('Loading blocks offset', {limit: limit, offset: offset, verify: verify});
 	library.dbSequence.add(function (cb) {
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
 			var blocks = __private.readDbRows(rows);
@@ -782,6 +782,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							if (err) {
 								err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 								library.logger.error(err);
+								library.logger.error('Transaction', transaction);
 								return setImmediate(eachSeriesCb, err);
 							}
 
@@ -824,14 +825,18 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 				async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
 					modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 						if (err) {
-							library.logger.error('Failed to apply transaction: ' + transaction.id);
+							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
 							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 							process.exit(0);
 						}
 						// DATABASE: write
 						modules.transactions.apply(transaction, block, sender, function (err) {
 							if (err) {
-								library.logger.error('Failed to apply transaction: ' + transaction.id);
+								err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+								library.logger.error(err);
+								library.logger.error('Transaction', transaction);
 								// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 								process.exit(0);
 							}
@@ -853,6 +858,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					__private.saveBlock(block, function (err) {
 						if (err) {
 							library.logger.error('Failed to save block...');
+							library.logger.error('Block', block);
 							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 							process.exit(0);
 						}
@@ -1023,7 +1029,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 };
 
 Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
-	library.db.query(sql.simpleDeleteAfterBlock, { id: blockId }).then(function (res) {
+	library.db.query(sql.simpleDeleteAfterBlock, {id: blockId}).then(function (res) {
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -1045,7 +1051,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 			return setImmediate(cb, err, lastValidBlock);
 		}
 
-		var report = library.scheme.validate(res.body.blocks, schema.loadBlocksFromPeer);
+		var report = library.schema.validate(res.body.blocks, schema.loadBlocksFromPeer);
 
 		if (!report) {
 			return setImmediate(cb, 'Received invalid blocks data', lastValidBlock);
@@ -1066,8 +1072,12 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 						lastValidBlock = block;
 						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 					} else {
-						library.logger.warn(err.message || err);
-						library.logger.warn(['Block', (block ? block.id : 'null'), 'is not valid, ban 60 min'].join(' '), peer.string);
+						var id = (block ? block.id : 'null');
+
+						library.logger.error(['Block', id].join(' '), err.toString());
+						if (block) { library.logger.error('Block', block); }
+
+						library.logger.warn(['Block', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 						modules.peers.state(peer.ip, peer.port, 0, 3600);
 					}
 					return setImmediate(cb, err);
@@ -1214,7 +1224,7 @@ shared.getBlock = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.scheme.validate(req.body, schema.getBlock, function (err) {
+	library.schema.validate(req.body, schema.getBlock, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -1235,7 +1245,7 @@ shared.getBlocks = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.scheme.validate(req.body, schema.getBlocks, function (err) {
+	library.schema.validate(req.body, schema.getBlocks, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

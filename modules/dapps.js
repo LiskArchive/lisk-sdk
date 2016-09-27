@@ -533,7 +533,7 @@ __private.attachApi = function () {
 
 // Private methods
 __private.get = function (id, cb) {
-	library.db.query(sql.get, { id: id }).then(function (rows) {
+	library.db.query(sql.get, {id: id}).then(function (rows) {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Application not found');
 		} else {
@@ -756,7 +756,7 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 
 			var request = popsicle.get({
 				url: dapp.link,
-				transport: popsicle.createTransport({ type: 'stream' })
+				transport: popsicle.createTransport({type: 'stream'})
 			});
 
 			request.then(function (res) {
@@ -939,7 +939,7 @@ __private.createRoutes = function (dapp, cb) {
 __private.launchDApp = function (body, cb) {
 	async.waterfall([
 		function (waterCb) {
-			library.scheme.validate(body, schema.launch, function (err) {
+			library.schema.validate(body, schema.launch, function (err) {
 				if (err) {
 					return setImmediate(waterCb, err[0].message);
 				} else {
@@ -1130,7 +1130,7 @@ __private.stopDApp = function (dapp, cb) {
 };
 
 __private.addTransactions = function (req, cb) {
-	library.scheme.validate(req.body, schema.addTransactions, function (err) {
+	library.schema.validate(req.body, schema.addTransactions, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -1258,7 +1258,7 @@ __private.addTransactions = function (req, cb) {
 };
 
 __private.sendWithdrawal = function (req, cb) {
-	library.scheme.validate(req.body, schema.sendWithdrawal, function (err) {
+	library.schema.validate(req.body, schema.sendWithdrawal, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

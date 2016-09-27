@@ -80,7 +80,7 @@ shared.getFee = function (req, cb) {
 };
 
 shared.addSignature = function (req, cb) {
-	library.scheme.validate(req.body, schema.addSignature, function (err) {
+	library.schema.validate(req.body, schema.addSignature, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

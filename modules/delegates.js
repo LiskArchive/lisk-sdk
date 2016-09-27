@@ -86,7 +86,7 @@ __private.attachApi = function () {
 	}
 
 	router.post('/forging/enable', function (req, res) {
-		library.scheme.validate(req.body, schema.enableForging, function (err) {
+		library.schema.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -125,7 +125,7 @@ __private.attachApi = function () {
 	});
 
 	router.post('/forging/disable', function (req, res) {
-		library.scheme.validate(req.body, schema.disableForging, function (err) {
+		library.schema.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -164,7 +164,7 @@ __private.attachApi = function () {
 	});
 
 	router.get('/forging/status', function (req, res) {
-		library.scheme.validate(req.query, schema.forgingStatus, function (err) {
+		library.schema.validate(req.query, schema.forgingStatus, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
@@ -226,7 +226,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
-		library.logger.debug('No delegates found to forge with');
+		library.logger.debug('No delegates enabled');
 		return setImmediate(cb);
 	}
 
@@ -454,7 +454,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 			delegates[i].productivity = (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0;
 		}
 
-		var orderBy = OrderBy(query.orderBy, { quoteField: false });
+		var orderBy = OrderBy(query.orderBy, {quoteField: false});
 
 		if (orderBy.error) {
 			return setImmediate(cb, orderBy.error);
@@ -593,7 +593,7 @@ __private.toggleForgingOnReceipt = function () {
 
 // Shared
 shared.getDelegate = function (req, cb) {
-	library.scheme.validate(req.body, schema.getDelegate, function (err) {
+	library.schema.validate(req.body, schema.getDelegate, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -623,7 +623,7 @@ shared.getDelegate = function (req, cb) {
 };
 
 shared.search = function (req, cb) {
-	library.scheme.validate(req.body, schema.search, function (err) {
+	library.schema.validate(req.body, schema.search, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -645,7 +645,7 @@ shared.search = function (req, cb) {
 			sortField: orderBy.sortField,
 			sortMethod: orderBy.sortMethod
 		})).then(function (rows) {
-			return setImmediate(cb, null, { delegates: rows });
+			return setImmediate(cb, null, {delegates: rows});
 		}).catch(function (err) {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Database search failed');
@@ -663,7 +663,7 @@ shared.count = function (req, cb) {
 };
 
 shared.getVoters = function (req, cb) {
-	library.scheme.validate(req.body, schema.getVoters, function (err) {
+	library.schema.validate(req.body, schema.getVoters, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -679,7 +679,7 @@ shared.getVoters = function (req, cb) {
 					return setImmediate(cb, err);
 				}
 
-				return setImmediate(cb, null, { accounts: rows });
+				return setImmediate(cb, null, {accounts: rows});
 			});
 		}).catch(function (err) {
 			library.logger.error(err.stack);
@@ -689,7 +689,7 @@ shared.getVoters = function (req, cb) {
 };
 
 shared.getDelegates = function (req, cb) {
-	library.scheme.validate(req.body, schema.getDelegates, function (err) {
+	library.schema.validate(req.body, schema.getDelegates, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -709,7 +709,7 @@ shared.getDelegates = function (req, cb) {
 				}
 			}
 
-			function compadatatring (a, b) {
+			function compareString (a, b) {
 				var sorta = a[data.sortField];
 				var sortb = b[data.sortField];
 				if (data.sortMethod === 'ASC') {
@@ -723,7 +723,7 @@ shared.getDelegates = function (req, cb) {
 				if (['approval', 'productivity', 'rate', 'vote'].indexOf(data.sortField) > -1) {
 					data.delegates = data.delegates.sort(compareNumber);
 				} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
-					data.delegates = data.delegates.sort(compadatatring);
+					data.delegates = data.delegates.sort(compareString);
 				} else {
 					return setImmediate(cb, 'Invalid sort field');
 				}
@@ -741,7 +741,7 @@ shared.getFee = function (req, cb) {
 };
 
 shared.getForgedByAccount = function (req, cb) {
-	library.scheme.validate(req.body, schema.getForgedByAccount, function (err) {
+	library.schema.validate(req.body, schema.getForgedByAccount, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -757,7 +757,7 @@ shared.getForgedByAccount = function (req, cb) {
 };
 
 shared.addDelegate = function (req, cb) {
-	library.scheme.validate(req.body, schema.addDelegate, function (err) {
+	library.schema.validate(req.body, schema.addDelegate, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

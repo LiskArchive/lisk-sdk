@@ -293,10 +293,10 @@ Block.prototype.objectNormalize = function (block) {
 		}
 	}
 
-	var report = this.scope.scheme.validate(block, Block.prototype.schema);
+	var report = this.scope.schema.validate(block, Block.prototype.schema);
 
   if (!report) {
-		throw 'Failed to validate block schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+		throw 'Failed to validate block schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

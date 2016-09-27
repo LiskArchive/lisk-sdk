@@ -41,13 +41,16 @@ __private.attachApi = function () {
 
 	router.use(function (req, res, next) {
 		try {
-			req.peer = modules.peers.accept(
+			req.peer = modules.peers.inspect(
 				{
 					ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
 					port: req.headers.port
 				}
 			);
 		} catch (e) {
+			// Remove peer
+			__private.removePeer({peer: req.peer, code: 'EHEADERS', req: req});
+
 			library.logger.debug(e.toString());
 			return res.status(406).send({success: false, error: 'Invalid request headers'});
 		}
@@ -57,9 +60,17 @@ __private.attachApi = function () {
 
 		req.sanitize(headers, schema.headers, function (err, report) {
 			if (err) { return next(err); }
-			if (!report.isValid) { return res.status(500).send({status: false, error: report.issues}); }
+			if (!report.isValid) {
+				// Remove peer
+				__private.removePeer({peer: req.peer, code: 'EHEADERS', req: req});
+
+				return res.status(500).send({status: false, error: report.issues});
+			}
 
 			if (headers.nethash !== library.config.nethash) {
+				// Remove peer
+				__private.removePeer({peer: req.peer, code: 'ENETHASH', req: req});
+
 				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: library.config.nethash, received: headers.nethash});
 			}
 
@@ -149,16 +160,18 @@ __private.attachApi = function () {
 	router.post('/blocks', function (req, res) {
 		res.set(__private.headers);
 
-		var block;
+		var block = req.body.block;
+		var id = (block ? block.id : 'null');
 
 		try {
-			block = library.logic.block.objectNormalize(req.body.block);
+			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
-			library.logger.warn('Block ' + (block ? block.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
-			library.logger.warn(e.toString());
+			library.logger.error(['Block', id].join(' '), e.toString());
+			if (block) { library.logger.error('Block', block); }
 
 			if (req.peer) {
-				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
+				// Ban peer for 60 minutes
+				__private.banPeer({peer: req.peer, code: 'EBLOCK', req: req, clock: 3600});
 			}
 
 			return res.status(200).json({success: false, error: e.toString()});
@@ -172,7 +185,7 @@ __private.attachApi = function () {
 	router.post('/signatures', function (req, res) {
 		res.set(__private.headers);
 
-		library.scheme.validate(req.body, schema.signatures, function (err) {
+		library.schema.validate(req.body, schema.signatures, function (err) {
 			if (err) {
 				return res.status(200).json({success: false, error: 'Signature validation failed'});
 			}
@@ -215,16 +228,18 @@ __private.attachApi = function () {
 	router.post('/transactions', function (req, res) {
 		res.set(__private.headers);
 
-		var transaction;
+		var transaction = req.body.transaction;
+		var id = (transaction? transaction.id : 'null');
 
 		try {
-			transaction = library.logic.transaction.objectNormalize(req.body.transaction);
+			transaction = library.logic.transaction.objectNormalize(transaction);
 		} catch (e) {
-			library.logger.warn('Received transaction ' + (transaction ? transaction.id : 'null') + ' is not valid, ban 60 min', req.peer.string);
-			library.logger.warn(e.toString());
+			library.logger.error(['Transaction', id].join(' '), e.toString());
+			if (transaction) { library.logger.error('Transaction', transaction); }
 
 			if (req.peer) {
-				modules.peers.state(req.peer.ip, req.peer.port, 0, 3600);
+				// Ban peer for 60 minutes
+				__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 3600});
 			}
 
 			return res.status(200).json({success: false, message: 'Invalid transaction body'});
@@ -235,7 +250,9 @@ __private.attachApi = function () {
 			modules.transactions.receiveTransactions([transaction], cb);
 		}, function (err) {
 			if (err) {
-				library.logger.error(err);
+				library.logger.error(['Transaction', id].join(' '), err.toString());
+				if (transaction) { library.logger.error('Transaction', transaction); }
+
 				res.status(200).json({success: false, message: err.toString()});
 			} else {
 				res.status(200).json({success: true, transactionId: transaction.id});
@@ -352,6 +369,18 @@ __private.hashsum = function (obj) {
 	return bignum.fromBuffer(temp).toString();
 };
 
+__private.banPeer = function (options) {
+	modules.peers.state(options.peer.ip, options.peer.port, 0, options.clock, function (err) {
+		library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
+	});
+};
+
+__private.removePeer = function (options) {
+	modules.peers.remove(options.peer.ip, options.peer.port, function (err) {
+		library.logger.warn([options.code, 'Removing peer', options.peer.string, options.req.method, options.req.url].join(' '));
+	});
+};
+
 // Public methods
 Transport.prototype.broadcast = function (config, options, cb) {
 	config.limit = config.limit || 1;
@@ -382,7 +411,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 			if (!err && peers.length) {
 				return self.getFromPeer(peers[0], options, cb);
 			} else {
-				return setImmediate(cb, err || 'No peers in db');
+				return setImmediate(cb, err || 'No reachable peers in db');
 			}
 		});
 	}, function (err, results) {
@@ -399,7 +428,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		url = options.url;
 	}
 
-	peer = modules.peers.accept(peer);
+	peer = modules.peers.inspect(peer);
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
@@ -418,17 +447,26 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 	request.then(function (res) {
 		if (res.status !== 200) {
+			// Ban peer for 10 minutes
+			__private.banPeer({peer: peer, code: 'ERESPONSE', req: req, clock: 600});
+
 			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
 		} else {
 			var headers = res.headers;
 			headers.port = parseInt(headers.port);
 
-			var report = library.scheme.validate(headers, schema.headers);
+			var report = library.schema.validate(headers, schema.headers);
 			if (!report) {
+				// Remove peer
+				__private.removePeer({peer: peer, code: 'EHEADERS', req: req});
+
 				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
 			}
 
 			if (headers.nethash !== library.config.nethash) {
+				// Remove peer
+				__private.removePeer({peer: peer, code: 'ENETHASH', req: req});
+
 				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
 			}
 
@@ -449,19 +487,11 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	request.catch(function (err) {
 		if (peer) {
 			if (err.code === 'EUNAVAILABLE') {
-				modules.peers.remove(peer.ip, peer.port, function (err2) {
-					if (!err2) {
-						library.logger.warn([err.code, 'Removing peer', req.method, req.url].join(' '));
-					}
-				});
+				// Remove peer
+				__private.removePeer({peer: peer, code: err.code, req: req});
 			} else {
-				if (options.ban) {
-					modules.peers.state(peer.ip, peer.port, 0, 600, function (err2) {
-						if (!err2) {
-							library.logger.warn([err.code, 'Ban 10 min', req.method, req.url].join(' '));
-						}
-					});
-				}
+				// Ban peer for 10 minutes
+				__private.banPeer({peer: peer, code: err.code, req: req, clock: 600});
 			}
 		}
 
@@ -542,7 +572,7 @@ shared.request = function (msg, cb) {
 			method: 'POST'
 		}, cb);
 	} else {
-		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST', ban: true}, cb);
+		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST'}, cb);
 	}
 };
 

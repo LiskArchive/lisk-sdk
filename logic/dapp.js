@@ -276,10 +276,10 @@ DApp.prototype.objectNormalize = function (trs) {
 		}
 	}
 
-	var report = library.scheme.validate(trs.asset.dapp, DApp.prototype.schema);
+	var report = library.schema.validate(trs.asset.dapp, DApp.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate dapp schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+		throw 'Failed to validate dapp schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

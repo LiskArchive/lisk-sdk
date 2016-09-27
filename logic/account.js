@@ -358,7 +358,7 @@ function Account (scope, cb) {
 }
 
 Account.prototype.createTables = function (cb) {
-	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), { minify: true });
+	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), {minify: true});
 
 	db.query(sql).then(function () {
 		return setImmediate(cb);
@@ -393,14 +393,14 @@ Account.prototype.removeTables = function (cb) {
 };
 
 Account.prototype.objectNormalize = function (account) {
-	var report = this.scope.scheme.validate(account, {
+	var report = this.scope.schema.validate(account, {
 		id: 'Account',
 		object: true,
 		properties: this.filter
 	});
 
 	if (!report) {
-		throw 'Failed to validate account schema: ' + this.scope.scheme.getLastErrors().map(function (err) {
+		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
@@ -749,7 +749,7 @@ Account.prototype.merge = function (address, diff, cb) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			self.get({ address: address }, cb);
+			self.get({address: address}, cb);
 		}
 	}
 
