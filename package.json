@@ -64,7 +64,7 @@
     "grunt-obfuscator": "=0.1.0",
     "jsdox": "=0.4.10",
     "jshint": "=2.9.3",
-    "mocha": "=3.0.2",
+    "mocha": "=3.1.0",
     "moment": "=2.15.1",
     "supertest": "=2.0.0"
   },
