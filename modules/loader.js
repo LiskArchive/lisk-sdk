@@ -439,7 +439,7 @@ Loader.prototype.getNetwork = function (cb) {
 
 			// Validate each peer and then attempt to get its height
 			async.map(peers, function (peer, cb) {
-				var peerIsValid = library.schema.validate(peer, schema.getNetwork.peer);
+				var peerIsValid = library.schema.validate(modules.peers.inspect(peer), schema.getNetwork.peer);
 
 				if (peerIsValid) {
 					modules.transport.getFromPeer(peer, {
