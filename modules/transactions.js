@@ -243,14 +243,19 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 	// Check transaction indexes
 	if (__private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || __private.doubleSpendingTransactions[transaction.id]) {
-		library.logger.debug('Transaction ' + transaction.id + ' already exists, ignoring...');
+		library.logger.debug('Transaction is already processed: ' + transaction.id);
 		return setImmediate(cb);
 	}
 
 	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-		function done(err) {
+		function done (err, ignore) {
 			if (err) {
-				return setImmediate(cb, err);
+				if (ignore) {
+					library.logger.debug(err);
+					return setImmediate(cb);
+				} else {
+					return setImmediate(cb, err);
+				}
 			}
 
 			__private.addUnconfirmedTransaction(transaction, sender, function (err) {
@@ -278,18 +283,18 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 					return setImmediate(cb, 'Requester not found');
 				}
 
-				library.logic.transaction.process(transaction, sender, requester, function (err, transaction) {
+				library.logic.transaction.process(transaction, sender, requester, function (err, transaction, ignore) {
 					if (err) {
-						return done(err);
+						return done(err, ignore);
 					}
 
 					library.logic.transaction.verify(transaction, sender, done);
 				});
 			});
 		} else {
-			library.logic.transaction.process(transaction, sender, function (err, transaction) {
+			library.logic.transaction.process(transaction, sender, function (err, transaction, ignore) {
 				if (err) {
-					return done(err);
+					return done(err, ignore);
 				}
 
 				library.logic.transaction.verify(transaction, sender, done);
