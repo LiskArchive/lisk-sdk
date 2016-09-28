@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
-    "consoleLogLevel": "info",
+    "consoleLogLevel": "debug",
     "trustProxy": false,
     "db": {
         "host": "localhost",
@@ -43,7 +43,7 @@
                 "windowMs": 60000
             },
             "maxUpdatePeers": 20,
-            "timeout": 4000
+            "timeout": 5000
         }
     },
     "forging": {

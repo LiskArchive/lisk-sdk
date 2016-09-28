@@ -66,7 +66,7 @@ OutTransfer.prototype.process = function (trs, sender, cb) {
 		}
 
 		if (__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId]) {
-			return setImmediate(cb, 'Transaction is already processing: ' + trs.asset.outTransfer.transactionId);
+			return setImmediate(cb, 'Transaction is already processed: ' + trs.asset.outTransfer.transactionId);
 		}
 
 		library.db.one(sql.countByOutTransactionId, {

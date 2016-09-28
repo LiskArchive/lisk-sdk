@@ -61,6 +61,38 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
+	it('using already processed transaction should be ok', function (done) {
+		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+
+			postTransaction(transaction, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+				done();
+			});
+		});
+	});
+
+	it('using already confirmed transaction should be ok', function (done) {
+		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+
+			node.onNewBlock(function (err) {
+				postTransaction(transaction, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+					done();
+				});
+			});
+		});
+	});
+
 	it('using varying recipientId casing should go to same address', function (done) {
 		var account = node.randomAccount();
 		var keys = node.lisk.crypto.getKeys(account.password);

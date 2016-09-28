@@ -447,8 +447,8 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 	request.then(function (res) {
 		if (res.status !== 200) {
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'ERESPONSE', req: req, clock: 600});
+			// Remove peer
+			__private.removePeer({peer: peer, code: 'ERESPONSE ' + res.status, req: req});
 
 			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
 		} else {
@@ -486,7 +486,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 	request.catch(function (err) {
 		if (peer) {
-			if (err.code === 'EUNAVAILABLE') {
+			if (err.code === 'EUNAVAILABLE' || err.code === 'ETIMEOUT') {
 				// Remove peer
 				__private.removePeer({peer: peer, code: err.code, req: req});
 			} else {

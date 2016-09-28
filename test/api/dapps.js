@@ -761,7 +761,7 @@ describe('PUT /api/dapps/withdrawal', function () {
 			setTimeout(function () {
 				putWithdrawal(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').to.equal('Transaction is already processing: ' + validParams.transactionId);
+					node.expect(res.body).to.have.property('error').to.equal('Transaction is already processed: ' + validParams.transactionId);
 					done();
 				});
 			}, 2000);
