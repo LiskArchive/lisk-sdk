@@ -448,7 +448,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	request.then(function (res) {
 		if (res.status !== 200) {
 			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'ERESPONSE', req: req, clock: 600});
+			__private.banPeer({peer: peer, code: 'ERESPONSE ' + res.status, req: req, clock: 600});
 
 			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
 		} else {
