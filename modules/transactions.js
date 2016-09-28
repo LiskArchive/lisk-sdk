@@ -280,7 +280,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 				}
 
 				if (!requester) {
-					return setImmediate(cb, 'Requester not found');
+					return done('Requester not found');
 				}
 
 				library.logic.transaction.process(transaction, sender, requester, function (err, transaction, ignore) {
