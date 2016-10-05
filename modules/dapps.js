@@ -64,11 +64,11 @@ function OutTransfer() {
 			return setImmediate(cb, "Invalid transaction amount");
 		}
 
-		if (!/^[0-9]+$/.test(trs.asset.outTransfer.dappId)) {
+		if (!trs.asset.outTransfer.dappId) {
 			return setImmediate(cb, "Invalid outTransfer dappId");
 		}
 
-		if (!/^[0-9]+$/.test(trs.asset.outTransfer.transactionId)) {
+		if (!trs.asset.outTransfer.transactionId) {
 			return setImmediate(cb, "Invalid outTransfer transactionId");
 		}
 
@@ -226,17 +226,12 @@ function OutTransfer() {
 	}
 
 	this.afterSave = function (trs, cb) {
-		modules.dapps.message(trs.asset.outTransfer.dappId, {
+		self.message(trs.asset.outTransfer.dappId, {
 			topic: "withdrawal",
 			message: {
 				transactionId: trs.id
 			}
-		}, function (err) {
-			if (err) {
-				library.logger.debug(err);
-			}
-			return cb();
-		});
+		}, cb);
 	}
 
 	this.ready = function (trs, sender) {
@@ -308,7 +303,7 @@ function InTransfer() {
 	}
 
 	this.apply = function (trs, block, sender, cb) {
-		shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
+		shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
 			if (err) {
 				return cb(err);
 			}
@@ -325,7 +320,7 @@ function InTransfer() {
 	}
 
 	this.undo = function (trs, block, sender, cb) {
-		shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
+		shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
 			if (err) {
 				return cb(err);
 			}
@@ -1977,8 +1972,7 @@ private.addTransactions = function (req, cb) {
 			},
 			dappId: {
 				type: "string",
-				minLength: 1,
-				maxLength: 20
+				minLength: 1
 			},
 			multisigAccountPublicKey: {
 				type: "string",
@@ -2120,7 +2114,7 @@ DApps.prototype.message = function (dappid, body, cb) {
 
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!private.sandboxes[dappid]) {
-		return cb("Application sandbox not found");
+		return cb("Application not found");
 	}
 	if (!private.dappready[dappid]) {
 		return cb("Application not ready");
@@ -2239,17 +2233,12 @@ shared.sendWithdrawal = function (req, cb) {
 			recipientId: {
 				type: "string",
 				minLength: 2,
-				maxLength: 22
+				maxLength: 21
 			},
 			secondSecret: {
 				type: "string",
 				minLength: 1,
 				maxLength: 100
-			},
-			dappId: {
-				type: "string",
-				minLength: 1,
-				maxLength: 20
 			},
 			transactionId: {
 				type: "string",
@@ -2261,7 +2250,7 @@ shared.sendWithdrawal = function (req, cb) {
 				format: "publicKey"
 			}
 		},
-		required: ["secret", "recipientId", "amount", "dappId", "transactionId"]
+		required: ["secret", "recipientId", "amount", "transactionId"]
 	}, function (err) {
 		if (err) {
 			return cb(err[0].message);
@@ -2328,7 +2317,7 @@ shared.sendWithdrawal = function (req, cb) {
 								keypair: keypair,
 								secondKeypair: secondKeypair,
 								requester: keypair,
-								dappId: body.dappId,
+								dappId: req.dappid,
 								transactionId: body.transactionId
 							});
 						} catch (e) {
@@ -2367,7 +2356,7 @@ shared.sendWithdrawal = function (req, cb) {
 							recipientId: body.recipientId,
 							keypair: keypair,
 							secondKeypair: secondKeypair,
-							dappId: body.dappId,
+							dappId: req.dappid,
 							transactionId: body.transactionId
 						});
 					} catch (e) {
