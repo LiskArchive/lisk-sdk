@@ -386,11 +386,7 @@ d.run(function () {
 
 		}],
 
-		ed: function (cb) {
-			cb(null, require("./helpers/ed.js"));
-		},
-
-		bus: ["ed", function (cb) {
+		bus: function (cb) {
 			var changeCase = require("change-case");
 			var bus = function () {
 				this.message = function () {
@@ -406,7 +402,7 @@ d.run(function () {
 				}
 			}
 			cb(null, new bus);
-		}],
+		},
 
 		db: function (cb) {
 			var db = require("./helpers/database.js");
@@ -425,9 +421,6 @@ d.run(function () {
 				db: function (cb) {
 					cb(null, scope.db);
 				},
-				ed: function (cb) {
-					cb(null, scope.ed);
-				},
 				logger: function (cb) {
 					cb(null, logger);
 				},
@@ -439,13 +432,13 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ["db", "bus", "ed", "scheme", "genesisblock", function (cb, scope) {
+				account: ["db", "bus", "scheme", "genesisblock", function (cb, scope) {
 					new Account(scope, cb);
 				}],
-				transaction: ["db", "bus", "ed", "scheme", "genesisblock", "account", function (cb, scope) {
+				transaction: ["db", "bus", "scheme", "genesisblock", "account", function (cb, scope) {
 					new Transaction(scope, cb);
 				}],
-				block: ["db", "bus", "ed", "scheme", "genesisblock", "account", "transaction", function (cb, scope) {
+				block: ["db", "bus", "scheme", "genesisblock", "account", "transaction", function (cb, scope) {
 					new Block(scope, cb);
 				}]
 			}, cb);

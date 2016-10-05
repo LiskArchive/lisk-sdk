@@ -1,3 +1,4 @@
+var ed = require("ed25519");
 var ByteBuffer = require("bytebuffer");
 var crypto = require("crypto");
 var constants = require("../helpers/constants.js");
@@ -252,7 +253,7 @@ shared.addSignature = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = library.ed.makeKeypair(hash);
+		var keypair = ed.MakeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
@@ -301,7 +302,7 @@ shared.addSignature = function (req, cb) {
 						}
 
 						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						var secondKeypair = library.ed.makeKeypair(secondHash);
+						var secondKeypair = ed.MakeKeypair(secondHash);
 
 						try {
 							var transaction = library.logic.transaction.create({
@@ -333,7 +334,7 @@ shared.addSignature = function (req, cb) {
 					}
 
 					var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-					var secondKeypair = library.ed.makeKeypair(secondHash);
+					var secondKeypair = ed.MakeKeypair(secondHash);
 
 					try {
 						var transaction = library.logic.transaction.create({

@@ -1,3 +1,4 @@
+var ed = require("ed25519");
 var ByteBuffer = require("bytebuffer");
 var crypto = require("crypto");
 var genesisblock = null;
@@ -648,7 +649,7 @@ shared.sign = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = library.ed.makeKeypair(hash);
+		var keypair = ed.MakeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
@@ -767,7 +768,7 @@ shared.addMultisignature = function (req, cb) {
 		}
 
 		var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		var keypair = library.ed.makeKeypair(hash);
+		var keypair = ed.MakeKeypair(hash);
 
 		if (body.publicKey) {
 			if (keypair.publicKey.toString('hex') != body.publicKey) {
@@ -793,7 +794,7 @@ shared.addMultisignature = function (req, cb) {
 
 				if (account.secondSignature) {
 					var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-					secondKeypair = library.ed.makeKeypair(secondHash);
+					secondKeypair = ed.MakeKeypair(secondHash);
 				}
 
 				try {

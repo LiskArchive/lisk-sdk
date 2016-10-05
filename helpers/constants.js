@@ -29,11 +29,6 @@ module.exports = {
 		offset: 1451520,   // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
-	signatureExceptions: [
-		"5676385569187187158", // 868797
-		"5384302058030309746", // 869890
-		"9352922026980330230", // 925165
-	],
 	signatureLength: 196,
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks

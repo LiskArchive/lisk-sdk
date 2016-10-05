@@ -1,4 +1,5 @@
 var slots = require("../helpers/slots.js");
+var ed = require("ed25519");
 var crypto = require("crypto");
 var genesisblock = null;
 var bignum = require("../helpers/bignum.js");
@@ -93,7 +94,7 @@ Block.prototype.create = function (data) {
 Block.prototype.sign = function (block, keypair) {
 	var hash = this.getHash(block);
 
-	return this.scope.ed.sign(hash, keypair).toString('hex');
+	return ed.Sign(hash, keypair).toString('hex');
 }
 
 Block.prototype.getBytes = function (block) {
@@ -162,7 +163,7 @@ Block.prototype.verifySignature = function (block) {
 		var hash = crypto.createHash('sha256').update(data2).digest();
 		var blockSignatureBuffer = new Buffer(block.blockSignature, 'hex');
 		var generatorPublicKeyBuffer = new Buffer(block.generatorPublicKey, 'hex');
-		var res = this.scope.ed.verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ');
+		var res = ed.Verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ');
 	} catch (e) {
 		throw Error(e.toString());
 	}
