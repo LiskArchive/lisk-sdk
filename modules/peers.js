@@ -318,11 +318,12 @@ Peers.prototype.update = function (peer, cb) {
 		ip: peer.ip,
 		port: peer.port,
 		os: peer.os || null,
-		version: peer.version || null
+		version: peer.version || null,
+		state: 1
 	};
 	async.series([
 		function (cb) {
-			library.db.query(sql.insert, extend({}, params, { state: 1 })).then(function (res) {
+			library.db.query(sql.insert, params).then(function (res) {
 				library.logger.debug('Inserted peer', params);
 				return setImmediate(cb, null, res);
 			}).catch(function (err) {
