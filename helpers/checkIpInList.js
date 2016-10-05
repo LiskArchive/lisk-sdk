@@ -1,5 +1,7 @@
+'use strict';
+
+var _ = require('lodash');
 var ip = require('ip');
-var _ = require('underscore');
 
 /*
   Checks if ip address is in list (e.g. whitelist, blacklist).
@@ -10,38 +12,40 @@ var _ = require('underscore');
   @returns true if ip is in the list, false otherwise
 */
 function CheckIpInList (list, addr, returnListIsEmpty) {
+	var i, n;
+
 	if (!_.isBoolean(returnListIsEmpty)) {
 		returnListIsEmpty = true;
 	}
 
-	if (!_.isArray(list) || list.length == 0) {
+	if (!_.isArray(list) || list.length === 0) {
 		return returnListIsEmpty;
 	}
 
 	if (!list._subNets) { // First call, create subnet list
 		list._subNets = [];
-		for (var i = list.length - 1; i >= 0; i--) {
+		for (i = list.length - 1; i >= 0; i--) {
 			var entry = list[i];
 			if (ip.isV4Format(entry)) { // IPv4 host entry
-				entry = entry + "/32";
+				entry = entry + '/32';
 			} else if (ip.isV6Format(entry)) { // IPv6 host entry
-				entry = entry + "/128";
+				entry = entry + '/128';
 			}
 			try {
 				var subnet = ip.cidrSubnet(entry);
 				list._subNets.push(subnet);
 			} catch (err) {
-				console.error("CheckIpInList:", err.toString());
+				console.error('CheckIpInList:', err.toString());
 			}
 		}
 	}
 
-	if (list._subNets.length == 0) {
+	if (list._subNets.length === 0) {
 		return returnListIsEmpty;
 	}
 
 	// Check subnets
-	for (var i = 0, n = list._subNets.length; i < n; i++) {
+	for (i = 0, n = list._subNets.length; i < n; i++) {
 		if (list._subNets[i].contains(addr)) {
 			return true;
 		}

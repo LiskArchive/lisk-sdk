@@ -1,4 +1,6 @@
-const DappsSql = {
+'use strict';
+
+var DappsSql = {
   sortFields: ['type', 'name', 'category', 'link'],
 
   countByTransactionId: 'SELECT COUNT(*)::int AS "count" FROM dapps WHERE "transactionId" = ${id}',
@@ -43,7 +45,7 @@ const DappsSql = {
       'INNER JOIN intransfer dt ON dt."transactionId" = t."id" AND dt."dappId" = ${dappid}',
       (params.lastId ? 'WHERE b."height" > (SELECT "height" FROM blocks ib INNER JOIN trs it ON ib."id" = it."blockId" AND it."id" = ${lastId})' : ''),
       'ORDER BY b."height"'
-    ].filter(Boolean).join(' ')
+    ].filter(Boolean).join(' ');
   }
 };
 

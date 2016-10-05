@@ -1,12 +1,11 @@
 {
     "port": 8000,
     "address": "0.0.0.0",
-    "serveHttpAPI": true,
-    "serveHttpWallet": true,
     "version": "0.3.4",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
-    "consoleLogLevel": "log",
+    "consoleLogLevel": "info",
+    "trustProxy": false,
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -23,6 +22,14 @@
     "api": {
         "access": {
             "whiteList": []
+        },
+        "options": {
+            "limits": {
+                "max": 0,
+                "delayMs": 0,
+                "delayAfter": 0,
+                "windowMs": 60000
+            }
         }
     },
     "peers": {
@@ -50,7 +57,14 @@
         ],
         "blackList": [],
         "options": {
-            "timeout": 4000
+            "limits": {
+                "max": 0,
+                "delayMs": 0,
+                "delayAfter": 0,
+                "windowMs": 60000
+            },
+            "maxUpdatePeers": 20,
+            "timeout": 5000
         }
     },
     "forging": {

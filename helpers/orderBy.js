@@ -1,3 +1,5 @@
+'use strict';
+
 function OrderBy (orderBy, options) {
 	options = (typeof options === 'object') ? options : {};
 	options.sortField  = options.sortField  || null;
@@ -16,8 +18,8 @@ function OrderBy (orderBy, options) {
 		var sort = String(orderBy).split(':');
 		sortField = sort[0].replace(/[^\w\s]/gi, '');
 
-		if (sort.length == 2) {
-			sortMethod = sort[1] == 'desc' ? 'DESC' : 'ASC';
+		if (sort.length === 2) {
+			sortMethod = sort[1] === 'desc' ? 'DESC' : 'ASC';
 		}
 	}
 
@@ -41,21 +43,16 @@ function OrderBy (orderBy, options) {
 		}
 	}
 
-	var emptyWhiteList = (
-		options.sortFields.length == 0
-	);
+	var emptyWhiteList = options.sortFields.length === 0;
 
-	var inWhiteList = (
-		options.sortFields.length >= 1
-		&& options.sortFields.indexOf(sortField) > -1
-	);
+	var inWhiteList = options.sortFields.length >= 1 && options.sortFields.indexOf(sortField) > -1;
 
 	if (sortField) {
 		if (emptyWhiteList || inWhiteList) {
 			sortField = prefixField(sortField);
 		} else {
 			return {
-				error: "Invalid sort field"
+				error: 'Invalid sort field'
 			};
 		}
 	} else {

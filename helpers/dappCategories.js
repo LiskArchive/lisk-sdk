@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
 	Education: 0,
 	Entertainment: 1,
@@ -8,4 +10,4 @@ module.exports = {
 	Science: 6,
 	Social: 7,
 	Utilities: 8
-}
+};

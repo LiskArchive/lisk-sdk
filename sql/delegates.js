@@ -1,6 +1,8 @@
-const pgp = require('pg-promise');
+'use strict';
 
-const DelegatesSql = {
+var pgp = require('pg-promise');
+
+var DelegatesSql = {
   sortFields: [
     'username',
     'address',
@@ -21,13 +23,13 @@ const DelegatesSql = {
       'LIMIT ${limit}'
     ].join(' ');
 
-    params.q = "%" + String(params.q).toLowerCase() + "%";
+    params.q = '%' + String(params.q).toLowerCase() + '%';
     return pgp.as.format(sql, params);
   },
 
   insertFork: 'INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause") VALUES (${delegatePublicKey}, ${blockTimestamp}, ${blockId}, ${blockHeight}, ${previousBlock}, ${cause});',
 
   getVoters: 'SELECT ARRAY_AGG("accountId") AS "accountIds" FROM mem_accounts2delegates WHERE "dependentId" = ${publicKey}'
-}
+};
 
 module.exports = DelegatesSql;

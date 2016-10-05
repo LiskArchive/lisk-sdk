@@ -1,16 +1,18 @@
-var util = require('util');
-var extend = require('extend');
+'use strict';
 
-function Sequence(config) {
+var extend = require('extend');
+var util = require('util');
+
+function Sequence (config) {
 	var _default = {
 		onWarning: null,
 		warningLimit: 50
-	}
+	};
 	_default = extend(_default, config);
 	var self = this;
 	this.sequence = [];
 
-	setImmediate(function nextSequenceTick() {
+	setImmediate(function nextSequenceTick () {
 		if (_default.onWarning && self.sequence.length >= _default.warningLimit) {
 			_default.onWarning(self.sequence.length, _default.warningLimit);
 		}
@@ -26,31 +28,33 @@ Sequence.prototype.__tick = function (cb) {
 		return setImmediate(cb);
 	}
 	var args = [function (err, res) {
-		task.done && setImmediate(task.done, err, res);
+		if (task.done) {
+			setImmediate(task.done, err, res);
+		}
 		setImmediate(cb);
 	}];
 	if (task.args) {
 		args = args.concat(task.args);
 	}
 	task.worker.apply(task.worker, args);
-}
+};
 
 Sequence.prototype.add = function (worker, args, done) {
-	if (!done && args && typeof(args) == 'function') {
+	if (!done && args && typeof(args) === 'function') {
 		done = args;
 		args = undefined;
 	}
-	if (worker && typeof(worker) == 'function') {
+	if (worker && typeof(worker) === 'function') {
 		var task = {worker: worker, done: done};
 		if (util.isArray(args)) {
 			task.args = args;
 		}
 		this.sequence.push(task);
 	}
-}
+};
 
 Sequence.prototype.count = function () {
 	return this.sequence.length;
-}
+};
 
 module.exports = Sequence;
