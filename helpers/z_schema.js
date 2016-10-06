@@ -73,8 +73,8 @@ z_schema.registerFormat('parsedInt', function (value) {
   return true;
 });
 
-z_schema.registerFormat('ip', function (value) {
-  return ip.isV4Format(value) || ip.isV6Format(value);
+z_schema.registerFormat('ip', function (str) {
+  return ip.isV4Format(str);
 });
 
 // var registeredFormats = z_schema.getRegisteredFormats();
