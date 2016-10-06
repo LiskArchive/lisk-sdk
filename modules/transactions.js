@@ -20,7 +20,6 @@ var modules, library, self, __private = {}, shared = {};
 __private.assetTypes = {};
 __private.unconfirmedTransactions = [];
 __private.unconfirmedTransactionsIdIndex = {};
-__private.doubleSpendingTransactions = {};
 
 // Constructor
 function Transactions (cb, scope) {
@@ -187,7 +186,6 @@ __private.getById = function (id, cb) {
 __private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 	self.applyUnconfirmed(transaction, sender, function (err) {
 		if (err) {
-			self.addDoubleSpending(transaction);
 			return setImmediate(cb, err);
 		}
 
@@ -204,10 +202,6 @@ __private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 Transactions.prototype.getUnconfirmedTransaction = function (id) {
 	var index = __private.unconfirmedTransactionsIdIndex[id];
 	return __private.unconfirmedTransactions[index];
-};
-
-Transactions.prototype.addDoubleSpending = function (transaction) {
-	__private.doubleSpendingTransactions[transaction.id] = transaction;
 };
 
 Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit) {
@@ -241,7 +235,7 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 	}
 
 	// Check transaction indexes
-	if (__private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || __private.doubleSpendingTransactions[transaction.id]) {
+	if (__private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined) {
 		library.logger.debug('Transaction is already processed: ' + transaction.id);
 		return setImmediate(cb);
 	}
@@ -308,13 +302,11 @@ Transactions.prototype.applyUnconfirmedList = function (ids, cb) {
 		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err) {
 				self.removeUnconfirmedTransaction(id);
-				self.addDoubleSpending(transaction);
 				return setImmediate(cb);
 			}
 			self.applyUnconfirmed(transaction, sender, function (err) {
 				if (err) {
 					self.removeUnconfirmedTransaction(id);
-					self.addDoubleSpending(transaction);
 				}
 				return setImmediate(cb);
 			});
