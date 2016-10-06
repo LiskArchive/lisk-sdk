@@ -346,7 +346,6 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					}, function (cb) {
 						modules.transactions.undoUnconfirmed(transaction, cb);
 					}, function (cb) {
-						modules.transactions.pushHiddenTransaction(transaction);
 						return setImmediate(cb);
 					}
 				], cb);

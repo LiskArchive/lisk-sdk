@@ -18,7 +18,6 @@ var transactionTypes = require('../helpers/transactionTypes.js');
 var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
-__private.hiddenTransactions = [];
 __private.unconfirmedTransactions = [];
 __private.unconfirmedTransactionsIdIndex = {};
 __private.doubleSpendingTransactions = {};
