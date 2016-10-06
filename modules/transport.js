@@ -55,8 +55,9 @@ __private.attachApi = function () {
 			return res.status(406).send({success: false, error: 'Invalid request headers'});
 		}
 
-		var headers = req.headers;
-		headers.port = parseInt(req.headers.port);
+		var headers      = req.headers;
+		    headers.ip   = req.peer.ip;
+		    headers.port = req.peer.port;
 
 		req.sanitize(headers, schema.headers, function (err, report) {
 			if (err) { return next(err); }
@@ -454,8 +455,9 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
 		} else {
-			var headers = res.headers;
-			headers.port = parseInt(headers.port);
+			var headers      = res.headers;
+			    headers.ip   = peer.ip;
+			    headers.port = peer.port;
 
 			var report = library.schema.validate(headers, schema.headers);
 			if (!report) {
