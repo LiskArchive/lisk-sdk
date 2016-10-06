@@ -329,10 +329,10 @@ Peers.prototype.update = function (peer, cb) {
 		function (cb) {
 			library.db.query(sql.insert, params).then(function (res) {
 				library.logger.debug('Inserted peer', params);
-				return setImmediate(cb, null, res);
+				return cb(null, res);
 			}).catch(function (err) {
 				library.logger.error(err.stack);
-				return setImmediate(cb, 'Peers#update error');
+				return cb('Peers#update error');
 			});
 		},
 		function (cb) {
@@ -341,17 +341,17 @@ Peers.prototype.update = function (peer, cb) {
 			}
 			library.db.query(sql.update(params), params).then(function (res) {
 				library.logger.debug('Updated peer', params);
-				return setImmediate(cb, null, res);
+				return cb(null, res);
 			}).catch(function (err) {
 				library.logger.error(err.stack);
-				return setImmediate(cb, 'Peers#update error');
+				return cb('Peers#update error');
 			});
 		},
 		function (cb) {
 			if (dappid) {
 				self.addDapp({dappid: dappid, ip: peer.ip, port: peer.port}, cb);
 			} else {
-				return setImmediate(cb);
+				return cb();
 			}
 		}
 	], function (err) {
