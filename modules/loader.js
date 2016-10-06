@@ -26,7 +26,6 @@ __private.genesisBlock = null;
 __private.total = 0;
 __private.blocksToSync = 0;
 __private.syncIntervalId = null;
-__private.retryInterval = 10000;
 
 // Constructor
 function Loader (cb, scope) {
