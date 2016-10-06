@@ -186,6 +186,7 @@ __private.getById = function (id, cb) {
 __private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 	self.applyUnconfirmed(transaction, sender, function (err) {
 		if (err) {
+			self.removeUnconfirmedTransaction(transaction.id);
 			return setImmediate(cb, err);
 		}
 
