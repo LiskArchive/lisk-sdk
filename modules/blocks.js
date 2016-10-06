@@ -991,7 +991,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
 							if (rows.length > 0) {
 								modules.delegates.fork(block, 2);
-								cb(['Transaction', transaction.id, 'already exists'].join(' '));
+								return cb(['Transaction', transaction.id, 'already exists'].join(' '));
 							} else {
 								// Get account from database if any (otherwise cold wallet).
 								// DATABASE: read only
@@ -999,7 +999,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 							}
 						}).catch(function (err) {
 							library.logger.error(err.stack);
-							cb('Blocks#processBlock error');
+							return cb('Blocks#processBlock error');
 						});
 					},
 					function (sender, cb) {
