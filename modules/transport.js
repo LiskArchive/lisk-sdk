@@ -87,7 +87,9 @@ __private.attachApi = function () {
 					modules.delegates.enableForging();
 				}
 
-				modules.peers.update(req.peer);
+				library.dbSequence.add(function (cb) {
+					modules.peers.update(req.peer, cb);
+				});
 			}
 
 			return next();
@@ -471,12 +473,14 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			}
 
 			if (headers.version === library.config.version) {
-				modules.peers.update({
-					ip: peer.ip,
-					port: headers.port,
-					state: 2,
-					os: headers.os,
-					version: headers.version
+				library.dbSequence.add(function (cb) {
+					modules.peers.update({
+						ip: peer.ip,
+						port: headers.port,
+						state: 2,
+						os: headers.os,
+						version: headers.version
+					}, cb);
 				});
 			}
 

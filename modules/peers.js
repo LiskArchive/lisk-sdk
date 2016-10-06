@@ -109,7 +109,11 @@ __private.updatePeersList = function (cb) {
 
 						return setImmediate(cb);
 					} else {
-						return self.update(peer, cb);
+						library.dbSequence.add(function (cb) {
+							self.update(peer, cb);
+						});
+
+						return setImmediate(cb);
 					}
 				});
 			}, cb);
