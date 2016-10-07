@@ -363,14 +363,18 @@ Transactions.prototype.expireUnconfirmedList = function (cb) {
 };
 
 Transactions.prototype.apply = function (transaction, block, sender, cb) {
+	library.logger.debug('Applying confirmed transaction', transaction.id);
 	library.logic.transaction.apply(transaction, block, sender, cb);
 };
 
 Transactions.prototype.undo = function (transaction, block, sender, cb) {
+	library.logger.debug('Undoing confirmed transaction', transaction.id);
 	library.logic.transaction.undo(transaction, block, sender, cb);
 };
 
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+	library.logger.debug('Applying unconfirmed transaction', transaction.id);
+
 	if (!sender && transaction.blockId !== genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else {
@@ -393,6 +397,8 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
+	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
+
 	modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
