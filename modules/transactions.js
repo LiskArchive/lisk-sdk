@@ -303,13 +303,13 @@ Transactions.prototype.applyUnconfirmedList = function (ids, cb) {
 		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err) {
 				self.removeUnconfirmedTransaction(id);
-				return setImmediate(cb);
+				return setImmediate(cb, err);
 			}
 			self.applyUnconfirmed(transaction, sender, function (err) {
 				if (err) {
 					self.removeUnconfirmedTransaction(id);
 				}
-				return setImmediate(cb);
+				return setImmediate(cb, err);
 			});
 		});
 	}, cb);

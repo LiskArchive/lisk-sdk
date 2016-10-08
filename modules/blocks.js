@@ -829,6 +829,9 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					// Leaves the database state as per the previous block.
 					async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
 						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
+							if (err) {
+								return setImmediate(eachSeriesCb, err);
+							}
 							// The transaction has been applied?
 							if (appliedTransactions[transaction.id]) {
 								// DATABASE: write
@@ -872,7 +875,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					});
 				});
 			}, function (err) {
-				return setImmediate(seriesCb);
+				return setImmediate(seriesCb, err);
 			});
 		},
 		// Optionally save the block to the database.
@@ -906,8 +909,8 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		// TODO: See undoUnconfirmedList discussion above.
 		applyUnconfirmedList: function (seriesCb) {
 			// DATABASE write
-			modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function () {
-				return setImmediate(seriesCb);
+			modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function (err) {
+				return setImmediate(seriesCb, err);
 			});
 		},
 	}, function (err) {
