@@ -626,6 +626,34 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	}, cb);
 };
 
+Blocks.prototype.loadLastBlock = function (cb) {
+	library.dbSequence.add(function (cb) {
+		library.db.query(sql.loadLastBlock).then(function (rows) {
+			var block = __private.readDbRows(rows)[0];
+
+			block.transactions = block.transactions.sort(function (a, b) {
+				if (block.id === genesisblock.block.id) {
+					if (a.type === transactionTypes.VOTE) {
+						return 1;
+					}
+				}
+
+				if (a.type === transactionTypes.SIGNATURE) {
+					return 1;
+				}
+
+				return 0;
+			});
+
+			__private.lastBlock = block;
+			return setImmediate(cb, null, block);
+		}).catch(function (err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#loadLastBlock error');
+		});
+	}, cb);
+};
+
 Blocks.prototype.getLastBlock = function () {
 	if (__private.lastBlock) {
 		var epoch = constants.epochTime / 1000;

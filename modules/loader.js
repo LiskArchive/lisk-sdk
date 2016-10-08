@@ -283,11 +283,11 @@ __private.loadBlockChain = function () {
 				return reload(count, 'No delegates found');
 			}
 
-			modules.blocks.loadBlocksOffset(1, count, verify, function (err, lastBlock) {
+			modules.blocks.loadLastBlock(function (err, block) {
 				if (err) {
-					return reload(count, err || 'Failed to load blocks offset');
+					return reload(count, err || 'Failed to load last block');
 				} else {
-					__private.lastBlock = lastBlock;
+					__private.lastBlock = block;
 					library.logger.info('Blockchain ready');
 					library.bus.message('blockchainReady');
 				}
