@@ -615,8 +615,9 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 				} else {
 					__private.applyBlock(block, false, cb, false);
 				}
+				__private.lastBlock = block;
 			}, function (err) {
-				return setImmediate(cb, err);
+				return setImmediate(cb, err, __private.lastBlock);
 			});
 		}).catch(function (err) {
 			library.logger.error(err.stack);
