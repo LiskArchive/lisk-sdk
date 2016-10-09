@@ -364,6 +364,33 @@ __private.loadBlocksFromNetwork = function (cb) {
 	});
 };
 
+__private.sync = function (cb) {
+	var transactions = modules.transactions.getUnconfirmedTransactionList(true);
+
+	__private.isActive = true;
+	__private.syncTrigger(true);
+
+	async.series({
+		undoUnconfirmedList: function (cb) {
+			library.logger.debug('Undoing unconfirmed transactions before sync');
+			return modules.transactions.undoUnconfirmedList(cb);
+		},
+		loadBlocksFromNetwork: function (cb) {
+			return __private.loadBlocksFromNetwork(cb);
+		},
+		receiveTransactions: function (cb) {
+			library.logger.debug('Receiving unconfirmed transactions after sync');
+			return modules.transactions.receiveTransactions(transactions, cb);
+		}
+	}, function (err) {
+		__private.isActive = false;
+		__private.syncTrigger(false);
+		__private.blocksToSync = 0;
+
+		return setImmediate(cb, err);
+	});
+};
+
 // Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 __private.findGoodPeers = function (heights) {
 	// Removing unreachable peers
@@ -501,17 +528,11 @@ Loader.prototype.onPeersReady = function () {
 		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
 			library.logger.debug('Loading blocks from network');
 			library.sequence.add(function (cb) {
-				__private.isActive = true;
-				__private.syncTrigger(true);
-				__private.loadBlocksFromNetwork(cb);
+				__private.sync(cb);
 			}, function (err) {
 				if (err) {
 					library.logger.warn('Blocks timer', err);
 				}
-
-				__private.isActive = false;
-				__private.syncTrigger(false);
-				__private.blocksToSync = 0;
 
 				setTimeout(nextLoadBlock, 10000);
 			});
