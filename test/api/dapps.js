@@ -77,9 +77,9 @@ describe('PUT /dapps', function () {
 	var validParams;
 
 	beforeEach(function (done) {
-			validParams = validDapp;
-			validParams.link = validParams.link.replace(/\.zip/, node.randomApplicationName() + '.zip');
-			done();
+		validParams = validDapp;
+		validParams.link = validParams.link.replace(/\.zip/, node.randomApplicationName() + '.zip');
+		done();
 	});
 
 	it('using account with no funds should fail', function (done) {
