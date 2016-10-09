@@ -307,10 +307,10 @@ Peers.prototype.addDapp = function (config, cb) {
 			}
 		});
 	}).then(function (res) {
-		return cb && setImmediate(cb, null, res);
+		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return cb && setImmediate(cb, 'Peers#addDapp error');
+		return setImmediate(cb, 'Peers#addDapp error');
 	});
 };
 
@@ -337,11 +337,11 @@ Peers.prototype.update = function (peer, cb) {
 		if (peer.dappid) {
 			return self.addDapp({dappid: peer.dappid, ip: peer.ip, port: peer.port}, cb);
 		} else {
-			return cb && setImmediate(cb);
+			return setImmediate(cb);
 		}
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return cb && setImmediate(cb, 'Peers#update error');
+		return setImmediate(cb, 'Peers#update error');
 	});
 };
 
