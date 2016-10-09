@@ -789,7 +789,6 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		undoUnconfirmedList: function (seriesCb) {
 			modules.transactions.undoUnconfirmedList(function (err, transactions) {
 				if (err) {
-					__private.isActive = false;
 					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 					return process.exit(0);
 				} else {
