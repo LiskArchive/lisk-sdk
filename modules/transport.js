@@ -386,6 +386,8 @@ __private.removePeer = function (options) {
 
 // Public methods
 Transport.prototype.broadcast = function (config, options, cb) {
+	library.logger.debug('Broadcast', options);
+
 	config.limit = config.limit || 1;
 	modules.peers.list(config, function (err, peers) {
 		if (!err) {
