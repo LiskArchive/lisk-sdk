@@ -291,33 +291,30 @@ Peers.prototype.remove = function (pip, port, cb) {
 };
 
 Peers.prototype.addDapp = function (config, cb) {
-	library.db.query(sql.getByIdPort, {
-		ip: config.ip,
-		port: config.port
-	}).then(function (rows) {
-		if (!rows.length) {
-			return setImmediate(cb);
-		}
+	library.db.task(function (t) {
+		return t.query(sql.getByIdPort, { ip: config.ip, port: config.port }).then(function (rows) {
+			if (rows.length) {
+				var params = {
+					dappId: config.dappid,
+					peerId: rows[0].id
+				};
 
-		var params = {
-			dappId: config.dappid,
-			peerId: rows[0].id
-		};
-		library.db.query(sql.addDapp, params).then(function (res) {
-			library.logger.debug('Added dapp peer', params);
-			return setImmediate(cb, null, res);
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Peers#addDapp error');
+				return t.query(sql.addDapp, params).then(function (res) {
+					library.logger.debug('Added dapp peer', params);
+				});
+			} else {
+				return t;
+			}
 		});
+	}).then(function (res) {
+		return cb && setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Peers#addDapp error');
+		return cb && setImmediate(cb, 'Peers#addDapp error');
 	});
 };
 
 Peers.prototype.update = function (peer, cb) {
-	var dappid = peer.dappid;
 	var params = {
 		ip: peer.ip,
 		port: peer.port,
@@ -325,40 +322,26 @@ Peers.prototype.update = function (peer, cb) {
 		version: peer.version || null,
 		state: 1
 	};
-	async.series([
-		function (cb) {
-			library.db.query(sql.insert, params).then(function (res) {
-				library.logger.debug('Inserted peer', params);
-				return setImmediate(cb, null, res);
-			}).catch(function (err) {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Peers#update error');
-			});
-		},
-		function (cb) {
-			if (peer.state !== undefined) {
-				params.state = peer.state;
-			}
-			library.db.query(sql.update(params), params).then(function (res) {
-				library.logger.debug('Updated peer', params);
-				return setImmediate(cb, null, res);
-			}).catch(function (err) {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Peers#update error');
-			});
-		},
-		function (cb) {
-			if (dappid) {
-				self.addDapp({dappid: dappid, ip: peer.ip, port: peer.port}, cb);
-			} else {
-				return setImmediate(cb);
-			}
+
+	var query;
+	if (peer.state !== undefined) {
+		params.state = peer.state;
+		query = sql.upsertWithState;
+	} else {
+		query = sql.upsertWithoutState;
+	}
+
+	library.db.query(query, params).then(function () {
+		library.logger.debug('Upserted peer', params);
+
+		if (peer.dappid) {
+			return self.addDapp({dappid: peer.dappid, ip: peer.ip, port: peer.port}, cb);
+		} else {
+			return cb && setImmediate(cb);
 		}
-	], function (err) {
-		if (err) {
-			library.logger.error(err);
-		}
-		return cb && setImmediate(cb);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return cb && setImmediate(cb, 'Peers#update error');
 	});
 };
 

@@ -32,17 +32,11 @@ var PeersSql = {
 
   addDapp: 'INSERT INTO peers_dapp ("peerId", "dappid") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING;',
 
-  insert: 'INSERT INTO peers ("ip", "port", "state", "os", "version") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}) ON CONFLICT DO NOTHING;',
+  upsertWithState: 'INSERT INTO peers ("ip", "port", "state", "os", "version") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}) ON CONFLICT ("ip", "port") DO UPDATE SET ("ip", "port", "state", "os", "version") = (${ip}, ${port}, (CASE WHEN EXCLUDED."state" = 0 THEN EXCLUDED."state" ELSE ${state} END), ${os}, ${version})',
+
+  upsertWithoutState: 'INSERT INTO peers ("ip", "port", "os", "version") VALUES (${ip}, ${port}, ${os}, ${version}) ON CONFLICT ("ip", "port") DO UPDATE SET ("ip", "port", "os", "version") = (${ip}, ${port}, ${os}, ${version})',
 
   insertSeed: 'INSERT INTO peers("ip", "port", "state") VALUES(${ip}, ${port}, ${state}) ON CONFLICT DO NOTHING;',
-
-  update: function (params) {
-    return [
-      'UPDATE peers SET "os" = ${os}, "version" = ${version}',
-      (params.state !== undefined ? ', "state" = CASE WHEN "state" = 0 THEN "state" ELSE ${state} END' : ''),
-      'WHERE "ip" = ${ip} and "port" = ${port};'
-    ].join(' ');
-  }
 };
 
 module.exports = PeersSql;
