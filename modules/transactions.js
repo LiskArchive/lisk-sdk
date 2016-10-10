@@ -188,8 +188,6 @@ __private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 		if (err) {
 			self.removeUnconfirmedTransaction(transaction.id);
 			return setImmediate(cb, err);
-		} else if (modules.loader.syncing()) {
-			self.undoUnconfirmed(transaction, cb);
 		} else {
 			transaction.receivedAt = new Date();
 			__private.unconfirmedTransactions.push(transaction);
@@ -235,6 +233,11 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 	// Check transaction
 	if (!transaction) {
 		return setImmediate(cb, 'Missing transaction');
+	}
+
+	// Ignore transaction when syncing
+	if (modules.loader.syncing()) {
+		return setImmediate(cb);
 	}
 
 	// Check transaction indexes
