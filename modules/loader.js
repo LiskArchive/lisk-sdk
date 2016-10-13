@@ -189,49 +189,61 @@ __private.loadBlockChain = function () {
 		verify = true;
 		__private.total = count;
 
-		library.logic.account.removeTables(function (err) {
-			if (err) {
-				throw err;
-			} else {
+		async.series({
+			removeTables: function (seriesCb) {
+				library.logic.account.removeTables(function (err) {
+					if (err) {
+						throw err;
+					} else {
+						return setImmediate(seriesCb);
+					}
+				});
+			},
+			createTables: function (seriesCb) {
 				library.logic.account.createTables(function (err) {
 					if (err) {
 						throw err;
 					} else {
-						async.until(
-							function () {
-								return count < offset;
-							}, function (cb) {
-								if (count > 1) {
-									library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
-								}
-								modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
-									if (err) {
-										return setImmediate(cb, err);
-									}
-
-									offset = offset + limit;
-									__private.lastBlock = lastBlock;
-
-									return setImmediate(cb);
-								});
-							}, function (err) {
-								if (err) {
-									library.logger.error(err);
-									if (err.block) {
-										library.logger.error('Blockchain failed at: ' + err.block.height);
-										modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {
-											library.logger.error('Blockchain clipped');
-											library.bus.message('blockchainReady');
-										});
-									}
-								} else {
-									library.logger.info('Blockchain ready');
-									library.bus.message('blockchainReady');
-								}
-							}
-						);
+						return setImmediate(seriesCb);
 					}
 				});
+			},
+			loadBlocksOffset: function (seriesCb) {
+				async.until(
+					function () {
+						return count < offset;
+					}, function (cb) {
+						if (count > 1) {
+							library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
+						}
+						modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
+
+							offset = offset + limit;
+							__private.lastBlock = lastBlock;
+
+							return setImmediate(cb);
+						});
+					}, function (err) {
+						return setImmediate(seriesCb, err);
+					}
+				);
+			}
+		}, function (err) {
+			if (err) {
+				library.logger.error(err);
+				if (err.block) {
+					library.logger.error('Blockchain failed at: ' + err.block.height);
+					modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {
+						library.logger.error('Blockchain clipped');
+						library.bus.message('blockchainReady');
+					});
+				}
+			} else {
+				library.logger.info('Blockchain ready');
+				library.bus.message('blockchainReady');
 			}
 		});
 	}
