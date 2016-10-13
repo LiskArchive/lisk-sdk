@@ -3,6 +3,8 @@
 var LoaderSql = {
   countBlocks: 'SELECT COUNT("rowId")::int FROM blocks',
 
+  getGenesisBlock: 'SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1',
+
   countMemAccounts: 'SELECT COUNT(*)::int FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" ORDER BY "height" DESC LIMIT 1)',
 
   getMemRounds: 'SELECT "round" FROM mem_round GROUP BY "round"',

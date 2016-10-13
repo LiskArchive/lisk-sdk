@@ -260,11 +260,27 @@ __private.loadBlockChain = function () {
 	function checkMemTables (t) {
 		var promises = [
 			t.one(sql.countBlocks),
+			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
 			t.query(sql.getMemRounds)
 		];
 
 		return t.batch(promises);
+	}
+
+	function matchGenesisBlock (row) {
+		if (row) {
+			var matched = (
+				row.id === __private.genesisBlock.block.id &&
+				row.payloadHash.toString('hex') === __private.genesisBlock.block.payloadHash &&
+				row.blockSignature.toString('hex')  === __private.genesisBlock.block.blockSignature
+			);
+			if (matched) {
+				library.logger.info('Genesis block matched with database');
+			} else {
+				throw 'Failed to match genesis block with database';
+			}
+		}
 	}
 
 	function verifySnapshot (count, round) {
@@ -297,19 +313,21 @@ __private.loadBlockChain = function () {
 			return reload(count);
 		}
 
+		matchGenesisBlock(results[1][0]);
+
 		verify = verifySnapshot(count, round);
 
 		if (verify) {
 			return reload(count, 'Blocks verification enabled');
 		}
 
-		var missed = !(results[1].count);
+		var missed = !(results[2].count);
 
 		if (missed) {
 			return reload(count, 'Detected missed blocks in mem_accounts');
 		}
 
-		var unapplied = results[2].filter(function (row) {
+		var unapplied = results[3].filter(function (row) {
 			return (row.round !== String(round));
 		});
 
@@ -347,8 +365,8 @@ __private.loadBlockChain = function () {
 			});
 		});
 	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return process.exit(0);
+		library.logger.error(err.stack || err);
+		return process.emit('exit');
 	});
 };
 
