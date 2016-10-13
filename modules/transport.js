@@ -88,9 +88,7 @@ __private.attachApi = function () {
 					modules.delegates.enableForging();
 				}
 
-				library.dbSequence.add(function (cb) {
-					modules.peers.update(req.peer, cb);
-				});
+				modules.peers.update(req.peer);
 			}
 
 			return next();
@@ -373,15 +371,13 @@ __private.hashsum = function (obj) {
 };
 
 __private.banPeer = function (options) {
-	modules.peers.state(options.peer.ip, options.peer.port, 0, options.clock, function (err) {
-		library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
-	});
+	library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
+	modules.peers.state(options.peer.ip, options.peer.port, 0, options.clock);
 };
 
 __private.removePeer = function (options) {
-	modules.peers.remove(options.peer.ip, options.peer.port, function (err) {
-		library.logger.warn([options.code, 'Removing peer', options.peer.string, options.req.method, options.req.url].join(' '));
-	});
+	library.logger.warn([options.code, 'Removing peer', options.peer.string, options.req.method, options.req.url].join(' '));
+	modules.peers.remove(options.peer.ip, options.peer.port);
 };
 
 // Public methods
@@ -477,14 +473,12 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			}
 
 			if (headers.version === library.config.version) {
-				library.dbSequence.add(function (cb) {
-					modules.peers.update({
-						ip: peer.ip,
-						port: headers.port,
-						state: 2,
-						os: headers.os,
-						version: headers.version
-					}, cb);
+				modules.peers.update({
+					ip: peer.ip,
+					port: headers.port,
+					state: 2,
+					os: headers.os,
+					version: headers.version
 				});
 			}
 
