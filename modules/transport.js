@@ -524,21 +524,21 @@ Transport.prototype.onBlockchainReady = function () {
 Transport.prototype.onSignature = function (signature, broadcast) {
 	if (broadcast) {
 		self.broadcast({limit: 100}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
-		library.network.io.sockets.emit('signature/change', {});
+		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
 
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
 	if (broadcast) {
 		self.broadcast({limit: 100}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
-		library.network.io.sockets.emit('transactions/change', {});
+		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
 
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
 		self.broadcast({limit: 100}, {api: '/blocks', data: {block: block}, method: 'POST'});
-		library.network.io.sockets.emit('blocks/change', {});
+		library.network.io.sockets.emit('blocks/change', block);
 	}
 };
 

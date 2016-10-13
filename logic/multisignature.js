@@ -301,7 +301,7 @@ Multisignature.prototype.dbSave = function (trs) {
 };
 
 Multisignature.prototype.afterSave = function (trs, cb) {
-	library.network.io.sockets.emit('multisignatures/change', {});
+	library.network.io.sockets.emit('multisignatures/change', trs);
 	return setImmediate(cb);
 };
 
