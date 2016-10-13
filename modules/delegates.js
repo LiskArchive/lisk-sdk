@@ -488,13 +488,17 @@ Delegates.prototype.fork = function (block, cause) {
 
 	self.disableForging('fork');
 
-	library.db.none(sql.insertFork, {
+	var fork = {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
 		blockHeight: block.height,
 		previousBlock: block.previousBlock,
 		cause: cause
+	};
+
+	library.db.none(sql.insertFork, fork).then(function () {
+		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };
 
