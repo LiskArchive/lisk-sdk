@@ -254,17 +254,9 @@ __private.loadBlockChain = function () {
 		return t.batch(promises);
 	}
 
-	library.db.task(checkMemTables).then(function (results) {
-		var count = results[0].count;
-		var missed = !(results[1].count);
-
-		library.logger.info('Blocks ' + count);
-
-		var round = modules.rounds.calc(count);
-
+	function verifySnapshot (count, round) {
 		if (library.config.loading.snapshot !== undefined || library.config.loading.snapshot > 0) {
 			library.logger.info('Snapshot mode enabled');
-			verify = true;
 
 			if (isNaN(library.config.loading.snapshot) || library.config.loading.snapshot >= round) {
 				library.config.loading.snapshot = round;
@@ -275,11 +267,25 @@ __private.loadBlockChain = function () {
 			}
 
 			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);
+			return true;
+		} else {
+			return false;
 		}
+	}
+
+	library.db.task(checkMemTables).then(function (results) {
+		var count = results[0].count;
+		var missed = !(results[1].count);
+
+		library.logger.info('Blocks ' + count);
+
+		var round = modules.rounds.calc(count);
 
 		if (count === 1) {
 			return reload(count);
 		}
+
+		verify = verifySnapshot(count, round);
 
 		if (verify) {
 			return reload(count, 'Blocks verification enabled');
