@@ -78,73 +78,106 @@ __private.syncTrigger = function (turnOn) {
 };
 
 __private.loadSignatures = function (cb) {
-	modules.transport.getFromRandomPeer({
-		api: '/signatures',
-		method: 'GET'
-	}, function (err, res) {
-		if (err) {
-			return setImmediate(cb);
-		}
-
-		library.schema.validate(res.body, schema.loadSignatures, function (err) {
-			if (err) {
-				return setImmediate(cb);
-			}
-
+	async.waterfall([
+		function (waterCb) {
+			self.getNetwork(function (err, network) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
+					return setImmediate(waterCb, null, peer);
+				}
+			});
+		},
+		function (peer, waterCb) {
+			modules.transport.getFromPeer(peer, {
+				api: '/signatures',
+				method: 'GET'
+			}, function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					library.schema.validate(res.body, schema.loadSignatures, function (err) {
+						return setImmediate(waterCb, err, res.body.signatures);
+					});
+				}
+			});
+		},
+		function (signatures, waterCb) {
 			library.sequence.add(function (cb) {
-				async.eachSeries(res.body.signatures, function (signature, cb) {
-					async.eachSeries(signature.signatures, function (s, cb) {
+				async.eachSeries(signatures, function (signature, eachSeriesCb) {
+					async.eachSeries(signature.signatures, function (s, eachSeriesCb) {
 						modules.multisignatures.processSignature({
 							signature: s,
 							transaction: signature.transaction
 						}, function (err) {
-							return setImmediate(cb);
+							return setImmediate(eachSeriesCb);
 						});
-					}, cb);
+					}, eachSeriesCb);
 				}, cb);
-			}, cb);
-		});
+			}, waterCb);
+		}
+	], function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
 __private.loadUnconfirmedTransactions = function (cb) {
-	modules.transport.getFromRandomPeer({
-		api: '/transactions',
-		method: 'GET'
-	}, function (err, res) {
-		if (err) {
-			return setImmediate(cb);
+	async.waterfall([
+		function (waterCb) {
+			self.getNetwork(function (err, network) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
+					return setImmediate(waterCb, null, peer);
+				}
+			});
+		},
+		function (peer, waterCb) {
+			modules.transport.getFromPeer(peer, {
+				api: '/transactions',
+				method: 'GET'
+			}, function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				}
+
+				library.schema.validate(res.body, schema.loadUnconfirmedTransactions, function (err) {
+					if (err) {
+						return setImmediate(waterCb, err[0].message);
+					} else {
+						return setImmediate(waterCb, null, peer, res.body.transactions);
+					}
+				});
+			});
+		},
+		function (peer, transactions, waterCb) {
+			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				var id = (transaction ? transactions.id : 'null');
+
+				try {
+					transaction = library.logic.transaction.objectNormalize(transaction);
+				} catch (e) {
+					library.logger.error(['Transaction', id].join(' '), e.toString());
+					if (transaction) { library.logger.error('Transaction', transaction); }
+
+					library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
+					modules.peers.state(peer.ip, peer.port, 0, 3600);
+
+					return setImmediate(waterCb, e);
+				}
+			}, function (err) {
+				return setImmediate(waterCb, err, transactions);
+			});
+		},
+		function (transactions, waterCb) {
+			library.balancesSequence.add(function (cb) {
+				modules.transactions.receiveTransactions(transactions, cb);
+			}, waterCb);
 		}
-
-		var report = library.schema.validate(res.body, schema.loadUnconfirmedTransactions);
-
-		if (!report) {
-			return setImmediate(cb);
-		}
-
-		var peer = modules.peers.inspect(res.peer);
-		var transactions = res.body.transactions;
-
-		for (var i = 0; i < transactions.length; i++) {
-			var transaction = transactions[i];
-			var id = (transaction ? transactions.id : 'null');
-
-			try {
-				transaction = library.logic.transaction.objectNormalize(transaction);
-			} catch (e) {
-				library.logger.error(['Transaction', id].join(' '), e.toString());
-				if (transaction) { library.logger.error('Transaction', transaction); }
-
-				library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
-				modules.peers.state(peer.ip, peer.port, 0, 3600);
-
-				return setImmediate(cb);
-			}
-		}
-
-		library.balancesSequence.add(function (cb) {
-			modules.transactions.receiveTransactions(transactions, cb);
-		}, cb);
+	], function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
