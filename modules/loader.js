@@ -288,7 +288,6 @@ __private.loadBlockChain = function () {
 
 	library.db.task(checkMemTables).then(function (results) {
 		var count = results[0].count;
-		var missed = !(results[1].count);
 
 		library.logger.info('Blocks ' + count);
 
@@ -303,6 +302,8 @@ __private.loadBlockChain = function () {
 		if (verify) {
 			return reload(count, 'Blocks verification enabled');
 		}
+
+		var missed = !(results[1].count);
 
 		if (missed) {
 			return reload(count, 'Detected missed blocks in mem_accounts');
