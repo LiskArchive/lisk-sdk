@@ -253,7 +253,8 @@ __private.loadBlockChain = function () {
 			library.logger.warn(message);
 			library.logger.warn('Recreating memory tables');
 		}
-		load(count);
+
+		return load(count);
 	}
 
 	function checkMemTables (t) {
