@@ -363,9 +363,14 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 };
 
 __private.loadDelegates = function (cb) {
-	var secrets = null;
+	var secrets;
+
 	if (library.config.forging.secret) {
-		secrets = Array.isArray(library.config.forging.secret) ? library.config.forging.secret : [library.config.forging.secret];
+		if (Array.isArray(library.config.forging.secret)) {
+			secrets = library.config.forging.secret
+		} else {
+			secrets = [library.config.forging.secret];
+		}
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
@@ -388,6 +393,7 @@ __private.loadDelegates = function (cb) {
 			} else {
 				library.logger.warn(['Account with public key:', keypair.publicKey.toString('hex'), 'is not a delegate'].join(' '));
 			}
+
 			return setImmediate(cb);
 		});
 	}, cb);
