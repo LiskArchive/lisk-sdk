@@ -239,10 +239,10 @@ Peers.prototype.list = function (options, cb) {
 };
 
 Peers.prototype.state = function (pip, port, state, timeoutSeconds) {
-	var isFrozenList = _.find(library.config.peers, function (peer) {
+	var frozenPeer = _.find(library.config.peers, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
-	if (!isFrozenList) {
+	if (!frozenPeer) {
 		var clock;
 		if (state === 0) {
 			clock = (timeoutSeconds || 1) * 1000;
@@ -260,10 +260,10 @@ Peers.prototype.state = function (pip, port, state, timeoutSeconds) {
 };
 
 Peers.prototype.remove = function (pip, port) {
-	var isFrozenList = _.find(library.config.peers.list, function (peer) {
+	var frozenPeer = _.find(library.config.peers.list, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
-	if (!isFrozenList) {
+	if (!frozenPeer) {
 		removed.push(pip);
 		return __private.sweeper.push('remove', { ip: pip, port: port });
 	}
