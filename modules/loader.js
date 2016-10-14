@@ -604,7 +604,6 @@ Loader.prototype.onPeersReady = function () {
 		var lastReceipt = modules.blocks.lastReceipt();
 
 		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
-			library.logger.debug('Loading blocks from network');
 			library.sequence.add(function (cb) {
 				__private.sync(cb);
 			}, function (err) {
