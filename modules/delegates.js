@@ -362,7 +362,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 	});
 };
 
-__private.loadMyDelegates = function (cb) {
+__private.loadDelegates = function (cb) {
 	var secrets = null;
 	if (library.config.forging.secret) {
 		secrets = Array.isArray(library.config.forging.secret) ? library.config.forging.secret : [library.config.forging.secret];
@@ -538,7 +538,7 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadMyDelegates(function nextForge (err) {
+	__private.loadDelegates(function nextForge (err) {
 		if (err) {
 			library.logger.error('Failed to load delegates', err);
 		}
