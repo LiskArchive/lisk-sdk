@@ -90,6 +90,8 @@ __private.loadSignatures = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
+			library.logger.info('Loading signatures from: ' + peer.string);
+
 			modules.transport.getFromPeer(peer, {
 				api: '/signatures',
 				method: 'GET'
@@ -135,6 +137,8 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
+			library.logger.info('Loading unconfirmed transactions from: ' + peer.string);
+
 			modules.transport.getFromPeer(peer, {
 				api: '/transactions',
 				method: 'GET'
@@ -617,7 +621,6 @@ Loader.prototype.onPeersReady = function () {
 
 	setImmediate(function nextLoadUnconfirmedTransactions () {
 		if (__private.loaded && !self.syncing()) {
-			library.logger.debug('Loading unconfirmed transactions');
 			__private.loadUnconfirmedTransactions(function (err) {
 				if (err) {
 					library.logger.warn('Unconfirmed transactions timer', err);
@@ -632,7 +635,6 @@ Loader.prototype.onPeersReady = function () {
 
 	setImmediate(function nextLoadSignatures () {
 		if (__private.loaded && !self.syncing()) {
-			library.logger.debug('Loading signatures');
 			__private.loadSignatures(function (err) {
 				if (err) {
 					library.logger.warn('Signatures timer', err);
