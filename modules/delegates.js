@@ -227,7 +227,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
 		library.logger.debug('No delegates enabled');
-		return setImmediate(cb);
+		return __private.loadDelegates(cb);
 	}
 
 	if (!__private.forging) {
@@ -367,10 +367,16 @@ __private.loadDelegates = function (cb) {
 
 	if (library.config.forging.secret) {
 		if (Array.isArray(library.config.forging.secret)) {
-			secrets = library.config.forging.secret
+			secrets = library.config.forging.secret;
 		} else {
 			secrets = [library.config.forging.secret];
 		}
+	}
+
+	if (!secrets) {
+		return setImmediate(cb);
+	} else {
+		library.logger.info(['Loading', secrets.length, 'delegates from config'].join(' '));
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
