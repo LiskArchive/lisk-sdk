@@ -438,6 +438,8 @@ __private.loadBlocksFromNetwork = function (cb) {
 __private.sync = function (cb) {
 	var transactions = modules.transactions.getUnconfirmedTransactionList(true);
 
+	library.logger.debug('Starting sync');
+
 	__private.isActive = true;
 	__private.syncTrigger(true);
 
@@ -458,6 +460,7 @@ __private.sync = function (cb) {
 		__private.syncTrigger(false);
 		__private.blocksToSync = 0;
 
+		library.logger.debug('Finished sync');
 		return setImmediate(cb, err);
 	});
 };
