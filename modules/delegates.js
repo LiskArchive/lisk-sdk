@@ -379,14 +379,14 @@ __private.loadDelegates = function (cb) {
 			}
 
 			if (!account) {
-				return setImmediate(cb, 'Account ' + keypair.publicKey.toString('hex') + ' not found');
+				return setImmediate(cb, ['Account with public key:', keypair.publicKey.toString('hex'), 'not found'].join(' '));
 			}
 
 			if (account.isDelegate) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-				library.logger.info('Forging enabled on account: ' + account.address);
+				library.logger.info(['Forging enabled on account:', account.address].join(' '));
 			} else {
-				library.logger.warn('Delegate with this public key not found: ' + keypair.publicKey.toString('hex'));
+				library.logger.warn(['Account with public key:', keypair.publicKey.toString('hex'), 'is not a delegate'].join(' '));
 			}
 			return setImmediate(cb);
 		});
