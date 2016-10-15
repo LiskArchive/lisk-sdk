@@ -8,7 +8,8 @@ module.exports = {
 			properties: {
 				peers: {
 					type: 'array',
-					uniqueItems: true
+					uniqueItems: true,
+					maxItems: 100
 				}
 			},
 			required: ['peers']
