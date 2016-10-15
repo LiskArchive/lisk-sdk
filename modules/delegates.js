@@ -373,7 +373,7 @@ __private.loadDelegates = function (cb) {
 		}
 	}
 
-	if (!secrets) {
+	if (!secrets || !secrets.length) {
 		return setImmediate(cb);
 	} else {
 		library.logger.info(['Loading', secrets.length, 'delegates from config'].join(' '));
