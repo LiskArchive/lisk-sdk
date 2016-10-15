@@ -471,9 +471,14 @@ __private.sync = function (cb) {
 
 // Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 __private.findGoodPeers = function (heights) {
-	// Removing unreachable peers
+	var lastBlockHeight = modules.blocks.getLastBlock().height;
+
 	heights = heights.filter(function (item) {
+		// Removing unreachable peers.
 		return item != null;
+	}).filter(function (item) {
+		// Remove heights below last block height.
+		return item.height >= lastBlockHeight;
 	});
 
 	// Assuming that the node reached at least 10% of the network
