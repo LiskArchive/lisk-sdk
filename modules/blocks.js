@@ -473,7 +473,7 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 	if (__private.lastReceipt) {
 		var timeNow = new Date();
 		__private.lastReceipt.secondsAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
-		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > 120);
+		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > constants.blockReceiptTimeOut);
 	}
 
 	return __private.lastReceipt;
@@ -661,7 +661,7 @@ Blocks.prototype.getLastBlock = function () {
 		var currentTime = new Date().getTime() / 1000;
 
 		__private.lastBlock.secondsAgo = currentTime - lastBlockTime;
-		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < 120);
+		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
 	}
 
 	return __private.lastBlock;
