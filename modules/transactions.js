@@ -440,7 +440,7 @@ Transactions.prototype.onPeersReady = function () {
 				library.logger.error('Unconfirmed transactions timer:', err);
 			}
 
-			setTimeout(nextUnconfirmedExpiry, 14 * 1000);
+			setTimeout(nextUnconfirmedExpiry, 30000);
 		});
 	});
 };
