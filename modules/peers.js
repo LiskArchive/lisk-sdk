@@ -79,14 +79,6 @@ __private.updatePeersList = function (cb) {
 					return removed.indexOf(peer.ip);
 			});
 
-			// Update only a subset of the peers to decrease the noise on the network.
-			// Default is 20 peers. To be fined tuned. Node gets checked by a peer every 3s on average.
-			// Maybe increasing schedule (every 60s right now).
-			var maxUpdatePeers = Math.floor(library.config.peers.options.maxUpdatePeers) || 20;
-			if (peers.length > maxUpdatePeers) {
-				peers = peers.slice(0, maxUpdatePeers);
-			}
-
 			// Drop one random peer from removed array to give them a chance.
 			// This mitigates the issue that a node could be removed forever if it was offline for long.
 			// This is not harmful for the node, but prevents network from shrinking, increasing noise.

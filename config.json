@@ -63,7 +63,6 @@
                 "delayAfter": 0,
                 "windowMs": 60000
             },
-            "maxUpdatePeers": 20,
             "timeout": 5000
         }
     },
