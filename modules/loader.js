@@ -169,8 +169,10 @@ __private.loadUnconfirmedTransactions = function (cb) {
 					library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 					modules.peers.state(peer.ip, peer.port, 0, 3600);
 
-					return setImmediate(waterCb, e);
+					return setImmediate(eachSeriesCb, e);
 				}
+
+				return setImmediate(eachSeriesCb);
 			}, function (err) {
 				return setImmediate(waterCb, err, transactions);
 			});
@@ -608,50 +610,54 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeersReady = function () {
-	setImmediate(function nextLoadBlock () {
-		var lastReceipt = modules.blocks.lastReceipt();
+	setImmediate(function nextSeries () {
+		async.series({
+			sync: function (seriesCb) {
+				var lastReceipt = modules.blocks.lastReceipt();
 
-		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
-			library.sequence.add(function (cb) {
-				__private.sync(cb);
-			}, function (err) {
-				if (err) {
-					library.logger.warn('Blocks timer', err);
+				if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
+					library.sequence.add(function (cb) {
+						__private.sync(cb);
+					}, function (err) {
+						if (err) {
+							library.logger.warn('Sync timer', err);
+						}
+
+						return setImmediate(seriesCb);
+					});
+				} else {
+					return setImmediate(seriesCb);
 				}
+			},
+			loadUnconfirmedTransactions: function (seriesCb) {
+				if (__private.loaded) {
+					__private.loadUnconfirmedTransactions(function (err) {
+						if (err) {
+							library.logger.warn('Unconfirmed transactions timer', err);
+						}
 
-				setTimeout(nextLoadBlock, 10000);
-			});
-		} else {
-			setTimeout(nextLoadBlock, 10000);
-		}
-	});
-
-	setImmediate(function nextLoadUnconfirmedTransactions () {
-		if (__private.loaded && !self.syncing()) {
-			__private.loadUnconfirmedTransactions(function (err) {
-				if (err) {
-					library.logger.warn('Unconfirmed transactions timer', err);
+						return setImmediate(seriesCb);
+					});
+				} else {
+					return setImmediate(seriesCb);
 				}
+			},
+			loadSignatures: function (seriesCb) {
+				if (__private.loaded) {
+					__private.loadSignatures(function (err) {
+						if (err) {
+							library.logger.warn('Signatures timer', err);
+						}
 
-				setTimeout(nextLoadUnconfirmedTransactions, 14000);
-			});
-		} else {
-			setTimeout(nextLoadUnconfirmedTransactions, 14000);
-		}
-	});
-
-	setImmediate(function nextLoadSignatures () {
-		if (__private.loaded && !self.syncing()) {
-			__private.loadSignatures(function (err) {
-				if (err) {
-					library.logger.warn('Signatures timer', err);
+						return setImmediate(seriesCb);
+					});
+				} else {
+					return setImmediate(seriesCb);
 				}
-
-				setTimeout(nextLoadSignatures, 14000);
-			});
-		} else {
-			setTimeout(nextLoadSignatures, 14000);
-		}
+			}
+		}, function (err) {
+			return setTimeout(nextSeries, 10000);
+		});
 	});
 };
 
