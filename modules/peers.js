@@ -215,6 +215,8 @@ Peers.prototype.inspect = function (peer) {
 
 	peer.os = peer.os || 'unknown';
 	peer.version = peer.version || '0.0.0';
+	peer.broadhash = peer.broadhash || '';
+	peer.height = peer.height || '';
 
 	return peer;
 };
