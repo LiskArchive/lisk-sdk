@@ -625,7 +625,7 @@ Loader.prototype.getNetwork = function (cb) {
 		__private.network = __private.findGoodPeers(heights);
 
 		if (!__private.network.peers.length) {
-			return setImmediate(cb, 'Failed to find enough good peers to sync with');
+			return setImmediate(cb, 'Failed to find enough good peers');
 		} else {
 			return setImmediate(cb, null, __private.network);
 		}
