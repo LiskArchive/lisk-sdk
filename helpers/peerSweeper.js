@@ -17,9 +17,6 @@ function PeerSweeper (scope) {
 
 // Public methods
 PeerSweeper.prototype.push = function (action, peer) {
-	if (peer.state === undefined) {
-		peer.state = 1;
-	}
 	if (action) {
 		peer.action = action;
 	} else {

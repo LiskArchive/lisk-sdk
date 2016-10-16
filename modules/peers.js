@@ -4,9 +4,9 @@ var _ = require('lodash');
 var async = require('async');
 var extend = require('extend');
 var fs = require('fs');
-var ip = require('ip');
 var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
+var Peer = require('../logic/peer.js');
 var PeerSweeper = require('../helpers/peerSweeper.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
@@ -92,8 +92,8 @@ __private.updatePeersList = function (cb) {
 
 			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
 
-			async.eachLimit(peers, 2, function (peer, cb) {
-				peer = self.inspect(peer);
+			async.eachLimit(res.body.peers, 2, function (peer, cb) {
+				peer = self.accept(peer);
 
 				library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
 					if (err) {
@@ -208,28 +208,8 @@ __private.getByFilter = function (filter, cb) {
 };
 
 // Public methods
-Peers.prototype.inspect = function (peer) {
-	peer = peer || {};
-
-	if (/^[0-9]+$/.test(peer.ip)) {
-		peer.ip = ip.fromLong(peer.ip);
-	}
-
-	peer.port = parseInt(peer.port);
-	peer.port = isNaN(peer.port) ? 0 : peer.port;
-
-	if (peer.ip) {
-		peer.string = (peer.ip + ':' + peer.port || 'unknown');
-	} else {
-		peer.string = 'unknown';
-	}
-
-	peer.os = peer.os || 'unknown';
-	peer.version = peer.version || '0.0.0';
-	peer.broadhash = peer.broadhash || '';
-	peer.height = peer.height || '';
-
-	return peer;
+Peers.prototype.accept = function (peer) {
+	return new Peer(peer);
 };
 
 Peers.prototype.list = function (options, cb) {
@@ -331,7 +311,7 @@ Peers.prototype.remove = function (pip, port) {
 };
 
 Peers.prototype.update = function (peer) {
-	return __private.sweeper.push('upsert', self.inspect(peer));
+	return __private.sweeper.push('upsert', self.accept(peer).object());
 };
 
 Peers.prototype.sandboxApi = function (call, args, cb) {
@@ -345,13 +325,11 @@ Peers.prototype.onBind = function (scope) {
 
 Peers.prototype.onBlockchainReady = function () {
 	async.eachSeries(library.config.peers.list, function (peer, cb) {
-		var params = {
-			ip: peer.ip,
-			port: peer.port,
-			state: 2
-		};
-		library.db.query(sql.insertSeed, params).then(function (res) {
-			library.logger.debug('Inserted seed peer', params);
+		peer = self.accept(peer);
+		peer.state = 2;
+
+		library.db.query(sql.insertSeed, peer).then(function (res) {
+			library.logger.debug('Inserted seed peer', peer);
 			return setImmediate(cb, null, res);
 		}).catch(function (err) {
 			library.logger.error(err.stack);

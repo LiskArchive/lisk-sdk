@@ -531,7 +531,7 @@ __private.findGoodPeers = function (heights) {
 __private.getPeer = function (peer, cb) {
 	async.series({
 		validatePeer: function (seriesCb) {
-			peer = modules.peers.inspect(peer);
+			peer = modules.peers.accept(peer);
 
 			library.schema.validate(peer, schema.getNetwork.peer, function (err) {
 				if (err) {

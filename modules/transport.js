@@ -42,16 +42,15 @@ __private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		req.peer = modules.peers.inspect(
+		req.peer = modules.peers.accept(
 			{
 				ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-				port: req.headers.port
+				port: req.headers.port,
+				state: 2
 			}
 		);
 
-		var headers      = req.headers;
-		    headers.ip   = req.peer.ip;
-		    headers.port = req.peer.port;
+		var headers = req.peer.extend(req.headers);
 
 		req.sanitize(headers, schema.headers, function (err, report) {
 			if (err) { return next(err); }
@@ -69,16 +68,6 @@ __private.attachApi = function () {
 				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: library.config.nethash, received: headers.nethash});
 			}
 
-			req.peer.state = 2;
-			req.peer.os = headers.os;
-			req.peer.version = headers.version;
-			req.peer.broadhash = headers.broadhash;
-			req.peer.height = headers.height;
-
-			if (req.body && req.body.dappid) {
-				req.peer.dappid = req.body.dappid;
-			}
-
 			if (req.peer.version === library.config.version) {
 				if (!modules.blocks.lastReceipt()) {
 					modules.delegates.enableForging();
@@ -86,6 +75,12 @@ __private.attachApi = function () {
 
 				modules.peers.update(req.peer);
 			}
+
+			if (req.body && req.body.dappid) {
+				req.peer.dappid = req.body.dappid;
+			}
+
+			modules.peers.update(req.peer);
 
 			return next();
 		});
@@ -417,7 +412,8 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		url = options.url;
 	}
 
-	peer = modules.peers.inspect(peer);
+	peer = modules.peers.accept(peer);
+	peer.state = 2;
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
@@ -441,9 +437,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
 		} else {
-			var headers      = res.headers;
-			    headers.ip   = peer.ip;
-			    headers.port = peer.port;
+			var headers = peer.extend(res.headers);
 
 			var report = library.schema.validate(headers, schema.headers);
 			if (!report) {
@@ -461,15 +455,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			}
 
 			if (headers.version === library.config.version) {
-				modules.peers.update({
-					ip: peer.ip,
-					port: headers.port,
-					state: 2,
-					os: headers.os,
-					version: headers.version,
-					broadhash: headers.broadhash,
-					height: headers.height
-				});
+				modules.peers.update(peer);
 			}
 
 			return setImmediate(cb, null, {body: res.body, peer: peer});

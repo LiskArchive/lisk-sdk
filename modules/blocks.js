@@ -1068,7 +1068,7 @@ Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
 Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = __private.lastBlock;
 
-	peer = modules.peers.inspect(peer);
+	peer = modules.peers.accept(peer);
 	library.logger.info('Loading blocks from: ' + peer.string);
 
 	modules.transport.getFromPeer(peer, {
