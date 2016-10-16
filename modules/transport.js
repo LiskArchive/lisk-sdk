@@ -40,20 +40,12 @@ __private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		try {
-			req.peer = modules.peers.inspect(
-				{
-					ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-					port: req.headers.port
-				}
-			);
-		} catch (e) {
-			// Remove peer
-			__private.removePeer({peer: req.peer, code: 'EHEADERS', req: req});
-
-			library.logger.debug(e.toString());
-			return res.status(406).send({success: false, error: 'Invalid request headers'});
-		}
+		req.peer = modules.peers.inspect(
+			{
+				ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+				port: req.headers.port
+			}
+		);
 
 		var headers      = req.headers;
 		    headers.ip   = req.peer.ip;
