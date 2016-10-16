@@ -11,7 +11,7 @@ var PeersSql = {
     return [
       'SELECT "ip", "port", "state", "os", "version", ENCODE("broadhash", \'hex\') AS "broadhash", "height" FROM peers',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
-      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : 'ORDER BY random()'),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : 'ORDER BY RANDOM()'),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },
