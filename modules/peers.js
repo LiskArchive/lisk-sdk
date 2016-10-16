@@ -144,7 +144,7 @@ __private.getByFilter = function (filter, cb) {
 		params.port = filter.port;
 	}
 
-	if (filter.state) {
+	if (filter.state >= 0) {
 		where.push('"state" = ${state}');
 		params.state = filter.state;
 	}
