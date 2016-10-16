@@ -75,7 +75,7 @@ __private.attachApi = function () {
 				req.peer.dappid = req.body.dappid;
 			}
 
-			if ((req.peer.version === library.config.version) && (headers.nethash === library.config.nethash)) {
+			if (req.peer.version === library.config.version) {
 				if (!modules.blocks.lastReceipt()) {
 					modules.delegates.enableForging();
 				}
