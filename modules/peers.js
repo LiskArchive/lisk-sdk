@@ -134,6 +134,16 @@ __private.getByFilter = function (filter, cb) {
 	var where = [];
 	var params = {};
 
+	if (filter.ip) {
+		where.push('"ip" = ${ip}');
+		params.ip = filter.ip;
+	}
+
+	if (filter.port) {
+		where.push('"port" = ${port}');
+		params.port = filter.port;
+	}
+
 	if (filter.state) {
 		where.push('"state" = ${state}');
 		params.state = filter.state;
@@ -149,14 +159,14 @@ __private.getByFilter = function (filter, cb) {
 		params.version = filter.version;
 	}
 
-	if (filter.ip) {
-		where.push('"ip" = ${ip}');
-		params.ip = filter.ip;
-	}
+	var orderBy = OrderBy(
+		filter.orderBy, {
+			sortFields: sql.sortFields
+		}
+	);
 
-	if (filter.port) {
-		where.push('"port" = ${port}');
-		params.port = filter.port;
+	if (orderBy.error) {
+		return setImmediate(cb, orderBy.error);
 	}
 
 	if (!filter.limit) {
@@ -173,16 +183,6 @@ __private.getByFilter = function (filter, cb) {
 
 	if (params.limit > 100) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
-	}
-
-	var orderBy = OrderBy(
-		filter.orderBy, {
-			sortFields: sql.sortFields
-		}
-	);
-
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
 	}
 
 	library.db.query(sql.getByFilter({
