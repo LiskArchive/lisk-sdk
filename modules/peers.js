@@ -159,6 +159,16 @@ __private.getByFilter = function (filter, cb) {
 		params.version = filter.version;
 	}
 
+	if (filter.broadhash) {
+		where.push('"broadhash" = ${broadhash}');
+		params.broadhash = filter.broadhash;
+	}
+
+	if (filter.height) {
+		where.push('"height" = ${height}');
+		params.height = filter.height;
+	}
+
 	var orderBy = OrderBy(
 		filter.orderBy, {
 			sortFields: sql.sortFields
