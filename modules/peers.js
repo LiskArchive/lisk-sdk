@@ -264,7 +264,7 @@ Peers.prototype.remove = function (pip, port) {
 };
 
 Peers.prototype.update = function (peer) {
-	return __private.sweeper.push('upsert', peer);
+	return __private.sweeper.push('upsert', self.inspect(peer));
 };
 
 Peers.prototype.sandboxApi = function (call, args, cb) {
