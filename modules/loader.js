@@ -528,6 +528,55 @@ __private.findGoodPeers = function (heights) {
 	}
 };
 
+__private.getPeer = function (peer, cb) {
+	async.series({
+		validatePeer: function (seriesCb) {
+			peer = modules.peers.inspect(peer);
+
+			library.schema.validate(peer, schema.getNetwork.peer, function (err) {
+				if (err) {
+					return setImmediate(seriesCb, ['Failed to validate peer:', err[0].path, err[0].message].join(' '));
+				} else {
+					return setImmediate(seriesCb, null);
+				}
+			});
+		},
+		getHeight: function (seriesCb) {
+			if (peer.height) {
+				return setImmediate(seriesCb);
+			} else {
+				modules.transport.getFromPeer(peer, {
+					api: '/height',
+					method: 'GET'
+				}, function (err, res) {
+					if (err) {
+						return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
+					} else {
+						peer.height = res.body.height;
+						return setImmediate(seriesCb);
+					}
+				});
+			}
+		},
+		validateHeight: function (seriesCb) {
+			var heightIsValid = library.schema.validate(peer, schema.getNetwork.height);
+
+			if (heightIsValid) {
+				library.logger.info(['Received height:', peer.height, 'from peer:', peer.string].join(' '));
+				return setImmediate(seriesCb);
+			} else {
+				return setImmediate(seriesCb, 'Received invalid height from peer: ' + peer.string);
+			}
+		}
+	}, function (err) {
+		if (err) {
+			peer.height = null;
+			library.logger.error(err);
+		}
+		return setImmediate(cb, null, {peer: peer, height: peer.height});
+	});
+};
+
 // Public methods
 
 // Rationale:
@@ -535,71 +584,51 @@ __private.findGoodPeers = function (heights) {
 // - Then for each of them we grab the height of their blockchain.
 // - With this list we try to get a peer with sensibly good blockchain height (see __private.findGoodPeers for actual strategy).
 Loader.prototype.getNetwork = function (cb) {
-	// If __private.network.height is not so far (i.e. 1 round) from current node height, just return cached __private.network.
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < 101) {
 		return setImmediate(cb, null, __private.network);
 	}
+	async.waterfall([
+		function (waterCb) {
+			modules.transport.getFromRandomPeer({
+				api: '/list',
+				method: 'GET'
+			}, function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					return setImmediate(waterCb, null, res);
+				}
+			});
+		},
+		function (res, waterCb) {
+			library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
+				var peers = res.body.peers;
 
-	// Fetch a list of 100 random peers
-	modules.transport.getFromRandomPeer({
-		api: '/list',
-		method: 'GET'
-	}, function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					library.logger.debug(['Received', peers.length, 'peers from'].join(' '), res.peer.string);
+					return setImmediate(waterCb, null, peers);
+				}
+			});
+		},
+		function (peers, waterCb) {
+			async.map(peers, __private.getPeer, function (err, peers) {
+				return setImmediate(waterCb, err, peers);
+			});
+		}
+	], function (err, heights) {
 		if (err) {
-			library.logger.info('Failed to connect properly with network', err);
 			return setImmediate(cb, err);
 		}
 
-		library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
+		__private.network = __private.findGoodPeers(heights);
 
-			var peers = res.body.peers;
-
-			library.logger.debug(['Received', res.body.peers.length, 'peers from'].join(' '), res.peer.string);
-
-			// Validate each peer and then attempt to get its height
-			async.map(peers, function (peer, cb) {
-				var peerIsValid = library.schema.validate(modules.peers.inspect(peer), schema.getNetwork.peer);
-
-				if (peerIsValid) {
-					modules.transport.getFromPeer(peer, {
-						api: '/height',
-						method: 'GET'
-					}, function (err, res) {
-						if (err) {
-							library.logger.error(err);
-							library.logger.warn('Failed to get height from peer', peer.string);
-							return setImmediate(cb);
-						}
-
-						var heightIsValid = library.schema.validate(res.body, schema.getNetwork.height);
-
-						if (heightIsValid) {
-							library.logger.info(['Received height:', res.body.height, 'from peer'].join(' '), peer.string);
-							return setImmediate(cb, null, {peer: peer, height: res.body.height});
-						} else {
-							library.logger.warn('Received invalid height from peer', peer.string);
-							return setImmediate(cb);
-						}
-					});
-				} else {
-					library.logger.warn('Failed to validate peer', peer);
-					return setImmediate(cb);
-				}
-			}, function (err, heights) {
-				__private.network = __private.findGoodPeers(heights);
-
-				if (err) {
-					return setImmediate(cb, err);
-				} else if (!__private.network.peers.length) {
-					return setImmediate(cb, 'Failed to find enough good peers to sync with');
-				} else {
-					return setImmediate(cb, null, __private.network);
-				}
-			});
-		});
+		if (!__private.network.peers.length) {
+			return setImmediate(cb, 'Failed to find enough good peers to sync with');
+		} else {
+			return setImmediate(cb, null, __private.network);
+		}
 	});
 };
 
