@@ -31,6 +31,8 @@ describe('GET /peer/list', function () {
 					node.expect(peer).to.have.property('state').that.is.a('number');
 					node.expect(peer).to.have.property('os');
 					node.expect(peer).to.have.property('version');
+					node.expect(peer).to.have.property('broadhash');
+					node.expect(peer).to.have.property('height');
 				});
 				done();
 			});
