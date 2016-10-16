@@ -457,6 +457,9 @@ __private.sync = function (cb) {
 		loadBlocksFromNetwork: function (cb) {
 			return __private.loadBlocksFromNetwork(cb);
 		},
+		updateSystem: function (cb) {
+			return modules.system.update(cb);
+		},
 		receiveTransactions: function (cb) {
 			library.logger.debug('Receiving unconfirmed transactions after sync');
 			return modules.transactions.receiveTransactions(transactions, cb);

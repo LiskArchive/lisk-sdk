@@ -373,10 +373,21 @@ __private.removePeer = function (options) {
 };
 
 // Public methods
+Transport.prototype.headers = function (headers) {
+	if (headers) {
+		__private.headers = headers;
+	}
+
+	return __private.headers;
+};
+
 Transport.prototype.broadcast = function (config, options, cb) {
 	library.logger.debug('Broadcast', options);
 
 	config.limit = config.limit || 1;
+	config.broadhash = config.broadhash || null;
+	config.height = config.height || null;
+
 	modules.peers.list(config, function (err, peers) {
 		if (!err) {
 			async.eachLimit(peers, 3, function (peer, cb) {
@@ -501,12 +512,7 @@ Transport.prototype.sandboxApi = function (call, args, cb) {
 Transport.prototype.onBind = function (scope) {
 	modules = scope;
 
-	__private.headers = {
-		os: modules.system.getOS(),
-		version: modules.system.getVersion(),
-		port: modules.system.getPort(),
-		nethash: modules.system.getNethash()
-	};
+	__private.headers = modules.system.headers();
 };
 
 Transport.prototype.onBlockchainReady = function () {
@@ -529,8 +535,13 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
 
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
-		self.broadcast({limit: 100}, {api: '/blocks', data: {block: block}, method: 'POST'});
-		library.network.io.sockets.emit('blocks/change', block);
+		var broadhash = modules.system.getBroadhash();
+		var height = modules.system.getHeight();
+
+		modules.system.update(function () {
+			self.broadcast({limit: 100, broadhash: broadhash, height: height}, {api: '/blocks', data: {block: block}, method: 'POST'});
+			library.network.io.sockets.emit('blocks/change', block);
+		});
 	}
 };
 
