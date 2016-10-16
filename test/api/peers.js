@@ -16,24 +16,6 @@ describe('GET /api/peers/version', function () {
 
 describe('GET /api/peers', function () {
 
-	it('using empty parameters should fail', function (done) {
-		var params = [
-			'state=',
-			'os=',
-			'shared=',
-			'version=',
-			'limit=',
-			'offset=',
-			'orderBy='
-		];
-
-		node.get('/api/peers?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
 	it('using state should be ok', function (done) {
 		var state = 1;
 		var params = 'state=' + state;
@@ -62,6 +44,17 @@ describe('GET /api/peers', function () {
 		});
 	});
 
+	it('using limit > 100 should fail', function (done) {
+		var limit = 101;
+		var params = 'limit=' + limit;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
 	it('using orderBy should be ok', function (done) {
 		var orderBy = 'state:desc';
 		var params = 'orderBy=' + orderBy;
@@ -78,35 +71,6 @@ describe('GET /api/peers', function () {
 				}
 			}
 
-			done();
-		});
-	});
-
-	it('using limit > 100 should fail', function (done) {
-		var limit = 101;
-		var params = 'limit=' + limit;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using invalid parameters should fail', function (done) {
-		var params = [
-			'state=invalid',
-			'os=invalid',
-			'shared=invalid',
-			'version=invalid',
-			'limit=invalid',
-			'offset=invalid',
-			'orderBy=invalid'
-		];
-
-		node.get('/api/peers?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
