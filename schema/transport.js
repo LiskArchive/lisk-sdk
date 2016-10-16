@@ -25,6 +25,13 @@ module.exports = {
 			nethash: {
 				type: 'string',
 				maxLength: 64
+			},
+			broadhash: {
+				type: 'string',
+				format: 'hex'
+			},
+			height: {
+				type: 'string'
 			}
 		},
 		required: ['ip', 'port', 'version', 'nethash']

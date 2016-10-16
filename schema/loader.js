@@ -58,6 +58,13 @@ module.exports = {
 				},
 				version: {
 					type: 'string'
+				},
+				broadhash: {
+					type: 'string',
+					format: 'hex'
+				},
+				height: {
+					type: 'string'
 				}
 			},
 			required: ['ip', 'port', 'state']
