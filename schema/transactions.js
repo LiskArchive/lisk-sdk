@@ -10,22 +10,13 @@ module.exports = {
 			blockId: {
 				type: 'string'
 			},
-			limit: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 100
-			},
 			type: {
 				type: 'integer',
 				minimum: 0,
 				maximum: 10
 			},
-			orderBy: {
+			senderId: {
 				type: 'string'
-			},
-			offset: {
-				type: 'integer',
-				minimum: 0
 			},
 			senderPublicKey: {
 				type: 'string',
@@ -36,9 +27,6 @@ module.exports = {
 				format: 'publicKey'
 			},
 			ownerAddress: {
-				type: 'string'
-			},
-			senderId: {
 				type: 'string'
 			},
 			recipientId: {
@@ -53,6 +41,18 @@ module.exports = {
 				type: 'integer',
 				minimum: 0,
 				maximum: constants.fixedPoint
+			},
+			orderBy: {
+				type: 'string'
+			},
+			limit: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 100
+			},
+			offset: {
+				type: 'integer',
+				minimum: 0
 			}
 		}
 	},

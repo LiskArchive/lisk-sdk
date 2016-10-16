@@ -24,7 +24,7 @@ module.exports = {
 		properties: {
 			limit: {
 				type: 'integer',
-				minimum: 0,
+				minimum: 1,
 				maximum: 100
 			},
 			orderBy: {

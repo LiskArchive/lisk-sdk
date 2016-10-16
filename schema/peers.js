@@ -30,7 +30,7 @@ module.exports = {
 				state: {
 					type: 'integer',
 					minimum: 0,
-					maximum: 3
+					maximum: 2
 				},
 				os: {
 					type: 'string',
@@ -67,7 +67,7 @@ module.exports = {
 			state: {
 				type: 'integer',
 				minimum: 0,
-				maximum: 3
+				maximum: 2
 			},
 			os: {
 				type: 'string',
@@ -89,7 +89,7 @@ module.exports = {
 			},
 			limit: {
 				type: 'integer',
-				minimum: 0,
+				minimum: 1,
 				maximum: 100
 			},
 			offset: {
