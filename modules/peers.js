@@ -379,21 +379,26 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 Peers.prototype.onPeersReady = function () {
-	setImmediate(function nextUpdatePeersList () {
-		__private.updatePeersList(function (err) {
-			if (err) {
-				library.logger.error('Peers timer:', err);
+	setImmediate(function nextSeries () {
+		async.series({
+			updatePeersList: function (seriesCb) {
+				__private.updatePeersList(function (err) {
+					if (err) {
+						library.logger.error('Peers timer:', err);
+					}
+					return setImmediate(seriesCb);
+				});
+			},
+			nextBanManager: function (seriesCb) {
+				__private.banManager(function (err) {
+					if (err) {
+						library.logger.error('Ban manager timer:', err);
+					}
+					return setImmediate(seriesCb);
+				});
 			}
-			setTimeout(nextUpdatePeersList, 60 * 1000);
-		});
-	});
-
-	setImmediate(function nextBanManager () {
-		__private.banManager(function (err) {
-			if (err) {
-				library.logger.error('Ban manager timer:', err);
-			}
-			setTimeout(nextBanManager, 65 * 1000);
+		}, function (err) {
+			return setTimeout(nextSeries, 65000);
 		});
 	});
 };
