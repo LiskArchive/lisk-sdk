@@ -55,6 +55,10 @@ module.exports = {
 		id: 'peer.getPeers',
 		type: 'object',
 		properties: {
+			ip: {
+				type: 'string',
+				format: 'ip'
+			},
 			port: {
 				type: 'integer',
 				minimum: 1,
