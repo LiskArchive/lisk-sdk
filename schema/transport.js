@@ -18,16 +18,16 @@ module.exports = {
 				type: 'string',
 				maxLength: 64
 			},
-			nethash: {
-				type: 'string',
-				maxLength: 64
-			},
 			version: {
 				type: 'string',
 				maxLength: 11
+			},
+			nethash: {
+				type: 'string',
+				maxLength: 64
 			}
 		},
-		required: ['ip', 'port', 'nethash', 'version']
+		required: ['ip', 'port', 'version', 'nethash']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',
