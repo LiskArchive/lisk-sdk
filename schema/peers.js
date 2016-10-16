@@ -77,6 +77,13 @@ module.exports = {
 				type: 'string',
 				maxLength: 11
 			},
+			broadhash: {
+				type: 'string',
+				format: 'hex'
+			},
+			height: {
+				type: 'integer'
+			},
 			orderBy: {
 				type: 'string'
 			},
