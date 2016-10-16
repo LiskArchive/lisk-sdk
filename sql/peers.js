@@ -1,7 +1,7 @@
 'use strict';
 
 var PeersSql = {
-  sortFields: ['ip', 'port', 'state', 'os', 'version'],
+  sortFields: ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height'],
 
   count: 'SELECT COUNT(*)::int FROM peers',
 
@@ -9,7 +9,7 @@ var PeersSql = {
 
   getByFilter: function (params) {
     return [
-      'SELECT "ip", "port", "state", "os", "version" FROM peers',
+      'SELECT "ip", "port", "state", "os", "version", ENCODE("broadhash", \'hex\') AS "broadhash", "height" FROM peers',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : 'ORDER BY random()'),
       'LIMIT ${limit} OFFSET ${offset}'
@@ -18,7 +18,7 @@ var PeersSql = {
 
   randomList: function (params) {
     return [
-      'SELECT p."ip", p."port", p."state", p."os", p."version" FROM peers p',
+      'SELECT p."ip", p."port", p."state", p."os", p."version", ENCODE(p."broadhash", \'hex\') AS "broadhash", p."height" FROM peers p',
       (params.dappid ? 'INNER JOIN peers_dapp AS pd ON p."id" = pd."peerId" AND pd."dappid" = ${dappid}' : ''),
       'WHERE p."state" > 0 ORDER BY RANDOM() LIMIT ${limit}'
     ].filter(Boolean).join(' ');
@@ -32,7 +32,7 @@ var PeersSql = {
 
   addDapp: 'INSERT INTO peers_dapp ("peerId", "dappid") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING',
 
-  upsert: 'INSERT INTO peers ("ip", "port", "state", "os", "version") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}) ON CONFLICT ("ip", "port") DO UPDATE SET ("ip", "port", "state", "os", "version") = (${ip}, ${port}, (CASE WHEN EXCLUDED."state" = 0 THEN EXCLUDED."state" ELSE ${state} END), ${os}, ${version})',
+  upsert: 'INSERT INTO peers ("ip", "port", "state", "os", "version", "broadhash", "height") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}, ${broadhash}, ${height}) ON CONFLICT ("ip", "port") DO UPDATE SET ("ip", "port", "state", "os", "version", "broadhash", "height") = (${ip}, ${port}, (CASE WHEN EXCLUDED."state" = 0 THEN EXCLUDED."state" ELSE ${state} END), ${os}, ${version}, ${broadhash}, ${height})',
 
   insertSeed: 'INSERT INTO peers("ip", "port", "state") VALUES(${ip}, ${port}, ${state}) ON CONFLICT DO NOTHING',
 };
