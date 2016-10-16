@@ -404,7 +404,6 @@ Peers.prototype.onPeersReady = function () {
 };
 
 // Shared
-
 shared.getPeers = function (req, cb) {
 	library.schema.validate(req.body, schema.getPeers, function (err) {
 		if (err) {
