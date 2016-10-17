@@ -1237,7 +1237,7 @@ Blocks.prototype.cleanup = function (cb) {
 		setImmediate(function nextWatch () {
 			if (__private.isActive) {
 				library.logger.info('Waiting for block processing to finish...');
-				setTimeout(nextWatch, 1 * 1000);
+				setTimeout(nextWatch, 10000);
 			} else {
 				return setImmediate(cb);
 			}
