@@ -466,7 +466,9 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 					port: headers.port,
 					state: 2,
 					os: headers.os,
-					version: headers.version
+					version: headers.version,
+					broadhash: headers.broadhash,
+					height: headers.height
 				});
 			}
 
