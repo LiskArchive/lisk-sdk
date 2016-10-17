@@ -216,6 +216,7 @@ Peers.prototype.inspect = function (peer) {
 	}
 
 	peer.port = parseInt(peer.port);
+	peer.port = isNaN(peer.port) ? 0 : peer.port;
 
 	if (peer.ip) {
 		peer.string = (peer.ip + ':' + peer.port || 'unknown');
