@@ -223,12 +223,68 @@ Peers.prototype.inspect = function (peer) {
 
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
+	options.broadhash = options.broadhash || modules.system.getBroadhash();
+	options.height = options.height || modules.system.getHeight();
+	options.attempts = ['matched broadhash', 'unmatched broadhash', 'legacy'];
+	options.attempt = 0;
 
-	library.db.query(sql.randomList(options), options).then(function (rows) {
-		return setImmediate(cb, null, rows);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Peers#list error');
+	if (!options.broadhash) {
+		delete options.broadhash;
+	}
+
+	if (!options.height) {
+		delete options.height;
+	}
+
+	function randomList (options, peers, cb) {
+		library.db.query(sql.randomList(options), options).then(function (rows) {
+			library.logger.debug(['Listing', rows.length, options.attempts[options.attempt], 'peers'].join(' '));
+			return setImmediate(cb, null, peers.concat(rows));
+		}).catch(function (err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Peers#list error');
+		});
+	}
+
+	function nextAttempt (peers) {
+		options.limit = 100;
+		options.limit = (options.limit - peers.length);
+		options.attempt += 1;
+
+		if (options.attempt === 2) {
+			delete options.broadhash;
+			delete options.height;
+		}
+	}
+
+	async.waterfall([
+		// Broadhash
+		function (waterCb) {
+			return randomList(options, [], waterCb);
+		},
+		// Unmatched
+		function (peers, waterCb) {
+			if (peers.length < options.limit && (options.broadhash || options.height)) {
+				nextAttempt(peers);
+
+				return randomList(options, peers, waterCb);
+			} else {
+				return setImmediate(waterCb, null, peers);
+			}
+		},
+		// Fallback
+		function (peers, waterCb) {
+			if (peers.length < options.limit) {
+				nextAttempt(peers);
+
+				return randomList(options, peers, waterCb);
+			} else {
+				return setImmediate(waterCb, null, peers);
+			}
+		}
+	], function (err, peers) {
+		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
+		return setImmediate(cb, err, peers);
 	});
 };
 
