@@ -35,6 +35,8 @@ __private.attachApi = function () {
 	var router = new Router();
 
 	router.use(function (req, res, next) {
+		res.set(__private.headers);
+
 		if (modules && __private.loaded) { return next(); }
 		res.status(500).send({success: false, error: 'Blockchain is loading'});
 	});
@@ -91,15 +93,12 @@ __private.attachApi = function () {
 	});
 
 	router.get('/list', function (req, res) {
-		res.set(__private.headers);
 		modules.peers.list({limit: 100}, function (err, peers) {
 			return res.status(200).json({peers: !err ? peers : []});
 		});
 	});
 
 	router.get('/blocks/common', function (req, res, next) {
-		res.set(__private.headers);
-
 		req.sanitize(req.query, schema.commonBlock, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
@@ -130,8 +129,6 @@ __private.attachApi = function () {
 	});
 
 	router.get('/blocks', function (req, res, next) {
-		res.set(__private.headers);
-
 		req.sanitize(req.query, schema.blocks, function (err, report, query) {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
@@ -153,8 +150,6 @@ __private.attachApi = function () {
 	});
 
 	router.post('/blocks', function (req, res) {
-		res.set(__private.headers);
-
 		var block = req.body.block;
 		var id = (block ? block.id : 'null');
 
@@ -178,8 +173,6 @@ __private.attachApi = function () {
 	});
 
 	router.post('/signatures', function (req, res) {
-		res.set(__private.headers);
-
 		library.schema.validate(req.body, schema.signatures, function (err) {
 			if (err) {
 				return res.status(200).json({success: false, error: 'Signature validation failed'});
@@ -196,8 +189,6 @@ __private.attachApi = function () {
 	});
 
 	router.get('/signatures', function (req, res) {
-		res.set(__private.headers);
-
 		var unconfirmedList = modules.transactions.getUnconfirmedTransactionList();
 		var signatures = [];
 
@@ -216,13 +207,10 @@ __private.attachApi = function () {
 	});
 
 	router.get('/transactions', function (req, res) {
-		res.set(__private.headers);
 		res.status(200).json({success: true, transactions: modules.transactions.getUnconfirmedTransactionList()});
 	});
 
 	router.post('/transactions', function (req, res) {
-		res.set(__private.headers);
-
 		var transaction = req.body.transaction;
 		var id = (transaction? transaction.id : 'null');
 
@@ -256,7 +244,6 @@ __private.attachApi = function () {
 	});
 
 	router.get('/height', function (req, res) {
-		res.set(__private.headers);
 		res.status(200).json({
 			success: true,
 			height: modules.blocks.getLastBlock().height
@@ -264,8 +251,6 @@ __private.attachApi = function () {
 	});
 
 	router.post('/dapp/message', function (req, res) {
-		res.set(__private.headers);
-
 		try {
 			if (!req.body.dappid) {
 				return res.status(200).json({success: false, message: 'Missing dappid'});
@@ -306,8 +291,6 @@ __private.attachApi = function () {
 	});
 
 	router.post('/dapp/request', function (req, res) {
-		res.set(__private.headers);
-
 		try {
 			if (!req.body.dappid) {
 				return res.status(200).json({success: false, message: 'Missing dappid'});
