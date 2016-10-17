@@ -450,19 +450,19 @@ __private.sync = function (cb) {
 	__private.syncTrigger(true);
 
 	async.series({
-		undoUnconfirmedList: function (cb) {
+		undoUnconfirmedList: function (seriesCb) {
 			library.logger.debug('Undoing unconfirmed transactions before sync');
-			return modules.transactions.undoUnconfirmedList(cb);
+			return modules.transactions.undoUnconfirmedList(seriesCb);
 		},
-		loadBlocksFromNetwork: function (cb) {
-			return __private.loadBlocksFromNetwork(cb);
+		loadBlocksFromNetwork: function (seriesCb) {
+			return __private.loadBlocksFromNetwork(seriesCb);
 		},
-		updateSystem: function (cb) {
-			return modules.system.update(cb);
+		updateSystem: function (seriesCb) {
+			return modules.system.update(seriesCb);
 		},
-		receiveTransactions: function (cb) {
+		receiveTransactions: function (seriesCb) {
 			library.logger.debug('Receiving unconfirmed transactions after sync');
-			return modules.transactions.receiveTransactions(transactions, cb);
+			return modules.transactions.receiveTransactions(transactions, seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;
