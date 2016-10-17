@@ -70,6 +70,8 @@ __private.attachApi = function () {
 			req.peer.state = 2;
 			req.peer.os = headers.os;
 			req.peer.version = headers.version;
+			req.peer.broadhash = headers.broadhash;
+			req.peer.height = headers.height;
 
 			if (req.body && req.body.dappid) {
 				req.peer.dappid = req.body.dappid;
