@@ -99,6 +99,7 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /get': 'getBlock',
 		'get /': 'getBlocks',
+		'get /getBroadhash': 'getBroadhash',
 		'get /getEpoch': 'getEpoch',
 		'get /getHeight': 'getHeight',
 		'get /getNethash': 'getNethash',
@@ -1288,6 +1289,14 @@ shared.getBlocks = function (req, cb) {
 	});
 };
 
+shared.getBroadhash = function (req, cb) {
+	if (!__private.loaded) {
+		return setImmediate(cb, 'Blockchain is loading');
+	}
+
+	return setImmediate(cb, null, {broadhash: modules.system.getBroadhash()});
+};
+
 shared.getEpoch = function (req, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
@@ -1358,6 +1367,7 @@ shared.getStatus = function (req, cb) {
 	}
 
 	return setImmediate(cb, null, {
+		broadhash: modules.system.getBroadhash(),
 		epoch:     constants.epochTime,
 		height:    __private.lastBlock.height,
 		fee:       library.logic.block.calculateFee(),
