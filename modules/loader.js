@@ -542,7 +542,7 @@ __private.getPeer = function (peer, cb) {
 			});
 		},
 		getHeight: function (seriesCb) {
-			if (peer.height) {
+			if (peer.height >= modules.blocks.getLastBlock().height) {
 				return setImmediate(seriesCb);
 			} else {
 				modules.transport.getFromPeer(peer, {
