@@ -450,6 +450,10 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
 			}
 
+			if (res.body.height) {
+				peer.height = res.body.height;
+			}
+
 			modules.peers.update(peer);
 
 			return setImmediate(cb, null, {body: res.body, peer: peer});
