@@ -56,7 +56,8 @@ module.exports = {
 				type: 'string'
 			},
 			height: {
-				type: 'integer'
+				type: 'integer',
+				minimum: 1
 			}
 		}
 	}

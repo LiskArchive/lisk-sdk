@@ -64,7 +64,8 @@ module.exports = {
 					format: 'hex'
 				},
 				height: {
-					type: 'string'
+					type: 'integer',
+					minimum: 1
 				}
 			},
 			required: ['ip', 'port', 'state']
@@ -75,7 +76,7 @@ module.exports = {
 			properties: {
 				height: {
 					type: 'integer',
-					minimum: 0
+					minimum: 1
 				}
 			},
 			required: ['height']

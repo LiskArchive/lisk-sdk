@@ -31,7 +31,8 @@ module.exports = {
 				format: 'hex'
 			},
 			height: {
-				type: 'string'
+				type: 'integer',
+				minimum: 1
 			}
 		},
 		required: ['ip', 'port', 'version', 'nethash']
