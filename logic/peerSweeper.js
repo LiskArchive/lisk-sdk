@@ -87,4 +87,5 @@ PeerSweeper.prototype.addDapps = function (peers) {
 	});
 };
 
+// Export
 module.exports = PeerSweeper;
