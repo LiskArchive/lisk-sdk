@@ -422,7 +422,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
 		method: options.method,
-		headers: _.extend({}, __private.headers, options.headers),
+		headers: extend({}, __private.headers, options.headers),
 		timeout: library.config.peers.options.timeout
 	};
 
