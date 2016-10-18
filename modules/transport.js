@@ -68,12 +68,8 @@ __private.attachApi = function () {
 				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: library.config.nethash, received: headers.nethash});
 			}
 
-			if (req.peer.version === library.config.version) {
-				if (!modules.blocks.lastReceipt()) {
-					modules.delegates.enableForging();
-				}
-
-				modules.peers.update(req.peer);
+			if (!modules.blocks.lastReceipt()) {
+				modules.delegates.enableForging();
 			}
 
 			if (req.body && req.body.dappid) {
@@ -454,9 +450,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
 			}
 
-			if (headers.version === library.config.version) {
-				modules.peers.update(peer);
-			}
+			modules.peers.update(peer);
 
 			return setImmediate(cb, null, {body: res.body, peer: peer});
 		}
