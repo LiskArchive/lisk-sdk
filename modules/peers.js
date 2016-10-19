@@ -324,22 +324,26 @@ Peers.prototype.onBind = function (scope) {
 };
 
 Peers.prototype.onBlockchainReady = function () {
-	async.eachSeries(library.config.peers.list, function (peer, cb) {
-		peer = self.accept(peer);
-		peer.state = 2;
+	async.series({
+		insertSeeds: function (seriesCb) {
+			async.eachSeries(library.config.peers.list, function (peer, eachCb) {
+				self.update({
+					ip: peer.ip,
+					port: peer.port,
+					state: 2,
+					broadhash: modules.system.getBroadhash(),
+					height: 1
+				});
 
-		library.db.query(sql.insertSeed, peer).then(function (res) {
-			library.logger.debug('Inserted seed peer', peer);
-			return setImmediate(cb, null, res);
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Peers#onBlockchainReady error');
-		});
-	}, function (err) {
-		if (err) {
-			library.logger.error(err);
+				return setImmediate(eachCb);
+			}, function (err) {
+				return setImmediate(seriesCb, err);
+			});
+		},
+		waitForSweep: function (seriesCb) {
+			return setTimeout(seriesCb, 1000);
 		}
-
+	}, function (err) {
 		__private.count(function (err, count) {
 			if (count) {
 				__private.updatePeersList(function (err) {
