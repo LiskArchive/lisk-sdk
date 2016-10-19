@@ -61,11 +61,11 @@ __private.attachApi = function () {
 				return res.status(500).send({status: false, error: report.issues});
 			}
 
-			if (headers.nethash !== library.config.nethash) {
+			if (headers.nethash !== modules.system.getNethash()) {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'ENETHASH', req: req});
 
-				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: library.config.nethash, received: headers.nethash});
+				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
 			}
 
 			if (!modules.blocks.lastReceipt()) {
@@ -443,7 +443,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
 			}
 
-			if (headers.nethash !== library.config.nethash) {
+			if (headers.nethash !== modules.system.getNethash()) {
 				// Remove peer
 				__private.removePeer({peer: peer, code: 'ENETHASH', req: req});
 

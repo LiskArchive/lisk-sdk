@@ -1334,7 +1334,7 @@ shared.getNethash = function (req, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	return setImmediate(cb, null, {nethash: library.config.nethash});
+	return setImmediate(cb, null, {nethash: modules.system.getNethash()});
 };
 
 shared.getMilestone = function (req, cb) {
@@ -1372,7 +1372,7 @@ shared.getStatus = function (req, cb) {
 		height:    __private.lastBlock.height,
 		fee:       library.logic.block.calculateFee(),
 		milestone: __private.blockReward.calcMilestone(__private.lastBlock.height),
-		nethash:   library.config.nethash,
+		nethash:   modules.system.getNethash(),
 		reward:    __private.blockReward.calcReward(__private.lastBlock.height),
 		supply:    __private.blockReward.calcSupply(__private.lastBlock.height)
 	});
