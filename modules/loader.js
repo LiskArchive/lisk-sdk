@@ -486,8 +486,8 @@ __private.findGoodPeers = function (heights) {
 		return item.height >= lastBlockHeight;
 	});
 
-	// Assuming that the node reached at least 10% of the network
-	if (heights.length < 10) {
+	// No peers found
+	if (heights.length === 0) {
 		return {height: 0, peers: []};
 	} else {
 		// Ordering the peers with descending height
