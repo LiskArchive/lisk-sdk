@@ -381,7 +381,7 @@ Peers.prototype.onPeersReady = function () {
 				});
 			}
 		}, function (err) {
-			return setTimeout(nextSeries, 65000);
+			return setTimeout(nextSeries, 60000);
 		});
 	});
 };
