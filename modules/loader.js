@@ -479,16 +479,16 @@ __private.findGoodPeers = function (heights) {
 	var lastBlockHeight = modules.blocks.getLastBlock().height;
 
 	heights = heights.filter(function (item) {
-		// Removing unreachable peers.
+		// Removing unreachable peers
 		return item != null;
 	}).filter(function (item) {
-		// Remove heights below last block height.
+		// Remove heights below last block height
 		return item.height >= lastBlockHeight;
 	});
 
 	// Assuming that the node reached at least 10% of the network
 	if (heights.length < 10) {
-		return { height: 0, peers: [] };
+		return {height: 0, peers: []};
 	} else {
 		// Ordering the peers with descending height
 		heights = heights.sort(function (a,b) {
