@@ -231,7 +231,7 @@ __private.forge = function (cb) {
 	}
 
 	if (!__private.forging) {
-		library.logger.debug('Forging disabled due to timeout');
+		library.logger.debug('Forging disabled');
 		return setImmediate(cb);
 	}
 
