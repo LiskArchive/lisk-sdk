@@ -390,7 +390,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 		if (!err && peers.length) {
 			return self.getFromPeer(peers[0], options, cb);
 		} else {
-			return setImmediate(cb, err || 'No reachable peers in db');
+			return setImmediate(cb, err || 'No acceptable peers found');
 		}
 	});
 };
