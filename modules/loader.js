@@ -563,7 +563,7 @@ __private.getPeer = function (peer, cb) {
 			var heightIsValid = library.schema.validate(peer, schema.getNetwork.height);
 
 			if (heightIsValid) {
-				library.logger.info(['Received height:', peer.height, 'from peer:', peer.string].join(' '));
+				library.logger.log(['Received height:', peer.height, 'from peer:', peer.string].join(' '));
 				return setImmediate(seriesCb);
 			} else {
 				return setImmediate(seriesCb, 'Received invalid height from peer: ' + peer.string);
@@ -608,7 +608,7 @@ Loader.prototype.getNetwork = function (cb) {
 				if (err) {
 					return setImmediate(waterCb, err);
 				} else {
-					library.logger.debug(['Received', peers.length, 'peers from'].join(' '), res.peer.string);
+					library.logger.log(['Received', peers.length, 'peers from'].join(' '), res.peer.string);
 					return setImmediate(waterCb, null, peers);
 				}
 			});
