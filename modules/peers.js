@@ -97,7 +97,7 @@ __private.updatePeersList = function (cb) {
 
 			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
 
-			async.eachLimit(res.body.peers, 2, function (peer, cb) {
+			async.eachLimit(peers, 2, function (peer, cb) {
 				peer = self.accept(peer);
 
 				library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
