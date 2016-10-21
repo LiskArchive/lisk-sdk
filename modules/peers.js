@@ -73,6 +73,11 @@ __private.updatePeersList = function (cb) {
 				return setImmediate(cb);
 			}
 
+			// Protect removed nodes from overflow
+			if (removed.length > 100) {
+				removed = [];
+			}
+
 			// Removing nodes not behaving well
 			library.logger.debug('Removed peers: ' + removed.length);
 			var peers = res.body.peers.filter(function (peer) {

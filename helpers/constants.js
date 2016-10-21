@@ -4,7 +4,7 @@ module.exports = {
 	activeDelegates: 101,
 	addressLength: 208,
 	blockHeaderLength: 248,
-	blockReceiptTimeOut: 500, // 50 blocks
+	blockReceiptTimeOut: 120, // 12 blocks
 	confirmationLength: 77,
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
 	fees:{

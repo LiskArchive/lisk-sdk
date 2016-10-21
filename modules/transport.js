@@ -358,7 +358,7 @@ Transport.prototype.headers = function (headers) {
 };
 
 Transport.prototype.broadcast = function (config, options, cb) {
-	library.logger.debug('Broadcast', options);
+	library.logger.debug('Begin broadcast', options);
 
 	config.limit = config.limit || 1;
 	config.broadhash = config.broadhash || null;
@@ -366,9 +366,10 @@ Transport.prototype.broadcast = function (config, options, cb) {
 
 	modules.peers.list(config, function (err, peers) {
 		if (!err) {
-			async.eachLimit(peers, 3, function (peer, cb) {
+			async.eachLimit(peers, 20, function (peer, cb) {
 				return self.getFromPeer(peer, options, cb);
 			}, function (err) {
+				library.logger.debug('End broadcast');
 				if (cb) {
 					return setImmediate(cb, null, {body: null, peer: peers});
 				}

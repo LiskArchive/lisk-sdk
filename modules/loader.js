@@ -553,6 +553,7 @@ __private.getPeer = function (peer, cb) {
 						return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
 					} else {
 						peer.height = res.body.height;
+						modules.peers.update(peer);
 						return setImmediate(seriesCb);
 					}
 				});
@@ -584,7 +585,7 @@ __private.getPeer = function (peer, cb) {
 // - Then for each of them we grab the height of their blockchain.
 // - With this list we try to get a peer with sensibly good blockchain height (see __private.findGoodPeers for actual strategy).
 Loader.prototype.getNetwork = function (cb) {
-	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < 101) {
+	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
 	async.waterfall([
