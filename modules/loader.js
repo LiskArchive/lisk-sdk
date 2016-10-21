@@ -90,7 +90,7 @@ __private.loadSignatures = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
-			library.logger.info('Loading signatures from: ' + peer.string);
+			library.logger.log('Loading signatures from: ' + peer.string);
 
 			modules.transport.getFromPeer(peer, {
 				api: '/signatures',
@@ -137,7 +137,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
-			library.logger.info('Loading unconfirmed transactions from: ' + peer.string);
+			library.logger.log('Loading unconfirmed transactions from: ' + peer.string);
 
 			modules.transport.getFromPeer(peer, {
 				api: '/transactions',
