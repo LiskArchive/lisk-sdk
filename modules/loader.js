@@ -14,11 +14,6 @@ require('colors');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
-__private.network = {
-	height: 0, // Network height
-	peers: [], // "Good" peers and with height close to network height
-};
-
 __private.loaded = false;
 __private.isActive = false;
 __private.lastBlock = null;
@@ -32,6 +27,7 @@ function Loader (cb, scope) {
 	library = scope;
 	self = this;
 
+	__private.initalize();
 	__private.attachApi();
 	__private.genesisBlock = __private.lastBlock = library.genesisblock;
 
@@ -39,6 +35,13 @@ function Loader (cb, scope) {
 }
 
 // Private methods
+__private.initalize = function () {
+	__private.network = {
+		height: 0, // Network height
+		peers: [], // "Good" peers and with height close to network height
+	};
+};
+
 __private.attachApi = function () {
 	var router = new Router();
 
@@ -689,6 +692,9 @@ Loader.prototype.onPeersReady = function () {
 				}
 			}
 		}, function (err) {
+			if (err) {
+				__private.initalize();
+			}
 			return setTimeout(nextSeries, 10000);
 		});
 	});
