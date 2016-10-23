@@ -4,6 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var extend = require('extend');
 var fs = require('fs');
+var ip = require('ip');
 var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Peer = require('../logic/peer.js');
@@ -81,10 +82,14 @@ __private.updatePeersList = function (cb) {
 			removed = [];
 		}
 
-		// Removing nodes not behaving well
 		library.logger.debug('Removed peers: ' + removed.length);
-		var picked = peers.filter(function (peer) {
-				return removed.indexOf(peer.ip);
+
+		// Pick peers
+		//
+		// * Removing unacceptable peers
+		// * Removing nodes not behaving well
+		var picked = self.acceptable(peers).filter(function (peer) {
+			return removed.indexOf(peer.ip);
 		});
 
 		// Drop one random peer from removed array to give them a chance.
@@ -231,6 +236,16 @@ Peers.prototype.accept = function (peer) {
 	return new Peer(peer);
 };
 
+Peers.prototype.acceptable = function (peers) {
+	return _.chain(peers).filter(function (peer) {
+		// Removing peers with private ip address
+		return !ip.isPrivate(peer.ip);
+	}).uniqWith(function (a, b) {
+		// Removing non-unique peers
+		return (a.ip + a.port) === (b.ip + b.port);
+	}).value();
+};
+
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
@@ -249,7 +264,7 @@ Peers.prototype.list = function (options, cb) {
 	function randomList (options, peers, cb) {
 		library.db.query(sql.randomList(options), options).then(function (rows) {
 			library.logger.debug(['Listing', rows.length, options.attempts[options.attempt], 'peers'].join(' '));
-			return setImmediate(cb, null, peers.concat(rows));
+			return setImmediate(cb, null, self.acceptable(peers.concat(rows)));
 		}).catch(function (err) {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Peers#list error');
