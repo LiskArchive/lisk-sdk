@@ -1015,21 +1015,30 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 							return setImmediate(cb, e.toString());
 						}
 						transaction.blockId = block.id;
+						return setImmediate(cb);
+					},
+					function (cb) {
 						// Check if transaction is already in database, otherwise fork 2.
 						// DATABASE: read only
-						library.db.query(sql.getTransactionId, { id: transaction.id }).then(function (rows) {
-							if (rows.length > 0) {
+						library.logic.transaction.checkConfirmed(transaction, function (err) {
+							if (err) {
+								// Fork: Transaction already confirmed.
 								modules.delegates.fork(block, 2);
-								return setImmediate(cb, ['Transaction', transaction.id, 'already exists'].join(' '));
+								// Undo the offending transaction.
+								// DATABASE: write
+								modules.transactions.undoUnconfirmed(transaction, function (err2) {
+									modules.transactions.removeUnconfirmedTransaction(transaction.id);
+									return setImmediate(cb, err2 || err);
+								});
 							} else {
-								// Get account from database if any (otherwise cold wallet).
-								// DATABASE: read only
-								modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, cb);
+								return setImmediate(cb);
 							}
-						}).catch(function (err) {
-							library.logger.error(err.stack);
-							return setImmediate(cb, 'Blocks#processBlock error');
 						});
+					},
+					function (cb) {
+						// Get account from database if any (otherwise cold wallet).
+						// DATABASE: read only
+						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, cb);
 					},
 					function (sender, cb) {
 						// Check if transaction id valid against database state (mem_* tables).

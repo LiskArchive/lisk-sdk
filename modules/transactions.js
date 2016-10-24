@@ -282,18 +282,18 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 					return done('Requester not found');
 				}
 
-				library.logic.transaction.process(transaction, sender, requester, function (err, transaction, ignore) {
+				library.logic.transaction.process(transaction, sender, requester, function (err, transaction) {
 					if (err) {
-						return done(err, ignore);
+						return done(err);
 					}
 
 					library.logic.transaction.verify(transaction, sender, done);
 				});
 			});
 		} else {
-			library.logic.transaction.process(transaction, sender, function (err, transaction, ignore) {
+			library.logic.transaction.process(transaction, sender, function (err, transaction) {
 				if (err) {
-					return done(err, ignore);
+					return done(err);
 				}
 
 				library.logic.transaction.verify(transaction, sender, done);
