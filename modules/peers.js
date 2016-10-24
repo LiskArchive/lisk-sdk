@@ -60,59 +60,73 @@ __private.attachApi = function () {
 };
 
 __private.updatePeersList = function (cb) {
-	modules.transport.getFromRandomPeer({
-		api: '/list',
-		method: 'GET'
-	}, function (err, res) {
-		if (err) {
-			return setImmediate(cb);
+	function getFromRandomPeer (waterCb) {
+		modules.transport.getFromRandomPeer({
+			api: '/list',
+			method: 'GET'
+		}, function (err, res) {
+			return setImmediate(waterCb, err, res);
+		});
+	}
+
+	function validatePeersList (res, waterCb) {
+		library.schema.validate(res.body, schema.updatePeersList.peers, function (err) {
+			return setImmediate(waterCb, err, res.body.peers);
+		});
+	}
+
+	function pickPeers (peers, waterCb) {
+		// Protect removed nodes from overflow
+		if (removed.length > 100) {
+			removed = [];
 		}
 
-		library.schema.validate(res.body, schema.updatePeersList.peers, function (err) {
-			if (err) {
-				return setImmediate(cb);
-			}
-
-			// Protect removed nodes from overflow
-			if (removed.length > 100) {
-				removed = [];
-			}
-
-			// Removing nodes not behaving well
-			library.logger.debug('Removed peers: ' + removed.length);
-			var peers = res.body.peers.filter(function (peer) {
-					return removed.indexOf(peer.ip);
-			});
-
-			// Drop one random peer from removed array to give them a chance.
-			// This mitigates the issue that a node could be removed forever if it was offline for long.
-			// This is not harmful for the node, but prevents network from shrinking, increasing noise.
-			// To fine tune: decreasing random value threshold -> reduce noise.
-			if (Math.random() < 0.5) { // Every 60/0.5 = 120s
-				// Remove the first element,
-				// i.e. the one that have been placed first.
-				removed.shift();
-				removed.pop();
-			}
-
-			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
-
-			async.eachLimit(peers, 2, function (peer, cb) {
-				peer = self.accept(peer);
-
-				library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
-					if (err) {
-						err.forEach(function (e) {
-							library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
-						});
-					} else {
-						self.update(peer);
-					}
-
-					return setImmediate(cb);
-				});
-			}, cb);
+		// Removing nodes not behaving well
+		library.logger.debug('Removed peers: ' + removed.length);
+		var picked = peers.filter(function (peer) {
+				return removed.indexOf(peer.ip);
 		});
+
+		// Drop one random peer from removed array to give them a chance.
+		// This mitigates the issue that a node could be removed forever if it was offline for long.
+		// This is not harmful for the node, but prevents network from shrinking, increasing noise.
+		// To fine tune: decreasing random value threshold -> reduce noise.
+		if (Math.random() < 0.5) { // Every 60/0.5 = 120s
+			// Remove the first element,
+			// i.e. the one that have been placed first.
+			removed.shift();
+			removed.pop();
+		}
+
+		library.logger.debug(['Picked', picked.length, 'of', peers.length, 'peers'].join(' '));
+		return setImmediate(waterCb, null, picked);
+	}
+
+	function updatePeers (peers, waterCb) {
+		async.eachLimit(peers, 2, function (peer, eachCb) {
+			peer = self.accept(peer);
+
+			library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
+				if (err) {
+					err.forEach(function (e) {
+						library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
+					});
+				} else {
+					self.update(peer);
+				}
+
+				return setImmediate(eachCb);
+			});
+		}, waterCb);
+	}
+
+	async.waterfall([
+		getFromRandomPeer,
+		validatePeersList,
+		pickPeers,
+		updatePeers
+	], function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
