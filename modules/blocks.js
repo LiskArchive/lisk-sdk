@@ -701,6 +701,30 @@ __private.deleteBlock = function (blockId, cb) {
 };
 
 // Public methods
+Blocks.prototype.count = function (cb) {
+	library.db.query(sql.countByRowId).then(function (rows) {
+		var res = rows.length ? rows[0].count : 0;
+
+		return setImmediate(cb, null, res);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#count error');
+	});
+};
+
+Blocks.prototype.getLastBlock = function () {
+	if (__private.lastBlock) {
+		var epoch = constants.epochTime / 1000;
+		var lastBlockTime = epoch + __private.lastBlock.timestamp;
+		var currentTime = new Date().getTime() / 1000;
+
+		__private.lastBlock.secondsAgo = currentTime - lastBlockTime;
+		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
+	}
+
+	return __private.lastBlock;
+};
+
 Blocks.prototype.lastReceipt = function (lastReceipt) {
 	if (lastReceipt) {
 		__private.lastReceipt = lastReceipt;
@@ -759,14 +783,63 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 	});
 };
 
-Blocks.prototype.count = function (cb) {
-	library.db.query(sql.countByRowId).then(function (rows) {
-		var res = rows.length ? rows[0].count : 0;
+Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
+	var lastValidBlock = __private.lastBlock;
 
-		return setImmediate(cb, null, res);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#count error');
+	peer = modules.peers.accept(peer);
+	library.logger.info('Loading blocks from: ' + peer.string);
+
+	modules.transport.getFromPeer(peer, {
+		method: 'GET',
+		api: '/blocks?lastBlockId=' + lastValidBlock.id
+	}, function (err, res) {
+		if (err || res.body.error) {
+			return setImmediate(cb, err, lastValidBlock);
+		}
+
+		var report = library.schema.validate(res.body.blocks, schema.loadBlocksFromPeer);
+
+		if (!report) {
+			return setImmediate(cb, 'Received invalid blocks data', lastValidBlock);
+		}
+
+		var blocks = __private.readDbRows(res.body.blocks);
+
+		if (blocks.length === 0) {
+			return setImmediate(cb, null, lastValidBlock);
+		} else {
+			async.eachSeries(blocks, function (block, cb) {
+				if (__private.cleanup) {
+					return setImmediate(cb);
+				}
+
+				self.processBlock(block, false, function (err) {
+					if (!err) {
+						lastValidBlock = block;
+						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
+					} else {
+						var id = (block ? block.id : 'null');
+
+						library.logger.error(['Block', id].join(' '), err.toString());
+						if (block) { library.logger.error('Block', block); }
+
+						library.logger.warn(['Block', id, 'is not valid, ban 60 min'].join(' '), peer.string);
+						modules.peers.state(peer.ip, peer.port, 0, 3600);
+					}
+					return cb(err);
+				}, true);
+			}, function (err) {
+				// Nullify large array of blocks.
+				// Prevents memory leak during synchronisation.
+				res = blocks = null;
+
+				if (err) {
+					return setImmediate(cb, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
+				} else {
+					return setImmediate(cb, null, lastValidBlock);
+				}
+			});
+		}
 	});
 };
 
@@ -890,17 +963,120 @@ Blocks.prototype.loadLastBlock = function (cb) {
 	}, cb);
 };
 
-Blocks.prototype.getLastBlock = function () {
-	if (__private.lastBlock) {
-		var epoch = constants.epochTime / 1000;
-		var lastBlockTime = epoch + __private.lastBlock.timestamp;
-		var currentTime = new Date().getTime() / 1000;
+Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
+	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
+	var ready = [];
 
-		__private.lastBlock.secondsAgo = currentTime - lastBlockTime;
-		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
+	async.eachSeries(transactions, function (transaction, cb) {
+		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
+			if (err || !sender) {
+				return setImmediate(cb, 'Sender not found');
+			}
+
+			if (library.logic.transaction.ready(transaction, sender)) {
+				library.logic.transaction.verify(transaction, sender, function (err) {
+					ready.push(transaction);
+					return setImmediate(cb);
+				});
+			} else {
+				return setImmediate(cb);
+			}
+		});
+	}, function () {
+		var block;
+
+		try {
+			block = library.logic.block.create({
+				keypair: keypair,
+				timestamp: timestamp,
+				previousBlock: __private.lastBlock,
+				transactions: ready
+			});
+		} catch (e) {
+			library.logger.error(e.stack);
+			return setImmediate(cb, e);
+		}
+
+		self.processBlock(block, true, cb, true);
+	});
+};
+
+// Main function to process a Block.
+// * Verify the block looks ok
+// * Verify the block is compatible with database state (DATABASE readonly)
+// * Apply the block to database if both verifications are ok
+Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
+	if (__private.cleanup) {
+		return setImmediate(cb, 'Cleaning up');
+	} else if (!__private.loaded) {
+		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	return __private.lastBlock;
+	async.series({
+		normalizeBlock: function (seriesCb) {
+			try {
+				block = library.logic.block.objectNormalize(block);
+			} catch (err) {
+				return setImmediate(seriesCb, err);
+			}
+
+			return setImmediate(seriesCb);
+		},
+		verifyBlock: function (seriesCb) {
+			// Sanity check of the block, if values are coherent.
+			// No access to database
+			var check = self.verifyBlock(block);
+
+			if (!check.verified) {
+				library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
+				return setImmediate(seriesCb, check.errors[0]);
+			}
+
+			return setImmediate(seriesCb);
+		},
+		checkExists: function (seriesCb) {
+			// Check if block id is already in the database (very low probability of hash collision).
+			// TODO: In case of hash-collision, to me it would be a special autofork...
+			// DATABASE: read only
+			library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
+				if (rows.length > 0) {
+					return setImmediate(seriesCb, ['Block', block.id, 'already exists'].join(' '));
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
+		},
+		validateBlockSlot: function (seriesCb) {
+			// Check if block was generated by the right active delagate. Otherwise, fork 3.
+			// DATABASE: Read only to mem_accounts to extract active delegate list
+			modules.delegates.validateBlockSlot(block, function (err) {
+				if (err) {
+					modules.delegates.fork(block, 3);
+					return setImmediate(seriesCb, err);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
+		},
+		checkTransactions: function (seriesCb) {
+			// Check against the mem_* tables that we can perform the transactions included in the block.
+			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
+				__private.checkTransaction(block, transaction, eachSeriesCb);
+			}, function (err) {
+				return setImmediate(seriesCb, err);
+			});
+		}
+	}, function (err) {
+		if (err) {
+			return setImmediate(cb, err);
+		} else {
+			// The block and the transactions are OK i.e:
+			// * Block and transactions have valid values (signatures, block slots, etc...)
+			// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
+			// We thus update the database with the transactions values, save the block and tick it.
+			__private.applyBlock(block, broadcast, cb, saveBlock);
+		}
+	});
 };
 
 // Will return all possible errors that are intrinsic to the block.
@@ -1007,153 +1183,6 @@ Blocks.prototype.verifyBlock = function (block) {
 	return result;
 };
 
-// Main function to process a Block.
-// * Verify the block looks ok
-// * Verify the block is compatible with database state (DATABASE readonly)
-// * Apply the block to database if both verifications are ok
-Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
-	if (__private.cleanup) {
-		return setImmediate(cb, 'Cleaning up');
-	} else if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	async.series({
-		normalizeBlock: function (seriesCb) {
-			try {
-				block = library.logic.block.objectNormalize(block);
-			} catch (err) {
-				return setImmediate(seriesCb, err);
-			}
-
-			return setImmediate(seriesCb);
-		},
-		verifyBlock: function (seriesCb) {
-			// Sanity check of the block, if values are coherent.
-			// No access to database
-			var check = self.verifyBlock(block);
-
-			if (!check.verified) {
-				library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
-				return setImmediate(seriesCb, check.errors[0]);
-			}
-
-			return setImmediate(seriesCb);
-		},
-		checkExists: function (seriesCb) {
-			// Check if block id is already in the database (very low probability of hash collision).
-			// TODO: In case of hash-collision, to me it would be a special autofork...
-			// DATABASE: read only
-			library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
-				if (rows.length > 0) {
-					return setImmediate(seriesCb, ['Block', block.id, 'already exists'].join(' '));
-				} else {
-					return setImmediate(seriesCb);
-				}
-			});
-		},
-		validateBlockSlot: function (seriesCb) {
-			// Check if block was generated by the right active delagate. Otherwise, fork 3.
-			// DATABASE: Read only to mem_accounts to extract active delegate list
-			modules.delegates.validateBlockSlot(block, function (err) {
-				if (err) {
-					modules.delegates.fork(block, 3);
-					return setImmediate(seriesCb, err);
-				} else {
-					return setImmediate(seriesCb);
-				}
-			});
-		},
-		checkTransactions: function (seriesCb) {
-			// Check against the mem_* tables that we can perform the transactions included in the block.
-			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-				__private.checkTransaction(block, transaction, eachSeriesCb);
-			}, function (err) {
-				return setImmediate(seriesCb, err);
-			});
-		}
-	}, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
-		} else {
-			// The block and the transactions are OK i.e:
-			// * Block and transactions have valid values (signatures, block slots, etc...)
-			// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
-			// We thus update the database with the transactions values, save the block and tick it.
-			__private.applyBlock(block, broadcast, cb, saveBlock);
-		}
-	});
-};
-
-Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
-	library.db.query(sql.simpleDeleteAfterBlock, {id: blockId}).then(function (res) {
-		return setImmediate(cb, null, res);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#simpleDeleteAfterBlock error');
-	});
-};
-
-Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
-	var lastValidBlock = __private.lastBlock;
-
-	peer = modules.peers.accept(peer);
-	library.logger.info('Loading blocks from: ' + peer.string);
-
-	modules.transport.getFromPeer(peer, {
-		method: 'GET',
-		api: '/blocks?lastBlockId=' + lastValidBlock.id
-	}, function (err, res) {
-		if (err || res.body.error) {
-			return setImmediate(cb, err, lastValidBlock);
-		}
-
-		var report = library.schema.validate(res.body.blocks, schema.loadBlocksFromPeer);
-
-		if (!report) {
-			return setImmediate(cb, 'Received invalid blocks data', lastValidBlock);
-		}
-
-		var blocks = __private.readDbRows(res.body.blocks);
-
-		if (blocks.length === 0) {
-			return setImmediate(cb, null, lastValidBlock);
-		} else {
-			async.eachSeries(blocks, function (block, cb) {
-				if (__private.cleanup) {
-					return setImmediate(cb);
-				}
-
-				self.processBlock(block, false, function (err) {
-					if (!err) {
-						lastValidBlock = block;
-						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
-					} else {
-						var id = (block ? block.id : 'null');
-
-						library.logger.error(['Block', id].join(' '), err.toString());
-						if (block) { library.logger.error('Block', block); }
-
-						library.logger.warn(['Block', id, 'is not valid, ban 60 min'].join(' '), peer.string);
-						modules.peers.state(peer.ip, peer.port, 0, 3600);
-					}
-					return cb(err);
-				}, true);
-			}, function (err) {
-				// Nullify large array of blocks.
-				// Prevents memory leak during synchronisation.
-				res = blocks = null;
-
-				if (err) {
-					return setImmediate(cb, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
-				} else {
-					return setImmediate(cb, null, lastValidBlock);
-				}
-			});
-		}
-	});
-};
-
 Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	var blocks = [];
 
@@ -1174,41 +1203,12 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	);
 };
 
-Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
-	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
-	var ready = [];
-
-	async.eachSeries(transactions, function (transaction, cb) {
-		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
-			if (err || !sender) {
-				return setImmediate(cb, 'Sender not found');
-			}
-
-			if (library.logic.transaction.ready(transaction, sender)) {
-				library.logic.transaction.verify(transaction, sender, function (err) {
-					ready.push(transaction);
-					return setImmediate(cb);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		});
-	}, function () {
-		var block;
-
-		try {
-			block = library.logic.block.create({
-				keypair: keypair,
-				timestamp: timestamp,
-				previousBlock: __private.lastBlock,
-				transactions: ready
-			});
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, e);
-		}
-
-		self.processBlock(block, true, cb, true);
+Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
+	library.db.query(sql.simpleDeleteAfterBlock, {id: blockId}).then(function (res) {
+		return setImmediate(cb, null, res);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#simpleDeleteAfterBlock error');
 	});
 };
 
