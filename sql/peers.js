@@ -22,8 +22,7 @@ var PeersSql = {
       (params.dappid ? 'INNER JOIN peers_dapp AS pd ON p."id" = pd."peerId" AND pd."dappid" = ${dappid}' : ''),
       'WHERE p."state" > 0',
       (params.broadhash ? 'AND "broadhash" ' + (params.attempt === 0 ? '=' : '!=') + ' DECODE(${broadhash}, \'hex\')' : 'AND "broadhash" IS NULL'),
-      (params.height ? params.attempt === 0 ? 'AND "height" = ${height}' : 'OR "height" > ${height}' : 'OR "height" IS NULL'),
-      'ORDER BY RANDOM() LIMIT ${limit}'
+      'ORDER BY RANDOM(), "height" DESC LIMIT ${limit}'
     ].filter(Boolean).join(' ');
   },
 

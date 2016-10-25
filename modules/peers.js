@@ -249,7 +249,6 @@ Peers.prototype.acceptable = function (peers) {
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
-	options.height = options.height || modules.system.getHeight();
 	options.attempts = ['matched broadhash', 'unmatched broadhash', 'legacy'];
 	options.attempt = 0;
 
@@ -257,29 +256,16 @@ Peers.prototype.list = function (options, cb) {
 		delete options.broadhash;
 	}
 
-	if (!options.height) {
-		delete options.height;
-	}
-
 	function randomList (options, peers, cb) {
 		library.db.query(sql.randomList(options), options).then(function (rows) {
+			options.limit -= rows.length;
+			if (options.attempt === 0 && rows.length > 0) { options.matched = rows.length; }
 			library.logger.debug(['Listing', rows.length, options.attempts[options.attempt], 'peers'].join(' '));
 			return setImmediate(cb, null, self.acceptable(peers.concat(rows)));
 		}).catch(function (err) {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Peers#list error');
 		});
-	}
-
-	function nextAttempt (peers) {
-		options.limit = 100;
-		options.limit = (options.limit - peers.length);
-		options.attempt += 1;
-
-		if (options.attempt === 2) {
-			delete options.broadhash;
-			delete options.height;
-		}
 	}
 
 	async.waterfall([
@@ -289,8 +275,8 @@ Peers.prototype.list = function (options, cb) {
 		},
 		// Unmatched broadhash
 		function (peers, waterCb) {
-			if (peers.length < options.limit && (options.broadhash || options.height)) {
-				nextAttempt(peers);
+			if (options.limit > 0) {
+				options.attempt += 1;
 
 				return randomList(options, peers, waterCb);
 			} else {
@@ -299,8 +285,10 @@ Peers.prototype.list = function (options, cb) {
 		},
 		// Fallback
 		function (peers, waterCb) {
-			if (peers.length < options.limit) {
-				nextAttempt(peers);
+			delete options.broadhash;
+
+			if (options.limit > 0) {
+				options.attempt += 1;
 
 				return randomList(options, peers, waterCb);
 			} else {
