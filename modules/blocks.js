@@ -1067,6 +1067,7 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			// DATABASE: Read only to mem_accounts to extract active delegate list
 			modules.delegates.validateBlockSlot(block, function (err) {
 				if (err) {
+					// Fork: Delegate does not match calculated slot.
 					modules.delegates.fork(block, 3);
 					return setImmediate(seriesCb, err);
 				} else {
@@ -1254,11 +1255,11 @@ Blocks.prototype.onReceiveBlock = function (block) {
 			self.lastReceipt(new Date());
 			self.processBlock(block, true, cb, true);
 		} else if (block.previousBlock !== __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
-			// Fork: Same height but different previous block id
+			// Fork: Same height but different previous block id.
 			modules.delegates.fork(block, 1);
 			return setImmediate(cb, 'Fork');
 		} else if (block.previousBlock === __private.lastBlock.previousBlock && block.height === __private.lastBlock.height && block.id !== __private.lastBlock.id) {
-			// Fork: Same height and previous block id, but different block id
+			// Fork: Same height and previous block id, but different block id.
 			modules.delegates.fork(block, 5);
 			return setImmediate(cb, 'Fork');
 		} else {

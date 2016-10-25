@@ -283,11 +283,11 @@ Peers.prototype.list = function (options, cb) {
 	}
 
 	async.waterfall([
-		// Broadhash
+		// Matched broadhash
 		function (waterCb) {
 			return randomList(options, [], waterCb);
 		},
-		// Unmatched
+		// Unmatched broadhash
 		function (peers, waterCb) {
 			if (peers.length < options.limit && (options.broadhash || options.height)) {
 				nextAttempt(peers);
