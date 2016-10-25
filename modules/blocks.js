@@ -123,32 +123,6 @@ __private.attachApi = function () {
 	});
 };
 
-__private.saveGenesisBlock = function (cb) {
-	library.db.query(sql.getGenesisBlockId, { id: genesisblock.block.id }).then(function (rows) {
-		var blockId = rows.length && rows[0].id;
-
-		if (!blockId) {
-			__private.saveBlock(genesisblock.block, function (err) {
-				return setImmediate(cb, err);
-			});
-		} else {
-			return setImmediate(cb);
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#saveGenesisBlock error');
-	});
-};
-
-__private.deleteBlock = function (blockId, cb) {
-	library.db.none(sql.deleteBlock, {id: blockId}).then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#deleteBlock error');
-	});
-};
-
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
 
@@ -246,6 +220,44 @@ __private.list = function (filter, cb) {
 	});
 };
 
+__private.readDbRows = function (rows) {
+	var blocks = {};
+	var order = [];
+
+	for (var i = 0, length = rows.length; i < length; i++) {
+		var block = library.logic.block.dbRead(rows[i]);
+
+		if (block) {
+			if (!blocks[block.id]) {
+				if (block.id === genesisblock.block.id) {
+					block.generationSignature = (new Array(65)).join('0');
+				}
+
+				order.push(block.id);
+				blocks[block.id] = block;
+			}
+
+			var transaction = library.logic.transaction.dbRead(rows[i]);
+			blocks[block.id].transactions = blocks[block.id].transactions || {};
+
+			if (transaction) {
+				if (!blocks[block.id].transactions[transaction.id]) {
+					blocks[block.id].transactions[transaction.id] = transaction;
+				}
+			}
+		}
+	}
+
+	blocks = order.map(function (v) {
+		blocks[v].transactions = Object.keys(blocks[v].transactions).map(function (t) {
+			return blocks[v].transactions[t];
+		});
+		return blocks[v];
+	});
+
+	return blocks;
+};
+
 __private.getById = function (id, cb) {
 	library.db.query(sql.getById, {id: id}).then(function (rows) {
 		if (!rows.length) {
@@ -258,6 +270,94 @@ __private.getById = function (id, cb) {
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Blocks#getById error');
+	});
+};
+
+__private.getIdSequence = function (height, cb) {
+	library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates, activeDelegates: constants.activeDelegates }).then(function (rows) {
+		if (rows.length === 0) {
+			return setImmediate(cb, 'Failed to get id sequence for height: ' + height);
+		}
+
+		var ids = [];
+
+		if (genesisblock && genesisblock.block) {
+			var __genesisblock = {
+				id: genesisblock.block.id,
+				height: genesisblock.block.height
+			};
+
+			if (!_.includes(rows, __genesisblock.id)) {
+				rows.push(__genesisblock);
+			}
+		}
+
+		if (__private.lastBlock && !_.includes(rows, __private.lastBlock.id)) {
+			rows.unshift({
+				id: __private.lastBlock.id,
+				height: __private.lastBlock.height
+			});
+		}
+
+		rows.forEach(function (row) {
+			if (!_.includes(ids, row.id)) {
+				ids.push(row.id);
+			}
+		});
+
+		return setImmediate(cb, null, { firstHeight: rows[0].height, ids: ids.join(',') });
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#getIdSequence error');
+	});
+};
+
+__private.saveGenesisBlock = function (cb) {
+	library.db.query(sql.getGenesisBlockId, { id: genesisblock.block.id }).then(function (rows) {
+		var blockId = rows.length && rows[0].id;
+
+		if (!blockId) {
+			__private.saveBlock(genesisblock.block, function (err) {
+				return setImmediate(cb, err);
+			});
+		} else {
+			return setImmediate(cb);
+		}
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#saveGenesisBlock error');
+	});
+};
+
+// Apply the genesis block, provided it has been verified.
+// Shortcuting the unconfirmed/confirmed states.
+__private.applyGenesisBlock = function (block, cb) {
+	block.transactions = block.transactions.sort(function (a, b) {
+		if (a.type === transactionTypes.VOTE) {
+			return 1;
+		} else {
+			return 0;
+		}
+	});
+	async.eachSeries(block.transactions, function (transaction, cb) {
+			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+				if (err) {
+					return setImmediate(cb, {
+						message: err,
+						transaction: transaction,
+						block: block
+					});
+				}
+				__private.applyTransaction(block, transaction, sender, cb);
+			});
+	}, function (err) {
+		if (err) {
+			// If genesis block is invalid, kill the node...
+			return process.exit(0);
+		} else {
+			__private.lastBlock = block;
+			modules.rounds.tick(__private.lastBlock, cb);
+		}
 	});
 };
 
@@ -317,152 +417,6 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 	_.each(_.groupBy(promises, promiseGrouper), typeIterator);
 
 	return t;
-};
-
-__private.afterSave = function (block, cb) {
-	async.eachSeries(block.transactions, function (transaction, cb) {
-		return library.logic.transaction.afterSave(transaction, cb);
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
-};
-
-__private.popLastBlock = function (oldLastBlock, cb) {
-	library.balancesSequence.add(function (cb) {
-		self.loadBlocksPart({ id: oldLastBlock.previousBlock }, function (err, previousBlock) {
-			if (err || !previousBlock.length) {
-				return setImmediate(cb, err || 'previousBlock is null');
-			}
-			previousBlock = previousBlock[0];
-
-			async.eachSeries(oldLastBlock.transactions.reverse(), function (transaction, cb) {
-				async.series([
-					function (cb) {
-						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-							if (err) {
-								return setImmediate(cb, err);
-							}
-							modules.transactions.undo(transaction, oldLastBlock, sender, cb);
-						});
-					}, function (cb) {
-						modules.transactions.undoUnconfirmed(transaction, cb);
-					}, function (cb) {
-						return setImmediate(cb);
-					}
-				], cb);
-			}, function (err) {
-				modules.rounds.backwardTick(oldLastBlock, previousBlock, function () {
-					__private.deleteBlock(oldLastBlock.id, function (err) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						return setImmediate(cb, null, previousBlock);
-					});
-				});
-			});
-		});
-	}, cb);
-};
-
-__private.getIdSequence = function (height, cb) {
-	library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates, activeDelegates: constants.activeDelegates }).then(function (rows) {
-		if (rows.length === 0) {
-			return setImmediate(cb, 'Failed to get id sequence for height: ' + height);
-		}
-
-		var ids = [];
-
-		if (genesisblock && genesisblock.block) {
-			var __genesisblock = {
-				id: genesisblock.block.id,
-				height: genesisblock.block.height
-			};
-
-			if (!_.includes(rows, __genesisblock.id)) {
-				rows.push(__genesisblock);
-			}
-		}
-
-		if (__private.lastBlock && !_.includes(rows, __private.lastBlock.id)) {
-			rows.unshift({
-				id: __private.lastBlock.id,
-				height: __private.lastBlock.height
-			});
-		}
-
-		rows.forEach(function (row) {
-			if (!_.includes(ids, row.id)) {
-				ids.push(row.id);
-			}
-		});
-
-		return setImmediate(cb, null, { firstHeight: rows[0].height, ids: ids.join(',') });
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#getIdSequence error');
-	});
-};
-
-__private.readDbRows = function (rows) {
-	var blocks = {};
-	var order = [];
-
-	for (var i = 0, length = rows.length; i < length; i++) {
-		var block = library.logic.block.dbRead(rows[i]);
-
-		if (block) {
-			if (!blocks[block.id]) {
-				if (block.id === genesisblock.block.id) {
-					block.generationSignature = (new Array(65)).join('0');
-				}
-
-				order.push(block.id);
-				blocks[block.id] = block;
-			}
-
-			var transaction = library.logic.transaction.dbRead(rows[i]);
-			blocks[block.id].transactions = blocks[block.id].transactions || {};
-
-			if (transaction) {
-				if (!blocks[block.id].transactions[transaction.id]) {
-					blocks[block.id].transactions[transaction.id] = transaction;
-				}
-			}
-		}
-	}
-
-	blocks = order.map(function (v) {
-		blocks[v].transactions = Object.keys(blocks[v].transactions).map(function (t) {
-			return blocks[v].transactions[t];
-		});
-		return blocks[v];
-	});
-
-	return blocks;
-};
-
-__private.applyTransaction = function (block, transaction, sender, cb) {
-	modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
-		if (err) {
-			return setImmediate(cb, {
-				message: err,
-				transaction: transaction,
-				block: block
-			});
-		}
-
-		modules.transactions.apply(transaction, block, sender, function (err) {
-			if (err) {
-				return setImmediate(cb, {
-					message: 'Failed to apply transaction: ' + transaction.id,
-					transaction: transaction,
-					block: block
-				});
-			}
-			return setImmediate(cb);
-		});
-	});
 };
 
 // Apply the block, provided it has been verified.
@@ -624,38 +578,6 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 	});
 };
 
-// Apply the genesis block, provided it has been verified.
-// Shortcuting the unconfirmed/confirmed states.
-__private.applyGenesisBlock = function (block, cb) {
-	block.transactions = block.transactions.sort(function (a, b) {
-		if (a.type === transactionTypes.VOTE) {
-			return 1;
-		} else {
-			return 0;
-		}
-	});
-	async.eachSeries(block.transactions, function (transaction, cb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-				if (err) {
-					return setImmediate(cb, {
-						message: err,
-						transaction: transaction,
-						block: block
-					});
-				}
-				__private.applyTransaction(block, transaction, sender, cb);
-			});
-	}, function (err) {
-		if (err) {
-			// If genesis block is invalid, kill the node...
-			return process.exit(0);
-		} else {
-			__private.lastBlock = block;
-			modules.rounds.tick(__private.lastBlock, cb);
-		}
-	});
-};
-
 __private.checkTransaction = function (block, transaction, cb) {
 	async.waterfall([
 		function (waterCb) {
@@ -697,6 +619,84 @@ __private.checkTransaction = function (block, transaction, cb) {
 		}
 	], function (err) {
 		return setImmediate(cb, err);
+	});
+};
+
+__private.applyTransaction = function (block, transaction, sender, cb) {
+	modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
+		if (err) {
+			return setImmediate(cb, {
+				message: err,
+				transaction: transaction,
+				block: block
+			});
+		}
+
+		modules.transactions.apply(transaction, block, sender, function (err) {
+			if (err) {
+				return setImmediate(cb, {
+					message: 'Failed to apply transaction: ' + transaction.id,
+					transaction: transaction,
+					block: block
+				});
+			}
+			return setImmediate(cb);
+		});
+	});
+};
+
+__private.afterSave = function (block, cb) {
+	async.eachSeries(block.transactions, function (transaction, cb) {
+		return library.logic.transaction.afterSave(transaction, cb);
+	}, function (err) {
+		return setImmediate(cb, err);
+	});
+};
+
+__private.popLastBlock = function (oldLastBlock, cb) {
+	library.balancesSequence.add(function (cb) {
+		self.loadBlocksPart({ id: oldLastBlock.previousBlock }, function (err, previousBlock) {
+			if (err || !previousBlock.length) {
+				return setImmediate(cb, err || 'previousBlock is null');
+			}
+			previousBlock = previousBlock[0];
+
+			async.eachSeries(oldLastBlock.transactions.reverse(), function (transaction, cb) {
+				async.series([
+					function (cb) {
+						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
+							modules.transactions.undo(transaction, oldLastBlock, sender, cb);
+						});
+					}, function (cb) {
+						modules.transactions.undoUnconfirmed(transaction, cb);
+					}, function (cb) {
+						return setImmediate(cb);
+					}
+				], cb);
+			}, function (err) {
+				modules.rounds.backwardTick(oldLastBlock, previousBlock, function () {
+					__private.deleteBlock(oldLastBlock.id, function (err) {
+						if (err) {
+							return setImmediate(cb, err);
+						}
+
+						return setImmediate(cb, null, previousBlock);
+					});
+				});
+			});
+		});
+	}, cb);
+};
+
+__private.deleteBlock = function (blockId, cb) {
+	library.db.none(sql.deleteBlock, {id: blockId}).then(function () {
+		return setImmediate(cb);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#deleteBlock error');
 	});
 };
 
