@@ -465,6 +465,241 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
 	});
 };
 
+// Apply the block, provided it has been verified.
+__private.applyBlock = function (block, broadcast, cb, saveBlock) {
+	// Prevent shutdown during database writes.
+	__private.isActive = true;
+
+	// Transactions to rewind in case of error.
+	var appliedTransactions = {};
+
+	// List of currrently unconfirmed transactions.
+	var unconfirmedTransactions;
+
+	async.series({
+		// Rewind any unconfirmed transactions before applying block.
+		// TODO: It should be possible to remove this call if we can guarantee that only this function is processing transactions atomically. Then speed should be improved further.
+		// TODO: Other possibility, when we rebuild from block chain this action should be moved out of the rebuild function.
+		undoUnconfirmedList: function (seriesCb) {
+			modules.transactions.undoUnconfirmedList(function (err, transactions) {
+				if (err) {
+					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+					return process.exit(0);
+				} else {
+					unconfirmedTransactions = transactions;
+					return setImmediate(seriesCb);
+				}
+			});
+		},
+		// Apply transactions to unconfirmed mem_accounts fields.
+		applyUnconfirmed: function (seriesCb) {
+			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
+				// DATABASE write
+				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+					// DATABASE: write
+					modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
+						if (err) {
+							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
+							return setImmediate(eachSeriesCb, err);
+						}
+
+						appliedTransactions[transaction.id] = transaction;
+
+						// Remove the transaction from the node queue, if it was present.
+						var index = unconfirmedTransactions.indexOf(transaction.id);
+						if (index >= 0) {
+							unconfirmedTransactions.splice(index, 1);
+						}
+
+						return setImmediate(eachSeriesCb);
+					});
+				});
+			}, function (err) {
+				if (err) {
+					// Rewind any already applied unconfirmed transactions.
+					// Leaves the database state as per the previous block.
+					async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
+						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
+							if (err) {
+								return setImmediate(eachSeriesCb, err);
+							}
+							// The transaction has been applied?
+							if (appliedTransactions[transaction.id]) {
+								// DATABASE: write
+								library.logic.transaction.undoUnconfirmed(transaction, sender, eachSeriesCb);
+							} else {
+								return setImmediate(eachSeriesCb);
+							}
+						});
+					}, function (err) {
+						return setImmediate(seriesCb, err);
+					});
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
+		},
+		// Block and transactions are ok.
+		// Apply transactions to confirmed mem_accounts fields.
+		applyConfirmed: function (seriesCb) {
+			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
+				modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
+					if (err) {
+						err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+						library.logger.error(err);
+						library.logger.error('Transaction', transaction);
+						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						process.exit(0);
+					}
+					// DATABASE: write
+					modules.transactions.apply(transaction, block, sender, function (err) {
+						if (err) {
+							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
+							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+							process.exit(0);
+						}
+						// Transaction applied, removed from the unconfirmed list.
+						modules.transactions.removeUnconfirmedTransaction(transaction.id);
+						return setImmediate(eachSeriesCb);
+					});
+				});
+			}, function (err) {
+				return setImmediate(seriesCb, err);
+			});
+		},
+		// Optionally save the block to the database.
+		saveBlock: function (seriesCb) {
+			__private.lastBlock = block;
+
+			if (saveBlock) {
+				// DATABASE: write
+				__private.saveBlock(block, function (err) {
+					if (err) {
+						library.logger.error('Failed to save block...');
+						library.logger.error('Block', block);
+						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						process.exit(0);
+					}
+
+					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
+					library.bus.message('newBlock', block, broadcast);
+
+					// DATABASE write. Update delegates accounts
+					modules.rounds.tick(block, seriesCb);
+				});
+			} else {
+				library.bus.message('newBlock', block, broadcast);
+
+				// DATABASE write. Update delegates accounts
+				modules.rounds.tick(block, seriesCb);
+			}
+		},
+		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
+		// TODO: See undoUnconfirmedList discussion above.
+		applyUnconfirmedList: function (seriesCb) {
+			// DATABASE write
+			modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function (err) {
+				return setImmediate(seriesCb, err);
+			});
+		},
+	}, function (err) {
+		// Allow shutdown, database writes are finished.
+		__private.isActive = false;
+
+		// Nullify large objects.
+		// Prevents memory leak during synchronisation.
+		appliedTransactions = unconfirmedTransactions = block = null;
+
+		// Finish here if snapshotting.
+		if (err === 'Snapshot finished') {
+			library.logger.info(err);
+			process.emit('SIGTERM');
+		}
+
+		return setImmediate(cb, err);
+	});
+};
+
+// Apply the genesis block, provided it has been verified.
+// Shortcuting the unconfirmed/confirmed states.
+__private.applyGenesisBlock = function (block, cb) {
+	block.transactions = block.transactions.sort(function (a, b) {
+		if (a.type === transactionTypes.VOTE) {
+			return 1;
+		} else {
+			return 0;
+		}
+	});
+	async.eachSeries(block.transactions, function (transaction, cb) {
+			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+				if (err) {
+					return setImmediate(cb, {
+						message: err,
+						transaction: transaction,
+						block: block
+					});
+				}
+				__private.applyTransaction(block, transaction, sender, cb);
+			});
+	}, function (err) {
+		if (err) {
+			// If genesis block is invalid, kill the node...
+			return process.exit(0);
+		} else {
+			__private.lastBlock = block;
+			modules.rounds.tick(__private.lastBlock, cb);
+		}
+	});
+};
+
+__private.checkTransaction = function (block, transaction, cb) {
+	async.waterfall([
+		function (waterCb) {
+			try {
+				transaction.id = library.logic.transaction.getId(transaction);
+			} catch (e) {
+				return setImmediate(waterCb, e.toString());
+			}
+			transaction.blockId = block.id;
+			return setImmediate(waterCb);
+		},
+		function (waterCb) {
+			// Check if transaction is already in database, otherwise fork 2.
+			// DATABASE: read only
+			library.logic.transaction.checkConfirmed(transaction, function (err) {
+				if (err) {
+					// Fork: Transaction already confirmed.
+					modules.delegates.fork(block, 2);
+					// Undo the offending transaction.
+					// DATABASE: write
+					modules.transactions.undoUnconfirmed(transaction, function (err2) {
+						modules.transactions.removeUnconfirmedTransaction(transaction.id);
+						return setImmediate(waterCb, err2 || err);
+					});
+				} else {
+					return setImmediate(waterCb);
+				}
+			});
+		},
+		function (waterCb) {
+			// Get account from database if any (otherwise cold wallet).
+			// DATABASE: read only
+			modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, waterCb);
+		},
+		function (sender, waterCb) {
+			// Check if transaction id valid against database state (mem_* tables).
+			// DATABASE: read only
+			library.logic.transaction.verify(transaction, sender, waterCb);
+		}
+	], function (err) {
+		return setImmediate(cb, err);
+	});
+};
+
 // Public methods
 Blocks.prototype.lastReceipt = function (lastReceipt) {
 	if (lastReceipt) {
@@ -770,241 +1005,6 @@ Blocks.prototype.verifyBlock = function (block) {
 
 	result.verified = result.errors.length === 0;
 	return result;
-};
-
-// Apply the block, provided it has been verified.
-__private.applyBlock = function (block, broadcast, cb, saveBlock) {
-	// Prevent shutdown during database writes.
-	__private.isActive = true;
-
-	// Transactions to rewind in case of error.
-	var appliedTransactions = {};
-
-	// List of currrently unconfirmed transactions.
-	var unconfirmedTransactions;
-
-	async.series({
-		// Rewind any unconfirmed transactions before applying block.
-		// TODO: It should be possible to remove this call if we can guarantee that only this function is processing transactions atomically. Then speed should be improved further.
-		// TODO: Other possibility, when we rebuild from block chain this action should be moved out of the rebuild function.
-		undoUnconfirmedList: function (seriesCb) {
-			modules.transactions.undoUnconfirmedList(function (err, transactions) {
-				if (err) {
-					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-					return process.exit(0);
-				} else {
-					unconfirmedTransactions = transactions;
-					return setImmediate(seriesCb);
-				}
-			});
-		},
-		// Apply transactions to unconfirmed mem_accounts fields.
-		applyUnconfirmed: function (seriesCb) {
-			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-				// DATABASE write
-				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-					// DATABASE: write
-					modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
-						if (err) {
-							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
-							library.logger.error(err);
-							library.logger.error('Transaction', transaction);
-							return setImmediate(eachSeriesCb, err);
-						}
-
-						appliedTransactions[transaction.id] = transaction;
-
-						// Remove the transaction from the node queue, if it was present.
-						var index = unconfirmedTransactions.indexOf(transaction.id);
-						if (index >= 0) {
-							unconfirmedTransactions.splice(index, 1);
-						}
-
-						return setImmediate(eachSeriesCb);
-					});
-				});
-			}, function (err) {
-				if (err) {
-					// Rewind any already applied unconfirmed transactions.
-					// Leaves the database state as per the previous block.
-					async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-							if (err) {
-								return setImmediate(eachSeriesCb, err);
-							}
-							// The transaction has been applied?
-							if (appliedTransactions[transaction.id]) {
-								// DATABASE: write
-								library.logic.transaction.undoUnconfirmed(transaction, sender, eachSeriesCb);
-							} else {
-								return setImmediate(eachSeriesCb);
-							}
-						});
-					}, function (err) {
-						return setImmediate(seriesCb, err);
-					});
-				} else {
-					return setImmediate(seriesCb);
-				}
-			});
-		},
-		// Block and transactions are ok.
-		// Apply transactions to confirmed mem_accounts fields.
-		applyConfirmed: function (seriesCb) {
-			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-				modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-					if (err) {
-						err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
-						library.logger.error(err);
-						library.logger.error('Transaction', transaction);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-						process.exit(0);
-					}
-					// DATABASE: write
-					modules.transactions.apply(transaction, block, sender, function (err) {
-						if (err) {
-							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
-							library.logger.error(err);
-							library.logger.error('Transaction', transaction);
-							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-							process.exit(0);
-						}
-						// Transaction applied, removed from the unconfirmed list.
-						modules.transactions.removeUnconfirmedTransaction(transaction.id);
-						return setImmediate(eachSeriesCb);
-					});
-				});
-			}, function (err) {
-				return setImmediate(seriesCb, err);
-			});
-		},
-		// Optionally save the block to the database.
-		saveBlock: function (seriesCb) {
-			__private.lastBlock = block;
-
-			if (saveBlock) {
-				// DATABASE: write
-				__private.saveBlock(block, function (err) {
-					if (err) {
-						library.logger.error('Failed to save block...');
-						library.logger.error('Block', block);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-						process.exit(0);
-					}
-
-					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
-					library.bus.message('newBlock', block, broadcast);
-
-					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(block, seriesCb);
-				});
-			} else {
-				library.bus.message('newBlock', block, broadcast);
-
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(block, seriesCb);
-			}
-		},
-		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
-		// TODO: See undoUnconfirmedList discussion above.
-		applyUnconfirmedList: function (seriesCb) {
-			// DATABASE write
-			modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function (err) {
-				return setImmediate(seriesCb, err);
-			});
-		},
-	}, function (err) {
-		// Allow shutdown, database writes are finished.
-		__private.isActive = false;
-
-		// Nullify large objects.
-		// Prevents memory leak during synchronisation.
-		appliedTransactions = unconfirmedTransactions = block = null;
-
-		// Finish here if snapshotting.
-		if (err === 'Snapshot finished') {
-			library.logger.info(err);
-			process.emit('SIGTERM');
-		}
-
-		return setImmediate(cb, err);
-	});
-};
-
-// Apply the genesis block, provided it has been verified.
-// Shortcuting the unconfirmed/confirmed states.
-__private.applyGenesisBlock = function (block, cb) {
-	block.transactions = block.transactions.sort(function (a, b) {
-		if (a.type === transactionTypes.VOTE) {
-			return 1;
-		} else {
-			return 0;
-		}
-	});
-	async.eachSeries(block.transactions, function (transaction, cb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-				if (err) {
-					return setImmediate(cb, {
-						message: err,
-						transaction: transaction,
-						block: block
-					});
-				}
-				__private.applyTransaction(block, transaction, sender, cb);
-			});
-	}, function (err) {
-		if (err) {
-			// If genesis block is invalid, kill the node...
-			return process.exit(0);
-		} else {
-			__private.lastBlock = block;
-			modules.rounds.tick(__private.lastBlock, cb);
-		}
-	});
-};
-
-__private.checkTransaction = function (block, transaction, cb) {
-	async.waterfall([
-		function (waterCb) {
-			try {
-				transaction.id = library.logic.transaction.getId(transaction);
-			} catch (e) {
-				return setImmediate(waterCb, e.toString());
-			}
-			transaction.blockId = block.id;
-			return setImmediate(waterCb);
-		},
-		function (waterCb) {
-			// Check if transaction is already in database, otherwise fork 2.
-			// DATABASE: read only
-			library.logic.transaction.checkConfirmed(transaction, function (err) {
-				if (err) {
-					// Fork: Transaction already confirmed.
-					modules.delegates.fork(block, 2);
-					// Undo the offending transaction.
-					// DATABASE: write
-					modules.transactions.undoUnconfirmed(transaction, function (err2) {
-						modules.transactions.removeUnconfirmedTransaction(transaction.id);
-						return setImmediate(waterCb, err2 || err);
-					});
-				} else {
-					return setImmediate(waterCb);
-				}
-			});
-		},
-		function (waterCb) {
-			// Get account from database if any (otherwise cold wallet).
-			// DATABASE: read only
-			modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, waterCb);
-		},
-		function (sender, waterCb) {
-			// Check if transaction id valid against database state (mem_* tables).
-			// DATABASE: read only
-			library.logic.transaction.verify(transaction, sender, waterCb);
-		}
-	], function (err) {
-		return setImmediate(cb, err);
-	});
 };
 
 // Main function to process a Block.
