@@ -789,56 +789,72 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	peer = modules.peers.accept(peer);
 	library.logger.info('Loading blocks from: ' + peer.string);
 
-	modules.transport.getFromPeer(peer, {
-		method: 'GET',
-		api: '/blocks?lastBlockId=' + lastValidBlock.id
-	}, function (err, res) {
-		if (err || res.body.error) {
-			return setImmediate(cb, err, lastValidBlock);
-		}
+	function getFromPeer (seriesCb) {
+		modules.transport.getFromPeer(peer, {
+			method: 'GET',
+			api: '/blocks?lastBlockId=' + lastValidBlock.id
+		}, function (err, res) {
+			err = err || res.body.error;
+			if (err) {
+				return setImmediate(seriesCb, err);
+			} else {
+				return setImmediate(seriesCb, null, res.body.blocks);
+			}
+		});
+	}
 
-		var report = library.schema.validate(res.body.blocks, schema.loadBlocksFromPeer);
+	function validateBlocks (blocks, seriesCb) {
+		var report = library.schema.validate(blocks, schema.loadBlocksFromPeer);
 
 		if (!report) {
-			return setImmediate(cb, 'Received invalid blocks data', lastValidBlock);
-		}
-
-		var blocks = __private.readDbRows(res.body.blocks);
-
-		if (blocks.length === 0) {
-			return setImmediate(cb, null, lastValidBlock);
+			return setImmediate(seriesCb, 'Received invalid blocks data');
 		} else {
-			async.eachSeries(blocks, function (block, cb) {
-				if (__private.cleanup) {
-					return setImmediate(cb);
-				}
+			return setImmediate(seriesCb, null, blocks);
+		}
+	}
 
-				self.processBlock(block, false, function (err) {
-					if (!err) {
-						lastValidBlock = block;
-						library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
-					} else {
-						var id = (block ? block.id : 'null');
+	function processBlocks (blocks, seriesCb) {
+		if (blocks.length === 0) {
+			return setImmediate(seriesCb);
+		}
+		async.eachSeries(__private.readDbRows(blocks), function (block, eachSeriesCb) {
+			if (__private.cleanup) {
+				return setImmediate(eachSeriesCb);
+			} else {
+				return processBlock(block, eachSeriesCb);
+			}
+		}, function (err) {
+			return setImmediate(seriesCb, err);
+		});
+	}
 
-						library.logger.error(['Block', id].join(' '), err.toString());
-						if (block) { library.logger.error('Block', block); }
+	function processBlock (block, seriesCb) {
+		self.processBlock(block, false, function (err) {
+			if (!err) {
+				lastValidBlock = block;
+				library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
+			} else {
+				var id = (block ? block.id : 'null');
 
-						library.logger.warn(['Block', id, 'is not valid, ban 60 min'].join(' '), peer.string);
-						modules.peers.state(peer.ip, peer.port, 0, 3600);
-					}
-					return cb(err);
-				}, true);
-			}, function (err) {
-				// Nullify large array of blocks.
-				// Prevents memory leak during synchronisation.
-				res = blocks = null;
+				library.logger.error(['Block', id].join(' '), err.toString());
+				if (block) { library.logger.error('Block', block); }
 
-				if (err) {
-					return setImmediate(cb, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
-				} else {
-					return setImmediate(cb, null, lastValidBlock);
-				}
-			});
+				library.logger.warn(['Block', id, 'is not valid, ban 60 min'].join(' '), peer.string);
+				modules.peers.state(peer.ip, peer.port, 0, 3600);
+			}
+			return seriesCb(err);
+		}, true);
+	}
+
+	async.waterfall([
+		getFromPeer,
+		validateBlocks,
+		processBlocks
+	], function (err) {
+		if (err) {
+			return setImmediate(cb, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
+		} else {
+			return setImmediate(cb, null, lastValidBlock);
 		}
 	});
 };
