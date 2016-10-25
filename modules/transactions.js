@@ -437,7 +437,7 @@ Transactions.prototype.onPeersReady = function () {
 	setImmediate(function nextUnconfirmedExpiry () {
 		self.expireUnconfirmedList(function (err, ids) {
 			if (err) {
-				library.logger.error('Unconfirmed transactions timer:', err);
+				library.logger.error('Unconfirmed transactions timer', err);
 			}
 
 			setTimeout(nextUnconfirmedExpiry, 30000);

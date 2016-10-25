@@ -401,7 +401,7 @@ Peers.prototype.onPeersReady = function () {
 			updatePeersList: function (seriesCb) {
 				__private.updatePeersList(function (err) {
 					if (err) {
-						library.logger.error('Peers timer:', err);
+						library.logger.error('Peers timer', err);
 					}
 					return setImmediate(seriesCb);
 				});
@@ -409,7 +409,7 @@ Peers.prototype.onPeersReady = function () {
 			nextBanManager: function (seriesCb) {
 				__private.banManager(function (err) {
 					if (err) {
-						library.logger.error('Ban manager timer:', err);
+						library.logger.error('Ban manager timer', err);
 					}
 					return setImmediate(seriesCb);
 				});
