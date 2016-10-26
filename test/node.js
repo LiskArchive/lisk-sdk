@@ -214,7 +214,10 @@ node.addPeers = function (numOfPeers, cb) {
 			return next(err);
 		});
 	}, function (err) {
-		return cb(err, {os: os, version: version, port: port});
+		// Wait for peer to be swept to db
+		setTimeout(function () {
+			return cb(err, {os: os, version: version, port: port});
+		}, 3000);
 	});
 };
 
