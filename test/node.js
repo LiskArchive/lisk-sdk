@@ -190,12 +190,12 @@ node.addPeers = function (numOfPeers, cb) {
 		var request = node.popsicle.get({
 			url: node.baseUrl + '/peer/height',
 			headers: {
-				version: version,
-				port: port,
+				broadhash: node.config.nethash,
+				height: 1,
 				nethash: node.config.nethash,
 				os: os,
-				broadhash: node.config.nethash,
-				height: 1
+				port: port,
+				version: version
 			}
 		});
 
