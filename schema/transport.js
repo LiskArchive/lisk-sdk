@@ -16,6 +16,7 @@ module.exports = {
 			},
 			os: {
 				type: 'string',
+				format: 'os',
 				maxLength: 64
 			},
 			version: {

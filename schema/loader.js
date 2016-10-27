@@ -54,7 +54,9 @@ module.exports = {
 					maximum: 3
 				},
 				os: {
-					type: 'string'
+					type: 'string',
+					format: 'os',
+					maxLength: 64
 				},
 				version: {
 					type: 'string',
