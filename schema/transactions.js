@@ -19,7 +19,8 @@ module.exports = {
 				maximum: 10
 			},
 			senderId: {
-				type: 'string'
+				type: 'string',
+				format: 'address'
 			},
 			senderPublicKey: {
 				type: 'string',
@@ -30,10 +31,12 @@ module.exports = {
 				format: 'publicKey'
 			},
 			ownerAddress: {
-				type: 'string'
+				type: 'string',
+				format: 'address'
 			},
 			recipientId: {
-				type: 'string'
+				type: 'string',
+				format: 'address'
 			},
 			amount: {
 				type: 'integer',
@@ -94,7 +97,8 @@ module.exports = {
 				format: 'publicKey'
 			},
 			address: {
-				type: 'string'
+				type: 'string',
+				format: 'address'
 			}
 		}
 	},
@@ -114,7 +118,7 @@ module.exports = {
 			},
 			recipientId: {
 				type: 'string',
-				minLength: 1
+				format: 'address'
 			},
 			publicKey: {
 				type: 'string',

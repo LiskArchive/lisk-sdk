@@ -192,8 +192,7 @@ module.exports = {
 			},
 			recipientId: {
 				type: 'string',
-				minLength: 2,
-				maxLength: 22
+				format: 'address'
 			},
 			secondSecret: {
 				type: 'string',

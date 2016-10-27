@@ -7,6 +7,10 @@ z_schema.registerFormat('id', function (str) {
   return /^[0-9]+$/g.test(str);
 });
 
+z_schema.registerFormat('address', function (str) {
+  return /^[0-9]{1,21}[L|l]$/g.test(str);
+});
+
 z_schema.registerFormat('hex', function (str) {
   try {
     new Buffer(str, 'hex');
