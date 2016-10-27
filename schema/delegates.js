@@ -55,6 +55,7 @@ module.exports = {
 			},
 			username: {
 				type: 'string',
+				format: 'username',
 				minLength: 1,
 				maxLength: 20
 			}
@@ -137,6 +138,7 @@ module.exports = {
 			},
 			username: {
 				type: 'string',
+				format: 'username',
 				minLength: 1,
 				maxLength: 20
 			}

@@ -11,6 +11,10 @@ z_schema.registerFormat('address', function (str) {
   return /^[0-9]{1,21}[L|l]$/g.test(str);
 });
 
+z_schema.registerFormat('username', function (str) {
+  return /^[a-z0-9!@$&_.]+$/g.test(str);
+});
+
 z_schema.registerFormat('hex', function (str) {
   try {
     new Buffer(str, 'hex');
