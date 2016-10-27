@@ -159,7 +159,7 @@ describe('GET /api/peers', function () {
 		});
 	});
 
-	it('using version with length == 11 characters should be ok', function (done) {
+	it('using version == "999.999.999" characters should be ok', function (done) {
 		var version = '999.999.999';
 		var params = 'version=' + version;
 
@@ -169,13 +169,56 @@ describe('GET /api/peers', function () {
 		});
 	});
 
-	it('using version with length > 11 characters should fail', function (done) {
+	it('using version == "9999.999.999" characters should fail', function (done) {
 		var version = '9999.999.999';
 		var params = 'version=' + version;
 
 		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('String is too long (12 chars), maximum 11');
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 9999.999.999');
+			done();
+		});
+	});
+
+	it('using version == "999.9999.999" characters should fail', function (done) {
+		var version = '999.9999.999';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.9999.999');
+			done();
+		});
+	});
+
+	it('using version == "999.999.9999" characters should fail', function (done) {
+		var version = '999.999.9999';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.9999');
+			done();
+		});
+	});
+
+	it('using version == "999.999.999a" characters should be ok', function (done) {
+		var version = '999.999.999a';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using version == "999.999.999ab" characters should fail', function (done) {
+		var version = '999.999.999ab';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.999ab');
 			done();
 		});
 	});
