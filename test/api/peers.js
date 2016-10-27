@@ -159,6 +159,77 @@ describe('GET /api/peers', function () {
 		});
 	});
 
+	it('using os == "freebsd10" should be ok', function (done) {
+		var os = 'freebsd10';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3" should be ok', function (done) {
+		var os = 'freebsd10.3';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3-" should be ok', function (done) {
+		var os = 'freebsd10.3-';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_" should be ok', function (done) {
+		var os = 'freebsd10.3_';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_RELEASE" should be ok', function (done) {
+		var os = 'freebsd10.3_RELEASE';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_RELEASE-p7" should be ok', function (done) {
+		var os = 'freebsd10.3_RELEASE-p7';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_RELEASE-p7-@" should fail', function (done) {
+		var os = 'freebsd10.3_RELEASE-p7-@';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format os: freebsd10.3_RELEASE-p7-@');
+			done();
+		});
+	});
+
 	it('using version == "999.999.999" characters should be ok', function (done) {
 		var version = '999.999.999';
 		var params = 'version=' + version;
