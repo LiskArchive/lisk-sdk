@@ -64,7 +64,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['id']
@@ -75,6 +77,7 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
+				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
@@ -126,7 +129,9 @@ module.exports = {
 			},
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			},
 			master: {
 				type: 'string',
@@ -160,6 +165,7 @@ module.exports = {
 			},
 			dappId: {
 				type: 'string',
+				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
@@ -196,11 +202,13 @@ module.exports = {
 			},
 			dappId: {
 				type: 'string',
+				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
 			transactionId: {
 				type: 'string',
+				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
@@ -238,7 +246,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			},
 			master: {
 				type: 'string',
@@ -253,7 +263,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			},
 			master: {
 				type: 'string',
@@ -268,7 +280,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			},
 			master: {
 				type: 'string',

@@ -54,7 +54,10 @@ module.exports = {
 		type: 'object',
 		properties: {
 			lastBlockId: {
-				type: 'string'
+				type: 'string',
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 	},
@@ -66,7 +69,10 @@ module.exports = {
 				type: 'object',
 				properties: {
 					transaction: {
-						type: 'string'
+						type: 'string',
+						format: 'id',
+						minLength: 1,
+						maxLength: 20
 					},
 					signature: {
 						type: 'string',

@@ -8,7 +8,10 @@ module.exports = {
 		type: 'object',
 		properties: {
 			blockId: {
-				type: 'string'
+				type: 'string',
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			},
 			type: {
 				type: 'integer',
@@ -62,7 +65,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['id']
@@ -73,7 +78,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['id']
