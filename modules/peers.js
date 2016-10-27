@@ -251,6 +251,7 @@ Peers.prototype.list = function (options, cb) {
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
 	options.attempts = ['matched broadhash', 'unmatched broadhash', 'legacy'];
 	options.attempt = 0;
+	options.matched = 0;
 
 	if (!options.broadhash) {
 		delete options.broadhash;
@@ -296,8 +297,12 @@ Peers.prototype.list = function (options, cb) {
 			}
 		}
 	], function (err, peers) {
+		var efficiency = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
+		    efficiency = isNaN(efficiency) ? 0 : efficiency;
+
+		library.logger.debug(['Listing efficiency', efficiency, '%'].join(' '));
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers);
+		return setImmediate(cb, err, peers, efficiency);
 	});
 };
 
