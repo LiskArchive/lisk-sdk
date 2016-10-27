@@ -68,10 +68,6 @@ __private.attachApi = function () {
 				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
 			}
 
-			if (!modules.blocks.lastReceipt()) {
-				modules.delegates.enableForging();
-			}
-
 			if (req.body && req.body.dappid) {
 				req.peer.dappid = req.body.dappid;
 			}
