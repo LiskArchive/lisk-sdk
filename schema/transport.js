@@ -20,7 +20,7 @@ module.exports = {
 			},
 			version: {
 				type: 'string',
-				maxLength: 11
+				format: 'version'
 			},
 			nethash: {
 				type: 'string',

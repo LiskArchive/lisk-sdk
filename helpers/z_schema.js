@@ -77,6 +77,10 @@ z_schema.registerFormat('ip', function (str) {
   return ip.isV4Format(str);
 });
 
+z_schema.registerFormat('version', function (str) {
+  return /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
+});
+
 // var registeredFormats = z_schema.getRegisteredFormats();
 // console.log(registeredFormats);
 

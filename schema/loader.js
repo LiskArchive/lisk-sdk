@@ -57,7 +57,8 @@ module.exports = {
 					type: 'string'
 				},
 				version: {
-					type: 'string'
+					type: 'string',
+					format: 'version'
 				},
 				broadhash: {
 					type: 'string',
