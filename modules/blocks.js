@@ -763,6 +763,15 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		},
 		function (res, waterCb) {
+			library.schema.validate(res.body.common, schema.getCommonBlock, function (err) {
+				if (err) {
+					return setImmediate(waterCb, err[0].message);
+				} else {
+					return setImmediate(waterCb, null, res);
+				}
+			});
+		},
+		function (res, waterCb) {
 			library.db.query(sql.getCommonBlock(res.body.common.previousBlock), {
 				id: res.body.common.id,
 				previousBlock: res.body.common.previousBlock,

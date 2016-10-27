@@ -60,5 +60,23 @@ module.exports = {
 				minimum: 1
 			}
 		}
+	},
+	getCommonBlock: {
+		id: 'blocks.getCommonBlock',
+		type: 'object',
+		properties: {
+			id: {
+				type: 'string',
+				minLength: 1
+			},
+			previousBlock: {
+				type: 'string'
+			},
+			height: {
+				type: 'integer',
+				minimum: 1
+			}
+		},
+		required: ['id', 'previousBlock', 'height']
 	}
 };
