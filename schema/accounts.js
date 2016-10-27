@@ -41,7 +41,8 @@ module.exports = {
 		properties: {
 			secret: {
 				type: 'string',
-				minLength: 1
+				minLength: 1,
+				maxLength: 100
 			}
 		},
 		required: ['secret']
@@ -63,7 +64,8 @@ module.exports = {
 		properties: {
 			secret: {
 				type: 'string',
-				minLength: 1
+				minLength: 1,
+				maxLength: 100
 			},
 			publicKey: {
 				type: 'string',
@@ -71,7 +73,8 @@ module.exports = {
 			},
 			secondSecret: {
 				type: 'string',
-				minLength: 1
+				minLength: 1,
+				maxLength: 100
 			}
 		}
 	},
