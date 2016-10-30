@@ -1,6 +1,5 @@
 'use strict';
 
-var appConfig = require('./config.json');
 var async = require('async');
 var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
@@ -35,8 +34,11 @@ program
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
+var appConfig;
 if (program.config) {
 	appConfig = require(path.resolve(process.cwd(), program.config));
+} else {
+  appConfig = require('./config.json');
 }
 
 if (program.port) {
