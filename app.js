@@ -73,6 +73,9 @@ if (program.snapshot) {
 	);
 }
 
+//Define top endpoint availability
+process.env.TOP =  appConfig.topAccounts;
+
 var config = {
 	db: appConfig.db,
 	modules: {
