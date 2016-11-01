@@ -19,7 +19,9 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address'
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			}
 		},
 		required: ['address']
@@ -30,7 +32,9 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address'
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			}
 		},
 		required: ['address']
@@ -53,7 +57,9 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address'
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			}
 		},
 		required: ['address']
@@ -84,7 +90,9 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address'
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			}
 		},
 		required: ['address']
