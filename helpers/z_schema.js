@@ -12,7 +12,7 @@ z_schema.registerFormat('address', function (str) {
 });
 
 z_schema.registerFormat('username', function (str) {
-  return /^[a-z0-9!@$&_.]+$/g.test(str);
+  return /^[a-z0-9!@$&_.]+$/ig.test(str);
 });
 
 z_schema.registerFormat('hex', function (str) {
