@@ -144,7 +144,7 @@ __private.getByFilter = function (filter, cb) {
 	var where = [];
 	var params = {};
 
-	if (filter.state) {
+	if (filter.state >= 0) {
 		where.push('"state" = ${state}');
 		params.state = filter.state;
 	}
@@ -216,6 +216,7 @@ Peers.prototype.inspect = function (peer) {
 	}
 
 	peer.port = parseInt(peer.port);
+	peer.port = isNaN(peer.port) ? 0 : peer.port;
 
 	if (peer.ip) {
 		peer.string = (peer.ip + ':' + peer.port || 'unknown');

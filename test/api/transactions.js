@@ -73,7 +73,7 @@ describe('GET /api/transactions', function () {
 		var orderBy = 'amount:asc';
 
 		var params = [
-			'blockId=',
+			'blockId=' + '1',
 			'senderId=' + node.gAccount.address,
 			'recipientId=' + account.address,
 			'limit=' + limit,

@@ -16,15 +16,19 @@ module.exports = {
 			},
 			os: {
 				type: 'string',
-				maxLength: 64
-			},
-			nethash: {
-				type: 'string',
+				format: 'os',
+				minLength: 1,
 				maxLength: 64
 			},
 			version: {
 				type: 'string',
-				maxLength: 11
+				format: 'version',
+				minLength: 5,
+				maxLength: 12
+			},
+			nethash: {
+				type: 'string',
+				maxLength: 64
 			}
 		},
 		required: ['ip', 'port', 'nethash', 'version']
@@ -45,7 +49,10 @@ module.exports = {
 		type: 'object',
 		properties: {
 			lastBlockId: {
-				type: 'string'
+				type: 'string',
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 	},
@@ -57,7 +64,10 @@ module.exports = {
 				type: 'object',
 				properties: {
 					transaction: {
-						type: 'string'
+						type: 'string',
+						format: 'id',
+						minLength: 1,
+						maxLength: 20
 					},
 					signature: {
 						type: 'string',

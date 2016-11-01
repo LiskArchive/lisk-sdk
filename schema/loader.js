@@ -54,10 +54,16 @@ module.exports = {
 					maximum: 3
 				},
 				os: {
-					type: 'string'
+					type: 'string',
+					format: 'os',
+					minLength: 1,
+					maxLength: 64
 				},
 				version: {
-					type: 'string'
+					type: 'string',
+					format: 'version',
+					minLength: 5,
+					maxLength: 12
 				}
 			},
 			required: ['ip', 'port', 'state']
@@ -68,7 +74,7 @@ module.exports = {
 			properties: {
 				height: {
 					type: 'integer',
-					minimum: 0
+					minimum: 1
 				}
 			},
 			required: ['height']

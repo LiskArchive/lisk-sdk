@@ -177,9 +177,8 @@ node.waitForNewBlock = function (height, cb) {
 // Adds peers to local node
 node.addPeers = function (numOfPeers, cb) {
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var ports = [4000, 5000, 7000, 8000];
-
-	var os, version, port;
+	var port = 4000;
+	var os, version;
 	var i = 0;
 
 	node.async.whilst(function () {
@@ -187,7 +186,6 @@ node.addPeers = function (numOfPeers, cb) {
 	}, function (next) {
 		os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
 		version = node.config.version;
-		port = ports[node.randomizeSelection(ports.length)];
 
 		var request = node.popsicle.get({
 			url: node.baseUrl + '/peer/height',

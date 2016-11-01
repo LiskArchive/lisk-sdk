@@ -116,6 +116,9 @@ __private.openAccount = function (secret, cb) {
 		}
 
 		if (account) {
+			if (account.publicKey == null) {
+				account.publicKey = publicKey;
+			}
 			return setImmediate(cb, null, account);
 		} else {
 			return setImmediate(cb, null, {
