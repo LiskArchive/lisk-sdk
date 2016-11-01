@@ -8,7 +8,7 @@ z_schema.registerFormat('id', function (str) {
 });
 
 z_schema.registerFormat('address', function (str) {
-  return /^[0-9]+[L|l]$/g.test(str);
+  return /^[0-9]+[L]$/ig.test(str);
 });
 
 z_schema.registerFormat('username', function (str) {
