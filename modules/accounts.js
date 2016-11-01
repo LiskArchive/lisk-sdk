@@ -96,7 +96,7 @@ __private.attachApi = function () {
 	router.use(function (req, res, next) {
 		res.status(500).send({success: false, error: 'API endpoint was not found'});
 	});
-			
+
 	library.network.app.use('/api/accounts', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
@@ -116,9 +116,9 @@ __private.openAccount = function (secret, cb) {
 		}
 
 		if (account) {
-			 if (account.publicKey == null) {
-                     		account.publicKey = publicKey;
-			 }                  
+			if (account.publicKey == null) {
+				account.publicKey = publicKey;
+			}
 			return setImmediate(cb, null, account);
 		} else {
 			return setImmediate(cb, null, {
