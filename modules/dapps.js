@@ -1267,11 +1267,6 @@ __private.sendWithdrawal = function (req, cb) {
 		var keypair = library.ed.makeKeypair(hash);
 		var query = {};
 
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.recipientId)) {
-			return setImmediate(cb, 'Invalid recipient');
-		}
-
 		library.balancesSequence.add(function (cb) {
 			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
 				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
