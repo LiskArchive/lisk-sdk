@@ -40,7 +40,9 @@ module.exports = {
 				},
 				version: {
 					type: 'string',
-					format: 'version'
+					format: 'version',
+					minLength: 5,
+					maxLength: 12
 				},
 				broadhash: {
 					type: 'string',
@@ -80,7 +82,9 @@ module.exports = {
 			},
 			version: {
 				type: 'string',
-				format: 'version'
+				format: 'version',
+				minLength: 5,
+				maxLength: 12
 			},
 			broadhash: {
 				type: 'string',
