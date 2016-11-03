@@ -727,13 +727,19 @@ Transaction.prototype.schema = {
 	type: 'object',
 	properties: {
 		id: {
-			type: 'string'
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20
 		},
 		height: {
 			type: 'integer'
 		},
 		blockId: {
-			type: 'string'
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20
 		},
 		type: {
 			type: 'integer'
@@ -750,10 +756,16 @@ Transaction.prototype.schema = {
 			format: 'publicKey'
 		},
 		senderId: {
-			type: 'string'
+			type: 'string',
+			format: 'address',
+			minLength: 1,
+			maxLength: 22
 		},
 		recipientId: {
-			type: 'string'
+			type: 'string',
+			format: 'address',
+			minLength: 1,
+			maxLength: 22
 		},
 		amount: {
 			type: 'integer',
