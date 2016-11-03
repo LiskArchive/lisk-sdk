@@ -1045,11 +1045,12 @@ __private.createSandbox = function (dapp, params, cb) {
 	}
 
 	async.eachSeries(dappConfig.peers, function (peer, eachSeriesCb) {
-		modules.peers.addDapp({
+		modules.peers.update({
 			ip: peer.ip,
 			port: peer.port,
 			dappid: dapp.transactionId
-		}, eachSeriesCb);
+		});
+		return eachSeriesCb();
 	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
