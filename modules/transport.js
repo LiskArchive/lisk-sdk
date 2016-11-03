@@ -27,6 +27,11 @@ function Transport (cb, scope) {
 
 	__private.attachApi();
 
+	// Optionally ignore broadhash efficiency
+	if (!library.config.forging.force) {
+		__private.efficiency = 100;
+	}
+
 	setImmediate(cb, null, self);
 }
 
@@ -353,6 +358,10 @@ Transport.prototype.headers = function (headers) {
 	return __private.headers;
 };
 
+Transport.prototype.efficiency = function () {
+	return __private.efficiency === undefined ? 100 : __private.efficiency;
+};
+
 Transport.prototype.broadcast = function (config, options, cb) {
 	library.logger.debug('Begin broadcast', options);
 
@@ -360,8 +369,12 @@ Transport.prototype.broadcast = function (config, options, cb) {
 	config.broadhash = config.broadhash || null;
 	config.height = config.height || null;
 
-	modules.peers.list(config, function (err, peers) {
+	modules.peers.list(config, function (err, peers, efficiency) {
 		if (!err) {
+			if (__private.efficiency !== undefined) {
+				__private.efficiency = efficiency;
+			}
+
 			async.eachLimit(peers, 20, function (peer, cb) {
 				return self.getFromPeer(peer, options, cb);
 			}, function (err) {

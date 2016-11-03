@@ -26,6 +26,7 @@ module.exports = {
 	maxRequests: 10000 * 12,
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
+	minBroadhashEfficiency: 10,
 	numberLength: 100000000,
 	requestLength: 104,
 	rewards: {

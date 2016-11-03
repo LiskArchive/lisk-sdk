@@ -236,6 +236,14 @@ __private.forge = function (cb) {
 		return setImmediate(cb);
 	}
 
+	// Do not forge when broadhash efficiency is below threshold
+	var efficiency = modules.transport.efficiency();
+
+	if (efficiency <= constants.minBroadhashEfficiency) {
+		library.logger.debug(['Poor broadhash efficiency', efficiency, '%'].join(' '));
+		return setImmediate(cb);
+	}
+
 	var currentSlot = slots.getSlotNumber();
 	var lastBlock = modules.blocks.getLastBlock();
 
