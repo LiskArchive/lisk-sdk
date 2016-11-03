@@ -212,6 +212,19 @@ Transaction.prototype.checkConfirmed = function (trs, cb) {
 	});
 };
 
+Transaction.prototype.checkBalance = function (amount, balance, trs, sender) {
+	var exceededBalance = bignum(sender[balance].toString()).lessThan(amount);
+	var exceeded = (trs.blockId !== genesisblock.block.id && exceededBalance);
+
+	return {
+		exceeded: exceeded,
+		error: exceeded ? [
+			'Account does not have enough LSK:', sender.address,
+			'balance:', bignum(sender[balance].toString() || '0').div(Math.pow(10,8))
+		].join(' ') : null
+	};
+};
+
 Transaction.prototype.process = function (trs, sender, requester, cb) {
 	if (typeof requester === 'function') {
 		cb = requester;
@@ -496,14 +509,12 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 		return setImmediate(cb, 'Transaction is not ready');
 	}
 
+	// Check sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
-	var exceedsBalance = bignum(sender.balance.toString()).lessThan(amount);
+	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
-	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
-		return setImmediate(cb, [
-			'Account does not have enough LSK:', sender.address,
-			'balance:', bignum(sender.u_balance || 0).div(Math.pow(10,8))
-		].join(' '));
+	if (senderBalance.exceeded) {
+		return setImmediate(cb, senderBalance.error);
 	}
 
 	amount = amount.toNumber();
@@ -591,14 +602,12 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Requester does not have a second signature');
 	}
 
+	// Check sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
-	var exceedsBalance = bignum(sender.u_balance.toString()).lessThan(amount);
+	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
 
-	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
-		return setImmediate(cb, [
-			'Account does not have enough LSK:', sender.address,
-			'balance:', bignum(sender.balance || 0).div(Math.pow(10,8))
-		].join(' '));
+	if (senderBalance.exceeded) {
+		return setImmediate(cb, senderBalance.error);
 	}
 
 	amount = amount.toNumber();
