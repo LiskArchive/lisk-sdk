@@ -195,7 +195,9 @@ node.addPeers = function (numOfPeers, cb) {
 				version: version,
 				port: port,
 				nethash: node.config.nethash,
-				os: os
+				os: os,
+				broadhash: node.config.nethash,
+				height: 1
 			}
 		});
 

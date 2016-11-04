@@ -18,10 +18,8 @@ var transactionTypes = require('../helpers/transactionTypes.js');
 var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
-__private.hiddenTransactions = [];
 __private.unconfirmedTransactions = [];
 __private.unconfirmedTransactionsIdIndex = {};
-__private.doubleSpendingTransactions = {};
 
 // Constructor
 function Transactions (cb, scope) {
@@ -188,16 +186,16 @@ __private.getById = function (id, cb) {
 __private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 	self.applyUnconfirmed(transaction, sender, function (err) {
 		if (err) {
-			self.addDoubleSpending(transaction);
+			self.removeUnconfirmedTransaction(transaction.id);
 			return setImmediate(cb, err);
+		} else {
+			transaction.receivedAt = new Date();
+			__private.unconfirmedTransactions.push(transaction);
+			var index = __private.unconfirmedTransactions.length - 1;
+			__private.unconfirmedTransactionsIdIndex[transaction.id] = index;
+
+			return setImmediate(cb);
 		}
-
-		transaction.receivedAt = new Date();
-		__private.unconfirmedTransactions.push(transaction);
-		var index = __private.unconfirmedTransactions.length - 1;
-		__private.unconfirmedTransactionsIdIndex[transaction.id] = index;
-
-		return setImmediate(cb);
 	});
 };
 
@@ -205,10 +203,6 @@ __private.addUnconfirmedTransaction = function (transaction, sender, cb) {
 Transactions.prototype.getUnconfirmedTransaction = function (id) {
 	var index = __private.unconfirmedTransactionsIdIndex[id];
 	return __private.unconfirmedTransactions[index];
-};
-
-Transactions.prototype.addDoubleSpending = function (transaction) {
-	__private.doubleSpendingTransactions[transaction.id] = transaction;
 };
 
 Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit) {
@@ -241,8 +235,13 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 		return setImmediate(cb, 'Missing transaction');
 	}
 
+	// Ignore transaction when syncing
+	if (modules.loader.syncing()) {
+		return setImmediate(cb);
+	}
+
 	// Check transaction indexes
-	if (__private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined || __private.doubleSpendingTransactions[transaction.id]) {
+	if (__private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined) {
 		library.logger.debug('Transaction is already processed: ' + transaction.id);
 		return setImmediate(cb);
 	}
@@ -309,15 +308,13 @@ Transactions.prototype.applyUnconfirmedList = function (ids, cb) {
 		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err) {
 				self.removeUnconfirmedTransaction(id);
-				self.addDoubleSpending(transaction);
-				return setImmediate(cb);
+				return setImmediate(cb, err);
 			}
 			self.applyUnconfirmed(transaction, sender, function (err) {
 				if (err) {
 					self.removeUnconfirmedTransaction(id);
-					self.addDoubleSpending(transaction);
 				}
-				return setImmediate(cb);
+				return setImmediate(cb, err);
 			});
 		});
 	}, cb);
@@ -371,14 +368,18 @@ Transactions.prototype.expireUnconfirmedList = function (cb) {
 };
 
 Transactions.prototype.apply = function (transaction, block, sender, cb) {
+	library.logger.debug('Applying confirmed transaction', transaction.id);
 	library.logic.transaction.apply(transaction, block, sender, cb);
 };
 
 Transactions.prototype.undo = function (transaction, block, sender, cb) {
+	library.logger.debug('Undoing confirmed transaction', transaction.id);
 	library.logic.transaction.undo(transaction, block, sender, cb);
 };
 
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+	library.logger.debug('Applying unconfirmed transaction', transaction.id);
+
 	if (!sender && transaction.blockId !== genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else {
@@ -401,6 +402,8 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
+	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
+
 	modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -437,7 +440,7 @@ Transactions.prototype.onPeersReady = function () {
 				library.logger.error('Unconfirmed transactions timer:', err);
 			}
 
-			setTimeout(nextUnconfirmedExpiry, 14 * 1000);
+			setTimeout(nextUnconfirmedExpiry, 30000);
 		});
 	});
 };

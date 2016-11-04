@@ -227,11 +227,11 @@ __private.getBlockSlotData = function (slot, height, cb) {
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
 		library.logger.debug('No delegates enabled');
-		return setImmediate(cb);
+		return __private.loadDelegates(cb);
 	}
 
 	if (!__private.forging) {
-		library.logger.debug('Forging disabled due to timeout');
+		library.logger.debug('Forging disabled');
 		return setImmediate(cb);
 	}
 
@@ -246,7 +246,7 @@ __private.forge = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Last block within same delegate slot');
+		library.logger.debug('Waiting for next delegate slot');
 		return setImmediate(cb);
 	}
 
@@ -362,10 +362,21 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 	});
 };
 
-__private.loadMyDelegates = function (cb) {
-	var secrets = null;
+__private.loadDelegates = function (cb) {
+	var secrets;
+
 	if (library.config.forging.secret) {
-		secrets = Array.isArray(library.config.forging.secret) ? library.config.forging.secret : [library.config.forging.secret];
+		if (Array.isArray(library.config.forging.secret)) {
+			secrets = library.config.forging.secret;
+		} else {
+			secrets = [library.config.forging.secret];
+		}
+	}
+
+	if (!secrets || !secrets.length) {
+		return setImmediate(cb);
+	} else {
+		library.logger.info(['Loading', secrets.length, 'delegates from config'].join(' '));
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
@@ -379,15 +390,16 @@ __private.loadMyDelegates = function (cb) {
 			}
 
 			if (!account) {
-				return setImmediate(cb, 'Account ' + keypair.publicKey.toString('hex') + ' not found');
+				return setImmediate(cb, ['Account with public key:', keypair.publicKey.toString('hex'), 'not found'].join(' '));
 			}
 
 			if (account.isDelegate) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-				library.logger.info('Forging enabled on account: ' + account.address);
+				library.logger.info(['Forging enabled on account:', account.address].join(' '));
 			} else {
-				library.logger.warn('Delegate with this public key not found: ' + keypair.publicKey.toString('hex'));
+				library.logger.warn(['Account with public key:', keypair.publicKey.toString('hex'), 'is not a delegate'].join(' '));
 			}
+
 			return setImmediate(cb);
 		});
 	}, cb);
@@ -488,13 +500,17 @@ Delegates.prototype.fork = function (block, cause) {
 
 	self.disableForging('fork');
 
-	library.db.none(sql.insertFork, {
+	var fork = {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
 		blockHeight: block.height,
 		previousBlock: block.previousBlock,
 		cause: cause
+	};
+
+	library.db.none(sql.insertFork, fork).then(function () {
+		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };
 
@@ -534,7 +550,7 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadMyDelegates(function nextForge (err) {
+	__private.loadDelegates(function nextForge (err) {
 		if (err) {
 			library.logger.error('Failed to load delegates', err);
 		}

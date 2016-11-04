@@ -101,18 +101,18 @@ module.exports = {
 				minLength: 1,
 				maxLength: 2000
 			},
+			orderBy: {
+				type: 'string',
+				minLength: 1
+			},
 			limit: {
 				type: 'integer',
-				minimum: 0,
+				minimum: 1,
 				maximum: 100
 			},
 			offset: {
 				type: 'integer',
 				minimum: 0
-			},
-			orderBy: {
-				type: 'string',
-				minLength: 1
 			}
 		}
 	},

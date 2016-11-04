@@ -12,6 +12,16 @@ var block = {
 
 var testBlocksUnder101 = false;
 
+describe('GET /api/blocks/getBroadhash', function () {
+
+	it('should be ok', function (done) {
+		node.get('/api/blocks/getBroadhash', function (err, res) {
+			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
+			done();
+		});
+	});
+});
+
 describe('GET /api/blocks/getEpoch', function () {
 
 	it('should be ok', function (done) {
@@ -116,6 +126,7 @@ describe('GET /api/blocks/getStatus', function () {
 	it('should be ok', function (done) {
 		node.get('/api/blocks/getStatus', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
 			node.expect(res.body).to.have.property('epoch').to.be.a('string');
 			node.expect(res.body).to.have.property('height').to.be.a('number');
 			node.expect(res.body).to.have.property('fee').to.be.a('number');

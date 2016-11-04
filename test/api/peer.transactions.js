@@ -162,6 +162,34 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
+	it('when sender does not have enough funds should always fail', function (done) {
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+
+			node.onNewBlock(function () {
+				var count = 1;
+				var transaction2 = node.lisk.transaction.createTransaction(node.gAccount.address, 2, account.password);
+
+				node.async.doUntil(function (next) {
+					postTransaction(transaction2, function (err, res) {
+						node.expect(res.body).to.have.property('success').to.be.not.ok;
+						node.expect(res.body).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 1e-8/);
+						count++;
+						return next();
+					});
+				}, function () {
+					return count === 10;
+				}, function () {
+					return done();
+				});
+			});
+		});
+	});
+
 	it('using fake signature should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.gAccount.password);
 		transaction.signature = crypto.randomBytes(64).toString('hex');

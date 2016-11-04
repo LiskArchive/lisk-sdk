@@ -319,14 +319,14 @@ __private.attachApi = function () {
 											});
 										});
 									} else {
-										library.network.io.sockets.emit('dapps/change', {});
+										library.network.io.sockets.emit('dapps/change', dapp);
 
 										__private.loading[body.id] = false;
 										return res.json({success: true, path: dappPath});
 									}
 								});
 							} else {
-								library.network.io.sockets.emit('dapps/change', {});
+								library.network.io.sockets.emit('dapps/change', dapp);
 
 								__private.loading[body.id] = false;
 								return res.json({success: true, path: dappPath});
@@ -409,7 +409,7 @@ __private.attachApi = function () {
 								if (err) {
 									return res.json({success: false, error: err});
 								} else {
-									library.network.io.sockets.emit('dapps/change', {});
+									library.network.io.sockets.emit('dapps/change', dapp);
 
 									return res.json({success: true});
 								}
@@ -423,7 +423,7 @@ __private.attachApi = function () {
 						if (err) {
 							return res.json({success: false, error: err});
 						} else {
-							library.network.io.sockets.emit('dapps/change', {});
+							library.network.io.sockets.emit('dapps/change', dapp);
 
 							return res.json({success: true});
 						}
@@ -508,7 +508,7 @@ __private.attachApi = function () {
 							library.logger.error(err);
 							return res.json({success: false, error: 'Failed to stop application'});
 						} else {
-							library.network.io.sockets.emit('dapps/change', {});
+							library.network.io.sockets.emit('dapps/change', dapp);
 							__private.launched[body.id] = false;
 							return res.json({success: true});
 						}
