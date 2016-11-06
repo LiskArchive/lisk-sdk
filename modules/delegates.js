@@ -22,7 +22,6 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
 __private.loaded = false;
-__private.forging = false;
 __private.blockReward = new BlockReward();
 __private.keypairs = {};
 
@@ -230,15 +229,18 @@ __private.forge = function (cb) {
 		return __private.loadDelegates(cb);
 	}
 
-	if (!__private.forging) {
-		library.logger.debug('Forging disabled');
-		return setImmediate(cb);
-	}
-
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
 	if (!__private.loaded || modules.loader.syncing() || !modules.rounds.loaded() || modules.rounds.ticking()) {
 		library.logger.debug('Client not ready to forge');
+		return setImmediate(cb);
+	}
+
+	// Do not forge when broadhash efficiency is below threshold
+	var efficiency = modules.transport.efficiency();
+
+	if (efficiency <= constants.minBroadhashEfficiency) {
+		library.logger.debug(['Poor broadhash efficiency', efficiency, '%'].join(' '));
 		return setImmediate(cb);
 	}
 
@@ -498,8 +500,6 @@ Delegates.prototype.fork = function (block, cause) {
 		cause: cause
 	});
 
-	self.disableForging('fork');
-
 	var fork = {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
@@ -555,7 +555,6 @@ Delegates.prototype.onBlockchainReady = function () {
 			library.logger.error('Failed to load delegates', err);
 		}
 
-		__private.toggleForgingOnReceipt();
 		__private.forge(function () {
 			setTimeout(nextForge, 1000);
 		});
@@ -567,45 +566,7 @@ Delegates.prototype.cleanup = function (cb) {
 	return setImmediate(cb);
 };
 
-Delegates.prototype.enableForging = function () {
-	if (!__private.forging) {
-		library.logger.debug('Enabling forging');
-		__private.forging = true;
-	}
-
-	return __private.forging;
-};
-
-Delegates.prototype.disableForging = function (reason) {
-	if (__private.forging) {
-		library.logger.debug('Disabling forging due to:', reason);
-		__private.forging = false;
-	}
-
-	return __private.forging;
-};
-
 // Private
-__private.toggleForgingOnReceipt = function () {
-	var lastReceipt = modules.blocks.lastReceipt();
-
-	// Enforce local forging if configured
-	if (!lastReceipt && library.config.forging.force) {
-		lastReceipt = modules.blocks.lastReceipt(new Date());
-	}
-
-	if (lastReceipt) {
-		var timeOut = Number(constants.forgingTimeOut);
-
-		library.logger.debug('Last block received: ' + lastReceipt.secondsAgo + ' seconds ago');
-
-		if (lastReceipt.secondsAgo > timeOut) {
-			return self.disableForging('timeout');
-		} else {
-			return self.enableForging();
-		}
-	}
-};
 
 // Shared
 shared.getDelegate = function (req, cb) {

@@ -14,11 +14,6 @@ require('colors');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
-__private.network = {
-	height: 0, // Network height
-	peers: [], // "Good" peers and with height close to network height
-};
-
 __private.loaded = false;
 __private.isActive = false;
 __private.lastBlock = null;
@@ -32,6 +27,7 @@ function Loader (cb, scope) {
 	library = scope;
 	self = this;
 
+	__private.initalize();
 	__private.attachApi();
 	__private.genesisBlock = __private.lastBlock = library.genesisblock;
 
@@ -39,6 +35,13 @@ function Loader (cb, scope) {
 }
 
 // Private methods
+__private.initalize = function () {
+	__private.network = {
+		height: 0, // Network height
+		peers: [], // "Good" peers and with height close to network height
+	};
+};
+
 __private.attachApi = function () {
 	var router = new Router();
 
@@ -643,6 +646,8 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeersReady = function () {
+	var retries = 5;
+
 	setImmediate(function nextSeries () {
 		async.series({
 			sync: function (seriesCb) {
@@ -650,7 +655,7 @@ Loader.prototype.onPeersReady = function () {
 
 				if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
 					library.sequence.add(function (cb) {
-						__private.sync(cb);
+						async.retry(retries, __private.sync, cb);
 					}, function (err) {
 						if (err) {
 							library.logger.warn('Sync timer', err);
@@ -664,7 +669,7 @@ Loader.prototype.onPeersReady = function () {
 			},
 			loadUnconfirmedTransactions: function (seriesCb) {
 				if (__private.loaded) {
-					__private.loadUnconfirmedTransactions(function (err) {
+					async.retry(retries, __private.loadUnconfirmedTransactions, function (err) {
 						if (err) {
 							library.logger.warn('Unconfirmed transactions timer', err);
 						}
@@ -677,7 +682,7 @@ Loader.prototype.onPeersReady = function () {
 			},
 			loadSignatures: function (seriesCb) {
 				if (__private.loaded) {
-					__private.loadSignatures(function (err) {
+					async.retry(retries, __private.loadSignatures, function (err) {
 						if (err) {
 							library.logger.warn('Signatures timer', err);
 						}
@@ -689,6 +694,9 @@ Loader.prototype.onPeersReady = function () {
 				}
 			}
 		}, function (err) {
+			if (err) {
+				__private.initalize();
+			}
 			return setTimeout(nextSeries, 10000);
 		});
 	});

@@ -230,7 +230,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 	}
 
 	if (!transaction) {
-		return setImmediate(cb, 'Missing transaction');
+		return setImmediate(cb, 'Transaction not found');
 	}
 
 	if (transaction.type === transactionTypes.MULTI) {

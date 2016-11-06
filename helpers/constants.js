@@ -18,7 +18,6 @@ module.exports = {
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
 	fixedPoint : Math.pow(10, 8),
-	forgingTimeOut: 500, // 50 blocks
 	maxAddressesLength: 208 * 128,
 	maxAmount: 100000000,
 	maxClientConnections: 100,
@@ -27,6 +26,7 @@ module.exports = {
 	maxRequests: 10000 * 12,
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
+	minBroadhashEfficiency: 10,
 	numberLength: 100000000,
 	requestLength: 104,
 	rewards: {

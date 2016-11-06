@@ -4,6 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var extend = require('extend');
 var fs = require('fs');
+var ip = require('ip');
 var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Peer = require('../logic/peer.js');
@@ -60,59 +61,77 @@ __private.attachApi = function () {
 };
 
 __private.updatePeersList = function (cb) {
-	modules.transport.getFromRandomPeer({
-		api: '/list',
-		method: 'GET'
-	}, function (err, res) {
-		if (err) {
-			return setImmediate(cb);
+	function getFromRandomPeer (waterCb) {
+		modules.transport.getFromRandomPeer({
+			api: '/list',
+			method: 'GET'
+		}, function (err, res) {
+			return setImmediate(waterCb, err, res);
+		});
+	}
+
+	function validatePeersList (res, waterCb) {
+		library.schema.validate(res.body, schema.updatePeersList.peers, function (err) {
+			return setImmediate(waterCb, err, res.body.peers);
+		});
+	}
+
+	function pickPeers (peers, waterCb) {
+		// Protect removed nodes from overflow
+		if (removed.length > 100) {
+			removed = [];
 		}
 
-		library.schema.validate(res.body, schema.updatePeersList.peers, function (err) {
-			if (err) {
-				return setImmediate(cb);
-			}
+		library.logger.debug('Removed peers: ' + removed.length);
 
-			// Protect removed nodes from overflow
-			if (removed.length > 100) {
-				removed = [];
-			}
-
-			// Removing nodes not behaving well
-			library.logger.debug('Removed peers: ' + removed.length);
-			var peers = res.body.peers.filter(function (peer) {
-					return removed.indexOf(peer.ip);
-			});
-
-			// Drop one random peer from removed array to give them a chance.
-			// This mitigates the issue that a node could be removed forever if it was offline for long.
-			// This is not harmful for the node, but prevents network from shrinking, increasing noise.
-			// To fine tune: decreasing random value threshold -> reduce noise.
-			if (Math.random() < 0.5) { // Every 60/0.5 = 120s
-				// Remove the first element,
-				// i.e. the one that have been placed first.
-				removed.shift();
-				removed.pop();
-			}
-
-			library.logger.debug(['Picked', peers.length, 'of', res.body.peers.length, 'peers'].join(' '));
-
-			async.eachLimit(peers, 2, function (peer, cb) {
-				peer = self.accept(peer);
-
-				library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
-					if (err) {
-						err.forEach(function (e) {
-							library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
-						});
-					} else {
-						self.update(peer);
-					}
-
-					return setImmediate(cb);
-				});
-			}, cb);
+		// Pick peers
+		//
+		// * Removing unacceptable peers
+		// * Removing nodes not behaving well
+		var picked = self.acceptable(peers).filter(function (peer) {
+			return removed.indexOf(peer.ip);
 		});
+
+		// Drop one random peer from removed array to give them a chance.
+		// This mitigates the issue that a node could be removed forever if it was offline for long.
+		// This is not harmful for the node, but prevents network from shrinking, increasing noise.
+		// To fine tune: decreasing random value threshold -> reduce noise.
+		if (Math.random() < 0.5) { // Every 60/0.5 = 120s
+			// Remove the first element,
+			// i.e. the one that have been placed first.
+			removed.shift();
+			removed.pop();
+		}
+
+		library.logger.debug(['Picked', picked.length, 'of', peers.length, 'peers'].join(' '));
+		return setImmediate(waterCb, null, picked);
+	}
+
+	function updatePeers (peers, waterCb) {
+		async.eachLimit(peers, 2, function (peer, eachCb) {
+			peer = self.accept(peer);
+
+			library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
+				if (err) {
+					err.forEach(function (e) {
+						library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
+					});
+				} else {
+					self.update(peer);
+				}
+
+				return setImmediate(eachCb);
+			});
+		}, waterCb);
+	}
+
+	async.waterfall([
+		getFromRandomPeer,
+		validatePeersList,
+		pickPeers,
+		updatePeers
+	], function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
@@ -217,51 +236,48 @@ Peers.prototype.accept = function (peer) {
 	return new Peer(peer);
 };
 
+Peers.prototype.acceptable = function (peers) {
+	return _.chain(peers).filter(function (peer) {
+		// Removing peers with private ip address
+		return !ip.isPrivate(peer.ip);
+	}).uniqWith(function (a, b) {
+		// Removing non-unique peers
+		return (a.ip + a.port) === (b.ip + b.port);
+	}).value();
+};
+
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || 100;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
-	options.height = options.height || modules.system.getHeight();
 	options.attempts = ['matched broadhash', 'unmatched broadhash', 'legacy'];
 	options.attempt = 0;
+	options.matched = 0;
 
 	if (!options.broadhash) {
 		delete options.broadhash;
 	}
 
-	if (!options.height) {
-		delete options.height;
-	}
-
 	function randomList (options, peers, cb) {
 		library.db.query(sql.randomList(options), options).then(function (rows) {
+			options.limit -= rows.length;
+			if (options.attempt === 0 && rows.length > 0) { options.matched = rows.length; }
 			library.logger.debug(['Listing', rows.length, options.attempts[options.attempt], 'peers'].join(' '));
-			return setImmediate(cb, null, peers.concat(rows));
+			return setImmediate(cb, null, self.acceptable(peers.concat(rows)));
 		}).catch(function (err) {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Peers#list error');
 		});
 	}
 
-	function nextAttempt (peers) {
-		options.limit = 100;
-		options.limit = (options.limit - peers.length);
-		options.attempt += 1;
-
-		if (options.attempt === 2) {
-			delete options.broadhash;
-			delete options.height;
-		}
-	}
-
 	async.waterfall([
-		// Broadhash
+		// Matched broadhash
 		function (waterCb) {
 			return randomList(options, [], waterCb);
 		},
-		// Unmatched
+		// Unmatched broadhash
 		function (peers, waterCb) {
-			if (peers.length < options.limit && (options.broadhash || options.height)) {
-				nextAttempt(peers);
+			if (options.limit > 0) {
+				options.attempt += 1;
 
 				return randomList(options, peers, waterCb);
 			} else {
@@ -270,8 +286,10 @@ Peers.prototype.list = function (options, cb) {
 		},
 		// Fallback
 		function (peers, waterCb) {
-			if (peers.length < options.limit) {
-				nextAttempt(peers);
+			delete options.broadhash;
+
+			if (options.limit > 0) {
+				options.attempt += 1;
 
 				return randomList(options, peers, waterCb);
 			} else {
@@ -279,8 +297,12 @@ Peers.prototype.list = function (options, cb) {
 			}
 		}
 	], function (err, peers) {
+		var efficiency = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
+		    efficiency = isNaN(efficiency) ? 0 : efficiency;
+
+		library.logger.debug(['Listing efficiency', efficiency, '%'].join(' '));
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers);
+		return setImmediate(cb, err, peers, efficiency);
 	});
 };
 
@@ -316,6 +338,7 @@ Peers.prototype.remove = function (pip, port) {
 };
 
 Peers.prototype.update = function (peer) {
+	peer.state = 2;
 	return __private.sweeper.push('upsert', self.accept(peer).object());
 };
 
@@ -372,7 +395,7 @@ Peers.prototype.onPeersReady = function () {
 			updatePeersList: function (seriesCb) {
 				__private.updatePeersList(function (err) {
 					if (err) {
-						library.logger.error('Peers timer:', err);
+						library.logger.error('Peers timer', err);
 					}
 					return setImmediate(seriesCb);
 				});
@@ -380,7 +403,7 @@ Peers.prototype.onPeersReady = function () {
 			nextBanManager: function (seriesCb) {
 				__private.banManager(function (err) {
 					if (err) {
-						library.logger.error('Ban manager timer:', err);
+						library.logger.error('Ban manager timer', err);
 					}
 					return setImmediate(seriesCb);
 				});

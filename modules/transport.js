@@ -27,6 +27,11 @@ function Transport (cb, scope) {
 
 	__private.attachApi();
 
+	// Optionally ignore broadhash efficiency
+	if (!library.config.forging.force) {
+		__private.efficiency = 100;
+	}
+
 	setImmediate(cb, null, self);
 }
 
@@ -45,8 +50,7 @@ __private.attachApi = function () {
 		req.peer = modules.peers.accept(
 			{
 				ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-				port: req.headers.port,
-				state: 2
+				port: req.headers.port
 			}
 		);
 
@@ -66,10 +70,6 @@ __private.attachApi = function () {
 				__private.removePeer({peer: req.peer, code: 'ENETHASH', req: req});
 
 				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
-			}
-
-			if (!modules.blocks.lastReceipt()) {
-				modules.delegates.enableForging();
 			}
 
 			if (req.body && req.body.dappid) {
@@ -357,6 +357,10 @@ Transport.prototype.headers = function (headers) {
 	return __private.headers;
 };
 
+Transport.prototype.efficiency = function () {
+	return __private.efficiency === undefined ? 100 : __private.efficiency;
+};
+
 Transport.prototype.broadcast = function (config, options, cb) {
 	library.logger.debug('Begin broadcast', options);
 
@@ -364,8 +368,12 @@ Transport.prototype.broadcast = function (config, options, cb) {
 	config.broadhash = config.broadhash || null;
 	config.height = config.height || null;
 
-	modules.peers.list(config, function (err, peers) {
+	modules.peers.list(config, function (err, peers, efficiency) {
 		if (!err) {
+			if (__private.efficiency !== undefined) {
+				__private.efficiency = efficiency;
+			}
+
 			async.eachLimit(peers, 20, function (peer, cb) {
 				return self.getFromPeer(peer, options, cb);
 			}, function (err) {
@@ -406,7 +414,6 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 	}
 
 	peer = modules.peers.accept(peer);
-	peer.state = 2;
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,

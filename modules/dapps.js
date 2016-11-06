@@ -672,7 +672,7 @@ __private.getInstalledIds = function (cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
-			var regExp = new RegExp(/[0-9]{18,20}/);
+			var regExp = new RegExp(/[0-9]{1,20}/);
 
 			ids = _.filter(ids, function (f) {
 				return regExp.test(f.toString());
@@ -1045,11 +1045,12 @@ __private.createSandbox = function (dapp, params, cb) {
 	}
 
 	async.eachSeries(dappConfig.peers, function (peer, eachSeriesCb) {
-		modules.peers.addDapp({
+		modules.peers.update({
 			ip: peer.ip,
 			port: peer.port,
 			dappid: dapp.transactionId
-		}, eachSeriesCb);
+		});
+		return eachSeriesCb();
 	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -1266,11 +1267,6 @@ __private.sendWithdrawal = function (req, cb) {
 		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 		var query = {};
-
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.recipientId)) {
-			return setImmediate(cb, 'Invalid recipient');
-		}
 
 		library.balancesSequence.add(function (cb) {
 			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {

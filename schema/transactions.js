@@ -8,7 +8,10 @@ module.exports = {
 		type: 'object',
 		properties: {
 			blockId: {
-				type: 'string'
+				type: 'string',
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			},
 			type: {
 				type: 'integer',
@@ -16,7 +19,10 @@ module.exports = {
 				maximum: 10
 			},
 			senderId: {
-				type: 'string'
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			senderPublicKey: {
 				type: 'string',
@@ -27,10 +33,16 @@ module.exports = {
 				format: 'publicKey'
 			},
 			ownerAddress: {
-				type: 'string'
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			recipientId: {
-				type: 'string'
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			amount: {
 				type: 'integer',
@@ -62,7 +74,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['id']
@@ -73,7 +87,9 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['id']
@@ -87,7 +103,10 @@ module.exports = {
 				format: 'publicKey'
 			},
 			address: {
-				type: 'string'
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			}
 		}
 	},
@@ -107,7 +126,9 @@ module.exports = {
 			},
 			recipientId: {
 				type: 'string',
-				minLength: 1
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			publicKey: {
 				type: 'string',

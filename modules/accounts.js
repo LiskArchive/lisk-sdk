@@ -116,6 +116,9 @@ __private.openAccount = function (secret, cb) {
 		}
 
 		if (account) {
+			if (account.publicKey == null) {
+				account.publicKey = publicKey;
+			}
 			return setImmediate(cb, null, account);
 		} else {
 			return setImmediate(cb, null, {
@@ -253,11 +256,6 @@ shared.getBalance = function (req, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.address)) {
-			return setImmediate(cb, 'Invalid address');
-		}
-
 		self.getAccount({ address: req.body.address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
@@ -275,11 +273,6 @@ shared.getPublickey = function (req, cb) {
 	library.schema.validate(req.body, schema.getPublicKey, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
-		}
-
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.address)) {
-			return setImmediate(cb, 'Invalid address');
 		}
 
 		self.getAccount({ address: req.body.address }, function (err, account) {
@@ -478,11 +471,6 @@ shared.getAccount = function (req, cb) {
 	library.schema.validate(req.body, schema.getAccount, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
-		}
-
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.address)) {
-			return setImmediate(cb, 'Invalid address');
 		}
 
 		self.getAccount({ address: req.body.address }, function (err, account) {

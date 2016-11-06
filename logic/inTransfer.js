@@ -123,7 +123,9 @@ InTransfer.prototype.schema = {
 	properties: {
 		dappId: {
 			type: 'string',
-			minLength: 1
+			format: 'id',
+			minLength: 1,
+			maxLength: 20
 		},
 	},
 	required: ['dappId']

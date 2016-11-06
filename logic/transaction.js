@@ -11,7 +11,7 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
 // Private fields
-var __private = {}, genesisblock = null;
+var self, __private = {}, genesisblock = null;
 
 __private.types = {};
 
@@ -19,6 +19,7 @@ __private.types = {};
 function Transaction (scope, cb) {
 	this.scope = scope;
 	genesisblock = this.scope.genesisblock;
+	self = this;
 	if (cb) {
 		return setImmediate(cb, null, this);
 	}
@@ -190,6 +191,40 @@ Transaction.prototype.ready = function (trs, sender) {
 	return __private.types[trs.type].ready.call(this, trs, sender);
 };
 
+Transaction.prototype.countById = function (trs, cb) {
+	this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
+		return setImmediate(cb, null, row.count);
+	}).catch(function (err) {
+		this.scope.logger.error(err.stack);
+		return setImmediate(cb, 'Transaction#countById error');
+	});
+};
+
+Transaction.prototype.checkConfirmed = function (trs, cb) {
+	this.countById(trs, function (err, count) {
+		if (err) {
+			return setImmediate(cb, err);
+		} else if (count > 0) {
+			return setImmediate(cb, 'Transaction is already confirmed: ' + trs.id, true);
+		} else {
+			return setImmediate(cb);
+		}
+	});
+};
+
+Transaction.prototype.checkBalance = function (amount, balance, trs, sender) {
+	var exceededBalance = bignum(sender[balance].toString()).lessThan(amount);
+	var exceeded = (trs.blockId !== genesisblock.block.id && exceededBalance);
+
+	return {
+		exceeded: exceeded,
+		error: exceeded ? [
+			'Account does not have enough LSK:', sender.address,
+			'balance:', bignum(sender[balance].toString() || '0').div(Math.pow(10,8))
+		].join(' ') : null
+	};
+};
+
 Transaction.prototype.process = function (trs, sender, requester, cb) {
 	if (typeof requester === 'function') {
 		cb = requester;
@@ -245,19 +280,9 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	__private.types[trs.type].process.call(this, trs, sender, function (err, trs) {
 		if (err) {
 			return setImmediate(cb, err);
-		}
-
-		// Check for already confirmed transaction
-		this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
-			if (row.count > 0) {
-				return setImmediate(cb, 'Transaction is already confirmed: ' + trs.id, trs, true);
-			}
-
+		} else {
 			return setImmediate(cb, null, trs);
-		}).catch(function (err) {
-			this.scope.logger.error(err.stack);
-			return setImmediate(cb, 'Transaction#process error');
-		});
+		}
 	}.bind(this));
 };
 
@@ -406,7 +431,12 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Call verify on transaction type
 	__private.types[trs.type].verify.call(this, trs, sender, function (err) {
-		return setImmediate(cb, err);
+		if (err) {
+			return setImmediate(cb, err);
+		} else {
+			// Check for already confirmed transaction
+			return self.checkConfirmed(trs, cb);
+		}
 	});
 };
 
@@ -479,14 +509,12 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 		return setImmediate(cb, 'Transaction is not ready');
 	}
 
+	// Check sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
-	var exceedsBalance = bignum(sender.balance.toString()).lessThan(amount);
+	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
-	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
-		return setImmediate(cb, [
-			'Account does not have enough LSK:', sender.address,
-			'balance:', bignum(sender.u_balance || 0).div(Math.pow(10,8))
-		].join(' '));
+	if (senderBalance.exceeded) {
+		return setImmediate(cb, senderBalance.error);
 	}
 
 	amount = amount.toNumber();
@@ -521,7 +549,8 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	}
 
-	var amount = trs.amount + trs.fee;
+	var amount = bignum(trs.amount.toString());
+	    amount = amount.plus(trs.fee.toString()).toNumber();
 
 	this.scope.account.merge(sender.address, {
 		balance: amount,
@@ -573,14 +602,12 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Requester does not have a second signature');
 	}
 
+	// Check sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
-	var exceedsBalance = bignum(sender.u_balance.toString()).lessThan(amount);
+	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
 
-	if (trs.blockId !== genesisblock.block.id && exceedsBalance) {
-		return setImmediate(cb, [
-			'Account does not have enough LSK:', sender.address,
-			'balance:', bignum(sender.balance || 0).div(Math.pow(10,8))
-		].join(' '));
+	if (senderBalance.exceeded) {
+		return setImmediate(cb, senderBalance.error);
 	}
 
 	amount = amount.toNumber();
@@ -607,7 +634,8 @@ Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
 		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	}
 
-	var amount = trs.amount + trs.fee;
+	var amount = bignum(trs.amount.toString());
+	    amount = amount.plus(trs.fee.toString()).toNumber();
 
 	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
 		if (err) {
@@ -710,13 +738,19 @@ Transaction.prototype.schema = {
 	type: 'object',
 	properties: {
 		id: {
-			type: 'string'
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20
 		},
 		height: {
 			type: 'integer'
 		},
 		blockId: {
-			type: 'string'
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20
 		},
 		type: {
 			type: 'integer'
@@ -733,10 +767,16 @@ Transaction.prototype.schema = {
 			format: 'publicKey'
 		},
 		senderId: {
-			type: 'string'
+			type: 'string',
+			format: 'address',
+			minLength: 1,
+			maxLength: 22
 		},
 		recipientId: {
-			type: 'string'
+			type: 'string',
+			format: 'address',
+			minLength: 1,
+			maxLength: 22
 		},
 		amount: {
 			type: 'integer',
