@@ -62,7 +62,7 @@ __private.attachApi = function () {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'EHEADERS', req: req});
 
-				return res.status(500).send({status: false, error: report.issues});
+				return res.status(500).send({success: false, error: report.issues});
 			}
 
 			if (headers.nethash !== modules.system.getNethash()) {
