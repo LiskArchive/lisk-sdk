@@ -194,6 +194,7 @@ node.addPeers = function (numOfPeers, cb) {
 				height: 1,
 				nethash: node.config.nethash,
 				os: os,
+				ip: '0.0.0.0',
 				port: port,
 				version: version
 			}
@@ -312,6 +313,7 @@ function abstractRequest (options, done) {
 	request.set('Accept', 'application/json');
 	request.set('version', node.version);
 	request.set('nethash', node.config.nethash);
+	request.set('ip', '0.0.0.0');
 	request.set('port', node.config.port);
 
 	request.expect('Content-Type', /json/);
