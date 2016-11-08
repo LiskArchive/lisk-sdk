@@ -88,7 +88,7 @@ Peer.prototype.headers = function (headers) {
 };
 
 Peer.prototype.extend = function (object) {
-	return this.headers(extend({}, this.object(), object));
+	return this.headers(extend({}, this.properties, object));
 };
 
 Peer.prototype.object = function () {
