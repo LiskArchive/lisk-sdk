@@ -242,19 +242,13 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 
 	// Check transaction indexes
 	if (__private.unconfirmedTransactionsIdIndex[transaction.id] !== undefined) {
-		library.logger.debug('Transaction is already processed: ' + transaction.id);
-		return setImmediate(cb);
+		return setImmediate(cb, 'Transaction is already processed: ' + transaction.id);
 	}
 
 	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-		function done (err, ignore) {
+		function done (err) {
 			if (err) {
-				if (ignore) {
-					library.logger.debug(err);
-					return setImmediate(cb);
-				} else {
-					return setImmediate(cb, err);
-				}
+				return setImmediate(cb, err);
 			}
 
 			__private.addUnconfirmedTransaction(transaction, sender, function (err) {

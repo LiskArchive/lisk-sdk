@@ -52,7 +52,8 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('using valid headers should be ok', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -61,23 +62,25 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('using already processed transaction should be ok', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+	it('using already processed transaction should fail', function (done) {
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
 				done();
 			});
 		});
 	});
 
-	it('using already confirmed transaction should be ok', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+	it('using already confirmed transaction should fail', function (done) {
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -85,8 +88,8 @@ describe('POST /peer/transactions', function () {
 
 			node.onNewBlock(function (err) {
 				postTransaction(transaction, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
+					node.expect(res.body).to.have.property('message').to.match(/Transaction is already confirmed: [0-9]+/);
 					done();
 				});
 			});

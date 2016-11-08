@@ -205,7 +205,7 @@ Transaction.prototype.checkConfirmed = function (trs, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else if (count > 0) {
-			return setImmediate(cb, 'Transaction is already confirmed: ' + trs.id, true);
+			return setImmediate(cb, 'Transaction is already confirmed: ' + trs.id);
 		} else {
 			return setImmediate(cb);
 		}
