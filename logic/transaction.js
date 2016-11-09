@@ -424,7 +424,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	// Check sender balance
+	// Check confirmed sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
@@ -517,7 +517,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 		return setImmediate(cb, 'Transaction is not ready');
 	}
 
-	// Check sender balance
+	// Check confirmed sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
@@ -610,7 +610,7 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Requester does not have a second signature');
 	}
 
-	// Check sender balance
+	// Check unconfirmed sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
 
