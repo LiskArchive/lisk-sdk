@@ -299,6 +299,9 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 Transactions.prototype.applyUnconfirmedList = function (ids, cb) {
 	async.eachSeries(ids, function (id, cb) {
 		var transaction = self.getUnconfirmedTransaction(id);
+		if (!transaction) {
+			return setImmediate(cb);
+		}
 		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err) {
 				self.removeUnconfirmedTransaction(id);
