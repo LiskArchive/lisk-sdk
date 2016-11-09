@@ -166,8 +166,8 @@ __private.loadUnconfirmedTransactions = function (cb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
 				} catch (e) {
-					library.logger.error(['Transaction', id].join(' '), e.toString());
-					if (transaction) { library.logger.error('Transaction', transaction); }
+					library.logger.debug(['Transaction', id].join(' '), e.toString());
+					if (transaction) { library.logger.debug('Transaction', transaction); }
 
 					library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 					modules.peers.state(peer.ip, peer.port, 0, 3600);

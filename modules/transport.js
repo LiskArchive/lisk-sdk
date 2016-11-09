@@ -147,8 +147,8 @@ __private.attachApi = function () {
 		try {
 			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
-			library.logger.error(['Block', id].join(' '), e.toString());
-			if (block) { library.logger.error('Block', block); }
+			library.logger.debug(['Block', id].join(' '), e.toString());
+			if (block) { library.logger.debug('Block', block); }
 
 			if (req.peer) {
 				// Ban peer for 60 minutes
@@ -208,8 +208,8 @@ __private.attachApi = function () {
 		try {
 			transaction = library.logic.transaction.objectNormalize(transaction);
 		} catch (e) {
-			library.logger.error(['Transaction', id].join(' '), e.toString());
-			if (transaction) { library.logger.error('Transaction', transaction); }
+			library.logger.debug(['Transaction', id].join(' '), e.toString());
+			if (transaction) { library.logger.debug('Transaction', transaction); }
 
 			if (req.peer) {
 				// Ban peer for 60 minutes
@@ -224,8 +224,8 @@ __private.attachApi = function () {
 			modules.transactions.receiveTransactions([transaction], cb);
 		}, function (err) {
 			if (err) {
-				library.logger.error(['Transaction', id].join(' '), err.toString());
-				if (transaction) { library.logger.error('Transaction', transaction); }
+				library.logger.debug(['Transaction', id].join(' '), err.toString());
+				if (transaction) { library.logger.debug('Transaction', transaction); }
 
 				res.status(200).json({success: false, message: err.toString()});
 			} else {

@@ -845,8 +845,8 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 			} else {
 				var id = (block ? block.id : 'null');
 
-				library.logger.error(['Block', id].join(' '), err.toString());
-				if (block) { library.logger.error('Block', block); }
+				library.logger.debug(['Block', id].join(' '), err.toString());
+				if (block) { library.logger.debug('Block', block); }
 
 				library.logger.warn(['Block', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 				modules.peers.state(peer.ip, peer.port, 0, 3600);
