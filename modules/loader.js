@@ -658,7 +658,7 @@ Loader.prototype.onPeersReady = function () {
 						async.retry(retries, __private.sync, cb);
 					}, function (err) {
 						if (err) {
-							library.logger.warn('Sync timer', err);
+							library.logger.log('Sync timer', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -671,7 +671,7 @@ Loader.prototype.onPeersReady = function () {
 				if (__private.loaded) {
 					async.retry(retries, __private.loadUnconfirmedTransactions, function (err) {
 						if (err) {
-							library.logger.warn('Unconfirmed transactions timer', err);
+							library.logger.log('Unconfirmed transactions timer', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -684,7 +684,7 @@ Loader.prototype.onPeersReady = function () {
 				if (__private.loaded) {
 					async.retry(retries, __private.loadSignatures, function (err) {
 						if (err) {
-							library.logger.warn('Signatures timer', err);
+							library.logger.log('Signatures timer', err);
 						}
 
 						return setImmediate(seriesCb);
