@@ -297,21 +297,21 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 };
 
 Transactions.prototype.applyUnconfirmedList = function (ids, cb) {
-	async.eachSeries(ids, function (id, cb) {
+	async.eachSeries(ids, function (id, eachSeriesCb) {
 		var transaction = self.getUnconfirmedTransaction(id);
 		if (!transaction) {
-			return setImmediate(cb);
+			return setImmediate(eachSeriesCb);
 		}
 		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err) {
 				self.removeUnconfirmedTransaction(id);
-				return setImmediate(cb, err);
+				return setImmediate(eachSeriesCb, err);
 			}
 			self.applyUnconfirmed(transaction, sender, function (err) {
 				if (err) {
 					self.removeUnconfirmedTransaction(id);
 				}
-				return setImmediate(cb, err);
+				return setImmediate(eachSeriesCb, err);
 			});
 		});
 	}, cb);
