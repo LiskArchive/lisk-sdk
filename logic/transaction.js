@@ -424,6 +424,14 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
+	// Check sender balance
+	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
+
+	if (senderBalance.exceeded) {
+		return setImmediate(cb, senderBalance.error);
+	}
+
 	// Check timestamp
 	if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
 		return setImmediate(cb, 'Invalid transaction timestamp');
