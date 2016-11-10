@@ -134,7 +134,7 @@ shared.pending = function (req, cb) {
 			return transaction.senderPublicKey === req.body.publicKey;
 		});
 
-		var pendings = [];
+		var pending = [];
 		async.eachSeries(transactions, function (transaction, cb) {
 			var signed = false;
 
@@ -193,7 +193,7 @@ shared.pending = function (req, cb) {
 					var lifetime = sender.u_multilifetime || sender.multilifetime;
 					var signatures = sender.u_multisignatures || [];
 
-					pendings.push({
+					pending.push({
 						max: signatures.length,
 						min: min,
 						lifetime: lifetime,
@@ -205,7 +205,7 @@ shared.pending = function (req, cb) {
 				return setImmediate(cb);
 			});
 		}, function () {
-			return setImmediate(cb, null, {transactions: pendings});
+			return setImmediate(cb, null, {transactions: pending});
 		});
 	});
 };
