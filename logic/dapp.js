@@ -216,6 +216,7 @@ DApp.prototype.applyUnconfirmed = function (trs, sender, cb) {
 			return setImmediate(cb, null, trs);
 		}
 	}).catch(function (err) {
+		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#applyUnconfirmed error');
 	});
 };
