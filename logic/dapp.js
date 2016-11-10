@@ -210,7 +210,7 @@ DApp.prototype.applyUnconfirmed = function (trs, sender, cb) {
 			} else if (dapp.link === trs.asset.dapp.link) {
 				return setImmediate(cb, 'Application link already exists: ' + dapp.link);
 			} else {
-				return setImmediate(cb, 'Unknown error');
+				return setImmediate(cb, 'Application already exists');
 			}
 		} else {
 			return setImmediate(cb, null, trs);
