@@ -485,7 +485,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 	});
 };
 
-Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
+Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb) {
 	return __private.checkDelegates(publicKey, votes, 'confirmed', cb);
 };
 
