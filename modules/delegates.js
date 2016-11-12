@@ -555,8 +555,11 @@ Delegates.prototype.onBlockchainReady = function () {
 			library.logger.error('Failed to load delegates', err);
 		}
 
-		__private.forge(function () {
-			setTimeout(nextForge, 1000);
+		async.series([
+			modules.transactions.fillPool,
+			__private.forge
+		], function (err) {
+			return setTimeout(nextForge, 1000);
 		});
 	});
 };

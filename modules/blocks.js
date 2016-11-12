@@ -554,9 +554,9 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		},
 		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
 		// TODO: See undoUnconfirmedList discussion above.
-		applyUnconfirmedList: function (seriesCb) {
+		applyUnconfirmedIds: function (seriesCb) {
 			// DATABASE write
-			modules.transactions.applyUnconfirmedList(unconfirmedTransactions, function (err) {
+			modules.transactions.applyUnconfirmedIds(unconfirmedTransactionIds, function (err) {
 				return setImmediate(seriesCb, err);
 			});
 		},

@@ -445,8 +445,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 };
 
 __private.sync = function (cb) {
-	var transactions = modules.transactions.getUnconfirmedTransactionList(true);
-
 	library.logger.info('Starting sync');
 
 	__private.isActive = true;
@@ -463,9 +461,9 @@ __private.sync = function (cb) {
 		updateSystem: function (seriesCb) {
 			return modules.system.update(seriesCb);
 		},
-		receiveTransactions: function (seriesCb) {
-			library.logger.debug('Receiving unconfirmed transactions after sync');
-			return modules.transactions.receiveTransactions(transactions, seriesCb);
+		applyUnconfirmedList: function (seriesCb) {
+			library.logger.debug('Applying unconfirmed transactions after sync');
+			return modules.transactions.applyUnconfirmedList(seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;

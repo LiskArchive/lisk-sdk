@@ -180,10 +180,10 @@ __private.attachApi = function () {
 	});
 
 	router.get('/signatures', function (req, res) {
-		var unconfirmedList = modules.transactions.getUnconfirmedTransactionList();
+		var transactions = modules.transactions.getMultisignatureTransactionList(true, constants.maxSharedTxs);
 		var signatures = [];
 
-		async.eachSeries(unconfirmedList, function (trs, cb) {
+		async.eachSeries(transactions, function (trs, cb) {
 			if (trs.signatures && trs.signatures.length) {
 				signatures.push({
 					transaction: trs.id,
@@ -198,7 +198,9 @@ __private.attachApi = function () {
 	});
 
 	router.get('/transactions', function (req, res) {
-		res.status(200).json({success: true, transactions: modules.transactions.getUnconfirmedTransactionList()});
+		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
+
+		res.status(200).json({success: true, transactions: transactions});
 	});
 
 	router.post('/transactions', function (req, res) {

@@ -7,7 +7,8 @@ module.exports = {
 		properties: {
 			signatures: {
 				type: 'array',
-				uniqueItems: true
+				uniqueItems: true,
+				maxItems: 100
 			}
 		},
 		required: ['signatures']
@@ -18,7 +19,8 @@ module.exports = {
 		properties: {
 			transactions: {
 				type: 'array',
-				uniqueItems: true
+				uniqueItems: true,
+				maxItems: 100
 			}
 		},
 		required: ['transactions']
@@ -30,7 +32,8 @@ module.exports = {
 			properties: {
 				peers: {
 					type: 'array',
-					uniqueItems: true
+					uniqueItems: true,
+					maxItems: 100
 				}
 			},
 			required: ['peers']
