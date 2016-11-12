@@ -51,7 +51,7 @@ describe('PUT /api/accounts/delegates without funds', function () {
 			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Failed to remove vote/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
 		});
 	});
@@ -89,9 +89,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
 			node.expect(res.body.transactionId).to.be.not.empty;
-			node.onNewBlock(function (err) {
-				done();
-			});
+			done();
 		});
 	});
 

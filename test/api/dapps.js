@@ -752,7 +752,7 @@ describe('PUT /api/dapps/withdrawal', function () {
 		});
 	});
 
-	it('using same params twice within current block should fail', function (done) {
+	it('using same valid params twice should fail', function (done) {
 		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
