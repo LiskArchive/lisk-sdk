@@ -247,6 +247,56 @@ describe('GET /api/transactions/get?id=', function () {
 	});
 });
 
+describe('GET /api/transactions/queued/get?id=', function () {
+
+	it('using unknown id should be ok', function (done) {
+		var params = 'id=' + '1234';
+
+		node.get('/api/transactions/queued/get?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.false;
+			node.expect(res.body).to.have.property('error').that.is.equal('Transaction not found');
+			done();
+		});
+	});
+});
+
+describe('GET /api/transactions/queued', function () {
+
+	it('should be ok', function (done) {
+		node.get('/api/transactions/queued', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			node.expect(res.body).to.have.property('count').that.is.an('number');
+			done();
+		});
+	});
+});
+
+describe('GET /api/transactions/multisignatures/get?id=', function () {
+
+	it('using unknown id should be ok', function (done) {
+		var params = 'id=' + '1234';
+
+		node.get('/api/transactions/multisignatures/get?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.false;
+			node.expect(res.body).to.have.property('error').that.is.equal('Transaction not found');
+			done();
+		});
+	});
+});
+
+describe('GET /api/transactions/multisignatures', function () {
+
+	it('should be ok', function (done) {
+		node.get('/api/transactions/multisignatures', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			node.expect(res.body).to.have.property('count').that.is.an('number');
+			done();
+		});
+	});
+});
+
 describe('GET /api/transactions/unconfirmed/get?id=', function () {
 
 	it('using valid id should be ok', function (done) {
@@ -271,6 +321,7 @@ describe('GET /api/transactions/unconfirmed', function () {
 		node.get('/api/transactions/unconfirmed', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			node.expect(res.body).to.have.property('count').that.is.an('number');
 			done();
 		});
 	});

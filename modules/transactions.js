@@ -49,6 +49,10 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getTransactions',
 		'get /get': 'getTransaction',
+		'get /queued/get': 'getQueuedTransaction',
+		'get /queued': 'getQueuedTransactions',
+		'get /multisignatures/get': 'getMultisignatureTransaction',
+		'get /multisignatures': 'getMultisignatureTransactions',
 		'get /unconfirmed/get': 'getUnconfirmedTransaction',
 		'get /unconfirmed': 'getUnconfirmedTransactions',
 		'put /': 'addTransactions'
@@ -223,8 +227,6 @@ __private.getPooledTransactions = function (method, req, cb) {
 		return setImmediate(cb, null, {transactions: toSend, count: transactions.length});
 	});
 };
-	return __private.transactionPool.addUnconfirmedTransaction(transaction, sender, cb);
-};
 
 // Public methods
 Transactions.prototype.transactionInPool = function (id) {
@@ -385,45 +387,28 @@ shared.getTransaction = function (req, cb) {
 	});
 };
 
+shared.getQueuedTransaction = function (req, cb) {
+	return __private.getPooledTransaction('getQueuedTransaction', req, cb);
+};
+
+shared.getQueuedTransactions = function (req, cb) {
+	return __private.getPooledTransactions('getQueuedTransactionList', req, cb);
+};
+
+shared.getMultisignatureTransaction = function (req, cb) {
+	return __private.getPooledTransaction('getMultisignatureTransaction', req, cb);
+};
+
+shared.getMultisignatureTransactions = function (req, cb) {
+	return __private.getPooledTransactions('getMultisignatureTransactionList', req, cb);
+};
+
 shared.getUnconfirmedTransaction = function (req, cb) {
-	library.schema.validate(req.body, schema.getUnconfirmedTransaction, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		var unconfirmedTransaction = self.getUnconfirmedTransaction(req.body.id);
-
-		if (!unconfirmedTransaction) {
-			return setImmediate(cb, 'Transaction not found');
-		}
-
-		return setImmediate(cb, null, {transaction: unconfirmedTransaction});
-	});
+	return __private.getPooledTransaction('getUnconfirmedTransaction', req, cb);
 };
 
 shared.getUnconfirmedTransactions = function (req, cb) {
-	library.schema.validate(req.body, schema.getUnconfirmedTransactions, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		var transactions = self.getUnconfirmedTransactionList(true);
-		var i, toSend = [];
-
-		if (req.body.senderPublicKey || req.body.address) {
-			for (i = 0; i < transactions.length; i++) {
-				if (transactions[i].senderPublicKey === req.body.senderPublicKey || transactions[i].recipientId === req.body.address) {
-					toSend.push(transactions[i]);
-				}
-			}
-		} else {
-			for (i = 0; i < transactions.length; i++) {
-				toSend.push(transactions[i]);
-			}
-		}
-
-		return setImmediate(cb, null, {transactions: toSend});
-	});
+	return __private.getPooledTransactions('getUnconfirmedTransactionList', req, cb);
 };
 
 shared.addTransactions = function (req, cb) {
