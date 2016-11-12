@@ -10,6 +10,7 @@ var schema = require('../schema/accounts.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
+var Vote = require('../logic/vote.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -24,7 +25,6 @@ function Accounts (cb, scope) {
 
 	__private.attachApi();
 
-	var Vote = require('../logic/vote.js');
 	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
 		transactionTypes.VOTE, new Vote()
 	);

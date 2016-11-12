@@ -4,14 +4,17 @@ var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var DApp = require('../logic/dapp.js');
 var dappCategories = require('../helpers/dappCategories.js');
 var dappTypes = require('../helpers/dappTypes.js');
 var DecompressZip = require('decompress-zip');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
+var InTransfer = require('../logic/inTransfer.js');
 var npm = require('npm');
 var OrderBy = require('../helpers/orderBy.js');
+var OutTransfer = require('../logic/outTransfer.js');
 var path = require('path');
 var popsicle = require('popsicle');
 var rmdir = require('rimraf');
@@ -43,17 +46,14 @@ function DApps (cb, scope) {
 
 	__private.attachApi();
 
-	var DApp = require('../logic/dapp.js');
 	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
 		transactionTypes.DAPP, new DApp()
 	);
 
-	var InTransfer = require('../logic/inTransfer.js');
 	__private.assetTypes[transactionTypes.IN_TRANSFER] = library.logic.transaction.attachAssetType(
 		transactionTypes.IN_TRANSFER, new InTransfer()
 	);
 
-	var OutTransfer = require('../logic/outTransfer.js');
 	__private.assetTypes[transactionTypes.OUT_TRANSFER] = library.logic.transaction.attachAssetType(
 		transactionTypes.OUT_TRANSFER, new OutTransfer()
 	);

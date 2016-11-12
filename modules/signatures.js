@@ -7,6 +7,7 @@ var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/signatures.js');
+var Signature = require('../logic/signature.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
@@ -22,7 +23,6 @@ function Signatures (cb, scope) {
 
 	__private.attachApi();
 
-	var Signature = require('../logic/signature.js');
 	__private.assetTypes[transactionTypes.SIGNATURE] = library.logic.transaction.attachAssetType(
 		transactionTypes.SIGNATURE, new Signature()
 	);

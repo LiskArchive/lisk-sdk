@@ -4,6 +4,7 @@ var async = require('async');
 var crypto = require('crypto');
 var extend = require('extend');
 var genesisblock = null;
+var Multisignature = require('../logic/multisignature.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/multisignatures.js');
@@ -24,7 +25,6 @@ function Multisignatures (cb, scope) {
 
 	__private.attachApi();
 
-	var Multisignature = require('../logic/multisignature.js');
 	__private.assetTypes[transactionTypes.MULTI] = library.logic.transaction.attachAssetType(
 		transactionTypes.MULTI, new Multisignature()
 	);

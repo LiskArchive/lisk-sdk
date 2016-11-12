@@ -7,6 +7,7 @@ var BlockReward = require('../logic/blockReward.js');
 var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
@@ -32,7 +33,6 @@ function Delegates (cb, scope) {
 
 	__private.attachApi();
 
-	var Delegate = require('../logic/delegate.js');
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
 		transactionTypes.DELEGATE, new Delegate()
 	);
