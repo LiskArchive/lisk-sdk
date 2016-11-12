@@ -128,13 +128,24 @@ node.onNewBlock = function (cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			node.waitForNewBlock(height, cb);
+			node.waitForNewBlock(height, 2, cb);
+		}
+	});
+};
+
+// Waits for (n) blocks to be created
+node.waitForBlocks = function (blocksToWait, cb) {
+	node.getHeight(function (err, height) {
+		if (err) {
+			return cb(err);
+		} else {
+			node.waitForNewBlock(height, blocksToWait, cb);
 		}
 	});
 };
 
 // Waits for a new block to be created
-node.waitForNewBlock = function (height, cb) {
+node.waitForNewBlock = function (height, blocksToWait, cb) {
 	var actualHeight = height;
 	var counter = 1;
 
@@ -149,7 +160,7 @@ node.waitForNewBlock = function (height, cb) {
 					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				if (height + 2 === res.body.height) {
+				if (height + blocksToWait === res.body.height) {
 					height = res.body.height;
 				}
 
