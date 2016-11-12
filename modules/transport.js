@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var async = require('async');
+var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
 var crypto = require('crypto');
 var extend = require('extend');
@@ -26,11 +27,7 @@ function Transport (cb, scope) {
 	self = this;
 
 	__private.attachApi();
-
-	// Optionally ignore broadhash efficiency
-	if (!library.config.forging.force) {
-		__private.efficiency = 100;
-	}
+	__private.broadcaster = new Broadcaster(library);
 
 	setImmediate(cb, null, self);
 }
@@ -80,7 +77,6 @@ __private.attachApi = function () {
 
 			return next();
 		});
-
 	});
 
 	router.get('/list', function (req, res) {
@@ -360,34 +356,7 @@ Transport.prototype.headers = function (headers) {
 };
 
 Transport.prototype.efficiency = function () {
-	return __private.efficiency === undefined ? 100 : __private.efficiency;
-};
-
-Transport.prototype.broadcast = function (config, options, cb) {
-	library.logger.debug('Begin broadcast', options);
-
-	config.limit = config.limit || 1;
-	config.broadhash = config.broadhash || null;
-	config.height = config.height || null;
-
-	modules.peers.list(config, function (err, peers, efficiency) {
-		if (!err) {
-			if (__private.efficiency !== undefined) {
-				__private.efficiency = efficiency;
-			}
-
-			async.eachLimit(peers, 20, function (peer, cb) {
-				return self.getFromPeer(peer, options, cb);
-			}, function (err) {
-				library.logger.debug('End broadcast');
-				if (cb) {
-					return setImmediate(cb, null, {body: null, peer: peers});
-				}
-			});
-		} else if (cb) {
-			return setImmediate(cb, err);
-		}
-	});
+	return __private.broadcaster.efficiency;
 };
 
 Transport.prototype.getFromRandomPeer = function (config, options, cb) {
@@ -490,6 +459,7 @@ Transport.prototype.onBind = function (scope) {
 	modules = scope;
 
 	__private.headers = modules.system.headers();
+	__private.broadcaster.bind(modules);
 };
 
 Transport.prototype.onBlockchainReady = function () {
@@ -498,14 +468,14 @@ Transport.prototype.onBlockchainReady = function () {
 
 Transport.prototype.onSignature = function (signature, broadcast) {
 	if (broadcast) {
-		self.broadcast({limit: 100}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
 		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
 
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
 	if (broadcast) {
-		self.broadcast({limit: 100}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
@@ -513,10 +483,9 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
 		var broadhash = modules.system.getBroadhash();
-		var height = modules.system.getHeight();
 
 		modules.system.update(function () {
-			self.broadcast({limit: 100, broadhash: broadhash, height: height}, {api: '/blocks', data: {block: block}, method: 'POST'});
+			__private.broadcaster.broadcast({broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST'});
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
@@ -524,7 +493,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 
 Transport.prototype.onMessage = function (msg, broadcast) {
 	if (broadcast) {
-		self.broadcast({limit: 100, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
+		__private.broadcaster.broadcast({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 	}
 };
 
@@ -538,7 +507,7 @@ shared.message = function (msg, cb) {
 	msg.timestamp = (new Date()).getTime();
 	msg.hash = __private.hashsum(msg.body, msg.timestamp);
 
-	self.broadcast({limit: 100, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
+	__private.broadcaster.enqueue({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 
 	return setImmediate(cb, null, {});
 };
