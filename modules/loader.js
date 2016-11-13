@@ -182,7 +182,7 @@ __private.loadTransactions = function (cb) {
 		},
 		function (transactions, waterCb) {
 			library.balancesSequence.add(function (cb) {
-				modules.transactions.receiveTransactions(transactions, cb);
+				modules.transactions.receiveTransactions(transactions, false, cb);
 			}, waterCb);
 		}
 	], function (err) {

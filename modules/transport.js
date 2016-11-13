@@ -220,7 +220,7 @@ __private.attachApi = function () {
 
 		library.balancesSequence.add(function (cb) {
 			library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + req.peer.string);
-			modules.transactions.receiveTransactions([transaction], cb);
+			modules.transactions.receiveTransactions([transaction], true, cb);
 		}, function (err) {
 			if (err) {
 				library.logger.debug(['Transaction', id].join(' '), err.toString());

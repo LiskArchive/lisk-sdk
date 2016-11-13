@@ -502,7 +502,7 @@ shared.addMultisignature = function (req, cb) {
 						return setImmediate(seriesCb, e.toString());
 					}
 
-					modules.transactions.receiveTransactions([scope.transaction], seriesCb);
+					modules.transactions.receiveTransactions([scope.transaction], true, seriesCb);
 				});
 			}
 		}, function (err) {

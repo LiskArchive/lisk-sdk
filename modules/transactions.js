@@ -326,12 +326,8 @@ Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
 	});
 };
 
-Transactions.prototype.receiveTransactions = function (transactions, cb) {
-	async.eachSeries(transactions, function (transaction, cb) {
-		self.processUnconfirmedTransaction(transaction, true, cb);
-	}, function (err) {
-		return setImmediate(cb, err, transactions);
-	});
+Transactions.prototype.receiveTransactions = function (transactions, broadcast, cb) {
+	return __private.transactionPool.receiveTransactions(transactions, broadcast, cb);
 };
 
 Transactions.prototype.fillPool = function (cb) {
@@ -498,7 +494,7 @@ shared.addTransactions = function (req, cb) {
 								return setImmediate(cb, e.toString());
 							}
 
-							modules.transactions.receiveTransactions([transaction], cb);
+							modules.transactions.receiveTransactions([transaction], true, cb);
 						});
 					});
 				} else {
@@ -537,7 +533,7 @@ shared.addTransactions = function (req, cb) {
 							return setImmediate(cb, e.toString());
 						}
 
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				}
 			});

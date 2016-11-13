@@ -416,7 +416,7 @@ shared.addDelegates = function (req, cb) {
 							return setImmediate(cb, e.toString());
 						}
 
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -454,7 +454,7 @@ shared.addDelegates = function (req, cb) {
 						return setImmediate(cb, e.toString());
 					}
 
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 		}, function (err, transaction) {
