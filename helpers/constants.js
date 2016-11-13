@@ -20,7 +20,6 @@ module.exports = {
 	fixedPoint : Math.pow(10, 8),
 	maxAddressesLength: 208 * 128,
 	maxAmount: 100000000,
-	maxClientConnections: 100,
 	maxConfirmations : 77 * 100,
 	maxPayloadLength: 1024 * 1024,
 	maxPeers: 100,
