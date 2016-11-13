@@ -13,7 +13,7 @@ function Broadcaster (scope) {
 	self = this;
 
 	self.queue = [];
-	self.peerLimit = 100;
+	self.peerLimit = constants.maxPeers;
 	self.broadcastLimit = 20;
 	self.releaseLimit = constants.maxTxsPerBlock;
 	self.broadcastInterval = 5000;
