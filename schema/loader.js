@@ -13,8 +13,8 @@ module.exports = {
 		},
 		required: ['signatures']
 	},
-	loadUnconfirmedTransactions: {
-		id: 'loader.loadUnconfirmedTransactions',
+	loadTransactions: {
+		id: 'loader.loadTransactions',
 		type: 'object',
 		properties: {
 			transactions: {

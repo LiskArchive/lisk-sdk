@@ -127,7 +127,7 @@ __private.loadSignatures = function (cb) {
 	});
 };
 
-__private.loadUnconfirmedTransactions = function (cb) {
+__private.loadTransactions = function (cb) {
 	async.waterfall([
 		function (waterCb) {
 			self.getNetwork(function (err, network) {
@@ -140,7 +140,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
-			library.logger.log('Loading unconfirmed transactions from: ' + peer.string);
+			library.logger.log('Loading transactions from: ' + peer.string);
 
 			modules.transport.getFromPeer(peer, {
 				api: '/transactions',
@@ -150,7 +150,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 					return setImmediate(waterCb, err);
 				}
 
-				library.schema.validate(res.body, schema.loadUnconfirmedTransactions, function (err) {
+				library.schema.validate(res.body, schema.loadTransactions, function (err) {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					} else {
@@ -665,9 +665,9 @@ Loader.prototype.onPeersReady = function () {
 					return setImmediate(seriesCb);
 				}
 			},
-			loadUnconfirmedTransactions: function (seriesCb) {
+			loadTransactions: function (seriesCb) {
 				if (__private.loaded) {
-					async.retry(retries, __private.loadUnconfirmedTransactions, function (err) {
+					async.retry(retries, __private.loadTransactions, function (err) {
 						if (err) {
 							library.logger.log('Unconfirmed transactions timer', err);
 						}
