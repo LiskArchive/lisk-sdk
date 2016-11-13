@@ -427,20 +427,20 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
-	// List of currrently unconfirmed transactions.
-	var unconfirmedTransactions;
+	// List of unconfirmed transactions ids.
+	var unconfirmedTransactionIds;
 
 	async.series({
 		// Rewind any unconfirmed transactions before applying block.
 		// TODO: It should be possible to remove this call if we can guarantee that only this function is processing transactions atomically. Then speed should be improved further.
 		// TODO: Other possibility, when we rebuild from block chain this action should be moved out of the rebuild function.
 		undoUnconfirmedList: function (seriesCb) {
-			modules.transactions.undoUnconfirmedList(function (err, transactions) {
+			modules.transactions.undoUnconfirmedList(function (err, ids) {
 				if (err) {
 					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
 					return process.exit(0);
 				} else {
-					unconfirmedTransactions = transactions;
+					unconfirmedTransactionIds = ids;
 					return setImmediate(seriesCb);
 				}
 			});
@@ -462,9 +462,9 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						appliedTransactions[transaction.id] = transaction;
 
 						// Remove the transaction from the node queue, if it was present.
-						var index = unconfirmedTransactions.indexOf(transaction.id);
+						var index = unconfirmedTransactionIds.indexOf(transaction.id);
 						if (index >= 0) {
-							unconfirmedTransactions.splice(index, 1);
+							unconfirmedTransactionIds.splice(index, 1);
 						}
 
 						return setImmediate(eachSeriesCb);
@@ -566,7 +566,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 
 		// Nullify large objects.
 		// Prevents memory leak during synchronisation.
-		appliedTransactions = unconfirmedTransactions = block = null;
+		appliedTransactions = unconfirmedTransactionIds = block = null;
 
 		// Finish here if snapshotting.
 		if (err === 'Snapshot finished') {
