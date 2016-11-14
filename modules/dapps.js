@@ -4,14 +4,17 @@ var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var DApp = require('../logic/dapp.js');
 var dappCategories = require('../helpers/dappCategories.js');
 var dappTypes = require('../helpers/dappTypes.js');
 var DecompressZip = require('decompress-zip');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
+var InTransfer = require('../logic/inTransfer.js');
 var npm = require('npm');
 var OrderBy = require('../helpers/orderBy.js');
+var OutTransfer = require('../logic/outTransfer.js');
 var path = require('path');
 var popsicle = require('popsicle');
 var rmdir = require('rimraf');
@@ -43,17 +46,14 @@ function DApps (cb, scope) {
 
 	__private.attachApi();
 
-	var DApp = require('../logic/dapp.js');
 	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
 		transactionTypes.DAPP, new DApp()
 	);
 
-	var InTransfer = require('../logic/inTransfer.js');
 	__private.assetTypes[transactionTypes.IN_TRANSFER] = library.logic.transaction.attachAssetType(
 		transactionTypes.IN_TRANSFER, new InTransfer()
 	);
 
-	var OutTransfer = require('../logic/outTransfer.js');
 	__private.assetTypes[transactionTypes.OUT_TRANSFER] = library.logic.transaction.attachAssetType(
 		transactionTypes.OUT_TRANSFER, new OutTransfer()
 	);
@@ -158,7 +158,7 @@ __private.attachApi = function () {
 						return setImmediate(cb, e.toString());
 					}
 
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}, function (err, transaction) {
 				if (err) {
@@ -526,7 +526,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/dapps', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -925,7 +925,7 @@ __private.createRoutes = function (dapp, cb) {
 			library.network.app.use('/api/dapps/' + dapp.transactionId + '/api/', __private.routes[dapp.transactionId]);
 			library.network.app.use(function (err, req, res, next) {
 				if (!err) { return next(); }
-				library.logger.error('API error ' + req.url, err);
+				library.logger.error('API error ' + req.url, err.message);
 				res.status(500).send({success: false, error: 'API error: ' + err.message});
 			});
 
@@ -1206,7 +1206,7 @@ __private.addTransactions = function (req, cb) {
 							return setImmediate(cb, e.toString());
 						}
 
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -1245,7 +1245,7 @@ __private.addTransactions = function (req, cb) {
 						return setImmediate(cb, e.toString());
 					}
 
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 		}, function (err, transaction) {
@@ -1329,7 +1329,7 @@ __private.sendWithdrawal = function (req, cb) {
 							return setImmediate(cb, e.toString());
 						}
 
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -1370,7 +1370,7 @@ __private.sendWithdrawal = function (req, cb) {
 						return setImmediate(cb, e.toString());
 					}
 
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 		}, function (err, transaction) {

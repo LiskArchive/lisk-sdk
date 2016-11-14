@@ -205,7 +205,7 @@ Transaction.prototype.checkConfirmed = function (trs, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else if (count > 0) {
-			return setImmediate(cb, 'Transaction is already confirmed: ' + trs.id, true);
+			return setImmediate(cb, 'Transaction is already confirmed: ' + trs.id);
 		} else {
 			return setImmediate(cb);
 		}
@@ -239,6 +239,11 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 	// 	return setImmediate(cb, 'Transaction is not ready: ' + trs.id);
 	// }
 
+	// Check sender
+	if (!sender) {
+		return setImmediate(cb, 'Missing sender');
+	}
+
 	// Get transaction id
 	var txId;
 
@@ -256,25 +261,8 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		trs.id = txId;
 	}
 
-	// Check sender
-	if (!sender) {
-		return setImmediate(cb, 'Missing sender');
-	}
-
 	// Equalize sender address
 	trs.senderId = sender.address;
-
-	// Check requester public key
-	if (trs.requesterPublicKey) {
-		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Invalid requester public key');
-		}
-	}
-
-	// Verify signature
-	if (!this.verifySignature(trs, (trs.requesterPublicKey || trs.senderPublicKey), trs.signature)) {
-		return setImmediate(cb, 'Failed to verify signature');
-	}
 
 	// Call process on transaction type
 	__private.types[trs.type].process.call(this, trs, sender, function (err, trs) {
@@ -294,14 +282,34 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		cb = requester;
 	}
 
+	// Check sender
+	if (!sender) {
+		return setImmediate(cb, 'Missing sender');
+	}
+
 	// Check transaction type
 	if (!__private.types[trs.type]) {
 		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
 	}
 
-	// Check sender
-	if (!sender) {
-		return setImmediate(cb, 'Missing sender');
+	// Check for missing sender second signature
+	if (!trs.requesterPublicKey && sender.secondSignature && !trs.signSignature && trs.blockId !== genesisblock.block.id) {
+		return setImmediate(cb, 'Missing sender second signature');
+	}
+
+	// If second signature provided, check if sender has one enabled
+	if (!trs.requesterPublicKey && !sender.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
+		return setImmediate(cb, 'Sender does not have a second signature');
+	}
+
+	// Check for missing requester second signature
+	if (trs.requesterPublicKey && requester.secondSignature && !trs.signSignature) {
+		return setImmediate(cb, 'Missing requester second signature');
+	}
+
+	// If second signature provided, check if requester has one enabled
+	if (trs.requesterPublicKey && !requester.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
+		return setImmediate(cb, 'Requester does not have a second signature');
 	}
 
 	// Check sender public key
@@ -424,6 +432,14 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
+	// Check confirmed sender balance
+	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
+
+	if (senderBalance.exceeded) {
+		return setImmediate(cb, senderBalance.error);
+	}
+
 	// Check timestamp
 	if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
 		return setImmediate(cb, 'Invalid transaction timestamp');
@@ -501,15 +517,11 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
 };
 
 Transaction.prototype.apply = function (trs, block, sender, cb) {
-	if (!__private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
-	}
-
 	if (!this.ready(trs, sender)) {
 		return setImmediate(cb, 'Transaction is not ready');
 	}
 
-	// Check sender balance
+	// Check confirmed sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
@@ -545,10 +557,6 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 };
 
 Transaction.prototype.undo = function (trs, block, sender, cb) {
-	if (!__private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
-	}
-
 	var amount = bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
@@ -582,27 +590,7 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		cb = requester;
 	}
 
-	if (!__private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
-	}
-
-	if (!trs.requesterPublicKey && sender.secondSignature && !trs.signSignature && trs.blockId !== genesisblock.block.id) {
-		return setImmediate(cb, 'Missing sender second signature');
-	}
-
-	if (!trs.requesterPublicKey && !sender.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
-		return setImmediate(cb, 'Sender does not have a second signature');
-	}
-
-	if (trs.requesterPublicKey && requester.secondSignature && !trs.signSignature) {
-		return setImmediate(cb, 'Missing requester second signature');
-	}
-
-	if (trs.requesterPublicKey && !requester.secondSignature && (trs.signSignature && trs.signSignature.length > 0)) {
-		return setImmediate(cb, 'Requester does not have a second signature');
-	}
-
-	// Check sender balance
+	// Check unconfirmed sender balance
 	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
 
@@ -630,10 +618,6 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 };
 
 Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	if (!__private.types[trs.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + trs.type);
-	}
-
 	var amount = bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 

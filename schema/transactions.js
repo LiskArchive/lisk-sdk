@@ -81,8 +81,8 @@ module.exports = {
 		},
 		required: ['id']
 	},
-	getUnconfirmedTransaction: {
-		id: 'transactions.getUnconfirmedTransaction',
+	getPooledTransaction: {
+		id: 'transactions.getPooledTransaction',
 		type: 'object',
 		properties: {
 			id: {
@@ -94,8 +94,8 @@ module.exports = {
 		},
 		required: ['id']
 	},
-	getUnconfirmedTransactions: {
-		id: 'transactions.getUnconfirmedTransactions',
+	getPooledTransactions: {
+		id: 'transactions.getPooledTransactions',
 		type: 'object',
 		properties: {
 			senderPublicKey: {

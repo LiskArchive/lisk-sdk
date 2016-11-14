@@ -108,17 +108,19 @@ describe('POST /peer/transactions', function () {
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.equal('Missing sender second signature');
 				done();
 			});
 		});
 
-		it('using fake second passphrase should fail', function (done) {
-			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, account2.secondPassword);
+		it('using fake second signature should fail', function (done) {
+			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, account.secondPassword);
 			transaction.signSignature = crypto.randomBytes(64).toString('hex');
 			transaction.id = node.lisk.crypto.getId(transaction);
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.equal('Failed to verify second signature');
 				done();
 			});
 		});

@@ -98,10 +98,6 @@ Peer.prototype.object = function () {
 		object[property] = this[property];
 	}.bind(this));
 
-	if (object.broadhash != null) {
-		object.broadhash = new Buffer(object.broadhash, 'hex');
-	}
-
 	this.nullable.forEach(function (property) {
 		if (object[property] == null) {
 			object[property] = null;

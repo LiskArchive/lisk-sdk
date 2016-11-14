@@ -7,6 +7,7 @@ var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/signatures.js');
+var Signature = require('../logic/signature.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
@@ -22,7 +23,6 @@ function Signatures (cb, scope) {
 
 	__private.attachApi();
 
-	var Signature = require('../logic/signature.js');
 	__private.assetTypes[transactionTypes.SIGNATURE] = library.logic.transaction.attachAssetType(
 		transactionTypes.SIGNATURE, new Signature()
 	);
@@ -51,7 +51,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/signatures', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -151,7 +151,7 @@ shared.addSignature = function (req, cb) {
 							return setImmediate(cb, e.toString());
 						}
 
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -182,7 +182,7 @@ shared.addSignature = function (req, cb) {
 					} catch (e) {
 						return setImmediate(cb, e.toString());
 					}
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 

@@ -117,7 +117,7 @@ describe('POST /peer/transactions', function () {
 			});
 		});
 
-		describe('twice within the same block', function () {
+		describe('twice for the same account', function () {
 
 			before(function (done) {
 				sendLISK({
@@ -137,9 +137,11 @@ describe('POST /peer/transactions', function () {
 				postTransaction(transaction, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 
-					postTransaction(transaction2, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.not.ok;
-						done();
+					node.onNewBlock(function () {
+						postTransaction(transaction2, function (err, res) {
+							node.expect(res.body).to.have.property('success').to.be.not.ok;
+							done();
+						});
 					});
 				});
 			});

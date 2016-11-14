@@ -1,14 +1,17 @@
 'use strict';
 
+var async = require('async');
 var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 var Diff = require('../helpers/diff.js');
 
 // Private fields
-var modules, library;
+var modules, library, self;
 
 // Constructor
-function Vote () {}
+function Vote () {
+	self = this;
+}
 
 // Public methods
 Vote.prototype.bind = function (scope) {
@@ -48,13 +51,30 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
 	}
 
-	modules.delegates.checkDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
+	self.checkConfirmedDelegates(trs, cb);
+};
+
+Vote.prototype.checkConfirmedDelegates = function (trs, cb) {
+	modules.delegates.checkConfirmedDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
 		if (err && exceptions.votes.indexOf(trs.id) > -1) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(trs));
 			err = null;
 		}
-		return setImmediate(cb, err, trs);
+
+		return setImmediate(cb, err);
+	});
+};
+
+Vote.prototype.checkUnconfirmedDelegates = function (trs, cb) {
+	modules.delegates.checkUnconfirmedDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
+		if (err && exceptions.votes.indexOf(trs.id) > -1) {
+			library.logger.debug(err);
+			library.logger.debug(JSON.stringify(trs));
+			err = null;
+		}
+
+		return setImmediate(cb, err);
 	});
 };
 
@@ -99,23 +119,20 @@ Vote.prototype.undo = function (trs, block, sender, cb) {
 };
 
 Vote.prototype.applyUnconfirmed = function (trs, sender, cb) {
-	modules.delegates.checkUnconfirmedDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
-		if (err) {
-			if (exceptions.votes.indexOf(trs.id) > -1) {
-				library.logger.debug(err);
-				library.logger.debug(JSON.stringify(trs));
-				err = null;
-			} else {
-				return setImmediate(cb, err);
-			}
-		}
+	var parent = this;
 
-		this.scope.account.merge(sender.address, {
-			u_delegates: trs.asset.votes
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
-	}.bind(this));
+	async.series([
+		function (seriesCb) {
+			self.checkUnconfirmedDelegates(trs, seriesCb);
+		},
+		function (seriesCb) {
+			parent.scope.account.merge(sender.address, {
+				u_delegates: trs.asset.votes
+			}, function (err) {
+				return setImmediate(seriesCb, err);
+			});
+		}
+	], cb);
 };
 
 Vote.prototype.undoUnconfirmed = function (trs, sender, cb) {

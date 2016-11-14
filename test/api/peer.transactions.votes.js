@@ -91,7 +91,7 @@ describe('POST /peer/transactions', function () {
 		}, done);
 	});
 
-	before(function (done) {
+	beforeEach(function (done) {
 		getDelegates(function (err, res) {
 			delegates = res.body.delegates.map(function (delegate) {
 				return delegate.publicKey;
@@ -103,7 +103,7 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	before(function (done) {
+	beforeEach(function (done) {
 		getVotes(account.address, function (err, res) {
 			votedDelegates = res.body.delegates.map(function (delegate) {
 				return delegate.publicKey;
@@ -144,36 +144,6 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('voting for a delegate and then removing again within same block should fail', function (done) {
-		node.onNewBlock(function (err) {
-			var transaction = node.lisk.vote.createVote(account.password, ['+' + delegate]);
-			postVote(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-
-				var transaction2 = node.lisk.vote.createVote(account.password, ['-' + delegate]);
-				postVote(transaction2, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					done();
-				});
-			});
-		});
-	});
-
-	it('removing votes from a delegate and then voting again within same block should fail', function (done) {
-		node.onNewBlock(function (err) {
-			var transaction = node.lisk.vote.createVote(account.password, ['-' + delegate]);
-			postVote(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-
-				var transaction2 = node.lisk.vote.createVote(account.password, ['+' + delegate]);
-				postVote(transaction2, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					done();
-				});
-			});
-		});
-	});
-
 	it('voting twice for a delegate should fail', function (done) {
 		async.series([
 			function (seriesCb) {
@@ -181,7 +151,7 @@ describe('POST /peer/transactions', function () {
 					var transaction = node.lisk.vote.createVote(account.password, ['+' + delegate]);
 					postVote(transaction, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.ok;
-						done();
+						seriesCb();
 					});
 				});
 			},
@@ -281,15 +251,17 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('removing votes from 101 delegates separately should be ok', function (done) {
-		postVotes({
-			delegates: delegates,
-			passphrase: account.password,
-			action: '-',
-			voteCb: function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId').that.is.a('string');
-			}
-		}, done);
+		node.onNewBlock(function (err) {
+			postVotes({
+				delegates: delegates,
+				passphrase: account.password,
+				action: '-',
+				voteCb: function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transactionId').that.is.a('string');
+				}
+			}, done);
+		});
 	});
 });
 
@@ -329,7 +301,7 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 		});
 	});
 
-	it('exceeding maximum of 101 votes within same block should fail', function (done) {
+	it('exceeding maximum of 101 votes should fail', function (done) {
 		async.series([
 			function (seriesCb) {
 				var slicedDelegates = delegates.slice(0, 76);
@@ -343,6 +315,9 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 						node.expect(res.body).to.have.property('success').to.be.ok;
 					}
 				}, seriesCb);
+			},
+			function (seriesCb) {
+				return node.onNewBlock(seriesCb);
 			},
 			function (seriesCb) {
 				var slicedDelegates = delegates.slice(-25);

@@ -2,7 +2,9 @@
 
 var _ = require('lodash');
 var async = require('async');
+var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
+var constants = require('constants');
 var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
@@ -26,11 +28,7 @@ function Transport (cb, scope) {
 	self = this;
 
 	__private.attachApi();
-
-	// Optionally ignore broadhash efficiency
-	if (!library.config.forging.force) {
-		__private.efficiency = 100;
-	}
+	__private.broadcaster = new Broadcaster(library);
 
 	setImmediate(cb, null, self);
 }
@@ -62,7 +60,7 @@ __private.attachApi = function () {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'EHEADERS', req: req});
 
-				return res.status(500).send({status: false, error: report.issues});
+				return res.status(500).send({success: false, error: report.issues});
 			}
 
 			if (headers.nethash !== modules.system.getNethash()) {
@@ -80,11 +78,10 @@ __private.attachApi = function () {
 
 			return next();
 		});
-
 	});
 
 	router.get('/list', function (req, res) {
-		modules.peers.list({limit: 100}, function (err, peers) {
+		modules.peers.list({limit: constants.maxPeers}, function (err, peers) {
 			return res.status(200).json({peers: !err ? peers : []});
 		});
 	});
@@ -147,8 +144,8 @@ __private.attachApi = function () {
 		try {
 			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
-			library.logger.error(['Block', id].join(' '), e.toString());
-			if (block) { library.logger.error('Block', block); }
+			library.logger.debug(['Block', id].join(' '), e.toString());
+			if (block) { library.logger.debug('Block', block); }
 
 			if (req.peer) {
 				// Ban peer for 60 minutes
@@ -180,10 +177,10 @@ __private.attachApi = function () {
 	});
 
 	router.get('/signatures', function (req, res) {
-		var unconfirmedList = modules.transactions.getUnconfirmedTransactionList();
+		var transactions = modules.transactions.getMultisignatureTransactionList(true, constants.maxSharedTxs);
 		var signatures = [];
 
-		async.eachSeries(unconfirmedList, function (trs, cb) {
+		async.eachSeries(transactions, function (trs, cb) {
 			if (trs.signatures && trs.signatures.length) {
 				signatures.push({
 					transaction: trs.id,
@@ -198,7 +195,9 @@ __private.attachApi = function () {
 	});
 
 	router.get('/transactions', function (req, res) {
-		res.status(200).json({success: true, transactions: modules.transactions.getUnconfirmedTransactionList()});
+		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
+
+		res.status(200).json({success: true, transactions: transactions});
 	});
 
 	router.post('/transactions', function (req, res) {
@@ -208,8 +207,8 @@ __private.attachApi = function () {
 		try {
 			transaction = library.logic.transaction.objectNormalize(transaction);
 		} catch (e) {
-			library.logger.error(['Transaction', id].join(' '), e.toString());
-			if (transaction) { library.logger.error('Transaction', transaction); }
+			library.logger.debug(['Transaction', id].join(' '), e.toString());
+			if (transaction) { library.logger.debug('Transaction', transaction); }
 
 			if (req.peer) {
 				// Ban peer for 60 minutes
@@ -221,11 +220,11 @@ __private.attachApi = function () {
 
 		library.balancesSequence.add(function (cb) {
 			library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + req.peer.string);
-			modules.transactions.receiveTransactions([transaction], cb);
+			modules.transactions.receiveTransactions([transaction], true, cb);
 		}, function (err) {
 			if (err) {
-				library.logger.error(['Transaction', id].join(' '), err.toString());
-				if (transaction) { library.logger.error('Transaction', transaction); }
+				library.logger.debug(['Transaction', id].join(' '), err.toString());
+				if (transaction) { library.logger.debug('Transaction', transaction); }
 
 				res.status(200).json({success: false, message: err.toString()});
 			} else {
@@ -322,7 +321,7 @@ __private.attachApi = function () {
 
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -358,34 +357,7 @@ Transport.prototype.headers = function (headers) {
 };
 
 Transport.prototype.efficiency = function () {
-	return __private.efficiency === undefined ? 100 : __private.efficiency;
-};
-
-Transport.prototype.broadcast = function (config, options, cb) {
-	library.logger.debug('Begin broadcast', options);
-
-	config.limit = config.limit || 1;
-	config.broadhash = config.broadhash || null;
-	config.height = config.height || null;
-
-	modules.peers.list(config, function (err, peers, efficiency) {
-		if (!err) {
-			if (__private.efficiency !== undefined) {
-				__private.efficiency = efficiency;
-			}
-
-			async.eachLimit(peers, 20, function (peer, cb) {
-				return self.getFromPeer(peer, options, cb);
-			}, function (err) {
-				library.logger.debug('End broadcast');
-				if (cb) {
-					return setImmediate(cb, null, {body: null, peer: peers});
-				}
-			});
-		} else if (cb) {
-			return setImmediate(cb, err);
-		}
-	});
+	return __private.broadcaster.efficiency;
 };
 
 Transport.prototype.getFromRandomPeer = function (config, options, cb) {
@@ -488,6 +460,7 @@ Transport.prototype.onBind = function (scope) {
 	modules = scope;
 
 	__private.headers = modules.system.headers();
+	__private.broadcaster.bind(modules);
 };
 
 Transport.prototype.onBlockchainReady = function () {
@@ -496,14 +469,14 @@ Transport.prototype.onBlockchainReady = function () {
 
 Transport.prototype.onSignature = function (signature, broadcast) {
 	if (broadcast) {
-		self.broadcast({limit: 100}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
 		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
 
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
 	if (broadcast) {
-		self.broadcast({limit: 100}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
@@ -511,10 +484,9 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
 		var broadhash = modules.system.getBroadhash();
-		var height = modules.system.getHeight();
 
 		modules.system.update(function () {
-			self.broadcast({limit: 100, broadhash: broadhash, height: height}, {api: '/blocks', data: {block: block}, method: 'POST'});
+			__private.broadcaster.broadcast({broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST'});
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
@@ -522,7 +494,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 
 Transport.prototype.onMessage = function (msg, broadcast) {
 	if (broadcast) {
-		self.broadcast({limit: 100, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
+		__private.broadcaster.broadcast({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 	}
 };
 
@@ -536,7 +508,7 @@ shared.message = function (msg, cb) {
 	msg.timestamp = (new Date()).getTime();
 	msg.hash = __private.hashsum(msg.body, msg.timestamp);
 
-	self.broadcast({limit: 100, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
+	__private.broadcaster.enqueue({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 
 	return setImmediate(cb, null, {});
 };

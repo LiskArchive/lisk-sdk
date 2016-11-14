@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var async = require('async');
+var constants = require('constants');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
@@ -55,7 +56,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/peers', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -247,7 +248,7 @@ Peers.prototype.acceptable = function (peers) {
 };
 
 Peers.prototype.list = function (options, cb) {
-	options.limit = options.limit || 100;
+	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
 	options.attempts = ['matched broadhash', 'unmatched broadhash', 'legacy'];
 	options.attempt = 0;

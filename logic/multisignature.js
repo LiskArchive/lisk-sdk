@@ -60,6 +60,10 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid multisignature lifetime. Must be between 1 and 72');
 	}
 
+	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+		return setImmediate(cb, 'Account already has multisignatures enabled');
+	}
+
 	if (this.ready(trs, sender)) {
 		try {
 			for (var s = 0; s < trs.asset.multisignature.keysgroup.length; s++) {
@@ -193,10 +197,6 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	if (__private.unconfirmedSignatures[sender.address]) {
 		return setImmediate(cb, 'Signature on this account is pending confirmation');
-	}
-
-	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
-		return setImmediate(cb, 'Account already has multisignatures enabled');
 	}
 
 	__private.unconfirmedSignatures[sender.address] = true;

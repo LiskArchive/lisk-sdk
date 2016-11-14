@@ -466,9 +466,10 @@ describe('PUT /api/dapps/withdrawal', function () {
 	var validParams;
 
 	beforeEach(function (done) {
-		var keys = node.lisk.crypto.getKeys(account.password);
+		var randomAccount = node.randomTxAccount();
+		var keys = node.lisk.crypto.getKeys(randomAccount.password);
 		var recipientId = node.lisk.crypto.getAddress(keys.publicKey);
-		var transaction = node.lisk.transaction.createTransaction('1L', 100000000, account.password);
+		var transaction = node.lisk.transaction.createTransaction(randomAccount.address, 100000000, account.password);
 
 		validParams = {
 			secret: account.password,
@@ -480,8 +481,6 @@ describe('PUT /api/dapps/withdrawal', function () {
 
 		done();
 	});
-
-	var randomAccount = node.randomTxAccount();
 
 	it('using no secret should fail', function (done) {
 		delete validParams.secret;
@@ -753,7 +752,7 @@ describe('PUT /api/dapps/withdrawal', function () {
 		});
 	});
 
-	it('using same params twice within current block should fail', function (done) {
+	it('using same valid params twice should fail', function (done) {
 		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;

@@ -22,6 +22,9 @@ PeerSweeper.prototype.push = function (action, peer) {
 	} else {
 		throw 'Missing push action';
 	}
+	if (peer.broadhash != null) {
+		peer.broadhash = new Buffer(peer.broadhash, 'hex');
+	}
 	this.peers.push(peer);
 };
 

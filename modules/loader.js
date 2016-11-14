@@ -59,7 +59,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/loader', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -127,7 +127,7 @@ __private.loadSignatures = function (cb) {
 	});
 };
 
-__private.loadUnconfirmedTransactions = function (cb) {
+__private.loadTransactions = function (cb) {
 	async.waterfall([
 		function (waterCb) {
 			self.getNetwork(function (err, network) {
@@ -140,7 +140,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
-			library.logger.log('Loading unconfirmed transactions from: ' + peer.string);
+			library.logger.log('Loading transactions from: ' + peer.string);
 
 			modules.transport.getFromPeer(peer, {
 				api: '/transactions',
@@ -150,7 +150,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 					return setImmediate(waterCb, err);
 				}
 
-				library.schema.validate(res.body, schema.loadUnconfirmedTransactions, function (err) {
+				library.schema.validate(res.body, schema.loadTransactions, function (err) {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					} else {
@@ -166,8 +166,8 @@ __private.loadUnconfirmedTransactions = function (cb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
 				} catch (e) {
-					library.logger.error(['Transaction', id].join(' '), e.toString());
-					if (transaction) { library.logger.error('Transaction', transaction); }
+					library.logger.debug(['Transaction', id].join(' '), e.toString());
+					if (transaction) { library.logger.debug('Transaction', transaction); }
 
 					library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
 					modules.peers.state(peer.ip, peer.port, 0, 3600);
@@ -182,7 +182,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 		},
 		function (transactions, waterCb) {
 			library.balancesSequence.add(function (cb) {
-				modules.transactions.receiveTransactions(transactions, cb);
+				modules.transactions.receiveTransactions(transactions, false, cb);
 			}, waterCb);
 		}
 	], function (err) {
@@ -445,8 +445,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 };
 
 __private.sync = function (cb) {
-	var transactions = modules.transactions.getUnconfirmedTransactionList(true);
-
 	library.logger.info('Starting sync');
 
 	__private.isActive = true;
@@ -463,9 +461,9 @@ __private.sync = function (cb) {
 		updateSystem: function (seriesCb) {
 			return modules.system.update(seriesCb);
 		},
-		receiveTransactions: function (seriesCb) {
-			library.logger.debug('Receiving unconfirmed transactions after sync');
-			return modules.transactions.receiveTransactions(transactions, seriesCb);
+		applyUnconfirmedList: function (seriesCb) {
+			library.logger.debug('Applying unconfirmed transactions after sync');
+			return modules.transactions.applyUnconfirmedList(seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;
@@ -658,7 +656,7 @@ Loader.prototype.onPeersReady = function () {
 						async.retry(retries, __private.sync, cb);
 					}, function (err) {
 						if (err) {
-							library.logger.warn('Sync timer', err);
+							library.logger.log('Sync timer', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -667,11 +665,11 @@ Loader.prototype.onPeersReady = function () {
 					return setImmediate(seriesCb);
 				}
 			},
-			loadUnconfirmedTransactions: function (seriesCb) {
+			loadTransactions: function (seriesCb) {
 				if (__private.loaded) {
-					async.retry(retries, __private.loadUnconfirmedTransactions, function (err) {
+					async.retry(retries, __private.loadTransactions, function (err) {
 						if (err) {
-							library.logger.warn('Unconfirmed transactions timer', err);
+							library.logger.log('Unconfirmed transactions timer', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -684,7 +682,7 @@ Loader.prototype.onPeersReady = function () {
 				if (__private.loaded) {
 					async.retry(retries, __private.loadSignatures, function (err) {
 						if (err) {
-							library.logger.warn('Signatures timer', err);
+							library.logger.log('Signatures timer', err);
 						}
 
 						return setImmediate(seriesCb);

@@ -7,6 +7,7 @@ var BlockReward = require('../logic/blockReward.js');
 var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
@@ -32,7 +33,6 @@ function Delegates (cb, scope) {
 
 	__private.attachApi();
 
-	var Delegate = require('../logic/delegate.js');
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
 		transactionTypes.DELEGATE, new Delegate()
 	);
@@ -181,7 +181,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/delegates', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -485,7 +485,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 	});
 };
 
-Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
+Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb) {
 	return __private.checkDelegates(publicKey, votes, 'confirmed', cb);
 };
 
@@ -555,8 +555,11 @@ Delegates.prototype.onBlockchainReady = function () {
 			library.logger.error('Failed to load delegates', err);
 		}
 
-		__private.forge(function () {
-			setTimeout(nextForge, 1000);
+		async.series([
+			modules.transactions.fillPool,
+			__private.forge
+		], function (err) {
+			return setTimeout(nextForge, 1000);
 		});
 	});
 };
@@ -805,7 +808,7 @@ shared.addDelegate = function (req, cb) {
 						} catch (e) {
 							return setImmediate(cb, e.toString());
 						}
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -842,7 +845,7 @@ shared.addDelegate = function (req, cb) {
 					} catch (e) {
 						return setImmediate(cb, e.toString());
 					}
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 		}, function (err, transaction) {

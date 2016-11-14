@@ -10,6 +10,7 @@ var schema = require('../schema/accounts.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
+var Vote = require('../logic/vote.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -24,7 +25,6 @@ function Accounts (cb, scope) {
 
 	__private.attachApi();
 
-	var Vote = require('../logic/vote.js');
 	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
 		transactionTypes.VOTE, new Vote()
 	);
@@ -100,7 +100,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/accounts', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -416,7 +416,7 @@ shared.addDelegates = function (req, cb) {
 							return setImmediate(cb, e.toString());
 						}
 
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -454,7 +454,7 @@ shared.addDelegates = function (req, cb) {
 						return setImmediate(cb, e.toString());
 					}
 
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 		}, function (err, transaction) {
