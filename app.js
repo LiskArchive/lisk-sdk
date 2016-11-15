@@ -226,7 +226,6 @@ d.run(function () {
 			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
-			var requestSanitizer = require('./helpers/request-sanitizer');
 			var queryParser = require('express-query-int');
 
 			scope.network.app.engine('html', require('ejs').renderFile);
