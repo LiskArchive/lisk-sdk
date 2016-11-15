@@ -34,12 +34,7 @@ program
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
-var appConfig;
-if (program.config) {
-	appConfig = require(path.resolve(process.cwd(), program.config));
-} else {
-  appConfig = require('./config.json');
-}
+var appConfig = require('./helpers/config.js')(program.config);
 
 if (program.port) {
 	appConfig.port = program.port;

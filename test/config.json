@@ -12,7 +12,7 @@
         "host": "localhost",
         "port": 5432,
         "database": "lisk_test",
-        "user": null,
+        "user": "",
         "password": "password",
         "poolSize": 100,
         "poolIdleTimeout": 30000,
