@@ -604,7 +604,7 @@ Loader.prototype.getNetwork = function (cb) {
 		},
 		function (res, waterCb) {
 			library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
-				var peers = res.body.peers;
+				var peers = modules.peers.acceptable(res.body.peers);
 
 				if (err) {
 					return setImmediate(waterCb, err);
