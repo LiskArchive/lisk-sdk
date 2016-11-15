@@ -117,6 +117,9 @@ __private.updatePeersList = function (cb) {
 					err.forEach(function (e) {
 						library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
 					});
+				} else if (!modules.system.versionCompatible(peer.version)) {
+					library.logger.error(['Rejecting peer', peer.ip, 'with incompatible version', peer.version].join(' '));
+					self.remove(peer.ip, peer.port);
 				} else {
 					self.update(peer);
 				}
