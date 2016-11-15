@@ -333,7 +333,7 @@ Peers.prototype.remove = function (pip, port) {
 	var frozenPeer = _.find(library.config.peers.list, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
-	if (!frozenPeer) {
+	if (!frozenPeer && removed.indexOf(pip) === -1) {
 		removed.push(pip);
 		return __private.sweeper.push('remove', { ip: pip, port: port });
 	}
