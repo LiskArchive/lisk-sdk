@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var async = require('async');
-var constants = require('constants');
+var constants = require('../helpers/constants.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
