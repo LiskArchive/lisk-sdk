@@ -244,7 +244,8 @@ Peers.prototype.acceptable = function (peers) {
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
-	}).value();
+		// Slicing peers up to maxPeers
+	}).slice(0, constants.maxPeers).value();
 };
 
 Peers.prototype.list = function (options, cb) {
