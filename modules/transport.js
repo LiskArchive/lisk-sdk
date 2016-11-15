@@ -63,7 +63,7 @@ __private.attachApi = function () {
 				return res.status(500).send({success: false, error: report.issues});
 			}
 
-			if (headers.nethash !== modules.system.getNethash()) {
+			if (!modules.system.networkCompatible(headers.nethash)) {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'ENETHASH', req: req});
 
@@ -419,7 +419,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
 			}
 
-			if (headers.nethash !== modules.system.getNethash()) {
+			if (!modules.system.networkCompatible(headers.nethash)) {
 				// Remove peer
 				__private.removePeer({peer: peer, code: 'ENETHASH', req: req});
 

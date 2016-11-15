@@ -51,6 +51,10 @@ System.prototype.getNethash = function () {
 	return __private.nethash;
 };
 
+System.prototype.networkCompatible = function (nethash) {
+	return __private.nethash === nethash;
+};
+
 System.prototype.getBroadhash = function (cb) {
 	if (typeof cb !== 'function') {
 		return __private.broadhash;
