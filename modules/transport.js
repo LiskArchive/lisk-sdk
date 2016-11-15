@@ -70,6 +70,13 @@ __private.attachApi = function () {
 				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
 			}
 
+			if (!modules.system.versionCompatible(headers.version)) {
+				// Remove peer
+				__private.removePeer({peer: req.peer, code: 'EVERSION:' + headers.version, req: req});
+
+				return res.status(200).send({success: false, message: 'Request is made from incompatible version', expected: modules.system.getMinVersion(), received: headers.version});
+			}
+
 			if (req.body && req.body.dappid) {
 				req.peer.dappid = req.body.dappid;
 			}
@@ -424,6 +431,13 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				__private.removePeer({peer: peer, code: 'ENETHASH', req: req});
 
 				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
+			}
+
+			if (!modules.system.versionCompatible(headers.version)) {
+				// Remove peer
+				__private.removePeer({peer: peer, code: 'EVERSION:' + headers.version, req: req});
+
+				return setImmediate(cb, ['Peer is using incompatible version', headers.version, req.method, req.url].join(' '));
 			}
 
 			if (res.body.height) {

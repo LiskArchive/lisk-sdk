@@ -4,6 +4,7 @@ var async = require('async');
 var crypto = require('crypto');
 var os = require('os');
 var sandboxHelper = require('../helpers/sandbox.js');
+var semver = require('semver');
 var sql = require('../sql/system.js');
 
 // Private fields
@@ -20,6 +21,15 @@ function System (cb, scope) {
 	__private.height = 1;
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;
+	__private.minVersion = library.config.minVersion;
+	__private.rcRegExp = /[a-z]+$/;
+
+	if (__private.rcRegExp.test(__private.minVersion)) {
+		this.minVersion = __private.minVersion.replace(__private.rcRegExp, '');
+		this.minVersionChar = __private.minVersion.charAt(__private.minVersion.length - 1);
+	} else {
+		this.minVersion = __private.minVersion;
+	}
 
 	setImmediate(cb, null, self);
 }
@@ -53,6 +63,27 @@ System.prototype.getNethash = function () {
 
 System.prototype.networkCompatible = function (nethash) {
 	return __private.nethash === nethash;
+};
+
+System.prototype.getMinVersion = function () {
+	return __private.minVersion;
+};
+
+System.prototype.versionCompatible = function (version) {
+	var versionChar;
+
+	if (__private.rcRegExp.test(version)) {
+		versionChar = version.charAt(version.length - 1);
+		version = version.replace(__private.rcRegExp, '');
+	}
+
+	var semVerMatch = semver.satisfies(version, this.minVersion);
+
+	if (this.minVersionChar && versionChar) {
+		return semVerMatch && this.minVersionChar === versionChar;
+	} else {
+		return semVerMatch;
+	}
 };
 
 System.prototype.getBroadhash = function (cb) {
