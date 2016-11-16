@@ -17,6 +17,7 @@ function Broadcaster (scope) {
 	self.broadcastLimit = 20;
 	self.releaseLimit = constants.maxTxsPerBlock;
 	self.broadcastInterval = 5000;
+	self.relayLimit = 5;
 
 	// Optionally ignore broadhash efficiency
 	if (!library.config.forging.force) {
@@ -97,6 +98,21 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 			return setImmediate(cb, err, {body: null, peer: peers});
 		}
 	});
+};
+
+Broadcaster.prototype.maxRelays = function (object) {
+	if (!Number.isInteger(object.relays)) {
+		object.relays = 1; // First broadcast
+	} else {
+		object.relays++; // Next broadcast
+	}
+
+	if (Math.abs(object.relays) > self.relayLimit) {
+		library.logger.debug('Broadcast relays exhausted', object);
+		return true;
+	} else {
+		return false;
+	}
 };
 
 // Private

@@ -482,21 +482,21 @@ Transport.prototype.onBlockchainReady = function () {
 };
 
 Transport.prototype.onSignature = function (signature, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
 		__private.broadcaster.enqueue({}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
 		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
 
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
 		__private.broadcaster.enqueue({}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
 
 Transport.prototype.onNewBlock = function (block, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(block)) {
 		var broadhash = modules.system.getBroadhash();
 
 		modules.system.update(function () {
@@ -507,7 +507,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 };
 
 Transport.prototype.onMessage = function (msg, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
 		__private.broadcaster.broadcast({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 	}
 };
