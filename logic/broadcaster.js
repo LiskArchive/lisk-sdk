@@ -116,25 +116,35 @@ Broadcaster.prototype.maxRelays = function (object) {
 __private.cleanQueue = function (cb) {
 	library.logger.debug('Broadcasts before cleaning: ' + self.queue.length);
 
-	self.queue = self.queue.filter(function (broadcast) {
+	async.filter(self.queue, function (broadcast, filterCb) {
 		if (!broadcast.options || !broadcast.options.data) {
-			return false;
+			return setImmediate(filterCb, null, false);
 		} else if (broadcast.options.data.transaction) {
 			var transaction = broadcast.options.data.transaction;
-
-			if (transaction !== undefined) {
-				return modules.transactions.transactionInPool(transaction.id);
-			} else {
-				return false;
-			}
+			return __private.cleanTransaction(transaction, filterCb);
 		} else {
-			return true;
+			return setImmediate(filterCb, null, true);
 		}
+	}, function (err, broadcasts) {
+		self.queue = broadcasts;
+
+		library.logger.debug('Broadcasts after cleaning: ' + self.queue.length);
+		return setImmediate(cb);
 	});
+};
 
-	library.logger.debug('Broadcasts after cleaning: ' + self.queue.length);
-
-	return setImmediate(cb);
+__private.cleanTransaction = function (transaction, cb) {
+	if (transaction !== undefined) {
+		if (modules.transactions.transactionInPool(transaction.id)) {
+			return setImmediate(cb, null, true);
+		} else {
+			return library.logic.transaction.checkConfirmed(transaction, function (err) {
+				return setImmediate(cb, null, !err);
+			});
+		}
+	} else {
+		return setImmediate(cb, null, false);
+	}
 };
 
 __private.releaseQueue = function (cb) {
