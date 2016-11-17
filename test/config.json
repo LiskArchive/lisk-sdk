@@ -47,6 +47,13 @@
             "timeout": 5000
         }
     },
+    "broadcasts": {
+        "broadcastInterval": 5000,
+        "broadcastLimit": 20,
+        "parallelLimit": 20,
+        "releaseLimit": 5,
+        "relayLimit": 5
+    },
     "forging": {
         "force": true,
         "secret": [

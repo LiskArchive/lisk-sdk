@@ -13,11 +13,8 @@ function Broadcaster (scope) {
 	self = this;
 
 	self.queue = [];
-	self.peerLimit = constants.maxPeers;
-	self.broadcastLimit = 20;
-	self.releaseLimit = constants.maxTxsPerBlock;
-	self.broadcastInterval = 5000;
-	self.relayLimit = 5;
+	self.config = library.config.broadcasts;
+	self.config.peerLimit = constants.maxPeers;
 
 	// Optionally ignore broadhash efficiency
 	if (!library.config.forging.force) {
@@ -35,7 +32,7 @@ function Broadcaster (scope) {
 				library.logger.log('Broadcaster timer', err);
 			}
 		});
-	}, self.broadcastInterval);
+	}, self.config.broadcastInterval);
 }
 
 // Public methods
@@ -44,7 +41,7 @@ Broadcaster.prototype.bind = function (scope) {
 };
 
 Broadcaster.prototype.getPeers = function (params, cb) {
-	params.limit = params.limit || self.peerLimit;
+	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
 	modules.peers.list(params, function (err, peers, efficiency) {
@@ -65,7 +62,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
 };
 
 Broadcaster.prototype.broadcast = function (params, options, cb) {
-	params.limit = params.limit || self.peerLimit;
+	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
 	async.waterfall([
@@ -79,7 +76,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			async.eachLimit(peers.slice(0, self.broadcastLimit), self.broadcastLimit, function (peer, eachLimitCb) {
+			async.eachLimit(peers.slice(0, self.config.broadcastLimit), self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = modules.peers.accept(peer);
 
 				modules.transport.getFromPeer(peer, options, function (err) {
@@ -107,7 +104,7 @@ Broadcaster.prototype.maxRelays = function (object) {
 		object.relays++; // Next broadcast
 	}
 
-	if (Math.abs(object.relays) > self.relayLimit) {
+	if (Math.abs(object.relays) > self.config.relayLimit) {
 		library.logger.debug('Broadcast relays exhausted', object);
 		return true;
 	} else {
@@ -153,7 +150,7 @@ __private.releaseQueue = function (cb) {
 			return self.getPeers({}, waterCb);
 		},
 		function broadcast (peers, waterCb) {
-			broadcasts = self.queue.splice(0, self.releaseLimit);
+			broadcasts = self.queue.splice(0, self.config.releaseLimit);
 
 			async.eachSeries(broadcasts, function (broadcast, eachSeriesCb) {
 				self.broadcast(extend({peers: peers}, broadcast.params), broadcast.options, eachSeriesCb);

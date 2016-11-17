@@ -150,6 +150,36 @@ module.exports = {
 				},
 				required: ['list', 'blackList', 'options']
 			},
+			broadcasts: {
+				type: 'object',
+				properties: {
+					broadcastInterval: {
+						type: 'integer',
+						minimum: 1000,
+						maximum: 60000
+					},
+					broadcastLimit: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 100
+					},
+					parallelLimit: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 100
+					},
+					releaseLimit: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 25
+					},
+					relayLimit: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 100
+					}
+				}
+			},
 			forging: {
 				type: 'object',
 				properties: {
