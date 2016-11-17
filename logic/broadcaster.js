@@ -79,7 +79,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			async.eachLimit(peers, self.broadcastLimit, function (peer, eachLimitCb) {
+			async.eachLimit(peers.slice(0, self.broadcastLimit), self.broadcastLimit, function (peer, eachLimitCb) {
 				peer = modules.peers.accept(peer);
 
 				modules.transport.getFromPeer(peer, options, function (err) {
