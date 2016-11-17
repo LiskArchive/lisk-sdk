@@ -16,6 +16,7 @@ function TransactionPool (scope) {
 	self.queued = { transactions: [], index: {} };
 	self.multisignature = { transactions: [], index: {} };
 	self.poolInterval = 30000;
+	self.processed = 0;
 
 	// Transaction pool timer
 	setInterval(function () {
@@ -186,9 +187,26 @@ TransactionPool.prototype.receiveTransactions = function (transactions, broadcas
 	});
 };
 
+TransactionPool.prototype.reindexQueues = function () {
+	['unconfirmed', 'queued', 'multisignature'].forEach(function (queue) {
+		self[queue].index = {};
+		self[queue].transactions = self[queue].transactions.filter(Boolean);
+		self[queue].transactions.forEach(function (transaction) {
+			var index = self[queue].transactions.indexOf(transaction);
+			self[queue].index[transaction.id] = index;
+		});
+	});
+};
+
 TransactionPool.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
 	if (self.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already processed: ' + transaction.id);
+	} else {
+		self.processed++;
+		if (self.processed > 1000) {
+			self.reindexQueues();
+			self.processed = 1;
+		}
 	}
 
 	__private.processVerifyTransaction(transaction, function (err) {
