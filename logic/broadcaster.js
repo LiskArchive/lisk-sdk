@@ -113,27 +113,27 @@ Broadcaster.prototype.maxRelays = function (object) {
 };
 
 // Private
-__private.cleanQueue = function (cb) {
-	library.logger.debug('Broadcasts before cleaning: ' + self.queue.length);
+__private.filterQueue = function (cb) {
+	library.logger.debug('Broadcasts before filtering: ' + self.queue.length);
 
 	async.filter(self.queue, function (broadcast, filterCb) {
 		if (!broadcast.options || !broadcast.options.data) {
 			return setImmediate(filterCb, null, false);
 		} else if (broadcast.options.data.transaction) {
 			var transaction = broadcast.options.data.transaction;
-			return __private.cleanTransaction(transaction, filterCb);
+			return __private.filterTransaction(transaction, filterCb);
 		} else {
 			return setImmediate(filterCb, null, true);
 		}
 	}, function (err, broadcasts) {
 		self.queue = broadcasts;
 
-		library.logger.debug('Broadcasts after cleaning: ' + self.queue.length);
+		library.logger.debug('Broadcasts after filtering: ' + self.queue.length);
 		return setImmediate(cb);
 	});
 };
 
-__private.cleanTransaction = function (transaction, cb) {
+__private.filterTransaction = function (transaction, cb) {
 	if (transaction !== undefined) {
 		if (modules.transactions.transactionInPool(transaction.id)) {
 			return setImmediate(cb, null, true);
@@ -153,8 +153,8 @@ __private.releaseQueue = function (cb) {
 	library.logger.debug('Releasing enqueued broadcasts');
 
 	async.waterfall([
-		function cleanQueue (waterCb) {
-			return __private.cleanQueue(waterCb);
+		function filterQueue (waterCb) {
+			return __private.filterQueue(waterCb);
 		},
 		function getPeers (waterCb) {
 			return self.getPeers({}, waterCb);
