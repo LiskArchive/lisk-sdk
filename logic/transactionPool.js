@@ -274,9 +274,9 @@ TransactionPool.prototype.fillPool = function (cb) {
 		return setImmediate(cb);
 	} else {
 		var spare = 0, spareMulti;
-		var multisignatures = [];
+		var multisignatures;
 		var multisignaturesLimit = 5;
-		var transactions = [];
+		var transactions;
 
 		spare = (constants.maxTxsPerBlock - unconfirmedCount);
 		spareMulti = (spare >= multisignaturesLimit) ? multisignaturesLimit : 0;
