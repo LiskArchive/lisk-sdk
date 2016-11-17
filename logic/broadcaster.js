@@ -106,6 +106,7 @@ Broadcaster.prototype.maxRelays = function (object) {
 
 	if (Math.abs(object.relays) > self.config.relayLimit) {
 		library.logger.debug('Broadcast relays exhausted', object);
+		object.relays--;
 		return true;
 	} else {
 		return false;
