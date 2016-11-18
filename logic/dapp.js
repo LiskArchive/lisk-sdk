@@ -337,7 +337,8 @@ DApp.prototype.dbSave = function (trs) {
 };
 
 DApp.prototype.afterSave = function (trs, cb) {
-	library.network.io.sockets.emit('dapps/change', trs);
+	if (library)
+		library.network.io.sockets.emit('dapps/change', {});
 	return setImmediate(cb);
 };
 
