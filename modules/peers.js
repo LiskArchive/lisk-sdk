@@ -370,6 +370,7 @@ Peers.prototype.onBlockchainReady = function () {
 				self.update({
 					ip: peer.ip,
 					port: peer.port,
+					version: modules.system.getVersion(),
 					state: 2,
 					broadhash: modules.system.getBroadhash(),
 					height: 1
