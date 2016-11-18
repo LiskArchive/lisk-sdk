@@ -2,6 +2,7 @@
     "port": 7000,
     "address": "0.0.0.0",
     "version": "0.5.0c",
+    "minVersion": "~0.4.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
     "consoleLogLevel": "info",
@@ -11,7 +12,7 @@
         "host": "localhost",
         "port": 5432,
         "database": "lisk_test",
-        "user": null,
+        "user": "",
         "password": "password",
         "poolSize": 100,
         "poolIdleTimeout": 30000,
@@ -66,6 +67,13 @@
             },
             "timeout": 5000
         }
+    },
+    "broadcasts": {
+        "broadcastInterval": 5000,
+        "broadcastLimit": 20,
+        "parallelLimit": 20,
+        "releaseLimit": 5,
+        "relayLimit": 5
     },
     "forging": {
         "force": false,

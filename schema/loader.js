@@ -31,9 +31,7 @@ module.exports = {
 			type: 'object',
 			properties: {
 				peers: {
-					type: 'array',
-					uniqueItems: true,
-					maxItems: 100
+					type: 'array'
 				}
 			},
 			required: ['peers']

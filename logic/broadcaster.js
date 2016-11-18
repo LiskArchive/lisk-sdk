@@ -13,10 +13,8 @@ function Broadcaster (scope) {
 	self = this;
 
 	self.queue = [];
-	self.peerLimit = constants.maxPeers;
-	self.broadcastLimit = 20;
-	self.releaseLimit = constants.maxTxsPerBlock;
-	self.broadcastInterval = 5000;
+	self.config = library.config.broadcasts;
+	self.config.peerLimit = constants.maxPeers;
 
 	// Optionally ignore broadhash efficiency
 	if (!library.config.forging.force) {
@@ -34,7 +32,7 @@ function Broadcaster (scope) {
 				library.logger.log('Broadcaster timer', err);
 			}
 		});
-	}, self.broadcastInterval);
+	}, self.config.broadcastInterval);
 }
 
 // Public methods
@@ -43,7 +41,7 @@ Broadcaster.prototype.bind = function (scope) {
 };
 
 Broadcaster.prototype.getPeers = function (params, cb) {
-	params.limit = params.limit || self.peerLimit;
+	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
 	modules.peers.list(params, function (err, peers, efficiency) {
@@ -64,7 +62,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
 };
 
 Broadcaster.prototype.broadcast = function (params, options, cb) {
-	params.limit = params.limit || self.peerLimit;
+	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
 	async.waterfall([
@@ -78,7 +76,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			async.eachLimit(peers, self.broadcastLimit, function (peer, eachLimitCb) {
+			async.eachLimit(peers.slice(0, self.config.broadcastLimit), self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = modules.peers.accept(peer);
 
 				modules.transport.getFromPeer(peer, options, function (err) {
@@ -99,29 +97,55 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 	});
 };
 
-// Private
-__private.cleanQueue = function (cb) {
-	library.logger.debug('Broadcasts before cleaning: ' + self.queue.length);
+Broadcaster.prototype.maxRelays = function (object) {
+	if (!Number.isInteger(object.relays)) {
+		object.relays = 1; // First broadcast
+	} else {
+		object.relays++; // Next broadcast
+	}
 
-	self.queue = self.queue.filter(function (broadcast) {
+	if (Math.abs(object.relays) > self.config.relayLimit) {
+		library.logger.debug('Broadcast relays exhausted', object);
+		object.relays--;
+		return true;
+	} else {
+		return false;
+	}
+};
+
+// Private
+__private.filterQueue = function (cb) {
+	library.logger.debug('Broadcasts before filtering: ' + self.queue.length);
+
+	async.filter(self.queue, function (broadcast, filterCb) {
 		if (!broadcast.options || !broadcast.options.data) {
-			return false;
+			return setImmediate(filterCb, null, false);
 		} else if (broadcast.options.data.transaction) {
 			var transaction = broadcast.options.data.transaction;
-
-			if (transaction !== undefined) {
-				return modules.transactions.transactionInPool(transaction.id);
-			} else {
-				return false;
-			}
+			return __private.filterTransaction(transaction, filterCb);
 		} else {
-			return true;
+			return setImmediate(filterCb, null, true);
 		}
+	}, function (err, broadcasts) {
+		self.queue = broadcasts;
+
+		library.logger.debug('Broadcasts after filtering: ' + self.queue.length);
+		return setImmediate(cb);
 	});
+};
 
-	library.logger.debug('Broadcasts after cleaning: ' + self.queue.length);
-
-	return setImmediate(cb);
+__private.filterTransaction = function (transaction, cb) {
+	if (transaction !== undefined) {
+		if (modules.transactions.transactionInPool(transaction.id)) {
+			return setImmediate(cb, null, true);
+		} else {
+			return library.logic.transaction.checkConfirmed(transaction, function (err) {
+				return setImmediate(cb, null, !err);
+			});
+		}
+	} else {
+		return setImmediate(cb, null, false);
+	}
 };
 
 __private.releaseQueue = function (cb) {
@@ -130,14 +154,14 @@ __private.releaseQueue = function (cb) {
 	library.logger.debug('Releasing enqueued broadcasts');
 
 	async.waterfall([
-		function cleanQueue (waterCb) {
-			return __private.cleanQueue(waterCb);
+		function filterQueue (waterCb) {
+			return __private.filterQueue(waterCb);
 		},
 		function getPeers (waterCb) {
 			return self.getPeers({}, waterCb);
 		},
 		function broadcast (peers, waterCb) {
-			broadcasts = self.queue.splice(0, self.releaseLimit);
+			broadcasts = self.queue.splice(0, self.config.releaseLimit);
 
 			async.eachSeries(broadcasts, function (broadcast, eachSeriesCb) {
 				self.broadcast(extend({peers: peers}, broadcast.params), broadcast.options, eachSeriesCb);

@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var async = require('async');
-var constants = require('constants');
+var constants = require('../helpers/constants.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
@@ -115,8 +115,11 @@ __private.updatePeersList = function (cb) {
 			library.schema.validate(peer, schema.updatePeersList.peer, function (err) {
 				if (err) {
 					err.forEach(function (e) {
-						library.logger.error(['Rejecting invalid peer:', peer.ip, e.path, e.message].join(' '));
+						library.logger.error(['Rejecting invalid peer', peer.string, e.path, e.message].join(' '));
 					});
+				} else if (!modules.system.versionCompatible(peer.version)) {
+					library.logger.error(['Rejecting peer', peer.string, 'with incompatible version', peer.version].join(' '));
+					self.remove(peer.ip, peer.port);
 				} else {
 					self.update(peer);
 				}
@@ -244,7 +247,8 @@ Peers.prototype.acceptable = function (peers) {
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
-	}).value();
+		// Slicing peers up to maxPeers
+	}).slice(0, constants.maxPeers).value();
 };
 
 Peers.prototype.list = function (options, cb) {
@@ -311,8 +315,11 @@ Peers.prototype.state = function (pip, port, state, timeoutSeconds) {
 	var frozenPeer = _.find(library.config.peers, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
-	if (!frozenPeer) {
+	if (frozenPeer) {
+		library.logger.debug('Not changing state of frozen peer', [pip, port].join(':'));
+	} else {
 		var clock;
+
 		if (state === 0) {
 			clock = (timeoutSeconds || 1) * 1000;
 			clock = Date.now() + clock;
@@ -332,15 +339,21 @@ Peers.prototype.remove = function (pip, port) {
 	var frozenPeer = _.find(library.config.peers.list, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
-	if (!frozenPeer) {
+	if (frozenPeer) {
+		library.logger.debug('Not removing frozen peer', [pip, port].join(':'));
+	} else if (removed.indexOf(pip) !== -1) {
+		library.logger.debug('Peer already removed', [pip, port].join(':'));
+	} else {
 		removed.push(pip);
 		return __private.sweeper.push('remove', { ip: pip, port: port });
 	}
 };
 
 Peers.prototype.update = function (peer) {
-	peer.state = 2;
-	return __private.sweeper.push('upsert', self.accept(peer).object());
+	if (removed.indexOf(peer.ip) === -1) {
+		peer.state = 2;
+		return __private.sweeper.push('upsert', self.accept(peer).object());
+	}
 };
 
 Peers.prototype.sandboxApi = function (call, args, cb) {
@@ -359,6 +372,7 @@ Peers.prototype.onBlockchainReady = function () {
 				self.update({
 					ip: peer.ip,
 					port: peer.port,
+					version: modules.system.getVersion(),
 					state: 2,
 					broadhash: modules.system.getBroadhash(),
 					height: 1

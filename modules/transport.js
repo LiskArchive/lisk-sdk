@@ -4,7 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
-var constants = require('constants');
+var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
@@ -63,11 +63,18 @@ __private.attachApi = function () {
 				return res.status(500).send({success: false, error: report.issues});
 			}
 
-			if (headers.nethash !== modules.system.getNethash()) {
+			if (!modules.system.networkCompatible(headers.nethash)) {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'ENETHASH', req: req});
 
 				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
+			}
+
+			if (!modules.system.versionCompatible(headers.version)) {
+				// Remove peer
+				__private.removePeer({peer: req.peer, code: 'EVERSION:' + headers.version, req: req});
+
+				return res.status(200).send({success: false, message: 'Request is made from incompatible version', expected: modules.system.getMinVersion(), received: headers.version});
 			}
 
 			if (req.body && req.body.dappid) {
@@ -419,11 +426,18 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
 			}
 
-			if (headers.nethash !== modules.system.getNethash()) {
+			if (!modules.system.networkCompatible(headers.nethash)) {
 				// Remove peer
 				__private.removePeer({peer: peer, code: 'ENETHASH', req: req});
 
 				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
+			}
+
+			if (!modules.system.versionCompatible(headers.version)) {
+				// Remove peer
+				__private.removePeer({peer: peer, code: 'EVERSION:' + headers.version, req: req});
+
+				return setImmediate(cb, ['Peer is using incompatible version', headers.version, req.method, req.url].join(' '));
 			}
 
 			if (res.body.height) {
@@ -438,7 +452,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 	request.catch(function (err) {
 		if (peer) {
-			if (err.code === 'EUNAVAILABLE' || err.code === 'ETIMEOUT') {
+			if (err.code === 'EUNAVAILABLE') {
 				// Remove peer
 				__private.removePeer({peer: peer, code: err.code, req: req});
 			} else {
@@ -468,21 +482,21 @@ Transport.prototype.onBlockchainReady = function () {
 };
 
 Transport.prototype.onSignature = function (signature, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
 		__private.broadcaster.enqueue({}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
 		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
 
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
 		__private.broadcaster.enqueue({}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
 
 Transport.prototype.onNewBlock = function (block, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(block)) {
 		var broadhash = modules.system.getBroadhash();
 
 		modules.system.update(function () {
@@ -493,7 +507,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 };
 
 Transport.prototype.onMessage = function (msg, broadcast) {
-	if (broadcast) {
+	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
 		__private.broadcaster.broadcast({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 	}
 };

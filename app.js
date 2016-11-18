@@ -34,12 +34,7 @@ program
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
-var appConfig;
-if (program.config) {
-	appConfig = require(path.resolve(process.cwd(), program.config));
-} else {
-  appConfig = require('./config.json');
-}
+var appConfig = require('./helpers/config.js')(program.config);
 
 if (program.port) {
 	appConfig.port = program.port;
@@ -231,7 +226,6 @@ d.run(function () {
 			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
-			var requestSanitizer = require('./helpers/request-sanitizer');
 			var queryParser = require('express-query-int');
 
 			scope.network.app.engine('html', require('ejs').renderFile);
