@@ -452,7 +452,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 	request.catch(function (err) {
 		if (peer) {
-			if (err.code === 'EUNAVAILABLE' || err.code === 'ETIMEOUT') {
+			if (err.code === 'EUNAVAILABLE') {
 				// Remove peer
 				__private.removePeer({peer: peer, code: err.code, req: req});
 			} else {
