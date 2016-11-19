@@ -112,6 +112,9 @@ __private.attachApi = function () {
 			if (!escapedIds.length) {
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
 
+				// Ban peer for 60 minutes
+				__private.banPeer({peer: req.peer, code: 'ECOMMON', req: req, clock: 3600});
+
 				return res.json({success: false, error: 'Invalid block id sequence'});
 			}
 
