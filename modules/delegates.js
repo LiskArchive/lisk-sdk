@@ -308,14 +308,12 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 		async.eachSeries(votes, function (action, cb) {
 			var math = action[0];
 
-			if (math !== '+' && math !== '-') {
-				return setImmediate(cb, 'Invalid math operator');
-			}
-
 			if (math === '+') {
 				additions += 1;
 			} else if (math === '-') {
 				removals += 1;
+			} else {
+				return setImmediate(cb, 'Invalid math operator');
 			}
 
 			var publicKey = action.slice(1);
