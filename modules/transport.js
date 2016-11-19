@@ -89,7 +89,8 @@ __private.attachApi = function () {
 
 	router.get('/list', function (req, res) {
 		modules.peers.list({limit: constants.maxPeers}, function (err, peers) {
-			return res.status(200).json({peers: !err ? peers : []});
+			peers = (!err ? peers : []);
+			return res.status(200).json({success: !err, peers: peers});
 		});
 	});
 
