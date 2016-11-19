@@ -160,7 +160,7 @@ describe('POST /peer/transactions', function () {
 					var transaction2 = node.lisk.vote.createVote(account.password, ['+' + delegate]);
 					postVote(transaction2, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
-						done();
+						seriesCb();
 					});
 				});
 			},
