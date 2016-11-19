@@ -67,14 +67,14 @@ __private.attachApi = function () {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'ENETHASH', req: req});
 
-				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
+				return res.status(500).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
 			}
 
 			if (!modules.system.versionCompatible(headers.version)) {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'EVERSION:' + headers.version, req: req});
 
-				return res.status(200).send({success: false, message: 'Request is made from incompatible version', expected: modules.system.getMinVersion(), received: headers.version});
+				return res.status(500).send({success: false, message: 'Request is made from incompatible version', expected: modules.system.getMinVersion(), received: headers.version});
 			}
 
 			if (req.body && req.body.dappid) {
