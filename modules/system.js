@@ -10,6 +10,8 @@ var sql = require('../sql/system.js');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
+var rcRegExp = /[a-z]+$/;
+
 // Constructor
 function System (cb, scope) {
 	library = scope;
@@ -22,10 +24,9 @@ function System (cb, scope) {
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;
 	__private.minVersion = library.config.minVersion;
-	__private.rcRegExp = /[a-z]+$/;
 
-	if (__private.rcRegExp.test(__private.minVersion)) {
-		this.minVersion = __private.minVersion.replace(__private.rcRegExp, '');
+	if (rcRegExp.test(__private.minVersion)) {
+		this.minVersion = __private.minVersion.replace(rcRegExp, '');
 		this.minVersionChar = __private.minVersion.charAt(__private.minVersion.length - 1);
 	} else {
 		this.minVersion = __private.minVersion;
@@ -72,9 +73,9 @@ System.prototype.getMinVersion = function () {
 System.prototype.versionCompatible = function (version) {
 	var versionChar;
 
-	if (__private.rcRegExp.test(version)) {
+	if (rcRegExp.test(version)) {
 		versionChar = version.charAt(version.length - 1);
-		version = version.replace(__private.rcRegExp, '');
+		version = version.replace(rcRegExp, '');
 	}
 
 	var semVerMatch = semver.satisfies(version, this.minVersion);
