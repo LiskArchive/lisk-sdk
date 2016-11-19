@@ -78,12 +78,10 @@ System.prototype.versionCompatible = function (version) {
 		version = version.replace(rcRegExp, '');
 	}
 
-	var semVerMatch = semver.satisfies(version, this.minVersion);
-
 	if (this.minVersionChar && versionChar) {
-		return semVerMatch && this.minVersionChar === versionChar;
+		return (version + versionChar) === (this.minVersion + this.minVersionChar);
 	} else {
-		return semVerMatch;
+		return semver.satisfies(version, this.minVersion);
 	}
 };
 
