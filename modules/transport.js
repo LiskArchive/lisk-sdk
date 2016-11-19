@@ -500,7 +500,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 		var broadhash = modules.system.getBroadhash();
 
 		modules.system.update(function () {
-			__private.broadcaster.broadcast({broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST'});
+			__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST'});
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
@@ -508,7 +508,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 
 Transport.prototype.onMessage = function (msg, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
-		__private.broadcaster.broadcast({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
+		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
 	}
 };
 
