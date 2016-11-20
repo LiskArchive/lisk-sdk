@@ -156,14 +156,31 @@ describe('POST /peer/transactions', function () {
 				});
 			},
 			function (seriesCb) {
-				node.onNewBlock(function (err) {
-					var transaction2 = node.lisk.vote.createVote(account.password, ['+' + delegate]);
-					postVote(transaction2, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.not.ok;
-						seriesCb();
-					});
+				setTimeout(seriesCb, 1000);
+			},
+			function (seriesCb) {
+				var transaction2 = node.lisk.vote.createVote(account.password, ['+' + delegate]);
+				postVote(transaction2, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					seriesCb();
 				});
 			},
+			function (seriesCb) {
+				return node.onNewBlock(seriesCb);
+			},
+			function (seriesCb) {
+				var transaction2 = node.lisk.vote.createVote(account.password, ['+' + delegate]);
+				postVote(transaction2, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
+					seriesCb();
+				});
+			},
+			function (seriesCb) {
+				getVotes(account.address, function (err, res) {
+					node.expect(res.body).to.have.property('delegates').that.has.lengthOf(1);
+					seriesCb(err);
+				});
+			}
 		], function (err) {
 			return done(err);
 		});
@@ -304,6 +321,12 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 	it('exceeding maximum of 101 votes should fail', function (done) {
 		async.series([
 			function (seriesCb) {
+				getVotes(account.address, function (err, res) {
+					node.expect(res.body).to.have.property('delegates').that.has.lengthOf(1);
+					seriesCb(err);
+				});
+			},
+			function (seriesCb) {
 				var slicedDelegates = delegates.slice(0, 76);
 				node.expect(slicedDelegates).to.have.lengthOf(76);
 
@@ -331,6 +354,12 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('message').to.equal('Maximum number of 101 votes exceeded (1 too many)');
 					seriesCb();
+				});
+			},
+			function (seriesCb) {
+				getVotes(account.address, function (err, res) {
+					node.expect(res.body).to.have.property('delegates').that.has.lengthOf(77);
+					seriesCb(err);
 				});
 			}
 		], function (err) {
