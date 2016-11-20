@@ -335,13 +335,17 @@ Peers.prototype.state = function (pip, port, state, timeoutSeconds) {
 	}
 };
 
+Peers.prototype.isRemoved = function (pip) {
+	return (removed.indexOf(pip) !== -1);
+};
+
 Peers.prototype.remove = function (pip, port) {
 	var frozenPeer = _.find(library.config.peers.list, function (peer) {
 		return peer.ip === pip && peer.port === port;
 	});
 	if (frozenPeer) {
 		library.logger.debug('Not removing frozen peer', [pip, port].join(':'));
-	} else if (removed.indexOf(pip) !== -1) {
+	} else if (self.isRemoved(pip)) {
 		library.logger.debug('Peer already removed', [pip, port].join(':'));
 	} else {
 		removed.push(pip);
@@ -350,7 +354,7 @@ Peers.prototype.remove = function (pip, port) {
 };
 
 Peers.prototype.update = function (peer) {
-	if (removed.indexOf(peer.ip) === -1) {
+	if (!self.isRemoved(peer.ip)) {
 		peer.state = 2;
 		return __private.sweeper.push('upsert', self.accept(peer).object());
 	}
