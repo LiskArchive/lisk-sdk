@@ -29,7 +29,7 @@ node.api = node.supertest(node.baseUrl);
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-node.version = '0.0.0'; // Node version
+node.version = node.config.version; // Node version
 
 // Transaction fees
 node.fees = {
@@ -196,7 +196,7 @@ node.addPeers = function (numOfPeers, cb) {
 		return i < numOfPeers;
 	}, function (next) {
 		os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
-		version = node.config.version;
+		version = node.version;
 
 		var request = node.popsicle.get({
 			url: node.baseUrl + '/peer/height',

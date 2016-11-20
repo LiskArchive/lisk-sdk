@@ -67,14 +67,14 @@ __private.attachApi = function () {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'ENETHASH', req: req});
 
-				return res.status(200).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
+				return res.status(500).send({success: false, message: 'Request is made on the wrong network', expected: modules.system.getNethash(), received: headers.nethash});
 			}
 
 			if (!modules.system.versionCompatible(headers.version)) {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'EVERSION:' + headers.version, req: req});
 
-				return res.status(200).send({success: false, message: 'Request is made from incompatible version', expected: modules.system.getMinVersion(), received: headers.version});
+				return res.status(500).send({success: false, message: 'Request is made from incompatible version', expected: modules.system.getMinVersion(), received: headers.version});
 			}
 
 			if (req.body && req.body.dappid) {
@@ -89,7 +89,8 @@ __private.attachApi = function () {
 
 	router.get('/list', function (req, res) {
 		modules.peers.list({limit: constants.maxPeers}, function (err, peers) {
-			return res.status(200).json({peers: !err ? peers : []});
+			peers = (!err ? peers : []);
+			return res.status(200).json({success: !err, peers: peers});
 		});
 	});
 
@@ -110,6 +111,9 @@ __private.attachApi = function () {
 
 			if (!escapedIds.length) {
 				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
+
+				// Ban peer for 60 minutes
+				__private.banPeer({peer: req.peer, code: 'ECOMMON', req: req, clock: 3600});
 
 				return res.json({success: false, error: 'Invalid block id sequence'});
 			}
@@ -500,7 +504,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 		var broadhash = modules.system.getBroadhash();
 
 		modules.system.update(function () {
-			__private.broadcaster.broadcast({broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST'});
+			__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
@@ -508,7 +512,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 
 Transport.prototype.onMessage = function (msg, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
-		__private.broadcaster.broadcast({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
+		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST', immediate: true});
 	}
 };
 
