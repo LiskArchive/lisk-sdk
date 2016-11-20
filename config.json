@@ -1,8 +1,8 @@
 {
     "port": 7000,
     "address": "0.0.0.0",
-    "version": "0.5.0d",
-    "minVersion": "0.5.0d",
+    "version": "0.5.0e",
+    "minVersion": "0.5.0e",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
     "consoleLogLevel": "info",
