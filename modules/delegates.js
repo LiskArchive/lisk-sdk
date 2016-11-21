@@ -236,14 +236,6 @@ __private.forge = function (cb) {
 		return setImmediate(cb);
 	}
 
-	// Do not forge when broadhash efficiency is below threshold
-	var efficiency = modules.transport.efficiency();
-
-	if (efficiency <= constants.minBroadhashEfficiency) {
-		library.logger.debug(['Poor broadhash efficiency', efficiency, '%'].join(' '));
-		return setImmediate(cb);
-	}
-
 	var currentSlot = slots.getSlotNumber();
 	var lastBlock = modules.blocks.getLastBlock();
 
@@ -254,13 +246,21 @@ __private.forge = function (cb) {
 
 	__private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.debug('Skipping delegate slot');
+			library.logger.warn('Skipping delegate slot', err);
 			return setImmediate(cb);
 		}
 
 		library.sequence.add(function (cb) {
 			if (slots.getSlotNumber(currentBlockData.time) !== slots.getSlotNumber()) {
 				library.logger.debug('Delegate slot', slots.getSlotNumber());
+				return setImmediate(cb);
+			}
+
+			// Do not forge when broadhash efficiency is below threshold
+			var efficiency = modules.transport.efficiency();
+
+			if (efficiency <= constants.minBroadhashEfficiency) {
+				library.logger.warn('Skipping delegate slot', ['Inadequate broadhash efficiency', efficiency, '%'].join(' '));
 				return setImmediate(cb);
 			}
 
