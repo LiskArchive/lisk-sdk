@@ -718,7 +718,7 @@ Blocks.prototype.getLastBlock = function () {
 		var lastBlockTime = epoch + __private.lastBlock.timestamp;
 		var currentTime = new Date().getTime() / 1000;
 
-		__private.lastBlock.secondsAgo = currentTime - lastBlockTime;
+		__private.lastBlock.secondsAgo = Math.round((currentTime - lastBlockTime) * 1e2) / 1e2;
 		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
 	}
 
@@ -733,6 +733,7 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 	if (__private.lastReceipt) {
 		var timeNow = new Date();
 		__private.lastReceipt.secondsAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
+		__private.lastReceipt.secondsAgo = Math.round(__private.lastReceipt.secondsAgo * 1e2) / 1e2;
 		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > constants.blockReceiptTimeOut);
 	}
 
