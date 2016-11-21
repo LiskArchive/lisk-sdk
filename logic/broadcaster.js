@@ -49,7 +49,7 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 			return setImmediate(cb, err);
 		}
 
-		if (self.efficiency !== undefined) {
+		if (self.efficiency !== undefined && params.limit === constants.maxPeers) {
 			self.efficiency = efficiency;
 		}
 
