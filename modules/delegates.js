@@ -259,25 +259,25 @@ __private.forge = function (cb) {
 		}
 
 		library.sequence.add(function (cb) {
-			if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()) {
-				modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
-					modules.blocks.lastReceipt(new Date());
-
-					library.logger.info([
-						'Forged new block id:',
-						modules.blocks.getLastBlock().id,
-						'height:', modules.blocks.getLastBlock().height,
-						'round:', modules.rounds.calc(modules.blocks.getLastBlock().height),
-						'slot:', slots.getSlotNumber(currentBlockData.time),
-						'reward:' + modules.blocks.getLastBlock().reward
-					].join(' '));
-
-					return setImmediate(cb, err);
-				});
-			} else {
+			if (slots.getSlotNumber(currentBlockData.time) !== slots.getSlotNumber()) {
 				library.logger.debug('Delegate slot', slots.getSlotNumber());
 				return setImmediate(cb);
 			}
+
+			modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
+				modules.blocks.lastReceipt(new Date());
+
+				library.logger.info([
+					'Forged new block id:',
+					modules.blocks.getLastBlock().id,
+					'height:', modules.blocks.getLastBlock().height,
+					'round:', modules.rounds.calc(modules.blocks.getLastBlock().height),
+					'slot:', slots.getSlotNumber(currentBlockData.time),
+					'reward:' + modules.blocks.getLastBlock().reward
+				].join(' '));
+
+				return setImmediate(cb, err);
+			});
 		}, function (err) {
 			if (err) {
 				library.logger.error('Failed generate block within delegate slot', err);
