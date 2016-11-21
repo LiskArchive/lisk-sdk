@@ -805,7 +805,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		}
 	], function (err, res) {
-		if (comparisionFailed && modules.transport.poorEfficiency()) {
+		if (comparisionFailed && modules.transport.poorConsensus()) {
 			return __private.recoverChain(cb);
 		} else {
 			return setImmediate(cb, err, res);

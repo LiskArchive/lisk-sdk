@@ -302,11 +302,11 @@ Peers.prototype.list = function (options, cb) {
 			}
 		}
 	], function (err, peers) {
-		var efficiency = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-		    efficiency = isNaN(efficiency) ? 0 : efficiency;
+		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
+		    consensus = isNaN(consensus) ? 0 : consensus;
 
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers, efficiency);
+		return setImmediate(cb, err, peers, consensus);
 	});
 };
 

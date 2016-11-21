@@ -477,15 +477,15 @@ Transport.prototype.headers = function (headers) {
 	return __private.headers;
 };
 
-Transport.prototype.efficiency = function () {
-	return __private.broadcaster.efficiency;
+Transport.prototype.consensus = function () {
+	return __private.broadcaster.consensus;
 };
 
-Transport.prototype.poorEfficiency = function () {
-	if (__private.broadcaster.efficiency === undefined) {
+Transport.prototype.poorConsensus = function () {
+	if (__private.broadcaster.consensus === undefined) {
 		return false;
 	} else {
-		return (__private.broadcaster.efficiency < constants.minBroadhashEfficiency);
+		return (__private.broadcaster.consensus < constants.minBroadhashConsensus);
 	}
 };
 

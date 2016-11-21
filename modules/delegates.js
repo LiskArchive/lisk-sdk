@@ -261,8 +261,8 @@ __private.forge = function (cb) {
 					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 				},
 				checkBroadhash: function (seriesCb) {
-					if (modules.transport.poorEfficiency()) {
-						return setImmediate(seriesCb, ['Inadequate broadhash efficiency', modules.transport.consensus(), '%'].join(' '));
+					if (modules.transport.poorConsensus()) {
+						return setImmediate(seriesCb, ['Inadequate broadhash consensus', modules.transport.consensus(), '%'].join(' '));
 					} else {
 						return setImmediate(seriesCb);
 					}

@@ -17,11 +17,11 @@ function Broadcaster (scope) {
 	self.config = library.config.broadcasts;
 	self.config.peerLimit = constants.maxPeers;
 
-	// Optionally ignore broadhash efficiency
+	// Optionally ignore broadhash consensus
 	if (library.config.forging.force) {
-		self.efficiency = undefined;
+		self.consensus = undefined;
 	} else {
-		self.efficiency = 100;
+		self.consensus = 100;
 	}
 
 	// Broadcast routes
@@ -60,14 +60,14 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 
 	var originalLimit = params.limit;
 
-	modules.peers.list(params, function (err, peers, efficiency) {
+	modules.peers.list(params, function (err, peers, consensus) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		if (self.efficiency !== undefined && originalLimit === constants.maxPeers) {
-			library.logger.info(['Broadhash efficiency updated to', efficiency, '%'].join(' '));
-			self.efficiency = efficiency;
+		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
+			library.logger.info(['Broadhash consensus updated to', consensus, '%'].join(' '));
+			self.consensus = consensus;
 		}
 
 		return setImmediate(cb, null, peers);
