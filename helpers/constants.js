@@ -7,7 +7,7 @@ module.exports = {
 	blockReceiptTimeOut: 120, // 12 blocks
 	confirmationLength: 77,
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
-	fees:{
+	fees: {
 		send: 10000000,
 		vote: 100000000,
 		secondsignature: 500000000,
@@ -17,10 +17,10 @@ module.exports = {
 	},
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
-	fixedPoint : Math.pow(10, 8),
+	fixedPoint: Math.pow(10, 8),
 	maxAddressesLength: 208 * 128,
 	maxAmount: 100000000,
-	maxConfirmations : 77 * 100,
+	maxConfirmations: 77 * 100,
 	maxPayloadLength: 1024 * 1024,
 	maxPeers: 100,
 	maxRequests: 10000 * 12,
