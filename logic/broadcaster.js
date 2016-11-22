@@ -83,7 +83,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			async.eachLimit(peers.slice(0, self.config.broadcastLimit), self.config.parallelLimit, function (peer, eachLimitCb) {
+			if (params.limit === self.config.peerLimit) { peers.splice(0, self.config.broadcastLimit); }
+
+			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = modules.peers.accept(peer);
 
 				modules.transport.getFromPeer(peer, options, function (err) {
