@@ -554,8 +554,8 @@ Delegates.prototype.onBlockchainReady = function () {
 		}
 
 		async.series([
-			modules.transactions.fillPool,
-			__private.forge
+			__private.forge,
+			modules.transactions.fillPool
 		], function (err) {
 			return setTimeout(nextForge, 1000);
 		});
