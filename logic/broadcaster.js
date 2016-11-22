@@ -129,8 +129,8 @@ __private.filterQueue = function (cb) {
 	async.filter(self.queue, function (broadcast, filterCb) {
 		if (broadcast.options.immediate) {
 			return setImmediate(filterCb, null, false);
-		} else if (broadcast.options.data.transaction) {
-			var transaction = broadcast.options.data.transaction;
+		} else if (broadcast.options.data) {
+			var transaction = (broadcast.options.data.transaction || broadcast.options.data.signature);
 			return __private.filterTransaction(transaction, filterCb);
 		} else {
 			return setImmediate(filterCb, null, true);
