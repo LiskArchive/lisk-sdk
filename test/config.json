@@ -14,7 +14,7 @@
         "database": "lisk_test",
         "user": "",
         "password": "password",
-        "poolSize": 100,
+        "poolSize": 95,
         "poolIdleTimeout": 30000,
         "reapIntervalMillis": 1000,
         "logEvents": [
