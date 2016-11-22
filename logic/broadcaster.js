@@ -199,6 +199,11 @@ __private.squashQueue = function (broadcasts) {
 __private.releaseQueue = function (cb) {
 	library.logger.debug('Releasing enqueued broadcasts');
 
+	if (!self.queue.length) {
+		library.logger.debug('Queue empty');
+		return setImmediate(cb);
+	}
+
 	async.waterfall([
 		function filterQueue (waterCb) {
 			return __private.filterQueue(waterCb);
