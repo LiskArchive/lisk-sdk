@@ -172,19 +172,23 @@ __private.attachApi = function () {
 	});
 
 	router.post('/signatures', function (req, res) {
-		library.schema.validate(req.body, schema.signatures, function (err) {
-			if (err) {
-				return res.status(200).json({success: false, error: 'Signature validation failed'});
-			}
-
-			modules.multisignatures.processSignature(req.body.signature, function (err) {
+		if (req.body.signatures) {
+			__private.receiveSignatures(req, function (err, ids) {
 				if (err) {
-					return res.status(200).json({success: false, error: 'Error processing signature'});
+					return res.status(200).json({success: false, message: err});
 				} else {
-					return res.status(200).json({success: true});
+					return res.status(200).json({success: true, signatureIds: ids});
 				}
 			});
-		});
+		} else {
+			__private.receiveSignature(req.body.signature, req, function (err, id) {
+				if (err) {
+					return res.status(200).json({success: false, message: err});
+				} else {
+					return res.status(200).json({success: true, signatureId: id});
+				}
+			});
+		}
 	});
 
 	router.get('/signatures', function (req, res) {
@@ -212,36 +216,23 @@ __private.attachApi = function () {
 	});
 
 	router.post('/transactions', function (req, res) {
-		var transaction = req.body.transaction;
-		var id = (transaction? transaction.id : 'null');
-
-		try {
-			transaction = library.logic.transaction.objectNormalize(transaction);
-		} catch (e) {
-			library.logger.debug(['Transaction', id].join(' '), e.toString());
-			if (transaction) { library.logger.debug('Transaction', transaction); }
-
-			if (req.peer) {
-				// Ban peer for 60 minutes
-				__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 3600});
-			}
-
-			return res.status(200).json({success: false, message: 'Invalid transaction body'});
+		if (req.body.transactions) {
+			__private.receiveTransactions(req, function (err, ids) {
+				if (err) {
+					return res.status(200).json({success: false, message: err});
+				} else {
+					return res.status(200).json({success: true, transactionIds: ids});
+				}
+			});
+		} else {
+			__private.receiveTransaction(req.body.transaction, req, function (err, id) {
+				if (err) {
+					return res.status(200).json({success: false, message: err});
+				} else {
+					return res.status(200).json({success: true, transactionId: id});
+				}
+			});
 		}
-
-		library.balancesSequence.add(function (cb) {
-			library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + req.peer.string);
-			modules.transactions.receiveTransactions([transaction], true, cb);
-		}, function (err) {
-			if (err) {
-				library.logger.debug(['Transaction', id].join(' '), err.toString());
-				if (transaction) { library.logger.debug('Transaction', transaction); }
-
-				res.status(200).json({success: false, message: err.toString()});
-			} else {
-				res.status(200).json({success: true, transactionId: transaction.id});
-			}
-		});
 	});
 
 	router.get('/height', function (req, res) {
@@ -337,6 +328,7 @@ __private.attachApi = function () {
 	});
 };
 
+// Private methods
 __private.hashsum = function (obj) {
 	var buf = new Buffer(JSON.stringify(obj), 'utf8');
 	var hashdig = crypto.createHash('sha256').update(buf).digest();
@@ -356,6 +348,122 @@ __private.banPeer = function (options) {
 __private.removePeer = function (options) {
 	library.logger.warn([options.code, 'Removing peer', options.peer.string, options.req.method, options.req.url].join(' '));
 	modules.peers.remove(options.peer.ip, options.peer.port);
+};
+
+__private.receiveSignatures = function (req, cb) {
+	var ids, signatures;
+
+	async.series({
+		validateSchema: function (seriesCb) {
+			library.schema.validate(req.body, schema.signatures, function (err) {
+				if (err) {
+					return setImmediate(seriesCb, 'Invalid signatures body');
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
+		},
+		receiveSignatures: function (seriesCb) {
+			signatures = req.body.signatures;
+			ids = signatures.map(function (signature) { return signature.id; });
+
+			async.eachSeries(signatures, function (signature, eachSeriesCb) {
+				__private.receiveSignature(signature, req, function (err) {
+					if (err) {
+						library.logger.debug(err, signature);
+						ids.splice(ids.indexOf(signature.id));
+					}
+
+					return setImmediate(eachSeriesCb);
+				});
+			}, seriesCb);
+		}
+	}, function (err) {
+		return setImmediate(cb, err, (ids || []));
+	});
+};
+
+__private.receiveSignature = function (signature, req, cb) {
+	library.schema.validate({signature: signature}, schema.signature, function (err) {
+		if (err) {
+			return setImmediate(cb, 'Signature validation failed');
+		}
+
+		library.balancesSequence.add(function (cb) {
+			modules.multisignatures.processSignature(signature, function (err) {
+				if (err) {
+					return setImmediate(cb, 'Error processing signature');
+				} else {
+					return setImmediate(cb);
+				}
+			});
+		}, cb);
+	});
+};
+
+__private.receiveTransactions = function (req, cb) {
+	var ids, transactions;
+
+	async.series({
+		validateSchema: function (seriesCb) {
+			library.schema.validate(req.body, schema.transactions, function (err) {
+				if (err) {
+					return setImmediate(seriesCb, 'Invalid transactions body');
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
+		},
+		receiveTransactions: function (seriesCb) {
+			transactions = req.body.transactions;
+			ids = transactions.map(function (transaction) { return transaction.id; });
+
+			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				__private.receiveTransaction(transaction, req, function (err) {
+					if (err) {
+						library.logger.debug(err, transaction);
+						ids.splice(ids.indexOf(transaction.id));
+					}
+
+					return setImmediate(eachSeriesCb);
+				});
+			}, seriesCb);
+		}
+	}, function (err) {
+		return setImmediate(cb, err, (ids || []));
+	});
+};
+
+__private.receiveTransaction = function (transaction, req, cb) {
+	var id = (transaction ? transaction.id : 'null');
+
+	try {
+		transaction = library.logic.transaction.objectNormalize(transaction);
+	} catch (e) {
+		library.logger.debug(['Transaction', id].join(' '), e.toString());
+		if (transaction) { library.logger.debug('Transaction', transaction); }
+
+		if (req.peer) {
+			// Ban peer for 60 minutes
+			__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 3600});
+		}
+
+		return setImmediate(cb, 'Invalid transaction body');
+	}
+
+	library.balancesSequence.add(function (cb) {
+		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + req.peer.string);
+		modules.transactions.receiveTransactions([transaction], true, function (err) {
+			if (err) {
+				library.logger.debug(['Transaction', id].join(' '), err.toString());
+				if (transaction) { library.logger.debug('Transaction', transaction); }
+
+				return setImmediate(cb, err.toString());
+			} else {
+				return setImmediate(cb, null, transaction.id);
+			}
+		});
+	}, cb);
 };
 
 // Public methods

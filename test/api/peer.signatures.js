@@ -104,4 +104,10 @@ describe('POST /peer/signatures', function () {
   });
 
   it('using processable signature should be ok');
+
+  describe('using multiple signatures', function () {
+    it('with unprocessable signature should fail');
+
+    it('with processable signature should be ok');
+  });
 });

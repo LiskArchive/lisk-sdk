@@ -295,6 +295,12 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
+	describe('using multiple transactions', function () {
+		it('with invalid transaction should fail');
+
+		it('with valid transaction should be ok');
+	});
+
 	describe('when two passphrases collide into the same address', function () {
 
 		var collision = {
