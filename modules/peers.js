@@ -354,10 +354,9 @@ Peers.prototype.remove = function (pip, port) {
 };
 
 Peers.prototype.update = function (peer) {
-	if (!self.isRemoved(peer.ip)) {
-		peer.state = 2;
-		return __private.sweeper.push('upsert', self.accept(peer).object());
-	}
+	peer.state = 2;
+	removed.splice(removed.indexOf(peer.ip));
+	return __private.sweeper.push('upsert', self.accept(peer).object());
 };
 
 Peers.prototype.sandboxApi = function (call, args, cb) {
