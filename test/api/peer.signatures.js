@@ -86,7 +86,7 @@ describe('POST /peer/signatures', function () {
       .end(function (err, res) {
         node.debug('> Response:'.grey, JSON.stringify(res.body));
         node.expect(res.body).to.have.property('success').to.be.not.ok;
-        node.expect(res.body).to.have.property('error').to.equal('Signature validation failed');
+        node.expect(res.body).to.have.property('message').to.equal('Signature validation failed');
         done();
       });
   });
@@ -98,7 +98,7 @@ describe('POST /peer/signatures', function () {
       .end(function (err, res) {
         node.debug('> Response:'.grey, JSON.stringify(res.body));
         node.expect(res.body).to.have.property('success').to.be.not.ok;
-        node.expect(res.body).to.have.property('error').to.equal('Error processing signature');
+        node.expect(res.body).to.have.property('message').to.equal('Error processing signature');
         done();
       });
   });
