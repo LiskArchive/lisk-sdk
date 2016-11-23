@@ -181,8 +181,13 @@ __private.loadTransactions = function (cb) {
 			});
 		},
 		function (transactions, waterCb) {
-			library.balancesSequence.add(function (cb) {
-				modules.transactions.receiveTransactions(transactions, false, cb);
+			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				library.balancesSequence.add(function (cb) {
+					modules.transactions.processUnconfirmedTransaction(transaction, false, cb);
+				}, function (err) {
+					library.logger.debug(err);
+					return setImmediate(eachSeriesCb);
+				});
 			}, waterCb);
 		}
 	], function (err) {
