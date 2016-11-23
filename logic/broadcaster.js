@@ -72,13 +72,7 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 };
 
 Broadcaster.prototype.enqueue = function (params, options) {
-	if (self.queue.length <= self.config.releaseLimit) {
-		options.immediate = true;
-		self.broadcast(params, options);
-	} else {
-		options.immediate = false;
-	}
-
+	options.immediate = false;
 	return self.queue.push({params: params, options: options});
 };
 
