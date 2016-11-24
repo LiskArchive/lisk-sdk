@@ -419,6 +419,8 @@ __private.receiveTransactions = function (req, cb) {
 			ids = transactions.map(function (transaction) { return transaction.id; });
 
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				transaction.bundled = true;
+
 				__private.receiveTransaction(transaction, req, function (err) {
 					if (err) {
 						library.logger.debug(err, transaction);
