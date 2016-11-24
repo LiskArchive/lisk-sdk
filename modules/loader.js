@@ -186,7 +186,9 @@ __private.loadTransactions = function (cb) {
 					transaction.bundled = true;
 					modules.transactions.processUnconfirmedTransaction(transaction, false, cb);
 				}, function (err) {
-					library.logger.debug(err);
+					if (err) {
+						library.logger.debug(err);
+					}
 					return setImmediate(eachSeriesCb);
 				});
 			}, waterCb);
