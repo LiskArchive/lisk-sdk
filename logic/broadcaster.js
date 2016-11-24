@@ -116,16 +116,14 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 
 Broadcaster.prototype.maxRelays = function (object) {
 	if (!Number.isInteger(object.relays)) {
-		object.relays = 1; // First broadcast
-	} else {
-		object.relays++; // Next broadcast
+		object.relays = 0; // First broadcast
 	}
 
-	if (Math.abs(object.relays) > self.config.relayLimit) {
+	if (Math.abs(object.relays) >= self.config.relayLimit) {
 		library.logger.debug('Broadcast relays exhausted', object);
-		object.relays--;
 		return true;
 	} else {
+		object.relays++; // Next broadcast
 		return false;
 	}
 };
