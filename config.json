@@ -73,7 +73,7 @@
         "broadcastLimit": 20,
         "parallelLimit": 20,
         "releaseLimit": 25,
-        "relayLimit": 5
+        "relayLimit": 2
     },
     "forging": {
         "force": false,
