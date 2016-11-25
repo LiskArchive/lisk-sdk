@@ -218,7 +218,7 @@ TransactionPool.prototype.removeMultisignatureTransaction = function (id) {
 	}
 };
 
-TransactionPool.prototype.countMultisignature= function () {
+TransactionPool.prototype.countMultisignature = function () {
 	return Object.keys(self.multisignature.index).length;
 };
 
