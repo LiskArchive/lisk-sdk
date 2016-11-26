@@ -250,19 +250,35 @@ __private.forge = function (cb) {
 			return setImmediate(cb);
 		}
 
+		if (slots.getSlotNumber(currentBlockData.time) !== slots.getSlotNumber()) {
+			library.logger.debug('Delegate slot', slots.getSlotNumber());
+			return setImmediate(cb);
+		}
+
 		library.sequence.add(function (cb) {
-			if (slots.getSlotNumber(currentBlockData.time) !== slots.getSlotNumber()) {
-				library.logger.debug('Delegate slot', slots.getSlotNumber());
-				return setImmediate(cb);
-			}
-
-			// Do not forge when broadhash efficiency is below threshold
-			if (modules.transport.poorEfficiency()) {
-				library.logger.warn('Skipping delegate slot', ['Inadequate broadhash efficiency', modules.transport.efficiency(), '%'].join(' '));
-				return setImmediate(cb);
-			}
-
-			modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
+			async.series({
+				getPeers: function (seriesCb) {
+					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+				},
+				checkBroadhash: function (seriesCb) {
+					if (modules.transport.poorEfficiency()) {
+						return setImmediate(seriesCb, ['Inadequate broadhash efficiency', modules.transport.consensus(), '%'].join(' '));
+					} else {
+						return setImmediate(seriesCb);
+					}
+				}
+			}, function (err) {
+				if (err) {
+					library.logger.warn(err);
+					return setImmediate(cb, err);
+				} else {
+					return modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
+				}
+			});
+		}, function (err) {
+			if (err) {
+				library.logger.error('Failed generate block within delegate slot', err);
+			} else {
 				modules.blocks.lastReceipt(new Date());
 
 				library.logger.info([
@@ -273,13 +289,8 @@ __private.forge = function (cb) {
 					'slot:', slots.getSlotNumber(currentBlockData.time),
 					'reward:' + modules.blocks.getLastBlock().reward
 				].join(' '));
-
-				return setImmediate(cb, err);
-			});
-		}, function (err) {
-			if (err) {
-				library.logger.error('Failed generate block within delegate slot', err);
 			}
+
 			return setImmediate(cb);
 		});
 	});
