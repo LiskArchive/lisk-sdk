@@ -64,6 +64,7 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 		}
 
 		if (self.efficiency !== undefined && params.limit === constants.maxPeers) {
+			library.logger.info(['Broadhash efficiency updated to', efficiency, '%'].join(' '));
 			self.efficiency = efficiency;
 		}
 

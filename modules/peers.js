@@ -305,7 +305,6 @@ Peers.prototype.list = function (options, cb) {
 		var efficiency = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
 		    efficiency = isNaN(efficiency) ? 0 : efficiency;
 
-		library.logger.debug(['Listing efficiency', efficiency, '%'].join(' '));
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
 		return setImmediate(cb, err, peers, efficiency);
 	});
