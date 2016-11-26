@@ -58,12 +58,14 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
+	var originalLimit = params.limit;
+
 	modules.peers.list(params, function (err, peers, efficiency) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		if (self.efficiency !== undefined && params.limit === constants.maxPeers) {
+		if (self.efficiency !== undefined && originalLimit === constants.maxPeers) {
 			library.logger.info(['Broadhash efficiency updated to', efficiency, '%'].join(' '));
 			self.efficiency = efficiency;
 		}
