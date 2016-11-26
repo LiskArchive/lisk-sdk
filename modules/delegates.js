@@ -257,10 +257,8 @@ __private.forge = function (cb) {
 			}
 
 			// Do not forge when broadhash efficiency is below threshold
-			var efficiency = modules.transport.efficiency();
-
-			if (efficiency < constants.minBroadhashEfficiency) {
-				library.logger.warn('Skipping delegate slot', ['Inadequate broadhash efficiency', efficiency, '%'].join(' '));
+			if (modules.transport.poorEfficiency()) {
+				library.logger.warn('Skipping delegate slot', ['Inadequate broadhash efficiency', modules.transport.efficiency(), '%'].join(' '));
 				return setImmediate(cb);
 			}
 

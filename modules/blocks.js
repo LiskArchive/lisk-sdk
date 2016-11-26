@@ -700,6 +700,18 @@ __private.deleteBlock = function (blockId, cb) {
 	});
 };
 
+__private.recoverChain = function (cb) {
+	library.logger.warn('Chain comparison failed, starting recovery');
+	self.deleteLastBlock(function (err, newLastBlock) {
+		if (err) {
+			library.logger.error('Recovery failed');
+		} else {
+			library.logger.info('Recovery complete, new last block', newLastBlock.id);
+		}
+		return setImmediate(cb, err);
+	});
+};
+
 // Public methods
 Blocks.prototype.count = function (cb) {
 	library.db.query(sql.countByRowId).then(function (rows) {
@@ -741,6 +753,8 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 };
 
 Blocks.prototype.getCommonBlock = function (peer, height, cb) {
+	var comparisionFailed = false;
+
 	async.waterfall([
 		function (waterCb) {
 			__private.getIdSequence(height, function (err, res) {
@@ -757,6 +771,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 				if (err || res.body.error) {
 					return setImmediate(waterCb, err || res.body.error.toString());
 				} else if (!res.body.common) {
+					comparisionFailed = true;
 					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
 				} else {
 					return setImmediate(waterCb, null, res);
@@ -779,6 +794,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 				height: res.body.common.height
 			}).then(function (rows) {
 				if (!rows.length || !rows[0].count) {
+					comparisionFailed = true;
 					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using block:', JSON.stringify(res.body.common)].join(' '));
 				} else {
 					return setImmediate(waterCb, null, res.body.common);
@@ -789,7 +805,11 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		}
 	], function (err, res) {
-		return setImmediate(cb, err, res);
+		if (comparisionFailed && modules.transport.poorEfficiency()) {
+			return __private.recoverChain(cb);
+		} else {
+			return setImmediate(cb, err, res);
+		}
 	});
 };
 
@@ -959,6 +979,22 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 			return setImmediate(cb, 'Blocks#loadBlocksOffset error');
 		});
 	}, cb);
+};
+
+Blocks.prototype.deleteLastBlock = function (cb) {
+	library.logger.warn('Deleting last block', __private.lastBlock);
+	if (__private.lastBlock.height !== 1) {
+		__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
+			if (err) {
+				library.logger.error('Error deleting last block', __private.lastBlock);
+			}
+
+			__private.lastBlock = newLastBlock;
+			return setImmediate(cb, err, newLastBlock);
+		});
+	} else {
+		return setImmediate(cb);
+	}
 };
 
 Blocks.prototype.loadLastBlock = function (cb) {
@@ -1265,13 +1301,27 @@ Blocks.prototype.onReceiveBlock = function (block) {
 			self.lastReceipt(new Date());
 			self.processBlock(block, true, cb, true);
 		} else if (block.previousBlock !== __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
-			// Fork: Same height but different previous block id.
+			// Fork: Consecutive height but different previous block id.
 			modules.delegates.fork(block, 1);
-			return setImmediate(cb, 'Fork');
+
+			if (block.previousBlock < __private.lastBlock.id) {
+				library.logger.info('Last block loses');
+				return self.deleteLastBlock(cb);
+			} else {
+				library.logger.info('Newly received block wins');
+				return setImmediate(cb);
+			}
 		} else if (block.previousBlock === __private.lastBlock.previousBlock && block.height === __private.lastBlock.height && block.id !== __private.lastBlock.id) {
 			// Fork: Same height and previous block id, but different block id.
 			modules.delegates.fork(block, 5);
-			return setImmediate(cb, 'Fork');
+
+			if (block.id < __private.lastBlock.id) {
+				library.logger.info('Last block loses');
+				return self.deleteLastBlock(cb);
+			} else {
+				library.logger.info('Newly received block wins');
+				return setImmediate(cb);
+			}
 		} else {
 			return setImmediate(cb);
 		}

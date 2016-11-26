@@ -481,6 +481,14 @@ Transport.prototype.efficiency = function () {
 	return __private.broadcaster.efficiency;
 };
 
+Transport.prototype.poorEfficiency = function () {
+	if (__private.broadcaster.efficiency === undefined) {
+		return false;
+	} else {
+		return (__private.broadcaster.efficiency < constants.minBroadhashEfficiency);
+	}
+};
+
 Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	if (typeof options === 'function') {
 		cb = options;
