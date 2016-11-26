@@ -18,10 +18,10 @@ function Broadcaster (scope) {
 	self.config.peerLimit = constants.maxPeers;
 
 	// Optionally ignore broadhash efficiency
-	if (!library.config.forging.force) {
-		self.efficiency = 100;
-	} else {
+	if (library.config.forging.force) {
 		self.efficiency = undefined;
+	} else {
+		self.efficiency = 100;
 	}
 
 	// Broadcast routes
