@@ -463,6 +463,10 @@ __private.sync = function (cb) {
 			library.logger.debug('Undoing unconfirmed transactions before sync');
 			return modules.transactions.undoUnconfirmedList(seriesCb);
 		},
+		getPeers: function (seriesCb) {
+			library.logger.debug('Getting peers to establish broadhash efficiency');
+			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+		},
 		loadBlocksFromNetwork: function (seriesCb) {
 			return __private.loadBlocksFromNetwork(seriesCb);
 		},

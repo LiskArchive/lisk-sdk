@@ -489,6 +489,10 @@ Transport.prototype.poorEfficiency = function () {
 	}
 };
 
+Transport.prototype.getPeers = function (params, cb) {
+	return __private.broadcaster.getPeers(params, cb);
+};
+
 Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	if (typeof options === 'function') {
 		cb = options;
