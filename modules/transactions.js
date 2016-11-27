@@ -187,6 +187,33 @@ __private.getById = function (id, cb) {
 	});
 };
 
+__private.getVotesById = function (transaction, cb) {
+	library.db.query(sql.getVotesById, {id: transaction.id}).then(function (rows) {
+		if (!rows.length) {
+			return setImmediate(cb, 'Transaction not found: ' + id);
+		}
+
+		var votes = rows[0].votes.split(',');
+		var added = [];
+		var deleted = [];
+
+		for (var i = 0; i < votes.length; i++) {
+			if (votes[i].substring(0, 1) == "+") {
+				added.push (votes[i].substring(1));
+			} else if (votes[i].substring(0, 1) == "-") {
+				deleted.push (votes[i].substring(1));
+			}
+		}
+
+		transaction.votes = {added: added, deleted: deleted};
+
+		return setImmediate(cb, null, transaction);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Transactions#getVotesById error');
+	});
+};
+
 __private.getPooledTransaction = function (method, req, cb) {
 	library.schema.validate(req.body, schema.getPooledTransaction, function (err) {
 		if (err) {
@@ -378,7 +405,14 @@ shared.getTransaction = function (req, cb) {
 			if (!transaction || err) {
 				return setImmediate(cb, 'Transaction not found');
 			}
-			return setImmediate(cb, null, {transaction: transaction});
+
+			if (transaction.type == 3) {
+				__private.getVotesById(transaction, function (err, transaction) {
+					return setImmediate(cb, null, {transaction: transaction});
+				});
+			} else {
+				return setImmediate(cb, null, {transaction: transaction});
+			}
 		});
 	});
 };
