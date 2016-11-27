@@ -985,7 +985,7 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 	library.logger.warn('Deleting last block', __private.lastBlock);
 
 	if (__private.lastBlock.height === 1) {
-		return setImmediate(cb);
+		return setImmediate(cb, 'Can not delete genesis block');
 	}
 
 	async.series({
