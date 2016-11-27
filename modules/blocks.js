@@ -983,18 +983,31 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 
 Blocks.prototype.deleteLastBlock = function (cb) {
 	library.logger.warn('Deleting last block', __private.lastBlock);
-	if (__private.lastBlock.height !== 1) {
-		__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
-			if (err) {
-				library.logger.error('Error deleting last block', __private.lastBlock);
-			}
 
-			__private.lastBlock = newLastBlock;
-			return setImmediate(cb, err, newLastBlock);
-		});
-	} else {
+	if (__private.lastBlock.height === 1) {
 		return setImmediate(cb);
 	}
+
+	async.series({
+		backwardSwap: function (seriesCb) {
+			modules.rounds.directionSwap('backward', null, seriesCb);
+		},
+		popLastBlock: function (seriesCb) {
+			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
+				if (err) {
+					library.logger.error('Error deleting last block', __private.lastBlock);
+				}
+
+				__private.lastBlock = newLastBlock;
+				return setImmediate(seriesCb);
+			});
+		},
+		forwardSwap: function (seriesCb) {
+			modules.rounds.directionSwap('forward', __private.lastBlock, seriesCb);
+		}
+	}, function (err) {
+		return setImmediate(cb, err, __private.lastBlock);
+	});
 };
 
 Blocks.prototype.loadLastBlock = function (cb) {
@@ -1249,21 +1262,31 @@ Blocks.prototype.verifyBlock = function (block) {
 Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	var blocks = [];
 
-	async.whilst(
-		function () {
-			return (block.height < __private.lastBlock.height);
+	async.series({
+		backwardSwap: function (seriesCb) {
+			modules.rounds.directionSwap('backward', null, seriesCb);
 		},
-		function (next) {
-			blocks.unshift(__private.lastBlock);
-			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
-				__private.lastBlock = newLastBlock;
-				next(err);
-			});
+		popBlocks: function (seriesCb) {
+			async.whilst(
+				function () {
+					return (block.height < __private.lastBlock.height);
+				},
+				function (next) {
+					blocks.unshift(__private.lastBlock);
+					__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
+						__private.lastBlock = newLastBlock;
+						next(err);
+					});
+				},
+				function (err) {
+					return setImmediate(seriesCb, err, blocks);
+				}
+			);
 		},
-		function (err) {
-			return setImmediate(cb, err, blocks);
+		forwardSwap: function (seriesCb) {
+			modules.rounds.directionSwap('forward', __private.lastBlock, seriesCb);
 		}
-	);
+	});
 };
 
 Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
