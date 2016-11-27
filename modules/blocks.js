@@ -1289,12 +1289,12 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	});
 };
 
-Blocks.prototype.simpleDeleteAfterBlock = function (blockId, cb) {
-	library.db.query(sql.simpleDeleteAfterBlock, {id: blockId}).then(function (res) {
+Blocks.prototype.deleteAfterBlock = function (blockId, cb) {
+	library.db.query(sql.deleteAfterBlock, {id: blockId}).then(function (res) {
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#simpleDeleteAfterBlock error');
+		return setImmediate(cb, 'Blocks#deleteAfterBlock error');
 	});
 };
 
