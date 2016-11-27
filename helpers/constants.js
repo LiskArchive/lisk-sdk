@@ -7,7 +7,7 @@ module.exports = {
 	blockReceiptTimeOut: 120, // 12 blocks
 	confirmationLength: 77,
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
-	fees:{
+	fees: {
 		send: 10000000,
 		vote: 100000000,
 		secondsignature: 500000000,
@@ -17,10 +17,10 @@ module.exports = {
 	},
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
-	fixedPoint : Math.pow(10, 8),
+	fixedPoint: Math.pow(10, 8),
 	maxAddressesLength: 208 * 128,
 	maxAmount: 100000000,
-	maxConfirmations : 77 * 100,
+	maxConfirmations: 77 * 100,
 	maxPayloadLength: 1024 * 1024,
 	maxPeers: 100,
 	maxRequests: 10000 * 12,
@@ -28,7 +28,13 @@ module.exports = {
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
 	maxTxsPerQueue: 10000,
-	minBroadhashEfficiency: 10,
+	minBroadhashConsensus: 10,
+	nethashes: [
+		// Mainnet
+		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+		// Testnet
+		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
+	],
 	numberLength: 100000000,
 	requestLength: 104,
 	rewards: {

@@ -254,7 +254,7 @@ Peers.prototype.acceptable = function (peers) {
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
-	options.attempts = ['matched broadhash', 'unmatched broadhash', 'legacy'];
+	options.attempts = ['matched broadhash', 'unmatched broadhash', 'fallback'];
 	options.attempt = 0;
 	options.matched = 0;
 
@@ -302,12 +302,11 @@ Peers.prototype.list = function (options, cb) {
 			}
 		}
 	], function (err, peers) {
-		var efficiency = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-		    efficiency = isNaN(efficiency) ? 0 : efficiency;
+		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
+		    consensus = isNaN(consensus) ? 0 : consensus;
 
-		library.logger.debug(['Listing efficiency', efficiency, '%'].join(' '));
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers, efficiency);
+		return setImmediate(cb, err, peers, consensus);
 	});
 };
 
@@ -354,10 +353,9 @@ Peers.prototype.remove = function (pip, port) {
 };
 
 Peers.prototype.update = function (peer) {
-	if (!self.isRemoved(peer.ip)) {
-		peer.state = 2;
-		return __private.sweeper.push('upsert', self.accept(peer).object());
-	}
+	peer.state = 2;
+	removed.splice(removed.indexOf(peer.ip));
+	return __private.sweeper.push('upsert', self.accept(peer).object());
 };
 
 Peers.prototype.sandboxApi = function (call, args, cb) {

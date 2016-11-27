@@ -14,7 +14,7 @@
         "database": "lisk_test",
         "user": "",
         "password": "password",
-        "poolSize": 100,
+        "poolSize": 95,
         "poolIdleTimeout": 30000,
         "reapIntervalMillis": 1000,
         "logEvents": [
@@ -51,8 +51,8 @@
         "broadcastInterval": 5000,
         "broadcastLimit": 20,
         "parallelLimit": 20,
-        "releaseLimit": 5,
-        "relayLimit": 5
+        "releaseLimit": 25,
+        "relayLimit": 2
     },
     "forging": {
         "force": true,

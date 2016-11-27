@@ -1,5 +1,7 @@
 'use strict';
 
+var constants = require('../helpers/constants.js');
+
 module.exports = {
 	headers: {
 		id: 'transport.headers',
@@ -64,8 +66,32 @@ module.exports = {
 			}
 		},
 	},
+	transactions: {
+		id: 'transport.transactions',
+		type: 'object',
+		properties: {
+			transactions: {
+				type: 'array',
+				minItems: 1,
+				maxItems: 25
+			}
+		},
+		required: ['transactions']
+	},
 	signatures: {
 		id: 'transport.signatures',
+		type: 'object',
+		properties: {
+			signatures: {
+				type: 'array',
+				minItems: 1,
+				maxItems: 25
+			}
+		},
+		required: ['signatures']
+	},
+	signature: {
+		id: 'transport.signature',
 		type: 'object',
 		properties: {
 			signature: {

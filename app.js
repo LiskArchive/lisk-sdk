@@ -163,7 +163,7 @@ d.run(function () {
 
 			require('./helpers/request-limiter')(app, appConfig);
 
-			app.use(compression({ level: 6 }));
+			app.use(compression({ level: 9 }));
 			app.use(cors());
 			app.options('*', cors());
 

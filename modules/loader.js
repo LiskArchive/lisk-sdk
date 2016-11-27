@@ -181,8 +181,16 @@ __private.loadTransactions = function (cb) {
 			});
 		},
 		function (transactions, waterCb) {
-			library.balancesSequence.add(function (cb) {
-				modules.transactions.receiveTransactions(transactions, false, cb);
+			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				library.balancesSequence.add(function (cb) {
+					transaction.bundled = true;
+					modules.transactions.processUnconfirmedTransaction(transaction, false, cb);
+				}, function (err) {
+					if (err) {
+						library.logger.debug(err);
+					}
+					return setImmediate(eachSeriesCb);
+				});
 			}, waterCb);
 		}
 	], function (err) {
@@ -455,6 +463,10 @@ __private.sync = function (cb) {
 			library.logger.debug('Undoing unconfirmed transactions before sync');
 			return modules.transactions.undoUnconfirmedList(seriesCb);
 		},
+		getPeers: function (seriesCb) {
+			library.logger.debug('Getting peers to establish broadhash consensus');
+			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+		},
 		loadBlocksFromNetwork: function (seriesCb) {
 			return __private.loadBlocksFromNetwork(seriesCb);
 		},
@@ -543,7 +555,7 @@ __private.getPeer = function (peer, cb) {
 			});
 		},
 		getHeight: function (seriesCb) {
-			if (peer.height >= modules.blocks.getLastBlock().height) {
+			if (peer.height > modules.blocks.getLastBlock().height) {
 				return setImmediate(seriesCb);
 			} else {
 				modules.transport.getFromPeer(peer, {
