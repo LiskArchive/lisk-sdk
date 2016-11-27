@@ -277,7 +277,7 @@ __private.forge = function (cb) {
 			});
 		}, function (err) {
 			if (err) {
-				library.logger.error('Failed generate block within delegate slot', err);
+				library.logger.error('Failed to generate block within delegate slot', err);
 			} else {
 				modules.blocks.lastReceipt(new Date());
 
