@@ -555,22 +555,16 @@ __private.getPeer = function (peer, cb) {
 			});
 		},
 		getHeight: function (seriesCb) {
-			if (peer.height > modules.blocks.getLastBlock().height) {
-				return setImmediate(seriesCb);
-			} else {
-				modules.transport.getFromPeer(peer, {
-					api: '/height',
-					method: 'GET'
-				}, function (err, res) {
-					if (err) {
-						return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
-					} else {
-						peer.height = res.body.height;
-						modules.peers.update(peer);
-						return setImmediate(seriesCb);
-					}
-				});
-			}
+			modules.transport.getFromPeer(peer, {
+				api: '/height',
+				method: 'GET'
+			}, function (err, res) {
+				if (err) {
+					return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
 		},
 		validateHeight: function (seriesCb) {
 			var heightIsValid = library.schema.validate(peer, schema.getNetwork.height);

@@ -566,10 +566,6 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				return setImmediate(cb, ['Peer is using incompatible version', headers.version, req.method, req.url].join(' '));
 			}
 
-			if (res.body.height) {
-				peer.height = res.body.height;
-			}
-
 			modules.peers.update(peer);
 
 			return setImmediate(cb, null, {body: res.body, peer: peer});
@@ -622,11 +618,13 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
 };
 
 Transport.prototype.onNewBlock = function (block, broadcast) {
-	if (broadcast && !__private.broadcaster.maxRelays(block)) {
+	if (broadcast) {
 		var broadhash = modules.system.getBroadhash();
 
 		modules.system.update(function () {
-			__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
+			if (!__private.broadcaster.maxRelays(block)) {
+				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
+			}
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
