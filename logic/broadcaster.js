@@ -38,15 +38,17 @@ function Broadcaster (scope) {
 	}];
 
 	// Broadcaster timer
-	setInterval(function () {
+	setImmediate(function nextRelease () {
 		async.series([
 			__private.releaseQueue
 		], function (err) {
 			if (err) {
 				library.logger.log('Broadcaster timer', err);
 			}
+
+			return setTimeout(nextRelease, self.config.broadcastInterval);
 		});
-	}, self.config.broadcastInterval);
+	});
 }
 
 // Public methods

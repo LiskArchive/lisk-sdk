@@ -22,26 +22,30 @@ function TransactionPool (scope) {
 	self.processed = 0;
 
 	// Bundled transaction timer
-	setInterval(function () {
+	setImmediate(function nextBundle () {
 		async.series([
 			self.processBundled
 		], function (err) {
 			if (err) {
 				library.logger.log('Bundled transaction timer', err);
 			}
+
+			return setTimeout(nextBundle, self.bundledInterval);
 		});
-	}, self.bundledInterval);
+	});
 
 	// Transaction pool timer
-	setInterval(function () {
+	setImmediate(function nextExpiry () {
 		async.series([
 			self.expireTransactions
 		], function (err) {
 			if (err) {
 				library.logger.log('Transaction pool timer', err);
 			}
+
+			return setTimeout(nextExpiry, self.poolInterval);
 		});
-	}, self.poolInterval);
+	});
 }
 
 // Public methods
