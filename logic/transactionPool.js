@@ -114,7 +114,7 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 	var unconfirmed = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	limit -= unconfirmed.length;
 
-	var multisignatures = modules.transactions.getMultisignatureTransactionList(false, constants.maxTxsPerBlock);
+	var multisignatures = modules.transactions.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
 	limit -= multisignatures.length;
 
 	var queued = modules.transactions.getQueuedTransactionList(false, limit);
@@ -365,7 +365,7 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 			__private.expireTransactions(self.getQueuedTransactionList(true), ids, seriesCb);
 		},
 		function (res, seriesCb) {
-			__private.expireTransactions(self.getMultisignatureTransactionList(true), ids, seriesCb);
+			__private.expireTransactions(self.getMultisignatureTransactionList(true, false), ids, seriesCb);
 		}
 	], function (err, ids) {
 		return setImmediate(cb, err, ids);
