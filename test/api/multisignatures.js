@@ -454,6 +454,17 @@ describe('POST /api/multisignatures/sign (group)', function () {
 		});
 	});
 
+	it('using same signature again should not confirm transaction', function (done) {
+		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+			node.onNewBlock(function (err) {
+				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
+					done();
+				});
+			});
+		});
+	});
+
 	it('using one more signature should confirm transaction', function (done) {
 		confirmTransaction(multiSigTx.txId, passphrases.slice(-1), function () {
 			node.onNewBlock(function (err) {
@@ -509,6 +520,17 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Transaction already signed');
 			done();
+		});
+	});
+
+	it('using same signature again should not confirm transaction', function (done) {
+		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+			node.onNewBlock(function (err) {
+				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
+					done();
+				});
+			});
 		});
 	});
 
