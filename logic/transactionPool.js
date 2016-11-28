@@ -16,32 +16,36 @@ function TransactionPool (scope) {
 	self.bundled = { transactions: [], index: {} };
 	self.queued = { transactions: [], index: {} };
 	self.multisignature = { transactions: [], index: {} };
-	self.poolInterval = 30000;
+	self.expiryInterval = 30000;
 	self.bundledInterval = library.config.broadcasts.broadcastInterval;
 	self.bundleLimit = library.config.broadcasts.releaseLimit;
 	self.processed = 0;
 
 	// Bundled transaction timer
-	setInterval(function () {
+	setImmediate(function nextBundle () {
 		async.series([
 			self.processBundled
 		], function (err) {
 			if (err) {
 				library.logger.log('Bundled transaction timer', err);
 			}
-		});
-	}, self.bundledInterval);
 
-	// Transaction pool timer
-	setInterval(function () {
+			return setTimeout(nextBundle, self.bundledInterval);
+		});
+	});
+
+	// Transaction expiry timer
+	setImmediate(function nextExpiry () {
 		async.series([
 			self.expireTransactions
 		], function (err) {
 			if (err) {
-				library.logger.log('Transaction pool timer', err);
+				library.logger.log('Transaction expiry timer', err);
 			}
+
+			return setTimeout(nextExpiry, self.expiryInterval);
 		});
-	}, self.poolInterval);
+	});
 }
 
 // Public methods
@@ -110,7 +114,7 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 	var unconfirmed = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	limit -= unconfirmed.length;
 
-	var multisignatures = modules.transactions.getMultisignatureTransactionList(false, constants.maxTxsPerBlock);
+	var multisignatures = modules.transactions.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
 	limit -= multisignatures.length;
 
 	var queued = modules.transactions.getQueuedTransactionList(false, limit);
@@ -254,13 +258,13 @@ TransactionPool.prototype.processBundled = function (cb) {
 
 		__private.processVerifyTransaction(transaction, true, function (err, sender) {
 			if (err) {
-				library.logger.error('Failed to process / verify bundled transaction: ' + transaction.id, err);
+				library.logger.debug('Failed to process / verify bundled transaction: ' + transaction.id, err);
 				self.removeUnconfirmedTransaction(transaction);
 				return setImmediate(eachSeriesCb);
 			} else {
 				self.queueTransaction(transaction, function (err) {
 					if (err) {
-						library.logger.error('Failed to queue bundled transaction: ' + transaction.id, err);
+						library.logger.debug('Failed to queue bundled transaction: ' + transaction.id, err);
 					}
 					return setImmediate(eachSeriesCb);
 				});
@@ -361,7 +365,7 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 			__private.expireTransactions(self.getQueuedTransactionList(true), ids, seriesCb);
 		},
 		function (res, seriesCb) {
-			__private.expireTransactions(self.getMultisignatureTransactionList(true), ids, seriesCb);
+			__private.expireTransactions(self.getMultisignatureTransactionList(true, false), ids, seriesCb);
 		}
 	], function (err, ids) {
 		return setImmediate(cb, err, ids);

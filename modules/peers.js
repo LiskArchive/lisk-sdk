@@ -121,6 +121,8 @@ __private.updatePeersList = function (cb) {
 					library.logger.error(['Rejecting peer', peer.string, 'with incompatible version', peer.version].join(' '));
 					self.remove(peer.ip, peer.port);
 				} else {
+					delete peer.broadhash;
+					delete peer.height;
 					self.update(peer);
 				}
 

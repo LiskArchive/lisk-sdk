@@ -27,7 +27,7 @@ Round.prototype.updateMissedBlocks = function () {
 		return this.t;
 	}
 
-	return this.t.none(sql.updateMissedBlocks, [this.scope.outsiders]);
+	return this.t.none(sql.updateMissedBlocks(this.scope.backwards), [this.scope.outsiders]);
 };
 
 Round.prototype.getVotes = function () {
@@ -51,6 +51,14 @@ Round.prototype.updateVotes = function () {
 			return self.t;
 		}
 	});
+};
+
+Round.prototype.markBlockId = function () {
+	if (this.scope.backwards) {
+		return this.t.none(sql.updateBlockId, { oldId: this.scope.block.id, newId: '0' });
+	} else {
+		return this.t;
+	}
 };
 
 Round.prototype.flushRound = function () {
@@ -110,8 +118,13 @@ Round.prototype.land = function () {
 
 // Constructor
 function RoundChanges (scope) {
-	this.roundFees = Math.floor(scope.__private.feesByRound[scope.round]) || 0;
-	this.roundRewards = (scope.__private.rewardsByRound[scope.round] || []);
+	if (scope.backwards) {
+		this.roundFees = Math.floor(scope.__private.unFeesByRound[scope.round]) || 0;
+		this.roundRewards = (scope.__private.unRewardsByRound[scope.round] || []);
+	} else {
+		this.roundFees = Math.floor(scope.__private.feesByRound[scope.round]) || 0;
+		this.roundRewards = (scope.__private.rewardsByRound[scope.round] || []);
+	}
 }
 
 // Public methods

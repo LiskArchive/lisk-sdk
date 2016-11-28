@@ -253,7 +253,7 @@ __private.loadBlockChain = function () {
 				library.logger.error(err);
 				if (err.block) {
 					library.logger.error('Blockchain failed at: ' + err.block.height);
-					modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {
+					modules.blocks.deleteAfterBlock(err.block.id, function (err, res) {
 						library.logger.error('Blockchain clipped');
 						library.bus.message('blockchainReady');
 					});
@@ -463,8 +463,8 @@ __private.sync = function (cb) {
 			library.logger.debug('Undoing unconfirmed transactions before sync');
 			return modules.transactions.undoUnconfirmedList(seriesCb);
 		},
-		getPeers: function (seriesCb) {
-			library.logger.debug('Getting peers to establish broadhash consensus');
+		getPeersBefore: function (seriesCb) {
+			library.logger.debug('Establishling broadhash consensus before sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 		},
 		loadBlocksFromNetwork: function (seriesCb) {
@@ -472,6 +472,10 @@ __private.sync = function (cb) {
 		},
 		updateSystem: function (seriesCb) {
 			return modules.system.update(seriesCb);
+		},
+		getPeersAfter: function (seriesCb) {
+			library.logger.debug('Establishling broadhash consensus after sync');
+			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 		},
 		applyUnconfirmedList: function (seriesCb) {
 			library.logger.debug('Applying unconfirmed transactions after sync');
@@ -555,22 +559,16 @@ __private.getPeer = function (peer, cb) {
 			});
 		},
 		getHeight: function (seriesCb) {
-			if (peer.height > modules.blocks.getLastBlock().height) {
-				return setImmediate(seriesCb);
-			} else {
-				modules.transport.getFromPeer(peer, {
-					api: '/height',
-					method: 'GET'
-				}, function (err, res) {
-					if (err) {
-						return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
-					} else {
-						peer.height = res.body.height;
-						modules.peers.update(peer);
-						return setImmediate(seriesCb);
-					}
-				});
-			}
+			modules.transport.getFromPeer(peer, {
+				api: '/height',
+				method: 'GET'
+			}, function (err, res) {
+				if (err) {
+					return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
 		},
 		validateHeight: function (seriesCb) {
 			var heightIsValid = library.schema.validate(peer, schema.getNetwork.height);

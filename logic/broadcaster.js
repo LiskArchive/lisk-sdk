@@ -38,15 +38,17 @@ function Broadcaster (scope) {
 	}];
 
 	// Broadcaster timer
-	setInterval(function () {
+	setImmediate(function nextRelease () {
 		async.series([
 			__private.releaseQueue
 		], function (err) {
 			if (err) {
 				library.logger.log('Broadcaster timer', err);
 			}
+
+			return setTimeout(nextRelease, self.config.broadcastInterval);
 		});
-	}, self.config.broadcastInterval);
+	});
 }
 
 // Public methods
@@ -66,7 +68,7 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 		}
 
 		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
-			library.logger.info(['Broadhash consensus updated to', consensus, '%'].join(' '));
+			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
 			self.consensus = consensus;
 		}
 
