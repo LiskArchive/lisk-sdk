@@ -16,7 +16,7 @@ function TransactionPool (scope) {
 	self.bundled = { transactions: [], index: {} };
 	self.queued = { transactions: [], index: {} };
 	self.multisignature = { transactions: [], index: {} };
-	self.poolInterval = 30000;
+	self.expiryInterval = 30000;
 	self.bundledInterval = library.config.broadcasts.broadcastInterval;
 	self.bundleLimit = library.config.broadcasts.releaseLimit;
 	self.processed = 0;
@@ -34,16 +34,16 @@ function TransactionPool (scope) {
 		});
 	});
 
-	// Transaction pool timer
+	// Transaction expiry timer
 	setImmediate(function nextExpiry () {
 		async.series([
 			self.expireTransactions
 		], function (err) {
 			if (err) {
-				library.logger.log('Transaction pool timer', err);
+				library.logger.log('Transaction expiry timer', err);
 			}
 
-			return setTimeout(nextExpiry, self.poolInterval);
+			return setTimeout(nextExpiry, self.expiryInterval);
 		});
 	});
 }
