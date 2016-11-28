@@ -106,7 +106,7 @@ z_schema.registerFormat('os', function (str) {
     return true;
   }
 
-  return /^[a-z0-9-_.]+$/ig.test(str);
+  return /^[a-z0-9-_.+]+$/ig.test(str);
 });
 
 z_schema.registerFormat('version', function (str) {
