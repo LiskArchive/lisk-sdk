@@ -258,13 +258,13 @@ TransactionPool.prototype.processBundled = function (cb) {
 
 		__private.processVerifyTransaction(transaction, true, function (err, sender) {
 			if (err) {
-				library.logger.error('Failed to process / verify bundled transaction: ' + transaction.id, err);
+				library.logger.debug('Failed to process / verify bundled transaction: ' + transaction.id, err);
 				self.removeUnconfirmedTransaction(transaction);
 				return setImmediate(eachSeriesCb);
 			} else {
 				self.queueTransaction(transaction, function (err) {
 					if (err) {
-						library.logger.error('Failed to queue bundled transaction: ' + transaction.id, err);
+						library.logger.debug('Failed to queue bundled transaction: ' + transaction.id, err);
 					}
 					return setImmediate(eachSeriesCb);
 				});
