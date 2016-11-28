@@ -66,7 +66,7 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 		}
 
 		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
-			library.logger.info(['Broadhash consensus updated to', consensus, '%'].join(' '));
+			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
 			self.consensus = consensus;
 		}
 
