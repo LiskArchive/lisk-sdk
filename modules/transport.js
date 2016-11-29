@@ -110,10 +110,10 @@ __private.attachApi = function () {
 				});
 
 			if (!escapedIds.length) {
-				library.logger.warn('Invalid common block request, ban 60 min', req.peer.string);
+				library.logger.warn('Invalid common block request, ban 10 min', req.peer.string);
 
-				// Ban peer for 60 minutes
-				__private.banPeer({peer: req.peer, code: 'ECOMMON', req: req, clock: 3600});
+				// Ban peer for 10 minutes
+				__private.banPeer({peer: req.peer, code: 'ECOMMON', req: req, clock: 600});
 
 				return res.json({success: false, error: 'Invalid block id sequence'});
 			}
@@ -159,8 +159,8 @@ __private.attachApi = function () {
 			if (block) { library.logger.debug('Block', block); }
 
 			if (req.peer) {
-				// Ban peer for 60 minutes
-				__private.banPeer({peer: req.peer, code: 'EBLOCK', req: req, clock: 3600});
+				// Ban peer for 10 minutes
+				__private.banPeer({peer: req.peer, code: 'EBLOCK', req: req, clock: 600});
 			}
 
 			return res.status(200).json({success: false, error: e.toString()});
@@ -446,8 +446,8 @@ __private.receiveTransaction = function (transaction, req, cb) {
 		if (transaction) { library.logger.debug('Transaction', transaction); }
 
 		if (req.peer) {
-			// Ban peer for 60 minutes
-			__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 3600});
+			// Ban peer for 10 minutes
+			__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 600});
 		}
 
 		return setImmediate(cb, 'Invalid transaction body');
