@@ -384,18 +384,16 @@ __private.receiveSignatures = function (req, cb) {
 __private.receiveSignature = function (signature, req, cb) {
 	library.schema.validate({signature: signature}, schema.signature, function (err) {
 		if (err) {
-			return setImmediate(cb, 'Signature validation failed');
+			return setImmediate(cb, 'Invalid signature body');
 		}
 
-		library.balancesSequence.add(function (cb) {
-			modules.multisignatures.processSignature(signature, function (err) {
-				if (err) {
-					return setImmediate(cb, 'Error processing signature');
-				} else {
-					return setImmediate(cb);
-				}
-			});
-		}, cb);
+		modules.multisignatures.processSignature(signature, function (err) {
+			if (err) {
+				return setImmediate(cb, 'Error processing signature: ' + err);
+			} else {
+				return setImmediate(cb);
+			}
+		});
 	});
 };
 

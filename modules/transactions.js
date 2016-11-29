@@ -446,7 +446,7 @@ shared.addTransactions = function (req, cb) {
 							return setImmediate(cb, 'Multisignature account not found');
 						}
 
-						if (!account.multisignatures || !account.multisignatures) {
+						if (!Array.isArray(account.multisignatures)) {
 							return setImmediate(cb, 'Account does not have multisignatures enabled');
 						}
 

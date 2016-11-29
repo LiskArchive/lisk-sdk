@@ -329,10 +329,23 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid sender address');
 	}
 
+	// Determine multisignatures from sender or transaction asset
+	var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
+	if (multisignatures.length === 0) {
+		if (trs.asset && trs.asset.multisignature && trs.asset.multisignature.keysgroup) {
+
+			multisignatures = trs.asset.multisignature.keysgroup.map(function (key) {
+				return key.slice(1);
+			});
+		}
+	}
+
 	// Check requester public key
 	if (trs.requesterPublicKey) {
+		multisignatures.push(trs.senderPublicKey);
+
 		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Invalid requester public key');
+			return setImmediate(cb, 'Account does not belong to multisignature group');
 		}
 	}
 
@@ -382,22 +395,6 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		if (signatures.length !== trs.signatures.length) {
 			return setImmediate(cb, 'Encountered duplicate signature in transaction');
 		}
-	}
-
-	// Determine multisignatures from sender or transaction asset
-	var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
-	if (multisignatures.length === 0) {
-		if (trs.asset && trs.asset.multisignature && trs.asset.multisignature.keysgroup) {
-
-			multisignatures = trs.asset.multisignature.keysgroup.map(function (key) {
-				return key.slice(1);
-			});
-		}
-	}
-
-	// Add sender to multisignatures
-	if (trs.requesterPublicKey) {
-		multisignatures.push(trs.senderPublicKey);
 	}
 
 	// Verify multisignatures
