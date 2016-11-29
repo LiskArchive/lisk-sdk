@@ -173,11 +173,11 @@ __private.attachApi = function () {
 
 	router.post('/signatures', function (req, res) {
 		if (req.body.signatures) {
-			__private.receiveSignatures(req, function (err, ids) {
+			__private.receiveSignatures(req, function (err) {
 				if (err) {
 					return res.status(200).json({success: false, message: err});
 				} else {
-					return res.status(200).json({success: true, signatureIds: ids});
+					return res.status(200).json({success: true});
 				}
 			});
 		} else {
@@ -185,7 +185,7 @@ __private.attachApi = function () {
 				if (err) {
 					return res.status(200).json({success: false, message: err});
 				} else {
-					return res.status(200).json({success: true, signatureId: id});
+					return res.status(200).json({success: true});
 				}
 			});
 		}
@@ -217,11 +217,11 @@ __private.attachApi = function () {
 
 	router.post('/transactions', function (req, res) {
 		if (req.body.transactions) {
-			__private.receiveTransactions(req, function (err, ids) {
+			__private.receiveTransactions(req, function (err) {
 				if (err) {
 					return res.status(200).json({success: false, message: err});
 				} else {
-					return res.status(200).json({success: true, transactionIds: ids});
+					return res.status(200).json({success: true});
 				}
 			});
 		} else {
@@ -351,7 +351,7 @@ __private.removePeer = function (options) {
 };
 
 __private.receiveSignatures = function (req, cb) {
-	var ids, signatures;
+	var signatures;
 
 	async.series({
 		validateSchema: function (seriesCb) {
@@ -365,13 +365,11 @@ __private.receiveSignatures = function (req, cb) {
 		},
 		receiveSignatures: function (seriesCb) {
 			signatures = req.body.signatures;
-			ids = signatures.map(function (signature) { return signature.id; });
 
 			async.eachSeries(signatures, function (signature, eachSeriesCb) {
 				__private.receiveSignature(signature, req, function (err) {
 					if (err) {
 						library.logger.debug(err, signature);
-						ids.splice(ids.indexOf(signature.id));
 					}
 
 					return setImmediate(eachSeriesCb);
@@ -379,7 +377,7 @@ __private.receiveSignatures = function (req, cb) {
 			}, seriesCb);
 		}
 	}, function (err) {
-		return setImmediate(cb, err, (ids || []));
+		return setImmediate(cb, err);
 	});
 };
 
@@ -402,7 +400,7 @@ __private.receiveSignature = function (signature, req, cb) {
 };
 
 __private.receiveTransactions = function (req, cb) {
-	var ids, transactions;
+	var transactions;
 
 	async.series({
 		validateSchema: function (seriesCb) {
@@ -416,7 +414,6 @@ __private.receiveTransactions = function (req, cb) {
 		},
 		receiveTransactions: function (seriesCb) {
 			transactions = req.body.transactions;
-			ids = transactions.map(function (transaction) { return transaction.id; });
 
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 				transaction.bundled = true;
@@ -424,7 +421,6 @@ __private.receiveTransactions = function (req, cb) {
 				__private.receiveTransaction(transaction, req, function (err) {
 					if (err) {
 						library.logger.debug(err, transaction);
-						ids.splice(ids.indexOf(transaction.id));
 					}
 
 					return setImmediate(eachSeriesCb);
@@ -432,7 +428,7 @@ __private.receiveTransactions = function (req, cb) {
 			}, seriesCb);
 		}
 	}, function (err) {
-		return setImmediate(cb, err, (ids || []));
+		return setImmediate(cb, err);
 	});
 };
 
