@@ -40,7 +40,6 @@ describe('POST /peer/transactions', function () {
 
 				postTransactions(bundled, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionIds').that.is.an('array').with.lengthOf(node.config.broadcasts.releaseLimit);
 					next();
 				});
 			}, function () {
