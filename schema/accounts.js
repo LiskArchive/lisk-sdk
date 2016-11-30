@@ -19,9 +19,7 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
+				minLength: 1
 			}
 		},
 		required: ['address']
@@ -32,9 +30,7 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
+				minLength: 1
 			}
 		},
 		required: ['address']
@@ -45,8 +41,7 @@ module.exports = {
 		properties: {
 			secret: {
 				type: 'string',
-				minLength: 1,
-				maxLength: 100
+				minLength: 1
 			}
 		},
 		required: ['secret']
@@ -57,9 +52,7 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
+				minLength: 1
 			}
 		},
 		required: ['address']
@@ -70,8 +63,7 @@ module.exports = {
 		properties: {
 			secret: {
 				type: 'string',
-				minLength: 1,
-				maxLength: 100
+				minLength: 1
 			},
 			publicKey: {
 				type: 'string',
@@ -79,8 +71,7 @@ module.exports = {
 			},
 			secondSecret: {
 				type: 'string',
-				minLength: 1,
-				maxLength: 100
+				minLength: 1
 			}
 		}
 	},
@@ -90,9 +81,7 @@ module.exports = {
 		properties: {
 			address: {
 				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
+				minLength: 1
 			}
 		},
 		required: ['address']

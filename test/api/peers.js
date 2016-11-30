@@ -16,76 +16,25 @@ describe('GET /api/peers/version', function () {
 
 describe('GET /api/peers', function () {
 
-	it('using invalid ip should fail', function (done) {
-		var ip = 'invalid';
-		var params = 'ip=' + ip;
+	it('using empty parameters should fail', function (done) {
+		var params = [
+			'state=',
+			'os=',
+			'shared=',
+			'version=',
+			'limit=',
+			'offset=',
+			'orderBy='
+		];
 
-		node.get('/api/peers?' + params, function (err, res) {
+		node.get('/api/peers?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format ip: invalid');
+			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
 
-	it('using valid ip should be ok', function (done) {
-		var ip = '0.0.0.0';
-		var params = 'ip=' + ip;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
-		});
-	});
-
-	it('using port < 1 should fail', function (done) {
-		var port = 0;
-		var params = 'port=' + port;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
-			done();
-		});
-	});
-
-	it('using port == 65535 be ok', function (done) {
-		var port = 65535;
-		var params = 'port=' + port;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
-		});
-	});
-
-	it('using port > 65535 should fail', function (done) {
-		var port = 65536;
-		var params = 'port=' + port;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 65536 is greater than maximum 65535');
-			done();
-		});
-	});
-
-	it('using state == 0 should be ok', function (done) {
-		var state = 0;
-		var params = 'state=' + state;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('peers').that.is.an('array');
-			if (res.body.peers.length > 0) {
-				for (var i = 0; i < res.body.peers.length; i++) {
-					 node.expect(res.body.peers[i].state).to.equal(parseInt(state));
-				}
-			}
-			done();
-		});
-	});
-
-	it('using state == 1 should be ok', function (done) {
+	it('using state should be ok', function (done) {
 		var state = 1;
 		var params = 'state=' + state;
 
@@ -101,129 +50,19 @@ describe('GET /api/peers', function () {
 		});
 	});
 
-	it('using state == 2 should be ok', function (done) {
-		var state = 2;
-		var params = 'state=' + state;
+	it('using limit should be ok', function (done) {
+		var limit = 3;
+		var params = 'limit=' + limit;
 
 		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('peers').that.is.an('array');
-			if (res.body.peers.length > 0) {
-				for (var i = 0; i < res.body.peers.length; i++) {
-					 node.expect(res.body.peers[i].state).to.equal(parseInt(state));
-				}
-			}
+			node.expect(res.body.peers.length).to.be.at.most(limit);
 			done();
 		});
 	});
 
-	it('using state > 2 should fail', function (done) {
-		var state = 3;
-		var params = 'state=' + state;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 3 is greater than maximum 2');
-			done();
-		});
-	});
-
-	it('using os with length == 1 should be ok', function (done) {
-		var os = 'b';
-		var params = 'os=' + os;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
-		});
-	});
-
-	it('using os with length == 64 should be ok', function (done) {
-		var os = 'battle-claw-lunch-confirm-correct-limb-siege-erode-child-libert';
-		var params = 'os=' + os;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
-		});
-	});
-
-	it('using os with length > 64 should be ok', function (done) {
-		var os = 'battle-claw-lunch-confirm-correct-limb-siege-erode-child-liberty-';
-		var params = 'os=' + os;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('String is too long (65 chars), maximum 64');
-			done();
-		});
-	});
-
-	it('using version == "999.999.999" characters should be ok', function (done) {
-		var version = '999.999.999';
-		var params = 'version=' + version;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
-		});
-	});
-
-	it('using version == "9999.999.999" characters should fail', function (done) {
-		var version = '9999.999.999';
-		var params = 'version=' + version;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 9999.999.999');
-			done();
-		});
-	});
-
-	it('using version == "999.9999.999" characters should fail', function (done) {
-		var version = '999.9999.999';
-		var params = 'version=' + version;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.9999.999');
-			done();
-		});
-	});
-
-	it('using version == "999.999.9999" characters should fail', function (done) {
-		var version = '999.999.9999';
-		var params = 'version=' + version;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.9999');
-			done();
-		});
-	});
-
-	it('using version == "999.999.999a" characters should be ok', function (done) {
-		var version = '999.999.999a';
-		var params = 'version=' + version;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
-		});
-	});
-
-	it('using version == "999.999.999ab" characters should fail', function (done) {
-		var version = '999.999.999ab';
-		var params = 'version=' + version;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.999ab');
-			done();
-		});
-	});
-
-	it('using orderBy == "state:desc" should be ok', function (done) {
+	it('using orderBy should be ok', function (done) {
 		var orderBy = 'state:desc';
 		var params = 'orderBy=' + orderBy;
 
@@ -233,69 +72,12 @@ describe('GET /api/peers', function () {
 
 			if (res.body.peers.length > 0) {
 				for (var i = 0; i < res.body.peers.length; i++) {
-					if (res.body.peers[i + 1] != null) {
-						node.expect(res.body.peers[i + 1].state).to.be.at.most(res.body.peers[i].state);
+					if (res.body.peers[i+1] != null) {
+						node.expect(res.body.peers[i+1].state).to.at.most(res.body.peers[i].state);
 					}
 				}
 			}
 
-			done();
-		});
-	});
-
-	it('using string limit should fail', function (done) {
-		var limit = 'one';
-		var params = 'limit=' + limit;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
-			done();
-		});
-	});
-
-	it('using limit == -1 should fail', function (done) {
-		var limit = -1;
-		var params = 'limit=' + limit;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
-			done();
-		});
-	});
-
-	it('using limit == 0 should fail', function (done) {
-		var limit = 0;
-		var params = 'limit=' + limit;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
-			done();
-		});
-	});
-
-	it('using limit == 1 should be ok', function (done) {
-		var limit = 1;
-		var params = 'limit=' + limit;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('peers').that.is.an('array');
-			node.expect(res.body.peers.length).to.be.at.most(limit);
-			done();
-		});
-	});
-
-	it('using limit == 100 should be ok', function (done) {
-		var limit = 100;
-		var params = 'limit=' + limit;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('peers').that.is.an('array');
-			node.expect(res.body.peers.length).to.be.at.most(limit);
 			done();
 		});
 	});
@@ -306,39 +88,25 @@ describe('GET /api/peers', function () {
 
 		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 101 is greater than maximum 100');
+			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});
 
-	it('using string offset should fail', function (done) {
-		var offset = 'one';
-		var params = 'offset=' + offset;
+	it('using invalid parameters should fail', function (done) {
+		var params = [
+			'state=invalid',
+			'os=invalid',
+			'shared=invalid',
+			'version=invalid',
+			'limit=invalid',
+			'offset=invalid',
+			'orderBy=invalid'
+		];
 
-		node.get('/api/peers?' + params, function (err, res) {
+		node.get('/api/peers?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
-			done();
-		});
-	});
-
-	it('using offset == -1 should fail', function (done) {
-		var offset = -1;
-		var params = 'offset=' + offset;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 0');
-			done();
-		});
-	});
-
-	it('using offset == 1 should be ok', function (done) {
-		var offset = 1;
-		var params = 'offset=' + offset;
-
-		node.get('/api/peers?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('error');
 			done();
 		});
 	});

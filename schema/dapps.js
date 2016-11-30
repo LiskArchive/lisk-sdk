@@ -64,9 +64,7 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				minLength: 1
 			}
 		},
 		required: ['id']
@@ -77,7 +75,6 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
@@ -104,18 +101,18 @@ module.exports = {
 				minLength: 1,
 				maxLength: 2000
 			},
-			orderBy: {
-				type: 'string',
-				minLength: 1
-			},
 			limit: {
 				type: 'integer',
-				minimum: 1,
+				minimum: 0,
 				maximum: 100
 			},
 			offset: {
 				type: 'integer',
 				minimum: 0
+			},
+			orderBy: {
+				type: 'string',
+				minLength: 1
 			}
 		}
 	},
@@ -129,9 +126,7 @@ module.exports = {
 			},
 			id: {
 				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				minLength: 1
 			},
 			master: {
 				type: 'string',
@@ -165,7 +160,6 @@ module.exports = {
 			},
 			dappId: {
 				type: 'string',
-				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
@@ -192,8 +186,7 @@ module.exports = {
 			},
 			recipientId: {
 				type: 'string',
-				format: 'address',
-				minLength: 1,
+				minLength: 2,
 				maxLength: 22
 			},
 			secondSecret: {
@@ -203,13 +196,11 @@ module.exports = {
 			},
 			dappId: {
 				type: 'string',
-				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
 			transactionId: {
 				type: 'string',
-				format: 'id',
 				minLength: 1,
 				maxLength: 20
 			},
@@ -247,9 +238,7 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				minLength: 1
 			},
 			master: {
 				type: 'string',
@@ -264,9 +253,7 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				minLength: 1
 			},
 			master: {
 				type: 'string',
@@ -281,9 +268,7 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				minLength: 1
 			},
 			master: {
 				type: 'string',

@@ -42,10 +42,7 @@ module.exports = {
 				format: 'publicKey'
 			},
 			transactionId: {
-				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				type: 'string'
 			}
 		},
 		required: ['transactionId', 'secret']

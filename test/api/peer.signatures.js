@@ -66,7 +66,7 @@ describe('POST /peer/signatures', function () {
   });
 
   it('using unprocessable signature should fail', function (done) {
-    validParams.signature.transaction = '1';
+    validParams.signature.transaction = 'invalidId';
 
     node.post('/peer/signatures', validParams)
       .end(function (err, res) {

@@ -672,7 +672,7 @@ __private.getInstalledIds = function (cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
-			var regExp = new RegExp(/[0-9]{1,20}/);
+			var regExp = new RegExp(/[0-9]{18,20}/);
 
 			ids = _.filter(ids, function (f) {
 				return regExp.test(f.toString());

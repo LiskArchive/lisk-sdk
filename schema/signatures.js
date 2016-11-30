@@ -7,13 +7,11 @@ module.exports = {
 		properties: {
 			secret: {
 				type: 'string',
-				minLength: 1,
-				maxLength: 100
+				minLength: 1
 			},
 			secondSecret: {
 				type: 'string',
-				minLength: 1,
-				maxLength: 100
+				minLength: 1
 			},
 			publicKey: {
 				type: 'string',

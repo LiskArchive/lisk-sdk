@@ -13,9 +13,7 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				minLength: 1
 			}
 		},
 		required: ['id']
@@ -26,7 +24,7 @@ module.exports = {
 		properties: {
 			limit: {
 				type: 'integer',
-				minimum: 1,
+				minimum: 0,
 				maximum: 100
 			},
 			orderBy: {
@@ -55,38 +53,11 @@ module.exports = {
 				minimum: 0
 			},
 			previousBlock: {
-				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
+				type: 'string'
 			},
 			height: {
-				type: 'integer',
-				minimum: 1
+				type: 'integer'
 			}
 		}
-	},
-	getCommonBlock: {
-		id: 'blocks.getCommonBlock',
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
-			},
-			previousBlock: {
-				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
-			},
-			height: {
-				type: 'integer',
-				minimum: 1
-			}
-		},
-		required: ['id', 'previousBlock', 'height']
 	}
 };
