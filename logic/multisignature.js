@@ -4,6 +4,7 @@ var async = require('async');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var Diff = require('../helpers/diff.js');
+var exceptions = require('../helpers/exceptions.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -52,12 +53,23 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid multisignature min. Must be between 1 and 16');
 	}
 
-	if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length + 1) {
-		return setImmediate(cb, 'Invalid multisignature min. Must be less than keysgroup size');
+	if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length) {
+		var err = 'Invalid multisignature min. Must be less than keysgroup size';
+
+		if (exceptions.multisignatures.indexOf(trs.id) > -1) {
+			this.scope.logger.debug(err);
+			this.scope.logger.debug(JSON.stringify(trs));
+		} else {
+			return setImmediate(cb, err);
+		}
 	}
 
 	if (trs.asset.multisignature.lifetime < 1 || trs.asset.multisignature.lifetime > 72) {
 		return setImmediate(cb, 'Invalid multisignature lifetime. Must be between 1 and 72');
+	}
+
+	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+		return setImmediate(cb, 'Account already has multisignatures enabled');
 	}
 
 	if (this.ready(trs, sender)) {
@@ -195,10 +207,6 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		return setImmediate(cb, 'Signature on this account is pending confirmation');
 	}
 
-	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
-		return setImmediate(cb, 'Account already has multisignatures enabled');
-	}
-
 	__private.unconfirmedSignatures[sender.address] = true;
 
 	this.scope.account.merge(sender.address, {
@@ -301,7 +309,7 @@ Multisignature.prototype.dbSave = function (trs) {
 };
 
 Multisignature.prototype.afterSave = function (trs, cb) {
-	library.network.io.sockets.emit('multisignatures/change', {});
+	library.network.io.sockets.emit('multisignatures/change', trs);
 	return setImmediate(cb);
 };
 

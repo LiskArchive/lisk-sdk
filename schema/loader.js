@@ -7,18 +7,20 @@ module.exports = {
 		properties: {
 			signatures: {
 				type: 'array',
-				uniqueItems: true
+				uniqueItems: true,
+				maxItems: 100
 			}
 		},
 		required: ['signatures']
 	},
-	loadUnconfirmedTransactions: {
-		id: 'loader.loadUnconfirmedTransactions',
+	loadTransactions: {
+		id: 'loader.loadTransactions',
 		type: 'object',
 		properties: {
 			transactions: {
 				type: 'array',
-				uniqueItems: true
+				uniqueItems: true,
+				maxItems: 100
 			}
 		},
 		required: ['transactions']
@@ -29,8 +31,7 @@ module.exports = {
 			type: 'object',
 			properties: {
 				peers: {
-					type: 'array',
-					uniqueItems: true
+					type: 'array'
 				}
 			},
 			required: ['peers']
@@ -54,10 +55,24 @@ module.exports = {
 					maximum: 3
 				},
 				os: {
-					type: 'string'
+					type: 'string',
+					format: 'os',
+					minLength: 1,
+					maxLength: 64
 				},
 				version: {
-					type: 'string'
+					type: 'string',
+					format: 'version',
+					minLength: 5,
+					maxLength: 12
+				},
+				broadhash: {
+					type: 'string',
+					format: 'hex'
+				},
+				height: {
+					type: 'integer',
+					minimum: 1
 				}
 			},
 			required: ['ip', 'port', 'state']
@@ -68,7 +83,7 @@ module.exports = {
 			properties: {
 				height: {
 					type: 'integer',
-					minimum: 0
+					minimum: 1
 				}
 			},
 			required: ['height']

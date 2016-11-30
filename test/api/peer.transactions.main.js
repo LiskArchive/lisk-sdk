@@ -28,6 +28,19 @@ describe('GET /peer/transactions', function () {
 			});
 	});
 
+	it('using incompatible version in headers should fail', function (done) {
+		node.get('/peer/transactions')
+			.set('version', '0.1.0a')
+			.end(function (err, res) {
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
+				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
+				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
+				done();
+			});
+	});
+
 	it('using valid headers should be ok', function (done) {
 		node.get('/peer/transactions')
 			.end(function (err, res) {
@@ -51,8 +64,22 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
+	it('using incompatible version in headers should fail', function (done) {
+		node.post('/peer/transactions')
+			.set('version', '0.1.0a')
+			.end(function (err, res) {
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
+				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
+				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
+				done();
+			});
+	});
+
 	it('using valid headers should be ok', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -61,23 +88,25 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('using already processed transaction should be ok', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+	it('using already processed transaction should fail', function (done) {
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
 				done();
 			});
 		});
 	});
 
-	it('using already confirmed transaction should be ok', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
+	it('using already confirmed transaction should fail', function (done) {
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -85,8 +114,8 @@ describe('POST /peer/transactions', function () {
 
 			node.onNewBlock(function (err) {
 				postTransaction(transaction, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res.body).to.have.property('success').to.be.not.ok;
+					node.expect(res.body).to.have.property('message').to.match(/Transaction is already confirmed: [0-9]+/);
 					done();
 				});
 			});
@@ -125,7 +154,17 @@ describe('POST /peer/transactions', function () {
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res.body).to.have.property('message').to.eql('Missing recipient');
+			done();
+		});
+	});
+
+	it('using transaction with invalid recipientId should fail', function (done) {
+		var transaction = node.lisk.transaction.createTransaction('0123456789001234567890L', 1, node.gAccount.password);
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.eql('Invalid transaction body');
 			done();
 		});
 	});
@@ -256,6 +295,12 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
+	describe('using multiple transactions', function () {
+		it('with invalid transaction should fail');
+
+		it('with valid transaction should be ok');
+	});
+
 	describe('when two passphrases collide into the same address', function () {
 
 		var collision = {
@@ -302,6 +347,10 @@ describe('POST /peer/transactions', function () {
 		});
 
 		describe('when transaction is valid', function () {
+
+			beforeEach(function (done) {
+				node.onNewBlock(done);
+			});
 
 			it('should be ok for passphrase one', function (done) {
 				var transaction = node.lisk.transaction.createTransaction(node.gAccount.address, 100000000, collision.passphrases[0]);

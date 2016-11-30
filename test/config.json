@@ -1,18 +1,20 @@
 {
     "port": 4000,
     "address": "0.0.0.0",
-    "version": "0.0.0",
+    "version": "0.0.0a",
+    "minVersion": "0.0.0a",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
     "consoleLogLevel": "debug",
     "trustProxy": false,
+    "topAccounts": false,
     "db": {
         "host": "localhost",
         "port": 5432,
         "database": "lisk_test",
-        "user": null,
+        "user": "",
         "password": "password",
-        "poolSize": 20,
+        "poolSize": 95,
         "poolIdleTimeout": 30000,
         "reapIntervalMillis": 1000,
         "logEvents": [
@@ -42,9 +44,15 @@
                 "delayAfter": 0,
                 "windowMs": 60000
             },
-            "maxUpdatePeers": 20,
             "timeout": 5000
         }
+    },
+    "broadcasts": {
+        "broadcastInterval": 5000,
+        "broadcastLimit": 20,
+        "parallelLimit": 20,
+        "releaseLimit": 25,
+        "relayLimit": 2
     },
     "forging": {
         "force": true,
@@ -175,5 +183,5 @@
         "masterpassword": "",
         "autoexec": []
     },
-    "nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
+    "nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }

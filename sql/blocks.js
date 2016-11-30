@@ -73,9 +73,7 @@ var BlocksSql = {
 
   getBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
 
-  getTransactionId: 'SELECT "id" FROM trs WHERE "id" = ${id}',
-
-  simpleDeleteAfterBlock: 'DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = ${id});'
+  deleteAfterBlock: 'DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = ${id});'
 };
 
 module.exports = BlocksSql;

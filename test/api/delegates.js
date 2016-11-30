@@ -51,7 +51,7 @@ describe('PUT /api/accounts/delegates without funds', function () {
 			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Failed to remove vote/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
 		});
 	});
@@ -89,9 +89,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
 			node.expect(res.body.transactionId).to.be.not.empty;
-			node.onNewBlock(function (err) {
-				done();
-			});
+			done();
 		});
 	});
 
@@ -391,108 +389,6 @@ describe('GET /api/delegates', function () {
 		});
 	});
 
-	it('using string limit should fail', function (done) {
-		var limit = 'one';
-		var params = 'limit=' + limit;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
-			done();
-		});
-	});
-
-	it('using limit == -1 should fail', function (done) {
-		var limit = -1;
-		var params = 'limit=' + limit;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
-			done();
-		});
-	});
-
-	it('using limit == 0 should fail', function (done) {
-		var limit = 0;
-		var params = 'limit=' + limit;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
-			done();
-		});
-	});
-
-	it('using limit == 1 should be ok', function (done) {
-		var limit = 1;
-		var params = 'limit=' + limit;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(1);
-			done();
-		});
-	});
-
-	it('using limit == 101 should be ok', function (done) {
-		var limit = 101;
-		var params = 'limit=' + limit;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(101);
-			done();
-		});
-	});
-
-	it('using limit > 101 should fail', function (done) {
-		var limit = 102;
-		var params = 'limit=' + limit;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 102 is greater than maximum 101');
-			done();
-		});
-	});
-
-	it('using string offset should fail', function (done) {
-		var limit = 'one';
-		var params = 'offset=' + limit;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
-			done();
-		});
-	});
-
-	it('using offset == 1 should be ok', function (done) {
-		var offset = 1;
-		var params = 'offset=' + offset;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(101);
-			done();
-		});
-	});
-
-	it('using offset == -1 should fail', function (done) {
-		var offset = -1;
-		var params = 'offset=' + offset;
-
-		node.get('/api/delegates?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 0');
-			done();
-		});
-	});
-
 	it('using orderBy == "unknown:asc" should fail', function (done) {
 		var orderBy = 'unknown:asc';
 		var params = 'orderBy=' + orderBy;
@@ -628,6 +524,108 @@ describe('GET /api/delegates', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			node.expect(res.body.delegates).to.have.lengthOf(101);
+			done();
+		});
+	});
+
+	it('using string limit should fail', function (done) {
+		var limit = 'one';
+		var params = 'limit=' + limit;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
+			done();
+		});
+	});
+
+	it('using limit == -1 should fail', function (done) {
+		var limit = -1;
+		var params = 'limit=' + limit;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
+			done();
+		});
+	});
+
+	it('using limit == 0 should fail', function (done) {
+		var limit = 0;
+		var params = 'limit=' + limit;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
+			done();
+		});
+	});
+
+	it('using limit == 1 should be ok', function (done) {
+		var limit = 1;
+		var params = 'limit=' + limit;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.lengthOf(1);
+			done();
+		});
+	});
+
+	it('using limit == 101 should be ok', function (done) {
+		var limit = 101;
+		var params = 'limit=' + limit;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.lengthOf(101);
+			done();
+		});
+	});
+
+	it('using limit > 101 should fail', function (done) {
+		var limit = 102;
+		var params = 'limit=' + limit;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Value 102 is greater than maximum 101');
+			done();
+		});
+	});
+
+	it('using string offset should fail', function (done) {
+		var limit = 'one';
+		var params = 'offset=' + limit;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
+			done();
+		});
+	});
+
+	it('using offset == 1 should be ok', function (done) {
+		var offset = 1;
+		var params = 'offset=' + offset;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			node.expect(res.body.delegates).to.have.lengthOf(101);
+			done();
+		});
+	});
+
+	it('using offset == -1 should fail', function (done) {
+		var offset = -1;
+		var params = 'offset=' + offset;
+
+		node.get('/api/delegates?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 0');
 			done();
 		});
 	});

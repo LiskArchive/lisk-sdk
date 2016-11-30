@@ -54,7 +54,10 @@ module.exports = {
 				type: 'string'
 			},
 			username: {
-				type: 'string'
+				type: 'string',
+				format: 'username',
+				minLength: 1,
+				maxLength: 20
 			}
 		}
 	},
@@ -134,7 +137,10 @@ module.exports = {
 				maxLength: 100
 			},
 			username: {
-				type: 'string'
+				type: 'string',
+				format: 'username',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['secret']

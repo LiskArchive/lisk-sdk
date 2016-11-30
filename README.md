@@ -17,8 +17,9 @@ Install PostgreSQL (version 9.5.2):
 
 ```
 curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-sudo -u postgres createuser --createdb --password $USER
+sudo -u postgres createuser --createdb $USER
 createdb lisk_test
+sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
 ```
 
 Install Node.js (version 0.12.x) + npm:

@@ -131,7 +131,28 @@ DApp.prototype.verify = function (trs, sender, cb) {
 		}
 	}
 
-	return setImmediate(cb);
+	library.db.query(sql.getExisting, {
+		name: trs.asset.dapp.name,
+		link: trs.asset.dapp.link || null,
+		transactionId: trs.id
+	}).then(function (rows) {
+		var dapp = rows[0];
+
+		if (dapp) {
+			if (dapp.name === trs.asset.dapp.name) {
+				return setImmediate(cb, 'Application name already exists: ' + dapp.name);
+			} else if (dapp.link === trs.asset.dapp.link) {
+				return setImmediate(cb, 'Application link already exists: ' + dapp.link);
+			} else {
+				return setImmediate(cb, 'Application already exists');
+			}
+		} else {
+			return setImmediate(cb, null, trs);
+		}
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'DApp#verify error');
+	});
 };
 
 DApp.prototype.process = function (trs, sender, cb) {
@@ -197,27 +218,7 @@ DApp.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	__private.unconfirmedNames[trs.asset.dapp.name] = true;
 	__private.unconfirmedLinks[trs.asset.dapp.link] = true;
 
-	library.db.query(sql.getExisting, {
-		name: trs.asset.dapp.name,
-		link: trs.asset.dapp.link || null,
-		transactionId: trs.id
-	}).then(function (rows) {
-		var dapp = rows[0];
-
-		if (dapp) {
-			if (dapp.name === trs.asset.dapp.name) {
-				return setImmediate(cb, 'Application name already exists: ' + dapp.name);
-			} else if (dapp.link === trs.asset.dapp.link) {
-				return setImmediate(cb, 'Application link already exists: ' + dapp.link);
-			} else {
-				return setImmediate(cb, 'Unknown error');
-			}
-		} else {
-			return setImmediate(cb, null, trs);
-		}
-	}).catch(function (err) {
-		return setImmediate(cb, 'DApp#applyUnconfirmed error');
-	});
+	return setImmediate(cb);
 };
 
 DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
@@ -336,7 +337,9 @@ DApp.prototype.dbSave = function (trs) {
 };
 
 DApp.prototype.afterSave = function (trs, cb) {
-	library.network.io.sockets.emit('dapps/change', {});
+	if (library) {
+		library.network.io.sockets.emit('dapps/change', {});
+	}
 	return setImmediate(cb);
 };
 

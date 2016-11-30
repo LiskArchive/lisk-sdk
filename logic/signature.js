@@ -91,7 +91,7 @@ Signature.prototype.undo = function (trs, block, sender, cb) {
 
 Signature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	if (sender.u_secondSignature || sender.secondSignature) {
-		return setImmediate(cb, 'Failed second signature: ' + trs.id);
+		return setImmediate(cb, 'Second signature already enabled');
 	}
 
 	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb);

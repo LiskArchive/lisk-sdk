@@ -7,6 +7,7 @@ var BlockReward = require('../logic/blockReward.js');
 var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
 var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
@@ -22,7 +23,6 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
 __private.loaded = false;
-__private.forging = false;
 __private.blockReward = new BlockReward();
 __private.keypairs = {};
 
@@ -33,7 +33,6 @@ function Delegates (cb, scope) {
 
 	__private.attachApi();
 
-	var Delegate = require('../logic/delegate.js');
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
 		transactionTypes.DELEGATE, new Delegate()
 	);
@@ -182,7 +181,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/delegates', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -227,12 +226,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
 		library.logger.debug('No delegates enabled');
-		return setImmediate(cb);
-	}
-
-	if (!__private.forging) {
-		library.logger.debug('Forging disabled due to timeout');
-		return setImmediate(cb);
+		return __private.loadDelegates(cb);
 	}
 
 	// When client is not loaded, is syncing or round is ticking
@@ -246,40 +240,57 @@ __private.forge = function (cb) {
 	var lastBlock = modules.blocks.getLastBlock();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Last block within same delegate slot');
+		library.logger.debug('Waiting for next delegate slot');
 		return setImmediate(cb);
 	}
 
 	__private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
 		if (err || currentBlockData === null) {
-			library.logger.debug('Skipping delegate slot');
+			library.logger.warn('Skipping delegate slot', err);
+			return setImmediate(cb);
+		}
+
+		if (slots.getSlotNumber(currentBlockData.time) !== slots.getSlotNumber()) {
+			library.logger.debug('Delegate slot', slots.getSlotNumber());
 			return setImmediate(cb);
 		}
 
 		library.sequence.add(function (cb) {
-			if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()) {
-				modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, function (err) {
-					modules.blocks.lastReceipt(new Date());
-
-					library.logger.info([
-						'Forged new block id:',
-						modules.blocks.getLastBlock().id,
-						'height:', modules.blocks.getLastBlock().height,
-						'round:', modules.rounds.calc(modules.blocks.getLastBlock().height),
-						'slot:', slots.getSlotNumber(currentBlockData.time),
-						'reward:' + modules.blocks.getLastBlock().reward
-					].join(' '));
-
+			async.series({
+				getPeers: function (seriesCb) {
+					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+				},
+				checkBroadhash: function (seriesCb) {
+					if (modules.transport.poorConsensus()) {
+						return setImmediate(seriesCb, ['Inadequate broadhash consensus', modules.transport.consensus(), '%'].join(' '));
+					} else {
+						return setImmediate(seriesCb);
+					}
+				}
+			}, function (err) {
+				if (err) {
+					library.logger.warn(err);
 					return setImmediate(cb, err);
-				});
-			} else {
-				library.logger.debug('Delegate slot', slots.getSlotNumber());
-				return setImmediate(cb);
-			}
+				} else {
+					return modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
+				}
+			});
 		}, function (err) {
 			if (err) {
-				library.logger.error('Failed generate block within delegate slot', err);
+				library.logger.error('Failed to generate block within delegate slot', err);
+			} else {
+				modules.blocks.lastReceipt(new Date());
+
+				library.logger.info([
+					'Forged new block id:',
+					modules.blocks.getLastBlock().id,
+					'height:', modules.blocks.getLastBlock().height,
+					'round:', modules.rounds.calc(modules.blocks.getLastBlock().height),
+					'slot:', slots.getSlotNumber(currentBlockData.time),
+					'reward:' + modules.blocks.getLastBlock().reward
+				].join(' '));
 			}
+
 			return setImmediate(cb);
 		});
 	});
@@ -306,14 +317,12 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 		async.eachSeries(votes, function (action, cb) {
 			var math = action[0];
 
-			if (math !== '+' && math !== '-') {
-				return setImmediate(cb, 'Invalid math operator');
-			}
-
 			if (math === '+') {
 				additions += 1;
-			} else if (math === '+') {
+			} else if (math === '-') {
 				removals += 1;
+			} else {
+				return setImmediate(cb, 'Invalid math operator');
 			}
 
 			var publicKey = action.slice(1);
@@ -362,10 +371,21 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 	});
 };
 
-__private.loadMyDelegates = function (cb) {
-	var secrets = null;
+__private.loadDelegates = function (cb) {
+	var secrets;
+
 	if (library.config.forging.secret) {
-		secrets = Array.isArray(library.config.forging.secret) ? library.config.forging.secret : [library.config.forging.secret];
+		if (Array.isArray(library.config.forging.secret)) {
+			secrets = library.config.forging.secret;
+		} else {
+			secrets = [library.config.forging.secret];
+		}
+	}
+
+	if (!secrets || !secrets.length) {
+		return setImmediate(cb);
+	} else {
+		library.logger.info(['Loading', secrets.length, 'delegates from config'].join(' '));
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
@@ -379,15 +399,16 @@ __private.loadMyDelegates = function (cb) {
 			}
 
 			if (!account) {
-				return setImmediate(cb, 'Account ' + keypair.publicKey.toString('hex') + ' not found');
+				return setImmediate(cb, ['Account with public key:', keypair.publicKey.toString('hex'), 'not found'].join(' '));
 			}
 
 			if (account.isDelegate) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-				library.logger.info('Forging enabled on account: ' + account.address);
+				library.logger.info(['Forging enabled on account:', account.address].join(' '));
 			} else {
-				library.logger.warn('Delegate with this public key not found: ' + keypair.publicKey.toString('hex'));
+				library.logger.warn(['Account with public key:', keypair.publicKey.toString('hex'), 'is not a delegate'].join(' '));
 			}
+
 			return setImmediate(cb);
 		});
 	}, cb);
@@ -471,7 +492,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 	});
 };
 
-Delegates.prototype.checkDelegates = function (publicKey, votes, cb) {
+Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb) {
 	return __private.checkDelegates(publicKey, votes, 'confirmed', cb);
 };
 
@@ -486,15 +507,17 @@ Delegates.prototype.fork = function (block, cause) {
 		cause: cause
 	});
 
-	self.disableForging('fork');
-
-	library.db.none(sql.insertFork, {
+	var fork = {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
 		blockHeight: block.height,
 		previousBlock: block.previousBlock,
 		cause: cause
+	};
+
+	library.db.none(sql.insertFork, fork).then(function () {
+		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };
 
@@ -534,14 +557,16 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadMyDelegates(function nextForge (err) {
+	__private.loadDelegates(function nextForge (err) {
 		if (err) {
 			library.logger.error('Failed to load delegates', err);
 		}
 
-		__private.toggleForgingOnReceipt();
-		__private.forge(function () {
-			setTimeout(nextForge, 1000);
+		async.series([
+			__private.forge,
+			modules.transactions.fillPool
+		], function (err) {
+			return setTimeout(nextForge, 1000);
 		});
 	});
 };
@@ -551,45 +576,7 @@ Delegates.prototype.cleanup = function (cb) {
 	return setImmediate(cb);
 };
 
-Delegates.prototype.enableForging = function () {
-	if (!__private.forging) {
-		library.logger.debug('Enabling forging');
-		__private.forging = true;
-	}
-
-	return __private.forging;
-};
-
-Delegates.prototype.disableForging = function (reason) {
-	if (__private.forging) {
-		library.logger.debug('Disabling forging due to:', reason);
-		__private.forging = false;
-	}
-
-	return __private.forging;
-};
-
 // Private
-__private.toggleForgingOnReceipt = function () {
-	var lastReceipt = modules.blocks.lastReceipt();
-
-	// Enforce local forging if configured
-	if (!lastReceipt && library.config.forging.force) {
-		lastReceipt = modules.blocks.lastReceipt(new Date());
-	}
-
-	if (lastReceipt) {
-		var timeOut = Number(constants.forgingTimeOut);
-
-		library.logger.debug('Last block received: ' + lastReceipt.secondsAgo + ' seconds ago');
-
-		if (lastReceipt.secondsAgo > timeOut) {
-			return self.disableForging('timeout');
-		} else {
-			return self.enableForging();
-		}
-	}
-};
 
 // Shared
 shared.getDelegate = function (req, cb) {
@@ -828,7 +815,7 @@ shared.addDelegate = function (req, cb) {
 						} catch (e) {
 							return setImmediate(cb, e.toString());
 						}
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -865,7 +852,7 @@ shared.addDelegate = function (req, cb) {
 					} catch (e) {
 						return setImmediate(cb, e.toString());
 					}
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 		}, function (err, transaction) {

@@ -8,24 +8,21 @@ module.exports = {
 		type: 'object',
 		properties: {
 			blockId: {
-				type: 'string'
-			},
-			limit: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 100
+				type: 'string',
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			},
 			type: {
 				type: 'integer',
 				minimum: 0,
 				maximum: 10
 			},
-			orderBy: {
-				type: 'string'
-			},
-			offset: {
-				type: 'integer',
-				minimum: 0
+			senderId: {
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			senderPublicKey: {
 				type: 'string',
@@ -36,13 +33,16 @@ module.exports = {
 				format: 'publicKey'
 			},
 			ownerAddress: {
-				type: 'string'
-			},
-			senderId: {
-				type: 'string'
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			recipientId: {
-				type: 'string'
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			amount: {
 				type: 'integer',
@@ -53,6 +53,18 @@ module.exports = {
 				type: 'integer',
 				minimum: 0,
 				maximum: constants.fixedPoint
+			},
+			orderBy: {
+				type: 'string'
+			},
+			limit: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 100
+			},
+			offset: {
+				type: 'integer',
+				minimum: 0
 			}
 		}
 	},
@@ -62,24 +74,28 @@ module.exports = {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['id']
 	},
-	getUnconfirmedTransaction: {
-		id: 'transactions.getUnconfirmedTransaction',
+	getPooledTransaction: {
+		id: 'transactions.getPooledTransaction',
 		type: 'object',
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['id']
 	},
-	getUnconfirmedTransactions: {
-		id: 'transactions.getUnconfirmedTransactions',
+	getPooledTransactions: {
+		id: 'transactions.getPooledTransactions',
 		type: 'object',
 		properties: {
 			senderPublicKey: {
@@ -87,7 +103,10 @@ module.exports = {
 				format: 'publicKey'
 			},
 			address: {
-				type: 'string'
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			}
 		}
 	},
@@ -107,7 +126,9 @@ module.exports = {
 			},
 			recipientId: {
 				type: 'string',
-				minLength: 1
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
 			},
 			publicKey: {
 				type: 'string',
