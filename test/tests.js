@@ -14,7 +14,7 @@ describe("Lisk JS", function () {
 	});
 
 	it("should have properties", function () {
-		var properties = ["transaction", "signature", "vote", "delegate", "dapp", "crypto"];
+		var properties = ["transaction", "signature", "vote", "multisignature", "delegate", "dapp", "crypto"];
 
 		properties.forEach(function (property) {
 			(lisk).should.have.property(property);
@@ -168,14 +168,14 @@ describe("Lisk JS", function () {
 				(fee).should.be.type("number").and.equal(10000000);
 			});
 
-			it("should return 10000000000", function () {
+			it("should return 500000000", function () {
 				var fee = getFee({type: 1});
-				(fee).should.be.type("number").and.equal(10000000000);
+				(fee).should.be.type("number").and.equal(500000000);
 			});
 
-			it("should be equal 1000000000000", function () {
+			it("should be equal 2500000000", function () {
 				var fee = getFee({type: 2});
-				(fee).should.be.type("number").and.equal(1000000000000);
+				(fee).should.be.type("number").and.equal(2500000000);
 			});
 
 			it("should be equal 100000000", function () {
