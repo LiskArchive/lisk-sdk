@@ -712,6 +712,19 @@ __private.recoverChain = function (cb) {
 	});
 };
 
+__private.receiveBlock = function (block, cb) {
+	library.logger.info([
+		'Received new block id:', block.id,
+		'height:', block.height,
+		'round:',  modules.rounds.calc(modules.blocks.getLastBlock().height),
+		'slot:', slots.getSlotNumber(block.timestamp),
+		'reward:', modules.blocks.getLastBlock().reward
+	].join(' '));
+
+	self.lastReceipt(new Date());
+	self.processBlock(block, true, cb, true);
+};
+
 // Public methods
 Blocks.prototype.count = function (cb) {
 	library.db.query(sql.countByRowId).then(function (rows) {
@@ -1313,36 +1326,45 @@ Blocks.prototype.onReceiveBlock = function (block) {
 
 	library.sequence.add(function (cb) {
 		if (block.previousBlock === __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
-			library.logger.info([
-				'Received new block id:', block.id,
-				'height:', block.height,
-				'round:',  modules.rounds.calc(modules.blocks.getLastBlock().height),
-				'slot:', slots.getSlotNumber(block.timestamp),
-				'reward:', modules.blocks.getLastBlock().reward
-			].join(' '));
-
-			self.lastReceipt(new Date());
-			self.processBlock(block, true, cb, true);
+			return __private.receiveBlock(block, cb);
 		} else if (block.previousBlock !== __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
 			// Fork: Consecutive height but different previous block id.
 			modules.delegates.fork(block, 1);
 
-			if (block.previousBlock < __private.lastBlock.id) {
-				library.logger.info('Last block loses');
-				return self.deleteLastBlock(cb);
+			// If newly received block is older than last one - we have wrong parent and should rewind.
+			if (block.timestamp < __private.lastBlock.timestamp) {
+				library.logger.info('Last block and parent loses');
+				async.series([
+					self.deleteLastBlock,
+					self.deleteLastBlock
+				], cb);
 			} else {
-				library.logger.info('Newly received block wins');
+				library.logger.info('Last block stands');
 				return setImmediate(cb);
 			}
 		} else if (block.previousBlock === __private.lastBlock.previousBlock && block.height === __private.lastBlock.height && block.id !== __private.lastBlock.id) {
 			// Fork: Same height and previous block id, but different block id.
 			modules.delegates.fork(block, 5);
 
-			if (block.id < __private.lastBlock.id) {
+			// Check if delegate forged on more than one node.
+			if (block.generatorPublicKey === __private.lastBlock.generatorPublicKey) {
+				library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
+			}
+
+			// Two competiting blocks on same height - we should always keep the oldest one.
+			if (block.timestamp < __private.lastBlock.timestamp) {
 				library.logger.info('Last block loses');
-				return self.deleteLastBlock(cb);
+
+				async.series([
+					function (seriesCb) {
+						self.deleteLastBlock(seriesCb);
+					},
+					function (seriesCb) {
+						return __private.receiveBlock(block, seriesCb);
+					}
+				], cb);
 			} else {
-				library.logger.info('Newly received block wins');
+				library.logger.info('Last block stands');
 				return setImmediate(cb);
 			}
 		} else {
