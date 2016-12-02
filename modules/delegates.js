@@ -57,7 +57,8 @@ __private.attachApi = function () {
 		'get /': 'getDelegates',
 		'get /fee': 'getFee',
 		'get /forging/getForgedByAccount': 'getForgedByAccount',
-		'put /': 'addDelegate'
+		'put /': 'addDelegate',
+		'get /getNextForgers': 'getNextForgers'
 	});
 
 	if (process.env.DEBUG) {
@@ -606,6 +607,27 @@ shared.getDelegate = function (req, cb) {
 				return setImmediate(cb, 'Delegate not found');
 			}
 		});
+	});
+};
+
+shared.getNextForgers = function (req, cb) {
+	var currentBlock = modules.blocks.getLastBlock ();
+	var limit = req.body.limit || 10;
+
+	modules.delegates.generateDelegateList(currentBlock.height, function (err, activeDelegates) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+
+		var currentSlot = slots.getSlotNumber(currentBlock.timestamp);
+		var nextForgers = [];
+
+		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
+			if (activeDelegates[(currentSlot + i) % slots.delegates]) {
+				nextForgers.push (activeDelegates[(currentSlot + i) % slots.delegates]);
+			}
+		}
+		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentSlot: currentSlot, delegates: nextForgers});
 	});
 };
 

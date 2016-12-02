@@ -39,7 +39,8 @@ var TransactionsSql = {
     ].filter(Boolean).join(' ');
   },
 
-  getById: 'SELECT * FROM trs_list WHERE "t_id" = ${id}'
+  getById: 'SELECT * FROM trs_list WHERE "t_id" = ${id}',
+  getVotesById: 'SELECT * FROM votes WHERE "transactionId" = ${id}'
 };
 
 module.exports = TransactionsSql;
