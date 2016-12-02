@@ -28,7 +28,9 @@ __private.parseHeight = function (height) {
 
 // Public methods
 BlockReward.prototype.calcMilestone = function (height) {
-	var location = Math.trunc((__private.parseHeight(height) - this.rewardOffset) / this.distance);
+	height = __private.parseHeight(height);
+
+	var location = Math.trunc((height - this.rewardOffset) / this.distance);
 	var lastMile = this.milestones[this.milestones.length - 1];
 
 	if (location > (this.milestones.length - 1)) {
@@ -49,34 +51,36 @@ BlockReward.prototype.calcReward = function (height) {
 };
 
 BlockReward.prototype.calcSupply = function (height) {
-	height        = __private.parseHeight(height);
+	height = __private.parseHeight(height);
+
+	if (height < this.rewardOffset) {
+		// Rewards not started yet
+		return constants.totalAmount;
+	}
+
 	var milestone = this.calcMilestone(height);
-	var supply    = constants.totalAmount / Math.pow(10,8);
+	var supply    = constants.totalAmount;
 	var rewards   = [];
 
 	var amount = 0, multiplier = 0;
 
+	// Remove offset from height
+	height -= this.rewardOffset - 1;
+
 	for (var i = 0; i < this.milestones.length; i++) {
 		if (milestone >= i) {
-			multiplier = (this.milestones[i] / Math.pow(10,8));
+			multiplier = this.milestones[i];
 
-			if (height < this.rewardOffset) {
-				break; // Rewards not started yet
-			} else if (height < this.distance) {
-				amount = height % this.distance; // Measure this.distance thus far
+			if (height < this.distance) {
+				// Measure this.distance thus far
+				amount = height % this.distance;
 			} else {
 				amount = this.distance; // Assign completed milestone
 				height -= this.distance; // Deduct from total height
 
 				// After last milestone
 				if (height > 0 && i === this.milestones.length - 1) {
-					var postHeight = this.rewardOffset - 1;
-
-					if (height >= postHeight) {
-						amount += (height - postHeight);
-					} else {
-						amount += (postHeight - height);
-					}
+					amount += height;
 				}
 			}
 
@@ -91,7 +95,7 @@ BlockReward.prototype.calcSupply = function (height) {
 		supply += reward[0] * reward[1];
 	}
 
-	return supply * Math.pow(10,8);
+	return supply;
 };
 
 // Export
