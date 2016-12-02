@@ -40,6 +40,7 @@ var TransactionsSql = {
   },
 
   getById: 'SELECT * FROM trs_list WHERE "t_id" = ${id}',
+
   getVotesById: 'SELECT * FROM votes WHERE "transactionId" = ${id}'
 };
 
