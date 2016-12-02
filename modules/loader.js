@@ -749,7 +749,9 @@ shared.sync = function (req, cb) {
 	return setImmediate(cb, null, {
 		syncing: self.syncing(),
 		blocks: __private.blocksToSync,
-		height: modules.blocks.getLastBlock().height
+		height: modules.blocks.getLastBlock().height,
+		broadhash: modules.system.getBroadhash(),
+		consensus: modules.transport.consensus()
 	});
 };
 
