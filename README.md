@@ -12,7 +12,7 @@ Install essentials:
 
 ```
 sudo apt-get update
-sudo apt-get install -y curl build-essential python git
+sudo apt-get install -y autoconf automake build-essential curl git libtool python
 ```
 
 Install PostgreSQL (version 9.5.2):
