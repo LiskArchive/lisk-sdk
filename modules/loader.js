@@ -169,8 +169,8 @@ __private.loadTransactions = function (cb) {
 					library.logger.debug(['Transaction', id].join(' '), e.toString());
 					if (transaction) { library.logger.debug('Transaction', transaction); }
 
-					library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
-					modules.peers.state(peer.ip, peer.port, 0, 3600);
+					library.logger.warn(['Transaction', id, 'is not valid, ban 10 min'].join(' '), peer.string);
+					modules.peers.state(peer.ip, peer.port, 0, 600);
 
 					return setImmediate(eachSeriesCb, e);
 				}
@@ -749,7 +749,9 @@ shared.sync = function (req, cb) {
 	return setImmediate(cb, null, {
 		syncing: self.syncing(),
 		blocks: __private.blocksToSync,
-		height: modules.blocks.getLastBlock().height
+		height: modules.blocks.getLastBlock().height,
+		broadhash: modules.system.getBroadhash(),
+		consensus: modules.transport.consensus()
 	});
 };
 

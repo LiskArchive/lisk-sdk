@@ -72,11 +72,22 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 				return setImmediate(cb, 'Transaction not found');
 			}
 
-			transaction.signatures = transaction.signatures || [];
-			transaction.signatures.push(tx.signature);
-			library.bus.message('signature', transaction, true);
+			modules.accounts.getAccount({
+				address: transaction.senderId
+			}, function (err, sender) {
+				if (err) {
+					return setImmediate(cb, err);
+				} else if (!sender) {
+					return setImmediate(cb, 'Sender not found');
+				} else {
+					transaction.signatures = transaction.signatures || [];
+					transaction.signatures.push(tx.signature);
+					transaction.ready = Multisignature.prototype.ready(transaction, sender);
 
-			return setImmediate(cb);
+					library.bus.message('signature', {transaction: tx.transaction, signature: tx.signature}, true);
+					return setImmediate(cb);
+				}
+			});
 		}, cb);
 	}
 
@@ -433,12 +444,9 @@ shared.sign = function (req, cb) {
 			transaction.signatures.push(scope.signature);
 			transaction.ready = Multisignature.prototype.ready(transaction, scope.sender);
 
-			library.bus.message('signature', {
-				signature: scope.signature,
-				transaction: transaction.id
-			}, true);
-
+			library.bus.message('signature', {transaction: transaction.id, signature: scope.signature}, true);
 			library.network.io.sockets.emit('multisignatures/signature/change', transaction);
+
 			return setImmediate(cb, null, {transactionId: transaction.id});
 		});
 	}, cb);
