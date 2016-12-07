@@ -114,6 +114,12 @@ module.exports = {
 			generatorPublicKey: {
 				type: 'string',
 				format: 'publicKey'
+			},
+			start: {
+				type: 'string'
+			},
+			end: {
+				type: 'string'
 			}
 		},
 		required: ['generatorPublicKey']

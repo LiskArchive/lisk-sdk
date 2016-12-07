@@ -1529,5 +1529,29 @@ shared.getStatus = function (req, cb) {
 	});
 };
 
+
+shared.aggregateBlocksReward = function (req, cb) {
+	if (!__private.loaded) {
+		return setImmediate(cb, 'Blockchain is loading');
+	}
+
+	library.schema.validate(req.body, schema.aggregateBlocksReward, function (err) {
+		if (err) {
+			return setImmediate(cb, err[0].message);
+		}
+
+		/*SELECT 
+		sum ("b_totalFee") as fees,
+		sum ("b_reward") as reward,
+		count (*) as count
+		FROM
+		public.blocks_list
+		WHERE 
+		"b_generatorPublicKey" != '' and "b_timestamp" > 9999
+		*/
+		return setImmediate(cb, null, {fees: data.fees, reward: data.rewards, count: data.count});
+	});
+};
+
 // Export
 module.exports = Blocks;

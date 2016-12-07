@@ -755,13 +755,20 @@ shared.getForgedByAccount = function (req, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
-			if (err || !account) {
-				return setImmediate(cb, err || 'Account not found');
-			}
-			var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
-			return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
-		});
+		if (req.body.start && req.body.end) {
+			modules.blocks.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
+				var forged = bignum(reward.fees).plus(bignum(reward.rewards)).toString();
+				return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});
+			});
+		} else {
+			modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
+				if (err || !account) {
+					return setImmediate(cb, err || 'Account not found');
+				}
+				var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
+				return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
+			});
+		}
 	});
 };
 
