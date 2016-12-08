@@ -1415,16 +1415,14 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 		where: where,
 	}), params).then(function (rows) {
 		var data = rows[0];
-		console.log (data);
 		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
 
 		return setImmediate(cb, null, data);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#list error');
+		return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
 	});
 };
-
 
 // Shared
 shared.getBlock = function (req, cb) {
@@ -1557,7 +1555,6 @@ shared.getStatus = function (req, cb) {
 		supply:    __private.blockReward.calcSupply(__private.lastBlock.height)
 	});
 };
-
 
 // Export
 module.exports = Blocks;
