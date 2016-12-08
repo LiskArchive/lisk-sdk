@@ -1397,6 +1397,34 @@ Blocks.prototype.cleanup = function (cb) {
 	}
 };
 
+
+
+Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
+	var params = {}, where = [];
+
+	where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
+	params.generatorPublicKey = filter.generatorPublicKey;
+
+	where.push('"b_timestamp" >= ${start}');
+	params.start = filter.start;
+
+	where.push('"b_timestamp" <= ${end}');
+	params.end = filter.end;
+
+	library.db.query(sql.aggregateBlocksReward({
+		where: where,
+	}), params).then(function (rows) {
+		var data = rows[0];
+		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
+
+		return setImmediate(cb, null, data);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#list error');
+	});
+};
+
+
 // Shared
 shared.getBlock = function (req, cb) {
 	if (!__private.loaded) {
@@ -1529,29 +1557,6 @@ shared.getStatus = function (req, cb) {
 	});
 };
 
-
-shared.aggregateBlocksReward = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	library.schema.validate(req.body, schema.aggregateBlocksReward, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		/*SELECT 
-		sum ("b_totalFee") as fees,
-		sum ("b_reward") as reward,
-		count (*) as count
-		FROM
-		public.blocks_list
-		WHERE 
-		"b_generatorPublicKey" != '' and "b_timestamp" > 9999
-		*/
-		return setImmediate(cb, null, {fees: data.fees, reward: data.rewards, count: data.count});
-	});
-};
 
 // Export
 module.exports = Blocks;

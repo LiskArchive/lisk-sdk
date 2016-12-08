@@ -116,10 +116,10 @@ module.exports = {
 				format: 'publicKey'
 			},
 			start: {
-				type: 'string'
+				type: 'integer'
 			},
 			end: {
-				type: 'string'
+				type: 'integer'
 			}
 		},
 		required: ['generatorPublicKey']
