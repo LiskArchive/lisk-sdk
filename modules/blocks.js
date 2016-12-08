@@ -1406,15 +1406,16 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 	params.generatorPublicKey = filter.generatorPublicKey;
 
 	where.push('"b_timestamp" >= ${start}');
-	params.start = filter.start;
+	params.start = filter.start - constants.epochTime.getTime ()  / 1000;
 
 	where.push('"b_timestamp" <= ${end}');
-	params.end = filter.end;
+	params.end = filter.end - constants.epochTime.getTime () / 1000; 
 
 	library.db.query(sql.aggregateBlocksReward({
 		where: where,
 	}), params).then(function (rows) {
 		var data = rows[0];
+		console.log (data);
 		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
 
 		return setImmediate(cb, null, data);

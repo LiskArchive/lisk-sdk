@@ -27,7 +27,7 @@ var BlocksSql = {
 
   aggregateBlocksReward: function (params) {
     return [
-      'SELECT sum ("b_totalFee") as fees, sum ("b_reward") as reward, count (*) as count',
+      'SELECT sum ("b_totalFee") as fees, sum ("b_reward") as rewards, count (*) as count',
 		  'FROM blocks_list',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
     ].filter(Boolean).join(' ');
