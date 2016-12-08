@@ -1397,8 +1397,6 @@ Blocks.prototype.cleanup = function (cb) {
 	}
 };
 
-
-
 Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 	var params = {}, where = [];
 
@@ -1416,7 +1414,6 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 	}), params).then(function (rows) {
 		var data = rows[0];
 		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
-
 		return setImmediate(cb, null, data);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
