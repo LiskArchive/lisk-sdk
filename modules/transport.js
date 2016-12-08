@@ -47,7 +47,7 @@ __private.attachApi = function () {
 	router.use(function (req, res, next) {
 		req.peer = modules.peers.accept(
 			{
-				ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+				ip: req.ip,
 				port: req.headers.port
 			}
 		);
