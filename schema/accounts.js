@@ -93,9 +93,12 @@ module.exports = {
 				format: 'address',
 				minLength: 1,
 				maxLength: 22
+			},
+			publicKey: {
+				type: 'string',
+				format: 'publicKey'
 			}
-		},
-		required: ['address']
+		}
 	},
 	top: {
 		id: 'accounts.top',
