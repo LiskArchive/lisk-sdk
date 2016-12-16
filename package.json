@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "test": "./node_modules/.bin/mocha",
+    "test": "./node_modules/.bin/grunt travis --verbose",
     "cov": "./node_modules/.bin/mocha --require blanket -R html-cov test/helpers test/logic > tmp/coverage.html"
   },
   "author": "Boris Povod <boris@crypti.me>, Pavel Nekrasov <landgraf.paul@gmail.com>, Oliver Beddows <oliver@lisk.io>",
@@ -62,6 +62,7 @@
     "grunt-contrib-jshint": "=1.0.0",
     "grunt-exec": "=1.0.1",
     "grunt-jsdox": "=0.1.7",
+    "grunt-mocha-test": "=0.13.2",
     "grunt-obfuscator": "=0.1.0",
     "jsdox": "=0.4.10",
     "jshint": "=2.9.3",

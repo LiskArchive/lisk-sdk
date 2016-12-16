@@ -1,0 +1,15 @@
+dist: 'trusty'
+language: node_js
+node_js:
+  - '0.12'
+services:
+  - postgresql
+addons:
+  postgresql: '9.6'
+before_script:
+  - createdb lisk_test
+  - psql -d lisk_test -c "alter user "$USER" with password 'password';"
+  - wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
+  - tar -zxvf lisk-node-Linux-x86_64.tar.gz
+  - cp test/config.json test/genesisBlock.json .
+  - node app.js &> /dev/null &
