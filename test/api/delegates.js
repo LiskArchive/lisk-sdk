@@ -1103,6 +1103,7 @@ describe('GET /api/delegates/getNextForgers', function () {
 		node.get('/api/delegates/getNextForgers', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('currentBlock').that.is.a('number');
+			node.expect(res.body).to.have.property('currentBlockSlot').that.is.a('number');
 			node.expect(res.body).to.have.property('currentSlot').that.is.a('number');
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			node.expect(res.body.delegates).to.have.lengthOf(10);
@@ -1114,6 +1115,7 @@ describe('GET /api/delegates/getNextForgers', function () {
 		node.get('/api/delegates/getNextForgers?' + 'limit=1', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('currentBlock').that.is.a('number');
+			node.expect(res.body).to.have.property('currentBlockSlot').that.is.a('number');
 			node.expect(res.body).to.have.property('currentSlot').that.is.a('number');
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			node.expect(res.body.delegates).to.have.lengthOf(1);
@@ -1125,6 +1127,7 @@ describe('GET /api/delegates/getNextForgers', function () {
 		node.get('/api/delegates/getNextForgers?' + 'limit=101', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('currentBlock').that.is.a('number');
+			node.expect(res.body).to.have.property('currentBlockSlot').that.is.a('number');
 			node.expect(res.body).to.have.property('currentSlot').that.is.a('number');
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			node.expect(res.body.delegates).to.have.lengthOf(101);
