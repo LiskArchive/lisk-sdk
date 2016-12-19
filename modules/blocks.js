@@ -1397,6 +1397,30 @@ Blocks.prototype.cleanup = function (cb) {
 	}
 };
 
+Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
+	var params = {}, where = [];
+
+	where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
+	params.generatorPublicKey = filter.generatorPublicKey;
+
+	where.push('"b_timestamp" >= ${start}');
+	params.start = filter.start - constants.epochTime.getTime ()  / 1000;
+
+	where.push('"b_timestamp" <= ${end}');
+	params.end = filter.end - constants.epochTime.getTime () / 1000; 
+
+	library.db.query(sql.aggregateBlocksReward({
+		where: where,
+	}), params).then(function (rows) {
+		var data = rows[0];
+		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
+		return setImmediate(cb, null, data);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
+	});
+};
+
 // Shared
 shared.getBlock = function (req, cb) {
 	if (!__private.loaded) {
