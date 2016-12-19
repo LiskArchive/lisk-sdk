@@ -332,19 +332,10 @@ describe('GET /accounts', function () {
 		});
 	});
 
-	it('using known publicKey and empty address should be ok', function (done) {
+	it('using known publicKey and empty address should fail', function (done) {
 		getAccounts('publicKey=' + node.gAccount.publicKey + '&address=', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account).to.have.property('address').to.equal(node.gAccount.address);
-			node.expect(res.body.account).to.have.property('unconfirmedBalance').that.is.a('string');
-			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
-			node.expect(res.body.account).to.have.property('publicKey').to.equal(node.gAccount.publicKey);
-			node.expect(res.body.account).to.have.property('unconfirmedSignature').to.equal(0);
-			node.expect(res.body.account).to.have.property('secondSignature').to.equal(0);
-			node.expect(res.body.account).to.have.property('secondPublicKey').to.equal(null);
-			node.expect(res.body.account).to.have.property('multisignatures').to.a('array');
-			node.expect(res.body.account).to.have.property('u_multisignatures').to.a('array');
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.eql('String is too short (0 chars), minimum 1');
 			done();
 		});
 	});
