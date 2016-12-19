@@ -11,5 +11,6 @@ before_script:
   - psql -d lisk_test -c "alter user "$USER" with password 'password';"
   - wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
   - tar -zxvf lisk-node-Linux-x86_64.tar.gz
+  - cd test/lisk-js/; npm install; cd ../..
   - cp test/config.json test/genesisBlock.json .
   - node app.js &> /dev/null &
