@@ -1331,16 +1331,17 @@ Blocks.prototype.onReceiveBlock = function (block) {
 			// Fork: Consecutive height but different previous block id.
 			modules.delegates.fork(block, 1);
 
-			// If newly received block is older than last one - we have wrong parent and should rewind.
-			if (block.timestamp < __private.lastBlock.timestamp) {
+			// We should keep the oldest one or if both have same age - keep one with lower id
+			if (block.timestamp > __private.lastBlock.timestamp || (block.timestamp === __private.lastBlock.timestamp && block.id > __private.lastBlock.id)) {
+				library.logger.info('Last block stands');
+				return setImmediate(cb);
+			} else {
+				// In other cases - we have wrong parent and should rewind. 
 				library.logger.info('Last block and parent loses');
 				async.series([
 					self.deleteLastBlock,
 					self.deleteLastBlock
 				], cb);
-			} else {
-				library.logger.info('Last block stands');
-				return setImmediate(cb);
 			}
 		} else if (block.previousBlock === __private.lastBlock.previousBlock && block.height === __private.lastBlock.height && block.id !== __private.lastBlock.id) {
 			// Fork: Same height and previous block id, but different block id.
@@ -1351,10 +1352,12 @@ Blocks.prototype.onReceiveBlock = function (block) {
 				library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
 			}
 
-			// Two competiting blocks on same height - we should always keep the oldest one.
-			if (block.timestamp < __private.lastBlock.timestamp) {
+			// Two competiting blocks on same height, we should keep the oldest one or if both have same age - keep one with lower id
+			if (block.timestamp > __private.lastBlock.timestamp || (block.timestamp === __private.lastBlock.timestamp && block.id > __private.lastBlock.id)) {
+				library.logger.info('Last block stands');
+				return setImmediate(cb);
+			} else {
 				library.logger.info('Last block loses');
-
 				async.series([
 					function (seriesCb) {
 						self.deleteLastBlock(seriesCb);
@@ -1363,9 +1366,6 @@ Blocks.prototype.onReceiveBlock = function (block) {
 						return __private.receiveBlock(block, seriesCb);
 					}
 				], cb);
-			} else {
-				library.logger.info('Last block stands');
-				return setImmediate(cb);
 			}
 		} else {
 			return setImmediate(cb);
