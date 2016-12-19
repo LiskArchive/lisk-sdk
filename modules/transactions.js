@@ -190,7 +190,7 @@ __private.getById = function (id, cb) {
 __private.getVotesById = function (transaction, cb) {
 	library.db.query(sql.getVotesById, {id: transaction.id}).then(function (rows) {
 		if (!rows.length) {
-			return setImmediate(cb, 'Transaction not found: ' + id);
+			return setImmediate(cb, 'Transaction not found: ' + transaction.id);
 		}
 
 		var votes = rows[0].votes.split(',');
@@ -198,9 +198,9 @@ __private.getVotesById = function (transaction, cb) {
 		var deleted = [];
 
 		for (var i = 0; i < votes.length; i++) {
-			if (votes[i].substring(0, 1) == "+") {
+			if (votes[i].substring(0, 1) === '+') {
 				added.push (votes[i].substring(1));
-			} else if (votes[i].substring(0, 1) == "-") {
+			} else if (votes[i].substring(0, 1) === '-') {
 				deleted.push (votes[i].substring(1));
 			}
 		}
@@ -406,7 +406,7 @@ shared.getTransaction = function (req, cb) {
 				return setImmediate(cb, 'Transaction not found');
 			}
 
-			if (transaction.type == 3) {
+			if (transaction.type === 3) {
 				__private.getVotesById(transaction, function (err, transaction) {
 					return setImmediate(cb, null, {transaction: transaction});
 				});

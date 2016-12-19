@@ -101,7 +101,7 @@ __private.syncTimer = function () {
 			return setTimeout(nextSync, __private.syncInterval);
 		}
 	});
-}
+};
 
 __private.loadSignatures = function (cb) {
 	async.waterfall([
