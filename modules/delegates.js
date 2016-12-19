@@ -619,7 +619,8 @@ shared.getNextForgers = function (req, cb) {
 			return setImmediate(cb, err);
 		}
 
-		var currentSlot = slots.getSlotNumber(currentBlock.timestamp);
+		var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
+		var currentSlot = slots.getSlotNumber();
 		var nextForgers = [];
 
 		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
@@ -627,7 +628,7 @@ shared.getNextForgers = function (req, cb) {
 				nextForgers.push (activeDelegates[(currentSlot + i) % slots.delegates]);
 			}
 		}
-		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentSlot: currentSlot, delegates: nextForgers});
+		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
 	});
 };
 
