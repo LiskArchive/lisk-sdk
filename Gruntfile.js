@@ -140,5 +140,5 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('travis', 'mochaTest', 'jshint');
+	grunt.registerTask('travis', ['jshint', 'mochaTest']);
 };
