@@ -43,8 +43,7 @@ module.exports = {
 				type: 'string',
 				format: 'publicKey'
 			}
-		},
-		required: ['publicKey']
+		}
 	},
 	getDelegate: {
 		id: 'delegates.getDelegate',

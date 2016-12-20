@@ -959,10 +959,11 @@ describe('GET /api/delegates/search', function () {
 });
 
 describe('GET /api/delegates/forging/status', function () {
-	it('using no params should fail', function (done) {
+	it('using no params should be ok', function (done) {
 		node.get('/api/delegates/forging/status', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Missing required property: publicKey');
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('enabled').to.be.true;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			done();
 		});
 	});
@@ -978,7 +979,8 @@ describe('GET /api/delegates/forging/status', function () {
 	it('using empty publicKey should be ok', function (done) {
 		node.get('/api/delegates/forging/status?publicKey=', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('enabled').to.be.false;
+			node.expect(res.body).to.have.property('enabled').to.be.true;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			done();
 		});
 	});
