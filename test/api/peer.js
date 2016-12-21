@@ -2,24 +2,6 @@
 
 var node = require('./../node.js');
 
-describe('GET /peer/count', function () {
-
-	before(function (done) {
-		node.addPeers(2, done);
-	});
-	
-	it('check for a valid response', function (done) {
-		node.get('/peer/count')
-			.end(function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('connected').that.is.a('number');
-				node.expect(res.body).to.have.property('disconnected').that.is.a('number');
-				node.expect(res.body).to.have.property('banned').that.is.a('number');
-				done ();
-			});
-	});
-});
-
 describe('GET /peer/list', function () {
 
 	before(function (done) {
