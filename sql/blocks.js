@@ -24,6 +24,14 @@ var BlocksSql = {
     ].filter(Boolean).join(' ');
   },
 
+  aggregateBlocksReward: function (params) {
+    return [
+      'SELECT SUM("b_totalFee") AS fees, SUM("b_reward") AS rewards, COUNT(1) AS count',
+      'FROM blocks_list',
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
+    ].filter(Boolean).join(' ');
+  },
+
   list: function (params) {
     return [
       'SELECT * FROM blocks_list',

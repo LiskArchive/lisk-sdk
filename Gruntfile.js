@@ -113,6 +113,19 @@ module.exports = function (grunt) {
 				'test/api/**/*.js',
 				'test/unit/**/*.js'
 			]
+		},
+
+		mochaTest: {
+			test: {
+				options: {
+					reporter: 'spec',
+					quiet: false,
+					clearRequireCache: false,
+					noFail: false,
+					timeout: '250s'
+				},
+				src: ['test']
+			}
 		}
 	});
 
@@ -123,7 +136,9 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-mocha-test');
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
+	grunt.registerTask('travis', ['jshint', 'mochaTest']);
 };
