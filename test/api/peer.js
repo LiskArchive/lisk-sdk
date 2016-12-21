@@ -2,7 +2,7 @@
 
 var node = require('./../node.js');
 
-describe('GET /peer/list', function () {
+describe('GET /peer/count', function () {
 
 	it('check for a valid response', function (done) {
 		node.get('/peer/count')
