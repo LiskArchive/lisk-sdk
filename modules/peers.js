@@ -481,12 +481,22 @@ Peers.prototype.onPeersReady = function () {
 
 // Shared
 shared.count = function (req, cb) {
-	__private.countByFilter({state: 2}, function (err, count) {
+	async.series({
+		connected: function (cb) {
+			__private.countByFilter({state: 2}, cb);
+		},
+		disconnected: function (cb) {
+			__private.countByFilter({state: 1}, cb);
+		},
+		banned: function (cb) {
+			__private.countByFilter({state: 0}, cb);
+		}
+	}, function (err, res) {
 		if (err) {
-			return setImmediate(cb, 'Failed to get peers count');
+			return setImmediate(cb, 'Failed to get peer count');
 		}
 
-		return setImmediate(cb, null, {count: count});
+		return setImmediate(cb, null, res);
 	});
 };
 
