@@ -8,7 +8,9 @@ describe('GET /peer/list', function () {
 		node.get('/peer/count')
 			.end(function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('count').that.is.a('number');
+				node.expect(res.body).to.have.property('connected').that.is.a('number');
+				node.expect(res.body).to.have.property('disconnected').that.is.a('number');
+				node.expect(res.body).to.have.property('banned').that.is.a('number');
 				done ();
 			});
 	});
