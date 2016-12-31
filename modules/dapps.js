@@ -1069,7 +1069,13 @@ __private.createSandbox = function (dapp, params, cb) {
 				return setImmediate(cb, err);
 			}
 
-			var sandbox = new Sandbox(path.join(dappPath, 'index.js'), dapp.transactionId, params, __private.apiHandler, true);
+			var withDebug = false;
+			process.execArgv.forEach( function(item, index) {
+				if (item.indexOf('--debug') >= 0)
+					withDebug = true;
+			});
+
+			var sandbox = new Sandbox(path.join(dappPath, 'index.js'), dapp.transactionId, params, __private.apiHandler, withDebug);
 			__private.sandboxes[dapp.transactionId] = sandbox;
 
 			sandbox.on('exit', function () {
