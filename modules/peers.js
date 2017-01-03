@@ -46,7 +46,8 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getPeers',
 		'get /version': 'version',
-		'get /get': 'getPeer'
+		'get /get': 'getPeer',
+		'get /count': 'count'
 	});
 
 	router.use(function (req, res) {
@@ -143,6 +144,51 @@ __private.updatePeersList = function (cb) {
 
 __private.count = function (cb) {
 	library.db.query(sql.count).then(function (rows) {
+		var res = rows.length && rows[0].count;
+		return setImmediate(cb, null, res);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Peers#count error');
+	});
+};
+
+__private.countByFilter = function (filter, cb) {
+	var where = [];
+	var params = {};
+
+	if (filter.port) {
+		where.push('"port" = ${port}');
+		params.port = filter.port;
+	}
+
+	if (filter.state >= 0) {
+		where.push('"state" = ${state}');
+		params.state = filter.state;
+	}
+
+	if (filter.os) {
+		where.push('"os" = ${os}');
+		params.os = filter.os;
+	}
+
+	if (filter.version) {
+		where.push('"version" = ${version}');
+		params.version = filter.version;
+	}
+
+	if (filter.broadhash) {
+		where.push('"broadhash" = ${broadhash}');
+		params.broadhash = filter.broadhash;
+	}
+
+	if (filter.height) {
+		where.push('"height" = ${height}');
+		params.height = filter.height;
+	}
+
+	library.db.query(sql.countByFilter({
+		where: where
+	}), params).then(function (rows) {
 		var res = rows.length && rows[0].count;
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
@@ -434,6 +480,26 @@ Peers.prototype.onPeersReady = function () {
 };
 
 // Shared
+shared.count = function (req, cb) {
+	async.series({
+		connected: function (cb) {
+			__private.countByFilter({state: 2}, cb);
+		},
+		disconnected: function (cb) {
+			__private.countByFilter({state: 1}, cb);
+		},
+		banned: function (cb) {
+			__private.countByFilter({state: 0}, cb);
+		}
+	}, function (err, res) {
+		if (err) {
+			return setImmediate(cb, 'Failed to get peer count');
+		}
+
+		return setImmediate(cb, null, res);
+	});
+};
+
 shared.getPeers = function (req, cb) {
 	library.schema.validate(req.body, schema.getPeers, function (err) {
 		if (err) {
