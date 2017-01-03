@@ -16,7 +16,7 @@ describe('GET /api/peers/version', function () {
 
 describe('GET /api/peers/count', function () {
 	
-	it('check for a valid response', function (done) {
+	it('should be ok', function (done) {
 		node.get('/api/peers/count', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('connected').that.is.a('number');
