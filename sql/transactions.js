@@ -15,6 +15,8 @@ var TransactionsSql = {
     'height'
   ],
 
+  count: 'SELECT COUNT("id")::int AS "count" FROM trs',
+
   countById: 'SELECT COUNT("id")::int AS "count" FROM trs WHERE "id" = ${id}',
 
   countList: function (params) {

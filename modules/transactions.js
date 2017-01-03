@@ -49,6 +49,7 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getTransactions',
 		'get /get': 'getTransaction',
+		'get /count': 'getTransactionsCount',
 		'get /queued/get': 'getQueuedTransaction',
 		'get /queued': 'getQueuedTransactions',
 		'get /multisignatures/get': 'getMultisignatureTransaction',
@@ -415,6 +416,20 @@ shared.getTransaction = function (req, cb) {
 			}
 		});
 	});
+};
+
+shared.getTransactionsCount = function (req, cb) {
+    library.db.query(sql.count).then(function (transactionsCount) {
+		return setImmediate(cb, null, {
+            confirmed: transactionsCount[0].count,
+            multisignature: __private.transactionPool.multisignature.transactions.length,
+            unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
+            queued: __private.transactionPool.queued.transactions.length
+        });
+
+    }, function (err) {
+        return setImmediate(cb, 'Unable to count transactions');
+    });
 };
 
 shared.getQueuedTransaction = function (req, cb) {
