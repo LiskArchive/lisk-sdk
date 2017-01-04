@@ -6,6 +6,7 @@ var constants = require('../helpers/constants.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
+var git = require('../helpers/git.js');
 var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Peer = require('../logic/peer.js');
@@ -544,7 +545,14 @@ shared.getPeer = function (req, cb) {
 };
 
 shared.version = function (req, cb) {
-	return setImmediate(cb, null, {version: library.config.version, build: library.build});
+	try {
+    	var response = library.build ? {build: library} : {commit: git.getLastCommit()};
+        response.version = library.config.version;
+        return setImmediate(cb, null, response);
+	}
+	catch (err) {
+    	return setImmediate(cb, 'Git is not installed or not a git repository');
+	}
 };
 
 // Export
