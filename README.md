@@ -15,6 +15,15 @@ Lisk is a next generation crypto-currency and decentralized application platform
   curl -sL https://deb.nodesource.com/setup_0.12 | sudo -E bash -
   sudo apt-get install -y nodejs
   ```
+  
+- Install PostgreSQL (version 9.6.1):
+
+  ```
+  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+  sudo -u postgres createuser --createdb $USER
+  createdb lisk_test
+  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+  ```
 
 - Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
@@ -28,19 +37,13 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
   `sudo npm install -g grunt`
 
-
 - Tool chain components -- Used for compiling dependencies
 
   `sudo apt-get install -y python build-essential curl automake autoconf libtool`
+  
+- Forever (<https://github.com/foreverjs/forever>) -- Forever manages the node process for Lisk (Optional)
 
-- Install PostgreSQL (version 9.6.1):
-
-  ```
-  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-  sudo -u postgres createuser --createdb $USER
-  createdb lisk_test
-  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-  ```
+  `sudo npm install -g forever`
 
 ## Installation Steps
 
