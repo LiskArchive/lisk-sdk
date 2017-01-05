@@ -349,10 +349,7 @@ describe('GET /api/peers', function () {
 	});
 
     it('using orderBy == "height:desc" should not place NULLs first', function (done) {
-        var orderBy = 'height:desc';
-        var params = 'orderBy=' + orderBy;
-
-        node.get('/api/peers?' + params, function (err, res) {
+        node.get('/api/peers?orderBy=height:desc', function (err, res) {
             node.expect(res.body).to.have.property('success').to.be.ok;
             node.expect(res.body).to.have.property('peers').that.is.an('array');
 

@@ -27,7 +27,7 @@ var DappsSql = {
     return [
       'SELECT "name", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
       (params.where.length ? 'WHERE ' + params.where.join(' OR ') : ''),
-      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') + ' NULLS LAST' : ''),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },
@@ -36,7 +36,7 @@ var DappsSql = {
 
   getCommonBlock: 'SELECT b."height" AS "height", t."id" AS "id", t."senderId" AS "senderId", t."amount" AS "amount" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" AND t."id" = ${id} AND t."type" = ${type} INNER JOIN intransfer dt ON dt."transactionId" = t."id" AND dt."dappid" = ${dappid}',
 
-  getWithdrawalLastTransaction: 'SELECT ot."outTransactionId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" AND t."type" = ${type} INNER JOIN outtransfer ot ON ot."transactionId" = t."id" AND ot."dappId" = ${dappid} ORDER BY b."height" DESC LIMIT 1 NULLS LAST',
+  getWithdrawalLastTransaction: 'SELECT ot."outTransactionId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" AND t."type" = ${type} INNER JOIN outtransfer ot ON ot."transactionId" = t."id" AND ot."dappId" = ${dappid} ORDER BY b."height" DESC LIMIT 1',
 
   getBalanceTransactions: function (params) {
     return [
@@ -44,7 +44,7 @@ var DappsSql = {
       'INNER JOIN blocks b ON t."blockId" = b."id" AND t."type" = ${type}',
       'INNER JOIN intransfer dt ON dt."transactionId" = t."id" AND dt."dappId" = ${dappid}',
       (params.lastId ? 'WHERE b."height" > (SELECT "height" FROM blocks ib INNER JOIN trs it ON ib."id" = it."blockId" AND it."id" = ${lastId})' : ''),
-      'ORDER BY b."height" NULLS LAST'
+      'ORDER BY b."height"'
     ].filter(Boolean).join(' ');
   }
 };
