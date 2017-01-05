@@ -545,14 +545,11 @@ shared.getPeer = function (req, cb) {
 };
 
 shared.version = function (req, cb) {
-	try {
-    	var response = library.build ? {build: library} : {commit: git.getLastCommit()};
-        response.version = library.config.version;
-        return setImmediate(cb, null, response);
-	}
-	catch (err) {
-    	return setImmediate(cb, 'Git is not installed or not a git repository');
-	}
+	return setImmediate(cb, null, {
+		build: library.build,
+		commit: git.getLastCommit(),
+		version: library.config.version
+	});
 };
 
 // Export
