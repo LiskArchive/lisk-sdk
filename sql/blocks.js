@@ -36,14 +36,14 @@ var BlocksSql = {
     return [
       'SELECT * FROM blocks_list',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
-      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') + ' NULLS LAST' : ''),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },
 
   getById: 'SELECT * FROM blocks_list WHERE "b_id" = ${id}',
 
-  getIdSequence: 'SELECT (ARRAY_AGG("id" ORDER BY "height" ASC))[1] AS "id", MIN("height") AS "height", CAST("height" / ${delegates} AS INTEGER) + (CASE WHEN "height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END) AS "round" FROM blocks WHERE "height" <= ${height} GROUP BY "round" ORDER BY "height" DESC LIMIT ${limit}',
+  getIdSequence: 'SELECT (ARRAY_AGG("id" ORDER BY "height" ASC NULLS LAST))[1] AS "id", MIN("height") AS "height", CAST("height" / ${delegates} AS INTEGER) + (CASE WHEN "height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END) AS "round" FROM blocks WHERE "height" <= ${height} GROUP BY "round" ORDER BY "height" DESC NULLS LAST LIMIT ${limit}',
 
   getCommonBlock: function (params) {
     return [
@@ -75,9 +75,9 @@ var BlocksSql = {
     ].filter(Boolean).join(' ');
   },
 
-  loadBlocksOffset: 'SELECT * FROM full_blocks_list WHERE "b_height" >= ${offset} AND "b_height" < ${limit} ORDER BY "b_height", "t_rowId"',
+  loadBlocksOffset: 'SELECT * FROM full_blocks_list WHERE "b_height" >= ${offset} AND "b_height" < ${limit} ORDER BY "b_height", "t_rowId" NULLS LAST',
 
-  loadLastBlock: 'SELECT * FROM full_blocks_list WHERE "b_height" = (SELECT MAX("height") FROM blocks) ORDER BY "b_height", "t_rowId"',
+  loadLastBlock: 'SELECT * FROM full_blocks_list WHERE "b_height" = (SELECT MAX("height") FROM blocks) ORDER BY "b_height", "t_rowId" NULLS LAST',
 
   getBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
 

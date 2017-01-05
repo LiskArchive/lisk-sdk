@@ -348,6 +348,32 @@ describe('GET /api/peers', function () {
 		});
 	});
 
+    it('using orderBy == "height:desc" should not place NULLs first', function (done) {
+        var orderBy = 'height:desc';
+        var params = 'orderBy=' + orderBy;
+
+        node.get('/api/peers?' + params, function (err, res) {
+            node.expect(res.body).to.have.property('success').to.be.ok;
+            node.expect(res.body).to.have.property('peers').that.is.an('array');
+
+            var dividedIndices = res.body.peers.reduce(function (memo, peer, index) {
+            	memo[peer.height === null ? 'nullIndices' : 'notNullIndices'].push(index);
+            	return memo;
+            }, {notNullIndices: [], nullIndices: []});
+
+            if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
+                var ascOrder = function (a, b) { return a - b; };
+                dividedIndices.notNullIndices.sort(ascOrder);
+                dividedIndices.nullIndices.sort(ascOrder);
+
+                node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+                    .to.be.at.most(dividedIndices.nullIndices[0]);
+			}
+
+            done();
+        });
+    });
+
 	it('using string limit should fail', function (done) {
 		var limit = 'one';
 		var params = 'limit=' + limit;
