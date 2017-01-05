@@ -8,6 +8,7 @@ describe('GET /api/peers/version', function () {
 		node.get('/api/peers/version', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('build').to.be.a('string');
+			node.expect(res.body).to.have.property('commit').to.be.a('string');
 			node.expect(res.body).to.have.property('version').to.be.a('string');
 			done();
 		});
