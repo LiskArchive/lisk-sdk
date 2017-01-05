@@ -8,11 +8,17 @@ function PeerSweeper (scope) {
 	this.limit = 100;
 	this.scope = scope;
 
-	setInterval(function () {
-		if (this.peers.length) {
-			this.sweep(this.peers.splice(0, this.limit));
+	var self = this;
+
+	setImmediate(function nextSweep () {
+		if (self.peers.length) {
+			self.sweep(self.peers.splice(0, self.limit), function () {
+				return setTimeout(nextSweep, 1000);
+			});
+		} else {
+			return setTimeout(nextSweep, 1000);
 		}
-	}.bind(this), 1000);
+	});
 }
 
 // Public methods
@@ -22,10 +28,13 @@ PeerSweeper.prototype.push = function (action, peer) {
 	} else {
 		throw 'Missing push action';
 	}
+	if (peer.broadhash != null) {
+		peer.broadhash = new Buffer(peer.broadhash, 'hex');
+	}
 	this.peers.push(peer);
 };
 
-PeerSweeper.prototype.sweep = function (peers) {
+PeerSweeper.prototype.sweep = function (peers, cb) {
 	var self = this;
 
 	if (!peers.length) { return; }
@@ -38,10 +47,12 @@ PeerSweeper.prototype.sweep = function (peers) {
 		return t.query(queries.join(';'));
 	}).then(function () {
 		self.addDapps(peers);
-
 		self.scope.library.logger.debug(['Swept', peers.length, 'peer changes'].join(' '));
+
+		return setImmediate(cb);
 	}).catch(function (err) {
 		self.scope.library.logger.error('Failed to sweep peers', err.stack);
+		return setImmediate(cb, err);
 	});
 };
 

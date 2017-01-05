@@ -7,9 +7,7 @@ module.exports = {
 			type: 'object',
 			properties: {
 				peers: {
-					type: 'array',
-					uniqueItems: true,
-					maxItems: 100
+					type: 'array'
 				}
 			},
 			required: ['peers']
@@ -34,11 +32,15 @@ module.exports = {
 				},
 				os: {
 					type: 'string',
+					format: 'os',
+					minLength: 1,
 					maxLength: 64
 				},
 				version: {
 					type: 'string',
-					maxLength: 11
+					format: 'version',
+					minLength: 5,
+					maxLength: 12
 				},
 				broadhash: {
 					type: 'string',
@@ -72,11 +74,15 @@ module.exports = {
 			},
 			os: {
 				type: 'string',
+				format: 'os',
+				minLength: 1,
 				maxLength: 64
 			},
 			version: {
 				type: 'string',
-				maxLength: 11
+				format: 'version',
+				minLength: 5,
+				maxLength: 12
 			},
 			broadhash: {
 				type: 'string',

@@ -19,12 +19,25 @@ describe('GET /peer/list', function () {
 			});
 	});
 
+	it('using incompatible version in headers should fail', function (done) {
+		node.get('/peer/list')
+			.set('version', '0.1.0a')
+			.end(function (err, res) {
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
+				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
+				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
+				done();
+			});
+	});
+
 	it('using valid headers should be ok', function (done) {
 		node.get('/peer/list')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
-				node.expect(res.body.peers).to.have.length.of.at.least(1);
 				res.body.peers.forEach(function (peer) {
 					node.expect(peer).to.have.property('ip').that.is.a('string');
 					node.expect(peer).to.have.property('port').that.is.a('number');
@@ -48,6 +61,19 @@ describe('GET /peer/height', function () {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				node.expect(res.body.expected).to.equal(node.config.nethash);
+				done();
+			});
+	});
+
+	it('using incompatible version in headers should fail', function (done) {
+		node.get('/peer/height')
+			.set('version', '0.1.0a')
+			.end(function (err, res) {
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
+				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
+				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
 				done();
 			});
 	});

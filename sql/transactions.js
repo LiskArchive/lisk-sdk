@@ -15,6 +15,8 @@ var TransactionsSql = {
     'height'
   ],
 
+  count: 'SELECT COUNT("id")::int AS "count" FROM trs',
+
   countById: 'SELECT COUNT("id")::int AS "count" FROM trs WHERE "id" = ${id}',
 
   countList: function (params) {
@@ -39,7 +41,9 @@ var TransactionsSql = {
     ].filter(Boolean).join(' ');
   },
 
-  getById: 'SELECT * FROM trs_list WHERE "t_id" = ${id}'
+  getById: 'SELECT * FROM trs_list WHERE "t_id" = ${id}',
+
+  getVotesById: 'SELECT * FROM votes WHERE "transactionId" = ${id}'
 };
 
 module.exports = TransactionsSql;

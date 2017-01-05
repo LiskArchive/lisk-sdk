@@ -4,10 +4,13 @@ var async = require('async');
 var crypto = require('crypto');
 var os = require('os');
 var sandboxHelper = require('../helpers/sandbox.js');
+var semver = require('semver');
 var sql = require('../sql/system.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
+
+var rcRegExp = /[a-z]+$/;
 
 // Constructor
 function System (cb, scope) {
@@ -20,6 +23,14 @@ function System (cb, scope) {
 	__private.height = 1;
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;
+	__private.minVersion = library.config.minVersion;
+
+	if (rcRegExp.test(__private.minVersion)) {
+		this.minVersion = __private.minVersion.replace(rcRegExp, '');
+		this.minVersionChar = __private.minVersion.charAt(__private.minVersion.length - 1);
+	} else {
+		this.minVersion = __private.minVersion;
+	}
 
 	setImmediate(cb, null, self);
 }
@@ -49,6 +60,29 @@ System.prototype.getHeight = function () {
 
 System.prototype.getNethash = function () {
 	return __private.nethash;
+};
+
+System.prototype.networkCompatible = function (nethash) {
+	return __private.nethash === nethash;
+};
+
+System.prototype.getMinVersion = function () {
+	return __private.minVersion;
+};
+
+System.prototype.versionCompatible = function (version) {
+	var versionChar;
+
+	if (rcRegExp.test(version)) {
+		versionChar = version.charAt(version.length - 1);
+		version = version.replace(rcRegExp, '');
+	}
+
+	if (this.minVersionChar && versionChar) {
+		return (version + versionChar) === (this.minVersion + this.minVersionChar);
+	} else {
+		return semver.satisfies(version, this.minVersion);
+	}
 };
 
 System.prototype.getBroadhash = function (cb) {

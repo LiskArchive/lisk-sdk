@@ -147,38 +147,18 @@ Delegate.prototype.undo = function (trs, block, sender, cb) {
 };
 
 Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
-	if (sender.u_isDelegate) {
-		return setImmediate(cb, 'Account is already a delegate');
+	var data = {
+		address: sender.address,
+		u_isDelegate: 1,
+		isDelegate: 0
+	};
+
+	if (trs.asset.delegate.username) {
+		data.username = null;
+		data.u_username = trs.asset.delegate.username;
 	}
 
-	function done () {
-		var data = {
-			address: sender.address,
-			u_isDelegate: 1,
-			isDelegate: 0
-		};
-
-		if (trs.asset.delegate.username) {
-			data.username = null;
-			data.u_username = trs.asset.delegate.username;
-		}
-
-		modules.accounts.setAccountAndGet(data, cb);
-	}
-
-	modules.accounts.getAccount({
-		u_username: trs.asset.delegate.username
-	}, function (err, account) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		if (account) {
-			return setImmediate(cb, 'Username already exists');
-		}
-
-		done();
-	});
+	modules.accounts.setAccountAndGet(data, cb);
 };
 
 Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {

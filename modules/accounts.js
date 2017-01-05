@@ -10,6 +10,7 @@ var schema = require('../schema/accounts.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
+var Vote = require('../logic/vote.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -24,7 +25,6 @@ function Accounts (cb, scope) {
 
 	__private.attachApi();
 
-	var Vote = require('../logic/vote.js');
 	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
 		transactionTypes.VOTE, new Vote()
 	);
@@ -96,11 +96,11 @@ __private.attachApi = function () {
 	router.use(function (req, res, next) {
 		res.status(500).send({success: false, error: 'API endpoint was not found'});
 	});
-			
+
 	library.network.app.use('/api/accounts', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -116,9 +116,9 @@ __private.openAccount = function (secret, cb) {
 		}
 
 		if (account) {
-			 if (account.publicKey == null) {
-                     		account.publicKey = publicKey;
-			 }                  
+			if (account.publicKey == null) {
+				account.publicKey = publicKey;
+			}
 			return setImmediate(cb, null, account);
 		} else {
 			return setImmediate(cb, null, {
@@ -256,11 +256,6 @@ shared.getBalance = function (req, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.address)) {
-			return setImmediate(cb, 'Invalid address');
-		}
-
 		self.getAccount({ address: req.body.address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
@@ -278,11 +273,6 @@ shared.getPublickey = function (req, cb) {
 	library.schema.validate(req.body, schema.getPublicKey, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
-		}
-
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.address)) {
-			return setImmediate(cb, 'Invalid address');
 		}
 
 		self.getAccount({ address: req.body.address }, function (err, account) {
@@ -426,7 +416,7 @@ shared.addDelegates = function (req, cb) {
 							return setImmediate(cb, e.toString());
 						}
 
-						modules.transactions.receiveTransactions([transaction], cb);
+						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				});
 			} else {
@@ -464,7 +454,7 @@ shared.addDelegates = function (req, cb) {
 						return setImmediate(cb, e.toString());
 					}
 
-					modules.transactions.receiveTransactions([transaction], cb);
+					modules.transactions.receiveTransactions([transaction], true, cb);
 				});
 			}
 		}, function (err, transaction) {
@@ -483,12 +473,18 @@ shared.getAccount = function (req, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		var isAddress = /^[0-9]{1,21}[L|l]$/g;
-		if (!isAddress.test(req.body.address)) {
-			return setImmediate(cb, 'Invalid address');
+		if (!req.body.address && !req.body.publicKey) {
+			return setImmediate(cb, 'Missing required property: address or publicKey');
 		}
 
-		self.getAccount({ address: req.body.address }, function (err, account) {
+		// self.getAccount can accept publicKey as argument, but we also compare here
+		// if account publicKey match address (when both are supplied)
+		var address = req.body.publicKey ? self.generateAddressByPublicKey(req.body.publicKey) : req.body.address;
+		if (req.body.address && req.body.publicKey && address !== req.body.address) {
+			return setImmediate(cb, 'Account publicKey do not match address');
+		}
+
+		self.getAccount({ address: address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
 			}

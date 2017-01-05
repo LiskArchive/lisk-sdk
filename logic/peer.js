@@ -88,7 +88,10 @@ Peer.prototype.headers = function (headers) {
 };
 
 Peer.prototype.extend = function (object) {
-	return this.headers(extend({}, this.object(), object));
+	var base = this.object();
+	var extended = extend(this.object(), object);
+
+	return this.headers(extended);
 };
 
 Peer.prototype.object = function () {
@@ -97,10 +100,6 @@ Peer.prototype.object = function () {
 	this.properties.forEach(function (property) {
 		object[property] = this[property];
 	}.bind(this));
-
-	if (object.broadhash != null) {
-		object.broadhash = new Buffer(object.broadhash, 'hex');
-	}
 
 	this.nullable.forEach(function (property) {
 		if (object[property] == null) {

@@ -29,7 +29,7 @@ node.api = node.supertest(node.baseUrl);
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-node.version = '0.0.0'; // Node version
+node.version = node.config.version; // Node version
 
 // Transaction fees
 node.fees = {
@@ -128,13 +128,24 @@ node.onNewBlock = function (cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			node.waitForNewBlock(height, cb);
+			node.waitForNewBlock(height, 2, cb);
+		}
+	});
+};
+
+// Waits for (n) blocks to be created
+node.waitForBlocks = function (blocksToWait, cb) {
+	node.getHeight(function (err, height) {
+		if (err) {
+			return cb(err);
+		} else {
+			node.waitForNewBlock(height, blocksToWait, cb);
 		}
 	});
 };
 
 // Waits for a new block to be created
-node.waitForNewBlock = function (height, cb) {
+node.waitForNewBlock = function (height, blocksToWait, cb) {
 	var actualHeight = height;
 	var counter = 1;
 
@@ -149,7 +160,7 @@ node.waitForNewBlock = function (height, cb) {
 					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				if (height + 2 === res.body.height) {
+				if (height + blocksToWait === res.body.height) {
 					height = res.body.height;
 				}
 
@@ -177,27 +188,26 @@ node.waitForNewBlock = function (height, cb) {
 // Adds peers to local node
 node.addPeers = function (numOfPeers, cb) {
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var ports = [4000, 5000, 7000, 8000];
-
-	var os, version, port;
+	var port = 4000;
+	var os, version;
 	var i = 0;
 
 	node.async.whilst(function () {
 		return i < numOfPeers;
 	}, function (next) {
 		os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
-		version = node.config.version;
-		port = ports[node.randomizeSelection(ports.length)];
+		version = node.version;
 
 		var request = node.popsicle.get({
 			url: node.baseUrl + '/peer/height',
 			headers: {
-				version: version,
-				port: port,
+				broadhash: node.config.nethash,
+				height: 1,
 				nethash: node.config.nethash,
 				os: os,
-				broadhash: node.config.nethash,
-				height: 1
+				ip: '0.0.0.0',
+				port: port,
+				version: version
 			}
 		});
 
@@ -216,7 +226,10 @@ node.addPeers = function (numOfPeers, cb) {
 			return next(err);
 		});
 	}, function (err) {
-		return cb(err, {os: os, version: version, port: port});
+		// Wait for peer to be swept to db
+		setTimeout(function () {
+			return cb(err, {os: os, version: version, port: port});
+		}, 3000);
 	});
 };
 
@@ -311,6 +324,7 @@ function abstractRequest (options, done) {
 	request.set('Accept', 'application/json');
 	request.set('version', node.version);
 	request.set('nethash', node.config.nethash);
+	request.set('ip', '0.0.0.0');
 	request.set('port', node.config.port);
 
 	request.expect('Content-Type', /json/);

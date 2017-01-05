@@ -1,7 +1,8 @@
 {
     "port": 8000,
     "address": "0.0.0.0",
-    "version": "0.4.0",
+    "version": "0.5.0",
+    "minVersion": "~0.5.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
     "consoleLogLevel": "info",
@@ -11,9 +12,9 @@
         "host": "localhost",
         "port": 5432,
         "database": "lisk_main",
-        "user": null,
+        "user": "",
         "password": "password",
-        "poolSize": 20,
+        "poolSize": 95,
         "poolIdleTimeout": 30000,
         "reapIntervalMillis": 1000,
         "logEvents": [
@@ -54,6 +55,26 @@
             {
                 "ip": "40.121.84.254",
                 "port": 8000
+            },
+            {
+                "ip": "40.69.40.11",
+                "port": 8000
+            },
+            {
+                "ip": "51.140.181.131",
+                "port": 8000
+            },
+            {
+                "ip": "52.187.55.110",
+                "port": 8000
+            },
+            {
+                "ip": "191.234.176.37",
+                "port": 8000
+            },
+            {
+                "ip": "13.73.116.99",
+                "port": 8000
             }
         ],
         "blackList": [],
@@ -66,6 +87,13 @@
             },
             "timeout": 5000
         }
+    },
+    "broadcasts": {
+        "broadcastInterval": 5000,
+        "broadcastLimit": 20,
+        "parallelLimit": 20,
+        "releaseLimit": 25,
+        "relayLimit": 2
     },
     "forging": {
         "force": false,

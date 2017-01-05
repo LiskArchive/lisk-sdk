@@ -76,7 +76,7 @@ InTransfer.prototype.getBytes = function (trs) {
 };
 
 InTransfer.prototype.apply = function (trs, block, sender, cb) {
-	shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
+	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -93,7 +93,7 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
 };
 
 InTransfer.prototype.undo = function (trs, block, sender, cb) {
-	shared.getGenesis({id: trs.asset.inTransfer.dappId}, function (err, res) {
+	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -123,7 +123,9 @@ InTransfer.prototype.schema = {
 	properties: {
 		dappId: {
 			type: 'string',
-			minLength: 1
+			format: 'id',
+			minLength: 1,
+			maxLength: 20
 		},
 	},
 	required: ['dappId']

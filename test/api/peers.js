@@ -8,8 +8,22 @@ describe('GET /api/peers/version', function () {
 		node.get('/api/peers/version', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('build').to.be.a('string');
+			node.expect(res.body).to.have.property('commit').to.be.a('string');
 			node.expect(res.body).to.have.property('version').to.be.a('string');
 			done();
+		});
+	});
+});
+
+describe('GET /api/peers/count', function () {
+	
+	it('should be ok', function (done) {
+		node.get('/api/peers/count', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('connected').that.is.a('number');
+			node.expect(res.body).to.have.property('disconnected').that.is.a('number');
+			node.expect(res.body).to.have.property('banned').that.is.a('number');
+			done ();
 		});
 	});
 });
@@ -159,7 +173,78 @@ describe('GET /api/peers', function () {
 		});
 	});
 
-	it('using version with length == 11 characters should be ok', function (done) {
+	it('using os == "freebsd10" should be ok', function (done) {
+		var os = 'freebsd10';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3" should be ok', function (done) {
+		var os = 'freebsd10.3';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3-" should be ok', function (done) {
+		var os = 'freebsd10.3-';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_" should be ok', function (done) {
+		var os = 'freebsd10.3_';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_RELEASE" should be ok', function (done) {
+		var os = 'freebsd10.3_RELEASE';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_RELEASE-p7" should be ok', function (done) {
+		var os = 'freebsd10.3_RELEASE-p7';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using os == "freebsd10.3_RELEASE-p7-@" should fail', function (done) {
+		var os = 'freebsd10.3_RELEASE-p7-@';
+		var params = 'os=' + os;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format os: freebsd10.3_RELEASE-p7-@');
+			done();
+		});
+	});
+
+	it('using version == "999.999.999" characters should be ok', function (done) {
 		var version = '999.999.999';
 		var params = 'version=' + version;
 
@@ -169,13 +254,56 @@ describe('GET /api/peers', function () {
 		});
 	});
 
-	it('using version with length > 11 characters should fail', function (done) {
+	it('using version == "9999.999.999" characters should fail', function (done) {
 		var version = '9999.999.999';
 		var params = 'version=' + version;
 
 		node.get('/api/peers?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('String is too long (12 chars), maximum 11');
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 9999.999.999');
+			done();
+		});
+	});
+
+	it('using version == "999.9999.999" characters should fail', function (done) {
+		var version = '999.9999.999';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.9999.999');
+			done();
+		});
+	});
+
+	it('using version == "999.999.9999" characters should fail', function (done) {
+		var version = '999.999.9999';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.9999');
+			done();
+		});
+	});
+
+	it('using version == "999.999.999a" characters should be ok', function (done) {
+		var version = '999.999.999a';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
+		});
+	});
+
+	it('using version == "999.999.999ab" characters should fail', function (done) {
+		var version = '999.999.999ab';
+		var params = 'version=' + version;
+
+		node.get('/api/peers?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.999ab');
 			done();
 		});
 	});

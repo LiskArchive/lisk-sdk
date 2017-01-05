@@ -14,11 +14,6 @@ require('colors');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
-__private.network = {
-	height: 0, // Network height
-	peers: [], // "Good" peers and with height close to network height
-};
-
 __private.loaded = false;
 __private.isActive = false;
 __private.lastBlock = null;
@@ -26,12 +21,15 @@ __private.genesisBlock = null;
 __private.total = 0;
 __private.blocksToSync = 0;
 __private.syncIntervalId = null;
+__private.syncInterval = 10000;
+__private.retries = 5;
 
 // Constructor
 function Loader (cb, scope) {
 	library = scope;
 	self = this;
 
+	__private.initalize();
 	__private.attachApi();
 	__private.genesisBlock = __private.lastBlock = library.genesisblock;
 
@@ -39,6 +37,13 @@ function Loader (cb, scope) {
 }
 
 // Private methods
+__private.initalize = function () {
+	__private.network = {
+		height: 0, // Network height
+		peers: [], // "Good" peers and with height close to network height
+	};
+};
+
 __private.attachApi = function () {
 	var router = new Router();
 
@@ -56,7 +61,7 @@ __private.attachApi = function () {
 	library.network.app.use('/api/loader', router);
 	library.network.app.use(function (err, req, res, next) {
 		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err);
+		library.logger.error('API error ' + req.url, err.message);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	});
 };
@@ -75,6 +80,27 @@ __private.syncTrigger = function (turnOn) {
 			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
 		});
 	}
+};
+
+__private.syncTimer = function () {
+	setImmediate(function nextSync () {
+		var lastReceipt = modules.blocks.lastReceipt();
+
+		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
+			library.sequence.add(function (cb) {
+				async.retry(__private.retries, __private.sync, cb);
+			}, function (err) {
+				if (err) {
+					library.logger.log('Sync timer', err);
+					__private.initalize();
+				}
+
+				return setTimeout(nextSync, __private.syncInterval);
+			});
+		} else {
+			return setTimeout(nextSync, __private.syncInterval);
+		}
+	});
 };
 
 __private.loadSignatures = function (cb) {
@@ -124,7 +150,7 @@ __private.loadSignatures = function (cb) {
 	});
 };
 
-__private.loadUnconfirmedTransactions = function (cb) {
+__private.loadTransactions = function (cb) {
 	async.waterfall([
 		function (waterCb) {
 			self.getNetwork(function (err, network) {
@@ -137,7 +163,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
-			library.logger.log('Loading unconfirmed transactions from: ' + peer.string);
+			library.logger.log('Loading transactions from: ' + peer.string);
 
 			modules.transport.getFromPeer(peer, {
 				api: '/transactions',
@@ -147,7 +173,7 @@ __private.loadUnconfirmedTransactions = function (cb) {
 					return setImmediate(waterCb, err);
 				}
 
-				library.schema.validate(res.body, schema.loadUnconfirmedTransactions, function (err) {
+				library.schema.validate(res.body, schema.loadTransactions, function (err) {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					} else {
@@ -163,11 +189,11 @@ __private.loadUnconfirmedTransactions = function (cb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
 				} catch (e) {
-					library.logger.error(['Transaction', id].join(' '), e.toString());
-					if (transaction) { library.logger.error('Transaction', transaction); }
+					library.logger.debug(['Transaction', id].join(' '), e.toString());
+					if (transaction) { library.logger.debug('Transaction', transaction); }
 
-					library.logger.warn(['Transaction', id, 'is not valid, ban 60 min'].join(' '), peer.string);
-					modules.peers.state(peer.ip, peer.port, 0, 3600);
+					library.logger.warn(['Transaction', id, 'is not valid, ban 10 min'].join(' '), peer.string);
+					modules.peers.state(peer.ip, peer.port, 0, 600);
 
 					return setImmediate(eachSeriesCb, e);
 				}
@@ -178,8 +204,16 @@ __private.loadUnconfirmedTransactions = function (cb) {
 			});
 		},
 		function (transactions, waterCb) {
-			library.balancesSequence.add(function (cb) {
-				modules.transactions.receiveTransactions(transactions, cb);
+			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				library.balancesSequence.add(function (cb) {
+					transaction.bundled = true;
+					modules.transactions.processUnconfirmedTransaction(transaction, false, cb);
+				}, function (err) {
+					if (err) {
+						library.logger.debug(err);
+					}
+					return setImmediate(eachSeriesCb);
+				});
 			}, waterCb);
 		}
 	], function (err) {
@@ -242,7 +276,7 @@ __private.loadBlockChain = function () {
 				library.logger.error(err);
 				if (err.block) {
 					library.logger.error('Blockchain failed at: ' + err.block.height);
-					modules.blocks.simpleDeleteAfterBlock(err.block.id, function (err, res) {
+					modules.blocks.deleteAfterBlock(err.block.id, function (err, res) {
 						library.logger.error('Blockchain clipped');
 						library.bus.message('blockchainReady');
 					});
@@ -442,8 +476,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 };
 
 __private.sync = function (cb) {
-	var transactions = modules.transactions.getUnconfirmedTransactionList(true);
-
 	library.logger.info('Starting sync');
 
 	__private.isActive = true;
@@ -454,15 +486,23 @@ __private.sync = function (cb) {
 			library.logger.debug('Undoing unconfirmed transactions before sync');
 			return modules.transactions.undoUnconfirmedList(seriesCb);
 		},
+		getPeersBefore: function (seriesCb) {
+			library.logger.debug('Establishling broadhash consensus before sync');
+			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+		},
 		loadBlocksFromNetwork: function (seriesCb) {
 			return __private.loadBlocksFromNetwork(seriesCb);
 		},
 		updateSystem: function (seriesCb) {
 			return modules.system.update(seriesCb);
 		},
-		receiveTransactions: function (seriesCb) {
-			library.logger.debug('Receiving unconfirmed transactions after sync');
-			return modules.transactions.receiveTransactions(transactions, seriesCb);
+		getPeersAfter: function (seriesCb) {
+			library.logger.debug('Establishling broadhash consensus after sync');
+			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+		},
+		applyUnconfirmedList: function (seriesCb) {
+			library.logger.debug('Applying unconfirmed transactions after sync');
+			return modules.transactions.applyUnconfirmedList(seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;
@@ -542,22 +582,16 @@ __private.getPeer = function (peer, cb) {
 			});
 		},
 		getHeight: function (seriesCb) {
-			if (peer.height >= modules.blocks.getLastBlock().height) {
-				return setImmediate(seriesCb);
-			} else {
-				modules.transport.getFromPeer(peer, {
-					api: '/height',
-					method: 'GET'
-				}, function (err, res) {
-					if (err) {
-						return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
-					} else {
-						peer.height = res.body.height;
-						modules.peers.update(peer);
-						return setImmediate(seriesCb);
-					}
-				});
-			}
+			modules.transport.getFromPeer(peer, {
+				api: '/height',
+				method: 'GET'
+			}, function (err, res) {
+				if (err) {
+					return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			});
 		},
 		validateHeight: function (seriesCb) {
 			var heightIsValid = library.schema.validate(peer, schema.getNetwork.height);
@@ -603,7 +637,7 @@ Loader.prototype.getNetwork = function (cb) {
 		},
 		function (res, waterCb) {
 			library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
-				var peers = res.body.peers;
+				var peers = modules.peers.acceptable(res.body.peers);
 
 				if (err) {
 					return setImmediate(waterCb, err);
@@ -643,30 +677,13 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeersReady = function () {
-	setImmediate(function nextSeries () {
+	setImmediate(function load () {
 		async.series({
-			sync: function (seriesCb) {
-				var lastReceipt = modules.blocks.lastReceipt();
-
-				if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
-					library.sequence.add(function (cb) {
-						__private.sync(cb);
-					}, function (err) {
-						if (err) {
-							library.logger.warn('Sync timer', err);
-						}
-
-						return setImmediate(seriesCb);
-					});
-				} else {
-					return setImmediate(seriesCb);
-				}
-			},
-			loadUnconfirmedTransactions: function (seriesCb) {
+			loadTransactions: function (seriesCb) {
 				if (__private.loaded) {
-					__private.loadUnconfirmedTransactions(function (err) {
+					async.retry(__private.retries, __private.loadTransactions, function (err) {
 						if (err) {
-							library.logger.warn('Unconfirmed transactions timer', err);
+							library.logger.log('Unconfirmed transactions loader', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -677,9 +694,9 @@ Loader.prototype.onPeersReady = function () {
 			},
 			loadSignatures: function (seriesCb) {
 				if (__private.loaded) {
-					__private.loadSignatures(function (err) {
+					async.retry(__private.retries, __private.loadSignatures, function (err) {
 						if (err) {
-							library.logger.warn('Signatures timer', err);
+							library.logger.log('Signatures loader', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -689,7 +706,11 @@ Loader.prototype.onPeersReady = function () {
 				}
 			}
 		}, function (err) {
-			return setTimeout(nextSeries, 10000);
+			if (err) {
+				__private.initalize();
+			}
+
+			return __private.syncTimer();
 		});
 	});
 };
@@ -733,7 +754,9 @@ shared.sync = function (req, cb) {
 	return setImmediate(cb, null, {
 		syncing: self.syncing(),
 		blocks: __private.blocksToSync,
-		height: modules.blocks.getLastBlock().height
+		height: modules.blocks.getLastBlock().height,
+		broadhash: modules.system.getBroadhash(),
+		consensus: modules.transport.consensus()
 	});
 };
 

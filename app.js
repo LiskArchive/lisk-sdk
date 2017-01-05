@@ -34,12 +34,7 @@ program
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
-var appConfig;
-if (program.config) {
-	appConfig = require(path.resolve(process.cwd(), program.config));
-} else {
-  appConfig = require('./config.json');
-}
+var appConfig = require('./helpers/config.js')(program.config);
 
 if (program.port) {
 	appConfig.port = program.port;
@@ -73,7 +68,7 @@ if (program.snapshot) {
 	);
 }
 
-//Define top endpoint availability
+// Define top endpoint availability
 process.env.TOP =  appConfig.topAccounts;
 
 var config = {
@@ -168,7 +163,7 @@ d.run(function () {
 
 			require('./helpers/request-limiter')(app, appConfig);
 
-			app.use(compression({ level: 6 }));
+			app.use(compression({ level: 9 }));
 			app.use(cors());
 			app.options('*', cors());
 
@@ -231,7 +226,6 @@ d.run(function () {
 			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
-			var requestSanitizer = require('./helpers/request-sanitizer');
 			var queryParser = require('express-query-int');
 
 			scope.network.app.engine('html', require('ejs').renderFile);

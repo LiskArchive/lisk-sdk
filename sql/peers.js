@@ -7,6 +7,13 @@ var PeersSql = {
 
   banManager: 'UPDATE peers SET "state" = 1, "clock" = null WHERE ("state" = 0 AND "clock" - ${now} < 0)',
 
+  countByFilter: function (params) {
+    return [
+      'SELECT COUNT(*)::int FROM peers',
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
+    ].filter(Boolean).join(' ');
+  },
+
   getByFilter: function (params) {
     return [
       'SELECT "ip", "port", "state", "os", "version", ENCODE("broadhash", \'hex\') AS "broadhash", "height" FROM peers',
@@ -22,8 +29,7 @@ var PeersSql = {
       (params.dappid ? 'INNER JOIN peers_dapp AS pd ON p."id" = pd."peerId" AND pd."dappid" = ${dappid}' : ''),
       'WHERE p."state" > 0',
       (params.broadhash ? 'AND "broadhash" ' + (params.attempt === 0 ? '=' : '!=') + ' DECODE(${broadhash}, \'hex\')' : 'AND "broadhash" IS NULL'),
-      (params.height ? params.attempt === 0 ? 'AND "height" = ${height}' : 'OR "height" > ${height}' : 'OR "height" IS NULL'),
-      'ORDER BY RANDOM() LIMIT ${limit}'
+      'ORDER BY RANDOM(), "height" DESC LIMIT ${limit}'
     ].filter(Boolean).join(' ');
   },
 

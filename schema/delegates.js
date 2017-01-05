@@ -43,8 +43,7 @@ module.exports = {
 				type: 'string',
 				format: 'publicKey'
 			}
-		},
-		required: ['publicKey']
+		}
 	},
 	getDelegate: {
 		id: 'delegates.getDelegate',
@@ -54,7 +53,10 @@ module.exports = {
 				type: 'string'
 			},
 			username: {
-				type: 'string'
+				type: 'string',
+				format: 'username',
+				minLength: 1,
+				maxLength: 20
 			}
 		}
 	},
@@ -111,6 +113,12 @@ module.exports = {
 			generatorPublicKey: {
 				type: 'string',
 				format: 'publicKey'
+			},
+			start: {
+				type: 'integer'
+			},
+			end: {
+				type: 'integer'
 			}
 		},
 		required: ['generatorPublicKey']
@@ -134,7 +142,10 @@ module.exports = {
 				maxLength: 100
 			},
 			username: {
-				type: 'string'
+				type: 'string',
+				format: 'username',
+				minLength: 1,
+				maxLength: 20
 			}
 		},
 		required: ['secret']

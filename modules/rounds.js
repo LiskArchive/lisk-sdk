@@ -55,12 +55,18 @@ Rounds.prototype.directionSwap = function (direction, lastBlock, cb) {
 		__private.feesByRound = {};
 		__private.rewardsByRound = {};
 		__private.delegatesByRound = {};
-		self.flush(self.calc(lastBlock.height), cb);
+
+		return setImmediate(cb);
 	} else {
 		__private.unFeesByRound = {};
 		__private.unRewardsByRound = {};
 		__private.unDelegatesByRound = {};
-		self.flush(self.calc(lastBlock.height), cb);
+
+		if (lastBlock) {
+			return __private.sumRound(self.calc(lastBlock.height), cb);
+		} else {
+			return setImmediate(cb);
+		}
 	}
 };
 
@@ -71,7 +77,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	__private.unFeesByRound[round] = Math.floor(__private.unFeesByRound[round]) || 0;
 	__private.unFeesByRound[round] += Math.floor(block.totalFee);
 
-	__private.unRewardsByRound[round] = (__private.rewardsByRound[round] || []);
+	__private.unRewardsByRound[round] = (__private.unRewardsByRound[round] || []);
 	__private.unRewardsByRound[round].push(block.reward);
 
 	__private.unDelegatesByRound[round] = __private.unDelegatesByRound[round] || [];
@@ -100,7 +106,9 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 					delete __private.unFeesByRound[round];
 					delete __private.unRewardsByRound[round];
 					delete __private.unDelegatesByRound[round];
-				});
+				}).then(promised.markBlockId);
+			} else {
+				return promised.markBlockId();
 			}
 		});
 	}
@@ -154,7 +162,7 @@ Rounds.prototype.tick = function (block, done) {
 
 	scope.finishRound = (
 		(round !== nextRound && __private.delegatesByRound[round].length === slots.delegates) ||
-		(block.height === 1 || block.heighti === 101)
+		(block.height === 1 || block.height === 101)
 	);
 
 	function Tick (t) {
@@ -214,21 +222,10 @@ Rounds.prototype.onBind = function (scope) {
 Rounds.prototype.onBlockchainReady = function () {
 	var round = self.calc(modules.blocks.getLastBlock().height);
 
-	library.db.query(sql.summedRound, { round: round, activeDelegates:constants.activeDelegates }).then(function (rows) {
-
-		var rewards = [];
-
-		rows[0].rewards.forEach(function (reward) {
-			rewards.push(Math.floor(reward));
-		});
-
-		__private.feesByRound[round] = Math.floor(rows[0].fees);
-		__private.rewardsByRound[round] = rewards;
-		__private.delegatesByRound[round] = rows[0].delegates;
-		__private.loaded = true;
-
-	}).catch(function (err) {
-		library.logger.error('Round#onBlockchainReady error', err);
+	__private.sumRound(round, function (err) {
+		if (!err) {
+			__private.loaded = true;
+		}
 	});
 };
 
@@ -242,7 +239,6 @@ Rounds.prototype.cleanup = function (cb) {
 };
 
 // Private
-
 __private.getOutsiders = function (scope, cb) {
 	scope.outsiders = [];
 
@@ -261,6 +257,26 @@ __private.getOutsiders = function (scope, cb) {
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
+	});
+};
+
+__private.sumRound = function (round, cb) {
+	library.db.query(sql.summedRound, { round: round, activeDelegates: constants.activeDelegates }).then(function (rows) {
+		var rewards = [];
+
+		rows[0].rewards.forEach(function (reward) {
+			rewards.push(Math.floor(reward));
+		});
+
+		__private.feesByRound[round] = Math.floor(rows[0].fees);
+		__private.rewardsByRound[round] = rewards;
+		__private.delegatesByRound[round] = rows[0].delegates;
+
+		return setImmediate(cb);
+	}).catch(function (err) {
+		library.logger.error('Failed to sum round', round);
+		library.logger.error(err.stack);
+		return setImmediate(cb, err);
 	});
 };
 
