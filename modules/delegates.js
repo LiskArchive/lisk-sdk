@@ -761,7 +761,7 @@ shared.getForgedByAccount = function (req, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		if (req.body.start && req.body.end) {
+		if (req.body.start !== undefined || req.body.end !== undefined) {
 			modules.blocks.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
 				var forged = bignum(reward.fees).plus(bignum(reward.rewards)).toString();
 				return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});

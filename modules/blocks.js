@@ -1398,20 +1398,19 @@ Blocks.prototype.cleanup = function (cb) {
 };
 
 Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
-	var params = {}, where = [];
+	var params = {};
 
-	where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
 	params.generatorPublicKey = filter.generatorPublicKey;
+	
+	if (filter.start) {
+		params.start = filter.start - constants.epochTime.getTime ()  / 1000;
+	}
+	
+	if (filter.end !== undefined) {
+		params.end = filter.end - constants.epochTime.getTime () / 1000; 
+	}
 
-	where.push('"b_timestamp" >= ${start}');
-	params.start = filter.start - constants.epochTime.getTime ()  / 1000;
-
-	where.push('"b_timestamp" <= ${end}');
-	params.end = filter.end - constants.epochTime.getTime () / 1000; 
-
-	library.db.query(sql.aggregateBlocksReward({
-		where: where,
-	}), params).then(function (rows) {
+	library.db.query(sql.aggregateBlocksReward(params), params).then(function (rows) {
 		var data = rows[0];
 		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
 		return setImmediate(cb, null, data);
