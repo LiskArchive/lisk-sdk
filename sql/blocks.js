@@ -26,7 +26,10 @@ var BlocksSql = {
 
   aggregateBlocksReward: function (params) {
     return [
-      'WITH borders as (SELECT',
+      'WITH',
+      'delegate as (SELECT',
+        '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE (${generatorPublicKey}, \'hex\') LIMIT 1),',
+      'borders as (SELECT',
         '(SELECT (CAST(b.height / 101 AS INTEGER) + (CASE WHEN b.height % 101 > 0 THEN 1 ELSE 0 END)) FROM blocks b ORDER BY b.height DESC LIMIT 1) as current,',
         '(SELECT (CAST(b.height / 101 AS INTEGER) + (CASE WHEN b.height % 101 > 0 THEN 1 ELSE 0 END)) FROM blocks b',
           (params.start !== undefined ? ' WHERE b.height >= ${start}' : ''),
@@ -63,6 +66,7 @@ var BlocksSql = {
         '(SELECT 1 FROM blocks b WHERE b.height = rs.max AND b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') LIMIT 1) AS last',
         'FROM rs, borders)',
       'SELECT',
+        '(SELECT * FROM delegate) as delegate,',
         'sum (rsc.blocks) as count,',
         'sum(floor(rsc.fees/101)*rsc.blocks + (CASE WHEN rsc.last = 1 THEN (rsc.fees-floor(rsc.fees/101)*101) ELSE 0 END)) as fees,',
         'sum(rsc.rewards) as rewards',

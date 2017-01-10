@@ -1412,6 +1412,9 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 
 	library.db.query(sql.aggregateBlocksReward(params), params).then(function (rows) {
 		var data = rows[0];
+		if (data.delegate === null) {
+			return setImmediate(cb, 'Account not exists or is not a delegate');
+		}
 		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
 		return setImmediate(cb, null, data);
 	}).catch(function (err) {
