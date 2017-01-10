@@ -1104,10 +1104,10 @@ describe('GET /api/delegates/forging/getForgedByAccount', function () {
 
 		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('fees').that.is.a('string').and.eql('0');
-			node.expect(res.body).to.have.property('rewards').that.is.a('string').and.eql('0');
-			node.expect(res.body).to.have.property('forged').that.is.a('string').and.eql('0');
-			node.expect(res.body).to.have.property('count').that.is.a('string').and.eql('0');
+			node.expect(res.body).to.have.property('fees').that.is.a('string');
+			node.expect(res.body).to.have.property('rewards').that.is.a('string');
+			node.expect(res.body).to.have.property('forged').that.is.a('string');
+			node.expect(res.body).to.have.property('count').that.is.a('string');
 			done();
 		});
 	});
