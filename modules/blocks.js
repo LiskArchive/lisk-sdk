@@ -1401,6 +1401,7 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 	var params = {};
 
 	params.generatorPublicKey = filter.generatorPublicKey;
+	params.delegates = constants.activeDelegates;
 	
 	if (filter.start) {
 		params.start = filter.start - constants.epochTime.getTime ()  / 1000;

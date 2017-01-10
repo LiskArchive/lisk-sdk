@@ -1017,8 +1017,8 @@ describe('GET /api/delegates/forging/getForgedByAccount', function () {
 	function buildParams () {
 		return [
 			'generatorPublicKey=' + validParams.generatorPublicKey,
-			validParams.start ? 'start=' + validParams.start : '',
-			validParams.end ? 'end=' + validParams.end : '',
+			validParams.start !== undefined ? 'start=' + validParams.start : '',
+			validParams.end !== undefined ? 'end=' + validParams.end : '',
 		].filter(Boolean).join('&');
 	}
 
