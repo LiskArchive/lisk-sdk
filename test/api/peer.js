@@ -39,7 +39,6 @@ describe('GET /peer/list', function () {
 
 	it('using valid headers should be ok', function (done) {
 		node.get('/peer/list')
-
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -109,4 +108,3 @@ describe('GET /peer/height', function () {
 			});
 	});
 });
-

@@ -24,7 +24,7 @@
     "express-query-int": "=1.0.1",
     "express-rate-limit": "=2.5.0",
     "extend": "=3.0.0",
-    "ip": "=1.1.3",
+    "ip": "https://github.com/LiskHQ/node-ip/tarball/ec401f16915024450bf9b843eeb4c5366ef5235c",
     "json-schema": "=0.2.3",
     "json-sql": "LiskHQ/json-sql#27e1ed1",
     "lisk-sandbox": "LiskHQ/lisk-sandbox#162da38",
