@@ -1403,8 +1403,8 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 	params.generatorPublicKey = filter.generatorPublicKey;
 	params.delegates = constants.activeDelegates;
 	
-	if (filter.start) {
-		params.start = filter.start - constants.epochTime.getTime ()  / 1000;
+	if (filter.start !== undefined) {
+		params.start = filter.start - constants.epochTime.getTime () / 1000;
 	}
 	
 	if (filter.end !== undefined) {
