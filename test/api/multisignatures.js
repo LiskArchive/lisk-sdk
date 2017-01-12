@@ -61,7 +61,6 @@ function confirmTransaction (transactionId, passphrases, done) {
 				secret: passphrase,
 				transactionId: transactionId
 			}, function (err, res) {
-				var possibleErr = err || res.body.err;
 				if (err || !res.body.success) {
 					return untilCb(err || res.body.error);
 				}
