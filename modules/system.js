@@ -78,6 +78,12 @@ System.prototype.versionCompatible = function (version) {
 		version = version.replace(rcRegExp, '');
 	}
 
+	// if no range specifier is used for minVersion, check the complete version string (inclusive versionChar)
+	var rangeRegExp = /[\^\~\*]/;
+	if (this.minVersionChar && versionChar && !rangeRegExp.test(this.minVersion)) {
+		return (version + versionChar) === (this.minVersion + this.minVersionChar);
+	}
+
 	// ignore versionChar, check only version
 	return semver.satisfies(version, this.minVersion);
 };
