@@ -10,9 +10,10 @@ var sandboxHelper = require('../helpers/sandbox.js');
 var modules, library, self, __private = {}, shared = {};
 
 __private.loaded = false;
-__private.DOUBLE_DOUBLE_QUOTES = /''/g;
 __private.SINGLE_QUOTES = /'/g;
 __private.SINGLE_QUOTES_DOUBLED = '\'\'';
+__private.DOUBLE_QUOTES = /"/g;
+__private.DOUBLE_QUOTES_DOUBLED = '""';
 
 // Constructor
 function Sql (cb, scope) {
@@ -45,6 +46,10 @@ __private.escape = function (what) {
 			if (isFinite(what)) { return '' + what; }
 	}
 	throw 'Unsupported data ' + typeof what;
+};
+
+__private.escape2 = function (str) {
+		return '"' + str.replace(__private.DOUBLE_QUOTES, __private.DOUBLE_QUOTES_DOUBLED) + '"';
 };
 
 __private.pass = function (obj, dappid) {
@@ -100,6 +105,7 @@ __private.query = function (action, config, cb) {
 
 		try {
 			sql = jsonSql.build(extend({}, config, defaultConfig));
+			library.logger.trace("sql.query: ", sql);
 		} catch (e) {
 			return done(e);
 		}
@@ -120,7 +126,7 @@ __private.query = function (action, config, cb) {
 				return batchPack.length === 0;
 			}, function (cb) {
 				var fields = Object.keys(config.fields).map(function (field) {
-					return __private.escape(config.fields[field]);
+					return __private.escape2(config.fields[field]);		// add double quotes to field identifiers
 				});
 				sql = 'INSERT INTO ' + 'dapp_' + config.dappid + '_' + config.table + ' (' + fields.join(',') + ') ';
 				var rows = [];
