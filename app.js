@@ -245,11 +245,11 @@ d.run(function () {
 					if (ignore.indexOf(name) >= 0) {
 						return value;
 					}
-
-					/*jslint eqeq: true*/
+					/*eslint-disable eqeqeq */
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
-						return value;
+						return false;
 					}
+					/*eslint-enable eqeqeq */
 
 					return parseInt(value);
 				}

@@ -96,31 +96,46 @@ module.exports = function (grunt) {
 				}
 			}
 		},
-
-		jshint: {
+		eslint: {
 			options: {
-				jshintrc: true
+				configFile: '.eslintrc.json',
+				format: 'codeframe',
+				fix: false
 			},
-			all: [
+			target: [
 				'*.js',
-				'helpers/**/*.js',
-				'modules/**/*.js',
-				'logic/**/*.js',
-				'schema/**/*.js',
-				'sql/**/*.js',
-				'tasks/**/*.js',
-				'test/*.js',
-				'test/api/**/*.js',
-				'test/unit/**/*.js'
+				'helpers',
+				'modules',
+				'logic',
+				'schema',
+				'sql',
+				'tasks',
+				'test'
 			]
 		},
-
+		eslintfix: {
+			options: {
+				configFile: '.eslintrc.json',
+				format: 'codeframe',
+				fix: true
+			},
+			target: [
+				'*.js',
+				'helpers',
+				'modules',
+				'logic',
+				'schema',
+				'sql',
+				'tasks',
+				'test'
+			]
+		},
 		mochaTest: {
 			test: {
 				options: {
 					reporter: 'spec',
 					quiet: false,
-					clearRequireCache: false,
+					clesarRequireCache: false,
 					noFail: false,
 					timeout: '250s'
 				},
@@ -135,10 +150,14 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-jsdox');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
-	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-mocha-test');
+	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('travis', ['jshint', 'mochaTest']);
+	grunt.registerTask('travis', ['eslint', 'mochaTest']);
+
+	grunt.registerTask('eslintfix', 'eslint with files autoformatting', function () {
+		grunt.task.run('eslintfix');
+	});
 };
