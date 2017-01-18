@@ -113,7 +113,6 @@ module.exports = function (grunt) {
 				fix: false
 			},
 			target: [
-				'*.js',
 				'helpers',
 				'modules',
 				'logic',
@@ -122,24 +121,8 @@ module.exports = function (grunt) {
 				'tasks',
 				'test'
 			]
-		},
-		eslintfix: {
-			options: {
-				configFile: '.eslintrc.json',
-				format: 'codeframe',
-				fix: true
-			},
-			target: [
-				'*.js',
-				'helpers',
-				'modules',
-				'logic',
-				'schema',
-				'sql',
-				'tasks',
-				'test'
-			]
-		},
+
+		}
 	});
 
 	grunt.loadTasks('tasks');
@@ -148,7 +131,6 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-jsdox');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
-	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('default', ['release']);
@@ -156,7 +138,8 @@ module.exports = function (grunt) {
 	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 
-	grunt.registerTask('eslintfix', 'eslint with files autoformatting', function () {
-		grunt.task.run('eslintfix');
+	grunt.registerTask('eslint-fix', 'eslint with files formatting', function () {
+		grunt.config.set('eslint.options.fix', true);
+		grunt.task.run('eslint');
 	});
 };

@@ -75,7 +75,7 @@ Round.prototype.applyRound = function () {
 
 	for (var i = 0; i < this.scope.delegates.length; i++) {
 		var delegate = this.scope.delegates[i],
-				changes	= roundChanges.at(i);
+			changes	= roundChanges.at(i);
 
 		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
 			publicKey: delegate,

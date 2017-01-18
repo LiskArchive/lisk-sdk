@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var node = require('./../node.js');
 
@@ -56,7 +56,7 @@ describe('GET /peer/blocks', function () {
 					node.expect(block).to.have.property('t_signatures');
 				});
 				done();
-		});
+			});
 	});
 });
 

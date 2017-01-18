@@ -48,7 +48,7 @@ __private.attachApi = function () {
 	var router = new Router();
 
 	router.get('/status/ping', function (req, res) {
-		__private.ping(function(status, body) {
+		__private.ping(function (status, body) {
 			return res.status(status).json(body);
 		});
 	});
@@ -257,22 +257,22 @@ __private.loadBlockChain = function () {
 					function () {
 						return count < offset;
 					}, function (cb) {
-						if (count > 1) {
-							library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
-						}
-						modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
-							if (err) {
-								return setImmediate(cb, err);
-							}
-
-							offset = offset + limit;
-							__private.lastBlock = lastBlock;
-
-							return setImmediate(cb);
-						});
-					}, function (err) {
-						return setImmediate(seriesCb, err);
+					if (count > 1) {
+						library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
 					}
+					modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
+						if (err) {
+							return setImmediate(cb, err);
+						}
+
+						offset = offset + limit;
+						__private.lastBlock = lastBlock;
+
+						return setImmediate(cb);
+					});
+				}, function (err) {
+					return setImmediate(seriesCb, err);
+				}
 				);
 			}
 		}, function (err) {
