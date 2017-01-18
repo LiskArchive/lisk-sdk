@@ -551,7 +551,7 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 });
 
 
-describe('POST /api/multisignatures/sign (not a multisign)', function () {
+describe('POST /api/multisignatures/sign (regular account)', function () {
 
 	var transactionId;
 
@@ -568,7 +568,7 @@ describe('POST /api/multisignatures/sign (not a multisign)', function () {
 		});
 	});
 
-	it('should be impossible to sign the transaction from not multisignatured account', function (done) {
+	it('should be impossible to sign the transaction', function (done) {
 		node.onNewBlock(function (err) {
 			node.get('/api/transactions/get?id=' + transactionId, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;

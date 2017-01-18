@@ -357,7 +357,7 @@ shared.sign = function (req, cb) {
 
 		if (!scope.transaction.requesterPublicKey) {
 			permissionDenied = (
-				(!scope.sender.multisignatures || scope.sender.multisignatures.indexOf(scope.keypair.publicKey.toString('hex')) === -1)
+				(!Array.isArray(scope.sender.multisignatures) || scope.sender.multisignatures.indexOf(scope.keypair.publicKey.toString('hex')) === -1)
 			);
 		} else {
 			permissionDenied = (
