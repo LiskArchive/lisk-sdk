@@ -569,7 +569,6 @@ __private.list = function (filter, cb) {
 
 	if (filter.category) {
 		var category = dappCategories[filter.category];
-
 		if (category != null && category !== undefined) {
 			where.push('"category" = ${category}');
 			params.category = category;
@@ -686,7 +685,7 @@ __private.getInstalledIds = function (cb) {
 __private.removeDApp = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 
-	function remove(err) {
+	function remove (err) {
 		if (err) {
 			library.logger.error('Failed to uninstall application');
 		}

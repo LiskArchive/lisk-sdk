@@ -247,7 +247,7 @@ d.run(function () {
 					}
 					/*eslint-disable eqeqeq */
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
-						return false;
+						return value;
 					}
 					/*eslint-enable eqeqeq */
 

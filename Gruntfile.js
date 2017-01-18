@@ -103,7 +103,6 @@ module.exports = function (grunt) {
 				fix: false
 			},
 			target: [
-				'*.js',
 				'helpers',
 				'modules',
 				'logic',
@@ -112,30 +111,14 @@ module.exports = function (grunt) {
 				'tasks',
 				'test'
 			]
-		},
-		eslintfix: {
-			options: {
-				configFile: '.eslintrc.json',
-				format: 'codeframe',
-				fix: true
-			},
-			target: [
-				'*.js',
-				'helpers',
-				'modules',
-				'logic',
-				'schema',
-				'sql',
-				'tasks',
-				'test'
-			]
+
 		},
 		mochaTest: {
 			test: {
 				options: {
 					reporter: 'spec',
 					quiet: false,
-					clesarRequireCache: false,
+					clearRequireCache: false,
 					noFail: false,
 					timeout: '250s'
 				},
@@ -157,7 +140,8 @@ module.exports = function (grunt) {
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('travis', ['eslint', 'mochaTest']);
 
-	grunt.registerTask('eslintfix', 'eslint with files autoformatting', function () {
-		grunt.task.run('eslintfix');
+	grunt.registerTask('eslint-fix', 'eslint with files formatting', function () {
+		grunt.config.set('eslint.options.fix', true);
+		grunt.task.run('eslint');
 	});
 };

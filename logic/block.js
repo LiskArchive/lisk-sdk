@@ -36,7 +36,7 @@ __private.getAddressByPublicKey = function (publicKey) {
 
 // Public methods
 Block.prototype.create = function (data) {
-	var transactions = data.transactions.sort(function compare(a, b) {
+	var transactions = data.transactions.sort(function compare (a, b) {
 		if (a.type < b.type) { return -1; }
 		if (a.type > b.type) { return 1; }
 		if (a.amount < b.amount) { return -1; }
@@ -301,7 +301,7 @@ Block.prototype.objectNormalize = function (block) {
 
 	var report = this.scope.schema.validate(block, Block.prototype.schema);
 
-  if (!report) {
+	if (!report) {
 		throw 'Failed to validate block schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');

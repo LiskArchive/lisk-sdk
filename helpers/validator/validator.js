@@ -94,7 +94,7 @@ Validator.prototype.validate = function (value, rules, callback) {
 
 	report = {};
 
-	function finish(err, issues, output) {
+	function finish (err, issues, output) {
 		finished = true;
 
 		report.isValid = !issues.length;

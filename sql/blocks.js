@@ -1,87 +1,87 @@
 'use strict';
 
 var BlocksSql = {
-  sortFields: [
-    'id',
-    'timestamp',
-    'height',
-    'previousBlock',
-    'totalAmount',
-    'totalFee',
-    'reward',
-    'numberOfTransactions',
-    'generatorPublicKey'
-  ],
+	sortFields: [
+		'id',
+		'timestamp',
+		'height',
+		'previousBlock',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'numberOfTransactions',
+		'generatorPublicKey'
+	],
 
-  getGenesisBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
+	getGenesisBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
 
-  deleteBlock: 'DELETE FROM blocks WHERE "id" = ${id};',
+	deleteBlock: 'DELETE FROM blocks WHERE "id" = ${id};',
 
-  countList: function (params) {
-    return [
-      'SELECT COUNT("b_id")::int FROM blocks_list',
+	countList: function (params) {
+		return [
+			'SELECT COUNT("b_id")::int FROM blocks_list',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
-    ].filter(Boolean).join(' ');
-  },
+		].filter(Boolean).join(' ');
+	},
 
-  aggregateBlocksReward: function (params) {
-    return [
-      'SELECT SUM("b_totalFee") AS fees, SUM("b_reward") AS rewards, COUNT(1) AS count',
-      'FROM blocks_list',
+	aggregateBlocksReward: function (params) {
+		return [
+			'SELECT SUM("b_totalFee") AS fees, SUM("b_reward") AS rewards, COUNT(1) AS count',
+			'FROM blocks_list',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
-    ].filter(Boolean).join(' ');
-  },
+		].filter(Boolean).join(' ');
+	},
 
-  list: function (params) {
-    return [
-      'SELECT * FROM blocks_list',
+	list: function (params) {
+		return [
+			'SELECT * FROM blocks_list',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
-      'LIMIT ${limit} OFFSET ${offset}'
-    ].filter(Boolean).join(' ');
-  },
+			'LIMIT ${limit} OFFSET ${offset}'
+		].filter(Boolean).join(' ');
+	},
 
-  getById: 'SELECT * FROM blocks_list WHERE "b_id" = ${id}',
+	getById: 'SELECT * FROM blocks_list WHERE "b_id" = ${id}',
 
-  getIdSequence: 'SELECT (ARRAY_AGG("id" ORDER BY "height" ASC))[1] AS "id", MIN("height") AS "height", CAST("height" / ${delegates} AS INTEGER) + (CASE WHEN "height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END) AS "round" FROM blocks WHERE "height" <= ${height} GROUP BY "round" ORDER BY "height" DESC LIMIT ${limit}',
+	getIdSequence: 'SELECT (ARRAY_AGG("id" ORDER BY "height" ASC))[1] AS "id", MIN("height") AS "height", CAST("height" / ${delegates} AS INTEGER) + (CASE WHEN "height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END) AS "round" FROM blocks WHERE "height" <= ${height} GROUP BY "round" ORDER BY "height" DESC LIMIT ${limit}',
 
-  getCommonBlock: function (params) {
-    return [
-      'SELECT COUNT("id")::int FROM blocks WHERE "id" = ${id}',
+	getCommonBlock: function (params) {
+		return [
+			'SELECT COUNT("id")::int FROM blocks WHERE "id" = ${id}',
       (params.previousBlock ? 'AND "previousBlock" = ${previousBlock}' : ''),
-      'AND "height" = ${height}'
-    ].filter(Boolean).join(' ');
-  },
+			'AND "height" = ${height}'
+		].filter(Boolean).join(' ');
+	},
 
-  countByRowId: 'SELECT COUNT("rowId")::int FROM blocks',
+	countByRowId: 'SELECT COUNT("rowId")::int FROM blocks',
 
-  getHeightByLastId: 'SELECT "height" FROM blocks WHERE "id" = ${lastId}',
+	getHeightByLastId: 'SELECT "height" FROM blocks WHERE "id" = ${lastId}',
 
-  loadBlocksData: function (params) {
-    var limitPart;
+	loadBlocksData: function (params) {
+		var limitPart;
 
-    if (!params.id && !params.lastId) {
-      limitPart = 'WHERE "b_height" < ${limit}';
-    }
+		if (!params.id && !params.lastId) {
+			limitPart = 'WHERE "b_height" < ${limit}';
+		}
 
-    return [
-      'SELECT * FROM full_blocks_list',
-      limitPart,
+		return [
+			'SELECT * FROM full_blocks_list',
+			limitPart,
       (params.id || params.lastId ? 'WHERE' : ''),
       (params.id ? '"b_id" = ${id}' : ''),
       (params.id && params.lastId ? ' AND ' : ''),
       (params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : ''),
-      'ORDER BY "b_height", "t_rowId"'
-    ].filter(Boolean).join(' ');
-  },
+			'ORDER BY "b_height", "t_rowId"'
+		].filter(Boolean).join(' ');
+	},
 
-  loadBlocksOffset: 'SELECT * FROM full_blocks_list WHERE "b_height" >= ${offset} AND "b_height" < ${limit} ORDER BY "b_height", "t_rowId"',
+	loadBlocksOffset: 'SELECT * FROM full_blocks_list WHERE "b_height" >= ${offset} AND "b_height" < ${limit} ORDER BY "b_height", "t_rowId"',
 
-  loadLastBlock: 'SELECT * FROM full_blocks_list WHERE "b_height" = (SELECT MAX("height") FROM blocks) ORDER BY "b_height", "t_rowId"',
+	loadLastBlock: 'SELECT * FROM full_blocks_list WHERE "b_height" = (SELECT MAX("height") FROM blocks) ORDER BY "b_height", "t_rowId"',
 
-  getBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
+	getBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
 
-  deleteAfterBlock: 'DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = ${id});'
+	deleteAfterBlock: 'DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = ${id});'
 };
 
 module.exports = BlocksSql;
