@@ -215,7 +215,32 @@ describe('GET /api/transactions', function () {
 			done();
 		});
 	});
+
+	it('using orderBy == "recipientId" should not place NULLs first', function (done) {
+		node.get('/api/transactions?orderBy=recipientId', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+
+			var dividedIndices = res.body.transactions.reduce(function (memo, peer, index) {
+				memo[peer.recipientId === null ? 'nullIndices' : 'notNullIndices'].push(index);
+				return memo;
+			}, {notNullIndices: [], nullIndices: []});
+
+			if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
+				var ascOrder = function (a, b) { return a - b; };
+				dividedIndices.notNullIndices.sort(ascOrder);
+				dividedIndices.nullIndices.sort(ascOrder);
+
+				node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+					.to.be.at.most(dividedIndices.nullIndices[0]);
+			}
+
+			done();
+		});
+	});
 });
+
+
 
 describe('GET /api/transactions/get?id=', function () {
 

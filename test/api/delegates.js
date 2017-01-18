@@ -629,6 +629,31 @@ describe('GET /api/delegates', function () {
 			done();
 		});
 	});
+
+	it('using orderBy with random sort field should not place NULLs first', function (done) {
+		var delegatesSortFields = ['approval', 'productivity', 'rate', 'vote'];
+		var randomSortField = delegatesSortFields[Math.floor(Math.random() * delegatesSortFields.length)];
+		node.get('/api/delegates?orderBy=' + randomSortField, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+
+			var dividedIndices = res.body.delegates.reduce(function (memo, peer, index) {
+				memo[peer[randomSortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
+				return memo;
+			}, {notNullIndices: [], nullIndices: []});
+
+			if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
+				var ascOrder = function (a, b) { return a - b; };
+				dividedIndices.notNullIndices.sort(ascOrder);
+				dividedIndices.nullIndices.sort(ascOrder);
+
+				node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+					.to.be.at.most(dividedIndices.nullIndices[0]);
+			}
+
+			done();
+		});
+	});
 });
 
 describe('GET /api/delegates/count', function () {
