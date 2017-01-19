@@ -88,11 +88,10 @@ z_schema.registerFormat('delegatesList', function (obj) {
 });
 
 z_schema.registerFormat('parsedInt', function (value) {
-	/*eslint-disable eqeqeq */
+	/*jslint eqeq: true*/
 	if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 		return false;
 	}
-    /*eslint-enable eqeqeq */
 	value = parseInt(value);
 	return true;
 });

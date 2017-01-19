@@ -96,6 +96,23 @@ module.exports = function (grunt) {
 				}
 			}
 		},
+		jshint: {
+			options: {
+				jshintrc: true
+			},
+			all: [
+				'*.js',
+				'helpers/**/*.js',
+				'modules/**/*.js',
+				'logic/**/*.js',
+				'schema/**/*.js',
+				'sql/**/*.js',
+				'tasks/**/*.js',
+				'test/*.js',
+				'test/api/**/*.js',
+				'test/unit/**/*.js'
+			]
+		},
 		eslint: {
 			options: {
 				configFile: '.eslintrc.json',
@@ -111,7 +128,6 @@ module.exports = function (grunt) {
 				'tasks',
 				'test'
 			]
-
 		},
 		mochaTest: {
 			test: {
@@ -133,12 +149,13 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-jsdox');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
-	grunt.loadNpmTasks('grunt-mocha-test');
+	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-eslint');
+	grunt.loadNpmTasks('grunt-mocha-test');
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('travis', ['eslint', 'mochaTest']);
+	grunt.registerTask('travis', ['jshint', 'mochaTest']);
 
 	grunt.registerTask('eslint-fix', 'eslint with files formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
