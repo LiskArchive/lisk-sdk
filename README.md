@@ -35,15 +35,15 @@ Lisk is a next generation crypto-currency and decentralized application platform
   
 - Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
 
-  `sudo npm install -g bower`
+  `npm install -g bower`
 
 - Grunt.js (<http://gruntjs.com/>) -- Grunt is used to compile the frontend code and serves other functions.
 
-  `sudo npm install -g grunt`
+  `npm install -g grunt`
   
 - Forever (<https://github.com/foreverjs/forever>) -- Forever manages the node process for Lisk (Optional)
 
-  `sudo npm install -g forever`
+  `npm install -g forever`
 
 ## Installation Steps
 
