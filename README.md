@@ -7,13 +7,21 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 **NOTE:** The following information is applicable to: **Ubuntu 14.04 (LTS) - x86_64**.
 
-## Prerequisites
+## Prerequisites - In order
 
-- Nodejs v0.12.17 or higher (<https://nodejs.org/>) -- Nodejs serves as the underlying engine for code execution.
+- Tool chain components -- Used for compiling dependencies
+
+  `sudo apt-get install -y python build-essential curl automake autoconf libtool`
+  
+- Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
+
+  `sudo apt-get install -y git`
+
+- Nodejs v0.12.17 (<https://nodejs.org/>) -- Nodejs serves as the underlying engine for code execution.
 
   ```
-  curl -sL https://deb.nodesource.com/setup_0.12 | sudo -E bash -
-  sudo apt-get install -y nodejs
+  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+  nvm install v0.12.17
   ```
   
 - Install PostgreSQL (version 9.6.1):
@@ -24,11 +32,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
   createdb lisk_test
   sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
   ```
-
-- Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
-
-  `sudo apt-get install -y git`
-
+  
 - Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
 
   `sudo npm install -g bower`
@@ -36,10 +40,6 @@ Lisk is a next generation crypto-currency and decentralized application platform
 - Grunt.js (<http://gruntjs.com/>) -- Grunt is used to compile the frontend code and serves other functions.
 
   `sudo npm install -g grunt`
-
-- Tool chain components -- Used for compiling dependencies
-
-  `sudo apt-get install -y python build-essential curl automake autoconf libtool`
   
 - Forever (<https://github.com/foreverjs/forever>) -- Forever manages the node process for Lisk (Optional)
 
