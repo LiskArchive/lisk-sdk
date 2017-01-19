@@ -105,7 +105,7 @@ __private.query = function (action, config, cb) {
 
 		try {
 			sql = jsonSql.build(extend({}, config, defaultConfig));
-			library.logger.trace("sql.query: ", sql);
+			library.logger.trace('sql.query:', sql);
 		} catch (e) {
 			return done(e);
 		}
