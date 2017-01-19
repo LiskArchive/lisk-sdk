@@ -30,7 +30,9 @@ Lisk is a next generation crypto-currency and decentralized application platform
   curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
   sudo -u postgres createuser --createdb $USER
   createdb lisk_test
+  createdb lisk_main
   sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
   ```
   
 - Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
