@@ -189,7 +189,7 @@ __private.loadTransactions = function (cb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
 				} catch (e) {
-					library.logger.debug ('Transaction normalization failed [loader]', {id: id, 'err': e.toString (), tx: transaction})
+					library.logger.debug ('Transaction normalization failed [loader]', {id: id, 'err': e.toString (), tx: transaction});
 
 					library.logger.warn(['Transaction', id, 'is not valid, ban 10 min'].join(' '), peer.string);
 					modules.peers.state(peer.ip, peer.port, 0, 600);
