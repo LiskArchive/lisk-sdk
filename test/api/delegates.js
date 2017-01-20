@@ -1,5 +1,6 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
+var async = require('async');
 var node = require('./../node.js');
 
 function openAccount (params, done) {
@@ -630,27 +631,29 @@ describe('GET /api/delegates', function () {
 		});
 	});
 
-	it('using orderBy with random sort field should not place NULLs first', function (done) {
+	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
 		var delegatesSortFields = ['approval', 'productivity', 'rate', 'vote'];
-		var randomSortField = delegatesSortFields[Math.floor(Math.random() * delegatesSortFields.length)];
-		node.get('/api/delegates?orderBy=' + randomSortField, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+		async.each(delegatesSortFields, function (sortField, cb) {
+			node.get('/api/delegates?orderBy=' + sortField, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('delegates').that.is.an('array');
 
-			var dividedIndices = res.body.delegates.reduce(function (memo, peer, index) {
-				memo[peer[randomSortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
-				return memo;
-			}, {notNullIndices: [], nullIndices: []});
+				var dividedIndices = res.body.delegates.reduce(function (memo, peer, index) {
+					memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
+					return memo;
+				}, {notNullIndices: [], nullIndices: []});
 
-			if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
-				var ascOrder = function (a, b) { return a - b; };
-				dividedIndices.notNullIndices.sort(ascOrder);
-				dividedIndices.nullIndices.sort(ascOrder);
+				if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
+					var ascOrder = function (a, b) { return a - b; };
+					dividedIndices.notNullIndices.sort(ascOrder);
+					dividedIndices.nullIndices.sort(ascOrder);
 
-				node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
-					.to.be.at.most(dividedIndices.nullIndices[0]);
-			}
-
+					node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+						.to.be.at.most(dividedIndices.nullIndices[0]);
+				}
+				cb();
+			});
+		}, function () {
 			done();
 		});
 	});
