@@ -245,7 +245,6 @@ d.run(function () {
 					if (ignore.indexOf(name) >= 0) {
 						return value;
 					}
-
 					/*jslint eqeq: true*/
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;

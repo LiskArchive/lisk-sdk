@@ -4,6 +4,7 @@ var async = require('async');
 var bignum = require('./bignum');
 var fs = require('fs');
 var path = require('path');
+var dirname = path.join(__dirname, '..');
 
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
@@ -102,7 +103,7 @@ function Migrator (pgp, db) {
 	};
 
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var sql = new pgp.QueryFile(path.join('sql', 'runtime.sql'), {minify: true});
+		var sql = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
 
 		db.query(sql).then(function () {
 			return waterCb();
@@ -123,7 +124,7 @@ module.exports.connect = function (config, logger, cb) {
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
 
-	monitor.log = function(msg, info){
+	monitor.log = function (msg, info){
 		logger.log(info.event, info.text);
 		info.display = false;
 	};

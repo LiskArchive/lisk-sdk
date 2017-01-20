@@ -160,10 +160,10 @@ describe('PUT /api/multisignatures', function () {
 		delete validParams.keysgroup;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error');
-				done();
-			});
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
 	});
 
 	it('using string keysgroup should fail', function (done) {

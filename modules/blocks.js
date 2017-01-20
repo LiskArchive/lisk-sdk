@@ -340,16 +340,16 @@ __private.applyGenesisBlock = function (block, cb) {
 		}
 	});
 	async.eachSeries(block.transactions, function (transaction, cb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-				if (err) {
-					return setImmediate(cb, {
-						message: err,
-						transaction: transaction,
-						block: block
-					});
-				}
-				__private.applyTransaction(block, transaction, sender, cb);
-			});
+		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+			if (err) {
+				return setImmediate(cb, {
+					message: err,
+					transaction: transaction,
+					block: block
+				});
+			}
+			__private.applyTransaction(block, transaction, sender, cb);
+		});
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...

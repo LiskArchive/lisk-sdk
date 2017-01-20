@@ -56,7 +56,7 @@ describe('GET /peer/blocks', function () {
 					node.expect(block).to.have.property('t_signatures');
 				});
 				done();
-		});
+			});
 	});
 });
 

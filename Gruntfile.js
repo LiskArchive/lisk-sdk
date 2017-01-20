@@ -96,7 +96,6 @@ module.exports = function (grunt) {
 				}
 			}
 		},
-
 		jshint: {
 			options: {
 				jshintrc: true
@@ -114,7 +113,22 @@ module.exports = function (grunt) {
 				'test/unit/**/*.js'
 			]
 		},
-
+		eslint: {
+			options: {
+				configFile: '.eslintrc.json',
+				format: 'codeframe',
+				fix: false
+			},
+			target: [
+				'helpers',
+				'modules',
+				'logic',
+				'schema',
+				'sql',
+				'tasks',
+				'test'
+			]
+		},
 		mochaTest: {
 			test: {
 				options: {
@@ -136,9 +150,15 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-eslint');
 	grunt.loadNpmTasks('grunt-mocha-test');
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('travis', ['jshint', 'mochaTest']);
+
+	grunt.registerTask('eslint-fix', 'eslint with files formatting', function () {
+		grunt.config.set('eslint.options.fix', true);
+		grunt.task.run('eslint');
+	});
 };
