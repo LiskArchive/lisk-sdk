@@ -7,6 +7,13 @@ var PeersSql = {
 
   banManager: 'UPDATE peers SET "state" = 1, "clock" = null WHERE ("state" = 0 AND "clock" - ${now} < 0)',
 
+  countByFilter: function (params) {
+    return [
+      'SELECT COUNT(*)::int FROM peers',
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
+    ].filter(Boolean).join(' ');
+  },
+
   getByFilter: function (params) {
     return [
       'SELECT "ip", "port", "state", "os", "version", ENCODE("broadhash", \'hex\') AS "broadhash", "height" FROM peers',

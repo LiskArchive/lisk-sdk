@@ -8,8 +8,22 @@ describe('GET /api/peers/version', function () {
 		node.get('/api/peers/version', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('build').to.be.a('string');
+			node.expect(res.body).to.have.property('commit').to.be.a('string');
 			node.expect(res.body).to.have.property('version').to.be.a('string');
 			done();
+		});
+	});
+});
+
+describe('GET /api/peers/count', function () {
+	
+	it('should be ok', function (done) {
+		node.get('/api/peers/count', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('connected').that.is.a('number');
+			node.expect(res.body).to.have.property('disconnected').that.is.a('number');
+			node.expect(res.body).to.have.property('banned').that.is.a('number');
+			done ();
 		});
 	});
 });

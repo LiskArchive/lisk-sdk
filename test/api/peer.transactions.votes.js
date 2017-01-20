@@ -144,6 +144,46 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
+	it('using transaction.asset.votes containing invalid vote type', function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, [0]);
+
+		postVote(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote type');
+			done();
+		});
+	});
+
+	it('using transaction.asset.votes containing invalid vote format', function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, ['@' + delegate]);
+
+		postVote(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote format');
+			done();
+		});
+	});
+
+	it('using transaction.asset.votes containing invalid vote length', function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, ['+' + delegate + 'z']);
+
+		postVote(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote length');
+			done();
+		});
+	});
+
+	it('using transaction.asset.votes containing manipulated vote', function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, ['+8a6d629685b18e17e5f534065bad4984a8aa6b499c5783c3e65f61779e6da06czz']);
+
+		postVote(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote length');
+			done();
+		});
+	});
+
 	it('voting twice for a delegate should fail', function (done) {
 		async.series([
 			function (seriesCb) {
