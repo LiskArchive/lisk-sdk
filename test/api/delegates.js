@@ -1,6 +1,5 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
-var async = require('async');
 var node = require('./../node.js');
 
 function openAccount (params, done) {
@@ -633,7 +632,7 @@ describe('GET /api/delegates', function () {
 
 	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
 		var delegatesSortFields = ['approval', 'productivity', 'rate', 'vote'];
-		async.each(delegatesSortFields, function (sortField, cb) {
+		node.async.each(delegatesSortFields, function (sortField, cb) {
 			node.get('/api/delegates?orderBy=' + sortField, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('delegates').that.is.an('array');

@@ -1,6 +1,5 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
-var async = require('async');
 var node = require('./../node.js');
 var transactionSortFields = require('../../sql/transactions').sortFields;
 
@@ -219,7 +218,7 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
-		async.each(transactionSortFields, function (sortField, cb) {
+		node.async.each(transactionSortFields, function (sortField, cb) {
 			node.get('/api/transactions?orderBy=' + sortField, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').that.is.an('array');
