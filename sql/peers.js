@@ -41,7 +41,7 @@ var PeersSql = {
 
   addDapp: 'INSERT INTO peers_dapp ("peerId", "dappid") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING',
 
-  upsert: 'INSERT INTO peers AS p ("ip", "port", "state", "os", "version", "broadhash", "height") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}, ${broadhash}, ${height}) ON CONFLICT ON CONSTRAINT unique_address DO UPDATE SET ("ip", "port", "state", "os", "version", "broadhash", "height") = (${ip}, ${port}, (CASE WHEN p."state" = 0 THEN p."state" ELSE ${state} END), ${os}, ${version}, (CASE WHEN ${broadhash} IS NULL THEN p."broadhash" ELSE ${broadhash} END), (CASE WHEN ${height} IS NULL THEN p."height" ELSE ${height} END))'
+  upsert: 'INSERT INTO peers AS p ("ip", "port", "state", "os", "version", "broadhash", "height") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}, ${broadhash}, ${height}) ON CONFLICT ON CONSTRAINT address_unique DO UPDATE SET ("ip", "port", "state", "os", "version", "broadhash", "height") = (${ip}, ${port}, (CASE WHEN p."state" = 0 THEN p."state" ELSE ${state} END), ${os}, ${version}, (CASE WHEN ${broadhash} IS NULL THEN p."broadhash" ELSE ${broadhash} END), (CASE WHEN ${height} IS NULL THEN p."height" ELSE ${height} END))'
 };
 
 module.exports = PeersSql;

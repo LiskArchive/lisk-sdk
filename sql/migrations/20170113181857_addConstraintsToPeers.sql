@@ -4,8 +4,8 @@
 
 BEGIN;
 
-ALTER TABLE peers
-  ADD CONSTRAINT unique_address
-UNIQUE (ip, port);
+ALTER TABLE "peers"
+  ADD CONSTRAINT "address_unique" UNIQUE
+  USING INDEX "peers_unique";
 
 COMMIT;
