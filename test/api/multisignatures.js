@@ -591,18 +591,4 @@ describe('POST /api/multisignatures/sign (regular account)', function () {
 			done();
 		});
 	});
-
-	after(function (done) {
-		//send the money back
-		node.put('/api/transactions/', {
-			secret: accounts[0].password,
-			amount: 1,
-			recipientId: node.gAccount.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
-		});
-	});
-
-
 });
