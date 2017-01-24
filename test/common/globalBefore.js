@@ -1,5 +1,7 @@
 'use strict';
 
+var node = require('./../node.js');
+
 /**
  * @param {string} table
  * @param {Logger} logger
@@ -15,6 +17,36 @@ function clearDatabaseTable (db, logger, table, cb) {
 	});
 }
 
+/**
+ * @param {Function} cb
+ * @param {Number} [retries=10] retries
+ * @param {Number} [timeout=200] timeout
+ */
+function waitUntilBlockchainReady (cb, retries, timeout) {
+	if (!retries) {
+		retries = 10;
+	}
+	if (!timeout) {
+		timeout = 200;
+	}
+	(function fetchBlockchainStatus () {
+		node.get('/api/loader/status', function (err, res) {
+			node.expect(err).to.not.exist;
+			retries -= 1;
+			if (!res.body.success && res.body.error === 'Blockchain is loading' && retries >= 0) {
+				return setTimeout(function () {
+					fetchBlockchainStatus();
+				}, timeout);
+			}
+			else if (res.body.success && res.body.loaded) {
+				return cb();
+			}
+			return cb('Failed to load blockchain');
+		});
+	})();
+}
+
 module.exports = {
-	clearDatabaseTable: clearDatabaseTable
+	clearDatabaseTable: clearDatabaseTable,
+	waitUntilBlockchainReady: waitUntilBlockchainReady
 };

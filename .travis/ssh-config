@@ -1,0 +1,7 @@
+Host *
+	IdentityFile ~/.ssh/id_rsa
+	StrictHostKeyChecking no
+	PasswordAuthentication	no
+	CheckHostIP	no
+	BatchMode yes
+	ForwardAgent yes
