@@ -129,7 +129,8 @@ __private.list = function (filter, cb) {
 			return false;
 		}
 
-		if (!value && allowedFieldsMap[field[1]]) {
+		// Checking for empty parameters, 0 is allowed for few
+		if (!value && !(value === 0 && _.includes (['fromTimestamp', 'minAmount', 'minConfirmations', 'type', 'offset'], field[1]))) {
 			err = 'Value for parameter [' + field[1] + '] cannot be empty';
 			return false;
 		}
@@ -440,7 +441,7 @@ shared.getTransactions = function (req, cb) {
 			_.each (req.body, function (value, key) {
 				var param = String (key).replace (pattern, '');
 				// Dealing with array-like parameters (csv comma separated)
-				if (_.includes (['senderIds', 'recipintIds', 'senderPublicKeys', 'recipientPublicKeys'], param)) {
+				if (_.includes (['senderIds', 'recipientIds', 'senderPublicKeys', 'recipientPublicKeys'], param)) {
 					value = String (value).split (',');
 					req.body[key] = value;
 				}

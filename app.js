@@ -246,6 +246,11 @@ d.run(function () {
 						return value;
 					}
 
+					// Ignore conditional fields for transactions list
+					if (/^.+?:(blockId|recipientId|senderId)$/.test(name)) {
+						return value;
+					}
+
 					/*jslint eqeq: true*/
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;

@@ -92,11 +92,11 @@ module.exports = {
 			},
 			fromHeight: {
 				type: 'integer',
-				minimum: 0
+				minimum: 1
 			},
 			toHeight: {
 				type: 'integer',
-				minimum: 0
+				minimum: 1
 			},
 			fromTimestamp: {
 				type: 'integer',
@@ -104,7 +104,7 @@ module.exports = {
 			},
 			toTimestamp: {
 				type: 'integer',
-				minimum: 0
+				minimum: 1
 			},
 			minAmount: {
 				type: 'integer',
@@ -112,7 +112,7 @@ module.exports = {
 			},
 			maxAmount: {
 				type: 'integer',
-				minimum: 0
+				minimum: 1
 			},
 			minConfirmations: {
 				type: 'integer',
