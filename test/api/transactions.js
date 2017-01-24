@@ -244,8 +244,6 @@ describe('GET /api/transactions', function () {
 	});
 });
 
-
-
 describe('GET /api/transactions/get?id=', function () {
 
 	it('using valid id should be ok', function (done) {
