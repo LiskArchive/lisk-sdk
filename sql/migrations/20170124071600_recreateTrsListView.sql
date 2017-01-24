@@ -28,6 +28,6 @@ SELECT t."id" AS "t_id",
 FROM trs t
 
 INNER JOIN blocks b ON t."blockId" = b."id"
-INNER JOIN mem_accounts m ON t."recipientId" = m."address";
+LEFT JOIN mem_accounts m ON t."recipientId" = m."address";
 
 COMMIT;

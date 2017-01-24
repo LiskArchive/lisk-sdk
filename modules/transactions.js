@@ -124,13 +124,13 @@ __private.list = function (filter, cb) {
 			return false;
 		}
 
-		if (!value) {
-			err = 'Value for parameter [' + field[1] + '] cannot be empty';
+		if (!_.includes (_.keys (allowedFieldsMap), field[1])) {
+			err = 'Parameter is not supported: ' + field[1];
 			return false;
 		}
 
-		if (!_.includes (_.keys (allowedFieldsMap), field[1])) {
-			err = 'Parameter is not supported: ' + field[1];
+		if (!value && allowedFieldsMap[field[1]]) {
+			err = 'Value for parameter [' + field[1] + '] cannot be empty';
 			return false;
 		}
 
