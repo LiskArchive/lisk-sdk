@@ -1071,7 +1071,7 @@ describe('GET /api/delegates/forging/getForgedByAccount', function () {
 
 		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.eql('Account not exists or is not a delegate');
+			node.expect(res.body).to.have.property('error').to.eql('Account not found or is not a delegate');
 			done();
 		});
 	});
