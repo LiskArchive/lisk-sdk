@@ -126,8 +126,10 @@ __private.list = function (filter, cb) {
 		filter.orderBy, {
 			sortFields: sql.sortFields,
 			fieldPrefix: function (sortField) {
-				if (['height', 'blockId', 'confirmations'].indexOf(sortField) > -1) {
+				if (['height'].indexOf(sortField) > -1) {
 					return 'b_' + sortField;
+				} else if (['confirmations'].indexOf(sortField) > -1) {
+					return sortField;
 				} else {
 					return 't_' + sortField;
 				}
