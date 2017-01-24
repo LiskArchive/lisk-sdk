@@ -826,6 +826,7 @@ Transaction.prototype.dbRead = function (raw) {
 			requesterPublicKey: raw.t_requesterPublicKey,
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
+			recipientPublicKey: raw.m_recipientPublicKey || null,
 			amount: parseInt(raw.t_amount),
 			fee: parseInt(raw.t_fee),
 			signature: raw.t_signature,
