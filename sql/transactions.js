@@ -41,7 +41,7 @@ var TransactionsSql = {
     ].filter(Boolean).join(' ');
   },
 
-  getById: 'SELECT * FROM trs_list WHERE "t_id" = ${id}',
+  getById: 'SELECT *, ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey" FROM trs_list WHERE "t_id" = ${id}',
 
   getVotesById: 'SELECT * FROM votes WHERE "transactionId" = ${id}'
 };
