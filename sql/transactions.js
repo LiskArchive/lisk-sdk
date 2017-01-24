@@ -31,7 +31,10 @@ var TransactionsSql = {
 
   list: function (params) {
     return [
-      'SELECT *, ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey" FROM trs_list',
+      'SELECT "t_id", "b_height", "t_blockId", "t_type", "t_timestamp", "t_senderId", "t_recipientId",',
+      '"t_amount", "t_fee", "t_signature", "t_SignSignature", "t_signatures", "confirmations",',
+      'ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey"',
+      'FROM trs_list',
       (params.where.length || params.owner ? 'WHERE' : ''),
       (params.where.length ? '(' + params.where.join(' ') + ')' : ''),
       // FIXME: Backward compatibility, should be removed after transitional period
