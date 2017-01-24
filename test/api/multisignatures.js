@@ -550,7 +550,6 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 	});
 });
 
-
 describe('POST /api/multisignatures/sign (regular account)', function () {
 
 	var transactionId;
