@@ -349,7 +349,6 @@ __private.banPeer = function (options) {
 		return false;
 	}
 	library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
-	library.logger.trace ('Peer banned', { options: options });
 	modules.peers.state(options.peer.ip, options.peer.port, 0, options.clock);
 };
 
