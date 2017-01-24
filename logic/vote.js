@@ -51,7 +51,37 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
 	}
 
-	self.checkConfirmedDelegates(trs, cb);
+	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
+		self.verifyVote(vote, function (err) {
+			if (err) {
+				return setImmediate(eachSeriesCb, ['Invalid vote at index', trs.asset.votes.indexOf(vote), '-', err].join(' '));
+			} else {
+				return setImmediate(eachSeriesCb);
+			}
+		});
+	}, function (err) {
+		if (err) {
+			return setImmediate(cb, err);
+		} else {
+			return self.checkConfirmedDelegates(trs, cb);
+		}
+	});
+};
+
+Vote.prototype.verifyVote = function (vote, cb) {
+	if (typeof vote !== 'string') {
+		return setImmediate(cb, 'Invalid vote type');
+	}
+
+	if (!/[-+]{1}[0-9a-z]{64}/.test(vote)) {
+		return setImmediate(cb, 'Invalid vote format');
+	}
+
+	if (vote.length !== 65) {
+		return setImmediate(cb, 'Invalid vote length');
+	}
+
+	return setImmediate(cb);
 };
 
 Vote.prototype.checkConfirmedDelegates = function (trs, cb) {
