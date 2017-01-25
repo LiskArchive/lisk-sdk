@@ -36,7 +36,7 @@ var TransactionsSql = {
       (params.where.length || params.owner ? 'WHERE' : ''),
       (params.where.length ? '(' + params.where.join(' OR ') + ')' : ''),
       (params.where.length && params.owner ? ' AND ' + params.owner : params.owner),
-      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') + ' NULLS LAST' : ''),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },

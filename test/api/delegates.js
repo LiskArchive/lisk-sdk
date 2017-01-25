@@ -629,6 +629,33 @@ describe('GET /api/delegates', function () {
 			done();
 		});
 	});
+
+	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
+		var delegatesSortFields = ['approval', 'productivity', 'rate', 'vote'];
+		node.async.each(delegatesSortFields, function (sortField, cb) {
+			node.get('/api/delegates?orderBy=' + sortField, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('delegates').that.is.an('array');
+
+				var dividedIndices = res.body.delegates.reduce(function (memo, peer, index) {
+					memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
+					return memo;
+				}, {notNullIndices: [], nullIndices: []});
+
+				if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
+					var ascOrder = function (a, b) { return a - b; };
+					dividedIndices.notNullIndices.sort(ascOrder);
+					dividedIndices.nullIndices.sort(ascOrder);
+
+					node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+						.to.be.at.most(dividedIndices.nullIndices[0]);
+				}
+				cb();
+			});
+		}, function () {
+			done();
+		});
+	});
 });
 
 describe('GET /api/delegates/count', function () {
@@ -1017,8 +1044,8 @@ describe('GET /api/delegates/forging/getForgedByAccount', function () {
 	function buildParams () {
 		return [
 			'generatorPublicKey=' + validParams.generatorPublicKey,
-			validParams.start ? 'start=' + validParams.start : '',
-			validParams.end ? 'end=' + validParams.end : '',
+			validParams.start !== undefined ? 'start=' + validParams.start : '',
+			validParams.end !== undefined ? 'end=' + validParams.end : '',
 		].filter(Boolean).join('&');
 	}
 
@@ -1031,21 +1058,47 @@ describe('GET /api/delegates/forging/getForgedByAccount', function () {
 	});
 
 	it('using valid params should be ok', function (done) {
+		delete validParams.start;
+		delete validParams.end;
+
+		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('fees').that.is.a('string');
+			node.expect(res.body).to.have.property('rewards').that.is.a('string');
+			node.expect(res.body).to.have.property('forged').that.is.a('string');
+			done();
+		});
+	});
+
+	it('using valid params with borders should be ok', function (done) {
 		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('fees').that.is.a('string').and.eql('0');
 			node.expect(res.body).to.have.property('rewards').that.is.a('string').and.eql('0');
 			node.expect(res.body).to.have.property('forged').that.is.a('string').and.eql('0');
+			node.expect(res.body).to.have.property('count').that.is.a('string').and.eql('0');
 			done();
 		});
 	});
 
 	it('using unknown generatorPublicKey should fail', function (done) {
 		validParams.generatorPublicKey = node.randomAccount().publicKey;
+		delete validParams.start;
+		delete validParams.end;
 
 		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.eql('Account not found');
+			done();
+		});
+	});
+
+	it('using unknown generatorPublicKey with borders should fail', function (done) {
+		validParams.generatorPublicKey = node.randomAccount().publicKey;
+
+		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.eql('Account not found or is not a delegate');
 			done();
 		});
 	});
@@ -1065,6 +1118,10 @@ describe('GET /api/delegates/forging/getForgedByAccount', function () {
 
 		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('fees').that.is.a('string').and.eql('0');
+			node.expect(res.body).to.have.property('rewards').that.is.a('string').and.eql('0');
+			node.expect(res.body).to.have.property('forged').that.is.a('string').and.eql('0');
+			node.expect(res.body).to.have.property('count').that.is.a('string').and.eql('0');
 			done();
 		});
 	});
@@ -1074,6 +1131,10 @@ describe('GET /api/delegates/forging/getForgedByAccount', function () {
 
 		node.get('/api/delegates/forging/getForgedByAccount?' + buildParams(), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('fees').that.is.a('string');
+			node.expect(res.body).to.have.property('rewards').that.is.a('string');
+			node.expect(res.body).to.have.property('forged').that.is.a('string');
+			node.expect(res.body).to.have.property('count').that.is.a('string');
 			done();
 		});
 	});

@@ -19,7 +19,7 @@ var RoundsSql = {
 
   updateBlockId: 'UPDATE mem_accounts SET "blockId" = ${newId} WHERE "blockId" = ${oldId};',
 
-  summedRound: 'SELECT SUM(b."totalFee")::bigint AS "fees", ARRAY_AGG(b."reward") AS "rewards", ARRAY_AGG(ENCODE(b."generatorPublicKey", \'hex\')) AS "delegates" FROM blocks b WHERE (SELECT (CAST(b."height" / ${activeDelegates} AS INTEGER) + (CASE WHEN b."height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END))) = ${round}'
+  summedRound: 'WITH round_blocks as (SELECT ((${round}-1)*${activeDelegates})+1 as min, ${round}*${activeDelegates} as max) SELECT SUM(b."totalFee")::bigint AS "fees", ARRAY_AGG(b."reward") AS "rewards", ARRAY_AGG(ENCODE(b."generatorPublicKey", \'hex\')) AS "delegates" FROM blocks b WHERE b.height BETWEEN (SELECT min FROM round_blocks) AND (SELECT max FROM round_blocks)'
 };
 
 module.exports = RoundsSql;
