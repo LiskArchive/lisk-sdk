@@ -2,6 +2,7 @@
 
 var async = require('async');
 var checkIpInList = require('./helpers/checkIpInList.js');
+var parametersReader = require('./helpers/parametersReader.js');
 var extend = require('extend');
 var fs = require('fs');
 var genesisblock = require('./genesisBlock.json');
@@ -29,7 +30,8 @@ program
 	.option('-c, --config <path>', 'config file path')
 	.option('-p, --port <port>', 'listening port number')
 	.option('-a, --address <ip>', 'listening host name or ip')
-	.option('-x, --peers [peers...]', 'peers list')
+	.option('-x, --peers [peers...]', 'peers list to seed from')
+	.option('-y, --sync [peers...]', 'peers list to sync with')
 	.option('-l, --log <level>', 'log level')
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
@@ -45,17 +47,22 @@ if (program.address) {
 }
 
 if (program.peers) {
-	if (typeof program.peers === 'string') {
-		appConfig.peers.list = program.peers.split(',').map(function (peer) {
-			peer = peer.split(':');
+	appConfig.peers.list = parametersReader.convertToAddressList(program.peers, appConfig.port);
+}
+
+if (program.sync) {
+	appConfig.syncPeers = {
+		list: parametersReader.convertToAddressList(program.sync, appConfig.port).map(function (syncPeer) {
 			return {
-				ip: peer.shift(),
-				port: peer.shift() || appConfig.port
+				ip: syncPeer.ip,
+				port: syncPeer.port,
+				version: appConfig.version,
+				state: 2,
+				broadhash: appConfig.nethash,
+				height: 1
 			};
-		});
-	} else {
-		appConfig.peers.list = [];
-	}
+		})
+	};
 }
 
 if (program.log) {
