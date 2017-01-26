@@ -5,48 +5,55 @@ Lisk is a next generation crypto-currency and decentralized application platform
 [![Join the chat at https://gitter.im/LiskHQ/lisk](https://badges.gitter.im/LiskHQ/lisk.svg)](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/LiskHQ/lisk.svg?branch=development)](https://travis-ci.org/LiskHQ/lisk)
 
-## Installation
+**NOTE:** The following information is applicable to: **Ubuntu 14.04 (LTS) - x86_64**.
 
-**NOTE:** The following is applicable to: **Ubuntu 14.04 (LTS) - x86_64**.
+## Prerequisites - In order
 
-Install essentials:
+- Tool chain components -- Used for compiling dependencies
+
+  `sudo apt-get install -y python build-essential curl automake autoconf libtool`
+  
+- Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
+
+  `sudo apt-get install -y git`
+
+- Nodejs v0.12.17 (<https://nodejs.org/>) -- Nodejs serves as the underlying engine for code execution.
+
+  ```
+  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+  nvm install v0.12.17
+  ```
+  
+- Install PostgreSQL (version 9.6.1):
+
+  ```
+  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+  sudo -u postgres createuser --createdb $USER
+  createdb lisk_test
+  createdb lisk_main
+  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+  ```
+  
+- Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
+
+  `npm install -g bower`
+
+- Grunt.js (<http://gruntjs.com/>) -- Grunt is used to compile the frontend code and serves other functions.
+
+  `npm install -g grunt`
+  
+- Forever (<https://github.com/foreverjs/forever>) -- Forever manages the node process for Lisk (Optional)
+
+  `npm install -g forever`
+
+## Installation Steps
+
+Clone the Lisk repository using Git and initialize the modules.
 
 ```
-sudo apt-get update
-sudo apt-get install -y autoconf automake build-essential curl git libtool python
-```
-
-Install PostgreSQL (version 9.5.2):
-
-```
-curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-sudo -u postgres createuser --createdb $USER
-createdb lisk_test
-sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-```
-
-Install Node.js (version 0.12.x) + npm:
-
-```
-curl -sL https://deb.nodesource.com/setup_0.12 | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-Install grunt-cli (globally):
-
-```
-sudo npm install grunt-cli -g
-```
-
-Install bower (globally):
-
-```
-sudo npm install bower -g
-```
-
-Install node modules:
-
-```
+git clone https://github.com/LiskHQ/lisk.git
+cd lisk
 npm install
 ```
 
@@ -75,28 +82,47 @@ bower install
 grunt release
 ```
 
-## Launch
+## Managing Lisk
 
-To launch Lisk:
+To test that Lisk is built and configured correctly, run the following command:
 
-```
-node app.js
-```
+`node app.js`
+
+In a browser navigate to: <http://localhost:7000>. If  Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
+
+Once the process is verified as running correctly, `CTRL+C` and start the process with `forever`. This will fork the process into the background and automatically recover the process if it fails.
+
+`forever start app.js`
+
+After the process is started its runtime status and log location can be found by issuing this statement:
+
+`forever list`
+
+To stop Lisk after it has been started with `forever`, issue the following command:
+
+`forever stop app.js`
 
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-node app.js -p [port] -a [address] -c [config-path]
+forever start app.js -p [port] -a [address] -c [config-path]
 ```
 
 ## Tests
 
-Before running any tests, please ensure Lisk is configured to run on the same testnet as used by the test-suite.
+Before running any tests, please ensure Lisk is configured to run on the same testnet that is used by the test-suite.
 
 Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test** directory:
 
 ```
 cp test/config.json test/genesisBlock.json .
+```
+
+**NOTE:** If the node was started with a different genesis block previous, trauncate the database before running tests.
+
+```
+dropdb lisk_test
+createdb lisk_test
 ```
 
 **NOTE:** The master passphrase for this genesis block is as follows:
@@ -105,7 +131,7 @@ cp test/config.json test/genesisBlock.json .
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
 ```
 
-Launch lisk (runs on port 4000):
+Launch Lisk (runs on port 4000):
 
 ```
 node app.js
@@ -135,7 +161,7 @@ npm test -- test/lib/transactions.js
 
 The MIT License (MIT)
 
-Copyright (c) 2016 Lisk  
+Copyright (c) 2016-2017 Lisk  
 Copyright (c) 2014-2015 Crypti
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:  
