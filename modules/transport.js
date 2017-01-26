@@ -97,11 +97,11 @@ __private.attachApi = function () {
 	router.get('/blocks/common', function (req, res, next) {
 		req.sanitize(req.query, schema.commonBlock, function (err, report, query) {
 			if (err) { 
-				library.logger.debug ('Common block request validation failed', { err: err.toString (), req: req.query });
+				library.logger.debug('Common block request validation failed', {err: err.toString(), req: req.query});
 				return next(err);
 			}
 			if (!report.isValid) {
-				library.logger.debug ('Common block request validation failed', { err: report, req: req.query });
+				library.logger.debug('Common block request validation failed', {err: report, req: req.query});
 				return res.json({success: false, error: report.issues});
 			}
 
@@ -116,7 +116,7 @@ __private.attachApi = function () {
 				});
 
 			if (!escapedIds.length) {
-				library.logger.debug ('Common block request validation failed', { err: 'ESCAPE', req: req.query });
+				library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: req.query});
 
 				// Ban peer for 10 minutes
 				__private.banPeer({peer: req.peer, code: 'ECOMMON', req: req, clock: 600});
@@ -161,7 +161,7 @@ __private.attachApi = function () {
 		try {
 			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
-			library.logger.debug ('Block normalization failed [transport]', {'err': e.toString (), block: block });
+			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: block });
 
 			// Ban peer for 10 minutes
 			__private.banPeer({peer: req.peer, code: 'EBLOCK', req: req, clock: 600});
@@ -345,7 +345,7 @@ __private.hashsum = function (obj) {
 
 __private.banPeer = function (options) {
 	if (!options.peer || !options.peer.ip || !options.peer.port) {
-		library.logger.trace ('Peer ban skipped', { options: options });
+		library.logger.trace('Peer ban skipped', {options: options});
 		return false;
 	}
 	library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
@@ -443,7 +443,7 @@ __private.receiveTransaction = function (transaction, req, cb) {
 	try {
 		transaction = library.logic.transaction.objectNormalize(transaction);
 	} catch (e) {
-		library.logger.debug ('Transaction normalization failed [transport]', {id: id, 'err': e.toString (), 'tx': transaction });
+		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', tx: transaction});
 
 		// Ban peer for 10 minutes
 		__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 600});
