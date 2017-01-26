@@ -291,8 +291,10 @@ Peers.prototype.accept = function (peer) {
 
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
-		// Removing peers with private ip address
-		return !ip.isPrivate(peer.ip);
+		// Removing peers with private or host's ip address
+		return !(ip.isPrivate(peer.ip) || ip.address('public', 'ipv4', true).some(function (address) {
+			return [address, library.config.port].join(':') === [peer.ip, peer.port].join(':');
+		}));
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);

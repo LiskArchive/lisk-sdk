@@ -1,11 +1,16 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
 var node = require('./../node.js');
+var ip = require('ip');
 
 describe('GET /peer/list', function () {
 
 	before(function (done) {
-		node.addPeers(2, done);
+		node.addPeers(2, '0.0.0.0', done);
+	});
+
+	before(function (done) {
+		node.addPeers(1, ip.address('public'), done);
 	});
 
 	it('using incorrect nethash in headers should fail', function (done) {
@@ -46,6 +51,20 @@ describe('GET /peer/list', function () {
 					node.expect(peer).to.have.property('version');
 					node.expect(peer).to.have.property('broadhash');
 					node.expect(peer).to.have.property('height');
+				});
+				done();
+			});
+	});
+
+	it('should not accept itself as a peer', function (done) {
+		node.get('/peer/list')
+			.end(function (err, res) {
+				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('peers').that.is.an('array');
+				res.body.peers.forEach(function (peer) {
+					node.expect(peer).to.have.property('ip').that.is.a('string');
+					node.expect(peer.ip).not.to.equal(ip.address('public'));
 				});
 				done();
 			});

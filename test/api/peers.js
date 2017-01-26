@@ -482,7 +482,7 @@ describe('GET /api/peers/get', function () {
 	var validParams;
 
 	before(function (done) {
-		node.addPeers(1, function (err, headers) {
+		node.addPeers(1, '0.0.0.0', function (err, headers) {
 			validParams = headers;
 			done();
 		});
