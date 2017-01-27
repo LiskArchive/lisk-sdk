@@ -96,8 +96,14 @@ __private.attachApi = function () {
 
 	router.get('/blocks/common', function (req, res, next) {
 		req.sanitize(req.query, schema.commonBlock, function (err, report, query) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
+			if (err) { 
+				library.logger.debug('Common block request validation failed', {err: err.toString(), req: req.query});
+				return next(err);
+			}
+			if (!report.isValid) {
+				library.logger.debug('Common block request validation failed', {err: report, req: req.query});
+				return res.json({success: false, error: report.issues});
+			}
 
 			var escapedIds = query.ids
 				// Remove quotes
@@ -110,7 +116,7 @@ __private.attachApi = function () {
 				});
 
 			if (!escapedIds.length) {
-				library.logger.warn('Invalid common block request, ban 10 min', req.peer.string);
+				library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: req.query});
 
 				// Ban peer for 10 minutes
 				__private.banPeer({peer: req.peer, code: 'ECOMMON', req: req, clock: 600});
@@ -155,13 +161,10 @@ __private.attachApi = function () {
 		try {
 			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
-			library.logger.debug(['Block', id].join(' '), e.toString());
-			if (block) { library.logger.debug('Block', block); }
+			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: block });
 
-			if (req.peer) {
-				// Ban peer for 10 minutes
-				__private.banPeer({peer: req.peer, code: 'EBLOCK', req: req, clock: 600});
-			}
+			// Ban peer for 10 minutes
+			__private.banPeer({peer: req.peer, code: 'EBLOCK', req: req, clock: 600});
 
 			return res.status(200).json({success: false, error: e.toString()});
 		}
@@ -341,6 +344,10 @@ __private.hashsum = function (obj) {
 };
 
 __private.banPeer = function (options) {
+	if (!options.peer || !options.peer.ip || !options.peer.port) {
+		library.logger.trace('Peer ban skipped', {options: options});
+		return false;
+	}
 	library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
 	modules.peers.state(options.peer.ip, options.peer.port, 0, options.clock);
 };
@@ -436,13 +443,10 @@ __private.receiveTransaction = function (transaction, req, cb) {
 	try {
 		transaction = library.logic.transaction.objectNormalize(transaction);
 	} catch (e) {
-		library.logger.debug(['Transaction', id].join(' '), e.toString());
-		if (transaction) { library.logger.debug('Transaction', transaction); }
+		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', tx: transaction});
 
-		if (req.peer) {
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 600});
-		}
+		// Ban peer for 10 minutes
+		__private.banPeer({peer: req.peer, code: 'ETRANSACTION', req: req, clock: 600});
 
 		return setImmediate(cb, 'Invalid transaction body');
 	}
@@ -572,8 +576,8 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 				// Remove peer
 				__private.removePeer({peer: peer, code: err.code, req: req});
 			} else {
-				// Ban peer for 10 minutes
-				__private.banPeer({peer: peer, code: err.code, req: req, clock: 600});
+				// Ban peer for 1 minute
+				__private.banPeer({peer: peer, code: err.code, req: req, clock: 60});
 			}
 		}
 

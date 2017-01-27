@@ -879,11 +879,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 			} else {
 				var id = (block ? block.id : 'null');
 
-				library.logger.debug(['Block', id].join(' '), err.toString());
-				if (block) { library.logger.debug('Block', block); }
-
-				library.logger.warn(['Block', id, 'is not valid, ban 10 min'].join(' '), peer.string);
-				modules.peers.state(peer.ip, peer.port, 0, 600);
+				library.logger.debug('Block processing failed', {id: id, err: err.toString(), module: 'blocks', block: block});
 			}
 			return seriesCb(err);
 		}, true);
