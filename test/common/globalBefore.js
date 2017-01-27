@@ -6,7 +6,7 @@
  * @param {Object} db
  * @param {Function} cb
  */
-function clearDatabaseTable(db, logger, table, cb) {
+function clearDatabaseTable (db, logger, table, cb) {
 	db.query('DELETE FROM ' + table).then(function (result) {
 		cb(null, result);
 	}).catch(function (err) {

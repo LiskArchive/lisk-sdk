@@ -34,7 +34,7 @@ var modulesLoader = new function() {
 	 * @param {Function} Module
 	 * @param {Function} cb
 	 */
-	this.initWithDb = function(Module, cb) {
+	this.initWithDb = function (Module, cb) {
 		this.getDbConnection(function (err, db) {
 			if (err) {
 				return cb(err);
