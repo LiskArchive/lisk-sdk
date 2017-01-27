@@ -49,7 +49,7 @@ __private.escape = function (what) {
 };
 
 __private.escape2 = function (str) {
-		return '"' + str.replace(__private.DOUBLE_QUOTES, __private.DOUBLE_QUOTES_DOUBLED) + '"';
+	return '"' + str.replace(__private.DOUBLE_QUOTES, __private.DOUBLE_QUOTES_DOUBLED) + '"';
 };
 
 __private.pass = function (obj, dappid) {
@@ -126,7 +126,7 @@ __private.query = function (action, config, cb) {
 				return batchPack.length === 0;
 			}, function (cb) {
 				var fields = Object.keys(config.fields).map(function (field) {
-					return __private.escape2(config.fields[field]);		// add double quotes to field identifiers
+					return __private.escape2(config.fields[field]);	// Add double quotes to field identifiers
 				});
 				sql = 'INSERT INTO ' + 'dapp_' + config.dappid + '_' + config.table + ' (' + fields.join(',') + ') ';
 				var rows = [];
