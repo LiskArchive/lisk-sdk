@@ -10,7 +10,7 @@ function clearDatabaseTable (db, logger, table, cb) {
 	db.query('DELETE FROM ' + table).then(function (result) {
 		cb(null, result);
 	}).catch(function (err) {
-		logger.err('unable to delete data from table: ' + table);
+		logger.err('Failed to clear database table: ' + table);
 		throw err;
 	});
 }
