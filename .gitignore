@@ -12,3 +12,4 @@ release
 ssl/
 stacktrace*
 tmp
+sftp-config.json
