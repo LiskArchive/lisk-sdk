@@ -1,16 +1,52 @@
 dist: 'trusty'
 language: node_js
 node_js:
-  - '0.12.17'
+  - '6.9.4'
+cache:
+  yarn: true
+  directories:
+    - test/lisk-js
 services:
   - postgresql
 addons:
   postgresql: '9.6'
+install:
+  - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+  - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+  - sudo apt-get update && sudo apt-get install yarn
+  - yarn
 before_script:
   - createdb lisk_test
   - psql -d lisk_test -c "alter user "$USER" with password 'password';"
   - wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
   - tar -zxvf lisk-node-Linux-x86_64.tar.gz
-  - cd test/lisk-js/; npm install; cd ../..
+  - cd test/lisk-js/; yarn; cd ../..
   - cp test/config.json test/genesisBlock.json .
-  - node app.js &> /dev/null &
+  - node app.js &> .app.log &
+env:
+  matrix:
+    - TEST=test/api/peer.transactions.stress.js
+    - TEST=test/api/peer.transactions.votes.js
+    - TEST=test/api/delegates.js
+    - TEST=test/api/accounts.js
+    - TEST=test/api/blocks.js
+    - TEST=test/api/dapps.js
+    - TEST=test/api/loader.js
+    - TEST=test/api/multisignatures.js
+    - TEST=test/api/peer.js
+    - TEST=test/api/peer.dapp.js
+    - TEST=test/api/peer.blocks.js
+    - TEST=test/api/peer.signatures.js
+    - TEST=test/api/peer.transactions.collision.js
+    - TEST=test/api/peer.transactions.delegates.js
+    - TEST=test/api/peer.transactions.main.js
+    - TEST=test/api/peer.transactions.signatures.js
+    - TEST=test/api/peers.js
+    - TEST=test/api/signatures.js
+    - TEST=test/api/transactions.js
+
+    - TEST=test/unit/helpers
+    - TEST=test/unit/logic
+script: 'npm run travis'
+after_failure:
+  - cat .app.log

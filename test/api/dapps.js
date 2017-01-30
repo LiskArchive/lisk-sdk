@@ -29,6 +29,10 @@ function putTransaction (params, done) {
 }
 
 before(function (done) {
+	require('./../common/globalBefore').waitUntilBlockchainReady(done);
+});
+
+before(function (done) {
 	// Send to LISK to account 1 address
 	setTimeout(function () {
 		var randomLISK = node.randomLISK();

@@ -3,6 +3,10 @@
 var node = require('./../node.js');
 var ip = require('ip');
 
+before(function (done) {
+	require('./../common/globalBefore').waitUntilBlockchainReady(done);
+});
+
 describe('GET /peer/list', function () {
 
 	before(function (done) {

@@ -98,6 +98,10 @@ before(function (done) {
 });
 
 before(function (done) {
+	require('./../common/globalBefore').waitUntilBlockchainReady(done);
+});
+
+before(function (done) {
 	sendLISK(multisigAccount, null, done);
 });
 

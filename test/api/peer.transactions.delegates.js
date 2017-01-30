@@ -25,6 +25,10 @@ function sendLISK (params, done) {
 	});
 }
 
+before(function (done) {
+	require('./../common/globalBefore').waitUntilBlockchainReady(done);
+});
+
 describe('POST /peer/transactions', function () {
 
 	describe('registering a delegate', function () {

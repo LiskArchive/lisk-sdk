@@ -14,6 +14,10 @@ function postTransactions (transactions, done) {
 	}, done);
 }
 
+before(function (done) {
+	require('./../common/globalBefore').waitUntilBlockchainReady(done);
+});
+
 describe('POST /peer/transactions', function () {
 
 	describe('sending 1000 bundled transfers to random addresses', function () {

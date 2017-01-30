@@ -26,6 +26,10 @@ function putDelegates (params, done) {
 	});
 }
 
+before(function (done) {
+	require('./../common/globalBefore').waitUntilBlockchainReady(done);
+});
+
 describe('PUT /api/accounts/delegates without funds', function () {
 	var account;
 

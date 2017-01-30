@@ -21,6 +21,8 @@ module.exports = function (grunt) {
 	var release_dir = __dirname + '/release/',
 	    version_dir = release_dir + config.version;
 
+	var maxBufferSize = require('buffer').kMaxLength - 1;
+
 	grunt.initConfig({
 		obfuscator: {
 			files: files,
@@ -68,6 +70,14 @@ module.exports = function (grunt) {
 			},
 			build: {
 				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
+			},
+			coverage: {
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage ./node_modules/.bin/mocha',
+				maxBuffer: maxBufferSize
+			},
+			coverageSingle: {
+				command: 'node_modules/.bin/istanbul cover --dir test/.$TEST_coverage ./node_modules/.bin/mocha $TEST',
+				maxBuffer: maxBufferSize
 			}
 		},
 
@@ -113,19 +123,6 @@ module.exports = function (grunt) {
 				'test/api/**/*.js',
 				'test/unit/**/*.js'
 			]
-		},
-
-		mochaTest: {
-			test: {
-				options: {
-					reporter: 'spec',
-					quiet: false,
-					clearRequireCache: false,
-					noFail: false,
-					timeout: '250s'
-				},
-				src: ['test']
-			}
 		}
 	});
 
@@ -140,5 +137,6 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('travis', ['jshint', 'mochaTest']);
+	grunt.registerTask('travis', ['jshint', 'exec:coverageSingle']);
+	grunt.registerTask('test', ['jshint', 'exec:coverage']);
 };

@@ -12,6 +12,10 @@ var block = {
 
 var testBlocksUnder101 = false;
 
+before(function (done) {
+	require('./../common/globalBefore').waitUntilBlockchainReady(done);
+});
+
 describe('GET /api/blocks/getBroadhash', function () {
 
 	it('should be ok', function (done) {
