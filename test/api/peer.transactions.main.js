@@ -15,10 +15,6 @@ function getAddress (address, done) {
 	node.get('/api/accounts?address=' + address, done);
 }
 
-before(function (done) {
-	require('./../common/globalBefore').waitUntilBlockchainReady(done);
-});
-
 describe('GET /peer/transactions', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {

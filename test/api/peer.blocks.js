@@ -4,10 +4,6 @@ var node = require('./../node.js');
 
 var genesisblock = require('../../genesisBlock.json');
 
-before(function (done) {
-	require('./../common/globalBefore').waitUntilBlockchainReady(done);
-});
-
 describe('GET /peer/blocks', function () {
 
 	it('using valid headers should be ok', function (done) {

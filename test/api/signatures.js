@@ -33,10 +33,6 @@ function sendLISK (account, done) {
 }
 
 before(function (done) {
-	require('./../common/globalBefore').waitUntilBlockchainReady(done);
-});
-
-before(function (done) {
 	setTimeout(function () {
 		sendLISK(account, done);
 	}, 2000);

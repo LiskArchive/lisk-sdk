@@ -4,10 +4,6 @@ var node = require('./../node.js');
 
 var account = node.randomAccount();
 
-before(function (done) {
-	require('./../common/globalBefore').waitUntilBlockchainReady(done);
-});
-
 describe('POST /api/accounts/open', function () {
 
 	function openAccount (params, done) {

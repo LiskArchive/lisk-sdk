@@ -3,10 +3,6 @@
 var node = require('./../node.js');
 var peersSortFields = require('../../sql/peers').sortFields;
 
-before(function (done) {
-	require('./../common/globalBefore').waitUntilBlockchainReady(done);
-});
-
 describe('GET /api/peers/version', function () {
 
 	it('should be ok', function (done) {

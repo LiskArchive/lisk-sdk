@@ -9,10 +9,6 @@ function postTransaction (transaction, done) {
 	}, done);
 }
 
-before(function (done) {
-	require('./../common/globalBefore').waitUntilBlockchainReady(done);
-});
-
 describe('POST /peer/transactions', function () {
 
 	describe('when two passphrases collide into the same address', function () {

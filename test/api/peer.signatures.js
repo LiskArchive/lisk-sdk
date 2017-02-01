@@ -27,10 +27,6 @@ function postSignature (transaction, signature, done) {
 	}, done);
 }
 
-before(function (done) {
-	require('./../common/globalBefore').waitUntilBlockchainReady(done);
-});
-
 describe('GET /peer/signatures', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
