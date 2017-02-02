@@ -7,7 +7,36 @@
     }
   },
   "rules": {
-    "semi": 2
+    // Inspired by airbnb rules: https://github.com/airbnb/javascript/blob/master/linters/SublimeLinter/SublimeLinter.sublime-settings
+    // Force all variable names to use either camelCase style or UPPER_CASE with underscores.
+    "camelcase": [2, {"properties": "always"}],
+
+    // Prohibit use of == and != in favor of === and !==.
+    "eqeqeq": 2,
+
+    // Suppress warnings about == null comparisons.
+    "no-eq-null": 1,
+
+    // Enforce tab width of 2 spaces.
+    "indent": ["error", 2],
+
+    // Prohibit use of a variable before it is defined.
+    "no-use-before-define": 1,
+
+    // Require capitalized names for constructor functions.
+    "new-cap": 1,
+
+    // Enforce use of single quotation marks for strings.
+    "quotes": ["error", "single", { "avoidEscape": true }],
+
+    // Prohibit use of explicitly undeclared variables.
+    "no-undef": 2,
+
+    // Warn when variables are defined but never used.
+    "no-unused-vars": ["error", { "vars": "all", "args": "after-used" }],
+
+    // Enforce placing 'use strict' at the top function scope
+    "strict": ["error", "global"]
   },
   "env": {
     "browser": true,
