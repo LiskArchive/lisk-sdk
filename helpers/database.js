@@ -4,7 +4,6 @@ var async = require('async');
 var bignum = require('./bignum');
 var fs = require('fs');
 var path = require('path');
-var dirname = path.join(__dirname, '..');
 
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
@@ -103,6 +102,7 @@ function Migrator (pgp, db) {
 	};
 
 	this.applyRuntimeQueryFile = function (waterCb) {
+		var dirname = require('path').basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
 		var sql = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
 
 		db.query(sql).then(function () {
