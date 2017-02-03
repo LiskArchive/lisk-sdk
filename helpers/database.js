@@ -102,7 +102,7 @@ function Migrator (pgp, db) {
 	};
 
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var dirname = require('path').basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
+		var dirname = path.basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
 		var sql = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
 
 		db.query(sql).then(function () {
