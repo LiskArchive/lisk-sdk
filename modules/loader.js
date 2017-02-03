@@ -91,7 +91,7 @@ __private.syncTimer = function () {
 				async.retry(__private.retries, __private.sync, cb);
 			}, function (err) {
 				if (err) {
-					library.logger.log('Sync timer', err);
+					library.logger.error('Sync timer', err);
 					__private.initalize();
 				}
 
