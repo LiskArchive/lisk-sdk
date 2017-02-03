@@ -678,7 +678,7 @@ Loader.prototype.getNetwork = function (cb) {
 			});
 
 			if (!syncedPeers.length) {
-				throw new Error('Failed to synchronize with all requested peers');
+				return setImmediate(cb, 'Failed to synchronize with requested peers');
 			}
 
 			__private.network = {
