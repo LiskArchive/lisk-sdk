@@ -91,7 +91,7 @@ __private.syncTimer = function () {
 				async.retry(__private.retries, __private.sync, cb);
 			}, function (err) {
 				if (err) {
-					library.logger.log('Sync timer', err);
+					library.logger.error('Sync timer', err);
 					__private.initalize();
 				}
 
@@ -678,7 +678,7 @@ Loader.prototype.getNetwork = function (cb) {
 			});
 
 			if (!syncedPeers.length) {
-				throw new Error('Failed to synchronize with all requested peers');
+				return setImmediate(cb, 'Failed to synchronize with requested peers');
 			}
 
 			__private.network = {
