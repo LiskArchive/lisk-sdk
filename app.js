@@ -13,34 +13,32 @@ module.exports = lisk;
 
 },{"./lib/transactions/crypto.js":4,"./lib/transactions/dapp.js":5,"./lib/transactions/delegate.js":6,"./lib/transactions/multisignature.js":7,"./lib/transactions/signature.js":8,"./lib/transactions/transaction.js":9,"./lib/transactions/vote.js":10}],2:[function(require,module,exports){
 module.exports = {
-  fees:{
-    send: 10000000,
-    signature: 500000000,
-    delegate: 2500000000,
-    vote: 100000000,
-    multisignature: 1500000000,
-    dapp: 2500000000
-  }
+	fees: {
+		send: 10000000,
+		signature: 500000000,
+		delegate: 2500000000,
+		vote: 100000000,
+		multisignature: 1500000000,
+		dapp: 2500000000
+	}
 }
-
 },{}],3:[function(require,module,exports){
 function beginEpochTime() {
-	var d = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0))
 
-	return d;
+	return new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 }
 
 function getEpochTime(time) {
-    if (time === undefined) {
-        time = (new Date()).getTime();
-    }
-    var d = beginEpochTime();
-    var t = d.getTime();
-    return Math.floor((time - t) / 1000);
+	if (time === undefined) {
+		time = (new Date()).getTime();
+	}
+	var d = beginEpochTime();
+	var t = d.getTime();
+	return Math.floor((time - t) / 1000);
 }
 
 var interval = 10,
-    delegates = 11;
+	delegates = 11;
 
 function getTime(time) {
 	return getEpochTime(time);
@@ -429,9 +427,9 @@ module.exports = {
 
 }).call(this,require("buffer").Buffer)
 },{"../constants.js":2,"browserify-bignum":44,"buffer":57,"buffer/":57,"bytebuffer":58,"crypto-browserify":66,"js-nacl":107}],5:[function(require,module,exports){
-var crypto = require('./crypto.js'),
-    constants = require('../constants.js'),
-    slots = require('../time/slots.js');
+var crypto      = require('./crypto.js');
+var constants   = require('../constants.js');
+var slots       = require('../time/slots.js');
 
 function createDapp(secret, secondSecret, options) {
 	var keys = crypto.getKeys(secret);
@@ -472,9 +470,9 @@ module.exports = {
 }
 
 },{"../constants.js":2,"../time/slots.js":3,"./crypto.js":4}],6:[function(require,module,exports){
-var crypto = require('./crypto.js'),
-    constants = require('../constants.js'),
-    slots = require('../time/slots.js');
+var crypto      = require('./crypto.js');
+var constants   = require('../constants.js');
+var slots       = require('../time/slots.js');
 
 function createDelegate(secret, username, secondSecret) {
 	var keys = crypto.getKeys(secret);
@@ -510,9 +508,9 @@ module.exports = {
 }
 
 },{"../constants.js":2,"../time/slots.js":3,"./crypto.js":4}],7:[function(require,module,exports){
-var crypto = require('./crypto.js'),
-    constants = require('../constants.js'),
-    slots = require('../time/slots.js');
+var crypto = require('./crypto.js');
+var constants = require('../constants.js');
+var slots = require('../time/slots.js');
 
 function signTransaction(trs, secret) {
 	var keys = crypto.getKeys(secret);
@@ -589,9 +587,9 @@ module.exports = {
 }
 
 },{"../constants.js":2,"../time/slots.js":3,"./crypto.js":4}],8:[function(require,module,exports){
-var crypto = require('./crypto.js'),
-    constants = require('../constants.js'),
-    slots = require('../time/slots.js');
+var crypto = require('./crypto.js');
+var constants = require('../constants.js');
+var slots = require('../time/slots.js');
 
 function newSignature(secondSecret) {
 	var keys = crypto.getKeys(secondSecret);
@@ -630,9 +628,9 @@ module.exports = {
 }
 
 },{"../constants.js":2,"../time/slots.js":3,"./crypto.js":4}],9:[function(require,module,exports){
-var crypto = require('./crypto.js'),
-    constants = require('../constants.js'),
-    slots = require('../time/slots.js');
+var crypto = require('./crypto.js');
+var constants = require('../constants.js');
+var slots = require('../time/slots.js');
 
 function createTransaction(recipientId, amount, secret, secondSecret) {
 	var transaction = {
@@ -663,9 +661,9 @@ module.exports = {
 }
 
 },{"../constants.js":2,"../time/slots.js":3,"./crypto.js":4}],10:[function(require,module,exports){
-var crypto = require('./crypto.js'),
-    constants = require('../constants.js'),
-    slots = require('../time/slots.js');
+var crypto = require('./crypto.js');
+var constants = require('../constants.js');
+var slots = require('../time/slots.js');
 
 function createVote(secret, delegates, secondSecret) {
 	var keys = crypto.getKeys(secret);
