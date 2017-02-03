@@ -10,7 +10,7 @@
     "camelcase": [2, {"properties": "always"}],
     "eqeqeq": 2,
     "no-eq-null": 1,
-    "indent": ["error", 2],
+    "indent": ["error", "tab"],
     "no-use-before-define": 1,
     "new-cap": 1,
     "quotes": ["error", "single", { "avoidEscape": true }],
