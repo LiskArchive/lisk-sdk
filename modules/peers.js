@@ -546,10 +546,25 @@ shared.getPeer = function (req, cb) {
 	});
 };
 
+/**
+ * Returns information about version
+ *
+ * @public
+ * @async
+ * @method version
+ * @param  {Object}   req HTTP request object
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb[0] Always return `null` here
+ * @return {Object}   cb[1] Anonymous object with version info
+ * @return {String}   cb[1].build Build information (if available, otherwise '')
+ * @return {String}   cb[1].commit Hash of last git commit (if available, otherwise '')
+ * @return {String}   cb[1].version Lisk version from config file
+ */
 shared.version = function (req, cb) {
 	return setImmediate(cb, null, {
-		build: library.build,
-		commit: git.getLastCommit(),
+		build:   library.build,
+		commit:  library.lastCommit,
 		version: library.config.version
 	});
 };
