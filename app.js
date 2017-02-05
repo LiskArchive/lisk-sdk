@@ -172,8 +172,8 @@ d.run(function () {
 		 * @async
 		 * @param  {Function} cb Callback function
 		 * @return {Function} cb Callback function from params
-		 * @return {Object}   cb[0] Always return `null` here
-		 * @return {String}   cb[1] Hash of last git commit
+		 * @return {Object}   cb.err Always return `null` here
+		 * @return {String}   cb.lastCommit Hash of last git commit
 		 */
 		lastCommit: function (cb) {
 			cb(null, lastCommit);
