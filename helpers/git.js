@@ -1,4 +1,10 @@
 'use strict';
+/**
+* Helper module for parsing git commit information
+*
+* @class git.js
+*/
+
 var childProcess = require('child_process');
 
 /**
