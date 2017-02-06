@@ -269,6 +269,16 @@ var transaction = lisk.vote.createVote("secret", ["+5819957819195001929918192012
 
 ***
 
+#### Developers
+
+Create the app.js via grunt
+
+```js
+grunt browserify
+```
+
+***
+
 ## Authors
 
 - Boris Povod <boris@crypti.me>
