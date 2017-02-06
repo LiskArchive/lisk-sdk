@@ -1,0 +1,10 @@
+{
+  "name": "Lisk JS",
+  "description": "The Lisk Javascript utility for backend and frontend",
+  "version": "0.2.3",
+  "url": "http://lisk.io/",
+  "options": {
+    "outdir": "yuidoc",
+    "exclude": "app.js"
+  }
+}
