@@ -74,7 +74,7 @@ env:
 
     - TEST=test/unit/helpers TEST_TYPE='UNIT'
     - TEST=test/unit/logic TEST_TYPE='UNIT'
-    - TEST=test/modules TEST_TYPE='UNIT'
+    - TEST=test/unit/modules TEST_TYPE='UNIT'
 script: 'npm run travis'
 after_success:
     - bash .travis/after-success.sh $TRAVIS_BUILD_NUMBER ${TRAVIS_JOB_NUMBER#*.} $TESTS_COUNT $TEST_TYPE $TRAVIS_BUILD_DIR $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST_BRANCH;
