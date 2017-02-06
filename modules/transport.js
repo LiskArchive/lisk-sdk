@@ -529,48 +529,45 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		req.body = options.data;
 	}
 
-	var request = popsicle.request(req);
-
-	request.use(popsicle.plugins.parse(['json'], false));
-
-	request.then(function (res) {
-		if (res.status !== 200) {
-			// Remove peer
-			__private.removePeer({peer: peer, code: 'ERESPONSE ' + res.status, req: req});
-
-			return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
-		} else {
-			var headers = peer.extend(res.headers);
-
-			var report = library.schema.validate(headers, schema.headers);
-			if (!report) {
+	popsicle.request(req)
+		.use(popsicle.plugins.parse(['json'], false))
+		.then(function (res) {
+			if (res.status !== 200) {
 				// Remove peer
-				__private.removePeer({peer: peer, code: 'EHEADERS', req: req});
+				__private.removePeer({peer: peer, code: 'ERESPONSE ' + res.status, req: req});
 
-				return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
+				return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
+			} else {
+				var headers = peer.extend(res.headers);
+
+				var report = library.schema.validate(headers, schema.headers);
+				if (!report) {
+					// Remove peer
+					__private.removePeer({peer: peer, code: 'EHEADERS', req: req});
+
+					return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
+				}
+
+				if (!modules.system.networkCompatible(headers.nethash)) {
+					// Remove peer
+					__private.removePeer({peer: peer, code: 'ENETHASH', req: req});
+
+					return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
+				}
+
+				if (!modules.system.versionCompatible(headers.version)) {
+					// Remove peer
+					__private.removePeer({peer: peer, code: 'EVERSION:' + headers.version, req: req});
+
+					return setImmediate(cb, ['Peer is using incompatible version', headers.version, req.method, req.url].join(' '));
+				}
+
+				modules.peers.update(peer);
+
+				return setImmediate(cb, null, {body: res.body, peer: peer});
 			}
-
-			if (!modules.system.networkCompatible(headers.nethash)) {
-				// Remove peer
-				__private.removePeer({peer: peer, code: 'ENETHASH', req: req});
-
-				return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
-			}
-
-			if (!modules.system.versionCompatible(headers.version)) {
-				// Remove peer
-				__private.removePeer({peer: peer, code: 'EVERSION:' + headers.version, req: req});
-
-				return setImmediate(cb, ['Peer is using incompatible version', headers.version, req.method, req.url].join(' '));
-			}
-
-			modules.peers.update(peer);
-
-			return setImmediate(cb, null, {body: res.body, peer: peer});
-		}
-	});
-
-	request.catch(function (err) {
+	})
+	.catch(function (err) {
 		if (peer) {
 			if (err.code === 'EUNAVAILABLE') {
 				// Remove peer
