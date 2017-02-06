@@ -1,4 +1,4 @@
-'use strict';
+'use strict'; /*jslint mocha:true, expr:true */
 
 // Root object
 var node = {};
@@ -186,7 +186,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 };
 
 // Adds peers to local node
-node.addPeers = function (numOfPeers, cb) {
+node.addPeers = function (numOfPeers, ip, cb) {
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var port = 4000;
 	var os, version;
@@ -205,7 +205,7 @@ node.addPeers = function (numOfPeers, cb) {
 				height: 1,
 				nethash: node.config.nethash,
 				os: os,
-				ip: '0.0.0.0',
+				ip: ip,
 				port: port,
 				version: version
 			}
@@ -360,6 +360,10 @@ node.post = function (path, params, done) {
 node.put = function (path, params, done) {
 	return abstractRequest({ verb: 'PUT', path: path, params: params }, done);
 };
+
+before(function (done) {
+	require('./common/globalBefore').waitUntilBlockchainReady(done);
+});
 
 // Exports
 module.exports = node;

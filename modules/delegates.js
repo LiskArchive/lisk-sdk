@@ -86,15 +86,13 @@ __private.attachApi = function () {
 	}
 
 	router.post('/forging/enable', function (req, res) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return res.json({success: false, error: 'Access denied'});
+		}
+
 		library.schema.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
-			}
-
-			var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
-			if (!checkIpInList(library.config.forging.access.whiteList, ip)) {
-				return res.json({success: false, error: 'Access denied'});
 			}
 
 			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
@@ -125,15 +123,13 @@ __private.attachApi = function () {
 	});
 
 	router.post('/forging/disable', function (req, res) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return res.json({success: false, error: 'Access denied'});
+		}
+
 		library.schema.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
-			}
-
-			var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
-			if (!checkIpInList(library.config.forging.access.whiteList, ip)) {
-				return res.json({success: false, error: 'Access denied'});
 			}
 
 			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
@@ -164,12 +160,21 @@ __private.attachApi = function () {
 	});
 
 	router.get('/forging/status', function (req, res) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return res.json({success: false, error: 'Access denied'});
+		}
+
 		library.schema.validate(req.query, schema.forgingStatus, function (err) {
 			if (err) {
 				return res.json({success: false, error: err[0].message});
 			}
 
-			return res.json({success: true, enabled: !!__private.keypairs[req.query.publicKey]});
+			if (req.query.publicKey) {
+				return res.json({success: true, enabled: !!__private.keypairs[req.query.publicKey]});
+			} else {
+				var delegates_cnt = _.keys(__private.keypairs).length;
+				return res.json({success: true, enabled: (delegates_cnt > 0 ? true : false), delegates: _.keys(__private.keypairs) });
+			}
 		});
 	});
 
@@ -619,7 +624,8 @@ shared.getNextForgers = function (req, cb) {
 			return setImmediate(cb, err);
 		}
 
-		var currentSlot = slots.getSlotNumber(currentBlock.timestamp);
+		var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
+		var currentSlot = slots.getSlotNumber();
 		var nextForgers = [];
 
 		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
@@ -627,7 +633,7 @@ shared.getNextForgers = function (req, cb) {
 				nextForgers.push (activeDelegates[(currentSlot + i) % slots.delegates]);
 			}
 		}
-		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentSlot: currentSlot, delegates: nextForgers});
+		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
 	});
 };
 
@@ -755,13 +761,23 @@ shared.getForgedByAccount = function (req, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
-			if (err || !account) {
-				return setImmediate(cb, err || 'Account not found');
-			}
-			var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
-			return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
-		});
+		if (req.body.start !== undefined || req.body.end !== undefined) {
+			modules.blocks.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+				var forged = bignum(reward.fees).plus(bignum(reward.rewards)).toString();
+				return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});
+			});
+		} else {
+			modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
+				if (err || !account) {
+					return setImmediate(cb, err || 'Account not found');
+				}
+				var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
+				return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
+			});
+		}
 	});
 };
 

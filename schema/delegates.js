@@ -43,8 +43,7 @@ module.exports = {
 				type: 'string',
 				format: 'publicKey'
 			}
-		},
-		required: ['publicKey']
+		}
 	},
 	getDelegate: {
 		id: 'delegates.getDelegate',
@@ -114,6 +113,12 @@ module.exports = {
 			generatorPublicKey: {
 				type: 'string',
 				format: 'publicKey'
+			},
+			start: {
+				type: 'integer'
+			},
+			end: {
+				type: 'integer'
 			}
 		},
 		required: ['generatorPublicKey']

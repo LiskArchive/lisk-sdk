@@ -102,7 +102,8 @@ function Migrator (pgp, db) {
 	};
 
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var sql = new pgp.QueryFile(path.join('sql', 'runtime.sql'), {minify: true});
+		var dirname = path.basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
+		var sql = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
 
 		db.query(sql).then(function () {
 			return waterCb();
@@ -123,7 +124,7 @@ module.exports.connect = function (config, logger, cb) {
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
 
-	monitor.log = function(msg, info){
+	monitor.log = function (msg, info){
 		logger.log(info.event, info.text);
 		info.display = false;
 	};

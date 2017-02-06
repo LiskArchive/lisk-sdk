@@ -47,6 +47,9 @@
             "timeout": 5000
         }
     },
+    "syncPeers": {
+        "list": []
+    },
     "broadcasts": {
         "broadcastInterval": 5000,
         "broadcastLimit": 20,
