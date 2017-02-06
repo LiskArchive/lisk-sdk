@@ -1,4 +1,4 @@
-'use strict';
+'use strict'; /*jslint mocha:true, expr:true */
 
 // Root object
 var node = {};
@@ -360,6 +360,10 @@ node.post = function (path, params, done) {
 node.put = function (path, params, done) {
 	return abstractRequest({ verb: 'PUT', path: path, params: params }, done);
 };
+
+before(function (done) {
+	require('./common/globalBefore').waitUntilBlockchainReady(done);
+});
 
 // Exports
 module.exports = node;
