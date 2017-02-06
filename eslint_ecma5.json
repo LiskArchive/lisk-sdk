@@ -7,7 +7,16 @@
     }
   },
   "rules": {
-    "semi": 2
+    "camelcase": [2, {"properties": "always"}],
+    "eqeqeq": 2,
+    "no-eq-null": 1,
+    "indent": ["error", 2],
+    "no-use-before-define": 1,
+    "new-cap": 1,
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "no-undef": 2,
+    "no-unused-vars": ["error", { "vars": "all", "args": "after-used" }],
+    "strict": ["error", "global"]
   },
   "env": {
     "browser": true,
