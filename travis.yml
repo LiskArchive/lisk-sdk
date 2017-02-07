@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - "7.5"
+
+before_script:
+  - npm install -g grunt
+  - npm install -g grunt-cli
+script: grunt
+after_failure:
+  - cat .app.log
