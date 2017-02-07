@@ -39,4 +39,4 @@ mv ${TRAVIS_BUILD_DIR}/.travis/${ZIP_REPORT_NAME} ${TRAVIS_BUILD_DIR}/.travis/${
 scp ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME} root@139.59.214.29:~/coverage-merger/lisk/coverages
 rm ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME}
 
-echo ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME} "SEND TO SERVER: pinkiepie.todr.me"
+echo ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME} "SEND TO SERVER: 139.59.214.29"
