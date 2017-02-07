@@ -7,14 +7,14 @@
     }
   },
   "rules": {
-    "camelcase": [2, {"properties": "always"}],
-    "eqeqeq": 2,
-    "no-eq-null": 1,
-    "indent": ["error", 2],
-    "no-use-before-define": 1,
-    "new-cap": 1,
+    "camelcase": ["error", {"properties": "always"}],
+    "eqeqeq": ["error", "always"],
+    "no-eq-null": "error",
+    "indent": ["error", "tab"],
+    "no-use-before-define": "error",
+    "new-cap": ["error", { "newIsCap": true }],
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-undef": 2,
+    "no-undef": "error",
     "no-unused-vars": ["error", { "vars": "all", "args": "after-used" }],
     "strict": ["error", "global"]
   },
