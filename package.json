@@ -21,7 +21,6 @@
     "js-nacl": "LiskHQ/js-nacl#6dc1417"
   },
   "devDependencies": {
-    "eslint": "=3.14.1",
     "grunt": "=0.4.5",
     "grunt-browserify": "=5.0.0",
     "grunt-contrib-nodeunit": "=0.4.1",
