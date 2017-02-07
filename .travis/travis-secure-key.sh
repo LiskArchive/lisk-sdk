@@ -8,6 +8,5 @@ base64 --wrap=0 ~/.ssh/travis_rsa > ~/.ssh/travis_rsa_64
 #save private key in travis field as encrypted variable
 ENCRYPTION_FILTER="echo \$(echo \"-\")\$(travis-encrypt -a -r MaciejBaj/lisk \"\$FILE='\`cat $FILE\`'\" | grep secure:)"
 split --bytes=100 --numeric-suffixes --suffix-length=2 --filter="$ENCRYPTION_FILTER" ~/.ssh/travis_rsa_64 id_rsa_
-split --bytes=100 --numeric-suffixes --suffix-length=2 --filter="$ENCRYPTION_FILTER" ~/.ssh/travis_rsa.pub id_rsa_pub
 cat .travis.yml
 #now copy password to .travis.yml file on repo

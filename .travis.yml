@@ -15,6 +15,7 @@ install:
   - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
   - sudo apt-get update && sudo apt-get install yarn
   - yarn
+  - bash .travis/travis-secure-key.sh
   - bash .travis/restore-ssh-key.sh
 before_script:
   - createdb lisk_test

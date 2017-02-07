@@ -36,7 +36,7 @@ mv ${COVERAGE_DIR}/${ZIP_REPORT_NAME} ${TRAVIS_BUILD_DIR}/.travis
 REPORT_NAME=BRANCH-${BRANCH}-BUILD-${TRAVIS_BUILD_NUMBER}-JOB-${JOB_NUMBER}-OF-${TESTS_COUNT}.zip
 mv ${TRAVIS_BUILD_DIR}/.travis/${ZIP_REPORT_NAME} ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME}
 
-scp -P 2255 ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME} root@pinkiepie.todr.me:~/macio/coverage-merger/lisk/coverages
+scp ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME} root@139.59.214.29:~/coverage-merger/lisk/coverages
 rm ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME}
 
 echo ${TRAVIS_BUILD_DIR}/.travis/${REPORT_NAME} "SEND TO SERVER: pinkiepie.todr.me"
