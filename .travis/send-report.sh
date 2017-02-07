@@ -37,7 +37,7 @@ COVERALLS_SERVICE_JOB_ID=JOB_NUMBER
 
 yarn global add coveralls
 cat ${COVERAGE_DIR}/${REPORT_NAME}/lcov.info | coveralls
-if [ -z $? ]; then
+if [ -z $? ] || [ $? -eq 1 ]; then
     echo ${COVERAGE_DIR}/${REPORT_NAME}/lcov.info "SEND TO COVERALLS"
 else
     echo "Unable to create reports: " $?

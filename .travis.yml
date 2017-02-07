@@ -30,9 +30,28 @@ env:
     - HOST=http://0.0.0.0:4000
     - COVERALLS_PARALLEL=true
   matrix:
+    - TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.votes.js TEST_TYPE='FUNC'
+    - TEST=test/api/delegates.js TEST_TYPE='FUNC'
+    - TEST=test/api/accounts.js TEST_TYPE='FUNC'
+    - TEST=test/api/blocks.js TEST_TYPE='FUNC'
+    - TEST=test/api/dapps.js TEST_TYPE='FUNC'
     - TEST=test/api/loader.js TEST_TYPE='FUNC'
+    - TEST=test/api/multisignatures.js TEST_TYPE='FUNC'
     - TEST=test/api/peer.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.dapp.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.blocks.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.signatures.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.collision.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.delegates.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.main.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.signatures.js TEST_TYPE='FUNC'
+    - TEST=test/api/peers.js TEST_TYPE='FUNC'
+    - TEST=test/api/signatures.js TEST_TYPE='FUNC'
+    - TEST=test/api/transactions.js TEST_TYPE='FUNC'
+
     - TEST=test/unit/helpers TEST_TYPE='UNIT'
+    - TEST=test/unit/logic TEST_TYPE='UNIT'
     - TEST=test/unit/modules TEST_TYPE='UNIT'
 script: 'npm run travis'
 after_success:
