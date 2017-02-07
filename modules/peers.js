@@ -6,7 +6,6 @@ var constants = require('../helpers/constants.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
-var git = require('../helpers/git.js');
 var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Peer = require('../logic/peer.js');
@@ -546,10 +545,25 @@ shared.getPeer = function (req, cb) {
 	});
 };
 
+/**
+ * Returns information about version
+ *
+ * @public
+ * @async
+ * @method version
+ * @param  {Object}   req HTTP request object
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Always return `null` here
+ * @return {Object}   cb.obj Anonymous object with version info
+ * @return {String}   cb.obj.build Build information (if available, otherwise '')
+ * @return {String}   cb.obj.commit Hash of last git commit (if available, otherwise '')
+ * @return {String}   cb.obj.version Lisk version from config file
+ */
 shared.version = function (req, cb) {
 	return setImmediate(cb, null, {
-		build: library.build,
-		commit: git.getLastCommit(),
+		build:   library.build,
+		commit:  library.lastCommit,
 		version: library.config.version
 	});
 };
