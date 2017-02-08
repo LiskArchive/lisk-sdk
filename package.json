@@ -39,7 +39,7 @@
     "rimraf": "=2.5.4",
     "semver": "=5.3.0",
     "socket.io": "=1.7.2",
-    "sodium": "LiskHQ/node-sodium#07ba174",
+    "sodium": "MaciejBaj/node-sodium#1364a757",
     "strftime": "=0.10.0",
     "valid-url": "=1.0.9",
     "validator": "=6.2.1",
