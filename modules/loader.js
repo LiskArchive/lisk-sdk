@@ -68,11 +68,14 @@ __private.attachApi = function () {
 
 __private.syncTrigger = function (turnOn) {
 	if (turnOn === false && __private.syncIntervalId) {
+		library.logger.trace('Clearing sync interval');
 		clearTimeout(__private.syncIntervalId);
 		__private.syncIntervalId = null;
 	}
 	if (turnOn === true && !__private.syncIntervalId) {
+		library.logger.trace('Setting sync interval');
 		setImmediate(function nextSyncTrigger () {
+			library.logger.trace('Sync trigger');
 			library.network.io.sockets.emit('loader/sync', {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.getLastBlock().height
@@ -83,8 +86,10 @@ __private.syncTrigger = function (turnOn) {
 };
 
 __private.syncTimer = function () {
+	library.logger.trace('Setting sync timer');
 	setImmediate(function nextSync () {
 		var lastReceipt = modules.blocks.lastReceipt();
+		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: lastReceipt});
 
 		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
 			library.sequence.add(function (cb) {
@@ -700,6 +705,10 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeersReady = function () {
+	library.logger.trace('Peers ready', {module: 'loader'});
+	// Enforce sync early
+	__private.syncTimer();
+
 	setImmediate(function load () {
 		async.series({
 			loadTransactions: function (seriesCb) {
@@ -729,6 +738,8 @@ Loader.prototype.onPeersReady = function () {
 				}
 			}
 		}, function (err) {
+			library.logger.trace('Transactions and signatures pulled');
+
 			if (err) {
 				__private.initalize();
 			}
