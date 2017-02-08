@@ -57,6 +57,5 @@ script: 'npm run travis'
 after_success:
     - bash .travis/after-success.sh $TRAVIS_BUILD_NUMBER ${TRAVIS_JOB_NUMBER#*.} $TEST_TYPE $TRAVIS_BUILD_DIR $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST_BRANCH;
 after_failure:
-  - bash .travis/report-failure.sh $TRAVIS_BUILD_NUMBER
   - cat .app.log
 

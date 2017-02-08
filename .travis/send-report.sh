@@ -7,8 +7,11 @@ TRAVIS_BUILD_DIR=$4
 TRAVIS_BRANCH=$5
 TRAVIS_PULL_REQUEST_BRANCH=$6
 
-echo "received args"
-echo ${TRAVIS_BUILD_NUMBER} ${JOB_NUMBER} ${TEST_TYPE} ${TRAVIS_BUILD_DIR} ${TRAVIS_BRANCH} ${TRAVIS_PULL_REQUEST_BRANCH}
+if [ -z ${TRAVIS_BUILD_NUMBER+x} ] || [ -z ${JOB_NUMBER+x} ] || [ -z ${TEST_TYPE+x} ] || \
+    [ -z ${TRAVIS_BUILD_DIR+x} ] || [ -z ${TRAVIS_BRANCH+x} ] || [ -z ${TRAVIS_PULL_REQUEST_BRANCH+x} ]; then
+    echo "Provide all script parameters."
+    exit 1
+fi
 
 COVERAGE_DIR=${TRAVIS_BUILD_DIR}/test
 
@@ -37,6 +40,7 @@ COVERALLS_SERVICE_JOB_ID=JOB_NUMBER
 
 yarn global add coveralls
 cat ${COVERAGE_DIR}/${REPORT_NAME}/lcov.info | coveralls
+
 if [ -z $? ] || [ $? -eq 1 ]; then
     echo ${COVERAGE_DIR}/${REPORT_NAME}/lcov.info "SEND TO COVERALLS"
 else
