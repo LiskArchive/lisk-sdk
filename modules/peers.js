@@ -8,6 +8,7 @@ var ip = require('ip');
 var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var Peer = require('../logic/peer.js');
+var pgp = require('pg-promise')(); // We also initialize that library here
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
@@ -61,12 +62,29 @@ __private.attachApi = function () {
 __private.upsertPeer = function (peer, insertOnly) {
 	var index;
 
+	var dapps = function (index, key, value) {
+		if (key === 'dappid') {
+			if (Array.isArray(value)) {
+				__private.peers[index][key] = value;
+			} else {
+				__private.peers[index][key] = [];
+				__private.peers[index][key].push(value);
+			}
+			return true;
+		} else {
+			return false;
+		}
+	};
+
 	// Insert new peer
 	var insert = function (index, peer) {
 		__private.peers[index] = {};
 		_.each(peer, function (value, key) {
-			__private.peers[index][key] = value;
+			if (!dapps(index, key, value)) {
+				__private.peers[index][key] = value;
+			}
 		});
+
 		__private.peers[index].updated = Date.now();
 		library.logger.debug('Inserted new peer', index);
 		library.logger.trace('Inserted new peer', {peer: peer});
@@ -75,11 +93,12 @@ __private.upsertPeer = function (peer, insertOnly) {
 	// Update existing peer
 	var update = function (index, peer) {
 		var diff = {};
-		var old_peer = _.clone (__private.peers[index]);
 		_.each(peer, function (value, key) {
 			if (__private.peers[index][key] !== value) {
 				diff[key] = value;
-				__private.peers[index][key] = value;
+				if (!dapps(index, key, value)) {
+					__private.peers[index][key] = value;
+				}
 			}
 			__private.peers[index].updated = Date.now();
 		});
@@ -120,12 +139,21 @@ __private.upsertPeer = function (peer, insertOnly) {
 		insert(index, peer);
 	}
 
-	// Make sure that we set height and broadhash to null if not there
+	// Make sure that we set all properties to null if not there
 	if (!__private.peers[index].hasOwnProperty ('height')) {
 		__private.peers[index].height = null;
 	}
 	if (!__private.peers[index].hasOwnProperty ('broadhash')) {
 		__private.peers[index].broadhash = null;
+	}
+	if (!__private.peers[index].hasOwnProperty ('os')) {
+		__private.peers[index].os = null;
+	}
+	if (!__private.peers[index].hasOwnProperty ('version')) {
+		__private.peers[index].version = null;
+	}
+	if (!__private.peers[index].hasOwnProperty ('state')) {
+		__private.peers[index].state = null;
 	}
 
 	// Stats for tracing changes
@@ -167,6 +195,7 @@ __private.removePeer = function (peer) {
 	if (__private.peers[index]) {
 		library.logger.info('Removed peer', index);
 		library.logger.debug('Removed peer', {peer: __private.peers[index]});
+		__private.peers[index] = null; // Possible memory leak prevention
 		delete __private.peers[index];
 		return true;
 	} else {
@@ -294,6 +323,11 @@ __private.getByFilter = function (filter, cb) {
 		var peer = __private.peers[index];
 		var passed = true;
 		_.each(filter, function (value, key) {
+			// Special case for dapp peers
+			if (key === 'dappid' && Array.isArray(peer[key]) && !_.includes(peer[key], String(value))) {
+				passed = false;
+				return false;
+			}
 			// Every filter field need to be in allowed fields, exists and match value
 			if (_.includes(allowedFields, key) && !(peer[key] !== undefined && peer[key] === value)) {
 				passed = false;
@@ -463,6 +497,87 @@ Peers.prototype.pingPeer = function (peer, cb) {
 	});
 };
 
+__private.dbLoad = function (cb) {
+	library.logger.trace('Importing peers from database');
+	library.db.any(sql.getAll).then(function (rows) {
+		library.logger.trace('Imported peers from database', {count: rows.length});
+		steed.each (rows, function (row, eachCb) {
+			// Delete dapp if null
+			if (!row.dappid) {
+				delete row.dappid;
+			}
+			__private.upsertPeer(row);
+			setImmediate(eachCb);
+		}, function (err) {
+			return setImmediate(cb, err);
+		});
+	}).catch(function (err) {
+        library.logger.error('Import peers from database failed', {error: err.message || err});
+        return setImmediate(cb);
+	});
+};
+
+__private.dbSave = function (cb) {
+	var peers = [];
+	// Preparing peers list (for consistency)
+	_.each(__private.peers, function (peer) {
+		peers.push(peer);
+	});
+
+	// Do nothing when peers list is empty
+	if (!peers.length) {
+		library.logger.debug('Export peers to database failed: Peers list empty');
+		return setImmediate(cb);
+	}
+
+	// Creating set of columns
+	var cs = new pgp.helpers.ColumnSet([
+		'ip', 'port',
+		{name: 'state',     def: 1},
+		{name: 'height',    def: 1},
+		{name: 'os',        def: null},
+		{name: 'version',   def: null},
+		{name: 'broadhash', def: null, init: function (col) {
+			return col.value ? new Buffer(col.value, 'hex') : null;
+		}},
+		{name: 'clock',     def: null}
+	], {table: 'peers'});
+	// Generating insert query
+	var insert_peers = pgp.helpers.insert(peers, cs);
+
+	// Wrap sql queries in transaction and execute
+	library.db.tx(function (t) {
+		var queries = [
+        	// Clear peers table
+            t.none(sql.clear),
+            // Insert all peers
+            t.none(insert_peers)
+		];
+
+		// Inserting dapps peers
+		_.each(peers, function (peer) {
+			if (peer.dappid) {
+				// If there are dapps on peer - push separately for every dapp
+				_.each (peer.dappid, function (dappid) {
+					var dapp_peer = peer;
+					dapp_peer.dappid = dappid;
+					queries.push(t.none(sql.addDapp, peer));
+				});
+			}
+		});
+
+        return t.batch(queries);
+    })
+    .then(function (data) {
+        library.logger.debug('Peers exported to database');
+        return setImmediate(cb);
+    })
+    .catch(function (err) {
+        library.logger.error('Export peers to database failed', {error: err.message || err});
+        return setImmediate(cb);
+    });
+};
+
 // Events
 Peers.prototype.onBind = function (scope) {
 	modules = scope;
@@ -483,6 +598,11 @@ Peers.prototype.onBlockchainReady = function () {
 				});
 				setImmediate(eachCb);
 			}, function (err) {
+				setImmediate(seriesCb, err);
+			});
+		},
+		importFromDatabase: function (seriesCb) {
+			__private.dbLoad (function (err) {
 				setImmediate(seriesCb, err);
 			});
 		}
@@ -547,6 +667,13 @@ Peers.prototype.onPeersReady = function () {
 			// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
 			setTimeout(nextSeries, 5000);
 		});
+	});
+};
+
+Peers.prototype.cleanup = function (cb) {
+	// Save peers on exit
+	__private.dbSave (function () {
+		return setImmediate(cb);
 	});
 };
 
