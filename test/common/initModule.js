@@ -22,7 +22,7 @@ var modulesLoader = new function() {
 	this.init = function (Module, scope, cb) {
 		new Module(function (err, module) {
 			return cb(err, module);
-		}, merge({}, scope, {
+		}, merge({config: config}, scope, {
 			network: {
 				app: express()
 			},
@@ -39,7 +39,7 @@ var modulesLoader = new function() {
 			if (err) {
 				return cb(err);
 			}
-			this.init(Module, {db: db}, cb);
+			this.init(Module, {db: db, logger: this.logger}, cb);
 		}.bind(this));
 	};
 
