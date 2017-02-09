@@ -566,7 +566,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 				return setImmediate(cb, null, {body: res.body, peer: peer});
 			}
-	})
+		})
 	.catch(function (err) {
 		if (peer) {
 			if (err.code === 'EUNAVAILABLE') {

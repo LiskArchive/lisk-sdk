@@ -1069,7 +1069,7 @@ __private.createSandbox = function (dapp, params, cb) {
 			}
 
 			var withDebug = false;
-			process.execArgv.forEach( function(item, index) {
+			process.execArgv.forEach( function (item, index) {
 				if (item.indexOf('--debug') >= 0) {
 					withDebug = true;
 				}

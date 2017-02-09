@@ -117,7 +117,6 @@ module.exports = function (grunt) {
 				'modules',
 				'logic',
 				'schema',
-				'sql',
 				'tasks',
 				'test'
 			]
