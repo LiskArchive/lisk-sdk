@@ -22,11 +22,12 @@ before_script:
   - tar -zxvf lisk-node-Linux-x86_64.tar.gz
   - cd test/lisk-js/; yarn; cd ../..
   - cp test/config.json test/genesisBlock.json .
-  - node app.js --coverage=true &> .app.log &
+  - node app.js &> .app.log &
 notifications:
-  webhooks: https://coveralls.io/webhook?repo_token=7s05KDqmPWkwZ6nzU5WtznKkt5FKDE3kv
+  webhooks: https://coveralls.io/webhook?repo_token=l6rLvPBYHIwA92FQQmCUUTLI4zPuS4r5C
 env:
   global:
+    - NODE_ENV=test
     - HOST=http://0.0.0.0:4000
     - COVERALLS_PARALLEL=true
   matrix:

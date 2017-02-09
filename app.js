@@ -34,7 +34,6 @@ program
 	.option('-y, --sync [peers...]', 'peers list to sync with')
 	.option('-l, --log <level>', 'log level')
 	.option('-s, --snapshot <round>', 'verify snapshot')
-	.option('-t, --coverage', 'enable functional tests code coverage')
 	.parse(process.argv);
 
 var appConfig = require('./helpers/config.js')(program.config);
@@ -76,12 +75,12 @@ if (program.snapshot) {
 	);
 }
 
-if (program.coverage) {
+if (process.env.NODE_ENV === 'test') {
 	appConfig.coverage = true;
 }
 
 // Define top endpoint availability
-process.env.TOP =  appConfig.topAccounts;
+process.env.TOP = appConfig.topAccounts;
 
 var config = {
 	db: appConfig.db,
@@ -175,7 +174,7 @@ d.run(function () {
 
 			if (appConfig.coverage) {
 				var im = require('istanbul-middleware');
-				logger.debug('Hook loader for coverage - ensure this is not production!');
+				logger.debug('Hook loader for coverage - do not use in production environment!');
 				im.hookLoader(__dirname);
 				app.use('/coverage', im.createHandler());
 			}
