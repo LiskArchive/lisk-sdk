@@ -60,9 +60,12 @@ if (program.peers) {
 	appConfig.peers.list = parametersReader.convertToAddressList(program.peers, appConfig.port);
 }
 
-if (program.sync) {
+if (program.sync || appConfig.syncPeers.list.length) {
+	var syncPeersList = appConfig.syncPeers.list.length ?
+		appConfig.syncPeers.list : parametersReader.convertToAddressList(program.sync, appConfig.port);
+
 	appConfig.syncPeers = {
-		list: parametersReader.convertToAddressList(program.sync, appConfig.port).map(function (syncPeer) {
+		list: syncPeersList.map(function (syncPeer) {
 			return {
 				ip: syncPeer.ip,
 				port: syncPeer.port,
