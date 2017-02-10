@@ -632,7 +632,7 @@ Loader.prototype.getNetwork = function (cb) {
 		library.logger.trace('Finding decentralized peers');
 		async.waterfall([
 			function (waterCb) {
-				library.logger.trace('Get peers from random peer');
+				library.logger.trace('Getting peers from random peer');
 				modules.transport.getFromRandomPeer({
 					api: '/list',
 					method: 'GET'
@@ -645,7 +645,7 @@ Loader.prototype.getNetwork = function (cb) {
 				});
 			},
 			function (res, waterCb) {
-				library.logger.trace('Validate peers list');
+				library.logger.trace('Validating peers list');
 				library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
 					var peers = modules.peers.acceptable(res.body.peers);
 

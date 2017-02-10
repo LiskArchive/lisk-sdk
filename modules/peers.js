@@ -409,7 +409,7 @@ Peers.prototype.update = function (peer) {
 };
 
 Peers.prototype.pingPeer = function (peer, cb) {
-	library.logger.trace('Ping peer: ' + peer.ip + ':' + peer.port);
+	library.logger.trace('Pinging peer:: ' + peer.ip + ':' + peer.port);
 	modules.transport.getFromPeer(peer, {
 		api: '/height',
 		method: 'GET'
@@ -494,9 +494,9 @@ Peers.prototype.onPeersReady = function () {
 			},
 			updatePeers: function (seriesCb) {
 				library.logger.trace('onPeersReady->updatePeers');
-				self.list ({limit: 500}, function (err, peers, consensus) {
+				self.list({limit: 500}, function (err, peers, consensus) {
 					if (err) {
-						library.logger.error('Get peers failed', err);
+						library.logger.error('Peers listing failed', err);
 						return setImmediate(seriesCb, err);
 					}
 
@@ -504,20 +504,20 @@ Peers.prototype.onPeersReady = function () {
 					var updated = 0;
 					async.each(peers, function (peer, eachCb) {
 						library.logger.debug('Updating peer', {peer: peer});
-						// If peer is not banned and not been updated during last 3 sec - ping
+						// Pinging only not banned peers
 						if (peer && peer.state > 0) {
-							self.pingPeer (peer, function (err, res) {
+							self.pingPeer(peer, function (err, res) {
 								if (!err) {
 									++updated;
 								}
-								setImmediate(eachCb);
+								return setImmediate(eachCb);
 							});
 						} else {
-							setImmediate(eachCb);
+							return setImmediate(eachCb);
 	 					}
 					}, function () {
 						library.logger.trace('onPeersReady->updatePeers', {updated: updated, total: peers.length});
-						setImmediate(seriesCb);
+						return setImmediate(seriesCb);
 					});
 				});
 			}
