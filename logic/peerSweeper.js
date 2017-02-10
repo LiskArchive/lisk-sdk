@@ -5,7 +5,7 @@ var pgp = require('pg-promise');
 // Constructor
 function PeerSweeper (scope) {
 	this.peers = [];
-	this.limit = 100;
+	this.limit = 500;
 	this.scope = scope;
 
 	var self = this;
@@ -13,10 +13,10 @@ function PeerSweeper (scope) {
 	setImmediate(function nextSweep () {
 		if (self.peers.length) {
 			self.sweep(self.peers.splice(0, self.limit), function () {
-				return setTimeout(nextSweep, 1000);
+				return setTimeout(nextSweep, 500);
 			});
 		} else {
-			return setTimeout(nextSweep, 1000);
+			return setTimeout(nextSweep, 500);
 		}
 	});
 }

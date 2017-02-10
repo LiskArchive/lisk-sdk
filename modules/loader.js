@@ -68,11 +68,14 @@ __private.attachApi = function () {
 
 __private.syncTrigger = function (turnOn) {
 	if (turnOn === false && __private.syncIntervalId) {
+		library.logger.trace('Clearing sync interval');
 		clearTimeout(__private.syncIntervalId);
 		__private.syncIntervalId = null;
 	}
 	if (turnOn === true && !__private.syncIntervalId) {
+		library.logger.trace('Setting sync interval');
 		setImmediate(function nextSyncTrigger () {
+			library.logger.trace('Sync trigger');
 			library.network.io.sockets.emit('loader/sync', {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.getLastBlock().height
@@ -83,8 +86,10 @@ __private.syncTrigger = function (turnOn) {
 };
 
 __private.syncTimer = function () {
+	library.logger.trace('Setting sync timer');
 	setImmediate(function nextSync () {
 		var lastReceipt = modules.blocks.lastReceipt();
+		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: lastReceipt});
 
 		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
 			library.sequence.add(function (cb) {
@@ -624,8 +629,10 @@ Loader.prototype.getNetwork = function (cb) {
 	return library.config.syncPeers.list.length ? setNetwork(library.config.syncPeers.list) : findDecentralizedPeers();
 
 	function findDecentralizedPeers () {
+		library.logger.trace('Finding decentralized peers');
 		async.waterfall([
 			function (waterCb) {
+				library.logger.trace('Getting peers from random peer');
 				modules.transport.getFromRandomPeer({
 					api: '/list',
 					method: 'GET'
@@ -638,6 +645,7 @@ Loader.prototype.getNetwork = function (cb) {
 				});
 			},
 			function (res, waterCb) {
+				library.logger.trace('Validating peers list');
 				library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
 					var peers = modules.peers.acceptable(res.body.peers);
 
@@ -650,11 +658,13 @@ Loader.prototype.getNetwork = function (cb) {
 				});
 			},
 			function (peers, waterCb) {
+				library.logger.trace('Asking peers for height', {count: (peers ? peers.length : null)});
 				async.map(peers, __private.getPeer, function (err, peers) {
 					return setImmediate(waterCb, err, peers);
 				});
 			}
 		], function (err, heights) {
+			library.logger.trace('Found heights', {count: (heights ? heights.length : null)});
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -700,6 +710,10 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeersReady = function () {
+	library.logger.trace('Peers ready', {module: 'loader'});
+	// Enforce sync early
+	__private.syncTimer();
+
 	setImmediate(function load () {
 		async.series({
 			loadTransactions: function (seriesCb) {
@@ -729,6 +743,8 @@ Loader.prototype.onPeersReady = function () {
 				}
 			}
 		}, function (err) {
+			library.logger.trace('Transactions and signatures pulled');
+
 			if (err) {
 				__private.initalize();
 			}
