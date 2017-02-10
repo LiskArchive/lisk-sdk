@@ -503,7 +503,7 @@ Peers.prototype.onPeersReady = function () {
 					library.logger.trace('onPeersReady->updatePeers', {count: (peers ? peers.length : null)});
 					var updated = 0;
 					async.each(peers, function (peer, eachCb) {
-						// Pinging only not banned peers
+						// Pinging only unbanned peers
 						if (peer && peer.state > 0) {
 							self.pingPeer(peer, function (err, res) {
 								if (!err) {
