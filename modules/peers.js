@@ -409,7 +409,7 @@ Peers.prototype.update = function (peer) {
 };
 
 Peers.prototype.pingPeer = function (peer, cb) {
-	library.logger.trace('Pinging peer:: ' + peer.ip + ':' + peer.port);
+	library.logger.trace('Pinging peer: ' + peer.ip + ':' + peer.port);
 	modules.transport.getFromPeer(peer, {
 		api: '/height',
 		method: 'GET'
