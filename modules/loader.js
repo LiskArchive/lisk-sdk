@@ -629,8 +629,10 @@ Loader.prototype.getNetwork = function (cb) {
 	return library.config.syncPeers.list.length ? setNetwork(library.config.syncPeers.list) : findDecentralizedPeers();
 
 	function findDecentralizedPeers () {
+		library.logger.trace('Finding decentralized peers');
 		async.waterfall([
 			function (waterCb) {
+				library.logger.trace('Get peers from random peer');
 				modules.transport.getFromRandomPeer({
 					api: '/list',
 					method: 'GET'
@@ -643,6 +645,7 @@ Loader.prototype.getNetwork = function (cb) {
 				});
 			},
 			function (res, waterCb) {
+				library.logger.trace('Validate peers list');
 				library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
 					var peers = modules.peers.acceptable(res.body.peers);
 
@@ -655,11 +658,13 @@ Loader.prototype.getNetwork = function (cb) {
 				});
 			},
 			function (peers, waterCb) {
+				library.logger.trace('Asking peers for height', {count: (peers ? peers.length : null)});
 				async.map(peers, __private.getPeer, function (err, peers) {
 					return setImmediate(waterCb, err, peers);
 				});
 			}
 		], function (err, heights) {
+			library.logger.trace('Found heights', {count: (heights ? heights.length : null)});
 			if (err) {
 				return setImmediate(cb, err);
 			}
