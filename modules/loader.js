@@ -598,7 +598,7 @@ __private.getPeer = function (peer, cb) {
 				}
 			});
 		},
-		validateHeight: function (seriesCb, res) {
+		validateHeight: function (seriesCb) {
 			var heightIsValid = library.schema.validate(peer, schema.getNetwork.height);
 
 			if (heightIsValid) {
