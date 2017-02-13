@@ -593,6 +593,7 @@ __private.getPeer = function (peer, cb) {
 				if (err) {
 					return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
 				} else {
+					peer = res.peer;
 					return setImmediate(seriesCb);
 				}
 			});
