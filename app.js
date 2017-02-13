@@ -61,8 +61,7 @@ if (program.peers) {
 }
 
 if (program.sync || appConfig.syncPeers.list.length) {
-	var syncPeersList = appConfig.syncPeers.list.length ?
-		appConfig.syncPeers.list : parametersReader.convertToAddressList(program.sync, appConfig.port);
+	var syncPeersList = appConfig.syncPeers.list.length ? appConfig.syncPeers.list : parametersReader.convertToAddressList(program.sync, appConfig.port);
 
 	appConfig.syncPeers = {
 		list: syncPeersList.map(function (syncPeer) {
