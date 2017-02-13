@@ -34,7 +34,7 @@ describe('peers', function () {
 	}
 
 	before(function (done) {
-		modulesLoader.initWithDb(Peers, function (err, peersModule) {
+		modulesLoader.initModuleWithDb(Peers, function (err, peersModule) {
 			if (err) {
 				return done(err);
 			}
@@ -116,6 +116,56 @@ describe('peers', function () {
 				});
 			});
 		});
+
+		var ipAndPortPeer = {
+			ip: '40.41.40.41',
+			port: 4000
+		};
+
+		it('it should insert new peer with only ip and port defined', function (done) {
+
+			peers.update(ipAndPortPeer);
+
+			getPeers(function (err, __peers) {
+				node.expect(currentPeers.length + 1).that.equals(__peers.length);
+				currentPeers = __peers;
+				var inserted = __peers.find(function (p) {
+					return p.ip + ':' + p.port === ipAndPortPeer.ip + ':' + ipAndPortPeer.port;
+				});
+				node.expect(inserted).to.be.an('object');
+				node.expect(inserted).not.to.be.empty;
+				node.expect(inserted.ip + ':' + inserted.port).that.equals(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
+				done();
+			});
+		});
+
+		it('it updates peer with only one field filled', function (done) {
+
+			peers.update(ipAndPortPeer);
+
+			getPeers(function (err, __peers) {
+				currentPeers = __peers;
+
+				var almostEmptyPeer = _.clone(ipAndPortPeer);
+				almostEmptyPeer.height = 1;
+
+				peers.update(almostEmptyPeer);
+				getPeers(function (err, __peers) {
+					node.expect(currentPeers.length).that.equals(__peers.length);
+					var inserted = __peers.find(function (p) {
+						return p.ip + ':' + p.port === ipAndPortPeer.ip + ':' + ipAndPortPeer.port;
+					});
+					node.expect(inserted).to.be.an('object');
+					node.expect(inserted).not.to.be.empty;
+					node.expect(inserted.ip + ':' + inserted.port).that.equals(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
+					node.expect(inserted.height).that.equals(almostEmptyPeer.height);
+
+					done();
+				});
+			});
+		});
+
+
 	});
 
 	describe('ban', function () {
