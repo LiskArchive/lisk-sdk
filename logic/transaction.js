@@ -11,7 +11,7 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
 // Private fields
-var self, __private = {}, genesisblock = null;
+var self, modules, __private = {}, genesisblock = null;
 
 __private.types = {};
 
@@ -523,6 +523,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 
 	amount = amount.toNumber();
 
+	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: modules.rounds.calc(block.height)});
 	this.scope.account.merge(sender.address, {
 		balance: -amount,
 		blockId: block.id,
@@ -552,6 +553,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 	var amount = bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
+	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: modules.rounds.calc(block.height)});
 	this.scope.account.merge(sender.address, {
 		balance: amount,
 		blockId: block.id,
@@ -843,6 +845,12 @@ Transaction.prototype.dbRead = function (raw) {
 
 		return tx;
 	}
+};
+
+// Events
+Transaction.prototype.bindModules = function (scope) {
+	this.scope.logger.trace('Logic/Transaction->bindModules');
+	modules = scope;
 };
 
 // Export
