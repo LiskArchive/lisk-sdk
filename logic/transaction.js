@@ -25,11 +25,6 @@ function Transaction (scope, cb) {
 	}
 }
 
-// Private methods
-function calc (height) {
-	return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
-}
-
 // Public methods
 Transaction.prototype.create = function (data) {
 	if (!__private.types[data.type]) {
@@ -531,7 +526,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 	this.scope.account.merge(sender.address, {
 		balance: -amount,
 		blockId: block.id,
-		round: calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -542,7 +537,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 				this.scope.account.merge(sender.address, {
 					balance: amount,
 					blockId: block.id,
-					round: calc(block.height)
+					round: modules.rounds.calc(block.height)
 				}, function (err) {
 					return setImmediate(cb, err);
 				});
@@ -560,7 +555,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 	this.scope.account.merge(sender.address, {
 		balance: amount,
 		blockId: block.id,
-		round: calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -571,7 +566,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 				this.scope.account.merge(sender.address, {
 					balance: amount,
 					blockId: block.id,
-					round: calc(block.height)
+					round: modules.rounds.calc(block.height)
 				}, function (err) {
 					return setImmediate(cb, err);
 				});
