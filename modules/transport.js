@@ -349,7 +349,7 @@ __private.banPeer = function (options) {
 		return false;
 	}
 	library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
-	modules.peers.state(options.peer.ip, options.peer.port, 0, options.clock);
+	modules.peers.ban(options.peer.ip, options.peer.port, options.clock);
 };
 
 __private.removePeer = function (options) {
