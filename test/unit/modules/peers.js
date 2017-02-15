@@ -3,6 +3,7 @@
 var chai = require('chai');
 var express = require('express');
 var _  = require('lodash');
+var sinon = require('sinon');
 var node = require('../../node.js');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
