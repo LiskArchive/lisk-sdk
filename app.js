@@ -9,7 +9,6 @@ var git = require('./helpers/git.js');
 var https = require('https');
 var Logger = require('./logger.js');
 var packageJson = require('./package.json');
-var parametersReader = require('./helpers/parametersReader.js');
 var path = require('path');
 var program = require('commander');
 var Sequence = require('./helpers/sequence.js');
