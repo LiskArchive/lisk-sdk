@@ -626,78 +626,49 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
-	return library.config.syncPeers.list.length ? setNetwork(library.config.syncPeers.list) : findDecentralizedPeers();
-
-	function findDecentralizedPeers () {
-		library.logger.trace('Finding decentralized peers');
-		async.waterfall([
-			function (waterCb) {
-				library.logger.trace('Getting peers from random peer');
-				modules.transport.getFromRandomPeer({
-					api: '/list',
-					method: 'GET'
-				}, function (err, res) {
-					if (err) {
-						return setImmediate(waterCb, err);
-					} else {
-						return setImmediate(waterCb, null, res);
-					}
-				});
-			},
-			function (res, waterCb) {
-				library.logger.trace('Validating peers list');
-				library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
-					var peers = modules.peers.acceptable(res.body.peers);
-
-					if (err) {
-						return setImmediate(waterCb, err);
-					} else {
-						library.logger.log(['Received', peers.length, 'peers from'].join(' '), res.peer.string);
-						return setImmediate(waterCb, null, peers);
-					}
-				});
-			},
-			function (peers, waterCb) {
-				library.logger.trace('Asking peers for height', {count: (peers ? peers.length : null)});
-				async.map(peers, __private.getPeer, function (err, peers) {
-					return setImmediate(waterCb, err, peers);
-				});
-			}
-		], function (err, heights) {
-			library.logger.trace('Found heights', {count: (heights ? heights.length : null)});
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			__private.network = __private.findGoodPeers(heights);
-
-			if (!__private.network.peers.length) {
-				return setImmediate(cb, 'Failed to find enough good peers');
-			} else {
-				return setImmediate(cb, null, __private.network);
-			}
-		});
-	}
-
-	function setNetwork (requestedPeers) {
-		return async.map(requestedPeers, __private.getPeer, function (err, peers) {
-			var syncedPeers = peers.filter(function (peer) {
-				return peer.height;
-			}).map(function (syncedPeer) {
-				return syncedPeer.peer;
+	async.waterfall([
+		function (waterCb) {
+			modules.transport.getFromRandomPeer({
+				api: '/list',
+				method: 'GET'
+			}, function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					return setImmediate(waterCb, null, res);
+				}
 			});
+		},
+		function (res, waterCb) {
+			library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
+				var peers = modules.peers.acceptable(res.body.peers);
 
-			if (!syncedPeers.length) {
-				return setImmediate(cb, 'Failed to synchronize with requested peers');
-			}
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					library.logger.log(['Received', peers.length, 'peers from'].join(' '), res.peer.string);
+					return setImmediate(waterCb, null, peers);
+				}
+			});
+		},
+		function (peers, waterCb) {
+			async.map(peers, __private.getPeer, function (err, peers) {
+				return setImmediate(waterCb, err, peers);
+			});
+		}
+	], function (err, heights) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
 
-			__private.network = {
-				peers: syncedPeers,
-				height: Math.max(syncedPeers.map(function (p) {	return p.height; }))
-			};
+		__private.network = __private.findGoodPeers(heights);
+
+		if (!__private.network.peers.length) {
+			return setImmediate(cb, 'Failed to find enough good peers');
+		} else {
 			return setImmediate(cb, null, __private.network);
-		});
-	}
+		}
+	});
 };
 
 Loader.prototype.syncing = function () {
