@@ -47,6 +47,7 @@ env:
 
     - TEST=test/unit/helpers
     - TEST=test/unit/logic
+    - TEST=test/unit/modules
 script: 'npm run travis'
 after_failure:
   - cat .app.log
