@@ -3,7 +3,6 @@
  * @module lisk
  */
 
-
 lisk = {
 	crypto : require("./lib/transactions/crypto.js"),
 	dapp: require("./lib/transactions/dapp.js"),
