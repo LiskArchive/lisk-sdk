@@ -1,5 +1,5 @@
 /**
- * This module contains classes for the lisk blockchain.
+ * Index module comprising all submodules of lisk-js.
  * @module lisk
  */
 
