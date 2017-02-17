@@ -575,7 +575,7 @@ __private.findGoodPeers = function (heights) {
 __private.getPeer = function (peer, cb) {
 	async.series({
 		validatePeer: function (seriesCb) {
-			peer = modules.peers.accept(peer);
+			peer = library.logic.peers.create(peer);
 
 			library.schema.validate(peer, schema.getNetwork.peer, function (err) {
 				if (err) {
