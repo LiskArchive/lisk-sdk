@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-	updatePeersList: {
+	discover: {
 		peers: {
-			id: 'peer.updatePeersList.peers',
+			id: 'peers.discover.peers',
 			type: 'object',
 			properties: {
 				peers: {
@@ -13,7 +13,7 @@ module.exports = {
 			required: ['peers']
 		},
 		peer: {
-			id: 'peer.updatePeersList.peer',
+			id: 'peers.discover.peer',
 			type: 'object',
 			properties: {
 				ip: {
@@ -51,7 +51,7 @@ module.exports = {
 					minimum: 1
 				}
 			},
-			required: ['ip', 'port', 'state']
+			required: ['ip', 'port']
 		}
 	},
 	getPeers: {
