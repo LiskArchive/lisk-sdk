@@ -277,6 +277,12 @@ Create the app.js via grunt
 grunt browserify
 ```
 
+Create the documentation by
+
+```js
+yuidoc .
+```
+
 ***
 
 ## Authors

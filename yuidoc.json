@@ -1,0 +1,10 @@
+{
+  "name": "Lisk JS",
+  "description": "JavaScript library for sending Lisk transactions from the client or server",
+  "version": "0.2.3",
+  "url": "https://www.npmjs.com/package/lisk-js",
+  "options": {
+    "outdir": "yuidoc",
+    "exclude": "app.js"
+  }
+}
