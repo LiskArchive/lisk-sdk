@@ -77,7 +77,7 @@ var options = {
 };
 
 //Initiate new Lisk Constructor
-var LSK = new LiskAPI(options);
+var LSK = lisk.api(options);
                                         </code>
                                     </pre>
                                 </figure>
@@ -98,7 +98,7 @@ var options = {
 };
 
 //Initiate new Lisk Constructor
-var LSK = new LiskAPI(options);
+var LSK = lisk.api(options);
                                         </code>
                                     </pre>
                                 </figure>
@@ -120,7 +120,7 @@ var LSK = new LiskAPI(options);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = new LiskAPI();
+var LSK = lisk.api();
 var nethash = LSK.getNethash();
 
 //your variable nethash now contains:
@@ -150,7 +150,7 @@ var nethash = LSK.getNethash();
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = new LiskAPI();
+var LSK = lisk.api();
 LSK.setNode('mynode.com');
 
 //If you use LSK.setNode(); without entering a node, you will choose a new random node.
@@ -174,7 +174,7 @@ LSK.setNode('mynode.com');
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = new LiskAPI();
+var LSK = lisk.api();
 LSK.setSSL(true); //or false
 
 
@@ -197,7 +197,7 @@ LSK.setSSL(true); //or false
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = new LiskAPI();
+var LSK = lisk.api();
 LSK.setTestnet(true); //or false
 
 
@@ -223,7 +223,7 @@ LSK.setTestnet(true); //or false
                                     <pre>
                                         <code class="language-html" data-lang="html">
 
-var LSK = new LiskAPI();
+var LSK = lisk.api();
 LSK.sendRequest('blocks/getHeight', function(data) {
 
     var str = JSON.stringify(data);
@@ -243,7 +243,7 @@ LSK.sendRequest('blocks/getHeight', function(data) {
                                     <pre>
                                         <code class="language-html" data-lang="html">
 
-var LSK = new LiskAPI();
+var LSK = lisk.api();
 LSK.sendRequest('accounts/open ', { secret: 'my secret passphrase' } function(data) {
 
     var str = JSON.stringify(data);
