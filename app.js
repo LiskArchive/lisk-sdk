@@ -9,7 +9,6 @@ var git = require('./helpers/git.js');
 var https = require('https');
 var Logger = require('./logger.js');
 var packageJson = require('./package.json');
-var parametersReader = require('./helpers/parametersReader.js');
 var path = require('path');
 var program = require('commander');
 var Sequence = require('./helpers/sequence.js');
@@ -40,8 +39,7 @@ program
 	.option('-c, --config <path>', 'config file path')
 	.option('-p, --port <port>', 'listening port number')
 	.option('-a, --address <ip>', 'listening host name or ip')
-	.option('-x, --peers [peers...]', 'peers list to seed from')
-	.option('-y, --sync [peers...]', 'peers list to sync with')
+	.option('-x, --peers [peers...]', 'peers list')
 	.option('-l, --log <level>', 'log level')
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
@@ -57,22 +55,17 @@ if (program.address) {
 }
 
 if (program.peers) {
-	appConfig.peers.list = parametersReader.convertToAddressList(program.peers, appConfig.port);
-}
-
-if (program.sync) {
-	appConfig.syncPeers = {
-		list: parametersReader.convertToAddressList(program.sync, appConfig.port).map(function (syncPeer) {
+	if (typeof program.peers === 'string') {
+		appConfig.peers.list = program.peers.split(',').map(function (peer) {
+			peer = peer.split(':');
 			return {
-				ip: syncPeer.ip,
-				port: syncPeer.port,
-				version: appConfig.version,
-				state: 2,
-				broadhash: appConfig.nethash,
-				height: 1
+				ip: peer.shift(),
+				port: peer.shift() || appConfig.port
 			};
-		})
-	};
+		});
+	} else {
+		appConfig.peers.list = [];
+	}
 }
 
 if (program.log) {
