@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+  - 'node' # Latest stable Node.js release
+before_script:
+  - npm install -g grunt
+  - npm install -g grunt-cli
+script: grunt
+after_failure:
+  - cat .app.log
