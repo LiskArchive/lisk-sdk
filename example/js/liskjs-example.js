@@ -10,7 +10,7 @@ var options = {
 };
 
 //Initiate new Lisk Constructor
-var LSK = new LiskAPI(options);
+var LSK = new lisk.api(options);
 
 $(function() {
 
