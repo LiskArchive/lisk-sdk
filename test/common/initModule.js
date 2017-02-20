@@ -25,7 +25,10 @@ var modulesLoader = new function() {
 			app: express()
 		},
 		public: '../../public',
-		schema: new z_schema()
+		schema: new z_schema(),
+		bus: {
+			message: function () {}
+		}
 	};
 
 	/**
@@ -110,7 +113,8 @@ var modulesLoader = new function() {
 		], [
 			{'transaction': require('../../logic/transaction')},
 			{'account': require('../../logic/account')},
-			{'block': require('../../logic/block')}
+			{'block': require('../../logic/block')},
+			{'peers': require('../../logic/peers.js')}
 		], {}, cb);
 	};
 

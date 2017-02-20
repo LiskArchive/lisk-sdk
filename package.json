@@ -64,6 +64,7 @@
     "grunt-jsdox": "=0.1.7",
     "grunt-obfuscator": "=0.1.0",
     "istanbul": "=0.4.5",
+    "istanbul-middleware": "=0.2.2",
     "jsdox": "=0.4.10",
     "jshint": "=2.9.3",
     "mocha": "=3.1.0",

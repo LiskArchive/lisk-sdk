@@ -6,15 +6,15 @@ var _  = require('lodash');
 var sinon = require('sinon');
 var node = require('../../node.js');
 var randomPeer = require('../../common/objectStubs').randomPeer;
+var modulesStub = require('../../common/objectStubs').modulesStub;
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var Peers = require('../../../modules/peers');
 
 var currentPeers = [];
 
 describe('peers', function () {
 
-	var peers;
+	var peers, modules;
 
 	function getPeers(cb) {
 		peers.list({broadhash: node.config.nethash}, function (err, __peers) {
@@ -25,11 +25,13 @@ describe('peers', function () {
 	}
 
 	before(function (done) {
-		modulesLoader.initModuleWithDb(Peers, function (err, peersModule) {
+		modulesLoader.initAllModules(function (err, __modules) {
 			if (err) {
 				return done(err);
 			}
-			peers = peersModule;
+			peers = __modules.peers;
+			modules = __modules;
+			peers.onBind(modules);
 			done();
 		});
 	});
@@ -38,6 +40,16 @@ describe('peers', function () {
 		getPeers(function (err, __peers) {
 			currentPeers = __peers;
 			done();
+		});
+	});
+
+	describe('sandboxApi', function (done) {
+		it('should pass the call', function () {
+			var sandboxHelper = require('../../../helpers/sandbox.js');
+			sinon.stub(sandboxHelper, 'callMethod').returns(true);
+			peers.sandboxApi();
+			node.expect(sandboxHelper.callMethod.calledOnce).to.be.ok;
+			sandboxHelper.callMethod.restore();
 		});
 	});
 
@@ -161,15 +173,17 @@ describe('peers', function () {
 
 		var peerToBan;
 		before(function (done) {
-			peers.update(randomPeer);
+			peerToBan = _.clone(randomPeer);
+			peerToBan.port += 1;
+			peers.update(peerToBan);
 			done();
 		});
 
 		it('should ban active peer', function (done) {
 			getPeers(function (err, __peers) {
 				currentPeers = __peers;
-				peerToBan = currentPeers.find(function (p) {
-					return p.ip + ':' + p.port === randomPeer.ip + ':' + randomPeer.port;
+				peerToBan = __peers.find(function (p) {
+					return p.ip + ':' + p.port === peerToBan.ip + ':' + peerToBan.port;
 				});
 				node.expect(peerToBan).to.be.an('object').and.not.to.be.empty;
 				node.expect(peerToBan.state).that.equals(2);
@@ -229,6 +243,71 @@ describe('peers', function () {
 			var meAsPeer = _.clone(randomPeer);
 			meAsPeer.ip = ip.address('public', 'ipv4');
 			node.expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
+		});
+	});
+
+	describe('ping', function () {
+
+		it('should accept peer with public ip', function (done) {
+			sinon.stub(modules.transport, 'getFromPeer').callsArgWith(2, null, {
+				success: true,
+				peer: randomPeer,
+				body: {
+					success: true, height: randomPeer.height, peers: [randomPeer]
+				}
+			});
+
+			peers.ping(randomPeer, function (err, res) {
+				node.expect(modules.transport.getFromPeer.calledOnce).to.be.ok;
+				node.expect(modules.transport.getFromPeer.calledWith(randomPeer)).to.be.ok;
+				modules.transport.getFromPeer.restore();
+				done();
+			});
+		});
+	});
+
+	describe('onBlockchainReady', function () {
+
+		before(function () {
+			modules.transport.onBind(modules);
+		});
+
+		it('should update peers during onBlockchainReady', function (done) {
+			/* jshint ignore:start */
+			sinon.stub(peers, 'discover').callsArgWith(0, null);
+			/* jshint ignore:end */
+			var config = require('../../config.json');
+			var initialPeers = _.clone(config.peers.list);
+			if (initialPeers.length === 0) {
+				config.peers.list.push(randomPeer);
+			}
+			peers.onBlockchainReady();
+			setTimeout(function () {
+				/* jshint ignore:start */
+				node.expect(peers.discover.calledOnce).to.be.ok;
+				peers.discover.restore();
+				/* jshint ignore:end */
+				done();
+			}, 100);
+		});
+	});
+
+	describe('onPeersReady', function () {
+
+		before(function () {
+			modules.transport.onBind(modules);
+		});
+
+		it('should update peers during onBlockchainReady', function (done) {
+			sinon.stub(peers, 'discover').callsArgWith(0, null);
+			peers.onPeersReady();
+			setTimeout(function () {
+				/* jshint ignore:start */
+				node.expect(peers.discover.calledOnce).to.be.ok;
+				peers.discover.restore();
+				/* jshint ignore:end */
+				done();
+			}, 100);
 		});
 	});
 

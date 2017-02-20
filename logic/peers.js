@@ -12,7 +12,8 @@ var modules;
 var library;
 
 // Constructor
-function Peers (cb) {
+function Peers (scope, cb) {
+	library = scope;
 	self = this;
 	__private.peers = {};
 	return setImmediate(cb, null, this);
@@ -110,12 +111,12 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 };
 
 Peers.prototype.ban = function (ip, port, seconds) {
-	return library.logic.peers.upsert ({
+	return library.logic.peers.upsert({
 		ip: ip,
 		port: port,
 		// State 0 for banned peer
 		state: 0,
-		clock: Date.now() + (seconds || 1) * 1000,
+		clock: Date.now() + (seconds || 1) * 1000
 	});
 };
 
@@ -157,7 +158,6 @@ Peers.prototype.list = function (normalize) {
 
 // Public methods
 Peers.prototype.bind = function (scope) {
-	library = scope;
 	modules = scope.modules;
 	library.logger.trace('Logic/Peers->bind');
 };

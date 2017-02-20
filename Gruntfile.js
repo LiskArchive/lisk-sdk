@@ -72,11 +72,11 @@ module.exports = function (grunt) {
 				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
 			},
 			coverage: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage ./node_modules/.bin/mocha',
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage ./node_modules/.bin/_mocha',
 				maxBuffer: maxBufferSize
 			},
 			coverageSingle: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.$TEST_coverage ./node_modules/.bin/mocha $TEST',
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage ./node_modules/.bin/_mocha $TEST',
 				maxBuffer: maxBufferSize
 			}
 		},
