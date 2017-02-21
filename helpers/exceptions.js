@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+	mainnetGenesisPublicKey: 'd121d3abf5425fdc0f161d9ddb32f89b7750b4bdb0bff7d18b191d4b4bafa6d4',
 	senderPublicKey: [
 		'6140297682817553271',  // 12526
 		'17693199811026162972', // 12532

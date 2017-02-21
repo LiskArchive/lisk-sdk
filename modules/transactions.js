@@ -5,6 +5,7 @@ var async = require('async');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var exceptions = require('../helpers/exceptions.js');
 var extend = require('extend');
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
@@ -549,6 +550,10 @@ shared.addTransactions = function (req, cb) {
 			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
 				return setImmediate(cb, 'Invalid passphrase');
 			}
+		}
+
+		if (keypair.publicKey.toString('hex') === exceptions.mainnetGenesisPublicKey && modules.system.getHeight() > 1) {
+			return setImmediate(cb, 'Attempt to send the money from genesis address');
 		}
 
 		var query = { address: req.body.recipientId };
