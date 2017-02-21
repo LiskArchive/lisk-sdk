@@ -19,7 +19,7 @@ var DelegatesSql = {
       'SELECT m."username", m."address", ENCODE(m."publicKey", \'hex\') AS "publicKey", m."vote", m."producedblocks", m."missedblocks"',
       'FROM mem_accounts m',
       'WHERE m."isDelegate" = 1 AND m."username" LIKE ${q}',
-      'ORDER BY ' + [params.sortField, params.sortMethod].join(' '),
+      'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') + ' NULLS LAST',
       'LIMIT ${limit}'
     ].join(' ');
 

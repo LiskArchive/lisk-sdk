@@ -46,7 +46,8 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getPeers',
 		'get /version': 'version',
-		'get /get': 'getPeer'
+		'get /get': 'getPeer',
+		'get /count': 'count'
 	});
 
 	router.use(function (req, res) {
@@ -151,6 +152,51 @@ __private.count = function (cb) {
 	});
 };
 
+__private.countByFilter = function (filter, cb) {
+	var where = [];
+	var params = {};
+
+	if (filter.port) {
+		where.push('"port" = ${port}');
+		params.port = filter.port;
+	}
+
+	if (filter.state >= 0) {
+		where.push('"state" = ${state}');
+		params.state = filter.state;
+	}
+
+	if (filter.os) {
+		where.push('"os" = ${os}');
+		params.os = filter.os;
+	}
+
+	if (filter.version) {
+		where.push('"version" = ${version}');
+		params.version = filter.version;
+	}
+
+	if (filter.broadhash) {
+		where.push('"broadhash" = ${broadhash}');
+		params.broadhash = filter.broadhash;
+	}
+
+	if (filter.height) {
+		where.push('"height" = ${height}');
+		params.height = filter.height;
+	}
+
+	library.db.query(sql.countByFilter({
+		where: where
+	}), params).then(function (rows) {
+		var res = rows.length && rows[0].count;
+		return setImmediate(cb, null, res);
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Peers#count error');
+	});
+};
+
 __private.banManager = function (cb) {
 	library.db.query(sql.banManager, { now: Date.now() }).then(function (res) {
 		return setImmediate(cb, null, res);
@@ -244,13 +290,15 @@ Peers.prototype.accept = function (peer) {
 
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
-		// Removing peers with private ip address
-		return !ip.isPrivate(peer.ip);
+		// Removing peers with private or host's ip address
+		return !(ip.isPrivate(peer.ip) || ip.address('public', 'ipv4', true).some(function (address) {
+			return [address, library.config.port].join(':') === [peer.ip, peer.port].join(':');
+		}));
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
 		// Slicing peers up to maxPeers
-	}).slice(0, constants.maxPeers).value();
+	}).value();
 };
 
 Peers.prototype.list = function (options, cb) {
@@ -360,6 +408,20 @@ Peers.prototype.update = function (peer) {
 	return __private.sweeper.push('upsert', self.accept(peer).object());
 };
 
+Peers.prototype.pingPeer = function (peer, cb) {
+	library.logger.trace('Pinging peer: ' + peer.ip + ':' + peer.port);
+	modules.transport.getFromPeer(peer, {
+		api: '/height',
+		method: 'GET'
+	}, function (err, res) {
+		if (err) {
+			return setImmediate(cb, 'Failed to ping peer: ' + peer.ip + ':' + peer.port);
+		} else {
+			return setImmediate(cb);
+		}
+	});
+};
+
 Peers.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
@@ -378,7 +440,7 @@ Peers.prototype.onBlockchainReady = function () {
 					port: peer.port,
 					version: modules.system.getVersion(),
 					state: 2,
-					broadhash: modules.system.getBroadhash(),
+					broadhash: null,
 					height: 1
 				});
 
@@ -409,9 +471,11 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 Peers.prototype.onPeersReady = function () {
+	library.logger.trace('onPeersReady');
 	setImmediate(function nextSeries () {
 		async.series({
 			updatePeersList: function (seriesCb) {
+				library.logger.trace('onPeersReady->updatePeersList');
 				__private.updatePeersList(function (err) {
 					if (err) {
 						library.logger.error('Peers timer', err);
@@ -420,20 +484,69 @@ Peers.prototype.onPeersReady = function () {
 				});
 			},
 			nextBanManager: function (seriesCb) {
+				library.logger.trace('onPeersReady->nextBanManager');
 				__private.banManager(function (err) {
 					if (err) {
 						library.logger.error('Ban manager timer', err);
 					}
 					return setImmediate(seriesCb);
 				});
+			},
+			updatePeers: function (seriesCb) {
+				library.logger.trace('onPeersReady->updatePeers');
+				self.list({limit: 500}, function (err, peers, consensus) {
+					if (err) {
+						library.logger.error('Peers listing failed', err);
+						return setImmediate(seriesCb, err);
+					}
+
+					library.logger.trace('onPeersReady->updatePeers', {count: (peers ? peers.length : null)});
+					var updated = 0;
+					async.each(peers, function (peer, eachCb) {
+						// Pinging only unbanned peers
+						if (peer && peer.state > 0) {
+							self.pingPeer(peer, function (err, res) {
+								if (!err) {
+									++updated;
+								}
+								return setImmediate(eachCb);
+							});
+						} else {
+							return setImmediate(eachCb);
+	 					}
+					}, function () {
+						library.logger.trace('onPeersReady->updatePeers', {updated: updated, total: peers.length});
+						return setImmediate(seriesCb);
+					});
+				});
 			}
 		}, function (err) {
-			return setTimeout(nextSeries, 60000);
+			return setTimeout(nextSeries, 5000);
 		});
 	});
 };
 
 // Shared
+shared.count = function (req, cb) {
+	async.series({
+		connected: function (cb) {
+			__private.countByFilter({state: 2}, cb);
+		},
+		disconnected: function (cb) {
+			__private.countByFilter({state: 1}, cb);
+		},
+		banned: function (cb) {
+			__private.countByFilter({state: 0}, cb);
+		}
+	}, function (err, res) {
+		if (err) {
+			return setImmediate(cb, 'Failed to get peer count');
+		}
+
+		return setImmediate(cb, null, res);
+	});
+};
+
 shared.getPeers = function (req, cb) {
 	library.schema.validate(req.body, schema.getPeers, function (err) {
 		if (err) {
@@ -477,8 +590,27 @@ shared.getPeer = function (req, cb) {
 	});
 };
 
+/**
+ * Returns information about version
+ *
+ * @public
+ * @async
+ * @method version
+ * @param  {Object}   req HTTP request object
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Always return `null` here
+ * @return {Object}   cb.obj Anonymous object with version info
+ * @return {String}   cb.obj.build Build information (if available, otherwise '')
+ * @return {String}   cb.obj.commit Hash of last git commit (if available, otherwise '')
+ * @return {String}   cb.obj.version Lisk version from config file
+ */
 shared.version = function (req, cb) {
-	return setImmediate(cb, null, {version: library.config.version, build: library.build});
+	return setImmediate(cb, null, {
+		build:   library.build,
+		commit:  library.lastCommit,
+		version: library.config.version
+	});
 };
 
 // Export

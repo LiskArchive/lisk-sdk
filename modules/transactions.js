@@ -1,11 +1,11 @@
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
-var genesisblock = null;
 var OrderBy = require('../helpers/orderBy.js');
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
@@ -17,7 +17,12 @@ var transactionTypes = require('../helpers/transactionTypes.js');
 var Transfer = require('../logic/transfer.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var __private = {};
+var shared = {};
+var genesisblock = null;
+var modules;
+var library;
+var self; 
 
 __private.assetTypes = {};
 
@@ -49,6 +54,7 @@ __private.attachApi = function () {
 	router.map(shared, {
 		'get /': 'getTransactions',
 		'get /get': 'getTransaction',
+		'get /count': 'getTransactionsCount',
 		'get /queued/get': 'getQueuedTransaction',
 		'get /queued': 'getQueuedTransactions',
 		'get /multisignatures/get': 'getMultisignatureTransaction',
@@ -71,38 +77,84 @@ __private.attachApi = function () {
 };
 
 __private.list = function (filter, cb) {
-	var sortFields = sql.sortFields;
-	var params = {}, where = [], owner = '';
+	var params = {};
+	var where = [];
+	var allowedFieldsMap = {
+		blockId:             '"t_blockId" = ${blockId}',
+		senderPublicKey:     '"t_senderPublicKey" = DECODE (${senderPublicKey}, \'hex\')',
+		recipientPublicKey:  '"m_recipientPublicKey" = DECODE (${recipientPublicKey}, \'hex\')',
+		senderId:            '"t_senderId" = ${senderId}',
+		recipientId:         '"t_recipientId" = ${recipientId}',
+		fromHeight:          '"b_height" >= ${fromHeight}',
+		toHeight:            '"b_height" <= ${toHeight}',
+		fromTimestamp:       '"t_timestamp" >= ${fromTimestamp}',
+		toTimestamp:         '"t_timestamp" <= ${toTimestamp}',
+		senderIds:           '"t_senderId" IN (${senderIds:csv})',
+		recipientIds:        '"t_recipientId" IN (${recipientIds:csv})',
+		senderPublicKeys:    'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKeys:csv})',
+		recipientPublicKeys: 'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKeys:csv})',
+		minAmount:           '"t_amount" >= ${minAmount}',
+		maxAmount:           '"t_amount" <= ${minAmount}',
+		type:                '"t_type" = ${type}',
+		minConfirmations:    'confirmations >= ${minConfirmations}',
+		limit: null,
+		offset: null,
+		orderBy: null,
+		// FIXME: Backward compatibility, should be removed after transitional period
+		ownerAddress: null,
+		ownerPublicKey: null
+	};
+	var owner = '';
+	var isFirstWhere = true;
 
-	if (filter.blockId) {
-		where.push('"t_blockId" = ${blockId}');
-		params.blockId = filter.blockId;
+	var processParams = function (value, key) {
+		var field = String(key).split(':');
+		if (field.length === 1) {
+			// Only field identifier, so using default 'OR' condition
+			field.unshift('OR');
+		} else if (field.length === 2) {
+			// Condition supplied, checking if correct one
+			if (_.includes(['or', 'and'], field[0].toLowerCase())) {
+				field[0] = field[0].toUpperCase();
+			} else {
+				throw new Error('Incorrect condition [' + field[0] + '] for field: ' + field[1]);
+			}
+		} else {
+			// Invalid parameter 'x:y:z'
+			throw new Error('Invalid parameter supplied: ' + key);
+		}
+
+		if (!_.includes(_.keys(allowedFieldsMap), field[1])) {
+			throw new Error('Parameter is not supported: ' + field[1]);
+		}
+
+		// Checking for empty parameters, 0 is allowed for few
+		if (!value && !(value === 0 && _.includes(['fromTimestamp', 'minAmount', 'minConfirmations', 'type', 'offset'], field[1]))) {
+			throw new Error('Value for parameter [' + field[1] + '] cannot be empty');
+		}
+
+		if (allowedFieldsMap[field[1]]) {
+			if (_.includes(['fromTimestamp', 'toTimestamp'], field[1])) {
+				value = value - constants.epochTime.getTime() / 1000;
+			}
+			where.push((!isFirstWhere ? (field[0] + ' ') : '') + allowedFieldsMap[field[1]]);
+			params[field[1]] = value;
+			isFirstWhere = false;
+		}
+	}; 
+
+	// Generate list of fields with conditions
+	try { 
+		_.each(filter, processParams);
+	} catch (err) {
+		return setImmediate(cb, err.message);
 	}
 
-	if (filter.senderPublicKey) {
-		where.push('"t_senderPublicKey"::bytea = ${senderPublicKey}');
-		params.senderPublicKey = filter.senderPublicKey;
-	}
-
-	if (filter.senderId) {
-		where.push('"t_senderId" = ${senderId}');
-		params.senderId = filter.senderId;
-	}
-
-	if (filter.recipientId) {
-		where.push('"t_recipientId" = ${recipientId}');
-		params.recipientId = filter.recipientId;
-	}
-
+	// FIXME: Backward compatibility, should be removed after transitional period
 	if (filter.ownerAddress && filter.ownerPublicKey) {
-		owner = '("t_senderPublicKey"::bytea = ${ownerPublicKey} OR "t_recipientId" = ${ownerAddress})';
+		owner = '("t_senderPublicKey" = DECODE (${ownerPublicKey}, \'hex\') OR "t_recipientId" = ${ownerAddress})';
 		params.ownerPublicKey = filter.ownerPublicKey;
 		params.ownerAddress = filter.ownerAddress;
-	}
-
-	if (filter.type >= 0) {
-		where.push('"t_type" = ${type}');
-		params.type = filter.type;
 	}
 
 	if (!filter.limit) {
@@ -117,16 +169,18 @@ __private.list = function (filter, cb) {
 		params.offset = Math.abs(filter.offset);
 	}
 
-	if (params.limit > 100) {
-		return setImmediate(cb, 'Invalid limit. Maximum is 100');
+	if (params.limit > 1000) {
+		return setImmediate(cb, 'Invalid limit, maximum is 1000');
 	}
 
 	var orderBy = OrderBy(
 		filter.orderBy, {
 			sortFields: sql.sortFields,
 			fieldPrefix: function (sortField) {
-				if (['height', 'blockId', 'confirmations'].indexOf(sortField) > -1) {
+				if (['height'].indexOf(sortField) > -1) {
 					return 'b_' + sortField;
+				} else if (['confirmations'].indexOf(sortField) > -1) {
+					return sortField;
 				} else {
 					return 't_' + sortField;
 				}
@@ -380,18 +434,41 @@ Transactions.prototype.onPeersReady = function () {
 
 // Shared
 shared.getTransactions = function (req, cb) {
-	library.schema.validate(req.body, schema.getTransactions, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
+	async.waterfall([
+		function (waterCb) {
+			var params = {};
+			var pattern = /(and|or){1}:/i;
+
+			// Filter out 'and:'/'or:' from params to perform schema validation
+			_.each(req.body, function (value, key) {
+				var param = String(key).replace(pattern, '');
+				// Dealing with array-like parameters (csv comma separated)
+				if (_.includes(['senderIds', 'recipientIds', 'senderPublicKeys', 'recipientPublicKeys'], param)) {
+					value = String(value).split(',');
+					req.body[key] = value;
+				}
+				params[param] = value;
+			});
+
+			library.schema.validate(params, schema.getTransactions, function (err) {
+				if (err) {
+					return setImmediate(waterCb, err[0].message);
+				} else {
+					return setImmediate(waterCb, null);
+				}
+			});
+		},
+		function (waterCb) {
+			__private.list(req.body, function (err, data) {
+				if (err) {
+					return setImmediate(waterCb, 'Failed to get transactions: ' + err);
+				} else {
+					return setImmediate(waterCb, null, {transactions: data.transactions, count: data.count});
+				}
+			});
 		}
-
-		__private.list(req.body, function (err, data) {
-			if (err) {
-				return setImmediate(cb, 'Failed to get transactions: ' + err);
-			}
-
-			return setImmediate(cb, null, {transactions: data.transactions, count: data.count});
-		});
+	], function (err, res) {
+		return setImmediate(cb, err, res);
 	});
 };
 
@@ -415,6 +492,20 @@ shared.getTransaction = function (req, cb) {
 			}
 		});
 	});
+};
+
+shared.getTransactionsCount = function (req, cb) {
+    library.db.query(sql.count).then(function (transactionsCount) {
+		return setImmediate(cb, null, {
+            confirmed: transactionsCount[0].count,
+            multisignature: __private.transactionPool.multisignature.transactions.length,
+            unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
+            queued: __private.transactionPool.queued.transactions.length
+        });
+
+    }, function (err) {
+        return setImmediate(cb, 'Unable to count transactions');
+    });
 };
 
 shared.getQueuedTransaction = function (req, cb) {

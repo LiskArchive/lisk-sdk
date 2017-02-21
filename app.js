@@ -5,6 +5,7 @@ var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
 var genesisblock = require('./genesisBlock.json');
+var git = require('./helpers/git.js');
 var https = require('https');
 var Logger = require('./logger.js');
 var packageJson = require('./package.json');
@@ -17,6 +18,15 @@ var z_schema = require('./helpers/z_schema.js');
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
+/**
+ * Hash of last git commit
+ *
+ * @private
+ * @property lastCommit
+ * @type {String}
+ * @default ''
+ */
+var lastCommit = '';
 
 if (typeof gc !== 'undefined') {
 	setInterval(function () {
@@ -94,6 +104,13 @@ var config = {
 
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, filename: appConfig.logFileName });
 
+// Trying to get last git commit
+try { 
+	lastCommit = git.getLastCommit();
+} catch (err) {
+	logger.debug('Cannot get last git commit', err.message);
+}
+
 var d = require('domain').create();
 
 d.on('error', function (err) {
@@ -139,6 +156,20 @@ d.run(function () {
 
 		build: function (cb) {
 			cb(null, versionBuild);
+		},
+		/**
+		 * Returns hash of last git commit
+		 * 
+		 * @property lastCommit
+		 * @type {Function}
+		 * @async
+		 * @param  {Function} cb Callback function
+		 * @return {Function} cb Callback function from params
+		 * @return {Object}   cb.err Always return `null` here
+		 * @return {String}   cb.lastCommit Hash of last git commit
+		 */
+		lastCommit: function (cb) {
+			cb(null, lastCommit);
 		},
 
 		genesisblock: function (cb) {
@@ -243,6 +274,11 @@ d.run(function () {
 			scope.network.app.use(queryParser({
 				parser: function (value, radix, name) {
 					if (ignore.indexOf(name) >= 0) {
+						return value;
+					}
+
+					// Ignore conditional fields for transactions list
+					if (/^.+?:(blockId|recipientId|senderId)$/.test(name)) {
 						return value;
 					}
 

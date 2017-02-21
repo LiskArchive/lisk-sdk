@@ -21,6 +21,8 @@ __private.genesisBlock = null;
 __private.total = 0;
 __private.blocksToSync = 0;
 __private.syncIntervalId = null;
+__private.syncInterval = 10000;
+__private.retries = 5;
 
 // Constructor
 function Loader (cb, scope) {
@@ -66,11 +68,14 @@ __private.attachApi = function () {
 
 __private.syncTrigger = function (turnOn) {
 	if (turnOn === false && __private.syncIntervalId) {
+		library.logger.trace('Clearing sync interval');
 		clearTimeout(__private.syncIntervalId);
 		__private.syncIntervalId = null;
 	}
 	if (turnOn === true && !__private.syncIntervalId) {
+		library.logger.trace('Setting sync interval');
 		setImmediate(function nextSyncTrigger () {
+			library.logger.trace('Sync trigger');
 			library.network.io.sockets.emit('loader/sync', {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.getLastBlock().height
@@ -78,6 +83,29 @@ __private.syncTrigger = function (turnOn) {
 			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
 		});
 	}
+};
+
+__private.syncTimer = function () {
+	library.logger.trace('Setting sync timer');
+	setImmediate(function nextSync () {
+		var lastReceipt = modules.blocks.lastReceipt();
+		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: lastReceipt});
+
+		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
+			library.sequence.add(function (cb) {
+				async.retry(__private.retries, __private.sync, cb);
+			}, function (err) {
+				if (err) {
+					library.logger.error('Sync timer', err);
+					__private.initalize();
+				}
+
+				return setTimeout(nextSync, __private.syncInterval);
+			});
+		} else {
+			return setTimeout(nextSync, __private.syncInterval);
+		}
+	});
 };
 
 __private.loadSignatures = function (cb) {
@@ -166,8 +194,7 @@ __private.loadTransactions = function (cb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
 				} catch (e) {
-					library.logger.debug(['Transaction', id].join(' '), e.toString());
-					if (transaction) { library.logger.debug('Transaction', transaction); }
+					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', tx: transaction});
 
 					library.logger.warn(['Transaction', id, 'is not valid, ban 10 min'].join(' '), peer.string);
 					modules.peers.state(peer.ip, peer.port, 0, 600);
@@ -654,32 +681,17 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Loader.prototype.onPeersReady = function () {
-	var retries = 5;
+	library.logger.trace('Peers ready', {module: 'loader'});
+	// Enforce sync early
+	__private.syncTimer();
 
-	setImmediate(function nextSeries () {
+	setImmediate(function load () {
 		async.series({
-			sync: function (seriesCb) {
-				var lastReceipt = modules.blocks.lastReceipt();
-
-				if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
-					library.sequence.add(function (cb) {
-						async.retry(retries, __private.sync, cb);
-					}, function (err) {
-						if (err) {
-							library.logger.log('Sync timer', err);
-						}
-
-						return setImmediate(seriesCb);
-					});
-				} else {
-					return setImmediate(seriesCb);
-				}
-			},
 			loadTransactions: function (seriesCb) {
 				if (__private.loaded) {
-					async.retry(retries, __private.loadTransactions, function (err) {
+					async.retry(__private.retries, __private.loadTransactions, function (err) {
 						if (err) {
-							library.logger.log('Unconfirmed transactions timer', err);
+							library.logger.log('Unconfirmed transactions loader', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -690,9 +702,9 @@ Loader.prototype.onPeersReady = function () {
 			},
 			loadSignatures: function (seriesCb) {
 				if (__private.loaded) {
-					async.retry(retries, __private.loadSignatures, function (err) {
+					async.retry(__private.retries, __private.loadSignatures, function (err) {
 						if (err) {
-							library.logger.log('Signatures timer', err);
+							library.logger.log('Signatures loader', err);
 						}
 
 						return setImmediate(seriesCb);
@@ -702,10 +714,13 @@ Loader.prototype.onPeersReady = function () {
 				}
 			}
 		}, function (err) {
+			library.logger.trace('Transactions and signatures pulled');
+
 			if (err) {
 				__private.initalize();
 			}
-			return setTimeout(nextSeries, 10000);
+
+			return __private.syncTimer();
 		});
 	});
 };

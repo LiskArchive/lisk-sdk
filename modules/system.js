@@ -78,11 +78,14 @@ System.prototype.versionCompatible = function (version) {
 		version = version.replace(rcRegExp, '');
 	}
 
-	if (this.minVersionChar && versionChar) {
+	// if no range specifier is used for minVersion, check the complete version string (inclusive versionChar)
+	var rangeRegExp = /[\^~\*]/;
+	if (this.minVersionChar && versionChar && !rangeRegExp.test(this.minVersion)) {
 		return (version + versionChar) === (this.minVersion + this.minVersionChar);
-	} else {
-		return semver.satisfies(version, this.minVersion);
 	}
+
+	// ignore versionChar, check only version
+	return semver.satisfies(version, this.minVersion);
 };
 
 System.prototype.getBroadhash = function (cb) {

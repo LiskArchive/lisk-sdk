@@ -473,7 +473,18 @@ shared.getAccount = function (req, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 
-		self.getAccount({ address: req.body.address }, function (err, account) {
+		if (!req.body.address && !req.body.publicKey) {
+			return setImmediate(cb, 'Missing required property: address or publicKey');
+		}
+
+		// self.getAccount can accept publicKey as argument, but we also compare here
+		// if account publicKey match address (when both are supplied)
+		var address = req.body.publicKey ? self.generateAddressByPublicKey(req.body.publicKey) : req.body.address;
+		if (req.body.address && req.body.publicKey && address !== req.body.address) {
+			return setImmediate(cb, 'Account publicKey do not match address');
+		}
+
+		self.getAccount({ address: address }, function (err, account) {
 			if (err) {
 				return setImmediate(cb, err);
 			}

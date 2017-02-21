@@ -7,11 +7,18 @@ var PeersSql = {
 
   banManager: 'UPDATE peers SET "state" = 1, "clock" = null WHERE ("state" = 0 AND "clock" - ${now} < 0)',
 
+  countByFilter: function (params) {
+    return [
+      'SELECT COUNT(*)::int FROM peers',
+      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
+    ].filter(Boolean).join(' ');
+  },
+
   getByFilter: function (params) {
     return [
       'SELECT "ip", "port", "state", "os", "version", ENCODE("broadhash", \'hex\') AS "broadhash", "height" FROM peers',
       (params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
-      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : 'ORDER BY RANDOM()'),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') + ' NULLS LAST' : 'ORDER BY RANDOM()'),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },
@@ -34,7 +41,7 @@ var PeersSql = {
 
   addDapp: 'INSERT INTO peers_dapp ("peerId", "dappid") VALUES (${peerId}, ${dappId}) ON CONFLICT DO NOTHING',
 
-  upsert: 'INSERT INTO peers AS p ("ip", "port", "state", "os", "version", "broadhash", "height") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}, ${broadhash}, ${height}) ON CONFLICT ("ip", "port") DO UPDATE SET ("ip", "port", "state", "os", "version", "broadhash", "height") = (${ip}, ${port}, (CASE WHEN p."state" = 0 THEN p."state" ELSE ${state} END), ${os}, ${version}, (CASE WHEN ${broadhash} IS NULL THEN p."broadhash" ELSE ${broadhash} END), (CASE WHEN ${height} IS NULL THEN p."height" ELSE ${height} END))'
+  upsert: 'INSERT INTO peers AS p ("ip", "port", "state", "os", "version", "broadhash", "height") VALUES (${ip}, ${port}, ${state}, ${os}, ${version}, ${broadhash}, ${height}) ON CONFLICT ON CONSTRAINT address_unique DO UPDATE SET ("ip", "port", "state", "os", "version", "broadhash", "height") = (${ip}, ${port}, (CASE WHEN p."state" = 0 THEN p."state" ELSE ${state} END), ${os}, ${version}, (CASE WHEN ${broadhash} IS NULL THEN p."broadhash" ELSE ${broadhash} END), (CASE WHEN ${height} IS NULL THEN p."height" ELSE ${height} END))'
 };
 
 module.exports = PeersSql;
