@@ -191,4 +191,59 @@ describe('peers', function () {
 			node.expect(peers.get(randomPeer)).to.be.undefined;
 		});
 	});
+
+	describe('ban', function () {
+
+		it('should change the peer state to banned', function () {
+			removeAll();
+			peers.upsert(randomPeer);
+			node.expect(peers.list().length).equal(1);
+			node.expect(peers.list()[0].state).equal(2);
+
+			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
+			node.expect(result).to.be.ok;
+			node.expect(peers.list().length).equal(1);
+			node.expect(peers.list()[0].state).equal(0);
+		});
+
+	});
+
+	describe('unban', function () {
+
+		it('should change the peer state to not banned', function () {
+			removeAll();
+			peers.upsert(randomPeer);
+			node.expect(peers.list().length).equal(1);
+			node.expect(peers.list()[0].state).equal(2);
+
+			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
+			node.expect(result).to.be.ok;
+			node.expect(peers.list().length).equal(1);
+			node.expect(peers.list()[0].state).equal(0);
+
+			peers.unban(randomPeer);
+			node.expect(peers.list().length).equal(1);
+			node.expect(peers.list()[0].state).equal(1);
+		});
+
+	});
+
+	describe('remove', function () {
+
+		it('should remove added peer', function () {
+			removeAll();
+			peers.upsert(randomPeer);
+			node.expect(peers.list().length).equal(1);
+			var result = peers.remove(randomPeer);
+			node.expect(result).to.be.ok;
+			node.expect(peers.list().length).equal(0);
+		});
+
+		it('should return false when try to remove not inserted peer', function () {
+			removeAll();
+			var result = peers.remove(randomPeer);
+			node.expect(result).to.be.not.ok;
+			node.expect(peers.list().length).equal(0);
+		});
+	});
 });

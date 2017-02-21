@@ -111,7 +111,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 };
 
 Peers.prototype.ban = function (ip, port, seconds) {
-	return library.logic.peers.upsert({
+	return self.upsert({
 		ip: ip,
 		port: port,
 		// State 0 for banned peer
@@ -153,7 +153,7 @@ Peers.prototype.list = function (normalize) {
 	} else {
 		return Object.keys(__private.peers).map(function (key) { return __private.peers[key]; });
 	}
-	
+
 };
 
 // Public methods
