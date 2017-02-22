@@ -3,24 +3,21 @@ language: node_js
 node_js:
   - '6.9.4'
 cache:
-  yarn: true
   directories:
     - test/lisk-js
+    - node_modules
 services:
   - postgresql
 addons:
   postgresql: '9.6'
 install:
-  - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-  - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-  - sudo apt-get update && sudo apt-get install yarn
-  - yarn
+  - npm install
 before_script:
   - createdb lisk_test
   - psql -d lisk_test -c "alter user "$USER" with password 'password';"
   - wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
   - tar -zxvf lisk-node-Linux-x86_64.tar.gz
-  - cd test/lisk-js/; yarn; cd ../..
+  - cd test/lisk-js/; npm install; cd ../..
   - cp test/config.json test/genesisBlock.json .
   - node app.js &> .app.log &
 env:
