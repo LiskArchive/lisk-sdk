@@ -42,6 +42,7 @@ program
 	.option('-x, --peers [peers...]', 'peers list')
 	.option('-l, --log <level>', 'log level')
 	.option('-s, --snapshot <round>', 'verify snapshot')
+	.option('-t, --coverage', 'enable functional tests code coverage')
 	.parse(process.argv);
 
 var appConfig = require('./helpers/config.js')(program.config);
@@ -76,6 +77,10 @@ if (program.snapshot) {
 	appConfig.loading.snapshot = Math.abs(
 		Math.floor(program.snapshot)
 	);
+}
+
+if (program.coverage) {
+	appConfig.coverage = true;
 }
 
 // Define top endpoint availability
@@ -191,6 +196,13 @@ d.run(function () {
 			var compression = require('compression');
 			var cors = require('cors');
 			var app = express();
+
+			if (appConfig.coverage) {
+				var im = require('istanbul-middleware');
+				logger.debug('Hook loader for coverage - ensure this is not production!');
+				im.hookLoader(__dirname);
+				app.use('/coverage', im.createHandler());
+			}
 
 			require('./helpers/request-limiter')(app, appConfig);
 
