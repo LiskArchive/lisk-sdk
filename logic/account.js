@@ -560,8 +560,7 @@ Account.prototype.merge = function (address, diff, cb) {
 				if (isNaN(trueValue) || trueValue === Infinity) {
 					console.log(diff);
 					return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
-				}
-				else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
+				} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 					update.$inc = update.$inc || {};
 					update.$inc[value] = Math.floor(trueValue);
 					if (value === 'balance') {
@@ -575,8 +574,7 @@ Account.prototype.merge = function (address, diff, cb) {
 							}
 						});
 					}
-				}
-				else if (trueValue < 0) {
+				} else if (trueValue < 0) {
 					update.$dec = update.$dec || {};
 					update.$dec[value] = Math.floor(Math.abs(trueValue));
 						// If decrementing u_balance on account
