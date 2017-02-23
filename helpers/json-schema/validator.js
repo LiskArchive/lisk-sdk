@@ -61,13 +61,11 @@ JsonSchema.addRule('enum', {
 
 JsonSchema.addRule('case', {
 	validate : function (accept, value) {
-		if(accept==='lower') {
+		if (accept === 'lower') {
 			return String(value).toLowerCase() === String(value);
-		}
-		else if(accept==='upper') {
+		} else if (accept === 'upper') {
 			return String(value).toUpperCase() === String(value);
-		}
-		else{
+		} else {
 			return true;
 		}
 	}
