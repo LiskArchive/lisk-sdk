@@ -18,8 +18,8 @@ module.exports = function (grunt) {
 
 	var config = require('./config.json');
 
-	var release_dir = __dirname + '/release/',
-		version_dir = release_dir + config.version;
+	var release_dir = __dirname + '/release/';
+	var version_dir = release_dir + config.version;
 
 	var maxBufferSize = require('buffer').kMaxLength - 1;
 
