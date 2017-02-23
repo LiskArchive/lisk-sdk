@@ -1,5 +1,1 @@
 --timeout 500s
---reporter spec
---quiet false
---clearRequireCache false
---noFail false

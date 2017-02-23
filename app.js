@@ -41,6 +41,7 @@ program
 	.option('-a, --address <ip>', 'listening host name or ip')
 	.option('-x, --peers [peers...]', 'peers list')
 	.option('-l, --log <level>', 'log level')
+	.option('-t, --coverage', 'enable functional tests code coverage')
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
@@ -70,6 +71,10 @@ if (program.peers) {
 
 if (program.log) {
 	appConfig.consoleLogLevel = program.log;
+}
+
+if (program.coverage) {
+	appConfig.coverage = true;
 }
 
 if (program.snapshot) {
@@ -191,6 +196,13 @@ d.run(function () {
 			var compression = require('compression');
 			var cors = require('cors');
 			var app = express();
+
+			if (appConfig.coverage) {
+				var im = require('istanbul-middleware');
+				logger.debug('Hook loader for coverage - ensure this is not production!');
+				im.hookLoader(__dirname);
+				app.use('/coverage', im.createHandler());
+			}
 
 			require('./helpers/request-limiter')(app, appConfig);
 
@@ -386,6 +398,7 @@ d.run(function () {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
+			var Peers = require('./logic/peers.js');
 
 			async.auto({
 				bus: function (cb) {
@@ -416,7 +429,10 @@ d.run(function () {
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 					new Block(scope, cb);
-				}]
+				}],
+				peers: function (cb) {
+					new Peers(scope, cb);
+				}
 			}, cb);
 		}],
 
@@ -445,8 +461,9 @@ d.run(function () {
 			});
 		}],
 
-		ready: ['modules', 'bus', function (scope, cb) {
+		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
+			scope.logic.peers.bind(scope);
 			cb();
 		}]
 	}, function (err, scope) {

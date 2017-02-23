@@ -197,7 +197,7 @@ __private.loadTransactions = function (cb) {
 					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', tx: transaction});
 
 					library.logger.warn(['Transaction', id, 'is not valid, ban 10 min'].join(' '), peer.string);
-					modules.peers.state(peer.ip, peer.port, 0, 600);
+					modules.peers.ban(peer.ip, peer.port, 600);
 
 					return setImmediate(eachSeriesCb, e);
 				}
@@ -575,7 +575,7 @@ __private.findGoodPeers = function (heights) {
 __private.getPeer = function (peer, cb) {
 	async.series({
 		validatePeer: function (seriesCb) {
-			peer = modules.peers.accept(peer);
+			peer = library.logic.peers.create(peer);
 
 			library.schema.validate(peer, schema.getNetwork.peer, function (err) {
 				if (err) {

@@ -45,17 +45,16 @@ __private.attachApi = function () {
 	});
 
 	router.use(function (req, res, next) {
-		req.peer = modules.peers.accept(
+		req.peer = library.logic.peers.create(
 			{
 				ip: req.ip,
 				port: req.headers.port
 			}
 		);
 
-		var headers = req.peer.extend(req.headers);
+		var headers = req.peer.applyHeaders(req.headers);
 
 		req.sanitize(headers, schema.headers, function (err, report) {
-			if (err) { return next(err); }
 			if (!report.isValid) {
 				// Remove peer
 				__private.removePeer({peer: req.peer, code: 'EHEADERS', req: req});
@@ -245,6 +244,12 @@ __private.attachApi = function () {
 		});
 	});
 
+	router.get('/ping', function (req, res) {
+		res.status(200).json({
+			success: true
+		});
+	});
+
 	router.post('/dapp/message', function (req, res) {
 		try {
 			if (!req.body.dappid) {
@@ -348,12 +353,12 @@ __private.banPeer = function (options) {
 		library.logger.trace('Peer ban skipped', {options: options});
 		return false;
 	}
-	library.logger.warn([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
-	modules.peers.state(options.peer.ip, options.peer.port, 0, options.clock);
+	library.logger.debug([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), options.req.method, options.req.url].join(' '));
+	modules.peers.ban(options.peer.ip, options.peer.port, options.clock);
 };
 
 __private.removePeer = function (options) {
-	library.logger.warn([options.code, 'Removing peer', options.peer.string, options.req.method, options.req.url].join(' '));
+	library.logger.debug([options.code, 'Removing peer', options.peer.string, options.req.method, options.req.url].join(' '));
 	modules.peers.remove(options.peer.ip, options.peer.port);
 };
 
@@ -516,12 +521,12 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		url = options.url;
 	}
 
-	peer = modules.peers.accept(peer);
+	peer = library.logic.peers.create(peer);
 
 	var req = {
 		url: 'http://' + peer.ip + ':' + peer.port + url,
 		method: options.method,
-		headers: extend({}, __private.headers, options.headers),
+		headers: __private.headers,
 		timeout: library.config.peers.options.timeout
 	};
 
@@ -538,7 +543,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 				return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
 			} else {
-				var headers = peer.extend(res.headers);
+				var headers = peer.applyHeaders(res.headers);
 
 				var report = library.schema.validate(headers, schema.headers);
 				if (!report) {
