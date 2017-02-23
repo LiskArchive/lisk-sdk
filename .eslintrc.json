@@ -16,7 +16,6 @@
       "named": "always",
       "asyncArrow": "ignore"
     }],
-    //node
     "callback-return": "off",
     "global-require": "off",
     "handle-callback-err": "off",
