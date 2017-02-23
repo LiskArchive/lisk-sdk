@@ -456,8 +456,9 @@ d.run(function () {
 			});
 		}],
 
-		ready: ['modules', 'bus', function (scope, cb) {
+		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
+			scope.logic.transaction.bindModules(scope.modules);
 			cb();
 		}]
 	}, function (err, scope) {

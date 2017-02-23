@@ -11,7 +11,7 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
 // Private fields
-var self, __private = {}, genesisblock = null;
+var self, modules, __private = {}, genesisblock = null;
 
 __private.types = {};
 
@@ -23,11 +23,6 @@ function Transaction (scope, cb) {
 	if (cb) {
 		return setImmediate(cb, null, this);
 	}
-}
-
-// Private methods
-function calc (height) {
-	return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
 }
 
 // Public methods
@@ -528,10 +523,11 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 
 	amount = amount.toNumber();
 
+	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: modules.rounds.calc(block.height)});
 	this.scope.account.merge(sender.address, {
 		balance: -amount,
 		blockId: block.id,
-		round: calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -542,7 +538,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 				this.scope.account.merge(sender.address, {
 					balance: amount,
 					blockId: block.id,
-					round: calc(block.height)
+					round: modules.rounds.calc(block.height)
 				}, function (err) {
 					return setImmediate(cb, err);
 				});
@@ -557,10 +553,11 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 	var amount = bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
+	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: modules.rounds.calc(block.height)});
 	this.scope.account.merge(sender.address, {
 		balance: amount,
 		blockId: block.id,
-		round: calc(block.height)
+		round: modules.rounds.calc(block.height)
 	}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -571,7 +568,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 				this.scope.account.merge(sender.address, {
 					balance: amount,
 					blockId: block.id,
-					round: calc(block.height)
+					round: modules.rounds.calc(block.height)
 				}, function (err) {
 					return setImmediate(cb, err);
 				});
@@ -848,6 +845,12 @@ Transaction.prototype.dbRead = function (raw) {
 
 		return tx;
 	}
+};
+
+// Events
+Transaction.prototype.bindModules = function (scope) {
+	this.scope.logger.trace('Logic/Transaction->bindModules');
+	modules = scope;
 };
 
 // Export
