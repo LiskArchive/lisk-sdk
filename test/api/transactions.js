@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var node = require('./../node.js');
 var transactionSortFields = require('../../sql/transactions').sortFields;
@@ -420,16 +420,16 @@ describe('GET /api/transactions/get?id=', function () {
 
 describe('GET /api/transactions/count', function () {
 
-    it('should be ok', function (done) {
-        node.get('/api/transactions/count', function (err, res) {
-            node.expect(res.body).to.have.property('success').to.be.ok;
-            node.expect(res.body).to.have.property('confirmed').that.is.an('number');
-            node.expect(res.body).to.have.property('queued').that.is.an('number');
-            node.expect(res.body).to.have.property('multisignature').that.is.an('number');
-            node.expect(res.body).to.have.property('unconfirmed').that.is.an('number');
-            done();
-        });
-    });
+	it('should be ok', function (done) {
+		node.get('/api/transactions/count', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('confirmed').that.is.an('number');
+			node.expect(res.body).to.have.property('queued').that.is.an('number');
+			node.expect(res.body).to.have.property('multisignature').that.is.an('number');
+			node.expect(res.body).to.have.property('unconfirmed').that.is.an('number');
+			done();
+		});
+	});
 });
 
 describe('GET /api/transactions/queued/get?id=', function () {

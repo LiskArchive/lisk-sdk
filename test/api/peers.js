@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var node = require('./../node.js');
 var peersSortFields = require('../../sql/peers').sortFields;
@@ -350,7 +350,7 @@ describe('GET /api/peers', function () {
 		});
 	});
 
-    it('using orderBy with any of sort fields should not place NULLs first', function (done) {
+	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
 	    node.async.each(peersSortFields, function (sortField, cb) {
 		    node.get('/api/peers?orderBy=' + sortField, function (err, res) {
 			    node.expect(res.body).to.have.property('success').to.be.ok;
@@ -374,7 +374,7 @@ describe('GET /api/peers', function () {
 	    }, function () {
 		    done();
 	    });
-    });
+	});
 
 	it('using string limit should fail', function (done) {
 		var limit = 'one';

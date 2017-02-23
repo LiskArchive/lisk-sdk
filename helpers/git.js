@@ -27,5 +27,5 @@ function getLastCommit () {
 }
 
 module.exports = {
-    getLastCommit: getLastCommit
+	getLastCommit: getLastCommit
 };

@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var async = require('async');
 var node = require('./../node.js');
@@ -33,24 +33,24 @@ function postVotes (params, done) {
 		function () {
 			return count <= limit;
 		}, function (untilCb) {
-			node.onNewBlock(function (err) {
-				count++;
-				return untilCb();
+		node.onNewBlock(function (err) {
+			count++;
+			return untilCb();
+		});
+	}, function (err) {
+		async.eachSeries(params.delegates, function (delegate, eachCb) {
+			var transaction = node.lisk.vote.createVote(params.passphrase, [params.action + delegate]);
+
+			postVote(transaction, function (err, res) {
+				params.voteCb(err, res);
+				return eachCb();
 			});
 		}, function (err) {
-			async.eachSeries(params.delegates, function (delegate, eachCb) {
-				var transaction = node.lisk.vote.createVote(params.passphrase, [params.action + delegate]);
-
-				postVote(transaction, function (err, res) {
-					params.voteCb(err, res);
-					return eachCb();
-				});
-			}, function (err) {
-				node.onNewBlock(function (err) {
-					return done(err);
-				});
+			node.onNewBlock(function (err) {
+				return done(err);
 			});
-		}
+		});
+	}
 	);
 }
 

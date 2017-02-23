@@ -27,16 +27,16 @@ JsonSchema.validate = Validator.validate;
 JsonSchema.addRule('type', {
 	validate : function (accept, value) {
 		switch (accept) {
-			case 'array':
-				return Array.isArray(value);
-			case 'object':
-				return typeof value === 'object' && value !== null;
-			case 'null':
-				return value === null;
-			case 'integer':
-				return typeof value === 'number';
-			default:
-				return typeof value === accept;
+		case 'array':
+			return Array.isArray(value);
+		case 'object':
+			return typeof value === 'object' && value !== null;
+		case 'null':
+			return value === null;
+		case 'integer':
+			return typeof value === 'number';
+		default:
+			return typeof value === accept;
 		}
 	}
 });
@@ -61,14 +61,12 @@ JsonSchema.addRule('enum', {
 
 JsonSchema.addRule('case', {
 	validate : function (accept, value) {
-		if(accept==='lower') {
-		return String(value).toLowerCase() === String(value);
-		}
-		else if(accept==='upper') {
-		return String(value).toUpperCase() === String(value);
-		}
-		else{
-		return true;
+		if (accept === 'lower') {
+			return String(value).toLowerCase() === String(value);
+		} else if (accept === 'upper') {
+			return String(value).toUpperCase() === String(value);
+		} else {
+			return true;
 		}
 	}
 });
@@ -146,7 +144,7 @@ JsonSchema.addRule('properties', {
 
 			var additionalProperty = field.rules.additionalProperties || false;
 
-			function end(err) {
+			function end (err) {
 				if (l === null) { return; }
 
 				--l;
@@ -231,7 +229,7 @@ JsonSchema.addRule('items', {
 			var result = [];
 			var l = value.length;
 
-			function end(err) {
+			function end (err) {
 				if (l === null) { return; }
 
 				--l;

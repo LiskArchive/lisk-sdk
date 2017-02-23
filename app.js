@@ -109,7 +109,7 @@ var config = {
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, filename: appConfig.logFileName });
 
 // Trying to get last git commit
-try { 
+try {
 	lastCommit = git.getLastCommit();
 } catch (err) {
 	logger.debug('Cannot get last git commit', err.message);
@@ -163,7 +163,7 @@ d.run(function () {
 		},
 		/**
 		 * Returns hash of last git commit
-		 * 
+		 *
 		 * @property lastCommit
 		 * @type {Function}
 		 * @async
@@ -293,11 +293,11 @@ d.run(function () {
 						return value;
 					}
 
-					/*jslint eqeq: true*/
+					/*eslint-disable eqeqeq */
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;
 					}
-
+					/*eslint-enable eqeqeq */
 					return parseInt(value);
 				}
 			}));

@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var crypto = require('crypto');
 var node = require('./../node.js');
@@ -44,10 +44,10 @@ describe('GET /peer/transactions', function () {
 	it('using valid headers should be ok', function (done) {
 		node.get('/peer/transactions')
 			.end(function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').to.be.an('array');
-			done();
-		});
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactions').to.be.an('array');
+				done();
+			});
 	});
 });
 

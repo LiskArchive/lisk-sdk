@@ -10,7 +10,7 @@ var database = require(path.join(dirname, '/helpers', 'database.js'));
 var genesisblock = require(path.join(dirname, '/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
 
-var modulesLoader = new function() {
+var modulesLoader = new function () {
 
 	this.db = null;
 	this.logger = new Logger({ echo: null, errorLevel: config.fileLogLevel, filename: config.logFileName });

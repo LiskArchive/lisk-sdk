@@ -18,8 +18,8 @@ module.exports = function (grunt) {
 
 	var config = require('./config.json');
 
-	var release_dir = __dirname + '/release/',
-	    version_dir = release_dir + config.version;
+	var release_dir = __dirname + '/release/';
+	var version_dir = release_dir + config.version;
 
 	var maxBufferSize = require('buffer').kMaxLength - 1;
 
@@ -110,23 +110,21 @@ module.exports = function (grunt) {
 				}
 			}
 		},
-
-		jshint: {
+		eslint: {
 			options: {
-				jshintrc: true
+				configFile: '.eslintrc.json',
+				format: 'codeframe',
+				fix: false
 			},
-			all: [
-				'*.js',
-				'helpers/**/*.js',
-				'modules/**/*.js',
-				'logic/**/*.js',
-				'schema/**/*.js',
-				'sql/**/*.js',
-				'tasks/**/*.js',
-				'test/*.js',
-				'test/api/**/*.js',
-				'test/unit/**/*.js'
+			target: [
+				'helpers',
+				'modules',
+				'logic',
+				'schema',
+				'tasks',
+				'test'
 			]
+
 		}
 	});
 
@@ -136,10 +134,15 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-jsdox');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
-	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('travis', ['jshint', 'exec:coverageSingle']);
-	grunt.registerTask('test', ['jshint', 'exec:coverage']);
+	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
+	grunt.registerTask('test', ['eslint', 'exec:coverage']);
+
+	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
+		grunt.config.set('eslint.options.fix', true);
+		grunt.task.run('eslint');
+	});
 };

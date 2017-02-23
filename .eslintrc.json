@@ -1,0 +1,39 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "module"
+  },
+  "rules": {
+    "semi": "error",
+    "no-eq-null": "off",
+    "indent": ["error", "tab"],
+    "eqeqeq": "off",
+    "curly": "error",
+    "no-undef": "error",
+    "quotes": ["error", "single"],
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "always",
+      "asyncArrow": "ignore"
+    }],
+    "callback-return": "off",
+    "global-require": "off",
+    "handle-callback-err": "off",
+    "no-mixed-requires": "off",
+    "no-new-require": "off"
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "globals": {
+    "it": true,
+    "describe": true,
+    "before": true,
+    "beforeEach": true,
+    "after": true,
+    "afterEach": true
+  },
+  "plugins": []
+
+}
