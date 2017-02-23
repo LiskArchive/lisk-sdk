@@ -566,20 +566,19 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 
 				return setImmediate(cb, null, {body: res.body, peer: peer});
 			}
-	})
-	.catch(function (err) {
-		if (peer) {
-			if (err.code === 'EUNAVAILABLE') {
+		}).catch(function (err) {
+			if (peer) {
+				if (err.code === 'EUNAVAILABLE') {
 				// Remove peer
-				__private.removePeer({peer: peer, code: err.code, req: req});
-			} else {
+					__private.removePeer({peer: peer, code: err.code, req: req});
+				} else {
 				// Ban peer for 1 minute
-				__private.banPeer({peer: peer, code: err.code, req: req, clock: 60});
+					__private.banPeer({peer: peer, code: err.code, req: req, clock: 60});
+				}
 			}
-		}
 
-		return setImmediate(cb, [err.code, 'Request failed', req.method, req.url].join(' '));
-	});
+			return setImmediate(cb, [err.code, 'Request failed', req.method, req.url].join(' '));
+		});
 };
 
 Transport.prototype.sandboxApi = function (call, args, cb) {
