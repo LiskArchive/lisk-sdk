@@ -18,11 +18,11 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
   `sudo apt-get install -y git`
 
-- Nodejs v0.12.17 (<https://nodejs.org/>) -- Nodejs serves as the underlying engine for code execution.
+- Nodejs v6.9.4 (<https://nodejs.org/>) -- Nodejs serves as the underlying engine for code execution.
 
   ```
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-  nvm install v0.12.17
+  nvm install v6.9.4
   ```
   
 - Install PostgreSQL (version 9.6.1):
