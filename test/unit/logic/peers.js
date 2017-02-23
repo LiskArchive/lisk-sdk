@@ -111,6 +111,27 @@ describe('peers', function () {
 			removeAll();
 		});
 
+		it('should not update height with insertOnly param', function () {
+			removeAll();
+
+			peers.upsert(randomPeer);
+			var list = peers.list();
+			var inserted = list[0];
+			node.expect(list.length).equal(1);
+			node.expect(arePeersEqual(inserted, randomPeer)).to.be.ok;
+
+			var modifiedPeer = _.clone(randomPeer);
+			modifiedPeer.height += 1;
+			peers.upsert(modifiedPeer, true);
+			list = peers.list();
+			var updated = list[0];
+			node.expect(list.length).equal(1);
+			node.expect(arePeersEqual(updated, modifiedPeer)).to.be.not.ok;
+			node.expect(arePeersEqual(updated, randomPeer)).to.be.ok;
+
+			removeAll();
+		});
+
 		it('should insert peer with different ports', function () {
 			removeAll();
 
@@ -226,6 +247,20 @@ describe('peers', function () {
 			node.expect(peers.list()[0].state).equal(1);
 		});
 
+		it('should do nothing when unban not added peer', function () {
+			removeAll();
+			peers.upsert(randomPeer);
+			node.expect(peers.list().length).equal(1);
+			node.expect(peers.list()[0].state).equal(2);
+
+			var differentPeer = _.clone(randomPeer);
+			differentPeer.port += 1;
+
+			peers.unban(differentPeer);
+			node.expect(peers.list().length).equal(1);
+			node.expect(arePeersEqual(peers.list()[0], randomPeer)).to.be.ok;
+		});
+
 	});
 
 	describe('remove', function () {
@@ -244,6 +279,13 @@ describe('peers', function () {
 			var result = peers.remove(randomPeer);
 			node.expect(result).to.be.not.ok;
 			node.expect(peers.list().length).equal(0);
+		});
+	});
+
+	describe('bind', function () {
+
+		it('should be ok', function () {
+			peers.bind({});
 		});
 	});
 });

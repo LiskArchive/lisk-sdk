@@ -2,6 +2,7 @@
 
 var chai = require('chai');
 var express = require('express');
+var ip = require('ip');
 var _  = require('lodash');
 var sinon = require('sinon');
 var node = require('../../node.js');
@@ -18,6 +19,7 @@ describe('peer', function () {
 	describe('accept', function () {
 
 		it('should accept valid peer', function () {
+			var peer = new Peer({});
 			var __peer = peer.accept(randomPeer);
 			['height', 'ip', 'port', 'state'].forEach(function (property) {
 				node.expect(__peer[property]).equals(randomPeer[property]);
@@ -30,8 +32,19 @@ describe('peer', function () {
 			node.expect(__peer.port).to.equal(0);
 			node.expect(__peer.ip).to.be.undefined;
 			node.expect(__peer.state).to.equal(1);
-			node.expect(__peer.height).to.equal(1);
-			// node.expect(__peer.string).to.equal(1);
+			node.expect(__peer.height).to.be.undefined;
+			node.expect(__peer.string).to.be.undefined;
+		});
+
+		it('should accept peer with ip as long', function () {
+			var __peer = peer.accept({ip: ip.toLong(randomPeer.ip)});
+			node.expect(__peer.ip).to.equal(randomPeer.ip);
+		});
+
+		it('should convert dappid to array', function () {
+			var __peer = peer.accept({dappid: 'random-dapp-id'});
+			node.expect(__peer.dappid).to.be.an('array');
+			node.expect(_.isEqual(__peer.dappid, ['random-dapp-id'])).to.be.ok;
 		});
 	});
 
