@@ -137,7 +137,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 
-	grunt.registerTask('eslint-fix', 'eslint with files formatting', function () {
+	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
 		grunt.task.run('eslint');
 	});
