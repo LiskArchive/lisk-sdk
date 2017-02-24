@@ -124,6 +124,13 @@ __private.list = function (filter, cb) {
 			throw new Error('Invalid parameter supplied: ' + key);
 		}
 
+		// Mutating parametres when unix timestamp is supplied
+		if (_.includes(['fromUnixTime', 'toUnixTime'], field[1])) {
+			// Lisk epoch is 1464109200 as unix timestamp
+			value = value - constants.epochTime.getTime() / 1000;
+			field[1] = field[1].replace('UnixTime', 'Timestamp');
+		}
+
 		if (!_.includes(_.keys(allowedFieldsMap), field[1])) {
 			throw new Error('Parameter is not supported: ' + field[1]);
 		}
@@ -134,9 +141,6 @@ __private.list = function (filter, cb) {
 		}
 
 		if (allowedFieldsMap[field[1]]) {
-			if (_.includes(['fromTimestamp', 'toTimestamp'], field[1])) {
-				value = value - constants.epochTime.getTime() / 1000;
-			}
 			where.push((!isFirstWhere ? (field[0] + ' ') : '') + allowedFieldsMap[field[1]]);
 			params[field[1]] = value;
 			isFirstWhere = false;
@@ -495,17 +499,17 @@ shared.getTransaction = function (req, cb) {
 };
 
 shared.getTransactionsCount = function (req, cb) {
-    library.db.query(sql.count).then(function (transactionsCount) {
+	library.db.query(sql.count).then(function (transactionsCount) {
 		return setImmediate(cb, null, {
-            confirmed: transactionsCount[0].count,
-            multisignature: __private.transactionPool.multisignature.transactions.length,
-            unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
-            queued: __private.transactionPool.queued.transactions.length
-        });
+			confirmed: transactionsCount[0].count,
+			multisignature: __private.transactionPool.multisignature.transactions.length,
+			unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
+			queued: __private.transactionPool.queued.transactions.length
+		});
 
-    }, function (err) {
-        return setImmediate(cb, 'Unable to count transactions');
-    });
+	}, function (err) {
+		return setImmediate(cb, 'Unable to count transactions');
+	});
 };
 
 shared.getQueuedTransaction = function (req, cb) {

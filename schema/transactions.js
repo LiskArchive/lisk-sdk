@@ -106,6 +106,14 @@ module.exports = {
 				type: 'integer',
 				minimum: 1
 			},
+			fromUnixTime: {
+				type: 'integer',
+				minimum: (constants.epochTime.getTime() / 1000)
+			},
+			toUnixTime: {
+				type: 'integer',
+				minimum: (constants.epochTime.getTime() / 1000 + 1)
+			},
 			minAmount: {
 				type: 'integer',
 				minimum: 0
