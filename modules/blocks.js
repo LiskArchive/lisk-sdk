@@ -1423,7 +1423,7 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 };
 
 /**
- * creates logger for tracking applied transactions of block
+ * Creates logger for tracking applied transactions of block
  *
  * @param {Number} transactionsCount
  * @param {Number} logsFrequency
@@ -1437,16 +1437,16 @@ Blocks.prototype.getBlockProgressLogger = function (transactionsCount, logsFrequ
 		this.applied = 0;
 
 		/**
-		 * resets applied transactions
+		 * Resets applied transactions
 		 */
 		this.reset = function () {
 			this.applied = 0;
 		};
 
 		/**
-		 * increments applied transactions and logs the progress
-		 * - for the first and last transaction
-		 * - with given frequency
+		 * Increments applied transactions and logs the progress
+		 * - For the first and last transaction
+		 * - With given frequency
 		 */
 		this.applyNext = function () {
 			if (this.applied >= this.target) {
@@ -1459,7 +1459,7 @@ Blocks.prototype.getBlockProgressLogger = function (transactionsCount, logsFrequ
 		};
 
 		/**
-		 * logs the progress
+		 * Logs the progress
 		 */
 		this.log = function () {
 			library.logger.info(msg, ((this.applied / this.target) *  100).toPrecision(4)+ ' %' + ': applied ' + this.applied + ' of ' + this.target + ' transactions' );
