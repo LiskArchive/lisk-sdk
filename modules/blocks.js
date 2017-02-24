@@ -341,17 +341,17 @@ __private.applyGenesisBlock = function (block, cb) {
 	});
 	var tracker = self.getBlockProgressLogger(block.transactions.length, block.transactions.length / 100, 'Genesis block loading');
 	async.eachSeries(block.transactions, function (transaction, cb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-				if (err) {
-					return setImmediate(cb, {
-						message: err,
-						transaction: transaction,
-						block: block
-					});
-				}
-				__private.applyTransaction(block, transaction, sender, cb);
-				tracker.applyNext();
-			});
+		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+			if (err) {
+				return setImmediate(cb, {
+					message: err,
+					transaction: transaction,
+					block: block
+				});
+			}
+			__private.applyTransaction(block, transaction, sender, cb);
+			tracker.applyNext();
+		});
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...
@@ -1334,7 +1334,7 @@ Blocks.prototype.onReceiveBlock = function (block) {
 				library.logger.info('Last block stands');
 				return setImmediate(cb);
 			} else {
-				// In other cases - we have wrong parent and should rewind. 
+				// In other cases - we have wrong parent and should rewind.
 				library.logger.info('Last block and parent loses');
 				async.series([
 					self.deleteLastBlock,
@@ -1400,13 +1400,13 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 
 	params.generatorPublicKey = filter.generatorPublicKey;
 	params.delegates = constants.activeDelegates;
-	
+
 	if (filter.start !== undefined) {
 		params.start = filter.start - constants.epochTime.getTime () / 1000;
 	}
-	
+
 	if (filter.end !== undefined) {
-		params.end = filter.end - constants.epochTime.getTime () / 1000; 
+		params.end = filter.end - constants.epochTime.getTime () / 1000;
 	}
 
 	library.db.query(sql.aggregateBlocksReward(params), params).then(function (rows) {
