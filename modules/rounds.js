@@ -282,7 +282,5 @@ __private.sumRound = function (round, cb) {
 	});
 };
 
-// Shared
-
 // Export
 module.exports = Rounds;
