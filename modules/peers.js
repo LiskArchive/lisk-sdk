@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var async = require('async');
 var constants = require('../helpers/constants.js');
 var extend = require('extend');
 var fs = require('fs');
@@ -11,7 +12,6 @@ var pgp = require('pg-promise')(); // We also initialize library here
 var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
-var async = require('async');
 var sql = require('../sql/peers.js');
 var util = require('util');
 
