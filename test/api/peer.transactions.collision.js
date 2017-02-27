@@ -3,6 +3,9 @@
 var crypto = require('crypto');
 var node = require('./../node.js');
 
+var modulesLoader = require('../common/initModule').modulesLoader;
+var Account = require('../../logic/account');
+
 function postTransaction (transaction, done) {
 	node.post('/peer/transactions', {
 		transaction: transaction
@@ -22,6 +25,20 @@ describe('POST /peer/transactions', function () {
 		};
 
 		before(function (done) {
+			modulesLoader.initLogicWithDb(Account, function (err, account) {
+				if (err) {
+					return done(err);
+				}
+				account.remove(collision.address, function (err, res) {
+					node.expect(err).to.not.exist;
+					done();
+				});
+			});
+		});
+
+
+		before(function (done) {
+			//send the money to the collision account
 			var transaction = node.lisk.transaction.createTransaction(collision.address, 220000000, node.gAccount.password);
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
