@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var chai = require('chai');
 var express = require('express');
@@ -273,9 +273,7 @@ describe('peers', function () {
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {
-			/* jshint ignore:start */
 			sinon.stub(peers, 'discover').callsArgWith(0, null);
-			/* jshint ignore:end */
 			var config = require('../../config.json');
 			var initialPeers = _.clone(config.peers.list);
 			if (initialPeers.length === 0) {
@@ -283,10 +281,8 @@ describe('peers', function () {
 			}
 			peers.onBlockchainReady();
 			setTimeout(function () {
-				/* jshint ignore:start */
 				node.expect(peers.discover.calledOnce).to.be.ok;
 				peers.discover.restore();
-				/* jshint ignore:end */
 				done();
 			}, 100);
 		});
@@ -302,10 +298,8 @@ describe('peers', function () {
 			sinon.stub(peers, 'discover').callsArgWith(0, null);
 			peers.onPeersReady();
 			setTimeout(function () {
-				/* jshint ignore:start */
 				node.expect(peers.discover.calledOnce).to.be.ok;
 				peers.discover.restore();
-				/* jshint ignore:end */
 				done();
 			}, 100);
 		});

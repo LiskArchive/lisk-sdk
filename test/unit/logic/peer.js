@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var chai = require('chai');
 var express = require('express');
