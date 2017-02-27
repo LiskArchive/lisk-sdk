@@ -68,7 +68,7 @@ __private.getByFilter = function (filter, cb) {
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
 	// Sorting peers
 	var sortPeers = function (field, asc) {
-		return function (a, b) { 
+		return function (a, b) {
 			var sort_res =
 				// Nulls last
 				a[field] === b[field] ? 0 :
@@ -78,7 +78,7 @@ __private.getByFilter = function (filter, cb) {
 				asc ? (a[field] < b[field] ? -1 : 1) :
 				// Descending
 				(a[field] < b[field] ? 1 : -1);
-			return sort_res;	
+			return sort_res;
 		};
 	};
 	// Randomizing peers (using Fisher-Yates-Durstenfeld shuffle algorithm)
@@ -135,7 +135,7 @@ __private.getByFilter = function (filter, cb) {
 	} else if (offset) {
 		peers = peers.slice(offset);
 	}
-	
+
 	return setImmediate(cb, null, peers);
 };
 
@@ -390,7 +390,7 @@ Peers.prototype.list = function (options, cb) {
 					// Skip banned peers (state 0)
 					return peer.state > 0 && (
 						// Matched broadhash when attempt 0
-						options.attempt === 0 ? (peer.broadhash === options.broadhash) : 
+						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
 						// Unmatched broadhash when attempt 1
 						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
 					);
