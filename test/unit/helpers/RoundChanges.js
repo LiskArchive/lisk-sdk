@@ -34,7 +34,7 @@ describe('RoundChanges', function () {
 
 		it('should take floor from fees value', function () {
 			var round = 1;
-			var fees = 50.99999999999999;
+			var fees = 50.9999999999999;
 
 			var scope = {
 				round: round,
@@ -52,7 +52,7 @@ describe('RoundChanges', function () {
 
 		it('should take rounded number after exceeding precision', function () {
 			var round = 1;
-			var fees = 50.9999999999999999; //exceeded precision
+			var fees = 50.999999999999999; //exceeded precision
 			node.expect(fees).equals(51);
 			var scope = {
 				round: round,
@@ -186,13 +186,12 @@ describe('RoundChanges', function () {
 			var roundChanges = new RoundChanges(scope);
 			var rewardsAt = 2;
 			var res = roundChanges.at(rewardsAt);
-			var expectedFees = 1.7798941929329858e+306; // 1.7976931348623157e+308 / 101 (delegates num)
+			var expectedFees = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099; // 1.7976931348623157e+308 / 101 (delegates num)
 			node.expect(res.fees).equal(expectedFees);
 			node.expect(res.rewards).equal(rewards[rewardsAt]); //100
-			//Because while adding (balance) / subtracting (feesRemaining) numbers are rounded to Number.MAX_SAFE_INTEGER
-			//Number.MAX_SAFE_INTEGER + 1 === Number.MAX_SAFE_INTEGER + 2 is true
-			node.expect(res.feesRemaining).equal(0);
-			node.expect(res.balance).equal(expectedFees);
+			node.expect(res.feesRemaining).equal(1);
+			var expectedBalance = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990199; // 1.7976931348623157e+308 / 101 (delegates num) + 100
+			node.expect(res.balance).equal(expectedBalance);
 		});
 	});
 });

@@ -342,7 +342,7 @@ describe('PUT /api/dapps/transaction', function () {
 
 	it('using amount > balance should fail', function (done) {
 		openAccount(account, function (err, res) {
-			validParams.amount = node.bignum(account.balance).plus('1').toNumber();
+			validParams.amount = new node.bignum(account.balance).plus('1').toNumber();
 
 			putTransaction(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -534,7 +534,7 @@ describe('PUT /api/dapps/withdrawal', function () {
 
 	it('using amount > balance should fail', function (done) {
 		openAccount(account, function (err, res) {
-			validParams.amount = node.bignum(account.balance).plus('1').toNumber();
+			validParams.amount = new node.bignum(account.balance).plus('1').toNumber();
 
 			putWithdrawal(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.not.be.ok;

@@ -11,6 +11,7 @@
   "author": "Boris Povod <boris@crypti.me>, Pavel Nekrasov <landgraf.paul@gmail.com>, Oliver Beddows <oliver@lisk.io>",
   "dependencies": {
     "async": "=2.1.4",
+    "bignumber.js": "=4.0.0",
     "body-parser": "=1.16.0",
     "bytebuffer": "=5.0.1",
     "change-case": "=3.0.1",

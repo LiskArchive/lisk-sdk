@@ -1,5 +1,6 @@
 'use strict';
 
+var bignum = require('./bignum');
 var slots = require('./slots');
 
 // Constructor
@@ -15,15 +16,15 @@ function RoundChanges (scope) {
 
 // Public methods
 RoundChanges.prototype.at = function (index) {
-	var fees = Math.floor(this.roundFees / slots.delegates);
-	var feesRemaining = this.roundFees - (fees * slots.delegates);
-	var rewards = Math.floor(this.roundRewards[index]) || 0;
+	var fees = new bignum(this.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor();
+	var feesRemaining = new bignum(this.roundFees.toPrecision(15)).minus(fees.times(slots.delegates));
+	var rewards = new bignum(this.roundRewards[index].toPrecision(15)).floor() || 0;
 
 	return {
-		fees: fees,
-		feesRemaining: feesRemaining,
-		rewards: rewards,
-		balance: fees + rewards
+		fees: Number(fees.toFixed()),
+		feesRemaining: Number(feesRemaining.toFixed()),
+		rewards: Number(rewards.toFixed()),
+		balance: Number(fees.add(rewards).toFixed())
 	};
 };
 

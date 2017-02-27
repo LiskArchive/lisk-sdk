@@ -23,7 +23,7 @@ function Migrator (pgp, db) {
 		}
 		db.query('SELECT * FROM migrations ORDER BY "id" DESC LIMIT 1').then(function (rows) {
 			if (rows[0]) {
-				rows[0].id = bignum(rows[0].id);
+				rows[0].id = new bignum(rows[0].id);
 			}
 			return waterCb(null, rows[0]);
 		}).catch(function (err) {
@@ -44,7 +44,7 @@ function Migrator (pgp, db) {
 		function matchMigrationId (file) {
 			var id = file.match(/^[0-9]+/);
 
-			return Array.isArray(id) ? bignum(id[0]): null;
+			return Array.isArray(id) ? new bignum(id[0]) : null;
 		}
 
 		fs.readdir(migrationsPath, function (err, files) {
