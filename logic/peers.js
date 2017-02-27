@@ -42,7 +42,6 @@ Peers.prototype.get = function (peer) {
 };
 
 Peers.prototype.upsert = function (peer, insertOnly) {
-
 	// Insert new peer
 	var insert = function (peer) {
 		peer.updated = Date.now();
@@ -153,7 +152,6 @@ Peers.prototype.list = function (normalize) {
 	} else {
 		return Object.keys(__private.peers).map(function (key) { return __private.peers[key]; });
 	}
-
 };
 
 // Public methods

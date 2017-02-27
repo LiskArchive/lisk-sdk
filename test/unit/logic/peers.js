@@ -13,13 +13,14 @@ var Peer = require('../../../logic/peer.js');
 describe('peers', function () {
 
 	var peers;
+
 	before(function () {
 		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
 			peers = __peers;
 		});
 	});
 
-	function removeAll() {
+	function removeAll () {
 		peers.list().forEach(function (peer) {
 			peers.remove(peer);
 		});
@@ -27,7 +28,7 @@ describe('peers', function () {
 		node.expect(peers.list()).that.is.an('array').and.to.be.empty;
 	}
 
-	function arePeersEqual(peerA, peerB) {
+	function arePeersEqual (peerA, peerB) {
 		var allPeersProperties = function (peer) {
 			return 	_.keys(peer).every(function (property) {
 				return Peer.prototype.properties.concat(['string']).indexOf(property) !== -1;

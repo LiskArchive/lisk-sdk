@@ -38,7 +38,7 @@ describe('POST /peer/transactions', function () {
 
 
 		before(function (done) {
-			//send the money to the collision account
+			// Send funds to collision account
 			var transaction = node.lisk.transaction.createTransaction(collision.address, 220000000, node.gAccount.password);
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;

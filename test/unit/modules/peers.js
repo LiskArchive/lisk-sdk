@@ -16,7 +16,7 @@ describe('peers', function () {
 
 	var peers, modules;
 
-	function getPeers(cb) {
+	function getPeers (cb) {
 		peers.list({broadhash: node.config.nethash}, function (err, __peers) {
 			node.expect(err).to.not.exist;
 			node.expect(__peers).to.be.an('array');

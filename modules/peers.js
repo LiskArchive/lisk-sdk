@@ -155,7 +155,7 @@ __private.insertSeeds = function (cb) {
 	async.each(library.config.peers.list, function (peer, eachCb) {
 		peer = library.logic.peers.create(peer);
 		library.logger.trace('Processing seed peer: ' + peer.string);
-		self.ping (peer, function (err) {
+		self.ping(peer, function (err) {
 			++updated;
 			return setImmediate(eachCb);
 		});
@@ -176,7 +176,7 @@ __private.dbLoad = function (cb) {
 			if (library.logic.peers.exists(peer)) {
 				peer = library.logic.peers.get(peer);
 				if (peer && peer.state > 0 && Date.now() - peer.updated > 3000) {
-					self.ping (peer, function (err) {
+					self.ping(peer, function (err) {
 						++updated;
 						return setImmediate(eachCb);
 					});
@@ -184,7 +184,7 @@ __private.dbLoad = function (cb) {
 					return setImmediate(eachCb);
 				}
 			} else {
-				self.ping (peer, function (err) {
+				self.ping(peer, function (err) {
 					++updated;
 					return setImmediate(eachCb);
 				});
@@ -245,12 +245,10 @@ __private.dbSave = function (cb) {
 		});
 
 		return t.batch(queries);
-	})
-	.then(function (data) {
+	}).then(function (data) {
 		library.logger.debug('Peers exported to database');
 		return setImmediate(cb);
-	})
-	.catch(function (err) {
+	}).catch(function (err) {
 		library.logger.error('Export peers to database failed', {error: err.message || err});
 		return setImmediate(cb);
 	});
@@ -271,7 +269,7 @@ Peers.prototype.remove = function (pip, port) {
 		return peer.ip === pip && peer.port === port;
 	});
 	if (frozenPeer) {
-		//FIXME: Keeping peer frozen is bad idea at all
+		// FIXME: Keeping peer frozen is bad idea at all
 		library.logger.debug('Cannot remove frozen peer', pip + ':' + port);
 	} else {
 		return library.logic.peers.remove ({ip: pip, port: port});
@@ -283,7 +281,7 @@ Peers.prototype.ban = function (pip, port, seconds) {
 		return peer.ip === pip && peer.port === port;
 	});
 	if (frozenPeer) {
-		//FIXME: Keeping peer frozen is bad idea at all
+		// FIXME: Keeping peer frozen is bad idea at all
 		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
 	} else {
 		return library.logic.peers.ban (pip, port, seconds);
@@ -430,7 +428,7 @@ Peers.prototype.list = function (options, cb) {
 	], function (err, peers) {
 		// Calculate consensus
 		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-			consensus = isNaN(consensus) ? 0 : consensus;
+		    consensus = isNaN(consensus) ? 0 : consensus;
 
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
 		return setImmediate(cb, err, peers, consensus);
@@ -487,7 +485,7 @@ Peers.prototype.onPeersReady = function () {
 					library.logger.trace('Updating peer', peer);
 					// If peer is not banned and not been updated during last 3 sec - ping
 					if (peer && peer.state > 0 && (!peer.updated || Date.now() - peer.updated > 3000)) {
-						self.ping (peer, function (err) {
+						self.ping(peer, function (err) {
 							++updated;
 							return setImmediate(eachCb);
 						});

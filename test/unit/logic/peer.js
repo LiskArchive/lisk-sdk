@@ -110,9 +110,9 @@ describe('peer', function () {
 
 		it('should prevent unbanning peer', function () {
 			var initialState = peer.state;
-			//ban peer
+			// Ban peer
 			peer.state = 0;
-			//try to unban peer
+			// Try to unban peer
 			peer.update({state: 2});
 			node.expect(peer.state).to.equal(0);
 			peer.state = initialState;

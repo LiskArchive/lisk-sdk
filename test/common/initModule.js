@@ -73,7 +73,7 @@ var modulesLoader = new function () {
 						memo[name] = initializedLogic;
 						return mapCb(err, memo);
 					});
-				}.bind(this), waterCb)
+				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
 				scope = _.merge(this.scope, {logic: logic});
