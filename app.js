@@ -41,7 +41,6 @@ program
 	.option('-a, --address <ip>', 'listening host name or ip')
 	.option('-x, --peers [peers...]', 'peers list')
 	.option('-l, --log <level>', 'log level')
-	.option('-t, --coverage', 'enable functional tests code coverage')
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
@@ -71,10 +70,6 @@ if (program.peers) {
 
 if (program.log) {
 	appConfig.consoleLogLevel = program.log;
-}
-
-if (program.coverage) {
-	appConfig.coverage = true;
 }
 
 if (program.snapshot) {
