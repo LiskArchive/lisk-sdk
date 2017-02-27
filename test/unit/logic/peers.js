@@ -232,7 +232,7 @@ describe('peers', function () {
 
 	describe('unban', function () {
 
-		it('should change the peer state to not banned', function () {
+		it('should change the peer state to unbanned', function () {
 			removeAll();
 			peers.upsert(randomPeer);
 			node.expect(peers.list().length).equal(1);
@@ -248,7 +248,7 @@ describe('peers', function () {
 			node.expect(peers.list()[0].state).equal(1);
 		});
 
-		it('should do nothing when unban not added peer', function () {
+		it('should do nothing when unbanning non inserted peer', function () {
 			removeAll();
 			peers.upsert(randomPeer);
 			node.expect(peers.list().length).equal(1);
@@ -275,7 +275,7 @@ describe('peers', function () {
 			node.expect(peers.list().length).equal(0);
 		});
 
-		it('should return false when try to remove not inserted peer', function () {
+		it('should return false when trying to remove non inserted peer', function () {
 			removeAll();
 			var result = peers.remove(randomPeer);
 			node.expect(result).to.be.not.ok;

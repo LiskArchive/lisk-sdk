@@ -55,7 +55,7 @@ describe('peers', function () {
 
 	describe('update', function () {
 
-		it('it should insert new peer', function (done) {
+		it('should insert new peer', function (done) {
 			peers.update(randomPeer);
 
 			getPeers(function (err, __peers) {
@@ -70,7 +70,7 @@ describe('peers', function () {
 			});
 		});
 
-		it('it should update existing', function (done) {
+		it('should update existing peer', function (done) {
 			var toUpdate = _.clone(randomPeer);
 			toUpdate.height += 1;
 			peers.update(toUpdate);
@@ -89,7 +89,7 @@ describe('peers', function () {
 			});
 		});
 
-		it('it should insert new peer if ip or port changed', function (done) {
+		it('should insert new peer if ip or port changed', function (done) {
 			var toUpdate = _.clone(randomPeer);
 			toUpdate.port += 1;
 			peers.update(toUpdate);
@@ -125,8 +125,7 @@ describe('peers', function () {
 			port: 4000
 		};
 
-		it('it should insert new peer with only ip and port defined', function (done) {
-
+		it('should insert new peer with only ip and port defined', function (done) {
 			peers.update(ipAndPortPeer);
 
 			getPeers(function (err, __peers) {
@@ -142,8 +141,7 @@ describe('peers', function () {
 			});
 		});
 
-		it('it updates peer with only one field filled', function (done) {
-
+		it('should update peer with only one property defined', function (done) {
 			peers.update(ipAndPortPeer);
 
 			getPeers(function (err, __peers) {
@@ -172,6 +170,7 @@ describe('peers', function () {
 	describe('ban', function () {
 
 		var peerToBan;
+
 		before(function (done) {
 			peerToBan = _.clone(randomPeer);
 			peerToBan.port += 1;
@@ -206,7 +205,6 @@ describe('peers', function () {
 		});
 
 		it('should remove added peer', function (done) {
-
 			getPeers(function (err, __peers) {
 				currentPeers = __peers;
 				var peerToRemove = currentPeers.find(function (p) {
@@ -304,5 +302,4 @@ describe('peers', function () {
 			}, 100);
 		});
 	});
-
 });

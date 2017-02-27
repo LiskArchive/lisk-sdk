@@ -108,7 +108,7 @@ describe('peer', function () {
 			node.expect(peer.someProp).to.not.exist;
 		});
 
-		it('should prevent unbanning peer', function () {
+		it('should not change state of banned peer', function () {
 			var initialState = peer.state;
 			// Ban peer
 			peer.state = 0;
