@@ -9,6 +9,7 @@ var Rounds = require('../../../modules/rounds.js');
 describe('rounds', function () {
 
 	var rounds;
+
 	before(function (done) {
 		new Rounds(function (err, __rounds) {
 			rounds = __rounds;

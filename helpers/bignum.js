@@ -6,12 +6,9 @@ var BigNumber = require('bignumber.js');
  * Create an instance from a Buffer
  */
 BigNumber.fromBuffer = function (buf, opts) {
-
 	if (!opts) opts = {};
 
-	var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
-			|| opts.endian || 'big'
-		;
+	var endian = { 1 : 'big', '-1' : 'little' }[opts.endian] || opts.endian || 'big';
 
 	var size = opts.size === 'auto' ? Math.ceil(buf.length) : (opts.size || 1);
 
@@ -41,12 +38,10 @@ BigNumber.fromBuffer = function (buf, opts) {
 	return new BigNumber(hex.join(''), 16);
 };
 
-
 /*
- * Return a buffer containing the
+ * Return instance as Buffer
  */
 BigNumber.prototype.toBuffer = function ( opts ) {
-
 	if (typeof opts === 'string') {
 		if (opts !== 'mpint') return 'Unsupported Buffer representation';
 
@@ -64,7 +59,7 @@ BigNumber.prototype.toBuffer = function ( opts ) {
 		ret[2] = len & (0xff << 8);
 		ret[3] = len & (0xff << 0);
 
-		// two's compliment for negative integers:
+		// Two's compliment for negative integers
 		var isNeg = this.lt(0);
 		if (isNeg) {
 			for (var i = 4; i < ret.length; i++) {
@@ -79,13 +74,11 @@ BigNumber.prototype.toBuffer = function ( opts ) {
 
 	if (!opts) opts = {};
 
-	var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
-			|| opts.endian || 'big'
-		;
+	var endian = { 1 : 'big', '-1' : 'little' }[opts.endian] || opts.endian || 'big';
 
 	var hex = this.toString(16);
 	if (hex.charAt(0) === '-') throw new Error(
-		'converting negative numbers to Buffers not supported yet'
+		'Converting negative numbers to Buffers not supported yet'
 	);
 
 	var size = opts.size === 'auto' ? Math.ceil(hex.length / 2) : (opts.size || 1);
@@ -93,13 +86,12 @@ BigNumber.prototype.toBuffer = function ( opts ) {
 	var len = Math.ceil(hex.length / (2 * size)) * size;
 	var buf = new Buffer(len);
 
-	// zero-pad the hex string so the chunks are all `size` long
+	// Zero-pad the hex string so the chunks are all `size` long
 	while (hex.length < 2 * len) hex = '0' + hex;
 
 	var hx = hex
 			.split(new RegExp('(.{' + (2 * size) + '})'))
-			.filter(function (s) { return s.length > 0 })
-		;
+			.filter(function (s) { return s.length > 0 });
 
 	hx.forEach(function (chunk, i) {
 		for (var j = 0; j < size; j++) {
@@ -110,6 +102,5 @@ BigNumber.prototype.toBuffer = function ( opts ) {
 
 	return buf;
 };
-
 
 module.exports = BigNumber;
