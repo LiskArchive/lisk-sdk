@@ -68,7 +68,7 @@ describe('RoundChanges', function () {
 			node.expect(roundChanges.roundFees).equal(51);
 		});
 
-		it('should works properly for Infinity', function () {
+		it('should work properly for Infinity', function () {
 			var round = 1;
 			var fees = Number.MAX_VALUE;
 			var scope = {
@@ -117,7 +117,8 @@ describe('RoundChanges', function () {
 	});
 
 	describe('at', function () {
-		it('should calculate given reward for mocked data', function () {
+
+		it('should calculate round changes from mocked data', function () {
 			var round = 1;
 			var fees = 500;
 			var rewards = [0, 0, 100, 10];
@@ -142,7 +143,7 @@ describe('RoundChanges', function () {
 			node.expect(res.balance).equal(104);
 		});
 
-		it('should deal with Infinite', function () {
+		it('should calculate round changes from Infinite fees', function () {
 			var round = 1;
 			var fees = Infinity;
 			var rewards = [0, 0, 100, 10];
@@ -167,7 +168,7 @@ describe('RoundChanges', function () {
 			node.expect(res.balance).equal(Infinity);
 		});
 
-		it('should deal with max numbers', function () {
+		it('should calculate round changes from Number.MAX_VALUE fees', function () {
 			var round = 1;
 			var fees = Number.MAX_VALUE; // 1.7976931348623157e+308
 
