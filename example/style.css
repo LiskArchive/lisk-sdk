@@ -7,6 +7,13 @@ body {
     text-align: left;
 }
 
+@media screen and (min-width: 768px) {
+
+    .custom-collapse {
+        position:absolute;
+    }
+}
+
 .highlight {
     padding: 9px 14px;
     margin-bottom: 14px;

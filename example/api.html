@@ -43,8 +43,8 @@
 
             <p>The lisk-js package allows you to use the cryptography, several nodes or the API of Lisk.</p>
             -->
-            <div class="col-md-2">
-                <div class="list-group" style="position: fixed; left: 15%; top: 220px;width:250px!important;">
+            <div class="col-md-2" id="listGroupNav">
+                <div class="list-group custom-collapse" style="position: fixed; left: 10%; top: 220px;width:250px!important;">
                     <a class="list-group-item" data-remote="true" href="#api_sub" id="api" data-toggle="collapse" data-parent="#api_sub">
                         <span>API</span>
                         <span class="menu-ico-collapse"><i class="fa fa-chevron-down"></i></span>
@@ -502,6 +502,19 @@ var transaction = lisk.vote.createVote("secret", ["+5819957819195001929918192012
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
 <script src="../app.js"></script>
+
+<script>
+    "use strict";
+
+    $(window).on('resize', function(){
+	    var windowSize = $(window).width();
+	    if(windowSize < 1500) {
+		    $('#listGroupNav').hide();
+	    } else {
+		    $('#listGroupNav').show();
+	    }
+    });
+</script>
 
 
 </body>
