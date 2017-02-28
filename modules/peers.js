@@ -161,7 +161,7 @@ __private.insertSeeds = function (cb) {
 		});
 	}, function (err) {
 		library.logger.trace('Peers->insertSeeds - Peers discovered', {updated: updated, total: library.config.peers.list.length});
-		setImmediate(cb);
+		return setImmediate(cb);
 	});
 };
 
