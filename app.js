@@ -598,7 +598,6 @@ function getAddress(publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	console.log(temp);
 	var address = bignum.fromBuffer(temp).toString() + 'L';
 	return address;
 }
@@ -620,6 +619,21 @@ module.exports = {
 
 }).call(this,require("buffer").Buffer)
 },{"../constants.js":2,"browserify-bignum":49,"buffer":60,"buffer/":64,"bytebuffer":65,"crypto-browserify":73}],5:[function(require,module,exports){
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 var Buffer = require('buffer/').Buffer;
 var hash = require('./hash');
 var crypto = require('crypto-browserify');
@@ -644,16 +658,10 @@ function useFirstEightBufferEntriesReversed (publicKeyBytes) {
 	return publicKeyTransform;
 }
 
-function isHex(hexString) {
-	var check = parseInt(hexString,16);
-	return (check.toString(16) === hexString)
-}
-
 module.exports = {
 	bufferToHex: bufferToHex,
 	hexToBuffer: hexToBuffer,
-	useFirstEightBufferEntriesReversed: useFirstEightBufferEntriesReversed,
-	isHex: isHex
+	useFirstEightBufferEntriesReversed: useFirstEightBufferEntriesReversed
 }
 },{"./hash":6,"buffer/":64,"crypto-browserify":73}],6:[function(require,module,exports){
 var crypto = require('crypto-browserify');
@@ -667,15 +675,11 @@ function getSha256Hash (stringToSign, format) {
 	} else if(format === 'utf8') {
 		stringToSign = naclInstance.encode_utf8(stringToSign);
 	} else if(format === 'hex') {
-		stringToSign = hexToBuffer(stringToSign);
+		stringToSign = naclInstance.from_hex(stringToSign);
 	}
 
 	return naclInstance.crypto_hash_sha256(stringToSign);
 	//return crypto.createHash('sha256').update(stringToSign, format).digest();
-}
-
-function hexToBuffer (hex) {
-	return naclInstance.from_hex(hex);
 }
 
 module.exports = {
@@ -755,8 +759,14 @@ var keys = require('./keys');
 function verifyMessageWithPublicKey (signedMessage, publicKey) {
 
 	var publicKeyBytes = convert.hexToBuffer(publicKey);
+	var signedMessageBytes = convert.hexToBuffer(signedMessage);
 
-	var openSignature = naclInstance.crypto_sign_open(signedMessage, publicKeyBytes);
+	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+
+	console.log(openSignature);
+	if(openSignature === null || openSignature === undefined) {
+		throw new Error('The public key does not match the signed message.');
+	}
 
 	//returns original message
 	return naclInstance.decode_utf8(openSignature);
