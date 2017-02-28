@@ -52,7 +52,7 @@ describe('RoundChanges', function () {
 
 		it('should take rounded number after exceeding precision', function () {
 			var round = 1;
-			var fees = 50.999999999999999; //exceeded precision
+			var fees = 50.999999999999999; // Exceeded precision
 			node.expect(fees).equals(51);
 			var scope = {
 				round: round,
@@ -138,7 +138,7 @@ describe('RoundChanges', function () {
 
 			node.expect(res.fees).equal(4);
 			node.expect(res.feesRemaining).equal(96);
-			node.expect(res.rewards).equal(rewards[rewardsAt]); //100
+			node.expect(res.rewards).equal(rewards[rewardsAt]); // 100
 			node.expect(res.balance).equal(104);
 		});
 
@@ -163,13 +163,13 @@ describe('RoundChanges', function () {
 
 			node.expect(res.fees).equal(Infinity);
 			node.expect(res.feesRemaining).to.be.NaN;
-			node.expect(res.rewards).equal(rewards[rewardsAt]); //100
+			node.expect(res.rewards).equal(rewards[rewardsAt]); // 100
 			node.expect(res.balance).equal(Infinity);
 		});
 
 		it('should deal with max numbers', function () {
 			var round = 1;
-			var fees = Number.MAX_VALUE; //1.7976931348623157e+308
+			var fees = Number.MAX_VALUE; // 1.7976931348623157e+308
 
 			var rewards = [0, 0, 100, 10];
 
@@ -188,7 +188,7 @@ describe('RoundChanges', function () {
 			var res = roundChanges.at(rewardsAt);
 			var expectedFees = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099; // 1.7976931348623157e+308 / 101 (delegates num)
 			node.expect(res.fees).equal(expectedFees);
-			node.expect(res.rewards).equal(rewards[rewardsAt]); //100
+			node.expect(res.rewards).equal(rewards[rewardsAt]); // 100
 			node.expect(res.feesRemaining).equal(1);
 			var expectedBalance = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990199; // 1.7976931348623157e+308 / 101 (delegates num) + 100
 			node.expect(res.balance).equal(expectedBalance);
