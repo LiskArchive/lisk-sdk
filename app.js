@@ -715,6 +715,7 @@ module.exports = {
 	signMessageWithSecret: sign.signMessageWithSecret,
 	signAndPrintMessage: sign.signAndPrintMessage,
 	printSignedMessage: sign.printSignedMessage,
+	addLineBreak: sign.addLineBreak,
 	getPrivateAndPublicKeyFromSecret: keys.getPrivateAndPublicKeyFromSecret,
 	getRawPrivateAndPublicKeyFromSecret: keys.getRawPrivateAndPublicKeyFromSecret,
 	getAddressFromPublicKey: keys.getAddressFromPublicKey,
@@ -805,26 +806,26 @@ var keys = require('./keys');
 function signAndPrintMessage (message, secret) {
 
 
-	var messageHeader = '-----BEGIN LISK SIGNED MESSAGE-----\r\n';
+	var messageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	var plainMessage = message;
-	var signatureHeader = '-----BEGIN SIGNATURE-----\r\n';
+	var signatureHeader = '-----BEGIN SIGNATURE-----';
 	var publicKey = keys.getPrivateAndPublicKeyFromSecret(secret).publicKey;
 	var signedMessage = signMessageWithSecret(message, secret);
-	var signatureFooter = '-----END LISK SIGNED MESSAGE-----\r\n';
+	var signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
-	return messageHeader.concat(plainMessage, signatureHeader, publicKey, signedMessage, signatureFooter);
+	return messageHeader.concat(addLineBreak(), plainMessage, addLineBreak(), signatureHeader, addLineBreak(), publicKey, addLineBreak(), signedMessage, addLineBreak(), signatureFooter);
 }
 
 function printSignedMessage (message, signedMessage, publicKey) {
 
-	var messageHeader = '-----BEGIN LISK SIGNED MESSAGE-----\r\n';
+	var messageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	var plainMessage = message;
-	var signatureHeader = '-----BEGIN SIGNATURE-----\r\n';
+	var signatureHeader = '-----BEGIN SIGNATURE-----';
 	var printPublicKey = publicKey;
 	var printSignedMessage = signedMessage;
-	var signatureFooter = '-----END LISK SIGNED MESSAGE-----\r\n';
+	var signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
-	return messageHeader.concat(plainMessage, signatureHeader, printPublicKey, printSignedMessage, signatureFooter);
+	return messageHeader.concat(addLineBreak(), plainMessage, addLineBreak(), signatureHeader, addLineBreak(), printPublicKey, addLineBreak(), printSignedMessage, addLineBreak(), signatureFooter);
 }
 
 function verifyMessageWithPublicKey (signedMessage, publicKey) {
@@ -833,10 +834,6 @@ function verifyMessageWithPublicKey (signedMessage, publicKey) {
 	var publicKeyBytes = convert.hexToBuffer(publicKey);
 
 	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
-
-	if(openSignature === null || openSignature === undefined) {
-		throw new Error('The public key does not match the signed message.');
-	}
 
 	//returns original message
 	return naclInstance.decode_utf8(openSignature);
@@ -854,12 +851,16 @@ function signMessageWithSecret (message, secret) {
 	return hexSignedMessage;
 }
 
+function addLineBreak () {
+	return '\n';
+}
 
 module.exports = {
 	verifyMessageWithPublicKey: verifyMessageWithPublicKey,
 	signMessageWithSecret: signMessageWithSecret,
 	printSignedMessage: printSignedMessage,
-	signAndPrintMessage: signAndPrintMessage
+	signAndPrintMessage: signAndPrintMessage,
+	addLineBreak: addLineBreak
 }
 },{"./convert":5,"./keys":8}],10:[function(require,module,exports){
 /**

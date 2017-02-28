@@ -183,11 +183,11 @@ describe("crypto/index.js", function () {
 			var signedMessage = newcrypto.signMessageWithSecret(message, secret);
 			var printedMessage = newcrypto.printSignedMessage(message, signedMessage, keypair.publicKey);
 
-			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\r\n'+
-				'not secret message\r\n'+
-				'-----BEGIN SIGNATURE-----\r\n'+
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\r\n'+
-				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\r\n'+
+			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\n'+
+				'not secret message\n'+
+				'-----BEGIN SIGNATURE-----\n'+
+				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\n'+
+				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\n'+
 				'-----END LISK SIGNED MESSAGE-----';
 
 			(printedMessage).should.be.equal(signedMessageExample);
@@ -206,11 +206,11 @@ describe("crypto/index.js", function () {
 			var secret = '123';
 			var printSignedMessage = newcrypto.signAndPrintMessage(message, secret);
 
-			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\r\n'+
-				'not secret message\r\n'+
-				'-----BEGIN SIGNATURE-----\r\n'+
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\r\n'+
-				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\r\n'+
+			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\n'+
+				'not secret message\n'+
+				'-----BEGIN SIGNATURE-----\n'+
+				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\n'+
+				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\n'+
 				'-----END LISK SIGNED MESSAGE-----';
 
 			(printSignedMessage).should.be.equal(signedMessageExample);
@@ -220,23 +220,6 @@ describe("crypto/index.js", function () {
 
 
 	});
-
-	describe("#addLineBreak sign.js", function() {
-
-		it("should create linebreak", function() {
-
-			var functionLinebreak = newcrypto.addLineBreak();
-			var linebreak = '\r\n';
-
-			(functionLinebreak).should.be.equal(linebreak);
-
-
-		});
-
-
-	});
-
-
 
 
 });
