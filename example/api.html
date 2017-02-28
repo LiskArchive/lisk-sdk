@@ -54,6 +54,18 @@
                         <a class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>Settings</b></a>
                         <a href="#settings_example_1" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">Example 1 <small>random node</small></a>
                         <a href="#settings_example_2" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">Example 2 <small>localhost</small></a>
+                        <a class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>API Functions</b></a>
+                        <a href="#functions_listActiveDelegates" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listActiveDelegates</a>
+                        <a href="#functions_listStandyDelegates" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listStandyDelegates</a>
+                        <a href="#functions_searchDelegateByUsername" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">searchDelegateByUsername</a>
+                        <a href="#functions_getBlock" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">getBlock</a>
+                        <a href="#functions_listBlocks" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listBlocks</a>
+                        <a href="#functions_listForgedBlocks" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listForgedBlocks</a>
+                        <a href="#functions_getTransaction" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">getTransaction</a>
+                        <a href="#functions_listTransactions" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listTransactions</a>
+                        <a href="#functions_listVotes" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listVotes</a>
+                        <a href="#functions_listVoters" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listVoters</a>
+
                         <a class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>Network Functions</b></a>
                         <a href="#functions_sendRequest" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">sendRequest</a>
                         <a href="#functions_getNetHash" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">getNetHash</a>
@@ -126,6 +138,208 @@ var options = {
 
 //Initiate new Lisk Constructor
 var LSK = lisk.api(options);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h2>API Functions</h2>
+
+                <h3 id="functions_listActiveDelegates">listActiveDelegates</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>first 5 delegates</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.listActiveDelegates(5);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_listStandyDelegates">listStandyDelegates</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>first 6 delegates</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.listStandyDelegates(6);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_searchDelegateByUsername">searchDelegateByUsername</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>search username</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.searchDelegateByUsername('username');
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getBlock">getBlock</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>get information on certain Blockheight</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.getBlock(block);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_listBlocks">listBlocks</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.listBlocks(amount);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_listForgedBlocks">listForgedBlocks</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.listForgedBlocks(publicKey);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getTransaction">getTransaction</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.getTransaction(transactionId);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_listTransactions">listTransactions</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.listTransactions(address);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_listVotes">listVotes</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.listVotes(address);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_listVoters">listVoters</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api.listVoters(publicKey);
                                         </code>
                                     </pre>
                                 </figure>
