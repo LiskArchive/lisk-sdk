@@ -12,7 +12,7 @@ module.exports = function(grunt) {
         },
         pkg: grunt.file.readJSON('package.json'),
         browserify: {
-            'app.js': ['index.js']
+            'lisk-js.js': ['index.js']
         }
     });
 
