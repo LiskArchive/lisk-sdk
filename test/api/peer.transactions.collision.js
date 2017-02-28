@@ -36,7 +36,6 @@ describe('POST /peer/transactions', function () {
 			});
 		});
 
-
 		before(function (done) {
 			// Send funds to collision account
 			var transaction = node.lisk.transaction.createTransaction(collision.address, 220000000, node.gAccount.password);

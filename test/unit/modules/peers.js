@@ -160,7 +160,6 @@ describe('peers', function () {
 					expect(inserted).not.to.be.empty;
 					expect(inserted.ip + ':' + inserted.port).that.equals(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
 					expect(inserted.height).that.equals(almostEmptyPeer.height);
-
 					done();
 				});
 			});
