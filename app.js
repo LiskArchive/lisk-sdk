@@ -664,6 +664,21 @@ module.exports = {
 	useFirstEightBufferEntriesReversed: useFirstEightBufferEntriesReversed
 }
 },{"./hash":6,"buffer/":64,"crypto-browserify":73}],6:[function(require,module,exports){
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 var crypto = require('crypto-browserify');
 var convert = require('./convert');
 
@@ -698,6 +713,8 @@ module.exports = {
 	useFirstEightBufferEntriesReversed: convert.useFirstEightBufferEntriesReversed,
 	verifyMessageWithPublicKey: sign.verifyMessageWithPublicKey,
 	signMessageWithSecret: sign.signMessageWithSecret,
+	signAndPrintMessage: sign.signAndPrintMessage,
+	printSignedMessage: sign.printSignedMessage,
 	getPrivateAndPublicKeyFromSecret: keys.getPrivateAndPublicKeyFromSecret,
 	getRawPrivateAndPublicKeyFromSecret: keys.getRawPrivateAndPublicKeyFromSecret,
 	getAddressFromPublicKey: keys.getAddressFromPublicKey,
@@ -705,6 +722,21 @@ module.exports = {
 
 };
 },{"./convert":5,"./hash":6,"./keys":8,"./sign":9}],8:[function(require,module,exports){
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 var Buffer = require('buffer/').Buffer;
 var bignum = require('browserify-bignum');
 
@@ -752,18 +784,56 @@ module.exports = {
 	getAddressFromPublicKey: getAddressFromPublicKey
 }
 },{"./convert":5,"./hash":6,"browserify-bignum":49,"buffer/":64}],9:[function(require,module,exports){
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 var convert = require('./convert');
 var keys = require('./keys');
 
+function signAndPrintMessage (message, secret) {
+
+
+	var messageHeader = '-----BEGIN LISK SIGNED MESSAGE-----\r\n';
+	var plainMessage = message;
+	var signatureHeader = '-----BEGIN SIGNATURE-----\r\n';
+	var publicKey = keys.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+	var signedMessage = signMessageWithSecret(message, secret);
+	var signatureFooter = '-----END LISK SIGNED MESSAGE-----\r\n';
+
+	return messageHeader.concat(plainMessage, signatureHeader, publicKey, signedMessage, signatureFooter);
+}
+
+function printSignedMessage (message, signedMessage, publicKey) {
+
+	var messageHeader = '-----BEGIN LISK SIGNED MESSAGE-----\r\n';
+	var plainMessage = message;
+	var signatureHeader = '-----BEGIN SIGNATURE-----\r\n';
+	var printPublicKey = publicKey;
+	var printSignedMessage = signedMessage;
+	var signatureFooter = '-----END LISK SIGNED MESSAGE-----\r\n';
+
+	return messageHeader.concat(plainMessage, signatureHeader, printPublicKey, printSignedMessage, signatureFooter);
+}
 
 function verifyMessageWithPublicKey (signedMessage, publicKey) {
 
-	var publicKeyBytes = convert.hexToBuffer(publicKey);
 	var signedMessageBytes = convert.hexToBuffer(signedMessage);
+	var publicKeyBytes = convert.hexToBuffer(publicKey);
 
 	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
 
-	console.log(openSignature);
 	if(openSignature === null || openSignature === undefined) {
 		throw new Error('The public key does not match the signed message.');
 	}
@@ -775,8 +845,9 @@ function verifyMessageWithPublicKey (signedMessage, publicKey) {
 
 function signMessageWithSecret (message, secret) {
 
-	var keypair = keys.getRawPrivateAndPublicKeyFromSecret(secret);
 	var msg = naclInstance.encode_utf8(message);
+	var keypair = keys.getRawPrivateAndPublicKeyFromSecret(secret);
+
 	var signedMessage = naclInstance.crypto_sign(msg, keypair.privateKey);
 	var hexSignedMessage = convert.bufferToHex(signedMessage);
 
@@ -786,7 +857,9 @@ function signMessageWithSecret (message, secret) {
 
 module.exports = {
 	verifyMessageWithPublicKey: verifyMessageWithPublicKey,
-	signMessageWithSecret: signMessageWithSecret
+	signMessageWithSecret: signMessageWithSecret,
+	printSignedMessage: printSignedMessage,
+	signAndPrintMessage: signAndPrintMessage
 }
 },{"./convert":5,"./keys":8}],10:[function(require,module,exports){
 /**

@@ -127,16 +127,13 @@ describe("crypto/index.js", function () {
 			(address).should.be.equal(address1);
 		});
 
-
-
-
 	});
 
 	describe("#signMessageWithSecret sign.js", function() {
 
-		var message = 'secret message';
+		var message = 'not secret message';
 		var secret = '123';
-		var signedMessageDone = 'cad6ea1cf7ade19f92a613da3cdf1fee405d58b4512e7b297828ea1dbd7d3fc682a55d2876e425dea09d4c61ff00a0d6fb121e7702f6fd53fb179a6f8b250609736563726574206d657373616765';
+		var signedMessageDone = '27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765';
 
 		var signedMessage = newcrypto.signMessageWithSecret(message, secret);
 
@@ -157,7 +154,7 @@ describe("crypto/index.js", function () {
 	describe("#verifyMessageWithPublicKey sign.js", function() {
 
 
-		var message = 'secret message';
+		var message = 'not secret message';
 		var secret = '123';
 		var keypair = newcrypto.getPrivateAndPublicKeyFromSecret(secret);
 		var publicKey = keypair.publicKey;
@@ -174,8 +171,71 @@ describe("crypto/index.js", function () {
 			(verifyMessage).should.be.equal(message);
 		});
 
+	});
+
+	describe("#printSignedMessage sign.js", function() {
+
+		it("should wrap the signed message into a printed Lisk template", function() {
+
+			var message = 'not secret message';
+			var secret = '123';
+			var keypair = newcrypto.getPrivateAndPublicKeyFromSecret(secret);
+			var signedMessage = newcrypto.signMessageWithSecret(message, secret);
+			var printedMessage = newcrypto.printSignedMessage(message, signedMessage, keypair.publicKey);
+
+			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\r\n'+
+				'not secret message\r\n'+
+				'-----BEGIN SIGNATURE-----\r\n'+
+				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\r\n'+
+				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\r\n'+
+				'-----END LISK SIGNED MESSAGE-----';
+
+			(printedMessage).should.be.equal(signedMessageExample);
+
+
+		});
+
 
 	});
+
+	describe("#signAndPrintMessage sign.js", function() {
+
+		it("should wrap the signed message into a printed Lisk template", function() {
+
+			var message = 'not secret message';
+			var secret = '123';
+			var printSignedMessage = newcrypto.signAndPrintMessage(message, secret);
+
+			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\r\n'+
+				'not secret message\r\n'+
+				'-----BEGIN SIGNATURE-----\r\n'+
+				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\r\n'+
+				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\r\n'+
+				'-----END LISK SIGNED MESSAGE-----';
+
+			(printSignedMessage).should.be.equal(signedMessageExample);
+
+
+		});
+
+
+	});
+
+	describe("#addLineBreak sign.js", function() {
+
+		it("should create linebreak", function() {
+
+			var functionLinebreak = newcrypto.addLineBreak();
+			var linebreak = '\r\n';
+
+			(functionLinebreak).should.be.equal(linebreak);
+
+
+		});
+
+
+	});
+
 
 
 
