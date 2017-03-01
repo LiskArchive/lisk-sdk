@@ -44,7 +44,7 @@
             <p>The lisk-js package allows you to use the cryptography, several nodes or the API of Lisk.</p>
             -->
             <div class="col-md-2" id="listGroupNav">
-                <div class="list-group custom-collapse" style="position: fixed; left: 10%; top: 220px;width:250px!important;">
+                <div class="list-group custom-collapse" style="overflow-y: scroll; position: fixed; left: 5%; top: 220px;width:300px!important;">
                     <a class="list-group-item" data-remote="true" href="#api_sub" id="api" data-toggle="collapse" data-parent="#api_sub">
                         <span>API</span>
                         <span class="menu-ico-collapse"><i class="fa fa-chevron-down"></i></span>
@@ -91,6 +91,31 @@
                         <a class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 24px;"><b>Functions</b></a>
                         <a href="#functions_getKeys" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getKeys</a>
                         <a href="#functions_getAddress" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getAddress</a>
+                        <a href="#functions_getBytes" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getBytes</a>
+                        <a href="#functions_getHash" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getHash</a>
+                        <a href="#functions_getId" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getId</a>
+                        <a href="#functions_getFee" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getFee</a>
+                        <a href="#functions_sign" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">sign</a>
+                        <a href="#functions_secondSign" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">secondSign</a>
+                        <a href="#functions_multiSign" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">multiSign</a>
+                        <a href="#functions_getKeys" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getKeys</a>
+                        <a href="#functions_verify" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verify</a>
+                        <a href="#functions_verifySecondSignature" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verifySecondSignature</a>
+                        <a href="#functions_fixedPoint" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">fixedPoint</a>
+
+
+                        <a href="#functions_bufferToHex" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">bufferToHex</a>
+                        <a href="#functions_hexToBuffer" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">hexToBuffer</a>
+                        <a href="#functions_useFirstEightBufferEntriesReversed" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">useFirstEightBufferEntriesReversed</a>
+                        <a href="#functions_signMessageWithSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">signMessageWithSecret</a>
+                        <a href="#functions_printSignedMessage" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">printSignedMessage</a>
+                        <a href="#functions_signAndPrintMessage" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">signAndPrintMessage</a>
+                        <a href="#functions_verifyMessageWithPublicKey" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verifyMessageWithPublicKey</a>
+                        <a href="#functions_getPrivateAndPublicKeyFromSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getPrivateAndPublicKeyFromSecret</a>
+                        <a href="#functions_getRawPrivateAndPublicKeyFromSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getRawPrivateAndPublicKeyFromSecret</a>
+                        <a href="#functions_getAddressFromPublicKey" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getAddressFromPublicKey</a>
+                        <a href="#functions_getSha256Hash" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getSha256Hash</a>
+
                     </div>
 
                     <a type="button" class="list-group-item" href="#functions_createTransaction">Transaction</a>
@@ -569,6 +594,542 @@ var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da65
 
                     </div>
                 </div>
+
+                <h3 id="functions_getBytes">getBytes</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p>getBytes from a transaction</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transactionBytes = lisk.crypto.getBytes(transactionObject);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getHash">getHash</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>getHash from a transaction Object</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transactionHash = lisk.crypto.getHash(transactionObject);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getId">getId</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>getId from a transaction Object</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transactionId = lisk.crypto.getId(transactionObject);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getFee">getFee</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>getFee from a transaction Object</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transactionFee = lisk.crypto.getFee(transactionObject);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_sign">sign</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>sign a transaction Object with keys</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transactionSignature = lisk.crypto.sign(transactionObject, keypair);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_secondSign">secondSign</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>secondSign a transaction Object with keys</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transactionSignature = lisk.crypto.secondSign(transactionObject, keypair);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_multiSign">multiSign</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>multiSign a transaction Object with keys</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transactionSignature = lisk.crypto.multiSign(transactionObject, keypair);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getKeys">getKeys</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>getKeys from a plain text secret</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var keypair = lisk.crypto.getKeys(secret);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_verify">verify</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>verify a transaction Object</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var verification = lisk.crypto.verify(transactionObject);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_verifySecondSignature">verifySecondSignature</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>verify a transaction Object</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var verification = lisk.crypto.verifySecondSignature(transactionObject);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_fixedPoint">fixedPoint</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Multiply a number by 10^8 as the decimal place in Lisk</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var bigAmount = lisk.crypto.fixedPoint(amount);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_bufferToHex">bufferToHex</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>convert a buffer to a hex string</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var hexString = lisk.crypto.bufferToHex(buffer);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_hexToBuffer">hexToBuffer</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>convert a hex string to a buffer</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var bufferValue = lisk.crypto.hexToBuffer(hexString);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_useFirstEightBufferEntriesReversed">useFirstEightBufferEntriesReversed</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Takes a buffer, cuts off the first 8 bytes and reverses those</p>
+                                <p>This function is used in order to calculate ID's</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var rawId = lisk.crypto.useFirstEightBufferEntriesReversed(buffer);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_signMessageWithSecret">signMessageWithSecret</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Signs a message (<b>not encrypted</b>) using a plain message and a secret</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var messageSignature = lisk.crypto.signMessageWithSecret(message, secret);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_printSignedMessage">printSignedMessage</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Prints the signed message in the following format:</p>
+                                <pre>
+                                    -----BEGIN LISK SIGNED MESSAGE-----
+                                    &lt;message&gt;
+                                    -----BEGIN SIGNATURE-----
+                                    &lt;address&gt;
+                                    &lt;signature&gt;
+                                    -----END LISK SIGNED MESSAGE-----
+                                </pre>
+                                <p>It is recommended in order to contain strcuture, in HTMl put the output into a pre tag.</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_signAndPrintMessage">signAndPrintMessage</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Signs a message with the secret and outputs the result for print.</p>
+                                <p>It combines <a href="#functions_signMessageWithSecret">signMessageWithSecret</a> and <a href="#functions_printSignedMessage">printSignedMessage</a></p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_verifyMessageWithPublicKey">verifyMessageWithPublicKey</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Verifys a signed message with the public key. Either returns null if not valid, if valid returns the original message.</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var verifySignedMessage = lisk.crypto.verifyMessageWithPublicKey(signedMessage, publicKey);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getPrivateAndPublicKeyFromSecret">getPrivateAndPublicKeyFromSecret</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Returns a keypair from a secret (passphrase).</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var keypair = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                                Returning
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+{
+    publicKey: publicKey(hex),
+    privateKey: privateKey(hex)
+}
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getRawPrivateAndPublicKeyFromSecret">getRawPrivateAndPublicKeyFromSecret</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example</h3>
+                                <p></p>
+                                <p>Returns a keypair from a secret (passphrase) in bytes (raw).</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var keypairBytes = lisk.crypto.getRawPrivateAndPublicKeyFromSecret(secret);
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                                Returning
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+{
+    publicKey: publicKey(bytes),
+    privateKey: privateKey(bytes)
+}
+                                        </code>
+
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <h3 id="functions_getAddressFromPublicKey">getAddressFromPublicKey</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <figure class="highlight">
+                                <pre>
+                                    <code class="language-html" data-lang="html">
+var address = lisk.crypto.getAddressFromPublicKey(publicKeyHex);
+                                    </code>
+
+                                </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 id="functions_getSha256Hash">getSha256Hash</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <figure class="highlight">
+                                <pre>
+                                    <code class="language-html" data-lang="html">
+var sha256Hash = lisk.crypto.getSha256Hash(string);
+                                    </code>
+
+                                </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
 
                 <h2>Transaction</h2>
 
