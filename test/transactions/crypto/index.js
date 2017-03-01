@@ -5,7 +5,7 @@ var crypto_lib = common.crypto_lib;
 
 
 describe("crypto/index.js", function () {
-	var newcrypto = lisk.newcrypto;
+	var newcrypto = lisk.crypto;
 
 	it("should be ok", function () {
 		(newcrypto).should.be.ok;
