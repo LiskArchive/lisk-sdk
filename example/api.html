@@ -23,7 +23,7 @@
             <a class="navbar-brand" href="../index.html"><span><img width="25" height="25" src="lisk.png"/></span> lisk-js</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
+            <ul class="nav navbar-nav navbar-right">
                 <li><a href="../index.html">HOME</a></li>
                 <li class="active"><a href="api.html">API</a></li>
                 <li><a href="experiment.html">EXPERIMENT</a></li>
@@ -51,27 +51,35 @@
                     </a>
 
                     <div class="collapse list-group-submenu" id="api_sub">
-                        <a class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>Settings</b></a>
-                        <a href="#settings_example_1" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">Example 1 <small>random node</small></a>
-                        <a href="#settings_example_2" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">Example 2 <small>localhost</small></a>
-                        <a class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>API Functions</b></a>
-                        <a href="#functions_listActiveDelegates" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listActiveDelegates</a>
-                        <a href="#functions_listStandyDelegates" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listStandyDelegates</a>
-                        <a href="#functions_searchDelegateByUsername" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">searchDelegateByUsername</a>
-                        <a href="#functions_getBlock" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">getBlock</a>
-                        <a href="#functions_listBlocks" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listBlocks</a>
-                        <a href="#functions_listForgedBlocks" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listForgedBlocks</a>
-                        <a href="#functions_getTransaction" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">getTransaction</a>
-                        <a href="#functions_listTransactions" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listTransactions</a>
-                        <a href="#functions_listVotes" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listVotes</a>
-                        <a href="#functions_listVoters" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">listVoters</a>
 
-                        <a class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>Network Functions</b></a>
-                        <a href="#functions_sendRequest" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">sendRequest</a>
-                        <a href="#functions_getNetHash" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">getNetHash</a>
-                        <a href="#functions_setNode" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">setNode</a>
-                        <a href="#functions_setSSL" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">setSSL</a>
-                        <a href="#functions_setTestnet" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 34px;">setTestnet</a>
+                        <a href="#settings_sub" data-toggle="collapse" data-parent="#settings_sub" class="list-group-item sub-item"  style="padding-left: 24px;"><b>Settings</b></a>
+                        <div class="collapse list-group-submenu" id="settings_sub">
+                            <a href="#settings_example_1" class="list-group-item sub-item" data-parent="#settings_sub" style="padding-left: 34px;">Example 1 <small>random node</small></a>
+                            <a href="#settings_example_2" class="list-group-item sub-item" data-parent="#settings_sub" style="padding-left: 34px;">Example 2 <small>localhost</small></a>
+                        </div>
+
+                        <a href="#api_functions_sub" data-toggle="collapse" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 24px;"><b>API Functions</b></a>
+                        <div class="collapse list-group-submenu" id="api_functions_sub">
+                            <a href="#functions_listActiveDelegates" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listActiveDelegates</a>
+                            <a href="#functions_listStandyDelegates" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listStandyDelegates</a>
+                            <a href="#functions_searchDelegateByUsername" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">searchDelegateByUsername</a>
+                            <a href="#functions_getBlock" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">getBlock</a>
+                            <a href="#functions_listBlocks" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listBlocks</a>
+                            <a href="#functions_listForgedBlocks" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listForgedBlocks</a>
+                            <a href="#functions_getTransaction" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">getTransaction</a>
+                            <a href="#functions_listTransactions" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listTransactions</a>
+                            <a href="#functions_listVotes" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVotes</a>
+                            <a href="#functions_listVoters" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVoters</a>
+                        </div>
+
+                        <a href="#network_sub" data-toggle="collapse" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>Network Functions</b></a>
+                        <div class="collapse list-group-submenu" id="network_sub">
+                            <a href="#functions_sendRequest" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">sendRequest</a>
+                            <a href="#functions_getNetHash" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">getNetHash</a>
+                            <a href="#functions_setNode" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">setNode</a>
+                            <a href="#functions_setSSL" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">setSSL</a>
+                            <a href="#functions_setTestnet" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">setTestnet</a>
+                        </div>
                     </div>
 
                     <a class="list-group-item" data-remote="true" href="#crypto_sub" id="api" data-toggle="collapse" data-parent="#crypto_sub">
@@ -721,6 +729,15 @@ var transaction = lisk.vote.createVote("secret", ["+5819957819195001929918192012
     "use strict";
 
     $(window).on('resize', function(){
+	    var windowSize = $(window).width();
+	    if(windowSize < 1500) {
+		    $('#listGroupNav').hide();
+	    } else {
+		    $('#listGroupNav').show();
+	    }
+    });
+
+    $(document).ready(function() {
 	    var windowSize = $(window).width();
 	    if(windowSize < 1500) {
 		    $('#listGroupNav').hide();

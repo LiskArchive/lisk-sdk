@@ -23,7 +23,7 @@
             <a class="navbar-brand" href="index.html"><span><img width="25" height="25" src="example/lisk.png"/></span> lisk-js</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
+            <ul class="nav navbar-nav navbar-right">
                 <li class="active"><a href="index.html">HOME</a></li>
                 <li><a href="example/api.html">API</a></li>
                 <li><a href="example/experiment.html">EXPERIMENT</a></li>
@@ -132,6 +132,31 @@
 
 <script src="/app.js"></script>
 
+<script>
+    "use strict";
+	$(function() {
 
+		$('a[href="#toggle-search"], .navbar-bootsnipp .bootsnipp-search .input-group-btn > .btn[type="reset"]').on('click', function(event) {
+			event.preventDefault();
+			$('.navbar-bootsnipp .bootsnipp-search .input-group > input').val('');
+			$('.navbar-bootsnipp .bootsnipp-search').toggleClass('open');
+			$('a[href="#toggle-search"]').closest('li').toggleClass('active');
+
+			if ($('.navbar-bootsnipp .bootsnipp-search').hasClass('open')) {
+                /* I think .focus dosen't like css animations, set timeout to make sure input gets focus */
+				setTimeout(function() {
+					$('.navbar-bootsnipp .bootsnipp-search .form-control').focus();
+				}, 100);
+			}
+		});
+
+		$(document).on('keyup', function(event) {
+			if (event.which == 27 && $('.navbar-bootsnipp .bootsnipp-search').hasClass('open')) {
+				$('a[href="#toggle-search"]').trigger('click');
+			}
+		});
+
+	});
+</script>
 </body>
 </html>
