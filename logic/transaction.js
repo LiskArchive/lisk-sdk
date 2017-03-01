@@ -320,7 +320,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check sender is not genesis account unless block id equals genesis
-	if ( (sender.publicKey === exceptions.genesisPublicKey.mainnet || sender.publicKey === exceptions.genesisPublicKey.testnet) && trs.blockId !== genesisblock.block.id) {
+	if ([exceptions.genesisPublicKey.mainnet, exceptions.genesisPublicKey.testnet].indexOf(sender.publicKey) !== -1 && trs.blockId !== genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid sender. Can not send from genesis account');
 	}
 
