@@ -319,9 +319,9 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		}
 	}
 
-	// Check if not sending is not genesis account
-	if (sender.publicKey === exceptions.genesisPublicKey.mainnet && trs.blockId !== genesisblock.block.id) {
-		return setImmediate(cb, 'Attempt to send the money from genesis address');
+	// Check sender is not genesis account unless block id equals genesis
+	if ( (sender.publicKey === exceptions.genesisPublicKey.mainnet || sender.publicKey === exceptions.genesisPublicKey.testnet) && trs.blockId !== genesisblock.block.id) {
+		return setImmediate(cb, 'Invalid sender. Can not send from genesis account');
 	}
 
 	// Check sender address
