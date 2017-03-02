@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Using Lisk-JS</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">lisk-js API example</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="index.html">HOME</a></li>
+                <li class="active"><a href="api.html">API</a></li>
+                <li><a href="experiment.html">EXPERIMENT</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="starter-template">
+        <h1>API</h1>
+
+        <p>The lisk-js package allows you to use the cryptography, several nodes or the API of Lisk.</p>
+
+        <div class="rows">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <a type="button" class="list-group-item" href="#api">API</a>
+                    <a type="button" class="list-group-item" href="#crypto">Crypto</a>
+                    <a type="button" class="list-group-item" href="#transaction">Transaction</a>
+                    <a type="button" class="list-group-item" href="#vote">Vote</a>
+                    <a type="button" class="list-group-item" href="#dapp">Dapp</a>
+                    <a type="button" class="list-group-item" href="#delegate">Delegate</a>
+                    <a type="button" class="list-group-item" href="#signature">Signature</a>
+                    <a type="button" class="list-group-item" href="#multisignature">Multisignature</a>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <h2 id="api">API</h2>
+                <h3>Settings</h3>
+                <p>When setting up your API, you have various settings, you can use the LiskAPI with. See the examples below</p>
+                <p>You do not have to enter settings, when you want to use default, just initate the constructor.</p>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example 1 <small>random node, testnet with port 7000</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var options = {
+    ssl: false, // default false
+    node: '', //default autoFind
+    autoFindNode: true, //default true
+    testnet: true, //default false
+    port: '7000' //default 8000
+    bannedNodes: [], //default empty
+
+};
+
+//Initiate new Lisk Constructor
+var LSK = lisk.api(options);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                            <div class="col-md-12">
+                                <h3>Example 2 <small>stick to localhost, port 8000, no SSL</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var options = {
+    ssl: false, // default false
+    node: 'localhost', //write node without http:// or port
+    autoFindNode: false, //default true
+    testnet: false, //default false
+    port: '8000' //default 8000
+    bannedNodes: [], //default empty
+
+};
+
+//Initiate new Lisk Constructor
+var LSK = lisk.api(options);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h2>Functions</h2>
+
+                <h3>getNethash</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>mainnet nethash</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api();
+var nethash = LSK.getNethash();
+
+//your variable nethash now contains:
+'Content-Type': 'application/json',
+'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+'os': 'lisk-js-api',
+'version': '1.0.0',
+'minVersion': '>=0.5.0',
+'port': this.port
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3>setNode</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>set node to mynode.com</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api();
+LSK.setNode('mynode.com');
+
+//If you use LSK.setNode(); without entering a node, you will choose a new random node.
+
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3>setSSL</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>set connection to use SSL</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api();
+LSK.setSSL(true); //or false
+
+
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3>setTestnet</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>set connection to use Mainnet / Testnet</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api();
+LSK.setTestnet(true); //or false
+
+
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3>sendRequest</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <p>You can use the full API via sendRequest. Your passphrase will never leave your Browser.</p>
+                        <p>All API calls are wrapped up locally and broadcasted to the server as fully signed transaction.</p>
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>GET</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+
+var LSK = lisk.api();
+LSK.sendRequest('blocks/getHeight', function(data) {
+
+    var str = JSON.stringify(data);
+    document.getElementById("output").innerHTML = str;
+
+});
+
+
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+
+                            <div class="col-md-12">
+                                <h3>Example <small>POST</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+
+var LSK = lisk.api();
+LSK.sendRequest('accounts/open ', { secret: 'my secret passphrase' } function(data) {
+
+    var str = JSON.stringify(data);
+    document.getElementById("output").innerHTML = str;
+
+});
+
+
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <h2 id="crypto"></h2>
+
+
+
+            </div>
+
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Latest compiled and minified JavaScript -->
+<script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+<script src="../app.js"></script>
+
+
+</body>
+</html>
