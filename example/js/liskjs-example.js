@@ -1,16 +1,16 @@
 "use strict";
 
 var options = {
-	ssl: false,
+	ssl: true,
 	node: '',
 	autoFindNode: false,
-	testnet: true,
-	port: '7000'
+	testnet: false,
+	port: ''
 
 };
 
 //Initiate new Lisk Constructor
-var LSK = lisk.api(options);
+var LSK = lisk.api();
 
 $(function() {
 
