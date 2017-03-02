@@ -74,14 +74,10 @@ Peer.prototype.accept = function (peer) {
 };
 
 Peer.prototype.normalize = function (peer) {
-	if (peer.dappid) {
-		if (!Array.isArray(peer.dappid)) {
-			var dappid = peer.dappid;
-			peer.dappid = [];
-			if (dappid) {
-				peer.dappid.push(dappid);
-			}
-		}
+	if (peer.dappid && !Array.isArray(peer.dappid)) {
+		var dappid = peer.dappid;
+		peer.dappid = [];
+		peer.dappid.push(dappid);
 	}
 
 	if (peer.height) {
