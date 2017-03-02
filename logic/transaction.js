@@ -319,6 +319,11 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 		}
 	}
 
+	// Check sender is not genesis account unless block id equals genesis
+	if ([exceptions.genesisPublicKey.mainnet, exceptions.genesisPublicKey.testnet].indexOf(sender.publicKey) !== -1 && trs.blockId !== genesisblock.block.id) {
+		return setImmediate(cb, 'Invalid sender. Can not send from genesis account');
+	}
+
 	// Check sender address
 	if (String(trs.senderId).toUpperCase() !== String(sender.address).toUpperCase()) {
 		return setImmediate(cb, 'Invalid sender address');
