@@ -1,11 +1,14 @@
 'use strict';
 
-var extend = require('extend');
+var _ = require('lodash');
 var ip = require('ip');
+
+var self;
 
 // Constructor
 function Peer (peer) {
-	return this.accept(peer || {});
+	self = this;
+	return self.accept(peer || {});
 }
 
 // Public properties
@@ -13,6 +16,16 @@ Peer.prototype.properties = [
 	'ip',
 	'port',
 	'state',
+	'os',
+	'version',
+	'dappid',
+	'broadhash',
+	'height',
+	'clock',
+	'updated'
+];
+
+Peer.prototype.headers = [
 	'os',
 	'version',
 	'dappid',
@@ -25,7 +38,9 @@ Peer.prototype.nullable = [
 	'version',
 	'dappid',
 	'broadhash',
-	'height'
+	'height',
+	'clock',
+	'updated'
 ];
 
 // Public methods
@@ -36,25 +51,35 @@ Peer.prototype.accept = function (peer) {
 		this.ip = peer.ip;
 	}
 
-	this.port = this.parseInt(peer.port, 0);
+	this.port = self.parseInt(peer.port, 0);
 
-	if (this.ip) {
-		this.string = (this.ip + ':' + this.port || 'unknown');
-	} else {
-		this.string = 'unknown';
+	if (this.ip && this.port) {
+		this.string = this.ip + ':' + this.port;
 	}
 
-	if (peer.state != null) {
+	if (/^[0-2]{1}$/.test(peer.state)) {
 		this.state = peer.state;
 	} else {
 		this.state = 1;
 	}
 
-	if (peer.dappid != null) {
-		this.dappid = peer.dappid;
+	if (peer.dappid) {
+		if (Array.isArray(peer.dappid)) {
+			this.dappid = peer.dappid;
+		} else {
+			this.dappid = [];
+			this.dappid.push(peer.dappid);
+		}
 	}
 
-	this.headers(peer);
+	if (peer.height) {
+		this.height = self.parseInt(peer.height, 1);
+	}
+
+	if (peer.clock) {
+		this.clock = peer.clock;
+	}
+
 	return this;
 };
 
@@ -65,49 +90,55 @@ Peer.prototype.parseInt = function (integer, fallback) {
 	return integer;
 };
 
-Peer.prototype.headers = function (headers) {
+Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
 
-	headers.os = headers.os || 'unknown';
-	headers.version = headers.version || '0.0.0';
-	headers.port = this.parseInt(headers.port, 0);
-
-	if (headers.height != null) {
-		headers.height = this.parseInt(headers.height, 1);
+	if (headers.height) {
+		headers.height = self.parseInt(headers.height, 1);
 	}
 
-	this.nullable.forEach(function (property) {
-		if (headers[property] != null) {
-			this[property] = headers[property];
-		} else {
-			delete headers[property];
+	if (headers.port) {
+		headers.port = self.parseInt(headers.port, 0);
+	}
+
+	_.each(headers, function (value, key) {
+		if (_.includes(this.headers, key)) {
+			this[key] = value;
 		}
 	}.bind(this));
 
 	return headers;
 };
 
-Peer.prototype.extend = function (object) {
-	var base = this.object();
-	var extended = extend(this.object(), object);
+Peer.prototype.update = function (object) {
+	_.each(object, function (value, key) {
+		// Change value only when is defined, also prevent release ban when banned peer connect to our node
+		if (value !== null && value !== undefined && !(key === 'state' && this.state === 0 && object.state === 2)) {
+			this[key] = value;
+		}
+	}.bind(this));
 
-	return this.headers(extended);
+	return this;
 };
 
 Peer.prototype.object = function () {
-	var object = {};
+	var copy = {};
 
-	this.properties.forEach(function (property) {
-		object[property] = this[property];
+	_.each(self.properties, function (key) {
+		copy[key] = this[key];
 	}.bind(this));
 
-	this.nullable.forEach(function (property) {
-		if (object[property] == null) {
-			object[property] = null;
+	_.each(self.nullable, function (key) {
+		if (!copy[key]) {
+			copy[key] = null;
 		}
 	});
 
-	return object;
+	if (!/^[0-2]{1}$/.test(this.state)) {
+		copy.state = 1;
+	}
+
+	return copy;
 };
 
 // Export

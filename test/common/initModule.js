@@ -4,6 +4,7 @@ var express = require('express');
 var path = require('path');
 var _ = require('lodash');
 
+var async = require('../node').async;
 var dirname = path.join(__dirname, '..', '..');
 var config = require(path.join(dirname, '/config.json'));
 var database = require(path.join(dirname, '/helpers', 'database.js'));
@@ -23,7 +24,10 @@ var modulesLoader = new function () {
 			app: express()
 		},
 		public: '../../public',
-		schema: new z_schema()
+		schema: new z_schema(),
+		bus: {
+			message: function () {}
+		}
 	};
 
 	/**
@@ -46,6 +50,71 @@ var modulesLoader = new function () {
 	 */
 	this.initModule = function (Module, scope, cb) {
 		return new Module(cb, scope);
+	};
+
+	/**
+	 * Initializes multiple Modules
+	 *
+	 * @param {Array<{name: Module}>} modules
+	 * @param {Array<{name: Logic}>} logic
+	 * @param {Object>} scope
+	 * @param {Function} cb
+	 */
+	this.initModules = function (modules, logic, scope, cb) {
+		async.waterfall([
+			function (waterCb) {
+				this.getDbConnection(waterCb);
+			}.bind(this),
+			function (db, waterCb) {
+				scope = _.merge(this.scope, {db: db});
+				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
+					var name = _.keys(logicObj)[0];
+					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
+						memo[name] = initializedLogic;
+						return mapCb(err, memo);
+					});
+				}.bind(this), waterCb);
+			}.bind(this),
+			function (logic, waterCb) {
+				scope = _.merge(this.scope, {logic: logic});
+				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
+					var name = _.keys(moduleObj)[0];
+					return this.initModule(moduleObj[name], scope, function (err, module) {
+						memo[name] = module;
+						return mapCb(err, memo);
+					}.bind(this));
+				}.bind(this), waterCb);
+			}.bind(this)
+		], cb);
+	};
+
+	/**
+	 * Initializes all created Modules in directory
+	 *
+	 * @param {Function} cb
+	 */
+	this.initAllModules = function (cb) {
+		this.initModules([
+			{accounts: require('../../modules/accounts')},
+			{blocks: require('../../modules/blocks')},
+			{crypto: require('../../modules/crypto')},
+			{delegates: require('../../modules/delegates')},
+			{loader: require('../../modules/loader')},
+			{multisignatures: require('../../modules/multisignatures')},
+			{peers: require('../../modules/peers')},
+			{rounds: require('../../modules/rounds')},
+			{server: require('../../modules/server')},
+			{signatures: require('../../modules/signatures')},
+			{sql: require('../../modules/sql')},
+			{system: require('../../modules/system')},
+			{transactions: require('../../modules/transactions')},
+			{transport: require('../../modules/transport')}
+		], [
+			{'transaction': require('../../logic/transaction')},
+			{'account': require('../../logic/account')},
+			{'block': require('../../logic/block')},
+			{'peers': require('../../logic/peers.js')}
+		], {}, cb);
 	};
 
 	/**

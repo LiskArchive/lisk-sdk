@@ -99,7 +99,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 			if (params.limit === self.config.peerLimit) { peers.splice(0, self.config.broadcastLimit); }
 
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
-				peer = modules.peers.accept(peer);
+				peer = library.logic.peers.create(peer);
 
 				modules.transport.getFromPeer(peer, options, function (err) {
 					if (err) {

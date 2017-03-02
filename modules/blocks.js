@@ -831,7 +831,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = __private.lastBlock;
 
-	peer = modules.peers.accept(peer);
+	peer = library.logic.peers.create(peer);
 	library.logger.info('Loading blocks from: ' + peer.string);
 
 	function getFromPeer (seriesCb) {
