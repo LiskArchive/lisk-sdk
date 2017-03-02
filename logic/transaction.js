@@ -133,7 +133,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 		if (trs.recipientId) {
 			var recipient = trs.recipientId.slice(0, -1);
-			recipient = bignum(recipient).toBuffer({size: 8});
+			recipient = new bignum(recipient).toBuffer({size: 8});
 
 			for (i = 0; i < 8; i++) {
 				bb.writeByte(recipient[i] || 0);
@@ -208,14 +208,14 @@ Transaction.prototype.checkConfirmed = function (trs, cb) {
 };
 
 Transaction.prototype.checkBalance = function (amount, balance, trs, sender) {
-	var exceededBalance = bignum(sender[balance].toString()).lessThan(amount);
+	var exceededBalance = new bignum(sender[balance].toString()).lessThan(amount);
 	var exceeded = (trs.blockId !== genesisblock.block.id && exceededBalance);
 
 	return {
 		exceeded: exceeded,
 		error: exceeded ? [
 			'Account does not have enough LSK:', sender.address,
-			'balance:', bignum(sender[balance].toString() || '0').div(Math.pow(10,8))
+			'balance:', new bignum(sender[balance].toString() || '0').div(Math.pow(10,8))
 		].join(' ') : null
 	};
 };
@@ -430,7 +430,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check confirmed sender balance
-	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
 	if (senderBalance.exceeded) {
@@ -519,7 +519,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 	}
 
 	// Check confirmed sender balance
-	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
 	if (senderBalance.exceeded) {
@@ -555,7 +555,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 };
 
 Transaction.prototype.undo = function (trs, block, sender, cb) {
-	var amount = bignum(trs.amount.toString());
+	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
 	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: modules.rounds.calc(block.height)});
@@ -590,7 +590,7 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 	}
 
 	// Check unconfirmed sender balance
-	var amount = bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
 
 	if (senderBalance.exceeded) {
@@ -617,7 +617,7 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 };
 
 Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	var amount = bignum(trs.amount.toString());
+	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
 	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {

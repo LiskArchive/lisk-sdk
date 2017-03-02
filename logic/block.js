@@ -110,7 +110,7 @@ Block.prototype.getBytes = function (block) {
 		bb.writeInt(block.timestamp);
 
 		if (block.previousBlock) {
-			var pb = bignum(block.previousBlock).toBuffer({size: '8'});
+			var pb = new bignum(block.previousBlock).toBuffer({size: '8'});
 
 			for (i = 0; i < 8; i++) {
 				bb.writeByte(pb[i]);
@@ -325,7 +325,7 @@ Block.prototype.getId = function (block) {
 		temp[i] = hash[7 - i];
 	}
 
-	var id = bignum.fromBuffer(temp).toString();
+	var id = new bignum.fromBuffer(temp).toString();
 	return id;
 };
 
@@ -358,7 +358,7 @@ Block.prototype.dbRead = function (raw) {
 			blockSignature: raw.b_blockSignature,
 			confirmations: parseInt(raw.b_confirmations)
 		};
-		block.totalForged = bignum(block.totalFee).plus(bignum(block.reward)).toString();
+		block.totalForged = new bignum(block.totalFee).plus(new bignum(block.reward)).toString();
 		return block;
 	}
 };
