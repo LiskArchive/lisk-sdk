@@ -169,7 +169,7 @@ __private.dbLoad = function (cb) {
 	var updated = 0;
 	library.logger.trace('Importing peers from database');
 	library.db.any(sql.getAll).then(function (rows) {
-		library.logger.trace('Imported peers from database', {count: rows.length});
+		library.logger.info('Imported peers from database', {count: rows.length});
 		async.each (rows, function (peer, eachCb) {
 			peer = library.logic.peers.create(peer);
 
@@ -200,7 +200,7 @@ __private.dbLoad = function (cb) {
 };
 
 __private.dbSave = function (cb) {
-	var peers = library.logic.peers.list();
+	var peers = library.logic.peers.list(true);
 
 	// Do nothing when peers list is empty
 	if (!peers.length) {
@@ -210,16 +210,12 @@ __private.dbSave = function (cb) {
 
 	// Creating set of columns
 	var cs = new pgp.helpers.ColumnSet([
-		'ip', 'port',
-		{name: 'state',     def: 1},
-		{name: 'height',    def: 1},
-		{name: 'os',        def: null},
-		{name: 'version',   def: null},
+		'ip', 'port', 'state', 'height', 'os', 'version', 'clock',
 		{name: 'broadhash', def: null, init: function (col) {
-			return col ? new Buffer(col, 'hex') : null;
-		}},
-		{name: 'clock',     def: null}
+			return col.value ? new Buffer(col.value, 'hex') : null;
+		}}
 	], {table: 'peers'});
+
 	// Generating insert query
 	var insert_peers = pgp.helpers.insert(peers, cs);
 
@@ -246,7 +242,7 @@ __private.dbSave = function (cb) {
 
 		return t.batch(queries);
 	}).then(function (data) {
-		library.logger.debug('Peers exported to database');
+		library.logger.info('Peers exported to database');
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error('Export peers to database failed', {error: err.message || err});
@@ -428,7 +424,7 @@ Peers.prototype.list = function (options, cb) {
 	], function (err, peers) {
 		// Calculate consensus
 		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-		    consensus = isNaN(consensus) ? 0 : consensus;
+		consensus = isNaN(consensus) ? 0 : consensus;
 
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
 		return setImmediate(cb, err, peers, consensus);
@@ -482,9 +478,9 @@ Peers.prototype.onPeersReady = function () {
 				library.logger.trace('Updating peers', {count: peers.length});
 
 				async.each(peers, function (peer, eachCb) {
-					library.logger.trace('Updating peer', peer);
 					// If peer is not banned and not been updated during last 3 sec - ping
 					if (peer && peer.state > 0 && (!peer.updated || Date.now() - peer.updated > 3000)) {
+						library.logger.trace('Updating peer', peer);
 						self.ping(peer, function (err) {
 							++updated;
 							return setImmediate(eachCb);

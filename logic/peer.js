@@ -25,6 +25,12 @@ Peer.prototype.properties = [
 	'updated'
 ];
 
+Peer.prototype.immutable = [
+	'ip',
+	'port',
+	'string'
+];
+
 Peer.prototype.headers = [
 	'os',
 	'version',
@@ -45,42 +51,46 @@ Peer.prototype.nullable = [
 
 // Public methods
 Peer.prototype.accept = function (peer) {
-	if (/^[0-9]+$/.test(peer.ip)) {
-		this.ip = ip.fromLong(peer.ip);
-	} else {
-		this.ip = peer.ip;
-	}
+	// Normalize peer data
+	peer = self.normalize(peer);
 
-	this.port = self.parseInt(peer.port, 0);
+	// Accept only supported and defined properties
+	_.each(self.properties, function (key) {
+		if (peer[key] !== null && peer[key] !== undefined) {
+			this[key] = peer[key];
+		}
+	}.bind(this));
+
+	// Adjust properties according to rules
+	if (/^[0-9]+$/.test(this.ip)) {
+		this.ip = ip.fromLong(this.ip);
+	}
 
 	if (this.ip && this.port) {
 		this.string = this.ip + ':' + this.port;
 	}
 
-	if (/^[0-2]{1}$/.test(peer.state)) {
-		this.state = peer.state;
-	} else {
-		this.state = 1;
-	}
+	return this;
+};
 
-	if (peer.dappid) {
-		if (Array.isArray(peer.dappid)) {
-			this.dappid = peer.dappid;
-		} else {
-			this.dappid = [];
-			this.dappid.push(peer.dappid);
-		}
+Peer.prototype.normalize = function (peer) {
+	if (peer.dappid && !Array.isArray(peer.dappid)) {
+		var dappid = peer.dappid;
+		peer.dappid = [];
+		peer.dappid.push(dappid);
 	}
 
 	if (peer.height) {
-		this.height = self.parseInt(peer.height, 1);
+		peer.height = self.parseInt(peer.height, 1);
 	}
 
-	if (peer.clock) {
-		this.clock = peer.clock;
+	peer.port = self.parseInt(peer.port, 0);
+
+	if (!/^[0-2]{1}$/.test(peer.state)) {
+		peer.state = 1;
 	}
 
-	return this;
+	return peer;
 };
 
 Peer.prototype.parseInt = function (integer, fallback) {
@@ -92,29 +102,19 @@ Peer.prototype.parseInt = function (integer, fallback) {
 
 Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
-
-	if (headers.height) {
-		headers.height = self.parseInt(headers.height, 1);
-	}
-
-	if (headers.port) {
-		headers.port = self.parseInt(headers.port, 0);
-	}
-
-	_.each(headers, function (value, key) {
-		if (_.includes(this.headers, key)) {
-			this[key] = value;
-		}
-	}.bind(this));
-
+	headers = self.normalize(headers);
+	self.update(headers);
 	return headers;
 };
 
-Peer.prototype.update = function (object) {
-	_.each(object, function (value, key) {
+Peer.prototype.update = function (peer) {
+	peer = self.normalize(peer);
+
+	// Accept only supported properties
+	_.each(self.properties, function (key) {
 		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (value !== null && value !== undefined && !(key === 'state' && this.state === 0 && object.state === 2)) {
-			this[key] = value;
+		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === 0 && peer.state === 2) && !_.includes(self.immutable, key)) {
+			this[key] = peer[key];
 		}
 	}.bind(this));
 
@@ -133,10 +133,6 @@ Peer.prototype.object = function () {
 			copy[key] = null;
 		}
 	});
-
-	if (!/^[0-2]{1}$/.test(this.state)) {
-		copy.state = 1;
-	}
 
 	return copy;
 };
