@@ -14,7 +14,7 @@ module.exports = function(grunt) {
 	    browserify: {
 		    js: {
 			    src: './index.js',
-			    dest: './app.js'
+			    dest: './lisk-js.js'
 		    },
 		    options: {
 			    browserifyOptions: {
