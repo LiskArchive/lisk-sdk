@@ -8,7 +8,7 @@ module.exports = function(grunt) {
                 configFile: 'eslint_ecma5.json',
                 reset: true
             },
-            target: ['lib/**']
+            target: ['lib/**', 'test/**', 'Gruntfile.js', 'index.js']
         },
         pkg: grunt.file.readJSON('package.json'),
 	    browserify: {
