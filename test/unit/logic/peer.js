@@ -13,6 +13,7 @@ var Peer = require('../../../logic/peer.js');
 describe('peer', function () {
 
 	var peer;
+
 	beforeEach(function () {
 		peer = new Peer({});
 	});
@@ -129,9 +130,8 @@ describe('peer', function () {
 			expect(peer.state).to.equal(0);
 			peer.state = initialState;
 		});
-		
+
 		it('should update defined values', function () {
-			
 			var updateData = {
 				os: 'test os',
 				version: '0.0.0',
@@ -147,7 +147,6 @@ describe('peer', function () {
 		});
 
 		it('should not update immutable properties', function () {
-
 			var peerBeforeUpdate = _.clone(peer);
 			var updateImmutableData = {
 				ip: randomPeer.ip,
