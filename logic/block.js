@@ -36,7 +36,7 @@ __private.getAddressByPublicKey = function (publicKey) {
 
 // Public methods
 Block.prototype.create = function (data) {
-	var transactions = data.transactions.sort(function compare(a, b) {
+	var transactions = data.transactions.sort(function compare (a, b) {
 		if (a.type < b.type) { return -1; }
 		if (a.type > b.type) { return 1; }
 		if (a.amount < b.amount) { return -1; }
@@ -110,7 +110,7 @@ Block.prototype.getBytes = function (block) {
 		bb.writeInt(block.timestamp);
 
 		if (block.previousBlock) {
-			var pb = bignum(block.previousBlock).toBuffer({size: '8'});
+			var pb = new bignum(block.previousBlock).toBuffer({size: '8'});
 
 			for (i = 0; i < 8; i++) {
 				bb.writeByte(pb[i]);
@@ -301,7 +301,7 @@ Block.prototype.objectNormalize = function (block) {
 
 	var report = this.scope.schema.validate(block, Block.prototype.schema);
 
-  if (!report) {
+	if (!report) {
 		throw 'Failed to validate block schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
@@ -325,7 +325,7 @@ Block.prototype.getId = function (block) {
 		temp[i] = hash[7 - i];
 	}
 
-	var id = bignum.fromBuffer(temp).toString();
+	var id = new bignum.fromBuffer(temp).toString();
 	return id;
 };
 
@@ -358,7 +358,7 @@ Block.prototype.dbRead = function (raw) {
 			blockSignature: raw.b_blockSignature,
 			confirmations: parseInt(raw.b_confirmations)
 		};
-		block.totalForged = bignum(block.totalFee).plus(bignum(block.reward)).toString();
+		block.totalForged = new bignum(block.totalFee).plus(new bignum(block.reward)).toString();
 		return block;
 	}
 };

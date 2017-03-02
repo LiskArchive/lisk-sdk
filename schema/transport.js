@@ -7,10 +7,6 @@ module.exports = {
 		id: 'transport.headers',
 		type: 'object',
 		properties: {
-			ip: {
-				type: 'string',
-				format: 'ip'
-			},
 			port: {
 				type: 'integer',
 				minimum: 1,
@@ -41,7 +37,7 @@ module.exports = {
 				minimum: 1
 			}
 		},
-		required: ['ip', 'port', 'version', 'nethash']
+		required: ['port', 'version', 'nethash']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',

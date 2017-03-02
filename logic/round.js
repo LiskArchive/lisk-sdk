@@ -1,7 +1,7 @@
 'use strict';
 
 var pgp = require('pg-promise');
-var slots = require('../helpers/slots.js');
+var RoundChanges = require('../helpers/RoundChanges.js');
 var sql = require('../sql/rounds.js');
 
 // Constructor
@@ -74,8 +74,8 @@ Round.prototype.applyRound = function () {
 	var queries = [];
 
 	for (var i = 0; i < this.scope.delegates.length; i++) {
-		var delegate = this.scope.delegates[i],
-				changes	= roundChanges.at(i);
+		var delegate = this.scope.delegates[i];
+		var changes = roundChanges.at(i);
 
 		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
 			publicKey: delegate,
@@ -94,7 +94,7 @@ Round.prototype.applyRound = function () {
 				u_balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
 				blockId: this.scope.block.id,
 				round: this.scope.round,
-				fees: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
+				fees: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining)
 			}));
 		}
 	}
@@ -114,31 +114,6 @@ Round.prototype.land = function () {
 			this.scope.__private.ticking = false;
 			return this.t;
 		}.bind(this));
-};
-
-// Constructor
-function RoundChanges (scope) {
-	if (scope.backwards) {
-		this.roundFees = Math.floor(scope.__private.unFeesByRound[scope.round]) || 0;
-		this.roundRewards = (scope.__private.unRewardsByRound[scope.round] || []);
-	} else {
-		this.roundFees = Math.floor(scope.__private.feesByRound[scope.round]) || 0;
-		this.roundRewards = (scope.__private.rewardsByRound[scope.round] || []);
-	}
-}
-
-// Public methods
-RoundChanges.prototype.at = function (index) {
-	var fees = Math.floor(this.roundFees / slots.delegates);
-	var feesRemaining = this.roundFees - (fees * slots.delegates);
-	var rewards = Math.floor(this.roundRewards[index]) || 0;
-
-	return {
-		fees: fees,
-		feesRemaining: feesRemaining,
-		rewards: rewards,
-		balance: fees + rewards
-	};
 };
 
 // Export

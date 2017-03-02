@@ -38,7 +38,7 @@ Rounds.prototype.ticking = function () {
 };
 
 Rounds.prototype.calc = function (height) {
-	return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
+	return Math.ceil(height / slots.delegates);
 };
 
 Rounds.prototype.flush = function (round, cb) {
@@ -281,8 +281,6 @@ __private.sumRound = function (round, cb) {
 		return setImmediate(cb, err);
 	});
 };
-
-// Shared
 
 // Export
 module.exports = Rounds;
