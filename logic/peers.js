@@ -72,6 +72,11 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	};
 
 	peer = self.create(peer);
+	
+	if (!peer.string) {
+		library.logger.warn('Upsert invalid peer rejected', {peer: peer});
+		return false;
+	}
 
 	// Performing insert or update
 	if (self.exists(peer)) {
