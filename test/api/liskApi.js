@@ -1,17 +1,17 @@
-describe('LiskAPI', function() {
+describe('Lisk.api()', function() {
 
-	var LSK = new LiskAPI();
+	var LSK = lisk.api();
 
-	describe('new LiskAPI()', function() {
+	describe('lis.api()', function() {
 
 
-		it('should create a new instance when using new LiskAPI()', function() {
+		it('should create a new instance when using lisk.api()', function() {
 
 			(LSK).should.be.ok();
 
 		});
 
-		it('new LiskAPI() should be Object', function() {
+		it('new lisk.api() should be Object', function() {
 
 			(LSK).should.be.type("object");
 
