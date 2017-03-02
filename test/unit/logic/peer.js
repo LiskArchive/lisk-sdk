@@ -13,7 +13,7 @@ var Peer = require('../../../logic/peer.js');
 describe('peer', function () {
 
 	var peer;
-	before(function () {
+	beforeEach(function () {
 		peer = new Peer({});
 	});
 
@@ -46,6 +46,7 @@ describe('peer', function () {
 			var __peer = peer.accept({dappid: 'random-dapp-id'});
 			expect(__peer.dappid).to.be.an('array');
 			expect(_.isEqual(__peer.dappid, ['random-dapp-id'])).to.be.ok;
+			delete __peer.dappid;
 		});
 	});
 
@@ -70,17 +71,28 @@ describe('peer', function () {
 			expect(peer.headerA).to.not.exist;
 		});
 
-		it('should apply value defined as header', function () {
-			var initialPeer = _.clone(peer);
+		it('should apply defined values as headers', function () {
 			peer.headers.forEach(function (header) {
 				delete peer[header];
-				var headers = {};
-				headers[header] = randomPeer[header];
-				peer.applyHeaders(headers);
-				expect(peer[header]).to.equal(randomPeer[header]);
+				if (randomPeer[header]) {
+					var headers = {};
+					headers[header] = randomPeer[header];
+					peer.applyHeaders(headers);
+					expect(peer[header]).to.equal(randomPeer[header]);
+				}
 			});
+		});
 
-			peer = initialPeer;
+		it('should not apply nulls or undefined values as headers', function () {
+			peer.headers.forEach(function (header) {
+				delete peer[header];
+				if (randomPeer[header] === null || randomPeer[header] === undefined) {
+					var headers = {};
+					headers[header] = randomPeer[header];
+					peer.applyHeaders(headers);
+					expect(peer[header]).to.not.exist;
+				}
+			});
 		});
 
 		it('should parse height and port', function () {
@@ -93,10 +105,9 @@ describe('peer', function () {
 
 	describe('update', function () {
 
-		it('should apply random values to the peer scope', function () {
+		it('should not apply random values to the peer scope', function () {
 			peer.update({someProp: 'someValue'});
-			expect(peer.someProp).to.exist.and.equal('someValue');
-			delete peer.someProp;
+			expect(peer.someProp).to.not.exist;
 		});
 
 		it('should not apply undefined to the peer scope', function () {
@@ -118,24 +129,53 @@ describe('peer', function () {
 			expect(peer.state).to.equal(0);
 			peer.state = initialState;
 		});
+		
+		it('should update defined values', function () {
+			
+			var updateData = {
+				os: 'test os',
+				version: '0.0.0',
+				dappid: ['test dappid'],
+				broadhash: 'test broadhash',
+				height: 3
+			};
+			expect(_.isEqual(_.keys(updateData), peer.headers)).to.be.ok;
+			peer.update(updateData);
+			peer.headers.forEach(function (header) {
+				expect(peer[header]).to.exist.and.equals(updateData[header]);
+			});
+		});
+
+		it('should not update immutable properties', function () {
+
+			var peerBeforeUpdate = _.clone(peer);
+			var updateImmutableData = {
+				ip: randomPeer.ip,
+				port: randomPeer.port,
+				string: randomPeer.ip + ':' + randomPeer.port
+			};
+
+			expect(_.isEqual(_.keys(updateImmutableData), peer.immutable)).to.be.ok;
+			peer.update(updateImmutableData);
+			peer.headers.forEach(function (header) {
+				expect(peer[header]).equals(peerBeforeUpdate[header]).and.not.equal(updateImmutableData);
+			});
+		});
 	});
 
 	describe('object', function () {
 
 		it('should create proper copy of peer', function () {
-			var initialPeer = _.clone(peer);
-			peer.update(randomPeer);
-			peer.applyHeaders({dappid: randomPeer.dappid});
-			var peerCopy = peer.object();
+			var __peer = new Peer(randomPeer);
+			var peerCopy = __peer.object();
 			_.keys(randomPeer).forEach(function (property) {
-				if (peer.properties.indexOf(property) !== -1) {
+				if (__peer.properties.indexOf(property) !== -1) {
 					expect(peerCopy[property]).to.equal(randomPeer[property]);
-					if (peer.nullable.indexOf(property) !== -1 && !randomPeer[property]) {
+					if (__peer.nullable.indexOf(property) !== -1 && !randomPeer[property]) {
 						expect(peerCopy[property]).to.be.null;
 					}
 				}
 			});
-			peer = initialPeer;
 		});
 
 		it('should always return state', function () {
