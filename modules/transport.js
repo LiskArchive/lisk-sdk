@@ -137,9 +137,9 @@ __private.attachApi = function () {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
-			// Get 1400+ blocks with all data (joins) from provided block id
+			// Get 101 blocks with all data (joins) from provided block id
 			modules.blocks.loadBlocksData({
-				limit: 1440,
+				limit: 101, // 1 round
 				lastId: query.lastBlockId
 			}, function (err, data) {
 				res.status(200);
