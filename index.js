@@ -18,7 +18,8 @@ lisk = {
 	multisignature : require("./lib/transactions/multisignature.js"),
 	signature : require("./lib/transactions/signature.js"),
 	transaction : require("./lib/transactions/transaction.js"),
-	vote : require("./lib/transactions/vote.js")
+	vote : require("./lib/transactions/vote.js"),
+	api: require("./lib/api/liskApi")
 }
 
 module.exports = lisk;

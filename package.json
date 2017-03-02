@@ -25,9 +25,15 @@
     "grunt-browserify": "=5.0.0",
     "grunt-contrib-nodeunit": "=0.4.1",
     "grunt-contrib-uglify": "=0.5.0",
+    "grunt-contrib-watch": "=1.0.0",
     "grunt-eslint": "=19.0.0",
     "load-grunt-tasks": "=3.5.2",
     "nyc": "=10.1.2",
-    "should": "=11.1.0"
+    "should": "=11.1.0",
+    "mocha": "=3.2.0",
+    "grunt-force": "=1.0.0",
+    "chai": "=3.5.0",
+    "chai-http": "=3.0.0",
+    "coveralls": "=2.11.16"
   }
 }

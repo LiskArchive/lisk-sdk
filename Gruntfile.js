@@ -11,12 +11,38 @@ module.exports = function(grunt) {
             target: ['lib/**']
         },
         pkg: grunt.file.readJSON('package.json'),
-        browserify: {
-            'app.js': ['index.js']
-        }
+	    browserify: {
+		    js: {
+			    src: './index.js',
+			    dest: './app.js'
+		    },
+		    options: {
+			    browserifyOptions: {
+				    standalone: 'lisk'
+			    }
+		    }
+	    },
+	    watch: {
+		    scripts: {
+			    files: ['lib/*.js'],
+			    tasks: ['eslint', 'browserify'],
+			    options: {
+				    spawn: false,
+				    livereload: true
+			    },
+		    },
+	    }
     });
 
 
     grunt.loadNpmTasks('grunt-browserify');
-    grunt.registerTask('default', ['browserify', 'eslint']);
+	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-force');
+    grunt.registerTask('default', [
+	    'force:on',
+	    'browserify',
+	    'eslint',
+	    'watch'
+    ]);
 }
