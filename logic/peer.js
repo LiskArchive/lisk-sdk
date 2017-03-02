@@ -64,8 +64,6 @@ Peer.prototype.accept = function (peer) {
 	// Adjust properties according to rules
 	if (/^[0-9]+$/.test(this.ip)) {
 		this.ip = ip.fromLong(this.ip);
-	} else {
-		this.ip = this.ip;
 	}
 
 	if (this.ip && this.port) {
@@ -77,18 +75,13 @@ Peer.prototype.accept = function (peer) {
 
 Peer.prototype.normalize = function (peer) {
 	if (peer.dappid) {
-		if (Array.isArray(peer.dappid)) {
-			peer.dappid = peer.dappid;
-		} else {
+		if (!Array.isArray(peer.dappid)) {
+			var dappid = peer.dappid;
 			peer.dappid = [];
-			if (peer.dappid) {
-				peer.dappid.push(peer.dappid);
+			if (dappid) {
+				peer.dappid.push(dappid);
 			}
 		}
-	}
-
-	if (peer.clock) {
-		peer.clock = peer.clock;
 	}
 
 	if (peer.height) {
@@ -97,9 +90,7 @@ Peer.prototype.normalize = function (peer) {
 
 	peer.port = self.parseInt(peer.port, 0);
 
-	if (/^[0-2]{1}$/.test(peer.state)) {
-		peer.state = peer.state;
-	} else {
+	if (!/^[0-2]{1}$/.test(peer.state)) {
 		peer.state = 1;
 	}
 
