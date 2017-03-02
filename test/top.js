@@ -18,4 +18,6 @@ describe("top", function () {
 	importTest("transactions Vote", './transactions/vote.js');
 	importTest("time", './time/slots.js');
 
+	importTest("api", './api/liskApi.js');
+	importTest("api", './api/parseTransaction.js');
 });
