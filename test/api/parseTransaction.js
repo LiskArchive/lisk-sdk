@@ -1,7 +1,7 @@
 
 describe('ParseOfflineRequests', function() {
 
-	var LSK = new LiskAPI();
+	var LSK = lisk.api();
 
 	describe('#httpGETPUTorPOST', function() {
 
