@@ -3,7 +3,15 @@
  * @module lisk
  */
 
+global.naclFactory = require('js-nacl');
+
+global.naclInstance;
+naclFactory.instantiate(function (nacl) {
+	naclInstance = nacl;
+});
+
 lisk = {
+
 	crypto : require("./lib/transactions/crypto.js"),
 	dapp: require("./lib/transactions/dapp.js"),
 	delegate : require("./lib/transactions/delegate.js"),

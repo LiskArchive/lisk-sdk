@@ -18,6 +18,7 @@ describe("top", function () {
 	importTest("transactions Vote", './transactions/vote.js');
 	importTest("time", './time/slots.js');
 
+	importTest("transactions newCrypto", './transactions/crypto/index.js');
 	importTest("api", './api/liskApi.js');
 	importTest("api", './api/parseTransaction.js');
 });
