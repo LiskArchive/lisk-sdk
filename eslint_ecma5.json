@@ -7,7 +7,7 @@
     }
   },
   "rules": {
-    "camelcase": ["error", {"properties": "always"}],
+    "camelcase": ["error", { "properties": "always" }],
     "eqeqeq": ["error", "always"],
     "no-eq-null": "error",
     "indent": ["error", "tab"],
@@ -16,10 +16,20 @@
     "quotes": ["error", "single", { "avoidEscape": true }],
     "no-undef": "error",
     "no-unused-vars": ["error", { "vars": "all", "args": "after-used" }],
-    "strict": ["error", "global"]
+    "strict": ["error", "global"],
+    "semi": ["error", "always"]
   },
   "env": {
     "browser": true,
-    "node": true
+    "node": true,
+    "mocha": true
+  },
+  "globals": {
+    "lisk": true,
+    "LiskAPI": true,
+    "naclFactory": true,
+    "naclInstance": true,
+    "Promise": true,
+    "Uint8Array": true
   }
 }

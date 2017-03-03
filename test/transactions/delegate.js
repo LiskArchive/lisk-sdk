@@ -1,71 +1,74 @@
-var common = require("../common");
+var common = require('../common');
 var lisk = common.lisk;
-var should = common.should;
-var crypto_lib = common.crypto_lib;
+// var should = common.should;
+// var cryptoLib = common.cryptoLib;
 
-describe("delegate.js", function () {
+describe('delegate.js', function () {
+
 	var delegate = lisk.delegate;
 
-	it("should be ok", function () {
+	it('should be ok', function () {
 		(delegate).should.be.ok;
 	});
 
-	it("should be function", function () {
-		(delegate).should.be.type("object");
+	it('should be function', function () {
+		(delegate).should.be.type('object');
 	});
 
-	it("should have property createDelegate", function () {
-		(delegate).should.have.property("createDelegate");
+	it('should have property createDelegate', function () {
+		(delegate).should.have.property('createDelegate');
 	});
 
-	describe("#createDelegate", function () {
+	describe('#createDelegate', function () {
+
 		var createDelegate = delegate.createDelegate;
 		var trs = null;
 
-		it("should be ok", function () {
+		it('should be ok', function () {
 			(createDelegate).should.be.ok;
 		});
 
-		it("should be function", function () {
-			(createDelegate).should.be.type("function");
+		it('should be function', function () {
+			(createDelegate).should.be.type('function');
 		});
 
-		it("should create delegate", function () {
-			trs = createDelegate("secret", "delegate", "secret 2");
+		it('should create delegate', function () {
+			trs = createDelegate('secret', 'delegate', 'secret 2');
 		});
 
-		describe("returned delegate", function () {
-			var keys = lisk.crypto.getKeys("secret");
-			var secondKeys = lisk.crypto.getKeys("secret 2");
+		describe('returned delegate', function () {
 
-			it("should be ok", function () {
+			var keys = lisk.crypto.getKeys('secret');
+			var secondKeys = lisk.crypto.getKeys('secret 2');
+
+			it('should be ok', function () {
 				(trs).should.be.ok;
 			});
 
-			it("should be object", function () {
-				(trs).should.be.type("object");
+			it('should be object', function () {
+				(trs).should.be.type('object');
 			});
 
-			it("should have recipientId equal null", function () {
-				(trs).should.have.property("recipientId").and.type("object").and.be.empty;
-			})
-
-			it("shoud have amount equal 0", function () {
-				(trs).should.have.property("amount").and.type("number").and.equal(0);
-			})
-
-			it("should have type equal 0", function () {
-				(trs).should.have.property("type").and.type("number").and.equal(2);
+			it('should have recipientId equal null', function () {
+				(trs).should.have.property('recipientId').and.type('object').and.be.empty;
 			});
 
-			it("should have timestamp number", function () {
-				(trs).should.have.property("timestamp").and.type("number");
+			it('shoud have amount equal 0', function () {
+				(trs).should.have.property('amount').and.type('number').and.equal(0);
 			});
 
-			it("should have senderPublicKey in hex", function () {
-				(trs).should.have.property("senderPublicKey").and.type("string").and.match(function () {
+			it('should have type equal 0', function () {
+				(trs).should.have.property('type').and.type('number').and.equal(2);
+			});
+
+			it('should have timestamp number', function () {
+				(trs).should.have.property('timestamp').and.type('number');
+			});
+
+			it('should have senderPublicKey in hex', function () {
+				(trs).should.have.property('senderPublicKey').and.type('string').and.match(function () {
 					try {
-						new Buffer(trs.senderPublicKey, "hex");
+						new Buffer(trs.senderPublicKey, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -74,10 +77,10 @@ describe("delegate.js", function () {
 				}).and.equal(keys.publicKey);
 			});
 
-			it("should have signature in hex", function () {
-				(trs).should.have.property("signature").and.type("string").and.match(function () {
+			it('should have signature in hex', function () {
+				(trs).should.have.property('signature').and.type('string').and.match(function () {
 					try {
-						new Buffer(trs.signature, "hex");
+						new Buffer(trs.signature, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -86,10 +89,10 @@ describe("delegate.js", function () {
 				});
 			});
 
-			it("should have second signature in hex", function () {
-				(trs).should.have.property("signSignature").and.type("string").and.match(function () {
+			it('should have second signature in hex', function () {
+				(trs).should.have.property('signSignature').and.type('string').and.match(function () {
 					try {
-						new Buffer(trs.signSignature, "hex");
+						new Buffer(trs.signSignature, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -98,44 +101,45 @@ describe("delegate.js", function () {
 				});
 			});
 
-			it("should have delegate asset", function () {
-				(trs).should.have.property("asset").and.type("object");
-				(trs.asset).should.have.have.property("delegate");
-			})
+			it('should have delegate asset', function () {
+				(trs).should.have.property('asset').and.type('object');
+				(trs.asset).should.have.have.property('delegate');
+			});
 
-			it("should be signed correctly", function () {
+			it('should be signed correctly', function () {
 				var result = lisk.crypto.verify(trs, keys.publicKey);
 				(result).should.be.ok;
 			});
 
-			it("should be second signed correctly", function () {
+			it('should be second signed correctly', function () {
 				var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
 				(result).should.be.ok;
 			});
 
-			it("should not be signed correctly now", function () {
+			it('should not be signed correctly now', function () {
 				trs.amount = 100;
 				var result = lisk.crypto.verify(trs, keys.publicKey);
 				(result).should.be.not.ok;
 			});
 
-			it("should not be second signed correctly now", function () {
+			it('should not be second signed correctly now', function () {
 				trs.amount = 100;
 				var result = lisk.crypto.verify(trs, secondKeys.publicKey);
 				(result).should.be.not.ok;
 			});
 
-			describe("delegate asset", function () {
-				it("should be ok", function () {
+			describe('delegate asset', function () {
+
+				it('should be ok', function () {
 					(trs.asset.delegate).should.be.ok;
 				});
 
-				it("should be object", function () {
-					(trs.asset.delegate).should.be.type("object");
+				it('should be object', function () {
+					(trs.asset.delegate).should.be.type('object');
 				});
 
-				it("should be have property username", function () {
-					(trs.asset.delegate).should.have.property("username").and.be.type("string").and.equal("delegate");
+				it('should be have property username', function () {
+					(trs.asset.delegate).should.have.property('username').and.be.type('string').and.equal('delegate');
 				});
 			});
 		});
