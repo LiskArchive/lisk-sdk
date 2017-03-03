@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for lisk-js/lib/api/liskApi.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../index.html">all files</a> / <a href="index.html">lisk-js/lib/api/</a> liskApi.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">50.85% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>90/177</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">45.35% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>39/86</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">28.57% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>12/42</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">51.46% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>88/171</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line medium'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+&nbsp;
+var LiskJS = {};
+LiskJS.crypto = require('../transactions/crypto');
+var parseOfflineRequest = require('./parseTransaction');
+&nbsp;
+function LiskAPI (options) {
+	if (!(this instanceof LiskAPI)) {
+		return new LiskAPI(options);
+	}
+&nbsp;
+	options = options || {};
+&nbsp;
+	this.defaultPeers = [
+		'node01.lisk.io',
+		'node02.lisk.io',
+		'node03.lisk.io',
+		'node04.lisk.io',
+		'node05.lisk.io',
+		'node06.lisk.io',
+		'node07.lisk.io',
+		'node08.lisk.io'
+	];
+&nbsp;
+	this.defaultSSLPeers = [
+		'login.lisk.io'
+	];
+&nbsp;
+	this.defaultTestnetPeers = [
+		'83.136.249.129'
+	];
+&nbsp;
+	this.options = options;
+	this.ssl = options.ssl || false;
+	this.testnet = options.testnet || false;
+	this.autoFindNode = options.autoFindNode || true;
+	this.bannedNodes = [];
+	this.currentNode = options.node || this.selectNode();
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (options.port === '' || options.port) <span class="cstat-no" title="statement not covered" >this.port = options.port;</span>
+	else                                    this.port = 8000;
+	this.parseOfflineRequests = parseOfflineRequest;
+	this.nethash = this.getNethash();
+}
+&nbsp;
+LiskAPI.prototype.getNethash = function () {
+	var NetHash;
+&nbsp;
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (this.testnet) {
+<span class="cstat-no" title="statement not covered" >		NetHash = {</span>
+			'Content-Type': 'application/json',
+			'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			'os': 'lisk-js-api',
+			'version': '1.0.0',
+			'minVersion': '&gt;=0.5.0',
+			'port': this.port
+		};
+	} else {
+		NetHash = {
+			'Content-Type': 'application/json',
+			'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			'os': 'lisk-js-api',
+			'version': '1.0.0',
+			'minVersion': '&gt;=0.5.0',
+			'port': this.port
+		};
+	}
+&nbsp;
+	return NetHash;
+};
+&nbsp;
+LiskAPI.prototype.setNode = function (node) {
+	this.currentNode = node || this.selectNode();
+	return this.currentNode;
+};
+&nbsp;
+LiskAPI.prototype.setTestnet = <span class="fstat-no" title="function not covered" >function (testnet) {</span>
+<span class="cstat-no" title="statement not covered" >	if (this.testnet !== testnet) {</span>
+<span class="cstat-no" title="statement not covered" >		this.testnet = testnet;</span>
+<span class="cstat-no" title="statement not covered" >		this.selectNode();</span>
+	}
+};
+&nbsp;
+LiskAPI.prototype.setSSL = function (ssl) {
+	if (this.ssl !== ssl) {
+		this.ssl = ssl;
+		this.selectNode();
+	}
+};
+&nbsp;
+LiskAPI.prototype.getFullUrl = <span class="fstat-no" title="function not covered" >function () {</span>
+<span class="cstat-no" title="statement not covered" >	var nodeUrl = this.currentNode;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (this.port) {</span>
+<span class="cstat-no" title="statement not covered" >		nodeUrl += ':'+this.port;</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return this.getURLPrefix() + '://' + nodeUrl;</span>
+};
+&nbsp;
+LiskAPI.prototype.getURLPrefix = function () {
+	if (this.ssl) {
+		return 'https';
+	} else {
+		return 'http';
+	}
+};
+&nbsp;
+LiskAPI.prototype.selectNode = function () {
+	var currentRandomPeer;
+&nbsp;
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (this.options.node) {
+<span class="cstat-no" title="statement not covered" >		currentRandomPeer = this.currentNode;</span>
+	}
+&nbsp;
+	<span class="missing-if-branch" title="else path not taken" >E</span>if (this.autoFindNode) {
+		currentRandomPeer = this.getRandomPeer();
+		var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+		<span class="missing-if-branch" title="if path not taken" >I</span>if (this.testnet) <span class="cstat-no" title="statement not covered" >peers = this.defaultTestnetPeers;</span>
+&nbsp;
+		for (var x = 0; x&lt; peers.length; x++) {
+			<span class="missing-if-branch" title="else path not taken" >E</span>if (this.bannedNodes.indexOf(currentRandomPeer) === -1) break;
+<span class="cstat-no" title="statement not covered" >			currentRandomPeer = this.getRandomPeer();</span>
+		}
+	}
+&nbsp;
+	return currentRandomPeer;
+};
+&nbsp;
+LiskAPI.prototype.getRandomPeer = function () {
+	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (this.testnet) <span class="cstat-no" title="statement not covered" >peers = this.defaultTestnetPeers;</span>
+&nbsp;
+	var getRandomNumberForPeer = Math.floor((Math.random() * peers.length));
+	return peers[getRandomNumberForPeer];
+};
+&nbsp;
+LiskAPI.prototype.banNode = function () {
+	<span class="missing-if-branch" title="else path not taken" >E</span>if (this.bannedNodes.indexOf(this.currentNode) === -1) this.bannedNodes.push(this.currentNode);
+	this.selectNode();
+};
+&nbsp;
+LiskAPI.prototype.sendRequest = <span class="fstat-no" title="function not covered" >function (requestType, options, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	callback = callback || options;</span>
+<span class="cstat-no" title="statement not covered" >	options = typeof options !== 'function' &amp;&amp; typeof options !== 'undefined' ? options : {};</span>
+<span class="cstat-no" title="statement not covered" >	var toolBox = this;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	this.sendRequestPromise(requestType, options).then(<span class="fstat-no" title="function not covered" >function (requestSuccess) {</span></span>
+<span class="cstat-no" title="statement not covered" >		var JSONAnswer = JSON.parse(requestSuccess);</span>
+<span class="cstat-no" title="statement not covered" >		var checkRequestContent = parseOfflineRequest(requestType, options);</span>
+&nbsp;
+		// Show offline Request if it is POST or PUT request
+<span class="cstat-no" title="statement not covered" >		if (checkRequestContent.requestMethod === 'GET') {</span>
+<span class="cstat-no" title="statement not covered" >			return callback(JSON.parse(requestSuccess));</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			var interpretAnswer = checkRequestContent.transactionOutputAfter(JSONAnswer);</span>
+<span class="cstat-no" title="statement not covered" >			return callback(interpretAnswer);</span>
+		}
+	}, <span class="fstat-no" title="function not covered" >function () {</span>
+<span class="cstat-no" title="statement not covered" >		setTimeout(<span class="fstat-no" title="function not covered" >function () {</span></span>
+<span class="cstat-no" title="statement not covered" >			toolBox.banNode();</span>
+<span class="cstat-no" title="statement not covered" >			toolBox.setNode();</span>
+<span class="cstat-no" title="statement not covered" >			toolBox.sendRequest(requestType, options, callback);</span>
+		}, 1000);
+	});
+};
+&nbsp;
+LiskAPI.prototype.sendRequestPromise = <span class="fstat-no" title="function not covered" >function (requestType, options) {</span>
+<span class="cstat-no" title="statement not covered" >	var that = this;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return new Promise(<span class="fstat-no" title="function not covered" >function (resolve, reject) {</span></span>
+<span class="cstat-no" title="statement not covered" >		var xhttp = new XMLHttpRequest();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		xhttp.onreadystatechange = <span class="fstat-no" title="function not covered" >function () {</span></span>
+<span class="cstat-no" title="statement not covered" >			if (this.readyState === 4 &amp;&amp; this.status === 200) {</span>
+<span class="cstat-no" title="statement not covered" >				resolve(this.responseText);</span>
+			} else {
+				// this.status === 500 - internal server error - description: Wrong API call
+<span class="cstat-no" title="statement not covered" >				if ((this.status === 404 || this.status === 503 || this.status === 0) &amp;&amp; this.readyState === 4) {</span>
+<span class="cstat-no" title="statement not covered" >					reject({</span>
+						msg: 'Could not load xhttp request',
+						error: this.status
+					});
+				}
+			}
+		};
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		var InitRequest = parseOfflineRequest(requestType, options);</span>
+<span class="cstat-no" title="statement not covered" >		var requestMethod = InitRequest.requestMethod;</span>
+<span class="cstat-no" title="statement not covered" >		var requestUrl;</span>
+<span class="cstat-no" title="statement not covered" >		var sendParams = '';</span>
+&nbsp;
+		// Send GET request by xhttp
+<span class="cstat-no" title="statement not covered" >		if (requestMethod === 'GET') {</span>
+<span class="cstat-no" title="statement not covered" >			requestUrl = that.getFullUrl()  + '/api/'+ requestType;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			if (Object.keys(options).length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >				requestUrl = requestUrl + that.serialiseHttpData(options);</span>
+			}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			xhttp.open(requestMethod, requestUrl , true);</span>
+<span class="cstat-no" title="statement not covered" >			xhttp.send();</span>
+			// Do not use xhttp to send
+		} else <span class="cstat-no" title="statement not covered" >if (requestMethod === 'NOACTION') {</span>
+<span class="cstat-no" title="statement not covered" >			resolve(JSON.stringify({ done: 'done'}));</span>
+			// Send POST or PUT requets with xhttp
+		} else {
+<span class="cstat-no" title="statement not covered" >			var getNewRequest = InitRequest.checkOfflineRequestBefore(requestType, options);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			if (getNewRequest.requestUrl === 'transactions') {</span>
+<span class="cstat-no" title="statement not covered" >				requestUrl = that.getFullUrl()  + '/peer/'+ getNewRequest.requestUrl;</span>
+				// console.log(requestUpdate());
+<span class="cstat-no" title="statement not covered" >				xhttp.open('POST', requestUrl, true);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				var Nethash = that.nethash;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				for (var key in Nethash) {</span>
+<span class="cstat-no" title="statement not covered" >					if (Nethash.hasOwnProperty(key)) {</span>
+<span class="cstat-no" title="statement not covered" >						xhttp.setRequestHeader(key, Nethash[key]);</span>
+					}
+				}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				sendParams = getNewRequest.params;</span>
+			} else {
+<span class="cstat-no" title="statement not covered" >				requestUrl = that.getFullUrl()  + '/api/'+ getNewRequest.requestUrl;</span>
+<span class="cstat-no" title="statement not covered" >				xhttp.open(getNewRequest.requestMethod, requestUrl, true);</span>
+			}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			xhttp.send(JSON.stringify(sendParams));</span>
+		}
+	});
+};
+&nbsp;
+LiskAPI.prototype.serialiseHttpData = function (data, type) {
+	var serialised;
+&nbsp;
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (type === 'GET') {
+<span class="cstat-no" title="statement not covered" >		if (typeof data === 'string') {</span>
+<span class="cstat-no" title="statement not covered" >			data += '&amp;random=' + Math.random();</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			data.random = Math.random();</span>
+		}
+	}
+&nbsp;
+	serialised = this.trimObj(data);
+	serialised = this.toQueryString(serialised);
+	serialised = encodeURI(serialised);
+&nbsp;
+	return '?'+serialised;
+};
+&nbsp;
+LiskAPI.prototype.trimObj = function (obj) {
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(obj) &amp;&amp; typeof obj !== 'object') <span class="cstat-no" title="statement not covered" >return obj;</span>
+&nbsp;
+	return Object.keys(obj).reduce(function (acc, key) {
+		acc[key.trim()] = typeof obj[key] === 'string'? obj[key].trim() : <span class="branch-1 cbranch-no" title="branch not covered" >this.trimObj(obj[key]);</span>
+		return acc;
+	}, Array.isArray(obj)? <span class="branch-0 cbranch-no" title="branch not covered" >[]:</span>{});
+};
+&nbsp;
+LiskAPI.prototype.toQueryString = function (obj) {
+	var parts = [];
+&nbsp;
+	for (var i in obj) {
+		<span class="missing-if-branch" title="else path not taken" >E</span>if (obj.hasOwnProperty(i)) {
+			parts.push(encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]));
+		}
+	}
+&nbsp;
+	return parts.join('&amp;');
+};
+&nbsp;
+LiskAPI.prototype.getAddressFromSecret = <span class="fstat-no" title="function not covered" >function (secret) {</span>
+<span class="cstat-no" title="statement not covered" >	var accountKeys = LiskJS.crypto.getKeys(secret);</span>
+<span class="cstat-no" title="statement not covered" >	var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return {</span>
+		address: accountAddress,
+		publicKey: accountKeys.publicKey
+	};
+};
+&nbsp;
+LiskAPI.prototype.listActiveDelegates = <span class="fstat-no" title="function not covered" >function (limit, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('delegates/', { limit: limit}, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.listStandyDelegates = <span class="fstat-no" title="function not covered" >function (limit, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	var standByOffset = +101 + +limit;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('delegates/', { limit: limit, orderBy: 'rate:asc', offset: standByOffset}, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.searchDelegateByUsername = <span class="fstat-no" title="function not covered" >function (username, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('delegates/search/', { q: username }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.listBlocks = <span class="fstat-no" title="function not covered" >function (amount, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('blocks', { totalAmount:amount }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.listForgedBlocks = <span class="fstat-no" title="function not covered" >function (publicKey, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('blocks', { generatorPublicKey: publicKey }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.getBlock = <span class="fstat-no" title="function not covered" >function (block, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('blocks', { height: block }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.listTransactions = <span class="fstat-no" title="function not covered" >function (address, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('transactions', { senderId: address, recipientId: address, orderBy: 'timestamp:desc' }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.getTransaction = <span class="fstat-no" title="function not covered" >function (transactionId, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('transactions/get', { id: transactionId }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.listVotes = <span class="fstat-no" title="function not covered" >function (address, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('accounts/delegates', { address: address }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+LiskAPI.prototype.listVoters = <span class="fstat-no" title="function not covered" >function (publicKey, callback) {</span>
+<span class="cstat-no" title="statement not covered" >	this.sendRequest('delegates/voters', { publicKey: publicKey }, <span class="fstat-no" title="function not covered" >function (result) {</span></span>
+<span class="cstat-no" title="statement not covered" >		return callback(result);</span>
+	});
+};
+&nbsp;
+module.exports = LiskAPI;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Mar 03 2017 14:17:21 GMT+0100 (CET)
+</div>
+</div>
+<script src="../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../sorter.js"></script>
+</body>
+</html>
