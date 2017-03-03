@@ -137,9 +137,12 @@ __private.attachApi = function () {
 			if (err) { return next(err); }
 			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
 
-			// Get 101 blocks with all data (joins) from provided block id
+			// Get 34 blocks with all data (joins) from provided block id
+			// According to maxium payload of 58150 bytes per block with every transaction being a vote
+			// Discounting maxium compression setting used in middleware
+			// Maximum transport payload = 2000000 bytes
 			modules.blocks.loadBlocksData({
-				limit: 101, // 1 round
+				limit: 34, // 1977100 bytes
 				lastId: query.lastBlockId
 			}, function (err, data) {
 				res.status(200);
