@@ -43,8 +43,8 @@
 
             <p>The lisk-js package allows you to use the cryptography, several nodes or the API of Lisk.</p>
             -->
-            <div class="col-md-2" id="listGroupNav">
-                <div class="list-group custom-collapse" style="overflow-y: scroll; position: fixed; left: 5%; top: 220px;width:300px!important;">
+            <div class="col-md-2" id="listGroupNav" style="overflow-y:auto;">
+                <div class="list-group custom-collapse" id="api_nav" style="overflow-y: scroll; position: fixed; left: 5%; top: 120px;width:300px!important;">
                     <a class="list-group-item" data-remote="true" href="#api_sub" id="api" data-toggle="collapse" data-parent="#api_sub">
                         <span>API</span>
                         <span class="menu-ico-collapse"><i class="fa fa-chevron-down"></i></span>
@@ -1306,6 +1306,33 @@ var transaction = lisk.vote.createVote("secret", ["+5819957819195001929918192012
 		    $('#listGroupNav').show();
 	    }
     });
+
+    $('.list-group-item').on('click', function() {
+	    var $this = $(this);
+
+	    $('.active').removeClass('active');
+	    $this.toggleClass('active');
+
+        function getGroupHeight () {
+            return +$('.list-group').height() + 150;
+        }
+
+        function getWindowHeight () {
+	        return $(window).height();
+        }
+
+        if(getGroupHeight() > getWindowHeight()) {
+	    	$("#api_nav").css('height', (getWindowHeight()-200));
+	        $('#listGroupNav').css("max-height", "150px");
+            $('#listGroupNav').css( "overflow-y", "scroll" );
+        }
+
+        setTimeout(function () {
+	        console.log(getGroupHeight());
+	        console.log(getWindowHeight());
+        }, 500);
+
+    })
 </script>
 
 
