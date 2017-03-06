@@ -17,9 +17,9 @@ $(function() {
 
 	$("#showSecret").on("change", function() {
 		if($(this).prop('checked')) {
-			$("#secretInput").attr('type', 'password');
-		} else {
 			$("#secretInput").attr('type', 'text');
+		} else {
+			$("#secretInput").attr('type', 'password');
 		}
 	});
 
@@ -49,7 +49,47 @@ $(function() {
 
 		});
 
-	})
+	});
+
+	$("#submitSignMessage").on("click", function(e) {
+		e.preventDefault();
+
+		var pass = $("#signPassphrase").val();
+		var message = $("#signMessage").val();
+
+		var signature = lisk.crypto.signAndPrintMessage(message, pass);
+
+		$("#signResult").val(signature);
+
+	});
+
+	$("#verifySignedMessage").on("click", function(e) {
+		e.preventDefault();
+
+		var pubKey = $("#verifyPublicKey").val();
+		var signature = $("#verifySignature").val();
+
+		try {
+			var message = lisk.crypto.verifyMessageWithPublicKey(signature, pubKey);
+		} catch(e) {
+
+			if(e.message === "Cannot read property 'length' of null") {
+				$("#validSignature").html('Invalid Signature');
+			} else if(e.message.substring(0,4) === 'nacl') {
+				$("#validSignature").html('Invalid publicKey');
+			}
+
+		}
+
+		if(message) {
+			$("#verifyResult").val(message);
+			$("#validSignature").html('Valid Signature').css('color', 'green');
+		}
+
+
+
+
+	});
 });
 
 
@@ -119,6 +159,8 @@ function init(passphrase) {
 
 
 }
+
+
 
 
 

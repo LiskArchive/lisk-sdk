@@ -7,7 +7,7 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="css/experiment.css">
 </head>
 <body>
 
@@ -35,55 +35,156 @@
 <div class="container">
 
     <div class="starter-template">
-        <p>Once you have installed or integrated lisk-js via NodeJS or in the Browser, you can use it with the following calls:</p>
+        <div class="col-sm-2">
+            <ul id="sidebar" class="nav nav-stacked affix">
+                <li><a href="#introduction" class="pageLink" data-id="introduction">Introduction</a></li>
+                <li><a href="#get_account" class="pageLink" data-id="get_account">Get Account Info</a></li>
+                <li><a href="#send_lsk" class="pageLink" data-id="send_lsk">Send LSK</a></li>
+                <li><a href="#sign" class="pageLink" data-id="sign">Sign</a></li>
+                <li><a href="#verify" class="pageLink" data-id="verify">Verify</a></li>
+            </ul>
+        </div>
 
-        <p>On this page you can experiment with the Lisk API and parameters. We are using testnet, so you are not using real Lisk Token.</p>
-        <p>You can create an Account and get some testnet here: lisktestnet.com</p>
+        <div class="col-sm-10">
+
+            <div class="row pageX" id="introduction">
+
+               <h2>Introduction</h2>
+
+                <p>Lisk-js offers API and cryptographic functions for Lisk.</p>
+                <p>You can use some of those examples on this page. Please be aware, you are using real data on mainnet here.</p>
+                <p>Please read the <a href="https://github.com/LiskHQ/lisk-js/blob/development/LICENSE" target="_blank">license</a> careful before you use the lisk-js API.</p>
 
 
-        <form>
-            <div class="form-group">
-                <label for="secretInput">Passphrase</label>
-                <input type="text" class="form-control" id="secretInput" placeholder="yourSecret">
             </div>
-            <input type="checkbox" data-toggle="toggle" id="showSecret" data-on="Hidden" data-off="Display">
-            <input type="submit" id="usePassphrase" class="btn btn-primary" value="Use account">
-        </form>
 
-        <div class="row">
+            <div class="row pageX" id="get_account">
 
-            <div class="col-md-4">
-                <h3>Balance</h3>
-                <div id="balance_details" style="word-wrap: break-word"></div>
+                <form class="experimentForm">
+                    <div class="form-group">
+                        <label for="secretInput">Passphrase</label>
+                        <input type="password" class="form-control" id="secretInput" placeholder="yourSecret">
+                    </div>
+                    <input class="showSecret" type="checkbox" data-toggle="toggle" style="width: 200px;" id="showSecret" data-on="HIDE" data-off="SHOW">
+                    <input type="submit" id="usePassphrase" class="btn btn-primary" value="Get account">
+                </form>
+
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <h3>Balance</h3>
+                        <div id="balance_details" style="word-wrap: break-word"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>Transactions</h3>
+                        <div id="transaction_details" style="word-wrap: break-word; max-height:250px; overflow-y:scroll;"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>Delegate Info</h3>
+                        <div id="delegate_details" style="word-wrap: break-word"></div>
+                    </div>
+
+                </div>
+
+
             </div>
-            <div class="col-md-4">
-                <h3>Transactions</h3>
-                <div id="transaction_details" style="word-wrap: break-word; max-height:250px; overflow-y:scroll;"></div>
+
+            <div class="row pageX" id="send_lsk">
+
+                <form class="experimentForm">
+                    <div class="form-group">
+                        <label for="secretInput">Passphrase</label>
+                        <input type="password" class="form-control" id="secretInput" placeholder="yourSecret">
+                    </div>
+                    <input type="checkbox" data-toggle="toggle" id="showSecret" data-on="HIDE" data-off="SHOW">
+                </form>
+
+                <div class="row">
+
+                    <div class="col-md-12">
+
+                        <h3>Send LSK</h3>
+                        <form>
+                            <div class="form-group">
+                                <label for="send_lsk_recipient">Recipient</label>
+                                <input type="text" class="form-control" id="send_lsk_recipient" placeholder="123...L">
+                            </div>
+                            <div class="form-group">
+                                <label for="send_lsk_input">Amount</label>
+                                <input type="number" class="form-control" id="send_lsk_input" placeholder="Amount to send">
+                            </div>
+                            <input type="submit" id="sendLsk" class="btn btn-primary" value="Send">
+                        </form>
+
+                        <div id="output_send"></div>
+                    </div>
+
+                </div>
+
             </div>
-            <div class="col-md-4">
-                <h3>Delegate Info</h3>
-                <div id="delegate_details" style="word-wrap: break-word"></div>
+
+
+            <div class="row pageX" id="sign">
+                <H2>SIGN</H2>
+
+                <form class="experimentForm">
+
+                    <div class="form-group">
+                        <label for="signPassphrase">Passphrase</label>
+                        <input type="password" class="form-control" id="signPassphrase">
+                    </div>
+                    <div class="form-group">
+                        <label for="signMessage">Message</label>
+                        <textarea class="form-control" id="signMessage" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitSignMessage">Sign</button>
+
+                    <div class="form-group">
+                        <label for="verifyResult">Result</label>
+                        <textarea class="form-control" id="signResult" rows="5"></textarea>
+                    </div>
+
+                </form>
             </div>
+
+
+
+            <div class="row pageX" id="verify">
+
+                <h2>VERIFY</h2>
+
+                    <form class="experimentForm">
+
+                        <div class="form-group">
+                            <label for="verifyPublicKey">PublicKey</label>
+                            <input type="text" class="form-control" id="verifyPublicKey">
+                        </div>
+                        <div class="form-group">
+                            <label for="verifySignature">Signature</label>
+                            <input type="text" class="form-control" id="verifySignature">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="verifySignedMessage">Verify</button>
+
+                        <div class="form-group">
+                            <label for="verifyResult">Result</label>
+                            <p id="validSignature" style="color: red;"></p>
+                            <textarea class="form-control" id="verifyResult" rows="5"></textarea>
+                        </div>
+
+                    </form>
+
+
+
+
+
+            </div>
+
+
+
 
         </div>
 
-        <div class="col-md-12">
 
-            <h3>Send LSK</h3>
-            <form>
-                <div class="form-group">
-                    <label for="send_lsk_recipient">Recipient</label>
-                    <input type="text" class="form-control" id="send_lsk_recipient" placeholder="123...L">
-                </div>
-                <div class="form-group">
-                    <label for="send_lsk_input">Amount</label>
-                    <input type="number" class="form-control" id="send_lsk_input" placeholder="Amount to send">
-                </div>
-                <input type="submit" id="sendLsk" class="btn btn-primary" value="Send">
-            </form>
-
-            <div id="output_send"></div>
-        </div>
     </div>
 </div>
 
@@ -95,7 +196,39 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
-<script src="../../liskj-js.js"></script>
+<script src="../../lisk-js.js"></script>
 <script src="js/liskjs-example.js"></script>
+<script>
+    "use strict";
+    $(document).ready(function() {
+	    routeAction();
+    });
+
+    $(".pageLink").on("click", function() {
+    	setTimeout(function() {
+		    routeAction();
+        }, 100);
+
+    	$("#secretInput").val('');
+
+    });
+
+    function routeAction () {
+	    $(".pageX").hide();
+	    $('.experimentForm').trigger("reset");
+	    if(window.location.hash) {
+		    // Fragment exists
+		    var hash = window.location.hash;
+		    $(hash).show();
+
+	    } else {
+
+            $(".pageX").hide();
+            $("#introduction").show();
+
+	    }
+    }
+
+</script>
 </body>
 </html>
