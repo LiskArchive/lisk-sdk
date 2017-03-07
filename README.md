@@ -62,9 +62,9 @@ Tests written using mocha + schedule.js.
 ## Wiki
 
 Lisk-JS is a simplification layer to connect to the Lisk Blockchain Software. 
-More information of the system and all the components can be found in the wiki
+More information of the system and all the components can be found in the wiki:
 
-https://github.com/LiskHQ/lisk-wiki/wiki:
+https://github.com/LiskHQ/lisk-wiki/wiki
 
 
 ## Authors
