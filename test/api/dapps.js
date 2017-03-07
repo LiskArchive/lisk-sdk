@@ -1,6 +1,8 @@
 'use strict';
 
 var node = require('./../node.js');
+var clearDatabaseTable = require('../common/globalBefore').clearDatabaseTable;
+var modulesLoader = require('../common/initModule').modulesLoader;
 
 var dapp = {};
 var account = node.randomTxAccount();
@@ -27,6 +29,18 @@ function putTransaction (params, done) {
 		});
 	});
 }
+
+before(function (done) {
+	modulesLoader.getDbConnection(function (err, db) {
+		if (err) {
+			return done(err);
+		}
+
+		node.async.every(['dapps', 'outtransfer', 'intransfer'], function (table, cb) {
+			clearDatabaseTable(db, modulesLoader.logger, table, cb);
+		}, done);
+	});
+});
 
 before(function (done) {
 	// Send to LISK to account 1 address
@@ -757,13 +771,19 @@ describe('PUT /api/dapps/withdrawal', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
 
-			setTimeout(function () {
-				putWithdrawal(validParams, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').to.equal('Transaction is already processed: ' + validParams.transactionId);
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.get('/api/transactions/queued', function (err, trsRes) {
+					node.expect(trsRes.body).to.have.property('success').to.be.ok;
+					node.expect(trsRes.body.transactions).to.be.an('array').and.to.have.length.of.at.least(1);
+					var trsQueued = trsRes.body.transactions.find(function (t) {
+						return t.asset.outTransfer.transactionId === validParams.transactionId;
+					});
+					node.expect(trsQueued).to.be.not.empty;
+					node.expect(res.body).to.have.property('error').to.equal('Transaction is already processed: ' + trsQueued.id);
 					done();
 				});
-			}, 2000);
+			});
 		});
 	});
 
