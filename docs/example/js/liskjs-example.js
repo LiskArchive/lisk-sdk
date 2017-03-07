@@ -10,7 +10,7 @@ var options = {
 };
 
 //Initiate new Lisk Constructor
-var LSK = lisk.api();
+var LSK = lisk.api( { testnet: true, port: 7000 } );
 
 $(function() {
 
