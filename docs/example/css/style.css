@@ -1,9 +1,21 @@
 body {
     padding-top: 50px;
+    background-color: #E8E8E8;
 }
 .starter-template {
     padding: 40px 15px;
     text-align: left;
+}
+
+.page {
+    display: none;
+}
+
+@media screen and (min-width: 768px) {
+
+    .custom-collapse {
+        position:absolute;
+    }
 }
 
 .highlight {
