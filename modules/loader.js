@@ -524,7 +524,7 @@ __private.findGoodPeers = function (heights) {
 
 	heights = heights.filter(function (item) {
 		// Removing unreachable peers or heights below last block height
-		return item != null || item.heigh >= lastBlockHeight;
+		return item != null || item.height >= lastBlockHeight;
 	});
 
 	// No peers found
@@ -557,8 +557,6 @@ __private.findGoodPeers = function (heights) {
 		// Performing histogram cut of peers too far from histogram maximum
 		var peers = heights.filter(function (item) {
 			return item && Math.abs(height - item.height) < aggregation + 1;
-		}).map(function (item) {
-			return library.logic.peers.create(item);
 		});
 
 		library.logger.debug('Good peers', peers);
@@ -578,19 +576,13 @@ Loader.prototype.getNetwork = function (cb) {
 		return setImmediate(cb, null, __private.network);
 	}
 
-	modules.peers.list({}, function (err, peers) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
+	__private.network = __private.findGoodPeers(library.logic.peers.list());
 
-		__private.network = __private.findGoodPeers(peers);
-
-		if (!__private.network.peers.length) {
-			return setImmediate(cb, 'Failed to find enough good peers');
-		} else {
-			return setImmediate(cb, null, __private.network);
-		}
-	});
+	if (!__private.network.peers.length) {
+		return setImmediate(cb, 'Failed to find enough good peers');
+	} else {
+		return setImmediate(cb, null, __private.network);
+	}
 };
 
 Loader.prototype.syncing = function () {
