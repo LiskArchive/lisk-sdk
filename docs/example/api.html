@@ -144,7 +144,7 @@ var options = {
     node: '', //default autoFind
     autoFindNode: true, //default true
     testnet: true, //default false
-    port: '7000' //default 8000
+    port: '7000', //default 8000
     bannedNodes: [], //default empty
 
 };
@@ -164,7 +164,7 @@ var options = {
     node: 'localhost', //write node without http:// or port
     autoFindNode: false, //default true
     testnet: false, //default false
-    port: '8000' //default 8000
+    port: '8000', //default 8000
     bannedNodes: [], //default empty
 
 };
@@ -192,7 +192,7 @@ var LSK = lisk.api(options);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.listActiveDelegates(5);
+var LSK = lisk.api().listActiveDelegates(5);
                                         </code>
                                     </pre>
                                 </figure>
@@ -212,7 +212,7 @@ var LSK = lisk.api.listActiveDelegates(5);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.listStandyDelegates(6);
+var LSK = lisk.api().listStandyDelegates(6);
                                         </code>
                                     </pre>
                                 </figure>
@@ -232,7 +232,7 @@ var LSK = lisk.api.listStandyDelegates(6);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.searchDelegateByUsername('username');
+var LSK = lisk.api().searchDelegateByUsername('username');
                                         </code>
                                     </pre>
                                 </figure>
@@ -252,7 +252,7 @@ var LSK = lisk.api.searchDelegateByUsername('username');
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.getBlock(block);
+var LSK = lisk.api().getBlock(block);
                                         </code>
                                     </pre>
                                 </figure>
@@ -272,7 +272,7 @@ var LSK = lisk.api.getBlock(block);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.listBlocks(amount);
+var LSK = lisk.api().listBlocks(amount);
                                         </code>
                                     </pre>
                                 </figure>
@@ -292,7 +292,7 @@ var LSK = lisk.api.listBlocks(amount);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.listForgedBlocks(publicKey);
+var LSK = lisk.api().listForgedBlocks(publicKey);
                                         </code>
                                     </pre>
                                 </figure>
@@ -312,7 +312,7 @@ var LSK = lisk.api.listForgedBlocks(publicKey);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.getTransaction(transactionId);
+var LSK = lisk.api().getTransaction(transactionId);
                                         </code>
                                     </pre>
                                 </figure>
@@ -332,7 +332,7 @@ var LSK = lisk.api.getTransaction(transactionId);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.listTransactions(address);
+var LSK = lisk.api().listTransactions(address);
                                         </code>
                                     </pre>
                                 </figure>
@@ -352,7 +352,7 @@ var LSK = lisk.api.listTransactions(address);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.listVotes(address);
+var LSK = lisk.api().listVotes(address);
                                         </code>
                                     </pre>
                                 </figure>
@@ -372,7 +372,7 @@ var LSK = lisk.api.listVotes(address);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.listVoters(publicKey);
+var LSK = lisk.api().listVoters(publicKey);
                                         </code>
                                     </pre>
                                 </figure>
@@ -397,7 +397,7 @@ var LSK = lisk.api.listVoters(publicKey);
                                     <pre>
                                         <code class="language-html" data-lang="html">
 
-var liskBlockheight = lisk.api.sendRequest('blocks/getHeight', function(data) {
+var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function(data) {
 
     var str = JSON.stringify(data);
     document.getElementById("output").innerHTML = str;
@@ -416,7 +416,7 @@ var liskBlockheight = lisk.api.sendRequest('blocks/getHeight', function(data) {
                                     <pre>
                                         <code class="language-html" data-lang="html">
 
-var liskNewAccount = lisk.api.sendRequest('accounts/open ', { secret: 'my secret passphrase' } function(data) {
+var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secret passphrase' } function(data) {
 
     var str = JSON.stringify(data);
     document.getElementById("output").innerHTML = str;
@@ -443,7 +443,7 @@ var liskNewAccount = lisk.api.sendRequest('accounts/open ', { secret: 'my secret
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.getNethash();
+var LSK = lisk.api().getNethash();
 
 //your variable nethash now contains:
 'Content-Type': 'application/json',
@@ -472,7 +472,7 @@ var LSK = lisk.api.getNethash();
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.setNode('mynode.com');
+var LSK = lisk.api().setNode('mynode.com');
 
 //If you use LSK.setNode(); without entering a node, you will choose a new random node.
 
@@ -495,7 +495,7 @@ var LSK = lisk.api.setNode('mynode.com');
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.setSSL(true); //or false
+var LSK = lisk.api().setSSL(true); //or false
 
 
                                         </code>
@@ -517,7 +517,7 @@ var LSK = lisk.api.setSSL(true); //or false
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api.setTestnet(true); //or false
+var LSK = lisk.api().setTestnet(true); //or false
 
 
                                         </code>
