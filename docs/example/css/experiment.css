@@ -1,0 +1,12 @@
+body {
+    padding-top: 50px;
+    background-color: #E8E8E8;
+}
+.starter-template {
+    padding: 40px 15px;
+    text-align: left;
+}
+
+.pageX {
+    display: none;
+}
