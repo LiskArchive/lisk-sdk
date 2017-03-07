@@ -35,6 +35,16 @@ module.exports = function (grunt) {
 			},
 		},
 
+		coveralls: {
+			options: {
+				debug: true,
+				coverageDir: 'coverage',
+				dryRun: true,
+				force: true,
+				recursive: true
+			}
+		},
+
 		exec: {
 			coverageSingle: {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST'
@@ -46,7 +56,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-force');
-	grunt.loadNpmTasks('grunt-coveralls');
+	grunt.loadNpmTasks('grunt-karma-coveralls');
 	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
 	grunt.registerTask('default', [
 		'force:on',
