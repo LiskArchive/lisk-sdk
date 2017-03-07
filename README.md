@@ -57,7 +57,6 @@ Tests written using mocha + schedule.js.
     - [SendLSK](http://liskhq.github.io/lisk-js/example/experiment.html#send_lsk)
     - [Sign](http://liskhq.github.io/lisk-js/example/experiment.html#sign)
     - [Verify](http://liskhq.github.io/lisk-js/example/experiment.html#verify)
-- [Broadcast](https://github.com/steemit/steem-js/tree/dev/doc#broadcast)
 
 ## Wiki
 
