@@ -33,6 +33,12 @@ module.exports = function (grunt) {
 					livereload: true
 				},
 			},
+		},
+
+		exec: {
+			coverageSingle: {
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST'
+			}
 		}
 	});
 
@@ -40,6 +46,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-force');
+	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
 	grunt.registerTask('default', [
 		'force:on',
 		'browserify',
