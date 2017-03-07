@@ -69,7 +69,8 @@ https://github.com/LiskHQ/lisk-wiki/wiki
 ## Authors
 
 - Boris Povod <boris@crypti.me>
-- Oliver Beddows <oliver@lisk.io>
+- Oliver Beddows <oliver@lightcurve.io>
+- Tobias Schwarz <tobias@lightcurve.io>
 
 ## License
 
