@@ -73,12 +73,15 @@ $(function() {
 			var message = lisk.crypto.verifyMessageWithPublicKey(signature, pubKey);
 		} catch(e) {
 
+			$("#validSignature").html('Failed decrypting message.');
+
 			if(e.message === "Cannot read property 'length' of null") {
-				$("#validSignature").html('Invalid Signature');
+				$("#validSignature").append('<br>Invalid Signature');
 			} else if(e.message.substring(0,4) === 'nacl') {
-				$("#validSignature").html('Invalid publicKey');
+				$("#validSignature").append('<br>Invalid publicKey');
 			}
 
+			$("#validSignature").css('color', 'red');
 		}
 
 		if(message) {
@@ -156,130 +159,4 @@ function init(passphrase) {
 
 	}
 
-
-
 }
-
-
-
-
-
-
-
-/*
- LSK.sendRequest('multisignatures', { secret: 'inject napkin ranch advance danger mandate vote bread assault tuna keep develop', lifetime: 24, min: 2, keysgroup: ['+647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6', '+f6a1b12331281fa9b17be2b4887b8c626571dc3340c2643d9f70dfb2173cfb6c'] }, function(data) {
-
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
-
- var str = JSON.stringify(data);
- document.getElementById("multisig_setup").innerHTML = str;
-
- });
- */
-/*
- LSK.sendRequest('accounts', { address: '13356260975429434553L' }, function(data) {
-
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
-
- var str = JSON.stringify(data);
- document.getElementById("account1").innerHTML = str;
-
- });
-
- LSK.sendRequest('accounts', { address: '2281620997357761843L' }, function(data) {
-
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
-
- var str = JSON.stringify(data);
- document.getElementById("account2").innerHTML = str;
-
- });
-
-
- LSK.sendRequest('accounts/open', { secret: '123' }, function(data) {
-
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
-
- var str = JSON.stringify(data);
- document.getElementById("demo").innerHTML = str;
-
- });
-
-
-
- LSK.sendRequest('accounts/open', { secret: '123' }, function(data) {
-
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
-
- var str = JSON.stringify(data);
- document.getElementById("demo").innerHTML = str;
-
- });
- */
-/*
- LSK.sendRequest('blocks/getHeight', function(data) {
-
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
- var str = JSON.stringify(data);
- document.getElementById("demo").innerHTML = str;
-
- });
-
-
- LSK.sendRequest('transactions', { secret: 'inject napkin ranch advance danger mandate vote bread assault tuna keep develop', amount: 100000000, recipientId: '13356260975429434553L' } , function(data) {
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
- var str = JSON.stringify(data);
- document.getElementById("sending").innerHTML = str;
-
- });
- */
-
-
-/*
- LSK.sendRequest('accounts/delegates', { secret: 'inject napkin ranch advance danger mandate vote bread assault tuna keep develop', delegates: ['+f6a1b12331281fa9b17be2b4887b8c626571dc3340c2643d9f70dfb2173cfb6c'] } , function(data) {
-
- LSK.lastQuery = data;
- //console.log(LSK.lastQuery);
-
- console.log(data);
-
- var str = JSON.stringify(data);
- document.getElementById("sending").innerHTML = str;
-
- });
- */
