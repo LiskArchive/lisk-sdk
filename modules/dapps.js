@@ -1135,7 +1135,7 @@ DApps.prototype.internal = {
 			}
 		}
 
-		return setImmediate(cb, null, {success: true, launched: ids});
+		return setImmediate(cb, null, {success: true, uninstalling: ids});
 	},
 
 	launched: function (req, cb) {
@@ -1146,7 +1146,7 @@ DApps.prototype.internal = {
 			}
 		}
 		
-		return setImmediate(cb, null, {success: true, uninstalling: ids});
+		return setImmediate(cb, null, {success: true, launched: ids});
 	},
 	
 	categories: function (req, cb) {
@@ -1154,6 +1154,38 @@ DApps.prototype.internal = {
 	},
 
 	stop: function (params, cb) {
+		//
+		// req.sanitize(req.body, schema.stop, function (err, report, body) {
+		// 	if (err) { return next(err); }
+		// 	if (!report.isValid) { return res.json({success: false, error: report.issues}); }
+		//
+		// 	if (!__private.launched[body.id]) {
+		// 		return res.json({success: false, error: 'Application not launched'});
+		// 	}
+		//
+		// 	if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
+		// 		return res.json({success: false, error: 'Invalid master passphrase'});
+		// 	}
+		//
+		// 	__private.get(body.id, function (err, dapp) {
+		// 		if (err) {
+		// 			library.logger.error(err);
+		// 			return res.json({success: false, error: 'Application not found'});
+		// 		} else {
+		// 			__private.stopDApp(dapp, function (err) {
+		// 				if (err) {
+		// 					library.logger.error(err);
+		// 					return res.json({success: false, error: 'Failed to stop application'});
+		// 				} else {
+		// 					library.network.io.sockets.emit('dapps/change', dapp);
+		// 					__private.launched[body.id] = false;
+		// 					return res.json({success: true});
+		// 				}
+		// 			});
+		// 		}
+		// 	});
+		// });
+
 		if (!__private.launched[params.id]) {
 			return setImmediate(cb, {success: false, error: 'Application not launched'});
 		}
