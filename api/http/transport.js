@@ -18,7 +18,7 @@ function TransportHttpApi (transportModule, app, logger) {
 		transportModule.internal.list(httpApi.respondPositive.bind(null, res));
 	});
 	router.post('/blocks', function (req, res) {
-		transportModule.internal.postBlock(req.body.block, req.peer, req.method + ' ' + options.req.url, httpApi.respondPositive.bind(null, res));
+		transportModule.internal.postBlock(req.body.block, req.peer, req.method + ' ' + req.url, httpApi.respondPositive.bind(null, res));
 	});
 
 	router.get('/height', function (req, res) {

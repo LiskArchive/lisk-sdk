@@ -413,11 +413,11 @@ Transport.prototype.internal = {
 		});
 	},
 
-	height: function (req, cb) {
+	height: function (cb) {
 		return setImmediate(cb, null, {success: true, height: modules.blocks.getLastBlock().height});
 	},
 
-	ping: function (req, cb) {
+	ping: function (cb) {
 		return setImmediate(cb, null, {success: true});
 	},
 
