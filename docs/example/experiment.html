@@ -79,17 +79,19 @@
                 </div>
             </div>
             <div class="row pageX" id="send_lsk">
-                <form class="experimentForm">
-                    <div class="form-group">
-                        <label for="secretInput">Passphrase</label>
-                        <input type="password" class="form-control" id="secretInput" placeholder="yourSecret">
-                    </div>
-                    <input type="checkbox" data-toggle="toggle" id="showSecret" data-on="HIDE" data-off="SHOW">
-                </form>
-
                 <div class="row">
                     <div class="col-md-12">
                         <h3>Send LSK</h3>
+
+                        <p>Any transactions sent from this page are broadcast to <a href="https://testnet-explorer.lisk.io/">the official Lisk testnet</a>, therefore no real LSK can be sent.</p>
+
+                        <form class="experimentForm">
+                            <div class="form-group">
+                                <label for="secretInput">Passphrase</label>
+                                <input type="password" class="form-control" id="secretInput" placeholder="yourSecret">
+                            </div>
+                            <input type="checkbox" data-toggle="toggle" id="showSecret" data-on="HIDE" data-off="SHOW">
+                        </form>
                         <form>
                             <div class="form-group">
                                 <label for="send_lsk_recipient">Recipient</label>
