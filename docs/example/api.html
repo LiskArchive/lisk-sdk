@@ -850,19 +850,23 @@ var messageSignature = lisk.crypto.signMessageWithSecret(message, secret);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <pre>
-                                    -----BEGIN LISK SIGNED MESSAGE-----
-                                    &lt;message&gt;
-                                    -----BEGIN SIGNATURE-----
-                                    &lt;address&gt;
-                                    &lt;signature&gt;
-                                    -----END LISK SIGNED MESSAGE-----
-                                </pre>
                                 <h3>Example <small>Formats the given plain message, signed message and public key</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
+var printSignedMessage = lisk.crypto.printSignedMessage(message, signedMessage, publicKey);
+                                        </code>
+                                    </pre>
+                                </figure>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+-----BEGIN LISK SIGNED MESSAGE-----
+&lt;message&gt;
+-----BEGIN SIGNATURE-----
+&lt;publicKey&gt;
+&lt;signature&gt;
+-----END LISK SIGNED MESSAGE-----
                                         </code>
                                     </pre>
                                 </figure>
