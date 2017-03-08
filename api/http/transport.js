@@ -12,7 +12,7 @@ function TransportHttpApi (transportModule, app, logger) {
 	router.use(handshakeMiddleware);
 
 	router.get('/blocks/common', getCommonBlocksMiddleware);
-	router.get('/blocks', httpApi.middleware.sanitize('query', schema.top, transportModule.internal.blocks));
+	router.get('/blocks', httpApi.middleware.sanitize('query', schema.blocks, transportModule.internal.blocks));
 
 	router.get('/list', function (req, res) {
 		transportModule.internal.list(httpApi.respondPositive.bind(null, res));
