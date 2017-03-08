@@ -220,7 +220,7 @@ __private.dbSave = function (cb) {
 
 // Public methods
 Peers.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
+	sandboxHelper.callMethod(Peers.prototype.shared, call, args, cb);
 };
 
 Peers.prototype.update = function (peer) {

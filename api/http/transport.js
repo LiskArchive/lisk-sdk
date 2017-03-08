@@ -81,10 +81,12 @@ function TransportHttpApi (transportModule, app, logger) {
 			})
 		};
 
-		transportModule.internal.handshake(req.ip, req.port, req.headers, validateHeaders, function (err, result) {
+		transportModule.internal.handshake(req.ip, req.headers.port, req.headers, validateHeaders, function (err, peer) {
 			if (err) {
 				return res.status(500).send(err)
 			}
+
+			req.peer = peer;
 
 			if (req.body && req.body.dappid) {
 				req.peer.dappid = req.body.dappid;

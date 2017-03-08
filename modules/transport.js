@@ -601,7 +601,7 @@ Transport.prototype.internal = {
 
 			modules.peers.update(peer);
 
-			return cb();
+			return setImmediate(cb, null, peer);
 		});
 	}
 };
