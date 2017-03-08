@@ -1155,26 +1155,26 @@ DApps.prototype.internal = {
 
 	stop: function (params, cb) {
 		if (!__private.launched[params.id]) {
-			return cb({success: false, error: 'Application not launched'});
+			return setImmediate(cb, {success: false, error: 'Application not launched'});
 		}
 
 		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
-			return cb({success: false, error: 'Invalid master passphrase'});
+			return setImmediate(cb, {success: false, error: 'Invalid master passphrase'});
 		}
 
 		__private.get(params.id, function (err, dapp) {
 			if (err) {
 				library.logger.error(err);
-				return cb({success: false, error: 'Application not found'});
+				return setImmediate(cb, {success: false, error: 'Application not found'});
 			} else {
 				__private.stopDApp(dapp, function (err) {
 					if (err) {
 						library.logger.error(err);
-						return cb({success: false, error: 'Failed to stop application'});
+						return setImmediate(cb, {success: false, error: 'Failed to stop application'});
 					} else {
 						library.network.io.sockets.emit('dapps/change', dapp);
 						__private.launched[params.id] = false;
-						return cb({success: true});
+						return setImmediate(cb, null, {success: true});
 					}
 				});
 			}
