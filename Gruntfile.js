@@ -40,6 +40,7 @@ module.exports = function (grunt) {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST'
 			}
 		},
+
 		uglify: {
 			options: {
 				mangle: false
