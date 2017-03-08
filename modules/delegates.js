@@ -23,6 +23,7 @@ __private.assetTypes = {};
 __private.loaded = false;
 __private.blockReward = new BlockReward();
 __private.keypairs = {};
+__private.tmpKeypairs = {};
 
 // Constructor
 function Delegates (cb, scope) {
@@ -433,23 +434,116 @@ Delegates.prototype.isLoaded = function () {
 Delegates.prototype.internal = {
 
 	forgingEnable: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
 
+		library.schema.validate(req.body, schema.enableForging, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
+			}
+
+			if (__private.keypairs[keypair.publicKey.toString('hex')]) {
+				return setImmediate(cb, 'Forging is already enabled');
+			}
+
+			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+				if (account && account.isDelegate) {
+					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+					library.logger.info('Forging enabled on account: ' + account.address);
+					return setImmediate(cb, null, {address: account.address});
+				} else {
+					return setImmediate(cb, 'Delegate not found');
+				}
+			});
+		});
 	},
 
 	forgingDisable: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
 
+		library.schema.validate(req.body, schema.disableForging, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
+			}
+
+			if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
+				return setImmediate(cb, 'Delegate not found');
+			}
+
+			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+				if (account && account.isDelegate) {
+					delete __private.keypairs[keypair.publicKey.toString('hex')];
+					library.logger.info('Forging disabled on account: ' + account.address);
+					return setImmediate(cb, null, {address: account.address});
+				} else {
+					return setImmediate(cb, 'Delegate not found');
+				}
+			});
+		});
 	},
 
 	forgingStatus: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
 
+		library.schema.validate(req.query, schema.forgingStatus, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			if (req.query.publicKey) {
+				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.query.publicKey]});
+			} else {
+				var delegates_cnt = _.keys(__private.keypairs).length;
+				return setImmediate(cb, null, {enabled: delegates_cnt > 0, delegates: _.keys(__private.keypairs)});
+			}
+		});
 	},
 
 	forgingEnableAll: function (req, cb) {
+		if (Object.keys(__private.tmpKeypairs).length === 0) {
+			return setImmediate(cb, 'No temporary keypairs');
+		}
 
+		__private.keypairs = __private.tmpKeypairs;
+		__private.tmpKeypairs = {};
+		return setImmediate(cb);
 	},
 
 	forgingDisableAll: function (req, cb) {
+		if (Object.keys(__private.tmpKeypairs).length !== 0) {
+			return setImmediate(cb, 'Temporary keypairs are defined');
+		}
 
+		__private.tmpKeypairs = __private.keypairs;
+		__private.keypairs = {};
+		return setImmediate(cb);
 	}
 };
 
