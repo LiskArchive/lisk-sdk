@@ -1287,54 +1287,53 @@ var transaction = lisk.vote.createVote("secret", ["+5819957819195001929918192012
 <script src="../../lisk-js.js"></script>
 
 <script>
-    "use strict";
+'use strict';
 
-    $(window).on('resize', function(){
-	    var windowSize = $(window).width();
-	    if(windowSize < 1500) {
-		    $('#listGroupNav').hide();
-	    } else {
-		    $('#listGroupNav').show();
-	    }
-    });
+$(window).on('resize', function () {
+    var windowSize = $(window).width();
 
-    $(document).ready(function() {
-	    var windowSize = $(window).width();
-	    if(windowSize < 1500) {
-		    $('#listGroupNav').hide();
-	    } else {
-		    $('#listGroupNav').show();
-	    }
-    });
+    if (windowSize < 1500) {
+        $('#listGroupNav').hide();
+    } else {
+        $('#listGroupNav').show();
+    }
+});
 
-    $('.list-group-item').on('click', function() {
-	    var $this = $(this);
+$(document).ready(function () {
+    var windowSize = $(window).width();
 
-	    $('.active').removeClass('active');
-	    $this.toggleClass('active');
+    if (windowSize < 1500) {
+        $('#listGroupNav').hide();
+    } else {
+        $('#listGroupNav').show();
+    }
+});
 
-        function getGroupHeight () {
-            return +$('.list-group').height() + 150;
-        }
+$('.list-group-item').on('click', function () {
+    var $this = $(this);
 
-        function getWindowHeight () {
-	        return $(window).height();
-        }
+    $('.active').removeClass('active');
+    $this.toggleClass('active');
 
-        if(getGroupHeight() > getWindowHeight()) {
-	    	$("#api_nav").css('height', (getWindowHeight()-200));
-	        $('#listGroupNav').css("max-height", "150px");
-            $('#listGroupNav').css( "overflow-y", "scroll" );
-        }
+    function getGroupHeight () {
+        return +$('.list-group').height() + 150;
+    }
 
-        setTimeout(function () {
-	        console.log(getGroupHeight());
-	        console.log(getWindowHeight());
-        }, 500);
+    function getWindowHeight () {
+        return $(window).height();
+    }
 
-    })
+    if (getGroupHeight() > getWindowHeight()) {
+        $("#api_nav").css('height', (getWindowHeight() - 200));
+        $('#listGroupNav').css("max-height", "150px");
+        $('#listGroupNav').css( "overflow-y", "scroll" );
+    }
+
+    setTimeout(function () {
+        console.log(getGroupHeight());
+        console.log(getWindowHeight());
+    }, 500);
+});
 </script>
-
-
 </body>
 </html>

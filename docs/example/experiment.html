@@ -198,37 +198,35 @@
 
 <script src="../../lisk-js.js"></script>
 <script src="js/liskjs-example.js"></script>
+
 <script>
-    "use strict";
-    $(document).ready(function() {
-	    routeAction();
-    });
+'use strict';
 
-    $(".pageLink").on("click", function() {
-    	setTimeout(function() {
-		    routeAction();
-        }, 100);
+$(document).ready(function () {
+    routeAction();
+});
 
-    	$("#secretInput").val('');
+$(".pageLink").on("click", function () {
+    setTimeout(function() {
+        routeAction();
+    }, 100);
 
-    });
+    $("#secretInput").val('');
+});
 
-    function routeAction () {
-	    $(".pageX").hide();
-	    $('.experimentForm').trigger("reset");
-	    if(window.location.hash) {
-		    // Fragment exists
-		    var hash = window.location.hash;
-		    $(hash).show();
+function routeAction () {
+    $(".pageX").hide();
+    $('.experimentForm').trigger("reset");
 
-	    } else {
-
-            $(".pageX").hide();
-            $("#introduction").show();
-
-	    }
+    if (window.location.hash) {
+        // Fragment exists
+        var hash = window.location.hash;
+        $(hash).show();
+    } else {
+        $(".pageX").hide();
+        $("#introduction").show();
     }
-
+}
 </script>
 </body>
 </html>
