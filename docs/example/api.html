@@ -417,15 +417,22 @@ var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secr
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var LSK = lisk.api().getNethash();
-
-// Your variable nethash now contains:
-'Content-Type': 'application/json',
-'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-'os': 'lisk-js-api',
-'version': '1.0.0',
-'minVersion': '>=0.5.0',
-'port': this.port
+                                        </code>
+                                    </pre>
+                                </figure>
+                                Returning
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+{
+    'Content-Type': 'application/json',
+    'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+    'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+    'os': 'lisk-js-api',
+    'version': '1.0.0',
+    'minVersion': '>=0.5.0',
+    'port': this.port
+}
                                         </code>
                                     </pre>
                                 </figure>
