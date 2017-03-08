@@ -393,7 +393,7 @@ var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function (data)
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secret passphrase' }, function (data) {
+var liskNewAccount = lisk.api().sendRequest('accounts/open', { secret: 'my secret passphrase' }, function (data) {
     var str = JSON.stringify(data);
     document.getElementById('output').innerHTML = str;
 });
