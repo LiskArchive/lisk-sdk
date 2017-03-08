@@ -164,25 +164,25 @@ $(document).ready(function () {
     routeAction();
 });
 
-$(".pageLink").on("click", function () {
+$('.pageLink').on('click', function () {
     setTimeout(function() {
         routeAction();
     }, 100);
 
-    $("#secretInput").val('');
+    $('#secretInput').val('');
 });
 
 function routeAction () {
-    $(".pageX").hide();
-    $('.experimentForm').trigger("reset");
+    $('.pageX').hide();
+    $('.experimentForm').trigger('reset');
 
     if (window.location.hash) {
         // Fragment exists
         var hash = window.location.hash;
         $(hash).show();
     } else {
-        $(".pageX").hide();
-        $("#introduction").show();
+        $('.pageX').hide();
+        $('#introduction').show();
     }
 }
 </script>
