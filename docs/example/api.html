@@ -382,7 +382,7 @@ var LSK = lisk.api().listVoters(publicKey);
 
 var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function (data) {
     var str = JSON.stringify(data);
-    document.getElementById("output").innerHTML = str;
+    document.getElementById('output').innerHTML = str;
 });
                                         </code>
                                     </pre>
@@ -396,7 +396,7 @@ var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function (data)
                                         <code class="language-html" data-lang="html">
 var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secret passphrase' } function (data) {
     var str = JSON.stringify(data);
-    document.getElementById("output").innerHTML = str;
+    document.getElementById('output').innerHTML = str;
 });
                                         </code>
                                     </pre>
@@ -505,7 +505,7 @@ var LSK = lisk.api().setTestnet(true); // or false
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var keys = lisk.crypto.getKeys("secret");
+var keys = lisk.crypto.getKeys('secret');
                                         </code>
                                     </pre>
                                 </figure>
@@ -514,8 +514,8 @@ var keys = lisk.crypto.getKeys("secret");
                                     <pre>
                                         <code class="language-html" data-lang="html">
 {
-  publicKey: "5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09",
-  privateKey: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a2…44491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09"
+    publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+    privateKey: '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a2…44491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09'
 }
                                         </code>
                                     </pre>
@@ -535,7 +535,7 @@ var keys = lisk.crypto.getKeys("secret");
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09");
+var keys = lisk.crypto.getAddress('5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09');
                                         </code>
                                     </pre>
                                 </figure>
@@ -1053,7 +1053,7 @@ var sha256Hash = lisk.crypto.getSha256Hash(string);
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var amount      = 1000 * Math.pow(10, 8); // 100000000000
-var transaction = lisk.transaction.createTransaction("1859190791819301L", amount, "passphrase", "secondPassphrase");
+var transaction = lisk.transaction.createTransaction('1859190791819301L', amount, 'passphrase', 'secondPassphrase');
                                         </code>
                                     </pre>
                                 </figure>
@@ -1066,11 +1066,11 @@ var transaction = lisk.transaction.createTransaction("1859190791819301L", amount
     amount: 100000000000, // The amount to send expressed as an integer value.
     asset: {}, // Transaction asset, dependent on tx type.
     fee: 100000000, // 0.1 LSK expressed as an integer value.
-    id: "500224999259823996", // Transaction ID.
-    recipientId: "1859190791819301L", // Recipient ID.
-    senderPublicKey: "56e106a1d4a53dbe22cac52fefd8fc4123cfb4ee482f8f25a4fc72eb459b38a5", // Sender's public key.
-    signSignature: "03fdd33bed30270b97e77ada44764cc8628f6ad3bbd84718571695262a5a18baa37bd76a62dd25bc21beacd61eaf2c63af0cf34edb0d191d225f4974cd3aa509", // Sender's second passphrase signature.
-    signature: "9419ca3cf11ed2e3fa4c63bc9a4dc18b5001648e74522bc0f22bda46a188e462da4785e5c71a43cfc0486af08d447b9340ba8b93258c4c7f50798060fff2d709", // Transaction signature.
+    id: '500224999259823996', // Transaction ID.
+    recipientId: '1859190791819301L', // Recipient ID.
+    senderPublicKey: '56e106a1d4a53dbe22cac52fefd8fc4123cfb4ee482f8f25a4fc72eb459b38a5', // Sender's public key.
+    signSignature: '03fdd33bed30270b97e77ada44764cc8628f6ad3bbd84718571695262a5a18baa37bd76a62dd25bc21beacd61eaf2c63af0cf34edb0d191d225f4974cd3aa509', // Sender's second passphrase signature.
+    signature: '9419ca3cf11ed2e3fa4c63bc9a4dc18b5001648e74522bc0f22bda46a188e462da4785e5c71a43cfc0486af08d447b9340ba8b93258c4c7f50798060fff2d709', // Transaction signature.
     timestamp: 27953413 // Based on UTC time of genesis since epoch.
 }
                                         </code>
@@ -1093,15 +1093,15 @@ var transaction = lisk.transaction.createTransaction("1859190791819301L", amount
                                         <code class="language-html" data-lang="html">
 var options = {
     category: 0,
-    name: "Lisk Guestbook",
-    description: "The official Lisk guestbook",
-    tags: "guestbook message sidechain",
+    name: 'Lisk Guestbook',
+    description: 'The official Lisk guestbook',
+    tags: 'guestbook message sidechain',
     type: 0,
-    link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip",
-    icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png"
+    link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
+    icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png'
 };
 
-var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
+var transaction = lisk.dapp.createDapp('secret', 'secondSecret', options);
                                         </code>
                                     </pre>
                                 </figure>
@@ -1120,7 +1120,7 @@ var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var transaction = lisk.delegate.createDelegate("secret", "username", "secondSecret");
+var transaction = lisk.delegate.createDelegate('secret', 'username', 'secondSecret');
                                         </code>
                                     </pre>
                                 </figure>
@@ -1138,7 +1138,7 @@ var transaction = lisk.delegate.createDelegate("secret", "username", "secondSecr
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var transaction = lisk.signature.createTransaction("secret", "secondSecret");
+var transaction = lisk.signature.createTransaction('secret', 'secondSecret');
                                         </code>
                                     </pre>
                                 </figure>
@@ -1156,7 +1156,7 @@ var transaction = lisk.signature.createTransaction("secret", "secondSecret");
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var transaction = lisk.vote.createVote("secret", ["+58199578191950019299181920120128129"], "secondSecret");
+var transaction = lisk.vote.createVote('secret', ['+58199578191950019299181920120128129'], 'secondSecret');
                                         </code>
                                     </pre>
                                 </figure>
