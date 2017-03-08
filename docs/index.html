@@ -64,19 +64,13 @@
             </div>
         </div>
 
-        <p>Lisk-js is a library to use Lisk cryptography, API and nodes which can be used with NodeJS or in the Browser.</p>
-        <p></p>
+        <p>Lisk JS is a JavaScript library for <a href="https://github.com/LiskHQ/lisk">Lisk - the cryptocurrency and blockchain application platform</a>. It allows developers to create offline transactions and broadcast them onto the network. It also allows developers to interact with the core Lisk API, for retrieval of collections and single records of data located on the Lisk blockchain. Its main benefit is that it does not require a locally installed Lisk node, and instead utilizes the existing peers on the network. It can be used from the client as a <a href="http://browserify.org/">browserify</a> compiled module, or on the server as a standard Node.js module.</p>
 
-        <p>THe library has been crafted with the developer in mind. Easily use the functions to connect to the Lisk API.</p>
-        <p>Lisk uses brainwallets for the user authentification. This implies that every user has access to a secret which identifies with her/his account.</p>
-        <p>When using lisk-js the functions you are using get sure that your request will get submitted to a trusted lisk node.</p>
-        <p>Every transaction using a secret will be cryptographically wrapped inside the functions so that just finished transactions get submitted to a node.</p>
-        <p>No secret leaves your browser using lisk-js.</p>
+        <h3>Development</h3>
 
-        <h3>Developer</h3>
+        <p>Lisk-js is open sourced under the GNU General Public License version 3. Developers are invited to explore the code, or even improve it and help us make it better.</p>
 
-        <p>Lisk-js is open source, developers are invited to explore the code or even improve it and help us making it better.</p>
-        <p>You can start working on the codebase using the following commands:</p>
+        <p>Clone and install the repository from GitHub:</p>
 
         <figure class="highlight">
             <pre>
@@ -90,7 +84,17 @@
             </pre>
         </figure>
 
-        <p>Lisk-js uses grunt as a building tool:</p>
+        <p>To run the test suite, use the following command:</p>
+
+        <figure class="highlight">
+            <pre>
+                <code class="language-html" data-lang="html">npm test</code>
+            </pre>
+        </figure>
+
+        <p>Lisk-js uses <a href="https://gruntjs.com/">grunt</a> as a task runner. The default grunt task compiles the browserify module, runs a static code analysis using <a href="http://eslint.org/">eslint</a>, and executes the test suite. Upon completion, a watch task will monitor for further code changes, and then re-execute the same tasks.</p>
+
+        <p>To execute the default grunt task, use the following command:</p>
 
         <figure class="highlight">
             <pre>
@@ -98,7 +102,7 @@
             </pre>
         </figure>
 
-        <p>The codebase is documented using yuidoc, in order to see them you can generate it:</p>
+        <p>The codebase is documented using <a href="http://yui.github.io/yuidoc/">yuidoc</a>. To generate the documentation, use the following command:</p>
 
         <figure class="highlight">
             <pre>
