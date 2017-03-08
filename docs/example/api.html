@@ -135,11 +135,11 @@
                                         <code class="language-html" data-lang="html">
 var options = {
     ssl: false, // default false
-    node: '', //default autoFind
-    autoFindNode: true, //default true
-    testnet: true, //default false
-    port: '7000', //default 8000
-    bannedNodes: [], //default empty
+    node: '', // default autoFind
+    autoFindNode: true, // default true
+    testnet: true, // default false
+    port: '7000', // default 8000
+    bannedNodes: [], // default empty
 
 };
 
@@ -155,15 +155,15 @@ var LSK = lisk.api(options);
                                         <code class="language-html" data-lang="html">
 var options = {
     ssl: false, // default false
-    node: 'localhost', //write node without http:// or port
-    autoFindNode: false, //default true
-    testnet: false, //default false
-    port: '8000', //default 8000
-    bannedNodes: [], //default empty
+    node: 'localhost', // write node without http:// or port
+    autoFindNode: false, // default true
+    testnet: false, // default false
+    port: '8000', // default 8000
+    bannedNodes: [], // default empty
 
 };
 
-//Initiate new Lisk Constructor
+// Initiate new Lisk Constructor
 var LSK = lisk.api(options);
                                         </code>
                                     </pre>
@@ -380,14 +380,10 @@ var LSK = lisk.api().listVoters(publicKey);
                                     <pre>
                                         <code class="language-html" data-lang="html">
 
-var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function(data) {
-
+var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function (data) {
     var str = JSON.stringify(data);
     document.getElementById("output").innerHTML = str;
-
 });
-
-
                                         </code>
                                     </pre>
                                 </figure>
@@ -398,15 +394,10 @@ var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function(data) 
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-
-var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secret passphrase' } function(data) {
-
+var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secret passphrase' } function (data) {
     var str = JSON.stringify(data);
     document.getElementById("output").innerHTML = str;
-
 });
-
-
                                         </code>
                                     </pre>
                                 </figure>
@@ -427,7 +418,7 @@ var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secr
                                         <code class="language-html" data-lang="html">
 var LSK = lisk.api().getNethash();
 
-//your variable nethash now contains:
+// Your variable nethash now contains:
 'Content-Type': 'application/json',
 'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
 'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
@@ -455,8 +446,7 @@ var LSK = lisk.api().getNethash();
                                         <code class="language-html" data-lang="html">
 var LSK = lisk.api().setNode('mynode.com');
 
-//If you use LSK.setNode(); without entering a node, you will choose a new random node.
-
+// If you use LSK.setNode(); without entering a node, you will choose a new random node.
                                         </code>
                                     </pre>
                                 </figure>
@@ -475,9 +465,7 @@ var LSK = lisk.api().setNode('mynode.com');
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().setSSL(true); //or false
-
-
+var LSK = lisk.api().setSSL(true); // or false
                                         </code>
                                     </pre>
                                 </figure>
@@ -496,9 +484,7 @@ var LSK = lisk.api().setSSL(true); //or false
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().setTestnet(true); //or false
-
-
+var LSK = lisk.api().setTestnet(true); // or false
                                         </code>
                                     </pre>
                                 </figure>
@@ -1076,16 +1062,16 @@ var transaction = lisk.transaction.createTransaction("1859190791819301L", amount
                                     <pre>
                                         <code class="language-html" data-lang="html">
 {
-  type: 0, // Transaction type. 0 = Normal transaction.
-  amount: 100000000000, // The amount to send expressed as an integer value.
-  asset: {}, // Transaction asset, dependent on tx type.
-  fee: 100000000, // 0.1 LSK expressed as an integer value.
-  id: "500224999259823996", // Transaction ID.
-  recipientId: "1859190791819301L", // Recipient ID.
-  senderPublicKey: "56e106a1d4a53dbe22cac52fefd8fc4123cfb4ee482f8f25a4fc72eb459b38a5", // Sender's public key.
-  signSignature: "03fdd33bed30270b97e77ada44764cc8628f6ad3bbd84718571695262a5a18baa37bd76a62dd25bc21beacd61eaf2c63af0cf34edb0d191d225f4974cd3aa509", // Sender's second passphrase signature.
-  signature: "9419ca3cf11ed2e3fa4c63bc9a4dc18b5001648e74522bc0f22bda46a188e462da4785e5c71a43cfc0486af08d447b9340ba8b93258c4c7f50798060fff2d709", // Transaction signature.
-  timestamp: 27953413 // Based on UTC time of genesis since epoch.
+    type: 0, // Transaction type. 0 = Normal transaction.
+    amount: 100000000000, // The amount to send expressed as an integer value.
+    asset: {}, // Transaction asset, dependent on tx type.
+    fee: 100000000, // 0.1 LSK expressed as an integer value.
+    id: "500224999259823996", // Transaction ID.
+    recipientId: "1859190791819301L", // Recipient ID.
+    senderPublicKey: "56e106a1d4a53dbe22cac52fefd8fc4123cfb4ee482f8f25a4fc72eb459b38a5", // Sender's public key.
+    signSignature: "03fdd33bed30270b97e77ada44764cc8628f6ad3bbd84718571695262a5a18baa37bd76a62dd25bc21beacd61eaf2c63af0cf34edb0d191d225f4974cd3aa509", // Sender's second passphrase signature.
+    signature: "9419ca3cf11ed2e3fa4c63bc9a4dc18b5001648e74522bc0f22bda46a188e462da4785e5c71a43cfc0486af08d447b9340ba8b93258c4c7f50798060fff2d709", // Transaction signature.
+    timestamp: 27953413 // Based on UTC time of genesis since epoch.
 }
                                         </code>
                                     </pre>
@@ -1106,13 +1092,13 @@ var transaction = lisk.transaction.createTransaction("1859190791819301L", amount
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var options = {
-  category: 0,
-  name: "Lisk Guestbook",
-  description: "The official Lisk guestbook",
-  tags: "guestbook message sidechain",
-  type: 0,
-  link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip",
-  icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png"
+    category: 0,
+    name: "Lisk Guestbook",
+    description: "The official Lisk guestbook",
+    tags: "guestbook message sidechain",
+    type: 0,
+    link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip",
+    icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png"
 };
 
 var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
