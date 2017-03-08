@@ -26,9 +26,9 @@ function DappsHttpApi (dappsModule, app) {
 	router.put('/', httpApi.middleware.sanitize('body', schema.put, dappsModule.internal.put));
 	router.get('/get', httpApi.middleware.sanitize('query', schema.get, dappsModule.internal.get));
 	router.get('/search', httpApi.middleware.sanitize('query', schema.get, dappsModule.internal.search));
-	router.put('/install', httpApi.middleware.sanitize('body', schema.install, dappsModule.internal.install));
-	router.put('/uninstall', httpApi.middleware.sanitize('body', schema.uninstall, dappsModule.internal.uninstall));
-	router.put('/stop', httpApi.middleware.sanitize('body', schema.stop, dappsModule.internal.stop));
+	router.post('/install', httpApi.middleware.sanitize('body', schema.install, dappsModule.internal.install));
+	router.post('/uninstall', httpApi.middleware.sanitize('body', schema.uninstall, dappsModule.internal.uninstall));
+	router.post('/stop', httpApi.middleware.sanitize('body', schema.stop, dappsModule.internal.stop));
 
 	httpApi.registerEndpoint('/api/dapps', app, router, dappsModule.isLoaded);
 }
