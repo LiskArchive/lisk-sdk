@@ -6,10 +6,8 @@ var constants = require('../helpers/constants.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
-var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
-var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
 var sql = require('../sql/peers.js');
@@ -23,38 +21,8 @@ function Peers (cb, scope) {
 	library = scope;
 	self = this;
 
-	__private.attachApi();
-
 	setImmediate(cb, null, self);
 }
-
-// Private methods
-__private.attachApi = function () {
-	var router = new Router();
-
-	router.use(function (req, res, next) {
-		if (modules) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
-
-	router.map(shared, {
-		'get /': 'getPeers',
-		'get /version': 'version',
-		'get /get': 'getPeer',
-		'get /count': 'count'
-	});
-
-	router.use(function (req, res) {
-		res.status(500).send({success: false, error: 'API endpoint not found'});
-	});
-
-	library.network.app.use('/api/peers', router);
-	library.network.app.use(function (err, req, res, next) {
-		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err.message);
-		res.status(500).send({success: false, error: 'API error: ' + err.message});
-	});
-};
 
 __private.countByFilter = function (filter, cb) {
 	__private.getByFilter(filter, function (err, peers) {
@@ -514,69 +482,74 @@ Peers.prototype.cleanup = function (cb) {
 	});
 };
 
-// Shared
-shared.count = function (req, cb) {
-	async.series({
-		connected: function (cb) {
-			__private.countByFilter({state: 2}, cb);
-		},
-		disconnected: function (cb) {
-			__private.countByFilter({state: 1}, cb);
-		},
-		banned: function (cb) {
-			__private.countByFilter({state: 0}, cb);
-		}
-	}, function (err, res) {
-		if (err) {
-			return setImmediate(cb, 'Failed to get peer count');
-		}
-
-		return setImmediate(cb, null, res);
-	});
+Peers.prototype.isLoaded = function () {
+	return !!modules;
 };
 
-shared.getPeers = function (req, cb) {
-	library.schema.validate(req.body, schema.getPeers, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
+Peers.prototype.shared = {
 
-		if (req.body.limit < 0 || req.body.limit > 100) {
-			return setImmediate(cb, 'Invalid limit. Maximum is 100');
-		}
-
-		__private.getByFilter(req.body, function (err, peers) {
+	count: function (req, cb) {
+		async.series({
+			connected: function (cb) {
+				__private.countByFilter({state: 2}, cb);
+			},
+			disconnected: function (cb) {
+				__private.countByFilter({state: 1}, cb);
+			},
+			banned: function (cb) {
+				__private.countByFilter({state: 0}, cb);
+			}
+		}, function (err, res) {
 			if (err) {
-				return setImmediate(cb, 'Failed to get peers');
+				return setImmediate(cb, 'Failed to get peer count');
 			}
 
-			return setImmediate(cb, null, {peers: peers});
+			return setImmediate(cb, null, res);
 		});
-	});
-};
+	},
 
-shared.getPeer = function (req, cb) {
-	library.schema.validate(req.body, schema.getPeer, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		__private.getByFilter({
-			ip: req.body.ip,
-			port: req.body.port
-		}, function (err, peers) {
+	getPeers: function (req, cb) {
+		library.schema.validate(req.body, schema.getPeers, function (err) {
 			if (err) {
-				return setImmediate(cb, 'Failed to get peer');
+				return setImmediate(cb, err[0].message);
 			}
 
-			if (peers.length) {
-				return setImmediate(cb, null, {success: true, peer: peers[0]});
-			} else {
-				return setImmediate(cb, null, {success: false, error: 'Peer not found'});
+			if (req.body.limit < 0 || req.body.limit > 100) {
+				return setImmediate(cb, 'Invalid limit. Maximum is 100');
 			}
+
+			__private.getByFilter(req.body, function (err, peers) {
+				if (err) {
+					return setImmediate(cb, 'Failed to get peers');
+				}
+
+				return setImmediate(cb, null, {peers: peers});
+			});
 		});
-	});
-};
+	},
+
+	getPeer: function (req, cb) {
+		library.schema.validate(req.body, schema.getPeer, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			__private.getByFilter({
+				ip: req.body.ip,
+				port: req.body.port
+			}, function (err, peers) {
+				if (err) {
+					return setImmediate(cb, 'Failed to get peer');
+				}
+
+				if (peers.length) {
+					return setImmediate(cb, null, {success: true, peer: peers[0]});
+				} else {
+					return setImmediate(cb, null, {success: false, error: 'Peer not found'});
+				}
+			});
+		});
+	},
 
 /**
  * Returns information about version
@@ -593,12 +566,13 @@ shared.getPeer = function (req, cb) {
  * @return {String}   cb.obj.commit Hash of last git commit (if available, otherwise '')
  * @return {String}   cb.obj.version Lisk version from config file
  */
-shared.version = function (req, cb) {
-	return setImmediate(cb, null, {
-		build:   library.build,
-		commit:  library.lastCommit,
-		version: library.config.version
-	});
+	version: function (req, cb) {
+		return setImmediate(cb, null, {
+			build: library.build,
+			commit: library.lastCommit,
+			version: library.config.version
+		});
+	}
 };
 
 // Export

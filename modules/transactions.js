@@ -2,15 +2,12 @@
 
 var _ = require('lodash');
 var async = require('async');
-var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var OrderBy = require('../helpers/orderBy.js');
-var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/transactions.js');
-var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -32,7 +29,6 @@ function Transactions (cb, scope) {
 	genesisblock = library.genesisblock;
 	self = this;
 
-	__private.attachApi();
 	__private.transactionPool = new TransactionPool(library);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
@@ -43,39 +39,6 @@ function Transactions (cb, scope) {
 }
 
 // Private methods
-__private.attachApi = function () {
-	var router = new Router();
-
-	router.use(function (req, res, next) {
-		if (modules) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
-
-	router.map(shared, {
-		'get /': 'getTransactions',
-		'get /get': 'getTransaction',
-		'get /count': 'getTransactionsCount',
-		'get /queued/get': 'getQueuedTransaction',
-		'get /queued': 'getQueuedTransactions',
-		'get /multisignatures/get': 'getMultisignatureTransaction',
-		'get /multisignatures': 'getMultisignatureTransactions',
-		'get /unconfirmed/get': 'getUnconfirmedTransaction',
-		'get /unconfirmed': 'getUnconfirmedTransactions',
-		'put /': 'addTransactions'
-	});
-
-	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: 'API endpoint not found'});
-	});
-
-	library.network.app.use('/api/transactions', router);
-	library.network.app.use(function (err, req, res, next) {
-		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err.message);
-		res.status(500).send({success: false, error: 'API error: ' + err.message});
-	});
-};
-
 __private.list = function (filter, cb) {
 	var params = {};
 	var where = [];
@@ -423,6 +386,10 @@ Transactions.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
+Transactions.prototype.isLoaded = function () {
+	return !!modules;
+};
+
 // Events
 Transactions.prototype.onBind = function (scope) {
 	modules = scope;
@@ -433,176 +400,213 @@ Transactions.prototype.onBind = function (scope) {
 	});
 };
 
-Transactions.prototype.onPeersReady = function () {
-};
-
-// Shared
-shared.getTransactions = function (req, cb) {
-	async.waterfall([
-		function (waterCb) {
-			var params = {};
-			var pattern = /(and|or){1}:/i;
+Transactions.prototype.shared = {
+	getTransactions: function (req, cb) {
+		async.waterfall([
+			function (waterCb) {
+				var params = {};
+				var pattern = /(and|or){1}:/i;
 
 			// Filter out 'and:'/'or:' from params to perform schema validation
-			_.each(req.body, function (value, key) {
-				var param = String(key).replace(pattern, '');
+				_.each(req.body, function (value, key) {
+					var param = String(key).replace(pattern, '');
 				// Dealing with array-like parameters (csv comma separated)
-				if (_.includes(['senderIds', 'recipientIds', 'senderPublicKeys', 'recipientPublicKeys'], param)) {
-					value = String(value).split(',');
-					req.body[key] = value;
-				}
-				params[param] = value;
-			});
-
-			library.schema.validate(params, schema.getTransactions, function (err) {
-				if (err) {
-					return setImmediate(waterCb, err[0].message);
-				} else {
-					return setImmediate(waterCb, null);
-				}
-			});
-		},
-		function (waterCb) {
-			__private.list(req.body, function (err, data) {
-				if (err) {
-					return setImmediate(waterCb, 'Failed to get transactions: ' + err);
-				} else {
-					return setImmediate(waterCb, null, {transactions: data.transactions, count: data.count});
-				}
-			});
-		}
-	], function (err, res) {
-		return setImmediate(cb, err, res);
-	});
-};
-
-shared.getTransaction = function (req, cb) {
-	library.schema.validate(req.body, schema.getTransaction, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		__private.getById(req.body.id, function (err, transaction) {
-			if (!transaction || err) {
-				return setImmediate(cb, 'Transaction not found');
-			}
-
-			if (transaction.type === 3) {
-				__private.getVotesById(transaction, function (err, transaction) {
-					return setImmediate(cb, null, {transaction: transaction});
+					if (_.includes(['senderIds', 'recipientIds', 'senderPublicKeys', 'recipientPublicKeys'], param)) {
+						value = String(value).split(',');
+						req.body[key] = value;
+					}
+					params[param] = value;
 				});
-			} else {
-				return setImmediate(cb, null, {transaction: transaction});
+
+				library.schema.validate(params, schema.getTransactions, function (err) {
+					if (err) {
+						return setImmediate(waterCb, err[0].message);
+					} else {
+						return setImmediate(waterCb, null);
+					}
+				});
+			},
+			function (waterCb) {
+				__private.list(req.body, function (err, data) {
+					if (err) {
+						return setImmediate(waterCb, 'Failed to get transactions: ' + err);
+					} else {
+						return setImmediate(waterCb, null, {transactions: data.transactions, count: data.count});
+					}
+				});
 			}
+		], function (err, res) {
+			return setImmediate(cb, err, res);
 		});
-	});
-};
+	},
 
-shared.getTransactionsCount = function (req, cb) {
-	library.db.query(sql.count).then(function (transactionsCount) {
-		return setImmediate(cb, null, {
-			confirmed: transactionsCount[0].count,
-			multisignature: __private.transactionPool.multisignature.transactions.length,
-			unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
-			queued: __private.transactionPool.queued.transactions.length
-		});
-
-	}, function (err) {
-		return setImmediate(cb, 'Unable to count transactions');
-	});
-};
-
-shared.getQueuedTransaction = function (req, cb) {
-	return __private.getPooledTransaction('getQueuedTransaction', req, cb);
-};
-
-shared.getQueuedTransactions = function (req, cb) {
-	return __private.getPooledTransactions('getQueuedTransactionList', req, cb);
-};
-
-shared.getMultisignatureTransaction = function (req, cb) {
-	return __private.getPooledTransaction('getMultisignatureTransaction', req, cb);
-};
-
-shared.getMultisignatureTransactions = function (req, cb) {
-	return __private.getPooledTransactions('getMultisignatureTransactionList', req, cb);
-};
-
-shared.getUnconfirmedTransaction = function (req, cb) {
-	return __private.getPooledTransaction('getUnconfirmedTransaction', req, cb);
-};
-
-shared.getUnconfirmedTransactions = function (req, cb) {
-	return __private.getPooledTransactions('getUnconfirmedTransactionList', req, cb);
-};
-
-shared.addTransactions = function (req, cb) {
-	library.schema.validate(req.body, schema.addTransactions, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
-		var keypair = library.ed.makeKeypair(hash);
-
-		if (req.body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-				return setImmediate(cb, 'Invalid passphrase');
+	getTransaction: function (req, cb) {
+		library.schema.validate(req.body, schema.getTransaction, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
 			}
-		}
 
-		var query = { address: req.body.recipientId };
-
-		library.balancesSequence.add(function (cb) {
-			modules.accounts.getAccount(query, function (err, recipient) {
-				if (err) {
-					return setImmediate(cb, err);
+			__private.getById(req.body.id, function (err, transaction) {
+				if (!transaction || err) {
+					return setImmediate(cb, 'Transaction not found');
 				}
 
-				var recipientId = recipient ? recipient.address : req.body.recipientId;
-
-				if (!recipientId) {
-					return setImmediate(cb, 'Invalid recipient');
+				if (transaction.type === 3) {
+					__private.getVotesById(transaction, function (err, transaction) {
+						return setImmediate(cb, null, {transaction: transaction});
+					});
+				} else {
+					return setImmediate(cb, null, {transaction: transaction});
 				}
+			});
+		});
+	},
 
-				if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-					modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
+	getTransactionsCount: function (req, cb) {
+		library.db.query(sql.count).then(function (transactionsCount) {
+			return setImmediate(cb, null, {
+				confirmed: transactionsCount[0].count,
+				multisignature: __private.transactionPool.multisignature.transactions.length,
+				unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
+				queued: __private.transactionPool.queued.transactions.length
+			});
 
-						if (!account || !account.publicKey) {
-							return setImmediate(cb, 'Multisignature account not found');
-						}
+		}, function (err) {
+			return setImmediate(cb, 'Unable to count transactions');
+		});
+	},
 
-						if (!Array.isArray(account.multisignatures)) {
-							return setImmediate(cb, 'Account does not have multisignatures enabled');
-						}
+	getQueuedTransaction: function (req, cb) {
+		return __private.getPooledTransaction('getQueuedTransaction', req, cb);
+	},
 
-						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-							return setImmediate(cb, 'Account does not belong to multisignature group');
-						}
+	getQueuedTransactions: function (req, cb) {
+		return __private.getPooledTransactions('getQueuedTransactionList', req, cb);
+	},
 
-						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
+	getMultisignatureTransaction: function (req, cb) {
+		return __private.getPooledTransaction('getMultisignatureTransaction', req, cb);
+	},
+
+	getMultisignatureTransactions: function (req, cb) {
+		return __private.getPooledTransactions('getMultisignatureTransactionList', req, cb);
+	},
+
+	getUnconfirmedTransaction: function (req, cb) {
+		return __private.getPooledTransaction('getUnconfirmedTransaction', req, cb);
+	},
+
+	getUnconfirmedTransactions: function (req, cb) {
+		return __private.getPooledTransactions('getUnconfirmedTransactionList', req, cb);
+	},
+
+	addTransactions: function (req, cb) {
+		library.schema.validate(req.body, schema.addTransactions, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
+			var keypair = library.ed.makeKeypair(hash);
+
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
+			}
+
+			var query = {address: req.body.recipientId};
+
+			library.balancesSequence.add(function (cb) {
+				modules.accounts.getAccount(query, function (err, recipient) {
+					if (err) {
+						return setImmediate(cb, err);
+					}
+
+					var recipientId = recipient ? recipient.address : req.body.recipientId;
+
+					if (!recipientId) {
+						return setImmediate(cb, 'Invalid recipient');
+					}
+
+					if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+						modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 							if (err) {
 								return setImmediate(cb, err);
 							}
 
-							if (!requester || !requester.publicKey) {
-								return setImmediate(cb, 'Requester not found');
+							if (!account || !account.publicKey) {
+								return setImmediate(cb, 'Multisignature account not found');
 							}
 
-							if (requester.secondSignature && !req.body.secondSecret) {
-								return setImmediate(cb, 'Missing requester second passphrase');
+							if (!Array.isArray(account.multisignatures)) {
+								return setImmediate(cb, 'Account does not have multisignatures enabled');
 							}
 
-							if (requester.publicKey === account.publicKey) {
-								return setImmediate(cb, 'Invalid requester public key');
+							if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
+								return setImmediate(cb, 'Account does not belong to multisignature group');
+							}
+
+							modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
+								if (err) {
+									return setImmediate(cb, err);
+								}
+
+								if (!requester || !requester.publicKey) {
+									return setImmediate(cb, 'Requester not found');
+								}
+
+								if (requester.secondSignature && !req.body.secondSecret) {
+									return setImmediate(cb, 'Missing requester second passphrase');
+								}
+
+								if (requester.publicKey === account.publicKey) {
+									return setImmediate(cb, 'Invalid requester public key');
+								}
+
+								var secondKeypair = null;
+
+								if (requester.secondSignature) {
+									var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
+									secondKeypair = library.ed.makeKeypair(secondHash);
+								}
+
+								var transaction;
+
+								try {
+									transaction = library.logic.transaction.create({
+										type: transactionTypes.SEND,
+										amount: req.body.amount,
+										sender: account,
+										recipientId: recipientId,
+										keypair: keypair,
+										requester: keypair,
+										secondKeypair: secondKeypair
+									});
+								} catch (e) {
+									return setImmediate(cb, e.toString());
+								}
+
+								modules.transactions.receiveTransactions([transaction], true, cb);
+							});
+						});
+					} else {
+						modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
+
+							if (!account || !account.publicKey) {
+								return setImmediate(cb, 'Account not found');
+							}
+
+							if (account.secondSignature && !req.body.secondSecret) {
+								return setImmediate(cb, 'Missing second passphrase');
 							}
 
 							var secondKeypair = null;
 
-							if (requester.secondSignature) {
+							if (account.secondSignature) {
 								var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 								secondKeypair = library.ed.makeKeypair(secondHash);
 							}
@@ -616,7 +620,6 @@ shared.addTransactions = function (req, cb) {
 									sender: account,
 									recipientId: recipientId,
 									keypair: keypair,
-									requester: keypair,
 									secondKeypair: secondKeypair
 								});
 							} catch (e) {
@@ -625,56 +628,17 @@ shared.addTransactions = function (req, cb) {
 
 							modules.transactions.receiveTransactions([transaction], true, cb);
 						});
-					});
-				} else {
-					modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						if (!account || !account.publicKey) {
-							return setImmediate(cb, 'Account not found');
-						}
-
-						if (account.secondSignature && !req.body.secondSecret) {
-							return setImmediate(cb, 'Missing second passphrase');
-						}
-
-						var secondKeypair = null;
-
-						if (account.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-							secondKeypair = library.ed.makeKeypair(secondHash);
-						}
-
-						var transaction;
-
-						try {
-							transaction = library.logic.transaction.create({
-								type: transactionTypes.SEND,
-								amount: req.body.amount,
-								sender: account,
-								recipientId: recipientId,
-								keypair: keypair,
-								secondKeypair: secondKeypair
-							});
-						} catch (e) {
-							return setImmediate(cb, e.toString());
-						}
-
-						modules.transactions.receiveTransactions([transaction], true, cb);
-					});
+					}
+				});
+			}, function (err, transaction) {
+				if (err) {
+					return setImmediate(cb, err);
 				}
+
+				return setImmediate(cb, null, {transactionId: transaction[0].id});
 			});
-		}, function (err, transaction) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			return setImmediate(cb, null, {transactionId: transaction[0].id});
 		});
-	});
+	}
 };
-
 // Export
 module.exports = Transactions;
