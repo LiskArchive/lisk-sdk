@@ -122,8 +122,8 @@
             <div class="col-md-10">
                 <h2 id="api">API</h2>
                 <h3>Settings</h3>
-                <p>When setting up your API, you have various settings, you can use the LiskAPI with. See the examples below</p>
-                <p>You do not have to enter settings, when you want to use default, just initate the constructor.</p>
+                <p>Numerous settings are available when initialising the core API via Lisk-JS. Please see the examples below.</p>
+                <p>The provision of settings is optional, therefore initialising without any arguments <code>var LSK = lisk.api();</code> yields the defaults.</p>
 
                 <div class="panel panel-default" id="settings_example_1">
                     <div class="panel-body">
@@ -370,8 +370,8 @@ var LSK = lisk.api().listVoters(publicKey);
 
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <p>You can use the full API via sendRequest. Your passphrase will never leave your Browser.</p>
-                        <p>All API calls are wrapped up locally and broadcasted to the server as fully signed transaction.</p>
+                        <p><code>sendRequest</code> gives full access to the Lisk core API. It accepts any valid endpoint and parameters.</p>
+
                         <div class="rows">
                             <div class="col-md-12">
                                 <h3>Example <small>GET</small></h3>
@@ -400,6 +400,7 @@ var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secr
                                         </code>
                                     </pre>
                                 </figure>
+                                <p>The provided secret is intercepted and never transmitted over the network.<p>
                             </div>
                         </div>
                     </div>
