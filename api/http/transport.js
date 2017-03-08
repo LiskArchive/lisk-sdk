@@ -81,7 +81,7 @@ function TransportHttpApi (transportModule, app, logger) {
 			})
 		};
 
-		transportModule.handshake(req.ip, req.port, req.headers, validateHeaders, function (err, result) {
+		transportModule.internal.handshake(req.ip, req.port, req.headers, validateHeaders, function (err, result) {
 			if (err) {
 				return res.status(500).send(err)
 			}
