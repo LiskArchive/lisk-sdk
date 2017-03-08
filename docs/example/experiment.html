@@ -33,7 +33,6 @@
 </nav>
 
 <div class="container">
-
     <div class="starter-template">
         <div class="col-sm-2">
             <ul id="sidebar" class="nav nav-stacked affix">
@@ -44,22 +43,15 @@
                 <li><a href="#verify" class="pageLink" data-id="verify">Verify</a></li>
             </ul>
         </div>
-
         <div class="col-sm-10">
-
             <div class="row pageX" id="introduction">
-
-               <h2>Introduction</h2>
+                <h2>Introduction</h2>
 
                 <p>Lisk-js offers API and cryptographic functions for Lisk.</p>
                 <p>You can use some of those examples on this page. Please be aware, you are using non-real data on testnet here.</p>
                 <p>Please read the <a href="https://github.com/LiskHQ/lisk-js/blob/development/LICENSE" target="_blank">license</a> careful before you use the lisk-js API.</p>
-
-
             </div>
-
             <div class="row pageX" id="get_account">
-
                 <form class="experimentForm">
                     <div class="form-group">
                         <label for="secretInput">Passphrase</label>
@@ -70,7 +62,6 @@
                 </form>
 
                 <div class="row">
-
                     <div class="col-md-4">
                         <h3>Balance</h3>
                         <div id="balance_details" style="word-wrap: break-word"></div>
@@ -83,14 +74,9 @@
                         <h3>Delegate Info</h3>
                         <div id="delegate_details" style="word-wrap: break-word"></div>
                     </div>
-
                 </div>
-
-
             </div>
-
             <div class="row pageX" id="send_lsk">
-
                 <form class="experimentForm">
                     <div class="form-group">
                         <label for="secretInput">Passphrase</label>
@@ -100,9 +86,7 @@
                 </form>
 
                 <div class="row">
-
                     <div class="col-md-12">
-
                         <h3>Send LSK</h3>
                         <form>
                             <div class="form-group">
@@ -118,17 +102,12 @@
 
                         <div id="output_send"></div>
                     </div>
-
                 </div>
-
             </div>
-
-
             <div class="row pageX" id="sign">
                 <H2>SIGN</H2>
 
                 <form class="experimentForm">
-
                     <div class="form-group">
                         <label for="signPassphrase">Passphrase</label>
                         <input type="password" class="form-control" id="signPassphrase">
@@ -143,48 +122,31 @@
                         <label for="verifyResult">Result</label>
                         <textarea class="form-control" id="signResult" rows="5"></textarea>
                     </div>
-
                 </form>
             </div>
-
-
-
             <div class="row pageX" id="verify">
-
                 <h2>VERIFY</h2>
 
-                    <form class="experimentForm">
+                <form class="experimentForm">
+                    <div class="form-group">
+                        <label for="verifyPublicKey">PublicKey</label>
+                        <input type="text" class="form-control" id="verifyPublicKey">
+                    </div>
+                    <div class="form-group">
+                        <label for="verifySignature">Signature</label>
+                        <input type="text" class="form-control" id="verifySignature">
+                    </div>
 
-                        <div class="form-group">
-                            <label for="verifyPublicKey">PublicKey</label>
-                            <input type="text" class="form-control" id="verifyPublicKey">
-                        </div>
-                        <div class="form-group">
-                            <label for="verifySignature">Signature</label>
-                            <input type="text" class="form-control" id="verifySignature">
-                        </div>
-                        <button type="submit" class="btn btn-primary" id="verifySignedMessage">Verify</button>
+                    <button type="submit" class="btn btn-primary" id="verifySignedMessage">Verify</button>
 
-                        <div class="form-group">
-                            <label for="verifyResult">Result</label>
-                            <p id="validSignature" style="color: red;"></p>
-                            <textarea class="form-control" id="verifyResult" rows="5"></textarea>
-                        </div>
-
-                    </form>
-
-
-
-
-
+                    <div class="form-group">
+                        <label for="verifyResult">Result</label>
+                        <p id="validSignature" style="color: red;"></p>
+                        <textarea class="form-control" id="verifyResult" rows="5"></textarea>
+                    </div>
+                </form>
             </div>
-
-
-
-
         </div>
-
-
     </div>
 </div>
 
@@ -195,7 +157,6 @@
         crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-
 <script src="../../lisk-js.js"></script>
 <script src="js/liskjs-example.js"></script>
 
@@ -228,5 +189,6 @@ function routeAction () {
     }
 }
 </script>
+
 </body>
 </html>

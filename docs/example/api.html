@@ -33,11 +33,8 @@
 </nav>
 
 <div class="container">
-
     <div class="starter-template">
-
         <div class="rows">
-
             <!--
             <h1>API</h1>
 
@@ -51,7 +48,6 @@
                     </a>
 
                     <div class="collapse list-group-submenu" id="api_sub">
-
                         <a href="#settings_sub" data-toggle="collapse" data-parent="#settings_sub" class="list-group-item sub-item"  style="padding-left: 24px;"><b>Settings</b></a>
                         <div class="collapse list-group-submenu" id="settings_sub">
                             <a href="#settings_example_1" class="list-group-item sub-item" data-parent="#settings_sub" style="padding-left: 34px;">Example 1 <small>random node</small></a>
@@ -103,7 +99,6 @@
                         <a href="#functions_verifySecondSignature" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verifySecondSignature</a>
                         <a href="#functions_fixedPoint" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">fixedPoint</a>
 
-
                         <a href="#functions_bufferToHex" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">bufferToHex</a>
                         <a href="#functions_hexToBuffer" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">hexToBuffer</a>
                         <a href="#functions_useFirstEightBufferEntriesReversed" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">useFirstEightBufferEntriesReversed</a>
@@ -115,7 +110,6 @@
                         <a href="#functions_getRawPrivateAndPublicKeyFromSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getRawPrivateAndPublicKeyFromSecret</a>
                         <a href="#functions_getAddressFromPublicKey" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getAddressFromPublicKey</a>
                         <a href="#functions_getSha256Hash" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getSha256Hash</a>
-
                     </div>
 
                     <a type="button" class="list-group-item" href="#functions_createTransaction">Transaction</a>
@@ -176,7 +170,6 @@ var LSK = lisk.api(options);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -198,7 +191,6 @@ var LSK = lisk.api().listActiveDelegates(5);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -218,7 +210,6 @@ var LSK = lisk.api().listStandyDelegates(6);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -238,7 +229,6 @@ var LSK = lisk.api().searchDelegateByUsername('username');
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -258,7 +248,6 @@ var LSK = lisk.api().getBlock(block);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -278,7 +267,6 @@ var LSK = lisk.api().listBlocks(amount);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -298,7 +286,6 @@ var LSK = lisk.api().listForgedBlocks(publicKey);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -318,7 +305,6 @@ var LSK = lisk.api().getTransaction(transactionId);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -338,7 +324,6 @@ var LSK = lisk.api().listTransactions(address);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -358,7 +343,6 @@ var LSK = lisk.api().listVotes(address);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -378,7 +362,6 @@ var LSK = lisk.api().listVoters(publicKey);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -429,7 +412,6 @@ var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secr
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -458,7 +440,6 @@ var LSK = lisk.api().getNethash();
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -481,7 +462,6 @@ var LSK = lisk.api().setNode('mynode.com');
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -503,7 +483,6 @@ var LSK = lisk.api().setSSL(true); //or false
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -525,10 +504,8 @@ var LSK = lisk.api().setTestnet(true); //or false
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h2 id="crypto"></h2>
 
@@ -544,7 +521,6 @@ var LSK = lisk.api().setTestnet(true); //or false
                                         <code class="language-html" data-lang="html">
 var keys = lisk.crypto.getKeys("secret");
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -556,12 +532,10 @@ var keys = lisk.crypto.getKeys("secret");
   privateKey: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a2…44491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09"
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -577,7 +551,6 @@ var keys = lisk.crypto.getKeys("secret");
                                         <code class="language-html" data-lang="html">
 var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09");
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -586,12 +559,10 @@ var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da65
                                         <code class="language-html" data-lang="html">
 18160565574430594874L
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -608,12 +579,10 @@ var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da65
                                         <code class="language-html" data-lang="html">
 var transactionBytes = lisk.crypto.getBytes(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -631,12 +600,10 @@ var transactionBytes = lisk.crypto.getBytes(transactionObject);
                                         <code class="language-html" data-lang="html">
 var transactionHash = lisk.crypto.getHash(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -654,12 +621,10 @@ var transactionHash = lisk.crypto.getHash(transactionObject);
                                         <code class="language-html" data-lang="html">
 var transactionId = lisk.crypto.getId(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -677,12 +642,10 @@ var transactionId = lisk.crypto.getId(transactionObject);
                                         <code class="language-html" data-lang="html">
 var transactionFee = lisk.crypto.getFee(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -700,12 +663,10 @@ var transactionFee = lisk.crypto.getFee(transactionObject);
                                         <code class="language-html" data-lang="html">
 var transactionSignature = lisk.crypto.sign(transactionObject, keypair);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -723,12 +684,10 @@ var transactionSignature = lisk.crypto.sign(transactionObject, keypair);
                                         <code class="language-html" data-lang="html">
 var transactionSignature = lisk.crypto.secondSign(transactionObject, keypair);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -746,12 +705,10 @@ var transactionSignature = lisk.crypto.secondSign(transactionObject, keypair);
                                         <code class="language-html" data-lang="html">
 var transactionSignature = lisk.crypto.multiSign(transactionObject, keypair);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -769,12 +726,10 @@ var transactionSignature = lisk.crypto.multiSign(transactionObject, keypair);
                                         <code class="language-html" data-lang="html">
 var keypair = lisk.crypto.getKeys(secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -792,12 +747,10 @@ var keypair = lisk.crypto.getKeys(secret);
                                         <code class="language-html" data-lang="html">
 var verification = lisk.crypto.verify(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -815,12 +768,10 @@ var verification = lisk.crypto.verify(transactionObject);
                                         <code class="language-html" data-lang="html">
 var verification = lisk.crypto.verifySecondSignature(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -838,12 +789,10 @@ var verification = lisk.crypto.verifySecondSignature(transactionObject);
                                         <code class="language-html" data-lang="html">
 var bigAmount = lisk.crypto.fixedPoint(amount);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -861,12 +810,10 @@ var bigAmount = lisk.crypto.fixedPoint(amount);
                                         <code class="language-html" data-lang="html">
 var hexString = lisk.crypto.bufferToHex(buffer);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -884,12 +831,10 @@ var hexString = lisk.crypto.bufferToHex(buffer);
                                         <code class="language-html" data-lang="html">
 var bufferValue = lisk.crypto.hexToBuffer(hexString);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -908,12 +853,10 @@ var bufferValue = lisk.crypto.hexToBuffer(hexString);
                                         <code class="language-html" data-lang="html">
 var rawId = lisk.crypto.useFirstEightBufferEntriesReversed(buffer);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -931,12 +874,10 @@ var rawId = lisk.crypto.useFirstEightBufferEntriesReversed(buffer);
                                         <code class="language-html" data-lang="html">
 var messageSignature = lisk.crypto.signMessageWithSecret(message, secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -963,12 +904,10 @@ var messageSignature = lisk.crypto.signMessageWithSecret(message, secret);
                                         <code class="language-html" data-lang="html">
 var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -987,12 +926,10 @@ var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
                                         <code class="language-html" data-lang="html">
 var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1010,12 +947,10 @@ var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
                                         <code class="language-html" data-lang="html">
 var verifySignedMessage = lisk.crypto.verifyMessageWithPublicKey(signedMessage, publicKey);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1033,7 +968,6 @@ var verifySignedMessage = lisk.crypto.verifyMessageWithPublicKey(signedMessage, 
                                         <code class="language-html" data-lang="html">
 var keypair = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -1045,12 +979,10 @@ var keypair = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret);
     privateKey: privateKey(hex)
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1068,7 +1000,6 @@ var keypair = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret);
                                         <code class="language-html" data-lang="html">
 var keypairBytes = lisk.crypto.getRawPrivateAndPublicKeyFromSecret(secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -1080,15 +1011,12 @@ var keypairBytes = lisk.crypto.getRawPrivateAndPublicKeyFromSecret(secret);
     privateKey: privateKey(bytes)
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h3 id="functions_getAddressFromPublicKey">getAddressFromPublicKey</h3>
 
@@ -1101,12 +1029,10 @@ var keypairBytes = lisk.crypto.getRawPrivateAndPublicKeyFromSecret(secret);
                                     <code class="language-html" data-lang="html">
 var address = lisk.crypto.getAddressFromPublicKey(publicKeyHex);
                                     </code>
-
                                 </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1121,15 +1047,12 @@ var address = lisk.crypto.getAddressFromPublicKey(publicKeyHex);
                                     <code class="language-html" data-lang="html">
 var sha256Hash = lisk.crypto.getSha256Hash(string);
                                     </code>
-
                                 </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h2>Transaction</h2>
 
@@ -1146,7 +1069,6 @@ var sha256Hash = lisk.crypto.getSha256Hash(string);
 var amount      = 1000 * Math.pow(10, 8); // 100000000000
 var transaction = lisk.transaction.createTransaction("1859190791819301L", amount, "passphrase", "secondPassphrase");
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -1166,12 +1088,10 @@ var transaction = lisk.transaction.createTransaction("1859190791819301L", amount
   timestamp: 27953413 // Based on UTC time of genesis since epoch.
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1197,12 +1117,10 @@ var options = {
 
 var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1218,15 +1136,12 @@ var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
                                         <code class="language-html" data-lang="html">
 var transaction = lisk.delegate.createDelegate("secret", "username", "secondSecret");
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h3 id="functions_createSignature">create second Signature Transaction</h3>
                 <div class="panel panel-default">
@@ -1239,12 +1154,10 @@ var transaction = lisk.delegate.createDelegate("secret", "username", "secondSecr
                                         <code class="language-html" data-lang="html">
 var transaction = lisk.signature.createTransaction("secret", "secondSecret");
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1259,20 +1172,14 @@ var transaction = lisk.signature.createTransaction("secret", "secondSecret");
                                         <code class="language-html" data-lang="html">
 var transaction = lisk.vote.createVote("secret", ["+58199578191950019299181920120128129"], "secondSecret");
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
             </div>
-
         </div>
-
-
     </div>
 </div>
 
@@ -1283,7 +1190,6 @@ var transaction = lisk.vote.createVote("secret", ["+5819957819195001929918192012
         crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-
 <script src="../../lisk-js.js"></script>
 
 <script>
@@ -1335,5 +1241,6 @@ $('.list-group-item').on('click', function () {
     }, 500);
 });
 </script>
+
 </body>
 </html>
