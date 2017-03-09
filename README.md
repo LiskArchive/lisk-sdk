@@ -45,9 +45,9 @@ Tests written using mocha + schedule.js.
 
 - [Install](http://liskhq.github.io/lisk-js/index.html)
 - [API](http://liskhq.github.io/lisk-js/example/api.html)
-	- [Settings](http://liskhq.github.io/lisk-js/example/api.html#settings_sub)
-	- [API Functions](http://liskhq.github.io/lisk-js/example/api.html#api_functions_sub)
-	- [Network Functions](http://liskhq.github.io/lisk-js/example/api.html#network_sub)
+	- [Settings](http://liskhq.github.io/lisk-js/example/api.html#settings)
+	- [API Functions](http://liskhq.github.io/lisk-js/example/api.html#api_functions)
+	- [Network Functions](http://liskhq.github.io/lisk-js/example/api.html#network_functions)
 - [Crypto](http://liskhq.github.io/lisk-js/example/api.html#crypto)
 - [Transactions](http://liskhq.github.io/lisk-js/example/api.html#transactions)
 	- [Create Transaction](http://liskhq.github.io/lisk-js/example/api.html#functions_createTransaction)
