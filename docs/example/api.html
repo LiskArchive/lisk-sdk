@@ -20,7 +20,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="../index.html"><span><img width="25" height="25" src="lisk.png"/></span> lisk-js</a>
+            <a class="navbar-brand" href="../index.html"><span><img width="25" height="25" src="lisk.png" alt="Lisk" /></span> lisk-js</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
@@ -33,11 +33,8 @@
 </nav>
 
 <div class="container">
-
     <div class="starter-template">
-
         <div class="rows">
-
             <!--
             <h1>API</h1>
 
@@ -51,7 +48,6 @@
                     </a>
 
                     <div class="collapse list-group-submenu" id="api_sub">
-
                         <a href="#settings_sub" data-toggle="collapse" data-parent="#settings_sub" class="list-group-item sub-item"  style="padding-left: 24px;"><b>Settings</b></a>
                         <div class="collapse list-group-submenu" id="settings_sub">
                             <a href="#settings_example_1" class="list-group-item sub-item" data-parent="#settings_sub" style="padding-left: 34px;">Example 1 <small>random node</small></a>
@@ -103,7 +99,6 @@
                         <a href="#functions_verifySecondSignature" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verifySecondSignature</a>
                         <a href="#functions_fixedPoint" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">fixedPoint</a>
 
-
                         <a href="#functions_bufferToHex" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">bufferToHex</a>
                         <a href="#functions_hexToBuffer" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">hexToBuffer</a>
                         <a href="#functions_useFirstEightBufferEntriesReversed" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">useFirstEightBufferEntriesReversed</a>
@@ -115,7 +110,6 @@
                         <a href="#functions_getRawPrivateAndPublicKeyFromSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getRawPrivateAndPublicKeyFromSecret</a>
                         <a href="#functions_getAddressFromPublicKey" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getAddressFromPublicKey</a>
                         <a href="#functions_getSha256Hash" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getSha256Hash</a>
-
                     </div>
 
                     <a type="button" class="list-group-item" href="#functions_createTransaction">Transaction</a>
@@ -128,24 +122,24 @@
             <div class="col-md-10">
                 <h2 id="api">API</h2>
                 <h3>Settings</h3>
-                <p>When setting up your API, you have various settings, you can use the LiskAPI with. See the examples below</p>
-                <p>You do not have to enter settings, when you want to use default, just initate the constructor.</p>
+                <p>Numerous settings are available when initialising the core API via Lisk-JS. Please see the examples below.</p>
+                <p>The provision of settings is optional, therefore initialising without any arguments <code>var LSK = lisk.api();</code> yields the defaults.</p>
 
                 <div class="panel panel-default" id="settings_example_1">
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example 1 <small>random node, testnet with port 7000</small></h3>
+                                <h3>Example 1 <small>Random node, testnet with port 7000</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var options = {
     ssl: false, // default false
-    node: '', //default autoFind
-    autoFindNode: true, //default true
-    testnet: true, //default false
-    port: '7000', //default 8000
-    bannedNodes: [], //default empty
+    node: '', // default autoFind
+    autoFindNode: true, // default true
+    testnet: true, // default false
+    port: '7000', // default 8000
+    bannedNodes: [], // default empty
 
 };
 
@@ -155,28 +149,26 @@ var LSK = lisk.api(options);
                                 </figure>
                             </div>
                             <div class="col-md-12" id="settings_example_2">
-                                <h3>Example 2 <small>stick to localhost, port 8000, no SSL</small></h3>
+                                <h3>Example 2 <small>Restricted to localhost, port 8000, no SSL</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var options = {
     ssl: false, // default false
-    node: 'localhost', //write node without http:// or port
-    autoFindNode: false, //default true
-    testnet: false, //default false
-    port: '8000', //default 8000
-    bannedNodes: [], //default empty
+    node: 'localhost', // write node without http:// or port
+    autoFindNode: false, // default true
+    testnet: false, // default false
+    port: '8000', // default 8000
+    bannedNodes: [], // default empty
 
 };
 
-//Initiate new Lisk Constructor
 var LSK = lisk.api(options);
                                         </code>
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -188,7 +180,7 @@ var LSK = lisk.api(options);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>first 5 delegates</small></h3>
+                                <h3>Example <small>Get the first 5 active delegates</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -198,7 +190,6 @@ var LSK = lisk.api().listActiveDelegates(5);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -208,7 +199,7 @@ var LSK = lisk.api().listActiveDelegates(5);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>first 6 delegates</small></h3>
+                                <h3>Example <small>Get the first 6 standby delegates</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -218,7 +209,6 @@ var LSK = lisk.api().listStandyDelegates(6);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -228,7 +218,7 @@ var LSK = lisk.api().listStandyDelegates(6);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>search username</small></h3>
+                                <h3>Example <small>Search for delegates by username</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -238,7 +228,6 @@ var LSK = lisk.api().searchDelegateByUsername('username');
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -248,17 +237,16 @@ var LSK = lisk.api().searchDelegateByUsername('username');
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>get information on certain Blockheight</small></h3>
+                                <h3>Example <small>Get a single block by id</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().getBlock(block);
+var LSK = lisk.api().getBlock(blockId);
                                         </code>
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -268,7 +256,7 @@ var LSK = lisk.api().getBlock(block);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Get a list of blocks</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -278,7 +266,6 @@ var LSK = lisk.api().listBlocks(amount);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -288,7 +275,7 @@ var LSK = lisk.api().listBlocks(amount);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>List the forged blocks using a given public key</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -298,7 +285,6 @@ var LSK = lisk.api().listForgedBlocks(publicKey);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -308,7 +294,7 @@ var LSK = lisk.api().listForgedBlocks(publicKey);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Get a single transaction by id</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -318,7 +304,6 @@ var LSK = lisk.api().getTransaction(transactionId);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -328,7 +313,7 @@ var LSK = lisk.api().getTransaction(transactionId);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>List transactions for a given address</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -338,7 +323,6 @@ var LSK = lisk.api().listTransactions(address);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -348,7 +332,7 @@ var LSK = lisk.api().listTransactions(address);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>List votes placed by a given address</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -358,7 +342,6 @@ var LSK = lisk.api().listVotes(address);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -368,7 +351,7 @@ var LSK = lisk.api().listVotes(address);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>List votes received by a given address</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -378,7 +361,6 @@ var LSK = lisk.api().listVoters(publicKey);
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -388,48 +370,39 @@ var LSK = lisk.api().listVoters(publicKey);
 
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <p>You can use the full API via sendRequest. Your passphrase will never leave your Browser.</p>
-                        <p>All API calls are wrapped up locally and broadcasted to the server as fully signed transaction.</p>
+                        <p><code>sendRequest</code> gives full access to the Lisk core API. It accepts any valid endpoint and parameters.</p>
+
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>GET</small></h3>
+                                <h3>Example <small>GET - Retreive the current block height</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 
-var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function(data) {
-
+var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function (data) {
     var str = JSON.stringify(data);
-    document.getElementById("output").innerHTML = str;
-
+    document.getElementById('output').innerHTML = str;
 });
-
-
                                         </code>
                                     </pre>
                                 </figure>
                             </div>
 
                             <div class="col-md-12">
-                                <h3>Example <small>POST</small></h3>
+                                <h3>Example <small>POST - Open a new account</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-
-var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secret passphrase' } function(data) {
-
+var liskNewAccount = lisk.api().sendRequest('accounts/open', { secret: 'my secret passphrase' }, function (data) {
     var str = JSON.stringify(data);
-    document.getElementById("output").innerHTML = str;
-
+    document.getElementById('output').innerHTML = str;
 });
-
-
                                         </code>
                                     </pre>
                                 </figure>
+                                <p>The provided secret is intercepted and never transmitted over the network.<p>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -439,26 +412,32 @@ var liskNewAccount = lisk.api().sendRequest('accounts/open ', { secret: 'my secr
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>mainnet nethash</small></h3>
+                                <h3>Example <small>Get a unique hash for the currently selected network</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var LSK = lisk.api().getNethash();
-
-//your variable nethash now contains:
-'Content-Type': 'application/json',
-'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-'os': 'lisk-js-api',
-'version': '1.0.0',
-'minVersion': '>=0.5.0',
-'port': this.port
+                                        </code>
+                                    </pre>
+                                </figure>
+                                Returning
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+{
+    'Content-Type': 'application/json',
+    'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+    'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+    'os': 'lisk-js-api',
+    'version': '1.0.0',
+    'minVersion': '>=0.5.0',
+    'port': this.port
+}
                                         </code>
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -468,20 +447,17 @@ var LSK = lisk.api().getNethash();
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>set node to mynode.com</small></h3>
+                                <h3>Example <small>Set the currently selected node</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var LSK = lisk.api().setNode('mynode.com');
-
-//If you use LSK.setNode(); without entering a node, you will choose a new random node.
-
                                         </code>
                                     </pre>
                                 </figure>
+                                <p>Use <code>LSK.setNode();</code> without any arguments to automatically choose a new random node.</p>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -491,19 +467,16 @@ var LSK = lisk.api().setNode('mynode.com');
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>set connection to use SSL</small></h3>
+                                <h3>Example <small>Enable the SSL connecton protocol</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().setSSL(true); //or false
-
-
+var LSK = lisk.api().setSSL(true); // or false
                                         </code>
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -513,22 +486,18 @@ var LSK = lisk.api().setSSL(true); //or false
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>set connection to use Mainnet / Testnet</small></h3>
+                                <h3>Example <small>Toggle between the testnet and mainnet</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().setTestnet(true); //or false
-
-
+var LSK = lisk.api().setTestnet(true); // or false
                                         </code>
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h2 id="crypto"></h2>
 
@@ -538,13 +507,12 @@ var LSK = lisk.api().setTestnet(true); //or false
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>get private and publicKey from secret</small></h3>
+                                <h3>Example <small>Get a public and private keypair from a given secret</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var keys = lisk.crypto.getKeys("secret");
+var keys = lisk.crypto.getKeys('secret');
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -552,16 +520,14 @@ var keys = lisk.crypto.getKeys("secret");
                                     <pre>
                                         <code class="language-html" data-lang="html">
 {
-  publicKey: "5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09",
-  privateKey: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a2…44491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09"
+    publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+    privateKey: '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a2…44491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09'
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -571,13 +537,12 @@ var keys = lisk.crypto.getKeys("secret");
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Get the LSK address from a given public key</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09");
+var keys = lisk.crypto.getAddress('5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09');
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -586,12 +551,10 @@ var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da65
                                         <code class="language-html" data-lang="html">
 18160565574430594874L
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -601,19 +564,16 @@ var keys = lisk.crypto.getAddress("5d036a858ce89f844491762eb89e2bfbd50a4a0a0da65
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p>getBytes from a transaction</p>
+                                <h3>Example <small>Get the number of bytes for a transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transactionBytes = lisk.crypto.getBytes(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -623,20 +583,16 @@ var transactionBytes = lisk.crypto.getBytes(transactionObject);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>getHash from a transaction Object</p>
+                                <h3>Example <small>Get the hash of a transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transactionHash = lisk.crypto.getHash(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -646,20 +602,16 @@ var transactionHash = lisk.crypto.getHash(transactionObject);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>getId from a transaction Object</p>
+                                <h3>Example <small>Get the unique identifier of a transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transactionId = lisk.crypto.getId(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -669,20 +621,16 @@ var transactionId = lisk.crypto.getId(transactionObject);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>getFee from a transaction Object</p>
+                                <h3>Example <small>Get the fees for a transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transactionFee = lisk.crypto.getFee(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -692,20 +640,16 @@ var transactionFee = lisk.crypto.getFee(transactionObject);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>sign a transaction Object with keys</p>
+                                <h3>Example <small>Sign a transaction object using a given keypair</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transactionSignature = lisk.crypto.sign(transactionObject, keypair);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -715,20 +659,16 @@ var transactionSignature = lisk.crypto.sign(transactionObject, keypair);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>secondSign a transaction Object with keys</p>
+                                <h3>Example <small>Add a second signature to a transaction object using a given keypair</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transactionSignature = lisk.crypto.secondSign(transactionObject, keypair);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -738,20 +678,16 @@ var transactionSignature = lisk.crypto.secondSign(transactionObject, keypair);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>multiSign a transaction Object with keys</p>
+                                <h3>Example <small>Add a multisignature to a transaction object using a given keypair</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transactionSignature = lisk.crypto.multiSign(transactionObject, keypair);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -761,20 +697,16 @@ var transactionSignature = lisk.crypto.multiSign(transactionObject, keypair);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>getKeys from a plain text secret</p>
+                                <h3>Example <small>Get a public and private keypair from a given secret</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var keypair = lisk.crypto.getKeys(secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -784,20 +716,16 @@ var keypair = lisk.crypto.getKeys(secret);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>verify a transaction Object</p>
+                                <h3>Example <small>Verify the signature of transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var verification = lisk.crypto.verify(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -807,20 +735,16 @@ var verification = lisk.crypto.verify(transactionObject);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>verify a transaction Object</p>
+                                <h3>Example <small>Verify the second signature of a transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var verification = lisk.crypto.verifySecondSignature(transactionObject);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -830,20 +754,16 @@ var verification = lisk.crypto.verifySecondSignature(transactionObject);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Multiply a number by 10^8 as the decimal place in Lisk</p>
+                                <h3>Example <small>Convert a given floating point LSK amount to an integer representation</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var bigAmount = lisk.crypto.fixedPoint(amount);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -853,20 +773,16 @@ var bigAmount = lisk.crypto.fixedPoint(amount);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>convert a buffer to a hex string</p>
+                                <h3>Example <small>Convert a buffer to a hex string</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var hexString = lisk.crypto.bufferToHex(buffer);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -876,20 +792,16 @@ var hexString = lisk.crypto.bufferToHex(buffer);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>convert a hex string to a buffer</p>
-                                <figure class="highlight">
+                                <h3>Example <small>Convert a hex string to buffer</small></h3>
+                                <figure>
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var bufferValue = lisk.crypto.hexToBuffer(hexString);
+var buffer = lisk.crypto.hexToBuffer(hexString);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -899,21 +811,17 @@ var bufferValue = lisk.crypto.hexToBuffer(hexString);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Takes a buffer, cuts off the first 8 bytes and reverses those</p>
-                                <p>This function is used in order to calculate ID's</p>
+                                <h3>Example <small>Cut the first 8 bytes of a given buffer and reverses them</small></h3>
+                                <p>Used to calculate unique identifiers.</p>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var rawId = lisk.crypto.useFirstEightBufferEntriesReversed(buffer);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -923,20 +831,16 @@ var rawId = lisk.crypto.useFirstEightBufferEntriesReversed(buffer);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Signs a message (<b>not encrypted</b>) using a plain message and a secret</p>
+                                <h3>Example <small>Signs a message (<b>not encrypted</b>) using a plain message and a secret</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var messageSignature = lisk.crypto.signMessageWithSecret(message, secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -946,29 +850,29 @@ var messageSignature = lisk.crypto.signMessageWithSecret(message, secret);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Prints the signed message in the following format:</p>
-                                <pre>
-                                    -----BEGIN LISK SIGNED MESSAGE-----
-                                    &lt;message&gt;
-                                    -----BEGIN SIGNATURE-----
-                                    &lt;address&gt;
-                                    &lt;signature&gt;
-                                    -----END LISK SIGNED MESSAGE-----
-                                </pre>
-                                <p>It is recommended in order to contain strcuture, in HTMl put the output into a pre tag.</p>
+                                <h3>Example <small>Formats the given plain message, signed message and public key</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
+var printSignedMessage = lisk.crypto.printSignedMessage(message, signedMessage, publicKey);
                                         </code>
-
                                     </pre>
                                 </figure>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+-----BEGIN LISK SIGNED MESSAGE-----
+&lt;message&gt;
+-----BEGIN SIGNATURE-----
+&lt;publicKey&gt;
+&lt;signature&gt;
+-----END LISK SIGNED MESSAGE-----
+                                        </code>
+                                    </pre>
+                                </figure>
+                                <p>In order maintain formatting it is advised to wrap the resulting output within a <code>pre</code> tag.</p>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -978,21 +882,17 @@ var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Signs a message with the secret and outputs the result for print.</p>
-                                <p>It combines <a href="#functions_signMessageWithSecret">signMessageWithSecret</a> and <a href="#functions_printSignedMessage">printSignedMessage</a></p>
+                                <h3>Example <small>Signs a message (<b>not encrypted</b>) using a plain message and a secret, then prints it</small></h3>
+                                <p>Combines the <a href="#functions_signMessageWithSecret">signMessageWithSecret</a> and <a href="#functions_printSignedMessage">printSignedMessage</a> functions.</p>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1002,20 +902,17 @@ var printSignedMessage = lisk.crypto.printSignedMessage(message, secret);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Verifys a signed message with the public key. Either returns null if not valid, if valid returns the original message.</p>
+                                <h3>Example <small>Verify a signed message using a given public key</small></h3>
+                                <p>Returns null if invalid, or the original message if valid.</p>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var verifySignedMessage = lisk.crypto.verifyMessageWithPublicKey(signedMessage, publicKey);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1025,15 +922,12 @@ var verifySignedMessage = lisk.crypto.verifyMessageWithPublicKey(signedMessage, 
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Returns a keypair from a secret (passphrase).</p>
+                                <h3>Example <small>Get a hex representation of a keypair from a given secret</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var keypair = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -1045,12 +939,10 @@ var keypair = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret);
     privateKey: privateKey(hex)
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1060,15 +952,12 @@ var keypair = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
-                                <p></p>
-                                <p>Returns a keypair from a secret (passphrase) in bytes (raw).</p>
+                                <h3>Example <small>Get a raw byte representation of a keypair from a given secret</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var keypairBytes = lisk.crypto.getRawPrivateAndPublicKeyFromSecret(secret);
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -1080,15 +969,12 @@ var keypairBytes = lisk.crypto.getRawPrivateAndPublicKeyFromSecret(secret);
     privateKey: privateKey(bytes)
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h3 id="functions_getAddressFromPublicKey">getAddressFromPublicKey</h3>
 
@@ -1096,17 +982,16 @@ var keypairBytes = lisk.crypto.getRawPrivateAndPublicKeyFromSecret(secret);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
+                                <h3>Example <small>Get the address from a given public key</small></h3>
                                 <figure class="highlight">
-                                <pre>
-                                    <code class="language-html" data-lang="html">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
 var address = lisk.crypto.getAddressFromPublicKey(publicKeyHex);
-                                    </code>
-
-                                </pre>
+                                        </code>
+                                    </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1116,20 +1001,18 @@ var address = lisk.crypto.getAddressFromPublicKey(publicKeyHex);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
+                                <h3>Example <small>Get the sha256 hash from a given string</small></h3>
                                 <figure class="highlight">
-                                <pre>
-                                    <code class="language-html" data-lang="html">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
 var sha256Hash = lisk.crypto.getSha256Hash(string);
-                                    </code>
-
-                                </pre>
+                                        </code>
+                                    </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h2>Transaction</h2>
 
@@ -1139,14 +1022,13 @@ var sha256Hash = lisk.crypto.getSha256Hash(string);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Create a signed "balance transfer" transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var amount      = 1000 * Math.pow(10, 8); // 100000000000
-var transaction = lisk.transaction.createTransaction("1859190791819301L", amount, "passphrase", "secondPassphrase");
+var transaction = lisk.transaction.createTransaction('1859190791819301L', amount, 'passphrase', 'secondPassphrase');
                                         </code>
-
                                     </pre>
                                 </figure>
                                 Returning
@@ -1154,24 +1036,22 @@ var transaction = lisk.transaction.createTransaction("1859190791819301L", amount
                                     <pre>
                                         <code class="language-html" data-lang="html">
 {
-  type: 0, // Transaction type. 0 = Normal transaction.
-  amount: 100000000000, // The amount to send expressed as an integer value.
-  asset: {}, // Transaction asset, dependent on tx type.
-  fee: 100000000, // 0.1 LSK expressed as an integer value.
-  id: "500224999259823996", // Transaction ID.
-  recipientId: "1859190791819301L", // Recipient ID.
-  senderPublicKey: "56e106a1d4a53dbe22cac52fefd8fc4123cfb4ee482f8f25a4fc72eb459b38a5", // Sender's public key.
-  signSignature: "03fdd33bed30270b97e77ada44764cc8628f6ad3bbd84718571695262a5a18baa37bd76a62dd25bc21beacd61eaf2c63af0cf34edb0d191d225f4974cd3aa509", // Sender's second passphrase signature.
-  signature: "9419ca3cf11ed2e3fa4c63bc9a4dc18b5001648e74522bc0f22bda46a188e462da4785e5c71a43cfc0486af08d447b9340ba8b93258c4c7f50798060fff2d709", // Transaction signature.
-  timestamp: 27953413 // Based on UTC time of genesis since epoch.
+    type: 0, // Transaction type. 0 = Normal transaction.
+    amount: 100000000000, // The amount to send expressed as an integer value.
+    asset: {}, // Transaction asset, dependent on tx type.
+    fee: 100000000, // 0.1 LSK expressed as an integer value.
+    id: '500224999259823996', // Transaction ID.
+    recipientId: '1859190791819301L', // Recipient ID.
+    senderPublicKey: '56e106a1d4a53dbe22cac52fefd8fc4123cfb4ee482f8f25a4fc72eb459b38a5', // Sender's public key.
+    signSignature: '03fdd33bed30270b97e77ada44764cc8628f6ad3bbd84718571695262a5a18baa37bd76a62dd25bc21beacd61eaf2c63af0cf34edb0d191d225f4974cd3aa509', // Sender's second passphrase signature.
+    signature: '9419ca3cf11ed2e3fa4c63bc9a4dc18b5001648e74522bc0f22bda46a188e462da4785e5c71a43cfc0486af08d447b9340ba8b93258c4c7f50798060fff2d709', // Transaction signature.
+    timestamp: 27953413 // Based on UTC time of genesis since epoch.
 }
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1181,28 +1061,26 @@ var transaction = lisk.transaction.createTransaction("1859190791819301L", amount
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Create a signed "dapp registration" transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var options = {
-  category: 0,
-  name: "Lisk Guestbook",
-  description: "The official Lisk guestbook",
-  tags: "guestbook message sidechain",
-  type: 0,
-  link: "https://github.com/MaxKK/guestbookDapp/archive/master.zip",
-  icon: "https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png"
+    category: 0,
+    name: 'Lisk Guestbook',
+    description: 'The official Lisk guestbook',
+    tags: 'guestbook message sidechain',
+    type: 0,
+    link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
+    icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png'
 };
 
-var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
+var transaction = lisk.dapp.createDapp('secret', 'secondSecret', options);
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1212,39 +1090,34 @@ var transaction = lisk.dapp.createDapp("secret", "secondSecret", options);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Create a signed "delegate registration" transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var transaction = lisk.delegate.createDelegate("secret", "username", "secondSecret");
+var transaction = lisk.delegate.createDelegate('secret', 'username', 'secondSecret');
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
 
                 <h3 id="functions_createSignature">create second Signature Transaction</h3>
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Create a signed "second signature registration" transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var transaction = lisk.signature.createTransaction("secret", "secondSecret");
+var transaction = lisk.signature.createTransaction('secret', 'secondSecret');
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -1253,88 +1126,78 @@ var transaction = lisk.signature.createTransaction("secret", "secondSecret");
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example</h3>
+                                <h3>Example <small>Create a signed "delegate vote" transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var transaction = lisk.vote.createVote("secret", ["+58199578191950019299181920120128129"], "secondSecret");
+var transaction = lisk.vote.createVote('secret', ['+58199578191950019299181920120128129'], 'secondSecret');
                                         </code>
-
                                     </pre>
                                 </figure>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
             </div>
-
         </div>
-
-
     </div>
 </div>
 
 <!-- Latest compiled and minified JavaScript -->
-<script
-        src="https://code.jquery.com/jquery-3.1.1.min.js"
-        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-        crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-
 <script src="../../lisk-js.js"></script>
 
 <script>
-    "use strict";
+'use strict';
 
-    $(window).on('resize', function(){
-	    var windowSize = $(window).width();
-	    if(windowSize < 1500) {
-		    $('#listGroupNav').hide();
-	    } else {
-		    $('#listGroupNav').show();
-	    }
-    });
+$(window).on('resize', function () {
+    var windowSize = $(window).width();
 
-    $(document).ready(function() {
-	    var windowSize = $(window).width();
-	    if(windowSize < 1500) {
-		    $('#listGroupNav').hide();
-	    } else {
-		    $('#listGroupNav').show();
-	    }
-    });
+    if (windowSize < 1500) {
+        $('#listGroupNav').hide();
+    } else {
+        $('#listGroupNav').show();
+    }
+});
 
-    $('.list-group-item').on('click', function() {
-	    var $this = $(this);
+$(document).ready(function () {
+    var windowSize = $(window).width();
 
-	    $('.active').removeClass('active');
-	    $this.toggleClass('active');
+    if (windowSize < 1500) {
+        $('#listGroupNav').hide();
+    } else {
+        $('#listGroupNav').show();
+    }
+});
 
-        function getGroupHeight () {
-            return +$('.list-group').height() + 150;
-        }
+$('.list-group-item').on('click', function () {
+    var $this = $(this);
 
-        function getWindowHeight () {
-	        return $(window).height();
-        }
+    $('.active').removeClass('active');
+    $this.toggleClass('active');
 
-        if(getGroupHeight() > getWindowHeight()) {
-	    	$("#api_nav").css('height', (getWindowHeight()-200));
-	        $('#listGroupNav').css("max-height", "150px");
-            $('#listGroupNav').css( "overflow-y", "scroll" );
-        }
+    function getGroupHeight () {
+        return +$('.list-group').height() + 150;
+    }
 
-        setTimeout(function () {
-	        console.log(getGroupHeight());
-	        console.log(getWindowHeight());
-        }, 500);
+    function getWindowHeight () {
+        return $(window).height();
+    }
 
-    })
+    if (getGroupHeight() > getWindowHeight()) {
+        $('#api_nav').css('height', (getWindowHeight() - 200));
+        $('#listGroupNav').css('max-height', '150px');
+        $('#listGroupNav').css( 'overflow-y', 'scroll' );
+    }
+
+    setTimeout(function () {
+        console.log(getGroupHeight());
+        console.log(getWindowHeight());
+    }, 500);
+});
 </script>
-
 
 </body>
 </html>
