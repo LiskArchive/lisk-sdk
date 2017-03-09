@@ -512,13 +512,13 @@ Delegates.prototype.internal = {
 			return setImmediate(cb, 'Access denied');
 		}
 
-		library.schema.validate(req.query, schema.forgingStatus, function (err) {
+		library.schema.validate(req.body, schema.forgingStatus, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
 
-			if (req.query.publicKey) {
-				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.query.publicKey]});
+			if (req.body.publicKey) {
+				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.body.publicKey]});
 			} else {
 				var delegates_cnt = _.keys(__private.keypairs).length;
 				return setImmediate(cb, null, {enabled: delegates_cnt > 0, delegates: _.keys(__private.keypairs)});
