@@ -73,7 +73,7 @@ $(function() {
 			var message = lisk.crypto.verifyMessageWithPublicKey(signature, pubKey);
 		} catch(e) {
 
-			$("#validSignature").html('Failed decrypting message.');
+			$("#validSignature").html('Failed to decrypt message.');
 
 			if(e.message === "Cannot read property 'length' of null") {
 				$("#validSignature").append('<br>Invalid Signature');
