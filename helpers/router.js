@@ -4,18 +4,14 @@ var httpApi = require('./httpApi');
 var extend = require('extend');
 
 /**
- * @title Router
- * @overview Router stub
- * @returns {*}
+ * Express.js router wrapper
+ * @return {Router}
+ * @constructor
  */
 var Router = function () {
 	var router = require('express').Router();
 
-	router.use(function (req, res, next) {
-		res.header('Access-Control-Allow-Origin', '*');
-		res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-		next();
-	});
+	router.use(httpApi.middleware.cors);
 
 	router.map = function (root, config) {
 		var router = this;
@@ -26,7 +22,6 @@ var Router = function () {
 				throw Error('Invalid map config');
 			}
 			router[route[0]](route[1], function (req, res, next) {
-				console.log("req.ip", req.ip);
 				var reqRelevantInfo = {
 					ip: req.ip,
 					method: req.method,
