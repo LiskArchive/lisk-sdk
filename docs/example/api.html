@@ -112,11 +112,19 @@
                         <a href="#functions_getSha256Hash" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getSha256Hash</a>
                     </div>
 
-                    <a type="button" class="list-group-item" href="#functions_createTransaction">Transaction</a>
-                    <a type="button" class="list-group-item" href="#functions_createVote">Vote</a>
-                    <a type="button" class="list-group-item" href="#functions_createDapp">Dapp</a>
-                    <a type="button" class="list-group-item" href="#functions_createDelegate">Delegate</a>
-                    <a type="button" class="list-group-item" href="#functions_createSignature">Signature</a>
+                    <a class="list-group-item" data-remote="true" href="#transactions_sub" id="api" data-toggle="collapse" data-parent="#transactions_sub">
+                        <span>Transactions</span>
+                        <span class="menu-ico-collapse"><i class="fa fa-chevron-down"></i></span>
+                    </a>
+
+                    <div class="collapse list-group-submenu" id="transactions_sub">
+                        <a class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 24px;"><b>Functions</b></a>
+                        <a href="#functions_createTransaction" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Transaction</a>
+                        <a href="#functions_createVote" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Vote</a>
+                        <a href="#functions_createDapp" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Dapp</a>
+                        <a href="#functions_createDelegate" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Delegate</a>
+                        <a href="#functions_createSignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Signature</a>
+                    </div>
                 </div>
             </div>
             <div class="col-md-10">
