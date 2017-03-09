@@ -89,16 +89,6 @@ function respond (res, err, response) {
 }
 
 /**
- * Send response with status 200
- * @param {Object} res
- * @param {*} err
- * @param {*} result
- */
-function respondPositive (res, err, result) {
-	return res.status(200).json(result || err);
-}
-
-/**
  * Register router in express app using default middleware
  * @param {String} route
  * @param {Object} app
@@ -114,6 +104,5 @@ function registerEndpoint (route, app, router, isLoaded) {
 module.exports = {
 	middleware: middleware,
 	registerEndpoint: registerEndpoint,
-	respond: respond,
-	respondPositive: respondPositive
+	respond: respond
 };

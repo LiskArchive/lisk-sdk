@@ -14,46 +14,31 @@ function TransportHttpApi (transportModule, app, logger) {
 	router.get('/blocks/common', getCommonBlocksMiddleware);
 	router.get('/blocks', httpApi.middleware.sanitize('query', schema.blocks, transportModule.internal.blocks));
 
-	router.get('/list', function (req, res) {
-		transportModule.internal.list(httpApi.respondPositive.bind(null, res));
+	router.map(transportModule.internal, {
+		'get /list': 'list',
+		'get /height': 'height',
+		'get /ping': 'ping',
+		'get /signatures': 'signatures',
+		'get /transactions': 'transactions',
+		'post /dapp/message': 'postDappMessage',
+		'post /dapp/request': 'postDappRequest'
+
 	});
+
+	//custom parameters internal functions
 	router.post('/blocks', function (req, res) {
-		transportModule.internal.postBlock(req.body.block, req.peer, req.method + ' ' + req.url, httpApi.respondPositive.bind(null, res));
-	});
-
-	router.get('/height', function (req, res) {
-		transportModule.internal.height(httpApi.respondPositive.bind(null, res));
-	});
-
-	router.get('/ping', function (req, res) {
-		transportModule.internal.ping(httpApi.respondPositive.bind(null, res));
+		transportModule.internal.postBlock(req.body.block, req.peer, req.method + ' ' + req.url, httpApi.respond.bind(null, res));
 	});
 
 	router.post('/signatures', function (req, res) {
-		transportModule.internal.postSignatures({signatures: req.body.signatures, signature: req.body.signature}, httpApi.respondPositive.bind(null, res));
-	});
-
-	router.get('/signatures', function (req, res) {
-		transportModule.internal.getSignatures(httpApi.respondPositive.bind(null, res));
+		transportModule.internal.postSignatures({signatures: req.body.signatures, signature: req.body.signature}, httpApi.respond.bind(null, res));
 	});
 
 	router.post('/transactions', function (req, res) {
 		transportModule.internal.postTransactions({
 			transactions: req.body.transactions,
 			transaction: req.body.transaction
-		}, req.peer, req.method + ' ' + req.url, httpApi.respondPositive.bind(null, res));
-	});
-
-	router.get('/transactions', function (req, res) {
-		transportModule.internal.getTransactions(httpApi.respondPositive.bind(null, res));
-	});
-
-	router.post('/dapp/message', function (req, res) {
-		transportModule.internal.postDappMessage(req.body, httpApi.respondPositive.bind(null, res));
-	});
-
-	router.post('/dapp/request', function (req, res) {
-		transportModule.internal.postDappRequest(req.body, httpApi.respondPositive.bind(null, res));
+		}, req.peer, req.method + ' ' + req.url, httpApi.respond.bind(null, res));
 	});
 
 	router.use(httpApi.middleware.notFound);
@@ -106,7 +91,7 @@ function TransportHttpApi (transportModule, app, logger) {
 				return res.json({success: false, error: report.issues});
 			}
 
-			return transportModule.internal.blocksCommon(query.ids, req.peer, req.method + ' ' + req.url, httpApi.respondPositive.bind(null, res));
+			return transportModule.internal.blocksCommon(query.ids, req.peer, req.method + ' ' + req.url, httpApi.respond.bind(null, res));
 		});
 	}
 }

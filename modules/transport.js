@@ -361,14 +361,14 @@ Transport.prototype.internal = {
 			// Ban peer for 10 minutes
 			__private.banPeer({peer: peer, code: 'ECOMMON', clock: 600}, extraLogMessage);
 
-			return setImmediate(cb, {success: false, error: 'Invalid block id sequence'});
+			return setImmediate(cb, 'Invalid block id sequence');
 		}
 
 		library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
 			return setImmediate(cb, null, { success: true, common: rows[0] || null });
 		}).catch(function (err) {
 			library.logger.error(err.stack);
-			return setImmediate(cb, {success: false, error: 'Failed to get common block'});
+			return setImmediate(cb, 'Failed to get common block');
 		});
 	},
 
@@ -406,18 +406,18 @@ Transport.prototype.internal = {
 		return setImmediate(cb, null, {success: true, blockId: block.id});
 	},
 
-	list: function (cb) {
+	list: function (req, cb) {
 		modules.peers.list({limit: constants.maxPeers}, function (err, peers) {
 			peers = (!err ? peers : []);
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
 	},
 
-	height: function (cb) {
+	height: function (req, cb) {
 		return setImmediate(cb, null, {success: true, height: modules.blocks.getLastBlock().height});
 	},
 
-	ping: function (cb) {
+	ping: function (req, cb) {
 		return setImmediate(cb, null, {success: true});
 	},
 

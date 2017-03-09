@@ -545,7 +545,7 @@ Peers.prototype.shared = {
 				if (peers.length) {
 					return setImmediate(cb, null, {success: true, peer: peers[0]});
 				} else {
-					return setImmediate(cb, null, {success: false, error: 'Peer not found'});
+					return setImmediate(cb, 'Peer not found');
 				}
 			});
 		});

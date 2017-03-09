@@ -798,7 +798,7 @@ DApps.prototype.internal = {
 
 		if (dapp.publicKey) {
 			if (keypair.publicKey.toString('hex') !== dapp.publicKey) {
-				return setImmediate(cb, null, {success: false, error: 'Invalid passphrase'});
+				return setImmediate(cb, 'Invalid passphrase');
 			}
 		}
 
@@ -867,7 +867,7 @@ DApps.prototype.internal = {
 
 		__private.list(query, function (err, dapps) {
 			if (err) {
-				return setImmediate(cb, null, {success: false, error: 'Application not found'});
+				return setImmediate(cb, 'Application not found');
 			}
 
 			return setImmediate(cb, null, {success: true, dapps: dapps});
@@ -878,7 +878,7 @@ DApps.prototype.internal = {
 		__private.getInstalledIds(function (err, ids) {
 			if (err) {
 				library.logger.error(err);
-				return setImmediate(cb, null, {success: false, error: 'Failed to get installed application ids'});
+				return setImmediate(cb, 'Failed to get installed application ids');
 			}
 
 			if (ids.length === 0) {
@@ -888,7 +888,7 @@ DApps.prototype.internal = {
 			__private.getByIds(ids, function (err, dapps) {
 				if (err) {
 					library.logger.error(err);
-					return setImmediate(cb, null, {success: false, error: 'Failed to get applications by id'});
+					return setImmediate(cb, 'Failed to get applications by id');
 				}
 
 				return setImmediate(cb, null, {success: true, dapps: dapps});
@@ -900,7 +900,7 @@ DApps.prototype.internal = {
 		__private.getInstalledIds(function (err, ids) {
 			if (err) {
 				library.logger.error(err);
-				return setImmediate(cb, null, {success: false, error: 'Failed to get installed application ids'});
+				return setImmediate(cb, 'Failed to get installed application ids');
 			}
 
 			var params = { q: '%' + query.q + '%', limit: 50 };
@@ -958,7 +958,7 @@ DApps.prototype.internal = {
 				}
 			}).catch(function (err) {
 				library.logger.error(err.stack);
-				return setImmediate(cb, null, {success: false, error: 'Database search failed'});
+				return setImmediate(cb, 'Database search failed');
 			});
 		});
 	},
@@ -967,7 +967,7 @@ DApps.prototype.internal = {
 		__private.getInstalledIds(function (err, ids) {
 			if (err) {
 				library.logger.error(err);
-				return setImmediate(cb, null, {success: false, error: 'Failed to get installed application ids'});
+				return setImmediate(cb, 'Failed to get installed application ids');
 			}
 
 			return setImmediate(cb, null, {success: true, ids: ids});
@@ -981,7 +981,7 @@ DApps.prototype.internal = {
 	install: function (params, cb) {
 
 		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
-			return setImmediate(cb, null, {success: false, error: 'Invalid master passphrase'});
+			return setImmediate(cb, 'Invalid master passphrase');
 		}
 
 		__private.get(params.id, function (err, dapp) {
@@ -997,11 +997,11 @@ DApps.prototype.internal = {
 				}
 
 				if (ids.indexOf(params.id) >= 0) {
-					return setImmediate(cb, null, {success: false, error: 'Application is already installed'});
+					return setImmediate(cb, 'Application is already installed');
 				}
 
 				if (__private.loading[params.id] || __private.uninstalling[params.id]) {
-					return setImmediate(cb, null, {success: false, error: 'Application is loading or being uninstalled'});
+					return setImmediate(cb, 'Application is loading or being uninstalled');
 				}
 
 				__private.loading[params.id] = true;
@@ -1050,7 +1050,7 @@ DApps.prototype.internal = {
 
 	uninstall: function (params, cb) {
 		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
-			return setImmediate(cb, null, {success: false, error: 'Invalid master passphrase'});
+			return setImmediate(cb, 'Invalid master passphrase');
 		}
 
 		__private.get(params.id, function (err, dapp) {
@@ -1069,7 +1069,7 @@ DApps.prototype.internal = {
 				__private.stopDApp(dapp, function (err) {
 					if (err) {
 						library.logger.error(err);
-						return setImmediate(cb, null, {success: false, error: 'Failed to stop application'});
+						return setImmediate(cb, 'Failed to stop application');
 					} else {
 						__private.launched[params.id] = false;
 						__private.removeDApp(dapp, function (err) {
@@ -1103,7 +1103,7 @@ DApps.prototype.internal = {
 
 	launch: function (req, cb) {
 		if (library.config.dapp.masterpassword && req.body.master !== library.config.dapp.masterpassword) {
-			return setImmediate(cb, null, {success: false, error: 'Invalid master passphrase'});
+			return setImmediate(cb, 'Invalid master passphrase');
 		}
 
 		__private.launchDApp(req.body, function (err) {
@@ -1154,55 +1154,24 @@ DApps.prototype.internal = {
 	},
 
 	stop: function (params, cb) {
-		//
-		// req.sanitize(req.body, schema.stop, function (err, report, body) {
-		// 	if (err) { return next(err); }
-		// 	if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-		//
-		// 	if (!__private.launched[body.id]) {
-		// 		return res.json({success: false, error: 'Application not launched'});
-		// 	}
-		//
-		// 	if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-		// 		return res.json({success: false, error: 'Invalid master passphrase'});
-		// 	}
-		//
-		// 	__private.get(body.id, function (err, dapp) {
-		// 		if (err) {
-		// 			library.logger.error(err);
-		// 			return res.json({success: false, error: 'Application not found'});
-		// 		} else {
-		// 			__private.stopDApp(dapp, function (err) {
-		// 				if (err) {
-		// 					library.logger.error(err);
-		// 					return res.json({success: false, error: 'Failed to stop application'});
-		// 				} else {
-		// 					library.network.io.sockets.emit('dapps/change', dapp);
-		// 					__private.launched[body.id] = false;
-		// 					return res.json({success: true});
-		// 				}
-		// 			});
-		// 		}
-		// 	});
-		// });
 
 		if (!__private.launched[params.id]) {
-			return setImmediate(cb, {success: false, error: 'Application not launched'});
+			return setImmediate(cb, 'Application not launched');
 		}
 
 		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
-			return setImmediate(cb, {success: false, error: 'Invalid master passphrase'});
+			return setImmediate(cb, 'Invalid master passphrase');
 		}
 
 		__private.get(params.id, function (err, dapp) {
 			if (err) {
 				library.logger.error(err);
-				return setImmediate(cb, {success: false, error: 'Application not found'});
+				return setImmediate(cb, 'Application not found');
 			} else {
 				__private.stopDApp(dapp, function (err) {
 					if (err) {
 						library.logger.error(err);
-						return setImmediate(cb, {success: false, error: 'Failed to stop application'});
+						return setImmediate(cb, 'Failed to stop application');
 					} else {
 						library.network.io.sockets.emit('dapps/change', dapp);
 						__private.launched[params.id] = false;
