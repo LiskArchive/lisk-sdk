@@ -441,7 +441,7 @@ Transport.prototype.internal = {
 		}
 	},
 
-	getSignatures: function (cb) {
+	getSignatures: function (req, cb) {
 		var transactions = modules.transactions.getMultisignatureTransactionList(true, constants.maxSharedTxs);
 		var signatures = [];
 
@@ -459,7 +459,7 @@ Transport.prototype.internal = {
 		});
 	},
 
-	getTransactions: function (cb) {
+	getTransactions: function (req, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
 
 		return setImmediate(cb, null, {success: true, transactions: transactions});
