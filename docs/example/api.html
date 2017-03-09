@@ -184,7 +184,7 @@ var LSK = lisk.api(options);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listActiveDelegates(5);
+lisk.api().listActiveDelegates(5, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -203,7 +203,7 @@ var LSK = lisk.api().listActiveDelegates(5);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listStandyDelegates(6);
+lisk.api().listStandyDelegates(6, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -222,7 +222,7 @@ var LSK = lisk.api().listStandyDelegates(6);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().searchDelegateByUsername('username');
+lisk.api().searchDelegateByUsername('username', callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -241,7 +241,7 @@ var LSK = lisk.api().searchDelegateByUsername('username');
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().getBlock(blockId);
+lisk.api().getBlock(blockId, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -260,7 +260,7 @@ var LSK = lisk.api().getBlock(blockId);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listBlocks(amount);
+lisk.api().listBlocks(amount, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -279,7 +279,7 @@ var LSK = lisk.api().listBlocks(amount);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listForgedBlocks(publicKey);
+lisk.api().listForgedBlocks(publicKey, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -298,7 +298,7 @@ var LSK = lisk.api().listForgedBlocks(publicKey);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().getTransaction(transactionId);
+lisk.api().getTransaction(transactionId, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -317,7 +317,7 @@ var LSK = lisk.api().getTransaction(transactionId);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listTransactions(address);
+lisk.api().listTransactions(address, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -336,7 +336,7 @@ var LSK = lisk.api().listTransactions(address);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listVotes(address);
+lisk.api().listVotes(address, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -355,7 +355,7 @@ var LSK = lisk.api().listVotes(address);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listVoters(publicKey);
+lisk.api().listVoters(publicKey, callback);
                                         </code>
                                     </pre>
                                 </figure>
