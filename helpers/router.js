@@ -26,7 +26,13 @@ var Router = function () {
 				throw Error('Invalid map config');
 			}
 			router[route[0]](route[1], function (req, res, next) {
-				root[config[params]](extend({'body': route[0] === 'get' ? req.query : req.body}, req), httpApi.respond.bind(null, res));
+				console.log("req.ip", req.ip);
+				var reqRelevantInfo = {
+					ip: req.ip,
+					method: req.method,
+					path: req.path
+				};
+				root[config[params]](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), httpApi.respond.bind(null, res));
 			});
 		});
 	};
