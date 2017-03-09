@@ -18,8 +18,8 @@ function TransportHttpApi (transportModule, app, logger) {
 		'get /list': 'list',
 		'get /height': 'height',
 		'get /ping': 'ping',
-		'get /signatures': 'signatures',
-		'get /transactions': 'transactions',
+		'get /signatures': 'getSignatures',
+		'get /transactions': 'getTransactions',
 		'post /dapp/message': 'postDappMessage',
 		'post /dapp/request': 'postDappRequest'
 
