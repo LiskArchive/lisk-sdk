@@ -15,7 +15,7 @@ module.exports = function (grunt) {
 		browserify: {
 			js: {
 				src: './index.js',
-				dest: './lisk-js.js'
+				dest: './dist/lisk-js.js'
 			},
 			options: {
 				browserifyOptions: {
@@ -40,6 +40,18 @@ module.exports = function (grunt) {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST'
 			}
 		},
+
+		uglify: {
+			options: {
+				mangle: false
+			},
+			myTarget: {
+				files: {
+					'dist/lisk-js.min.js': ['./index.js']
+				}
+			}
+		},
+
 		coveralls: {
 			options: {
 				debug: true,
@@ -61,6 +73,7 @@ module.exports = function (grunt) {
 		'force:on',
 		'browserify',
 		'eslint',
+		'uglify',
 		'watch'
 	]);
 };
