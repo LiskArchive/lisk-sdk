@@ -50,6 +50,15 @@ module.exports = function (grunt) {
 					'dist/lisk-js.min.js': ['./index.js']
 				}
 			}
+		},
+		coveralls: {
+			options: {
+				debug: true,
+				coverageDir: 'coverage',
+				dryRun: true,
+				force: true,
+				recursive: true
+			}
 		}
 	});
 
@@ -57,7 +66,8 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-force');
-	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
+	grunt.loadNpmTasks('grunt-karma-coveralls');
+	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle', 'coveralls']);
 	grunt.registerTask('default', [
 		'force:on',
 		'browserify',
