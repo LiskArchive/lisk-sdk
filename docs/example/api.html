@@ -1016,7 +1016,7 @@ var sha256Hash = lisk.crypto.getSha256Hash(string);
 
                 <h2>Transaction</h2>
 
-                <h3 id="functions_createTransaction">createTransaction</h3>
+                <h3 id="functions_createTransaction">Create Transaction</h3>
 
                 <div class="panel panel-default">
                     <div class="panel-body">
@@ -1055,7 +1055,25 @@ var transaction = lisk.transaction.createTransaction('1859190791819301L', amount
                     </div>
                 </div>
 
-                <h3 id="functions_createDapp">createDapp Transaction</h3>
+                <h3 id="functions_createVote">Create Vote</h3>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Create a signed "delegate vote" transaction object</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var transaction = lisk.vote.createVote('secret', ['+58199578191950019299181920120128129'], 'secondSecret');
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_createDapp">Create Dapp</h3>
 
                 <div class="panel panel-default">
                     <div class="panel-body">
@@ -1084,7 +1102,7 @@ var transaction = lisk.dapp.createDapp('secret', 'secondSecret', options);
                     </div>
                 </div>
 
-                <h3 id="functions_createDelegate">createDelegate Transaction</h3>
+                <h3 id="functions_createDelegate">Create Delegate</h3>
 
                 <div class="panel panel-default">
                     <div class="panel-body">
@@ -1103,7 +1121,7 @@ var transaction = lisk.delegate.createDelegate('secret', 'username', 'secondSecr
                     </div>
                 </div>
 
-                <h3 id="functions_createSignature">create second Signature Transaction</h3>
+                <h3 id="functions_createSignature">Create Signature</h3>
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="rows">
@@ -1113,24 +1131,6 @@ var transaction = lisk.delegate.createDelegate('secret', 'username', 'secondSecr
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transaction = lisk.signature.createTransaction('secret', 'secondSecret');
-                                        </code>
-                                    </pre>
-                                </figure>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h3 id="functions_createVote">createVote Transaction</h3>
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <div class="rows">
-                            <div class="col-md-12">
-                                <h3>Example <small>Create a signed "delegate vote" transaction object</small></h3>
-                                <figure class="highlight">
-                                    <pre>
-                                        <code class="language-html" data-lang="html">
-var transaction = lisk.vote.createVote('secret', ['+58199578191950019299181920120128129'], 'secondSecret');
                                         </code>
                                     </pre>
                                 </figure>
