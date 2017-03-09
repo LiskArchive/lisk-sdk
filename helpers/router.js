@@ -1,6 +1,7 @@
 'use strict';
 
 var httpApi = require('./httpApi');
+var extend = require('extend');
 
 /**
  * @title Router
@@ -25,7 +26,7 @@ var Router = function () {
 				throw Error('Invalid map config');
 			}
 			router[route[0]](route[1], function (req, res, next) {
-				root[config[params]]({'body': route[0] === 'get' ? req.query : req.body}, httpApi.respond.bind(null, res));
+				root[config[params]](extend({'body': route[0] === 'get' ? req.query : req.body}, req), httpApi.respond.bind(null, res));
 			});
 		});
 	};
