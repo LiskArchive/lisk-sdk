@@ -60,12 +60,6 @@ Tests written using mocha + schedule.js.
 	- [Sign](http://liskhq.github.io/lisk-js/example/experiment.html#sign)
 	- [Verify](http://liskhq.github.io/lisk-js/example/experiment.html#verify)
 
-## Wiki
-
-Lisk-JS is a simplification layer to connect to the Lisk Blockchain Software. More information of the system and all the components can be found in the wiki:
-
-https://github.com/LiskHQ/lisk-wiki/wiki
-
 ## Authors
 
 - Boris Povod <boris@crypti.me>
