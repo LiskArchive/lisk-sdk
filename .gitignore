@@ -5,4 +5,3 @@ npm-debug.log
 .nyc_output
 yuidoc
 test/.coverage-unit
-coverage
