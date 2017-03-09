@@ -9,8 +9,8 @@ Lisk JS is a JavaScript library for [Lisk - the cryptocurrency and blockchain ap
 ```html
 <script src="./lisk-js.js"></script>
 <script>
-	lisk.api().searchDelegateByUsername('oliver', function (err, response) {
-		console.log(err, response);
+	lisk.api().searchDelegateByUsername('oliver', function (response) {
+		console.log(response);
 	});
 </script>
 ```
