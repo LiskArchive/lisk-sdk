@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "nyc mocha",
-    "travis": "./node_modules/.bin/grunt travis --verbose",
-    "preinstall": "npm install -g grunt-cli"
+    "travis": "./node_modules/.bin/grunt travis --verbose"
   },
   "repository": {
     "type": "git",
