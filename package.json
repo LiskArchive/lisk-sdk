@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "nyc mocha",
-    "travis": "./node_modules/.bin/grunt travis --verbose",
-    "preinstall": "npm install -g grunt-cli"
+    "travis": "./node_modules/.bin/grunt travis --verbose"
   },
   "repository": {
     "type": "git",
@@ -30,10 +29,10 @@
     "grunt-contrib-nodeunit": "=0.4.1",
     "grunt-contrib-uglify": "=0.5.0",
     "grunt-contrib-watch": "=1.0.0",
+    "grunt-coveralls": "=1.0.1",
     "grunt-eslint": "=19.0.0",
     "grunt-exec": "=2.0.0",
     "grunt-force": "=1.0.0",
-    "grunt-karma-coveralls": "=2.5.4",
     "istanbul": "=0.4.5",
     "load-grunt-tasks": "=3.5.2",
     "mocha": "=3.2.0",
