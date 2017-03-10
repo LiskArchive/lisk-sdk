@@ -103,19 +103,6 @@ module.exports = function (grunt) {
 			}
 		},
 
-		jsdox: {
-			generate: {
-				src: [
-					'helpers/*.js'
-					// './modules/*.js'
-				],
-				dest: 'tmp/docs',
-				options: {
-					templateDir: 'var/jsdox'
-				}
-			}
-		},
-
 		eslint: {
 			options: {
 				configFile: '.eslintrc.json',
@@ -136,7 +123,6 @@ module.exports = function (grunt) {
 	grunt.loadTasks('tasks');
 
 	grunt.loadNpmTasks('grunt-obfuscator');
-	grunt.loadNpmTasks('grunt-jsdox');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-eslint');
