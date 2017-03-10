@@ -1,3 +1,14 @@
+function getUrlVars(url) {
+	var hash;
+	var myJson = {};
+	var hashes = url.slice(url.indexOf('?') + 1).split('&');
+	for (var i = 0; i < hashes.length; i++) {
+		hash = hashes[i].split('=');
+		myJson[hash[0]] = hash[1];
+	}
+	return myJson;
+}
+
 describe('Lisk.api()', function() {
 
 	var LSK = lisk.api();
@@ -204,9 +215,9 @@ describe('Lisk.api()', function() {
 
 			var objectify = getUrlVars(serialised.substring(1));
 
-			expect(objectify).to.include.keys('random');
-			expect(objectify).to.include.keys('obj');
-			expect(objectify).to.include.keys('key');
+			(objectify).should.have.property('random');
+			(objectify).should.have.property('obj');
+			(objectify).should.have.property('key');
 
 		});
 
@@ -228,14 +239,3 @@ describe('Lisk.api()', function() {
 	});
 
 });
-
-function getUrlVars(url) {
-	var hash;
-	var myJson = {};
-	var hashes = url.slice(url.indexOf('?') + 1).split('&');
-	for (var i = 0; i < hashes.length; i++) {
-		hash = hashes[i].split('=');
-		myJson[hash[0]] = hash[1];
-	}
-	return myJson;
-}
