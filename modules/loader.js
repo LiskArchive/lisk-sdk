@@ -27,14 +27,14 @@ function Loader (cb, scope) {
 	library = scope;
 	self = this;
 
-	__private.initalize();
+	__private.initialize();
 	__private.genesisBlock = __private.lastBlock = library.genesisblock;
 
 	setImmediate(cb, null, self);
 }
 
 // Private methods
-__private.initalize = function () {
+__private.initialize = function () {
 	__private.network = {
 		height: 0, // Network height
 		peers: [] // "Good" peers and with height close to network height
@@ -72,7 +72,7 @@ __private.syncTimer = function () {
 			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
-					__private.initalize();
+					__private.initialize();
 				}
 
 				return setTimeout(nextSync, __private.syncInterval);
@@ -622,7 +622,7 @@ Loader.prototype.onPeersReady = function () {
 			library.logger.trace('Transactions and signatures pulled');
 
 			if (err) {
-				__private.initalize();
+				__private.initialize();
 			}
 
 			return __private.syncTimer();
