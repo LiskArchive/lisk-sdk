@@ -513,10 +513,10 @@ Transport.prototype.internal = {
 
 			if (err) {
 				return setImmediate(cb, null, {success: false, message: err.toString()});
+			} else {
+				library.bus.message('message', query, true);
+				return setImmediate(cb, null, extend({}, body, {success: true}));
 			}
-
-			library.bus.message('message', query, true);
-			return setImmediate(cb, null, extend({}, body, {success: true}));
 		});
 	},
 
@@ -545,8 +545,9 @@ Transport.prototype.internal = {
 
 			if (err) {
 				return setImmediate(cb, null, {success: false, message: err});
+			} else {
+				return setImmediate(cb, null, extend({}, body, {success: true}));
 			}
-			return setImmediate(cb, null, extend({}, body, {success: true}));
 		});
 	},
 

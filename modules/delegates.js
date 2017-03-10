@@ -656,9 +656,9 @@ Delegates.prototype.shared = {
 				}, ['address', 'balance', 'username', 'publicKey'], function (err, rows) {
 					if (err) {
 						return setImmediate(cb, err);
+					} else {
+						return setImmediate(cb, null, {accounts: rows});
 					}
-
-					return setImmediate(cb, null, {accounts: rows});
 				});
 			}).catch(function (err) {
 				library.logger.error(err.stack);
@@ -862,9 +862,9 @@ Delegates.prototype.shared = {
 			}, function (err, transaction) {
 				if (err) {
 					return setImmediate(cb, err);
+				} else {
+					return setImmediate(cb, null, {transaction: transaction[0]});
 				}
-
-				return setImmediate(cb, null, {transaction: transaction[0]});
 			});
 		});
 	}

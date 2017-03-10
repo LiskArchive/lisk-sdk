@@ -846,8 +846,9 @@ DApps.prototype.internal = {
 		}, function (err, transaction) {
 			if (err) {
 				return setImmediate(cb, null, {success: false, error: err});
+			} else {
+				return setImmediate(cb, null, {success: true, transaction: transaction[0]});
 			}
-			setImmediate(cb, null, {success: true, transaction: transaction[0]});
 		});
 	},
 
@@ -855,9 +856,9 @@ DApps.prototype.internal = {
 		__private.get(query.id, function (err, dapp) {
 			if (err) {
 				return setImmediate(cb, null, {success: false, error: err});
+			} else {
+				return setImmediate(cb, null, {success: true, dapp: dapp});
 			}
-
-			return setImmediate(cb, null, {success: true, dapp: dapp});
 		});
 	},
 
@@ -865,9 +866,9 @@ DApps.prototype.internal = {
 		__private.list(query, function (err, dapps) {
 			if (err) {
 				return setImmediate(cb, 'Application not found');
+			} else {
+				return setImmediate(cb, null, {success: true, dapps: dapps});
 			}
-
-			return setImmediate(cb, null, {success: true, dapps: dapps});
 		});
 	},
 
@@ -886,9 +887,9 @@ DApps.prototype.internal = {
 				if (err) {
 					library.logger.error(err);
 					return setImmediate(cb, 'Failed to get applications by id');
+				} else {
+					return setImmediate(cb, null, {success: true, dapps: dapps});
 				}
-
-				return setImmediate(cb, null, {success: true, dapps: dapps});
 			});
 		});
 	},
@@ -965,9 +966,9 @@ DApps.prototype.internal = {
 			if (err) {
 				library.logger.error(err);
 				return setImmediate(cb, 'Failed to get installed application ids');
+			} else {
+				return setImmediate(cb, null, {success: true, ids: ids});
 			}
-
-			return setImmediate(cb, null, {success: true, ids: ids});
 		});
 	},
 
