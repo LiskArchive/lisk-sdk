@@ -145,8 +145,8 @@
                                         <code class="language-html" data-lang="html">
 var options = {
     ssl: false, // default false
-    node: '', // default autoFind
-    autoFindNode: true, // default true
+    node: '', // default randomNode
+    noRandomNode: false, // default false
     testnet: true, // default false
     port: '7000', // default 8000
     bannedNodes: [], // default empty
@@ -166,7 +166,7 @@ var LSK = lisk.api(options);
 var options = {
     ssl: false, // default false
     node: 'localhost', // write node without http:// or port
-    autoFindNode: false, // default true
+    noRandomNode: true, // default false
     testnet: false, // default false
     port: '8000', // default 8000
     bannedNodes: [], // default empty
