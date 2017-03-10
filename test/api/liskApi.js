@@ -193,11 +193,28 @@ describe('Lisk.api()', function() {
 
 			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
+
+		it('should add random if type is GET', function () {
+			var myObj = {
+				obj: ' myval',
+				key: 'my2ndval '
+			};
+
+			var serialised = LSK.serialiseHttpData(myObj, 'GET');
+
+			var objectify = getUrlVars(serialised.substring(1));
+
+			expect(objectify).to.include.keys('random');
+			expect(objectify).to.include.keys('obj');
+			expect(objectify).to.include.keys('key');
+
+		});
+
 	});
 
-	describe('#getAddressFromSecret', function() {
+	describe('#getAddressFromSecret', function () {
 
-		it('should create correct address and publicKey', function() {
+		it('should create correct address and publicKey', function () {
 
 			var address = {
 				publicKey: 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
@@ -211,3 +228,14 @@ describe('Lisk.api()', function() {
 	});
 
 });
+
+function getUrlVars(url) {
+	var hash;
+	var myJson = {};
+	var hashes = url.slice(url.indexOf('?') + 1).split('&');
+	for (var i = 0; i < hashes.length; i++) {
+		hash = hashes[i].split('=');
+		myJson[hash[0]] = hash[1];
+	}
+	return myJson;
+}
