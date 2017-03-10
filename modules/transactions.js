@@ -407,10 +407,10 @@ Transactions.prototype.shared = {
 				var params = {};
 				var pattern = /(and|or){1}:/i;
 
-			// Filter out 'and:'/'or:' from params to perform schema validation
+				// Filter out 'and:'/'or:' from params to perform schema validation
 				_.each(req.body, function (value, key) {
 					var param = String(key).replace(pattern, '');
-				// Dealing with array-like parameters (csv comma separated)
+					// Dealing with array-like parameters (csv comma separated)
 					if (_.includes(['senderIds', 'recipientIds', 'senderPublicKeys', 'recipientPublicKeys'], param)) {
 						value = String(value).split(',');
 						req.body[key] = value;

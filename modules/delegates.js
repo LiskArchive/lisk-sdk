@@ -608,11 +608,11 @@ Delegates.prototype.shared = {
 			}
 
 			var orderBy = OrderBy(
-			req.body.orderBy, {
-				sortFields: sql.sortFields,
-				sortField: 'username'
-			}
-		);
+				req.body.orderBy, {
+					sortFields: sql.sortFields,
+					sortField: 'username'
+				}
+			);
 
 			if (orderBy.error) {
 				return setImmediate(cb, orderBy.error);

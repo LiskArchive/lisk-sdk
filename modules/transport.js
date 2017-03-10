@@ -344,7 +344,7 @@ Transport.prototype.isLoaded = function () {
 Transport.prototype.internal = {
 	blocksCommon: function (ids, peer, extraLogMessage, cb) {
 		var escapedIds = ids
-		// Remove quotes
+			// Remove quotes
 			.replace(/['"]+/g, '')
 			// Separate by comma into an array
 			.split(',')

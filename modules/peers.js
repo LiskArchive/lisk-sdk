@@ -552,21 +552,21 @@ Peers.prototype.shared = {
 		});
 	},
 
-/**
- * Returns information about version
- *
- * @public
- * @async
- * @method version
- * @param  {Object}   req HTTP request object
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Always return `null` here
- * @return {Object}   cb.obj Anonymous object with version info
- * @return {String}   cb.obj.build Build information (if available, otherwise '')
- * @return {String}   cb.obj.commit Hash of last git commit (if available, otherwise '')
- * @return {String}   cb.obj.version Lisk version from config file
- */
+	/**
+	 * Returns information about version
+	 *
+	 * @public
+	 * @async
+	 * @method version
+	 * @param  {Object}   req HTTP request object
+	 * @param  {Function} cb Callback function
+	 * @return {Function} cb Callback function from params (through setImmediate)
+	 * @return {Object}   cb.err Always return `null` here
+	 * @return {Object}   cb.obj Anonymous object with version info
+	 * @return {String}   cb.obj.build Build information (if available, otherwise '')
+	 * @return {String}   cb.obj.commit Hash of last git commit (if available, otherwise '')
+	 * @return {String}   cb.obj.version Lisk version from config file
+	 */
 	version: function (req, cb) {
 		return setImmediate(cb, null, {
 			build: library.build,

@@ -404,8 +404,8 @@ Accounts.prototype.shared = {
 				return setImmediate(cb, 'Missing required property: address or publicKey');
 			}
 
-		// self.getAccount can accept publicKey as argument, but we also compare here
-		// if account publicKey match address (when both are supplied)
+			// self.getAccount can accept publicKey as argument, but we also compare here
+			// if account publicKey match address (when both are supplied)
 			var address = req.body.publicKey ? self.generateAddressByPublicKey(req.body.publicKey) : req.body.address;
 			if (req.body.address && req.body.publicKey && address !== req.body.address) {
 				return setImmediate(cb, 'Account publicKey do not match address');
