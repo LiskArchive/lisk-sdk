@@ -35,6 +35,37 @@ describe('Lisk.api()', function() {
 		it('Nethash should be hardcoded variables', function () {
 			(LSK.getNethash()).should.eql(NetHash);
 		});
+
+		LSK.setTestnet(true);
+
+		NetHash = {
+			'Content-Type': 'application/json',
+			'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			'os': 'lisk-js-api',
+			'version': '1.0.0',
+			'minVersion': '>=0.5.0',
+			'port': 7000
+		};
+
+		it('should give corret Nethash for testnet', function() {
+			(LSK.getNethash()).should.eql(NetHash);
+		});
+
+
+	});
+
+	describe('#setTestnet', function() {
+
+		it('should set to testnet', function() {
+
+			var LISK = lisk.api();
+			LISK.setTestnet(true);
+
+			(LISK.testnet).should.be.true;
+
+		});
+
 	});
 
 	describe('#setNode', function () {
@@ -68,6 +99,24 @@ describe('Lisk.api()', function() {
 
 			(LSK.bannedNodes).should.containEql(currentNode);
 		});
+	});
+
+	describe('#getFullUrl', function () {
+
+		it('should give the full url inclusive port', function() {
+			var LiskUrlInit = lisk.api({ port: 7000, node: 'localhost', ssl: false });
+			var fullUrl = 'http://localhost:7000';
+
+			(LiskUrlInit.getFullUrl()).should.be.equal(fullUrl);
+		});
+
+		it('should give the full url without port and with SSL', function() {
+			var LiskUrlInit = lisk.api({ port: '', node: 'localhost', ssl: true });
+			var fullUrl = 'https://localhost';
+
+			(LiskUrlInit.getFullUrl()).should.be.equal(fullUrl);
+		});
+
 	});
 
 	describe('#getURLPrefix', function () {
