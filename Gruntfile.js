@@ -65,20 +65,25 @@ module.exports = function (grunt) {
 					].join(' && ');
 				}
 			},
+
 			folder: {
 				command: 'mkdir -p ' + release_dir
 			},
+
 			build: {
 				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
 			},
+
 			coverage: {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha',
 				maxBuffer: maxBufferSize
 			},
+
 			coverageSingle: {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST',
 				maxBuffer: maxBufferSize
 			},
+
 			fetchCoverage: {
 				command: 'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
 				maxBuffer: maxBufferSize
@@ -110,6 +115,7 @@ module.exports = function (grunt) {
 				}
 			}
 		},
+
 		eslint: {
 			options: {
 				configFile: '.eslintrc.json',
@@ -124,7 +130,6 @@ module.exports = function (grunt) {
 				'tasks',
 				'test'
 			]
-
 		}
 	});
 
