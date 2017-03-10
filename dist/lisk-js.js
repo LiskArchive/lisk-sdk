@@ -74,7 +74,7 @@ function LiskAPI (options) {
 
 	this.options = options;
 	this.ssl = options.ssl || false;
-	this.autoFindNode = options.autoFindNode;
+	this.noRandomNode = options.noRandomNode || false;
 	this.testnet = options.testnet || false;
 	this.bannedNodes = [];
 	this.currentNode = options.node || this.selectNode();
@@ -82,9 +82,6 @@ function LiskAPI (options) {
 	else                                    this.port = 8000;
 	this.parseOfflineRequests = parseOfflineRequest;
 	this.nethash = this.getNethash();
-
-	console.log(this.autoFindNode);
-	console.log(this.ssl);
 }
 
 LiskAPI.prototype.getNethash = function () {
@@ -160,8 +157,7 @@ LiskAPI.prototype.selectNode = function () {
 		currentRandomPeer = this.currentNode;
 	}
 
-	if (this.autoFindNode) {
-		console.log('autofindNode is true??');
+	if (!this.noRandomNode) {
 		currentRandomPeer = this.getRandomPeer();
 		var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 		if (this.testnet) peers = this.defaultTestnetPeers;
@@ -283,11 +279,7 @@ LiskAPI.prototype.serialiseHttpData = function (data, type) {
 	var serialised;
 
 	if (type === 'GET') {
-		if (typeof data === 'string') {
-			data += '&random=' + Math.random();
-		} else {
-			data.random = Math.random();
-		}
+		data.random = Math.random().toString();
 	}
 
 	serialised = this.trimObj(data);
@@ -558,10 +550,12 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				tags: OfflineRequestThis.options['tags'],
 				type: OfflineRequestThis.options['type'],
 				link: OfflineRequestThis.options['link'],
-				icon: OfflineRequestThis.options['icon']
+				icon: OfflineRequestThis.options['icon'],
+				secret: OfflineRequestThis.options['secret'],
+				secondSecret: OfflineRequestThis.options['secondSecret']
 			};
 
-			var transaction = LiskJS.dapp.createDapp(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], DappOptions);
+			var transaction = LiskJS.dapp.createDapp(DappOptions);
 
 			OfflineRequestThis.params = { transaction };
 
