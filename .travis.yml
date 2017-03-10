@@ -28,6 +28,7 @@ env:
     - HOST=http://0.0.0.0:4000
     - COVERALLS_PARALLEL=true
   matrix:
+    # longest first
     - TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
     - TEST=test/api/peer.transactions.votes.js TEST_TYPE='FUNC'
     - TEST=test/unit/logic TEST_TYPE='UNIT'
