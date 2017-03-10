@@ -92,23 +92,25 @@ describe('ParseOfflineRequests', function () {
 		/*
 		it('should route dapps requests correctly', function () {
 			var options = {
-				category: 0,
+				category: '0',
 				name: 'Lisk Guestbook',
 				description: 'The official Lisk guestbook',
-				tags: 'guestbook message sidechain',
-				type: 0,
+				tags: 'blockchain guestbook',
+				type: '0',
 				link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
-				icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png'
+				icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
+				secret: '123'
 			};
 
-			var checkRequestRouting = LSK.parseOfflineRequests('dapps', { secret: '123', secondSecret: '1234', options });
+			var checkRequestRouting = lisk.api().parseOfflineRequests('dapps', options);
 
 			(checkRequestRouting.requestMethod).should.be.equal('PUT');
-			(checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
-			(checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
+			//(checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
+			//(checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
 			(checkRequestRouting.checkOfflineRequestBefore().params).should.be.ok();
 		});
 		*/
+
 	});
 
 	describe('#transactionOutputAfter', function () {

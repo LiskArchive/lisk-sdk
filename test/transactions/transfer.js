@@ -4,13 +4,4 @@
 // var cryptoLib = common.cryptoLib;
 
 describe('transfer.js', function () {
-
-	var transfer = lisk.trans
-
-	it('should return transaction correctly', function() {
-
-
-
-	});
-
 });
