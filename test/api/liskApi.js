@@ -55,7 +55,7 @@ describe('Lisk.api()', function() {
 
 	});
 
-	describe('#setTestnet', function() {
+	describe('#setTestnet', function () {
 
 		it('should set to testnet', function() {
 
@@ -82,6 +82,18 @@ describe('Lisk.api()', function() {
 
 			(LSK.currentNode).should.be.ok();
 		});
+	});
+
+	describe('#selectNode', function() {
+
+		it('should return the node from initial settings when set', function () {
+
+			var LiskUrlInit = lisk.api({ port: 7000, node: 'localhost', ssl: true, noRandomNode: true });
+
+			(LiskUrlInit.selectNode()).should.be.equal('localhost');
+
+		});
+
 	});
 
 	describe('#getRandomPeer', function () {
@@ -182,4 +194,20 @@ describe('Lisk.api()', function() {
 			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
 	});
+
+	describe('#getAddressFromSecret', function() {
+
+		it('should create correct address and publicKey', function() {
+
+			var address = {
+				publicKey: 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+				address: '12475940823804898745L'
+			};
+
+			(LSK.getAddressFromSecret('123')).should.eql(address);
+
+		});
+
+	});
+
 });

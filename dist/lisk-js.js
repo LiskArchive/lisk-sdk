@@ -74,14 +74,17 @@ function LiskAPI (options) {
 
 	this.options = options;
 	this.ssl = options.ssl || false;
+	this.autoFindNode = options.autoFindNode;
 	this.testnet = options.testnet || false;
-	this.autoFindNode = options.autoFindNode || true;
 	this.bannedNodes = [];
 	this.currentNode = options.node || this.selectNode();
 	if (options.port === '' || options.port) this.port = options.port;
 	else                                    this.port = 8000;
 	this.parseOfflineRequests = parseOfflineRequest;
 	this.nethash = this.getNethash();
+
+	console.log(this.autoFindNode);
+	console.log(this.ssl);
 }
 
 LiskAPI.prototype.getNethash = function () {
@@ -120,6 +123,7 @@ LiskAPI.prototype.setNode = function (node) {
 LiskAPI.prototype.setTestnet = function (testnet) {
 	if (this.testnet !== testnet) {
 		this.testnet = testnet;
+		this.port = 7000;
 		this.selectNode();
 	}
 };
@@ -157,6 +161,7 @@ LiskAPI.prototype.selectNode = function () {
 	}
 
 	if (this.autoFindNode) {
+		console.log('autofindNode is true??');
 		currentRandomPeer = this.getRandomPeer();
 		var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 		if (this.testnet) peers = this.defaultTestnetPeers;
@@ -426,31 +431,21 @@ function ParseOfflineRequest (requestType, options) {
 	return this;
 }
 
-ParseOfflineRequest.prototype.checkDoubleNamedAPI = function(requestType, options) {
-
-	var requestCheck = requestType;
+ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
 
 	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
 		if (options && !options.hasOwnProperty('secret')) {
-			requestCheck = 'getTransactions';
+			requestType = 'getTransactions';
 		}
 	}
 
-	return requestCheck;
+	return requestType;
 
 };
 
 ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 
-	/*
-	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
-		if (this.options && !this.options.hasOwnProperty('secret')) {
-			requestType = 'getTransactions';
-		}
-	}
-	*/
-
-	var requestType = this.checkDoubleNamedAPI(requestType, this.options);
+	requestType = this.checkDoubleNamedAPI(requestType, this.options);
 
 	var requestMethod;
 	var requestIdentification =  {
