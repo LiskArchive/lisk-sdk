@@ -493,17 +493,17 @@ __private.sync = function (cb) {
 	});
 };
 
-// Given a list of peers with associated blockchain height (heights = {peer: peer, height: height}), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
+// Given a list of peers (with associated blockchain height), we find a list of good peers (likely to sync with), then perform a histogram cut, removing peers far from the most common observed height. This is not as easy as it sounds, since the histogram has likely been made accross several blocks, therefore need to aggregate).
 __private.findGoodPeers = function (heights) {
 	var lastBlockHeight = modules.blocks.getLastBlock().height;
+	library.logger.trace('Good peers - received', {count: heights.length});
 
 	heights = heights.filter(function (item) {
-		// Removing unreachable peers
-		return item != null;
-	}).filter(function (item) {
-		// Remove heights below last block height
-		return item.height >= lastBlockHeight;
+		// Removing unreachable peers or heights below last block height
+		return item != null && item.height >= lastBlockHeight;
 	});
+
+	library.logger.trace('Good peers - filtered', {count: heights.length});
 
 	// No peers found
 	if (heights.length === 0) {
@@ -536,59 +536,14 @@ __private.findGoodPeers = function (heights) {
 		var peers = heights.filter(function (item) {
 			return item && Math.abs(height - item.height) < aggregation + 1;
 		}).map(function (item) {
-			// Add the height info to the peer. To be removed?
-			item.peer.height = item.height;
-			return item.peer;
+			return library.logic.peers.create(item);
 		});
 
+		library.logger.trace('Good peers - accepted', {count: peers.length});
 		library.logger.debug('Good peers', peers);
 
 		return {height: height, peers: peers};
 	}
-};
-
-__private.getPeer = function (peer, cb) {
-	async.series({
-		validatePeer: function (seriesCb) {
-			peer = library.logic.peers.create(peer);
-
-			library.schema.validate(peer, schema.getNetwork.peer, function (err) {
-				if (err) {
-					return setImmediate(seriesCb, ['Failed to validate peer:', err[0].path, err[0].message].join(' '));
-				} else {
-					return setImmediate(seriesCb, null);
-				}
-			});
-		},
-		getHeight: function (seriesCb) {
-			modules.transport.getFromPeer(peer, {
-				api: '/height',
-				method: 'GET'
-			}, function (err, res) {
-				if (err) {
-					return setImmediate(seriesCb, 'Failed to get height from peer: ' + peer.string);
-				} else {
-					return setImmediate(seriesCb);
-				}
-			});
-		},
-		validateHeight: function (seriesCb) {
-			var heightIsValid = library.schema.validate(peer, schema.getNetwork.height);
-
-			if (heightIsValid) {
-				library.logger.log(['Received height:', peer.height, 'from peer:', peer.string].join(' '));
-				return setImmediate(seriesCb);
-			} else {
-				return setImmediate(seriesCb, 'Received invalid height from peer: ' + peer.string);
-			}
-		}
-	}, function (err) {
-		if (err) {
-			peer.height = null;
-			library.logger.error(err);
-		}
-		return setImmediate(cb, null, {peer: peer, height: peer.height});
-	});
 };
 
 // Public methods
@@ -601,42 +556,13 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
-	async.waterfall([
-		function (waterCb) {
-			modules.transport.getFromRandomPeer({
-				api: '/list',
-				method: 'GET'
-			}, function (err, res) {
-				if (err) {
-					return setImmediate(waterCb, err);
-				} else {
-					return setImmediate(waterCb, null, res);
-				}
-			});
-		},
-		function (res, waterCb) {
-			library.schema.validate(res.body, schema.getNetwork.peers, function (err) {
-				var peers = modules.peers.acceptable(res.body.peers);
 
-				if (err) {
-					return setImmediate(waterCb, err);
-				} else {
-					library.logger.log(['Received', peers.length, 'peers from'].join(' '), res.peer.string);
-					return setImmediate(waterCb, null, peers);
-				}
-			});
-		},
-		function (peers, waterCb) {
-			async.map(peers, __private.getPeer, function (err, peers) {
-				return setImmediate(waterCb, err, peers);
-			});
-		}
-	], function (err, heights) {
+	modules.peers.list({}, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		__private.network = __private.findGoodPeers(heights);
+		__private.network = __private.findGoodPeers(peers);
 
 		if (!__private.network.peers.length) {
 			return setImmediate(cb, 'Failed to find enough good peers');

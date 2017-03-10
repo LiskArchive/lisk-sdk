@@ -27,7 +27,7 @@ function waitUntilBlockchainReady (cb, retries, timeout) {
 		retries = 10;
 	}
 	if (!timeout) {
-		timeout = 500;
+		timeout = 1000;
 	}
 	(function fetchBlockchainStatus () {
 		node.get('/api/loader/status', function (err, res) {
