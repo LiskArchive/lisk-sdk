@@ -3,7 +3,6 @@
 var extend = require('extend');
 
 var middleware = {
-
 	/**
 	 * Add CORS header to all requests
 	 * @param {Object} req

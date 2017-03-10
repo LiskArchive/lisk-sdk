@@ -20,6 +20,7 @@ var z_schema = require('./helpers/z_schema.js');
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
+
 /**
  * Hash of last git commit
  *
@@ -476,7 +477,6 @@ d.run(function () {
 		}],
 
 		api: ['modules', 'logger', 'network', function (scope, cb) {
-
 			Object.keys(config.api).forEach(function (moduleName) {
 				Object.keys(config.api[moduleName]).forEach(function (protocol) {
 					var apiEndpointPath = config.api[moduleName][protocol];

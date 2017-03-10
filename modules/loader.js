@@ -646,7 +646,6 @@ Loader.prototype.cleanup = function (cb) {
 };
 
 Loader.prototype.internal = {
-
 	statusPing: function () {
 		var lastBlock = modules.blocks.getLastBlock();
 		return lastBlock && lastBlock.fresh;
@@ -654,7 +653,6 @@ Loader.prototype.internal = {
 };
 
 Loader.prototype.shared = {
-
 	status: function (req, cb) {
 		return setImmediate(cb, null, {
 			loaded: __private.loaded,

@@ -150,7 +150,6 @@ Multisignatures.prototype.isLoaded = function () {
 };
 
 Multisignatures.prototype.shared = {
-
 	getAccounts: function (req, cb) {
 		var scope = {};
 
@@ -214,7 +213,6 @@ Multisignatures.prototype.shared = {
 			}
 		});
 	},
-
 
 	pending: function (req, cb) {
 		var scope = { pending: [] };

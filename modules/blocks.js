@@ -1425,6 +1425,7 @@ Blocks.prototype.getBlockProgressLogger = function (transactionsCount, logsFrequ
 			library.logger.info(msg, ((this.applied / this.target) *  100).toPrecision(4)+ ' %' + ': applied ' + this.applied + ' of ' + this.target + ' transactions' );
 		};
 	}
+
 	return new BlockProgressLogger(transactionsCount, logsFrequency, msg);
 };
 
@@ -1433,7 +1434,6 @@ Blocks.prototype.isLoaded = function () {
 };
 
 Blocks.prototype.shared = {
-	
 	getBlock: function (req, cb) {
 		if (!__private.loaded) {
 			return setImmediate(cb, 'Blockchain is loading');

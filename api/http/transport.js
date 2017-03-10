@@ -25,7 +25,7 @@ function TransportHttpApi (transportModule, app, logger) {
 
 	});
 
-	//custom parameters internal functions
+	// Custom parameters internal functions
 	router.post('/blocks', function (req, res) {
 		transportModule.internal.postBlock(req.body.block, req.peer, req.method + ' ' + req.url, httpApi.respond.bind(null, res));
 	});

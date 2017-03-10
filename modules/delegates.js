@@ -432,7 +432,6 @@ Delegates.prototype.isLoaded = function () {
 };
 
 Delegates.prototype.internal = {
-
 	forgingEnable: function (req, cb) {
 		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
 			return setImmediate(cb, 'Access denied');
@@ -547,9 +546,8 @@ Delegates.prototype.internal = {
 	}
 };
 
-Delegates.prototype.shared = {
-
 // Shared
+Delegates.prototype.shared = {
 	getDelegate: function (req, cb) {
 		library.schema.validate(req.body, schema.getDelegate, function (err) {
 			if (err) {
@@ -598,6 +596,7 @@ Delegates.prototype.shared = {
 					nextForgers.push (activeDelegates[(currentSlot + i) % slots.delegates]);
 				}
 			}
+
 			return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
 		});
 	},
@@ -731,6 +730,7 @@ Delegates.prototype.shared = {
 					if (err) {
 						return setImmediate(cb, err);
 					}
+
 					var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
 					return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});
 				});
@@ -739,6 +739,7 @@ Delegates.prototype.shared = {
 					if (err || !account) {
 						return setImmediate(cb, err || 'Account not found');
 					}
+
 					var forged = new bignum(account.fees).plus(new bignum(account.rewards)).toString();
 					return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
 				});

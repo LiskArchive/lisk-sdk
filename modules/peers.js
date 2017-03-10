@@ -34,6 +34,7 @@ __private.getByFilter = function (filter, cb) {
 	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height'];
 	var limit  = filter.limit ? Math.abs(filter.limit) : null;
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
+
 	// Sorting peers
 	var sortPeers = function (field, asc) {
 		return function (a, b) {
@@ -49,6 +50,7 @@ __private.getByFilter = function (filter, cb) {
 			return sort_res;
 		};
 	};
+
 	// Randomizing peers (using Fisher-Yates-Durstenfeld shuffle algorithm)
 	var shuffle = function (array) {
 		var m = array.length, t, i;
@@ -487,7 +489,6 @@ Peers.prototype.isLoaded = function () {
 };
 
 Peers.prototype.shared = {
-
 	count: function (req, cb) {
 		async.series({
 			connected: function (cb) {

@@ -342,9 +342,7 @@ Transport.prototype.isLoaded = function () {
 };
 
 Transport.prototype.internal = {
-
 	blocksCommon: function (ids, peer, extraLogMessage, cb) {
-
 		var escapedIds = ids
 		// Remove quotes
 			.replace(/['"]+/g, '')
@@ -564,7 +562,6 @@ Transport.prototype.internal = {
 		var headers = peer.applyHeaders(headers);
 
 		validateHeaders(headers, function (error, extraMessage) {
-
 			if (error) {
 				// Remove peer
 				__private.removePeer({peer: peer, code: 'EHEADERS'}, extraMessage);

@@ -149,7 +149,6 @@ Accounts.prototype.isLoaded = function () {
 };
 
 Accounts.prototype.shared = {
-
 	open: function (req, cb) {
 		library.schema.validate(req.body, schema.open, function (err) {
 			if (err) {
@@ -440,7 +439,6 @@ Accounts.prototype.shared = {
 };
 
 Accounts.prototype.internal = {
-
 	count: function (req, cb) {
 		return setImmediate(cb, null, {success: true, count: Object.keys(__private.accounts).length});
 	},
@@ -472,9 +470,7 @@ Accounts.prototype.internal = {
 	getAllAccounts: function (req, cb) {
 		return setImmediate(cb, null, {success: true, accounts: __private.accounts});
 	}
-
 };
-
 
 // Export
 module.exports = Accounts;

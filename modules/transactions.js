@@ -19,7 +19,7 @@ var shared = {};
 var genesisblock = null;
 var modules;
 var library;
-var self; 
+var self;
 
 __private.assetTypes = {};
 
@@ -108,10 +108,10 @@ __private.list = function (filter, cb) {
 			params[field[1]] = value;
 			isFirstWhere = false;
 		}
-	}; 
+	};
 
 	// Generate list of fields with conditions
-	try { 
+	try {
 		_.each(filter, processParams);
 	} catch (err) {
 		return setImmediate(cb, err.message);
@@ -470,7 +470,6 @@ Transactions.prototype.shared = {
 				unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
 				queued: __private.transactionPool.queued.transactions.length
 			});
-
 		}, function (err) {
 			return setImmediate(cb, 'Unable to count transactions');
 		});
@@ -640,5 +639,6 @@ Transactions.prototype.shared = {
 		});
 	}
 };
+
 // Export
 module.exports = Transactions;

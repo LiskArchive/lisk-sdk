@@ -790,9 +790,7 @@ DApps.prototype.isLoaded = function () {
 };
 
 DApps.prototype.internal = {
-
 	put: function (dapp, cb) {
-
 		var hash = crypto.createHash('sha256').update(dapp.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
@@ -864,7 +862,6 @@ DApps.prototype.internal = {
 	},
 
 	list: function (query, cb) {
-
 		__private.list(query, function (err, dapps) {
 			if (err) {
 				return setImmediate(cb, 'Application not found');
@@ -979,7 +976,6 @@ DApps.prototype.internal = {
 	},
 
 	install: function (params, cb) {
-
 		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
 			return setImmediate(cb, 'Invalid master passphrase');
 		}
@@ -1145,10 +1141,10 @@ DApps.prototype.internal = {
 				ids.push(i);
 			}
 		}
-		
+
 		return setImmediate(cb, null, {success: true, launched: ids});
 	},
-	
+
 	categories: function (req, cb) {
 		return setImmediate(cb, null, {success: true, categories: dappCategories});
 	},
