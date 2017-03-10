@@ -527,7 +527,7 @@ Delegates.prototype.internal = {
 
 	forgingEnableAll: function (req, cb) {
 		if (Object.keys(__private.tmpKeypairs).length === 0) {
-			return setImmediate(cb, 'No temporary keypairs');
+			return setImmediate(cb, 'No delegate keypairs defined');
 		}
 
 		__private.keypairs = __private.tmpKeypairs;
@@ -537,7 +537,7 @@ Delegates.prototype.internal = {
 
 	forgingDisableAll: function (req, cb) {
 		if (Object.keys(__private.tmpKeypairs).length !== 0) {
-			return setImmediate(cb, 'Temporary keypairs are defined');
+			return setImmediate(cb, 'Delegate keypairs are defined');
 		}
 
 		__private.tmpKeypairs = __private.keypairs;
