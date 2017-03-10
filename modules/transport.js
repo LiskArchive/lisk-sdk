@@ -502,7 +502,6 @@ Transport.prototype.internal = {
 
 		if (__private.messages[query.hash]) {
 			return setImmediate(cb, null);
-			// return res.status(200);
 		}
 
 		__private.messages[query.hash] = true;
