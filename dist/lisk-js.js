@@ -426,12 +426,31 @@ function ParseOfflineRequest (requestType, options) {
 	return this;
 }
 
+ParseOfflineRequest.prototype.checkDoubleNamedAPI = function(requestType, options) {
+
+	var requestCheck = requestType;
+
+	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
+		if (options && !options.hasOwnProperty('secret')) {
+			requestCheck = 'getTransactions';
+		}
+	}
+
+	return requestCheck;
+
+};
+
 ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
+
+	/*
 	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
 		if (this.options && !this.options.hasOwnProperty('secret')) {
 			requestType = 'getTransactions';
 		}
 	}
+	*/
+
+	var requestType = this.checkDoubleNamedAPI(requestType, this.options);
 
 	var requestMethod;
 	var requestIdentification =  {

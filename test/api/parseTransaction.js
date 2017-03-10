@@ -24,6 +24,17 @@ describe('ParseOfflineRequests', function () {
 
 	});
 
+	describe('#checkDoubleNamedAPI', function() {
+
+		it('should route to getTransactions when /transactions API is called and no secret is added', function() {
+			var requestMethodGetTx = LSK.parseOfflineRequests('transactions', { senderId: '123' });
+
+			(requestMethodGetTx.requestMethod).should.be.equal('GET');
+
+		});
+
+	});
+
 	describe('#checkOfflineRequestBefore', function () {
 
 		it('should route accounts/open requests correctly', function () {
@@ -150,6 +161,169 @@ describe('ParseOfflineRequests', function () {
 			var requestAnswer = offlineRequest.transactionOutputAfter( { success: 'true', account: 'account' } );
 
 			(requestAnswer).should.be.eql(reqAnswer);
+		});
+
+		it('should not allow blocked API calls - enable forging', function () {
+			var reqAnswer = {
+				'success': 'false',
+				'error': 'Forging not available via offlineRequest'
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('delegates/forging/enable', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter();
+
+			(requestAnswer).should.be.eql(reqAnswer);
+		});
+
+		it('should not allow blocked API calls - disable forging', function () {
+			var reqAnswer = {
+				'success': 'false',
+				'error': 'Forging not available via offlineRequest'
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('delegates/forging/disable', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter();
+
+			(requestAnswer).should.be.eql(reqAnswer);
+		});
+
+		it('should not allow blocked API calls - install dapp', function () {
+			var reqAnswer = {
+				'success': 'false',
+				'error': 'Install dapp not available via offlineRequest'
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('dapps/install', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter();
+
+			(requestAnswer).should.be.eql(reqAnswer);
+		});
+
+		it('should not allow blocked API calls - uninstall dapp', function () {
+			var reqAnswer = {
+				'success': 'false',
+				'error': 'Uninstall dapp not available via offlineRequest'
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('dapps/uninstall', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter();
+
+			(requestAnswer).should.be.eql(reqAnswer);
+		});
+
+		it('should not allow blocked API calls - dapps launch', function () {
+			var reqAnswer = {
+				'success': 'false',
+				'error': 'Launch dapp not available via offlineRequest'
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('dapps/launch', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter();
+
+			(requestAnswer).should.be.eql(reqAnswer);
+		});
+
+		it('should not allow blocked API calls - dapps stop', function () {
+			var reqAnswer = {
+				'success': 'false',
+				'error': 'Stop dapp not available via offlineRequest'
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('dapps/stop', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter();
+
+			(requestAnswer).should.be.eql(reqAnswer);
+		});
+
+		it('should not influence already finished calls - delegates', function () {
+
+			var request = {
+				'success': 'true',
+				'call': 'etc'
+			};
+			var outputRequest = {
+				request: request
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('accounts/delegates', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter(request);
+
+			(outputRequest).should.be.eql(requestAnswer);
+		});
+
+		it('should not influence already finished calls - accounts/delegates', function () {
+
+			var request = {
+				'success': 'true',
+				'call': 'etc'
+			};
+			var outputRequest = {
+				request: request
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('accounts/delegates', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter(request);
+
+			(outputRequest).should.be.eql(requestAnswer);
+		});
+
+		it('should not influence already finished calls - transactions', function () {
+
+			var request = {
+				'success': 'true',
+				'call': 'etc'
+			};
+			var outputRequest = {
+				request: request
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('transactions', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter(request);
+
+			(outputRequest).should.be.eql(requestAnswer);
+		});
+
+		it('should not influence already finished calls - signatures', function () {
+
+			var request = {
+				'success': 'true',
+				'call': 'etc'
+			};
+			var outputRequest = {
+				request: request
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('signatures', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter(request);
+
+			(outputRequest).should.be.eql(requestAnswer);
+		});
+
+		it('should not influence already finished calls - dapps', function () {
+
+			var request = {
+				'success': 'true',
+				'call': 'etc'
+			};
+			var outputRequest = {
+				request: request
+
+			};
+
+			var offlineRequest = LSK.parseOfflineRequests('dapps', { secret: 'unknown' });
+			var requestAnswer = offlineRequest.transactionOutputAfter(request);
+
+			(outputRequest).should.be.eql(requestAnswer);
 		});
 
 	});
