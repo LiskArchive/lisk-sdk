@@ -149,6 +149,7 @@ Multisignatures.prototype.isLoaded = function () {
 	return !!modules;
 };
 
+// Shared API
 Multisignatures.prototype.shared = {
 	getAccounts: function (req, cb) {
 		var scope = {};

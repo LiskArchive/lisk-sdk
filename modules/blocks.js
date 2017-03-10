@@ -1433,6 +1433,7 @@ Blocks.prototype.isLoaded = function () {
 	return !!modules;
 };
 
+// Shared API
 Blocks.prototype.shared = {
 	getBlock: function (req, cb) {
 		if (!__private.loaded) {

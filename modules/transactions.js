@@ -400,6 +400,7 @@ Transactions.prototype.onBind = function (scope) {
 	});
 };
 
+// Shared API
 Transactions.prototype.shared = {
 	getTransactions: function (req, cb) {
 		async.waterfall([

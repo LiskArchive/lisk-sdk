@@ -24,6 +24,7 @@ function Peers (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+// Private methods
 __private.countByFilter = function (filter, cb) {
 	__private.getByFilter(filter, function (err, peers) {
 		return setImmediate(cb, null, peers.length);
@@ -488,6 +489,7 @@ Peers.prototype.isLoaded = function () {
 	return !!modules;
 };
 
+// Shared API
 Peers.prototype.shared = {
 	count: function (req, cb) {
 		async.series({

@@ -1434,7 +1434,7 @@ DApps.prototype.internal = {
 	}
 };
 
-// Shared
+// Shared API
 shared.getGenesis = function (req, cb) {
 	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
 		if (rows.length === 0) {

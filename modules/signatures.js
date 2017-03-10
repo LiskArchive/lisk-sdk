@@ -25,11 +25,11 @@ function Signatures (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+// Public methods
 Signatures.prototype.isLoaded = function () {
 	return !!modules;
 };
 
-// Public methods
 Signatures.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
@@ -43,6 +43,7 @@ Signatures.prototype.onBind = function (scope) {
 	});
 };
 
+// Shared API
 Signatures.prototype.shared = {
 	getFee: function (req, cb) {
 		var fee = constants.fees.secondsignature;

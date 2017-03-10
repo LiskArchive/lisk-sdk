@@ -28,6 +28,7 @@ function Accounts (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+// Private methods
 __private.openAccount = function (secret, cb) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
 	var keypair = library.ed.makeKeypair(hash);
@@ -148,6 +149,7 @@ Accounts.prototype.isLoaded = function () {
 	return !!modules;
 };
 
+// Shared API
 Accounts.prototype.shared = {
 	open: function (req, cb) {
 		library.schema.validate(req.body, schema.open, function (err) {
@@ -438,6 +440,7 @@ Accounts.prototype.shared = {
 	}
 };
 
+// Internal API
 Accounts.prototype.internal = {
 	count: function (req, cb) {
 		return setImmediate(cb, null, {success: true, count: Object.keys(__private.accounts).length});

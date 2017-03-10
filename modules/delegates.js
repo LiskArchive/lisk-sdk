@@ -37,6 +37,7 @@ function Delegates (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+// Private methods
 __private.getKeysSortByVote = function (cb) {
 	modules.accounts.getAccounts({
 		isDelegate: 1,
@@ -546,7 +547,7 @@ Delegates.prototype.internal = {
 	}
 };
 
-// Shared
+// Shared API
 Delegates.prototype.shared = {
 	getDelegate: function (req, cb) {
 		library.schema.validate(req.body, schema.getDelegate, function (err) {

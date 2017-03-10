@@ -31,7 +31,6 @@ function Transport (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
-
 // Private methods
 __private.hashsum = function (obj) {
 	var buf = new Buffer(JSON.stringify(obj), 'utf8');
@@ -168,7 +167,6 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 };
 
 // Public methods
-
 Transport.prototype.headers = function (headers) {
 	if (headers) {
 		__private.headers = headers;
@@ -341,6 +339,7 @@ Transport.prototype.isLoaded = function () {
 	return modules && __private.loaded;
 };
 
+// Internal API
 Transport.prototype.internal = {
 	blocksCommon: function (ids, peer, extraLogMessage, cb) {
 		var escapedIds = ids
@@ -603,7 +602,7 @@ Transport.prototype.internal = {
 	}
 };
 
-// Shared
+// Shared API
 shared.message = function (msg, cb) {
 	msg.timestamp = (new Date()).getTime();
 	msg.hash = __private.hashsum(msg.body, msg.timestamp);
