@@ -61,9 +61,6 @@ var middleware = {
 	sanitize: function (property, schema, cb) {
 		return function (req, res, next) {
 			req.sanitize(req[property], schema, function (err, report, sanitized) {
-				if (err) {
-					return next(err);
-				}
 				if (!report.isValid) {
 					return res.json({success: false, error: report.issues});
 				}
