@@ -214,8 +214,14 @@ module.exports = {
 			multisigAccountPublicKey: {
 				type: 'string',
 				format: 'publicKey'
+			},
+			data: {
+				type: 'string',
+				minLength: 0,
+				maxLength: 16
 			}
 		},
 		required: ['secret', 'amount', 'recipientId']
+
 	}
 };
