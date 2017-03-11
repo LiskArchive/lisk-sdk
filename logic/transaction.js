@@ -116,7 +116,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 		var assetSize = assetBytes ? assetBytes.length : 0;
 		var i;
 
-		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + 128 + assetSize, true);
+		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + 16 + assetSize, true);
 		bb.writeByte(trs.type);
 		bb.writeInt(trs.timestamp);
 
@@ -147,12 +147,17 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 		bb.writeLong(trs.amount);
 
-		if(trs.data) {
-			var dataBuffer = new Buffer(trs.data);
-			for (i = 0; i < dataBuffer.length; i++) {
-				bb.writeByte(dataBuffer[i]);
+		if (trs.data) {
+			var dataBuffer = new Buffer(trs.data, 'utf8');
+			for (i = 0; i < 16; i++) {
+				bb.writeByte(dataBuffer[i] || 0);
+			}
+		} else {
+			for (i = 0; i < 16; i++) {
+				bb.writeByte(0);
 			}
 		}
+
 		if (assetSize > 0) {
 			for (i = 0; i < assetSize; i++) {
 				bb.writeByte(assetBytes[i]);
