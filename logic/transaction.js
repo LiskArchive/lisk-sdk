@@ -45,7 +45,8 @@ Transaction.prototype.create = function (data) {
 		senderPublicKey: data.sender.publicKey,
 		requesterPublicKey: data.requester ? data.requester.publicKey.toString('hex') : null,
 		timestamp: slots.getTime(),
-		asset: {}
+		asset: {},
+		data: data.data
 	};
 
 	trs = __private.types[trs.type].create.call(this, data, trs);
@@ -115,7 +116,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 		var assetSize = assetBytes ? assetBytes.length : 0;
 		var i;
 
-		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + assetSize, true);
+		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + 128 + assetSize, true);
 		bb.writeByte(trs.type);
 		bb.writeInt(trs.timestamp);
 
@@ -146,6 +147,12 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 		bb.writeLong(trs.amount);
 
+		if(trs.data) {
+			var dataBuffer = new Buffer(trs.data);
+			for (i = 0; i < dataBuffer.length; i++) {
+				bb.writeByte(dataBuffer[i]);
+			}
+		}
 		if (assetSize > 0) {
 			for (i = 0; i < assetSize; i++) {
 				bb.writeByte(assetBytes[i]);
@@ -652,7 +659,8 @@ Transaction.prototype.dbFields = [
 	'fee',
 	'signature',
 	'signSignature',
-	'signatures'
+	'signatures',
+	'data'
 ];
 
 Transaction.prototype.dbSave = function (trs) {
@@ -689,6 +697,7 @@ Transaction.prototype.dbSave = function (trs) {
 				signature: signature,
 				signSignature: signSignature,
 				signatures: trs.signatures ? trs.signatures.join(',') : null,
+				data: trs.data
 			}
 		}
 	];
@@ -781,6 +790,11 @@ Transaction.prototype.schema = {
 		},
 		asset: {
 			type: 'object'
+		},
+		data: {
+			type: 'string',
+			minimum: 0,
+			maximum: 16
 		}
 	},
 	required: ['type', 'timestamp', 'senderPublicKey', 'signature']
@@ -835,7 +849,8 @@ Transaction.prototype.dbRead = function (raw) {
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
 			confirmations: parseInt(raw.confirmations),
-			asset: {}
+			asset: {},
+			data: raw.t_data
 		};
 
 		if (!__private.types[tx.type]) {
