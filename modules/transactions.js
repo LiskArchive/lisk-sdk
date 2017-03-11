@@ -617,7 +617,8 @@ shared.addTransactions = function (req, cb) {
 									recipientId: recipientId,
 									keypair: keypair,
 									requester: keypair,
-									secondKeypair: secondKeypair
+									secondKeypair: secondKeypair,
+									data: req.body.data
 								});
 							} catch (e) {
 								return setImmediate(cb, e.toString());
@@ -656,7 +657,8 @@ shared.addTransactions = function (req, cb) {
 								sender: account,
 								recipientId: recipientId,
 								keypair: keypair,
-								secondKeypair: secondKeypair
+								secondKeypair: secondKeypair,
+								data: req.body.data
 							});
 						} catch (e) {
 							return setImmediate(cb, e.toString());
