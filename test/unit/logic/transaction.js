@@ -51,7 +51,8 @@ var validTransaction = {
 	'signature': 'faf3081850b92de3fcd46346b883ca0a0096ae5366a5dafce9ace6ddf7970338501ae51ef138ca63aad571c399144d713e5be34a61e6885c8074740c66e3d90b',
 	'id': '4669815655990175999',
 	'fee': 10000000,
-	'senderId': '16313739661670634666L'
+	'senderId': '16313739661670634666L',
+	'data': '50b92d'
 };
 
 var attachAllAssets = function (transaction) {
@@ -139,6 +140,13 @@ describe('transaction', function () {
 
 		it('should throw an error with no param', function () {
 			expect(transaction.getBytes).to.throw();
+		});
+
+		it('should return same result when called multiple times', function () {
+			attachAllAssets(transaction);
+			var firstCalculation = transaction.getBytes(validTransaction);
+			var secondCalculation = transaction.getBytes(validTransaction);
+			expect(firstCalculation).to.equal(secondCalculation);
 		});
 	});
 
