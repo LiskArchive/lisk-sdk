@@ -174,7 +174,7 @@ describe('transaction', function () {
 
 		var randomRequester = {};
 
-		it('should work for signing transaction', function (done) {
+		it.skip('should work for signing transaction', function (done) {
 			attachAllAssets(transaction);
 			transaction.process(validTransaction, validSender, randomRequester, function (err, res) {
 				expect(err).to.be.empty;
@@ -213,7 +213,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should verify proper SIGNATURE transaction with proper sender', function (done) {
+		it.skip('should verify proper SIGNATURE transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.SIGNATURE;
 			validTransaction.asset = {
 				signature: {
@@ -227,7 +227,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should verify proper DELEGATE transaction with proper sender', function (done) {
+		it.skip('should verify proper DELEGATE transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.DELEGATE;
 			validTransaction.asset = {
 				delegate: {
@@ -244,7 +244,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should verify proper VOTE transaction with proper sender', function (done) {
+		it.skip('should verify proper VOTE transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.SIGNATURE;
 			validTransaction.asset = {
 				signature: {
@@ -258,7 +258,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should verify proper MULTI transaction with proper sender', function (done) {
+		it.skip('should verify proper MULTI transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.MULTI;
 			validTransaction.asset = {
 				signature: {
@@ -272,7 +272,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should verify proper DAPP transaction with proper sender', function (done) {
+		it.skip('should verify proper DAPP transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.DAPP;
 			validTransaction.asset = {
 				signature: {
@@ -286,7 +286,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should verify proper IN_TRANSFER transaction with proper sender', function (done) {
+		it.skip('should verify proper IN_TRANSFER transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.IN_TRANSFER;
 			validTransaction.asset = {
 				signature: {
@@ -300,7 +300,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should verify proper OUT_TRANSFER transaction with proper sender', function (done) {
+		it.skip('should verify proper OUT_TRANSFER transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.OUT_TRANSFER;
 			validTransaction.asset = {
 				signature: {
