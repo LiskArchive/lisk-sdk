@@ -139,10 +139,6 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 			for (i = 0; i < 8; i++) {
 				bb.writeByte(recipient[i] || 0);
 			}
-		} else {
-			for (i = 0; i < 8; i++) {
-				bb.writeByte(0);
-			}
 		}
 
 		bb.writeLong(trs.amount);
@@ -152,12 +148,8 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 			for (i = 0; i < 16; i++) {
 				bb.writeByte(dataBuffer[i] || 0);
 			}
-		} else {
-			for (i = 0; i < 16; i++) {
-				bb.writeByte(0);
-			}
-		}
-
+		} 
+		
 		if (assetSize > 0) {
 			for (i = 0; i < assetSize; i++) {
 				bb.writeByte(assetBytes[i]);
