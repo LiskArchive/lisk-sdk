@@ -113,10 +113,29 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.create).to.throw();
 		});
+
 		it('should create a transaction', function () {
 			var trsData = getValidTransactionData();
-			expect(transaction.create(trsData)).to.be.an.object;
+			expect(transaction.create(trsData)).to.be.an('object');
 		});
+
+		it('should throw an error when sender is not set', function () {
+			var trsData = getValidTransactionData();
+			delete trsData.sender;
+			expect(transaction.create.bind(transaction, trsData)).to.throw();
+		});
+
+		it('should throw an error when keypair is not set', function () {
+			var trsData = getValidTransactionData();
+			delete trsData.keypair;
+			expect(transaction.create.bind(transaction, trsData)).to.throw();
+		});
+
+		it('should return transaction with optional data field', function () {
+			var trsData = getValidTransactionData();
+			expect(transaction.create(trsData).data).to.be.a('string');
+		});
+
 	});
 
 	describe('attachAssetType', function () {
@@ -137,11 +156,10 @@ describe('transaction', function () {
 			expect(transaction.sign).to.throw();
 		});
 
-		it('should sign transaction', function (done) {
+		it('should sign transaction', function () {
 			var trsData = getValidTransactionData();
 			var createdTransaction = transaction.create(trsData);
-			expect(transaction.sign(trsData.keypair, createdTransaction)).to.be.a.string;
-			done();
+			expect(transaction.sign(trsData.keypair, createdTransaction)).to.be.ok;
 		});
 
 		it('should update signature when data is changed', function () {
