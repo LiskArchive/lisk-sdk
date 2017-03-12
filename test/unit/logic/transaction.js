@@ -1,5 +1,9 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
+var node = require('./../../node.js');
+var ed = require('../../../helpers/ed');
+var crypto = require('crypto');
+
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
@@ -52,8 +56,22 @@ var validTransaction = {
 	'id': '4669815655990175999',
 	'fee': 10000000,
 	'senderId': '16313739661670634666L',
-	'data': '50b92d'
 };
+
+function getValidTransactionData () {
+	var hash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
+	var keypair = ed.makeKeypair(hash);
+
+	var trsData = {
+		type: 0,
+		amount: 232420792390,
+		sender: node.gAccount,
+		recipientId: '11483172656590824880L',
+		data: '50b92d',
+		keypair: keypair
+	};
+	return trsData;
+}
 
 var attachAllAssets = function (transaction) {
 	var appliedLogic;
@@ -83,6 +101,7 @@ describe('transaction', function () {
 	before(function (done) {
 		modulesLoader.initLogicWithDb(Transaction, function (err, __transaction) {
 			transaction = __transaction;
+			attachAllAssets(transaction);
 			done();
 		}, {
 			ed: require('../../../helpers/ed')
@@ -93,6 +112,10 @@ describe('transaction', function () {
 
 		it('should throw an error with no param', function () {
 			expect(transaction.create).to.throw();
+		});
+		it('should create a transaction', function () {
+			var trsData = getValidTransactionData();
+			expect(transaction.create(trsData)).to.be.an.object;
 		});
 	});
 
@@ -112,6 +135,23 @@ describe('transaction', function () {
 
 		it('should throw an error with no param', function () {
 			expect(transaction.sign).to.throw();
+		});
+
+		it('should sign transaction', function (done) {
+			var trsData = getValidTransactionData();
+			var createdTransaction = transaction.create(trsData);
+			expect(transaction.sign(trsData.keypair, createdTransaction)).to.be.a.string;
+			done();
+		});
+
+		it('should update signature when data is changed', function () {
+			var trsData = getValidTransactionData();
+			var createdTransaction = transaction.create(trsData);
+			var trsSignature = transaction.sign(trsData.keypair, createdTransaction);
+			createdTransaction.data = 'different data';
+			var updatedTrsSignature = transaction.sign(trsData.keypair, createdTransaction);
+			expect(trsSignature).to.not.equal(updatedTrsSignature);;
+
 		});
 	});
 
@@ -146,8 +186,9 @@ describe('transaction', function () {
 			attachAllAssets(transaction);
 			var firstCalculation = transaction.getBytes(validTransaction);
 			var secondCalculation = transaction.getBytes(validTransaction);
-			expect(firstCalculation).to.equal(secondCalculation);
+			expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
+
 	});
 
 	describe('ready', function () {
