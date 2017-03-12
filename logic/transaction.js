@@ -139,7 +139,12 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 			for (i = 0; i < 8; i++) {
 				bb.writeByte(recipient[i] || 0);
 			}
+		} else {
+			for (i = 0; i < 8; i++) {
+				bb.writeByte(0);
+			}
 		}
+
 
 		bb.writeLong(trs.amount);
 
