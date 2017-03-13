@@ -110,7 +110,7 @@ module.exports = {
 						required: ['limits']
 					}
 				},
-				required: ['access', 'options']
+				required: ['open', 'access', 'options']
 			},
 			peers: {
 				type: 'object',
