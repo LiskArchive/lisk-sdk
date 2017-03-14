@@ -45,7 +45,7 @@ __private.initalize = function () {
 };
 
 __private.attachApi = function () {
-	var router = new Router();
+	var router = new Router(library.config.api);
 
 	router.get('/status/ping', function (req, res) {
 		__private.ping(function (status, body) {
