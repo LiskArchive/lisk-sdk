@@ -22,9 +22,9 @@
         ]
     },
     "api": {
-      "open": true,
+        "enabled": true,
         "access": {
-            "enabled": true,
+            "public": true,
             "whiteList": ["127.0.0.1"]
         },
         "options": {
