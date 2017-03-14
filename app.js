@@ -327,7 +327,7 @@ d.run(function () {
 
 				if (parts.length > 1) {
 					if (parts[1] === 'api') {
-						if (scope.config.api.open === true) {
+						if (scope.config.api.access.public === true) {
 							next();
 						} else {
 							if (checkIpInList(scope.config.api.access.whiteList, ip, false)) {
