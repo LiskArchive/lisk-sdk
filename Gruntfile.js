@@ -65,20 +65,25 @@ module.exports = function (grunt) {
 					].join(' && ');
 				}
 			},
+
 			folder: {
 				command: 'mkdir -p ' + release_dir
 			},
+
 			build: {
 				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
 			},
+
 			coverage: {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha',
 				maxBuffer: maxBufferSize
 			},
+
 			coverageSingle: {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST',
 				maxBuffer: maxBufferSize
 			},
+
 			fetchCoverage: {
 				command: 'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
 				maxBuffer: maxBufferSize
@@ -98,18 +103,6 @@ module.exports = function (grunt) {
 			}
 		},
 
-		jsdox: {
-			generate: {
-				src: [
-					'helpers/*.js'
-					// './modules/*.js'
-				],
-				dest: 'tmp/docs',
-				options: {
-					templateDir: 'var/jsdox'
-				}
-			}
-		},
 		eslint: {
 			options: {
 				configFile: '.eslintrc.json',
@@ -124,14 +117,12 @@ module.exports = function (grunt) {
 				'tasks',
 				'test'
 			]
-
 		}
 	});
 
 	grunt.loadTasks('tasks');
 
 	grunt.loadNpmTasks('grunt-obfuscator');
-	grunt.loadNpmTasks('grunt-jsdox');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-eslint');

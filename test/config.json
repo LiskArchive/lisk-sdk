@@ -22,8 +22,10 @@
         ]
     },
     "api": {
+        "enabled": true,
         "access": {
-            "whiteList": []
+            "public": true,
+            "whiteList": ["127.0.0.1"]
         },
         "options": {
             "limits": {
@@ -35,8 +37,11 @@
         }
     },
     "peers": {
+	"enabled": true,
         "list": [],
-        "blackList": [],
+        "access": {
+            "blackList": []
+        },
         "options": {
             "limits": {
                 "max": 0,

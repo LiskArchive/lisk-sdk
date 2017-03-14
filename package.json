@@ -62,7 +62,6 @@
     "grunt-contrib-compress": "=1.4.1",
     "grunt-eslint": "=19.0.0",
     "grunt-exec": "=1.0.1",
-    "grunt-jsdox": "=0.1.7",
     "grunt-obfuscator": "=0.1.0",
     "istanbul": "=0.4.5",
     "istanbul-middleware": "=0.2.2",
