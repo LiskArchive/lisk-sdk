@@ -35,7 +35,7 @@ function Transport (cb, scope) {
 
 // Private methods
 __private.attachApi = function () {
-	var router = new Router();
+	var router = new Router(library.config.peers);
 
 	router.use(function (req, res, next) {
 		res.set(__private.headers);

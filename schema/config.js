@@ -79,11 +79,14 @@ module.exports = {
 					access: {
 						type: 'object',
 						properties: {
+							enabled: {
+								type: 'boolean'
+							},
 							whiteList: {
 								type: 'array'
 							}
 						},
-						required: ['whiteList']
+						required: ['enabled', 'whiteList']
 					},
 					options: {
 						type: 'object',
@@ -118,8 +121,17 @@ module.exports = {
 					list: {
 						type: 'array'
 					},
-					blackList: {
-						type: 'array'
+					access: {
+						type: 'object',
+						properties: {
+							enabled: {
+								type: 'boolean'
+							},
+							blackList: {
+								type: 'array'
+							}
+						},
+						required: ['enabled', 'blackList']
 					},
 					options: {
 						properties: {
@@ -148,7 +160,7 @@ module.exports = {
 						required: ['limits', 'timeout']
 					}
 				},
-				required: ['list', 'blackList', 'options']
+				required: ['list', 'access', 'options']
 			},
 			broadcasts: {
 				type: 'object',

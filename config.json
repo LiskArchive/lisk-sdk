@@ -23,7 +23,8 @@
     },
     "api": {
         "access": {
-            "whiteList": []
+            "enabled": true,
+            "whiteList": ["127.0.0.1"]
         },
         "options": {
             "limits": {
@@ -77,7 +78,10 @@
                 "port": 8000
             }
         ],
-        "blackList": [],
+        "access": {
+            "enabled": true,
+            "blackList": []
+        },
         "options": {
             "limits": {
                 "max": 0,

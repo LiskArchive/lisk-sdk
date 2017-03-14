@@ -22,7 +22,7 @@ function Server (cb, scope) {
 
 // Private methods
 __private.attachApi = function () {
-	var router = new Router();
+	var router = new Router({});
 
 	router.use(function (req, res, next) {
 		if (modules) { return next(); }

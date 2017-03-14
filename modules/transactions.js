@@ -44,7 +44,7 @@ function Transactions (cb, scope) {
 
 // Private methods
 __private.attachApi = function () {
-	var router = new Router();
+	var router = new Router(library.config.api);
 
 	router.use(function (req, res, next) {
 		if (modules) { return next(); }
