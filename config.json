@@ -23,7 +23,8 @@
     },
     "api": {
         "access": {
-            "whiteList": []
+            "enabled": true,
+            "whiteList": ["127.0.0.1"]
         },
         "options": {
             "limits": {
