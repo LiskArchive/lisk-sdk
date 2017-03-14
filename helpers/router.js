@@ -38,7 +38,7 @@ var Router = function (config) {
 
 	router.map = Map;
 
-	if (config.access && config.access.enabled === false) {
+	if (config.enabled === false) {
 		router.use(function (req, res, next) {
 			res.status(500).send({success: false, error: 'API endpoint disabled'});
 		});
