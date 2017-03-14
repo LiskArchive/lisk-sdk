@@ -103,7 +103,7 @@ Peer.prototype.parseInt = function (integer, fallback) {
 Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
 	headers = self.normalize(headers);
-	self.update(headers);
+	this.update(headers);
 	return headers;
 };
 
