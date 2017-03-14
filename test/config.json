@@ -37,7 +37,10 @@
     },
     "peers": {
         "list": [],
-        "blackList": [],
+        "access": {
+            "enabled": true,
+            "blackList": []
+        },
         "options": {
             "limits": {
                 "max": 0,

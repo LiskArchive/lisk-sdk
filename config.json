@@ -78,7 +78,10 @@
                 "port": 8000
             }
         ],
-        "blackList": [],
+        "access": {
+            "enabled": true,
+            "blackList": []
+        },
         "options": {
             "limits": {
                 "max": 0,
