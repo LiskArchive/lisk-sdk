@@ -27,7 +27,7 @@ function Map (root, config) {
  * @overview Router stub
  * @returns {*}
  */
-var Router = function () {
+var Router = function (config) {
 	var router = require('express').Router();
 
 	router.use(function (req, res, next) {
@@ -37,6 +37,12 @@ var Router = function () {
 	});
 
 	router.map = Map;
+
+	if (config.access && config.access.enabled === false) {
+		router.use(function (req, res, next) {
+			res.status(500).send({success: false, error: 'API endpoint disabled'});
+		});
+	}
 
 	return router;
 };
