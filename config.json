@@ -1,7 +1,7 @@
 {
     "port": 7000,
     "address": "0.0.0.0",
-    "version": "0.7.0a",
+    "version": "0.7.0b",
     "minVersion": ">=0.5.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
