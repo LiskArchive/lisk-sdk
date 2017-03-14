@@ -37,9 +37,9 @@
         }
     },
     "peers": {
+	"enabled": true,
         "list": [],
         "access": {
-            "enabled": true,
             "blackList": []
         },
         "options": {
