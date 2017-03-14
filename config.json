@@ -37,6 +37,7 @@
         }
     },
     "peers": {
+        "enabled": true,
         "list": [
             {
                 "ip": "40.68.214.86",
@@ -80,7 +81,6 @@
             }
         ],
         "access": {
-            "enabled": true,
             "blackList": []
         },
         "options": {
