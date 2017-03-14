@@ -83,7 +83,7 @@ module.exports = {
 						type: 'object',
 						properties: {
 							public: {
-								type: 'boolean',
+								type: 'boolean'
 							},
 							whiteList: {
 								type: 'array'
