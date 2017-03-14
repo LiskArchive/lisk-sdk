@@ -76,17 +76,20 @@ module.exports = {
 			api: {
 				type: 'object',
 				properties: {
+					enabled: {
+						type: 'boolean'
+					},
 					access: {
 						type: 'object',
 						properties: {
-							enabled: {
-								type: 'boolean'
+							public: {
+								type: 'boolean',
 							},
 							whiteList: {
 								type: 'array'
 							}
 						},
-						required: ['enabled', 'whiteList']
+						required: ['public', 'whiteList']
 					},
 					options: {
 						type: 'object',
@@ -113,25 +116,25 @@ module.exports = {
 						required: ['limits']
 					}
 				},
-				required: ['open', 'access', 'options']
+				required: ['enabled', 'access', 'options']
 			},
 			peers: {
 				type: 'object',
 				properties: {
+					enabled: {
+						type: 'boolean'
+					},
 					list: {
 						type: 'array'
 					},
 					access: {
 						type: 'object',
 						properties: {
-							enabled: {
-								type: 'boolean'
-							},
 							blackList: {
 								type: 'array'
 							}
 						},
-						required: ['enabled', 'blackList']
+						required: ['blackList']
 					},
 					options: {
 						properties: {
@@ -160,7 +163,7 @@ module.exports = {
 						required: ['limits', 'timeout']
 					}
 				},
-				required: ['list', 'access', 'options']
+				required: ['enabled', 'list', 'access', 'options']
 			},
 			broadcasts: {
 				type: 'object',
