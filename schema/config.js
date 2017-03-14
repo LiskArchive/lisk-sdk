@@ -79,11 +79,14 @@ module.exports = {
 					access: {
 						type: 'object',
 						properties: {
+							enabled: {
+								type: 'boolean'
+							},
 							whiteList: {
 								type: 'array'
 							}
 						},
-						required: ['whiteList']
+						required: ['enabled', 'whiteList']
 					},
 					options: {
 						type: 'object',
