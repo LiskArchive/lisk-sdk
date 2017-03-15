@@ -3,12 +3,9 @@
 var _ = require('lodash');
 var ip = require('ip');
 
-var self;
-
 // Constructor
 function Peer (peer) {
-	self = this;
-	return self.accept(peer || {});
+	return this.accept(peer || {});
 }
 
 // Public properties
@@ -52,10 +49,10 @@ Peer.prototype.nullable = [
 // Public methods
 Peer.prototype.accept = function (peer) {
 	// Normalize peer data
-	peer = self.normalize(peer);
+	peer = this.normalize(peer);
 
 	// Accept only supported and defined properties
-	_.each(self.properties, function (key) {
+	_.each(this.properties, function (key) {
 		if (peer[key] !== null && peer[key] !== undefined) {
 			this[key] = peer[key];
 		}
@@ -81,10 +78,10 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	if (peer.height) {
-		peer.height = self.parseInt(peer.height, 1);
+		peer.height = this.parseInt(peer.height, 1);
 	}
 
-	peer.port = self.parseInt(peer.port, 0);
+	peer.port = this.parseInt(peer.port, 0);
 
 	if (!/^[0-2]{1}$/.test(peer.state)) {
 		peer.state = 1;
@@ -102,18 +99,18 @@ Peer.prototype.parseInt = function (integer, fallback) {
 
 Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
-	headers = self.normalize(headers);
-	self.update(headers);
+	headers = this.normalize(headers);
+	this.update(headers);
 	return headers;
 };
 
 Peer.prototype.update = function (peer) {
-	peer = self.normalize(peer);
+	peer = this.normalize(peer);
 
 	// Accept only supported properties
-	_.each(self.properties, function (key) {
+	_.each(this.properties, function (key) {
 		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === 0 && peer.state === 2) && !_.includes(self.immutable, key)) {
+		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === 0 && peer.state === 2) && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));
@@ -124,11 +121,11 @@ Peer.prototype.update = function (peer) {
 Peer.prototype.object = function () {
 	var copy = {};
 
-	_.each(self.properties, function (key) {
+	_.each(this.properties, function (key) {
 		copy[key] = this[key];
 	}.bind(this));
 
-	_.each(self.nullable, function (key) {
+	_.each(this.nullable, function (key) {
 		if (!copy[key]) {
 			copy[key] = null;
 		}

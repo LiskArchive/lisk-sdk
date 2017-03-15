@@ -94,7 +94,7 @@ function DApps (cb, scope) {
 }
 
 __private.attachApi = function () {
-	var router = new Router();
+	var router = new Router(library.config.api);
 
 	router.use(function (req, res, next) {
 		if (modules) { return next(); }
@@ -899,7 +899,7 @@ __private.createRoutes = function (dapp, cb) {
 				return setImmediate(cb, 'Failed to open routes.json file');
 			}
 
-			__private.routes[dapp.transactionId] = new Router();
+			__private.routes[dapp.transactionId] = new Router({});
 
 			routes.forEach(function (router) {
 				if (router.method === 'get' || router.method === 'post' || router.method === 'put') {
