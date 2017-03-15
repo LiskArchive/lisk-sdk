@@ -78,8 +78,12 @@ if (program.snapshot) {
 	);
 }
 
+if (process.env.NODE_ENV === 'test') {
+	appConfig.coverage = true;
+}
+
 // Define top endpoint availability
-process.env.TOP =  appConfig.topAccounts;
+process.env.TOP = appConfig.topAccounts;
 
 var config = {
 	db: appConfig.db,
@@ -105,7 +109,7 @@ var config = {
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, filename: appConfig.logFileName });
 
 // Trying to get last git commit
-try { 
+try {
 	lastCommit = git.getLastCommit();
 } catch (err) {
 	logger.debug('Cannot get last git commit', err.message);
@@ -159,7 +163,7 @@ d.run(function () {
 		},
 		/**
 		 * Returns hash of last git commit
-		 * 
+		 *
 		 * @property lastCommit
 		 * @type {Function}
 		 * @async
@@ -191,6 +195,13 @@ d.run(function () {
 			var compression = require('compression');
 			var cors = require('cors');
 			var app = express();
+
+			if (appConfig.coverage) {
+				var im = require('istanbul-middleware');
+				logger.debug('Hook loader for coverage - do not use in production environment!');
+				im.hookLoader(__dirname);
+				app.use('/coverage', im.createHandler());
+			}
 
 			require('./helpers/request-limiter')(app, appConfig);
 
@@ -282,11 +293,11 @@ d.run(function () {
 						return value;
 					}
 
-					/*jslint eqeq: true*/
+					/*eslint-disable eqeqeq */
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;
 					}
-
+					/*eslint-enable eqeqeq */
 					return parseInt(value);
 				}
 			}));
@@ -316,10 +327,14 @@ d.run(function () {
 
 				if (parts.length > 1) {
 					if (parts[1] === 'api') {
-						if (!checkIpInList(scope.config.api.access.whiteList, ip, true)) {
-							res.sendStatus(403);
-						} else {
+						if (scope.config.api.access.public === true) {
 							next();
+						} else {
+							if (checkIpInList(scope.config.api.access.whiteList, ip, false)) {
+								next();
+							} else {
+								res.sendStatus(403);
+							}
 						}
 					} else if (parts[1] === 'peer') {
 						if (checkIpInList(scope.config.peers.blackList, ip, false)) {
@@ -386,6 +401,7 @@ d.run(function () {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
+			var Peers = require('./logic/peers.js');
 
 			async.auto({
 				bus: function (cb) {
@@ -416,7 +432,10 @@ d.run(function () {
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 					new Block(scope, cb);
-				}]
+				}],
+				peers: function (cb) {
+					new Peers(scope, cb);
+				}
 			}, cb);
 		}],
 
@@ -445,8 +464,10 @@ d.run(function () {
 			});
 		}],
 
-		ready: ['modules', 'bus', function (scope, cb) {
+		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
+			scope.logic.transaction.bindModules(scope.modules);
+			scope.logic.peers.bind(scope);
 			cb();
 		}]
 	}, function (err, scope) {

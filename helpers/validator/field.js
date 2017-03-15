@@ -42,7 +42,7 @@ Field.prototype.child = function (path, value, rules, thisArg) {
  * Validate field value and trigger callback on result
  * @param callback
  */
-Field.prototype.validate = function(callback) {
+Field.prototype.validate = function (callback) {
 	var stack = this._stack;
 	// TODO copy value
 	var report = this.report;
@@ -122,7 +122,7 @@ Field.prototype.validate = function(callback) {
  * End validation. Drop validation stack.
  * @param {Error} err Report and error if passed. Optional
  */
-Field.prototype.end = function(err) {
+Field.prototype.end = function (err) {
 	this._stack = [];
 
 	if (this.hasError) {
@@ -141,10 +141,10 @@ Field.prototype.end = function(err) {
  * Create validation async. Callback get done function to emit validation end.
  * @param {function(done:function)} callback
  */
-Field.prototype.async = function(callback) {
+Field.prototype.async = function (callback) {
 	this.isAsync = true;
 	var self = this;
-	callback(function(err){
+	callback(function (err){
 		if (arguments.length > 1) {
 			self.value = arguments[1];
 		}
@@ -170,7 +170,7 @@ Field.prototype.async = function(callback) {
  * Report an invalid validation result
  * @param {{}} report Validation report object
  */
-Field.prototype.issue = function(report){
+Field.prototype.issue = function (report){
 	this.hasError = true;
 	report.path = this.path.concat(report.path);
 	this.report.push(report);

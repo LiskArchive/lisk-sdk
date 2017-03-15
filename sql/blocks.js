@@ -18,10 +18,11 @@ var BlocksSql = {
   deleteBlock: 'DELETE FROM blocks WHERE "id" = ${id};',
 
   countList: function (params) {
-    return [
-      'SELECT COUNT("b_id")::int FROM blocks_list',
-      (params.where.length ? 'WHERE ' + params.where.join(' AND ') : '')
-    ].filter(Boolean).join(' ');
+    if (params.where.length) {
+      return 'SELECT COUNT("b_id")::int FROM blocks_list WHERE ' + params.where.join(' AND ');
+    } else {
+      return 'SELECT COALESCE((SELECT height FROM blocks ORDER BY height DESC LIMIT 1), 0)';
+    }
   },
 
   aggregateBlocksReward: function (params) {
@@ -30,16 +31,16 @@ var BlocksSql = {
       'delegate AS (SELECT',
         '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE (${generatorPublicKey}, \'hex\') LIMIT 1),',
       'borders AS (SELECT',
-        '(SELECT (CAST(b.height / ${delegates} AS INTEGER) + (CASE WHEN b.height % ${delegates} > 0 THEN 1 ELSE 0 END)) FROM blocks b ORDER BY b.height DESC LIMIT 1) AS current,',
-        '(SELECT (CAST(b.height / ${delegates} AS INTEGER) + (CASE WHEN b.height % ${delegates} > 0 THEN 1 ELSE 0 END)) FROM blocks b',
+        '(SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b ORDER BY b.height DESC LIMIT 1) AS current,',
+        '(SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b',
           (params.start !== undefined ? ' WHERE b.timestamp >= ${start}' : ''),
           'ORDER BY b.height ASC LIMIT 1) AS min,',
-        '(SELECT (CAST(b.height / ${delegates} AS INTEGER) + (CASE WHEN b.height % ${delegates} > 0 THEN 1 ELSE 0 END)) FROM blocks b',
+        '(SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b',
           (params.end !== undefined ? ' WHERE b.timestamp <= ${end}' : ''),
           'ORDER BY b.height DESC LIMIT 1) AS max',
       '),',
       'r AS (SELECT DISTINCT ',
-        '(CAST(b.height / ${delegates} AS INTEGER) + (CASE WHEN b.height % ${delegates} > 0 THEN 1 ELSE 0 END)) AS round',
+        'CEIL(b.height / ${delegates}::float)::bigint AS round',
         'FROM blocks b WHERE b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\')),',
       're AS (SELECT r.round AS round, ((r.round-1)*${delegates})+1 AS min, r.round*${delegates} AS max',
         'FROM r WHERE r.round >= (SELECT min FROM borders) AND round <= (SELECT max FROM borders)),',

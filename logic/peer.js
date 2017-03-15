@@ -1,6 +1,6 @@
 'use strict';
 
-var extend = require('extend');
+var _ = require('lodash');
 var ip = require('ip');
 
 // Constructor
@@ -17,6 +17,22 @@ Peer.prototype.properties = [
 	'version',
 	'dappid',
 	'broadhash',
+	'height',
+	'clock',
+	'updated'
+];
+
+Peer.prototype.immutable = [
+	'ip',
+	'port',
+	'string'
+];
+
+Peer.prototype.headers = [
+	'os',
+	'version',
+	'dappid',
+	'broadhash',
 	'height'
 ];
 
@@ -25,37 +41,53 @@ Peer.prototype.nullable = [
 	'version',
 	'dappid',
 	'broadhash',
-	'height'
+	'height',
+	'clock',
+	'updated'
 ];
 
 // Public methods
 Peer.prototype.accept = function (peer) {
-	if (/^[0-9]+$/.test(peer.ip)) {
-		this.ip = ip.fromLong(peer.ip);
-	} else {
-		this.ip = peer.ip;
+	// Normalize peer data
+	peer = this.normalize(peer);
+
+	// Accept only supported and defined properties
+	_.each(this.properties, function (key) {
+		if (peer[key] !== null && peer[key] !== undefined) {
+			this[key] = peer[key];
+		}
+	}.bind(this));
+
+	// Adjust properties according to rules
+	if (/^[0-9]+$/.test(this.ip)) {
+		this.ip = ip.fromLong(this.ip);
 	}
 
-	this.port = this.parseInt(peer.port, 0);
-
-	if (this.ip) {
-		this.string = (this.ip + ':' + this.port || 'unknown');
-	} else {
-		this.string = 'unknown';
+	if (this.ip && this.port) {
+		this.string = this.ip + ':' + this.port;
 	}
 
-	if (peer.state != null) {
-		this.state = peer.state;
-	} else {
-		this.state = 1;
-	}
-
-	if (peer.dappid != null) {
-		this.dappid = peer.dappid;
-	}
-
-	this.headers(peer);
 	return this;
+};
+
+Peer.prototype.normalize = function (peer) {
+	if (peer.dappid && !Array.isArray(peer.dappid)) {
+		var dappid = peer.dappid;
+		peer.dappid = [];
+		peer.dappid.push(dappid);
+	}
+
+	if (peer.height) {
+		peer.height = this.parseInt(peer.height, 1);
+	}
+
+	peer.port = this.parseInt(peer.port, 0);
+
+	if (!/^[0-2]{1}$/.test(peer.state)) {
+		peer.state = 1;
+	}
+
+	return peer;
 };
 
 Peer.prototype.parseInt = function (integer, fallback) {
@@ -65,49 +97,41 @@ Peer.prototype.parseInt = function (integer, fallback) {
 	return integer;
 };
 
-Peer.prototype.headers = function (headers) {
+Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
-
-	headers.os = headers.os || 'unknown';
-	headers.version = headers.version || '0.0.0';
-	headers.port = this.parseInt(headers.port, 0);
-
-	if (headers.height != null) {
-		headers.height = this.parseInt(headers.height, 1);
-	}
-
-	this.nullable.forEach(function (property) {
-		if (headers[property] != null) {
-			this[property] = headers[property];
-		} else {
-			delete headers[property];
-		}
-	}.bind(this));
-
+	headers = this.normalize(headers);
+	this.update(headers);
 	return headers;
 };
 
-Peer.prototype.extend = function (object) {
-	var base = this.object();
-	var extended = extend(this.object(), object);
+Peer.prototype.update = function (peer) {
+	peer = this.normalize(peer);
 
-	return this.headers(extended);
+	// Accept only supported properties
+	_.each(this.properties, function (key) {
+		// Change value only when is defined, also prevent release ban when banned peer connect to our node
+		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === 0 && peer.state === 2) && !_.includes(this.immutable, key)) {
+			this[key] = peer[key];
+		}
+	}.bind(this));
+
+	return this;
 };
 
 Peer.prototype.object = function () {
-	var object = {};
+	var copy = {};
 
-	this.properties.forEach(function (property) {
-		object[property] = this[property];
+	_.each(this.properties, function (key) {
+		copy[key] = this[key];
 	}.bind(this));
 
-	this.nullable.forEach(function (property) {
-		if (object[property] == null) {
-			object[property] = null;
+	_.each(this.nullable, function (key) {
+		if (!copy[key]) {
+			copy[key] = null;
 		}
 	});
 
-	return object;
+	return copy;
 };
 
 // Export

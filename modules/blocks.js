@@ -89,7 +89,7 @@ function Blocks (cb, scope) {
 
 // Private methods
 __private.attachApi = function () {
-	var router = new Router();
+	var router = new Router(library.config.api);
 
 	router.use(function (req, res, next) {
 		if (modules) { return next(); }
@@ -339,17 +339,19 @@ __private.applyGenesisBlock = function (block, cb) {
 			return 0;
 		}
 	});
+	var tracker = self.getBlockProgressLogger(block.transactions.length, block.transactions.length / 100, 'Genesis block loading');
 	async.eachSeries(block.transactions, function (transaction, cb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
-				if (err) {
-					return setImmediate(cb, {
-						message: err,
-						transaction: transaction,
-						block: block
-					});
-				}
-				__private.applyTransaction(block, transaction, sender, cb);
-			});
+		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+			if (err) {
+				return setImmediate(cb, {
+					message: err,
+					transaction: transaction,
+					block: block
+				});
+			}
+			__private.applyTransaction(block, transaction, sender, cb);
+			tracker.applyNext();
+		});
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...
@@ -829,7 +831,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = __private.lastBlock;
 
-	peer = modules.peers.accept(peer);
+	peer = library.logic.peers.create(peer);
 	library.logger.info('Loading blocks from: ' + peer.string);
 
 	function getFromPeer (seriesCb) {
@@ -1332,7 +1334,7 @@ Blocks.prototype.onReceiveBlock = function (block) {
 				library.logger.info('Last block stands');
 				return setImmediate(cb);
 			} else {
-				// In other cases - we have wrong parent and should rewind. 
+				// In other cases - we have wrong parent and should rewind.
 				library.logger.info('Last block and parent loses');
 				async.series([
 					self.deleteLastBlock,
@@ -1398,13 +1400,13 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 
 	params.generatorPublicKey = filter.generatorPublicKey;
 	params.delegates = constants.activeDelegates;
-	
+
 	if (filter.start !== undefined) {
 		params.start = filter.start - constants.epochTime.getTime () / 1000;
 	}
-	
+
 	if (filter.end !== undefined) {
-		params.end = filter.end - constants.epochTime.getTime () / 1000; 
+		params.end = filter.end - constants.epochTime.getTime () / 1000;
 	}
 
 	library.db.query(sql.aggregateBlocksReward(params), params).then(function (rows) {
@@ -1418,6 +1420,52 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
 	});
+};
+
+/**
+ * Creates logger for tracking applied transactions of block
+ *
+ * @param {Number} transactionsCount
+ * @param {Number} logsFrequency
+ * @param {String} msg
+ * @return {BlockProgressLogger}
+ */
+Blocks.prototype.getBlockProgressLogger = function (transactionsCount, logsFrequency, msg) {
+	function BlockProgressLogger (transactionsCount, logsFrequency, msg) {
+		this.target = transactionsCount;
+		this.step = Math.floor(transactionsCount / logsFrequency);
+		this.applied = 0;
+
+		/**
+		 * Resets applied transactions
+		 */
+		this.reset = function () {
+			this.applied = 0;
+		};
+
+		/**
+		 * Increments applied transactions and logs the progress
+		 * - For the first and last transaction
+		 * - With given frequency
+		 */
+		this.applyNext = function () {
+			if (this.applied >= this.target) {
+				throw new Error('Cannot apply transaction over the limit: ' + this.target);
+			}
+			this.applied += 1;
+			if (this.applied === 1 || this.applied === this.target || this.applied % this.step === 1) {
+				this.log();
+			}
+		};
+
+		/**
+		 * Logs the progress
+		 */
+		this.log = function () {
+			library.logger.info(msg, ((this.applied / this.target) *  100).toPrecision(4)+ ' %' + ': applied ' + this.applied + ' of ' + this.target + ' transactions' );
+		};
+	}
+	return new BlockProgressLogger(transactionsCount, logsFrequency, msg);
 };
 
 // Shared

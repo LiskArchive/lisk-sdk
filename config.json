@@ -1,7 +1,7 @@
 {
     "port": 8000,
     "address": "0.0.0.0",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "minVersion": ">=0.5.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
@@ -22,8 +22,10 @@
         ]
     },
     "api": {
+        "enabled": true,
         "access": {
-            "whiteList": []
+            "public": false,
+            "whiteList": ["127.0.0.1"]
         },
         "options": {
             "limits": {
@@ -35,6 +37,7 @@
         }
     },
     "peers": {
+        "enabled": true,
         "list": [
             {
                 "ip": "40.68.214.86",
@@ -77,7 +80,9 @@
                 "port": 8000
             }
         ],
-        "blackList": [],
+        "access": {
+            "blackList": []
+        },
         "options": {
             "limits": {
                 "max": 0,
@@ -94,6 +99,9 @@
         "parallelLimit": 20,
         "releaseLimit": 25,
         "relayLimit": 2
+    },
+    "transactions": {
+        "maxTxsPerQueue": 1000
     },
     "forging": {
         "force": false,

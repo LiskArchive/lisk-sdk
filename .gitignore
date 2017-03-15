@@ -11,5 +11,6 @@ npm-debug.log
 release
 ssl/
 stacktrace*
+test/.coverage-unit
 tmp
 sftp-config.json

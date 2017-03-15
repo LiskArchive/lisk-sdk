@@ -1,52 +1,59 @@
 dist: 'trusty'
 language: node_js
 node_js:
-  - '6.9.4'
+  - '6.9.5'
 cache:
-  yarn: true
   directories:
     - test/lisk-js
+    - node_modules
 services:
   - postgresql
 addons:
   postgresql: '9.6'
 install:
-  - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-  - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-  - sudo apt-get update && sudo apt-get install yarn
-  - yarn
+  - npm install
 before_script:
   - createdb lisk_test
   - psql -d lisk_test -c "alter user "$USER" with password 'password';"
   - wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
   - tar -zxvf lisk-node-Linux-x86_64.tar.gz
-  - cd test/lisk-js/; yarn; cd ../..
+  - cd test/lisk-js/; npm install; cd ../..
   - cp test/config.json test/genesisBlock.json .
   - node app.js &> .app.log &
+notifications:
+  webhooks: https://coveralls.io/webhook?repo_token=l6rLvPBYHIwA92FQQmCUUTLI4zPuS4r5C
 env:
+  global:
+    - NODE_ENV=test
+    - HOST=http://0.0.0.0:4000
+    - COVERALLS_PARALLEL=true
   matrix:
-    - TEST=test/api/peer.transactions.stress.js
-    - TEST=test/api/peer.transactions.votes.js
-    - TEST=test/api/delegates.js
-    - TEST=test/api/accounts.js
-    - TEST=test/api/blocks.js
-    - TEST=test/api/dapps.js
-    - TEST=test/api/loader.js
-    - TEST=test/api/multisignatures.js
-    - TEST=test/api/peer.js
-    - TEST=test/api/peer.dapp.js
-    - TEST=test/api/peer.blocks.js
-    - TEST=test/api/peer.signatures.js
-    - TEST=test/api/peer.transactions.collision.js
-    - TEST=test/api/peer.transactions.delegates.js
-    - TEST=test/api/peer.transactions.main.js
-    - TEST=test/api/peer.transactions.signatures.js
-    - TEST=test/api/peers.js
-    - TEST=test/api/signatures.js
-    - TEST=test/api/transactions.js
+    - TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.votes.js TEST_TYPE='FUNC'
+    - TEST=test/api/delegates.js TEST_TYPE='FUNC'
+    - TEST=test/api/accounts.js TEST_TYPE='FUNC'
+    - TEST=test/api/blocks.js TEST_TYPE='FUNC'
+    - TEST=test/api/dapps.js TEST_TYPE='FUNC'
+    - TEST=test/api/loader.js TEST_TYPE='FUNC'
+    - TEST=test/api/multisignatures.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.dapp.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.blocks.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.signatures.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.collision.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.delegates.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.main.js TEST_TYPE='FUNC'
+    - TEST=test/api/peer.transactions.signatures.js TEST_TYPE='FUNC'
+    - TEST=test/api/peers.js TEST_TYPE='FUNC'
+    - TEST=test/api/signatures.js TEST_TYPE='FUNC'
+    - TEST=test/api/transactions.js TEST_TYPE='FUNC'
 
-    - TEST=test/unit/helpers
-    - TEST=test/unit/logic
+    - TEST=test/unit/helpers TEST_TYPE='UNIT'
+    - TEST=test/unit/logic TEST_TYPE='UNIT'
+    - TEST=test/unit/modules TEST_TYPE='UNIT'
 script: 'npm run travis'
+after_success:
+    - bash .travis/after-success.sh $TRAVIS_BUILD_NUMBER ${TRAVIS_JOB_NUMBER#*.} $TEST_TYPE $TRAVIS_BUILD_DIR $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST_BRANCH;
 after_failure:
   - cat .app.log
+

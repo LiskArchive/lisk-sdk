@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';
 
 var node = require('./../node.js');
 var transactionSortFields = require('../../sql/transactions').sortFields;
@@ -268,6 +268,26 @@ describe('GET /api/transactions', function () {
 		});
 	});
 
+	it('using too small fromUnixTime should fail', function (done) {
+		var params = 'fromUnixTime=1464109199';
+
+		node.get('/api/transactions?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('using too small toUnixTime should fail', function (done) {
+		var params = 'toUnixTime=1464109200';
+
+		node.get('/api/transactions?' + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
 	it('using limit > 1000 should fail', function (done) {
 		var limit = 1001;
 		var params = 'limit=' + limit;
@@ -420,16 +440,16 @@ describe('GET /api/transactions/get?id=', function () {
 
 describe('GET /api/transactions/count', function () {
 
-    it('should be ok', function (done) {
-        node.get('/api/transactions/count', function (err, res) {
-            node.expect(res.body).to.have.property('success').to.be.ok;
-            node.expect(res.body).to.have.property('confirmed').that.is.an('number');
-            node.expect(res.body).to.have.property('queued').that.is.an('number');
-            node.expect(res.body).to.have.property('multisignature').that.is.an('number');
-            node.expect(res.body).to.have.property('unconfirmed').that.is.an('number');
-            done();
-        });
-    });
+	it('should be ok', function (done) {
+		node.get('/api/transactions/count', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('confirmed').that.is.an('number');
+			node.expect(res.body).to.have.property('queued').that.is.an('number');
+			node.expect(res.body).to.have.property('multisignature').that.is.an('number');
+			node.expect(res.body).to.have.property('unconfirmed').that.is.an('number');
+			done();
+		});
+	});
 });
 
 describe('GET /api/transactions/queued/get?id=', function () {

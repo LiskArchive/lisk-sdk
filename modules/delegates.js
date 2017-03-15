@@ -42,7 +42,7 @@ function Delegates (cb, scope) {
 
 // Private methods
 __private.attachApi = function () {
-	var router = new Router();
+	var router = new Router(library.config.api);
 
 	router.use(function (req, res, next) {
 		if (modules && __private.loaded) { return next(); }
@@ -766,7 +766,7 @@ shared.getForgedByAccount = function (req, cb) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
-				var forged = bignum(reward.fees).plus(bignum(reward.rewards)).toString();
+				var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
 				return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});
 			});
 		} else {
@@ -774,7 +774,7 @@ shared.getForgedByAccount = function (req, cb) {
 				if (err || !account) {
 					return setImmediate(cb, err || 'Account not found');
 				}
-				var forged = bignum(account.fees).plus(bignum(account.rewards)).toString();
+				var forged = new bignum(account.fees).plus(new bignum(account.rewards)).toString();
 				return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
 			});
 		}
