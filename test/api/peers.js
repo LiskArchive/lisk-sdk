@@ -17,7 +17,7 @@ describe('GET /api/peers/version', function () {
 });
 
 describe('GET /api/peers/count', function () {
-	
+
 	it('should be ok', function (done) {
 		node.get('/api/peers/count', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -526,7 +526,7 @@ describe('GET /api/peers/unknown', function () {
 	it('should not to do anything', function (done) {
 		node.get('/api/peers/unknown', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('API endpoint was not found');
+			node.expect(res.body).to.have.property('error').to.equal('API endpoint not found');
 			done();
 		});
 	});

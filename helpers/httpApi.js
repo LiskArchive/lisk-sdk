@@ -48,7 +48,7 @@ var middleware = {
 	 * @param {Function} next
 	 */
 	notFound: function (req, res, next) {
-		return res.status(500).send({success: false, error: 'API endpoint was not found'});
+		return res.status(500).send({success: false, error: 'API endpoint not found'});
 	},
 
 	/**
