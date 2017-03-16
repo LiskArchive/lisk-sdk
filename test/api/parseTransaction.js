@@ -88,11 +88,11 @@ describe('ParseOfflineRequests', function () {
 
 		it.skip('should route dapps requests correctly', function () {
 			var options = {
-				category: '0',
+				category: 0,
 				name: 'Lisk Guestbook',
 				description: 'The official Lisk guestbook',
-				tags: 'blockchain guestbook',
-				type: '0',
+				tags: 'guestbook message sidechain',
+				type: 0,
 				link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
 				icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
 				secret: '123'
