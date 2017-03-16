@@ -35,8 +35,6 @@ function System (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
-// Private methods
-
 // Public methods
 System.prototype.headers = function () {
 	return __private;
@@ -138,8 +136,6 @@ System.prototype.sandboxApi = function (call, args, cb) {
 System.prototype.onBind = function (scope) {
 	modules = scope;
 };
-
-// Shared
 
 // Export
 module.exports = System;

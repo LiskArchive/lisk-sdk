@@ -9,9 +9,7 @@ var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
-var MilestoneBlocks = require('../helpers/milestoneBlocks.js');
 var OrderBy = require('../helpers/orderBy.js');
-var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/delegates.js');
 var slots = require('../helpers/slots.js');
@@ -25,13 +23,12 @@ __private.assetTypes = {};
 __private.loaded = false;
 __private.blockReward = new BlockReward();
 __private.keypairs = {};
+__private.tmpKeypairs = {};
 
 // Constructor
 function Delegates (cb, scope) {
 	library = scope;
 	self = this;
-
-	__private.attachApi();
 
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
 		transactionTypes.DELEGATE, new Delegate()
@@ -41,157 +38,6 @@ function Delegates (cb, scope) {
 }
 
 // Private methods
-__private.attachApi = function () {
-	var router = new Router();
-
-	router.use(function (req, res, next) {
-		if (modules && __private.loaded) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
-
-	router.map(shared, {
-		'get /count': 'count',
-		'get /search': 'search',
-		'get /voters': 'getVoters',
-		'get /get': 'getDelegate',
-		'get /': 'getDelegates',
-		'get /fee': 'getFee',
-		'get /forging/getForgedByAccount': 'getForgedByAccount',
-		'put /': 'addDelegate',
-		'get /getNextForgers': 'getNextForgers'
-	});
-
-	if (process.env.DEBUG) {
-		var tmpKepairs = {};
-
-		router.get('/forging/disableAll', function (req, res) {
-			if (Object.keys(tmpKepairs).length !== 0) {
-				return res.json({success: false});
-			}
-
-			tmpKepairs = __private.keypairs;
-			__private.keypairs = {};
-			return res.json({success: true});
-		});
-
-		router.get('/forging/enableAll', function (req, res) {
-			if (Object.keys(tmpKepairs).length === 0) {
-				return res.json({success: false});
-			}
-
-			__private.keypairs = tmpKepairs;
-			tmpKepairs = {};
-			return res.json({success: true});
-		});
-	}
-
-	router.post('/forging/enable', function (req, res) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return res.json({success: false, error: 'Access denied'});
-		}
-
-		library.schema.validate(req.body, schema.enableForging, function (err) {
-			if (err) {
-				return res.json({success: false, error: err[0].message});
-			}
-
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
-
-			if (req.body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-					return res.json({success: false, error: 'Invalid passphrase'});
-				}
-			}
-
-			if (__private.keypairs[keypair.publicKey.toString('hex')]) {
-				return res.json({success: false, error: 'Forging is already enabled'});
-			}
-
-			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-				if (err) {
-					return res.json({success: false, error: err});
-				}
-				if (account && account.isDelegate) {
-					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					library.logger.info('Forging enabled on account: ' + account.address);
-					return res.json({success: true, address: account.address});
-				} else {
-					return res.json({success: false, error: 'Delegate not found'});
-				}
-			});
-		});
-	});
-
-	router.post('/forging/disable', function (req, res) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return res.json({success: false, error: 'Access denied'});
-		}
-
-		library.schema.validate(req.body, schema.disableForging, function (err) {
-			if (err) {
-				return res.json({success: false, error: err[0].message});
-			}
-
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
-
-			if (req.body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-					return res.json({success: false, error: 'Invalid passphrase'});
-				}
-			}
-
-			if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
-				return res.json({success: false, error: 'Delegate not found'});
-			}
-
-			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-				if (err) {
-					return res.json({success: false, error: err});
-				}
-				if (account && account.isDelegate) {
-					delete __private.keypairs[keypair.publicKey.toString('hex')];
-					library.logger.info('Forging disabled on account: ' + account.address);
-					return res.json({success: true, address: account.address});
-				} else {
-					return res.json({success: false, error: 'Delegate not found'});
-				}
-			});
-		});
-	});
-
-	router.get('/forging/status', function (req, res) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return res.json({success: false, error: 'Access denied'});
-		}
-
-		library.schema.validate(req.query, schema.forgingStatus, function (err) {
-			if (err) {
-				return res.json({success: false, error: err[0].message});
-			}
-
-			if (req.query.publicKey) {
-				return res.json({success: true, enabled: !!__private.keypairs[req.query.publicKey]});
-			} else {
-				var delegates_cnt = _.keys(__private.keypairs).length;
-				return res.json({success: true, enabled: (delegates_cnt > 0 ? true : false), delegates: _.keys(__private.keypairs) });
-			}
-		});
-	});
-
-	// router.map(__private, {
-	//   'post /forging/enable': 'enableForging',
-	//   'post /forging/disable': 'disableForging',
-	//   'get /forging/status': 'statusForging'
-	// });
-
-	library.network.app.use('/api/delegates', router);
-	library.network.app.use(function (err, req, res, next) {
-		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err.message);
-		res.status(500).send({success: false, error: 'API error: ' + err.message});
-	});
-};
-
 __private.getKeysSortByVote = function (cb) {
 	modules.accounts.getAccounts({
 		isDelegate: 1,
@@ -582,259 +428,418 @@ Delegates.prototype.cleanup = function (cb) {
 	return setImmediate(cb);
 };
 
-// Private
+Delegates.prototype.isLoaded = function () {
+	return !!modules;
+};
 
-// Shared
-shared.getDelegate = function (req, cb) {
-	library.schema.validate(req.body, schema.getDelegate, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
+Delegates.prototype.internal = {
+	forgingEnable: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
 		}
 
-		modules.delegates.getDelegates(req.body, function (err, data) {
+		library.schema.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
-				return setImmediate(cb, err);
+				return setImmediate(cb, err[0].message);
 			}
 
-			var delegate = _.find(data.delegates, function (delegate) {
-				if (req.body.publicKey) {
-					return delegate.publicKey === req.body.publicKey;
-				} else if (req.body.username) {
-					return delegate.username === req.body.username;
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+					return setImmediate(cb, 'Invalid passphrase');
 				}
+			}
 
-				return false;
+			if (__private.keypairs[keypair.publicKey.toString('hex')]) {
+				return setImmediate(cb, 'Forging is already enabled');
+			}
+
+			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+				if (account && account.isDelegate) {
+					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+					library.logger.info('Forging enabled on account: ' + account.address);
+					return setImmediate(cb, null, {address: account.address});
+				} else {
+					return setImmediate(cb, 'Delegate not found');
+				}
 			});
+		});
+	},
 
-			if (delegate) {
-				return setImmediate(cb, null, {delegate: delegate});
-			} else {
+	forgingDisable: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
+
+		library.schema.validate(req.body, schema.disableForging, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
+			}
+
+			if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
 				return setImmediate(cb, 'Delegate not found');
 			}
+
+			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+				if (account && account.isDelegate) {
+					delete __private.keypairs[keypair.publicKey.toString('hex')];
+					library.logger.info('Forging disabled on account: ' + account.address);
+					return setImmediate(cb, null, {address: account.address});
+				} else {
+					return setImmediate(cb, 'Delegate not found');
+				}
+			});
 		});
-	});
-};
+	},
 
-shared.getNextForgers = function (req, cb) {
-	var currentBlock = modules.blocks.getLastBlock ();
-	var limit = req.body.limit || 10;
-
-	modules.delegates.generateDelegateList(currentBlock.height, function (err, activeDelegates) {
-		if (err) {
-			return setImmediate(cb, err);
+	forgingStatus: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
 		}
 
-		var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
-		var currentSlot = slots.getSlotNumber();
-		var nextForgers = [];
-
-		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
-			if (activeDelegates[(currentSlot + i) % slots.delegates]) {
-				nextForgers.push (activeDelegates[(currentSlot + i) % slots.delegates]);
+		library.schema.validate(req.body, schema.forgingStatus, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
 			}
-		}
-		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
-	});
-};
 
-shared.search = function (req, cb) {
-	library.schema.validate(req.body, schema.search, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		var orderBy = OrderBy(
-			req.body.orderBy, {
-				sortFields: sql.sortFields,
-				sortField: 'username'
+			if (req.body.publicKey) {
+				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.body.publicKey]});
+			} else {
+				var delegates_cnt = _.keys(__private.keypairs).length;
+				return setImmediate(cb, null, {enabled: delegates_cnt > 0, delegates: _.keys(__private.keypairs)});
 			}
-		);
-
-		if (orderBy.error) {
-			return setImmediate(cb, orderBy.error);
-		}
-
-		library.db.query(sql.search({
-			q: req.body.q,
-			limit: req.body.limit || 100,
-			sortField: orderBy.sortField,
-			sortMethod: orderBy.sortMethod
-		})).then(function (rows) {
-			return setImmediate(cb, null, {delegates: rows});
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Database search failed');
 		});
-	});
-};
+	},
 
-shared.count = function (req, cb) {
-	library.db.one(sql.count).then(function (row) {
-		return setImmediate(cb, null, { count: row.count });
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Failed to count delegates');
-	});
-};
-
-shared.getVoters = function (req, cb) {
-	library.schema.validate(req.body, schema.getVoters, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
+	forgingEnableAll: function (req, cb) {
+		if (Object.keys(__private.tmpKeypairs).length === 0) {
+			return setImmediate(cb, 'No delegate keypairs defined');
 		}
 
-		library.db.one(sql.getVoters, { publicKey: req.body.publicKey }).then(function (row) {
-			var addresses = (row.accountIds) ? row.accountIds : [];
+		__private.keypairs = __private.tmpKeypairs;
+		__private.tmpKeypairs = {};
+		return setImmediate(cb);
+	},
 
-			modules.accounts.getAccounts({
-				address: { $in: addresses },
-				sort: 'balance'
-			}, ['address', 'balance', 'username', 'publicKey'], function (err, rows) {
+	forgingDisableAll: function (req, cb) {
+		if (Object.keys(__private.tmpKeypairs).length !== 0) {
+			return setImmediate(cb, 'Delegate keypairs are defined');
+		}
+
+		__private.tmpKeypairs = __private.keypairs;
+		__private.keypairs = {};
+		return setImmediate(cb);
+	}
+};
+
+// Shared API
+Delegates.prototype.shared = {
+	getDelegate: function (req, cb) {
+		library.schema.validate(req.body, schema.getDelegate, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			modules.delegates.getDelegates(req.body, function (err, data) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
 
-				return setImmediate(cb, null, {accounts: rows});
+				var delegate = _.find(data.delegates, function (delegate) {
+					if (req.body.publicKey) {
+						return delegate.publicKey === req.body.publicKey;
+					} else if (req.body.username) {
+						return delegate.username === req.body.username;
+					}
+
+					return false;
+				});
+
+				if (delegate) {
+					return setImmediate(cb, null, {delegate: delegate});
+				} else {
+					return setImmediate(cb, 'Delegate not found');
+				}
 			});
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Failed to get voters for delegate: ' + req.body.publicKey);
 		});
-	});
-};
+	},
 
-shared.getDelegates = function (req, cb) {
-	library.schema.validate(req.body, schema.getDelegates, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
+	getNextForgers: function (req, cb) {
+		var currentBlock = modules.blocks.getLastBlock ();
+		var limit = req.body.limit || 10;
 
-		modules.delegates.getDelegates(req.body, function (err, data) {
+		modules.delegates.generateDelegateList(currentBlock.height, function (err, activeDelegates) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
-			function compareNumber (a, b) {
-				var sorta = parseFloat(a[data.sortField]);
-				var sortb = parseFloat(b[data.sortField]);
-				if (data.sortMethod === 'ASC') {
-					return sorta - sortb;
-				} else {
-				 	return sortb - sorta;
+			var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
+			var currentSlot = slots.getSlotNumber();
+			var nextForgers = [];
+
+			for (var i = 1; i <= slots.delegates && i <= limit; i++) {
+				if (activeDelegates[(currentSlot + i) % slots.delegates]) {
+					nextForgers.push (activeDelegates[(currentSlot + i) % slots.delegates]);
 				}
 			}
 
-			function compareString (a, b) {
-				var sorta = a[data.sortField];
-				var sortb = b[data.sortField];
-				if (data.sortMethod === 'ASC') {
-				  return sorta.localeCompare(sortb);
-				} else {
-				  return sortb.localeCompare(sorta);
-				}
-			}
-
-			if (data.sortField) {
-				if (['approval', 'productivity', 'rate', 'vote'].indexOf(data.sortField) > -1) {
-					data.delegates = data.delegates.sort(compareNumber);
-				} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
-					data.delegates = data.delegates.sort(compareString);
-				} else {
-					return setImmediate(cb, 'Invalid sort field');
-				}
-			}
-
-			var delegates = data.delegates.slice(data.offset, data.limit);
-
-			return setImmediate(cb, null, {delegates: delegates, totalCount: data.count});
+			return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
 		});
-	});
-};
+	},
 
-shared.getFee = function (req, cb) {
-	return setImmediate(cb, null, {fee: constants.fees.delegate});
-};
+	search: function (req, cb) {
+		library.schema.validate(req.body, schema.search, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
 
-shared.getForgedByAccount = function (req, cb) {
-	library.schema.validate(req.body, schema.getForgedByAccount, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
+			var orderBy = OrderBy(
+				req.body.orderBy, {
+					sortFields: sql.sortFields,
+					sortField: 'username'
+				}
+			);
 
-		if (req.body.start !== undefined || req.body.end !== undefined) {
-			modules.blocks.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
+			if (orderBy.error) {
+				return setImmediate(cb, orderBy.error);
+			}
+
+			library.db.query(sql.search({
+				q: req.body.q,
+				limit: req.body.limit || 100,
+				sortField: orderBy.sortField,
+				sortMethod: orderBy.sortMethod
+			})).then(function (rows) {
+				return setImmediate(cb, null, {delegates: rows});
+			}).catch(function (err) {
+				library.logger.error(err.stack);
+				return setImmediate(cb, 'Database search failed');
+			});
+		});
+	},
+
+	count: function (req, cb) {
+		library.db.one(sql.count).then(function (row) {
+			return setImmediate(cb, null, { count: row.count });
+		}).catch(function (err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Failed to count delegates');
+		});
+	},
+
+	getVoters: function (req, cb) {
+		library.schema.validate(req.body, schema.getVoters, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			library.db.one(sql.getVoters, { publicKey: req.body.publicKey }).then(function (row) {
+				var addresses = (row.accountIds) ? row.accountIds : [];
+
+				modules.accounts.getAccounts({
+					address: { $in: addresses },
+					sort: 'balance'
+				}, ['address', 'balance', 'username', 'publicKey'], function (err, rows) {
+					if (err) {
+						return setImmediate(cb, err);
+					} else {
+						return setImmediate(cb, null, {accounts: rows});
+					}
+				});
+			}).catch(function (err) {
+				library.logger.error(err.stack);
+				return setImmediate(cb, 'Failed to get voters for delegate: ' + req.body.publicKey);
+			});
+		});
+	},
+
+	getDelegates: function (req, cb) {
+		library.schema.validate(req.body, schema.getDelegates, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			modules.delegates.getDelegates(req.body, function (err, data) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
-				var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
-				return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});
-			});
-		} else {
-			modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
-				if (err || !account) {
-					return setImmediate(cb, err || 'Account not found');
+
+				function compareNumber (a, b) {
+					var sorta = parseFloat(a[data.sortField]);
+					var sortb = parseFloat(b[data.sortField]);
+					if (data.sortMethod === 'ASC') {
+						return sorta - sortb;
+					} else {
+				 	return sortb - sorta;
+					}
 				}
-				var forged = new bignum(account.fees).plus(new bignum(account.rewards)).toString();
-				return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
+
+				function compareString (a, b) {
+					var sorta = a[data.sortField];
+					var sortb = b[data.sortField];
+					if (data.sortMethod === 'ASC') {
+				  return sorta.localeCompare(sortb);
+					} else {
+				  return sortb.localeCompare(sorta);
+					}
+				}
+
+				if (data.sortField) {
+					if (['approval', 'productivity', 'rate', 'vote'].indexOf(data.sortField) > -1) {
+						data.delegates = data.delegates.sort(compareNumber);
+					} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
+						data.delegates = data.delegates.sort(compareString);
+					} else {
+						return setImmediate(cb, 'Invalid sort field');
+					}
+				}
+
+				var delegates = data.delegates.slice(data.offset, data.limit);
+
+				return setImmediate(cb, null, {delegates: delegates, totalCount: data.count});
 			});
-		}
-	});
-};
+		});
+	},
 
-shared.addDelegate = function (req, cb) {
-	library.schema.validate(req.body, schema.addDelegate, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
+	getFee: function (req, cb) {
+		return setImmediate(cb, null, {fee: constants.fees.delegate});
+	},
 
-		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
-		var keypair = library.ed.makeKeypair(hash);
-
-		if (req.body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-				return setImmediate(cb, 'Invalid passphrase');
+	getForgedByAccount: function (req, cb) {
+		library.schema.validate(req.body, schema.getForgedByAccount, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
 			}
-		}
 
-		library.balancesSequence.add(function (cb) {
-			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
+			if (req.body.start !== undefined || req.body.end !== undefined) {
+				modules.blocks.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
 
-					if (!account || !account.publicKey) {
-						return setImmediate(cb, 'Multisignature account not found');
+					var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
+					return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});
+				});
+			} else {
+				modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
+					if (err || !account) {
+						return setImmediate(cb, err || 'Account not found');
 					}
 
-					if (!account.multisignatures || !account.multisignatures) {
-						return setImmediate(cb, 'Account does not have multisignatures enabled');
-					}
+					var forged = new bignum(account.fees).plus(new bignum(account.rewards)).toString();
+					return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
+				});
+			}
+		});
+	},
 
-					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return setImmediate(cb, 'Account does not belong to multisignature group');
-					}
+	addDelegate: function (req, cb) {
+		library.schema.validate(req.body, schema.addDelegate, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
 
-					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
+			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
+			var keypair = library.ed.makeKeypair(hash);
+
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
+			}
+
+			library.balancesSequence.add(function (cb) {
+				if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+					modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
 						if (err) {
 							return setImmediate(cb, err);
 						}
 
-						if (!requester || !requester.publicKey) {
-							return setImmediate(cb, 'Requester not found');
+						if (!account || !account.publicKey) {
+							return setImmediate(cb, 'Multisignature account not found');
 						}
 
-						if (requester.secondSignature && !req.body.secondSecret) {
-							return setImmediate(cb, 'Missing requester second passphrase');
+						if (!account.multisignatures || !account.multisignatures) {
+							return setImmediate(cb, 'Account does not have multisignatures enabled');
 						}
 
-						if (requester.publicKey === account.publicKey) {
-							return setImmediate(cb, 'Invalid requester public key');
+						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
+							return setImmediate(cb, 'Account does not belong to multisignature group');
+						}
+
+						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
+
+							if (!requester || !requester.publicKey) {
+								return setImmediate(cb, 'Requester not found');
+							}
+
+							if (requester.secondSignature && !req.body.secondSecret) {
+								return setImmediate(cb, 'Missing requester second passphrase');
+							}
+
+							if (requester.publicKey === account.publicKey) {
+								return setImmediate(cb, 'Invalid requester public key');
+							}
+
+							var secondKeypair = null;
+
+							if (requester.secondSignature) {
+								var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
+								secondKeypair = library.ed.makeKeypair(secondHash);
+							}
+
+							var transaction;
+
+							try {
+								transaction = library.logic.transaction.create({
+									type: transactionTypes.DELEGATE,
+									username: req.body.username,
+									sender: account,
+									keypair: keypair,
+									secondKeypair: secondKeypair,
+									requester: keypair
+								});
+							} catch (e) {
+								return setImmediate(cb, e.toString());
+							}
+							modules.transactions.receiveTransactions([transaction], true, cb);
+						});
+					});
+				} else {
+					modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+						if (err) {
+							return setImmediate(cb, err);
+						}
+
+						if (!account || !account.publicKey) {
+							return setImmediate(cb, 'Account not found');
+						}
+
+						if (account.secondSignature && !req.body.secondSecret) {
+							return setImmediate(cb, 'Invalid second passphrase');
 						}
 
 						var secondKeypair = null;
 
-						if (requester.secondSignature) {
+						if (account.secondSignature) {
 							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
 							secondKeypair = library.ed.makeKeypair(secondHash);
 						}
@@ -847,60 +852,23 @@ shared.addDelegate = function (req, cb) {
 								username: req.body.username,
 								sender: account,
 								keypair: keypair,
-								secondKeypair: secondKeypair,
-								requester: keypair
+								secondKeypair: secondKeypair
 							});
 						} catch (e) {
 							return setImmediate(cb, e.toString());
 						}
 						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
-				});
-			} else {
-				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					if (!account || !account.publicKey) {
-						return setImmediate(cb, 'Account not found');
-					}
-
-					if (account.secondSignature && !req.body.secondSecret) {
-						return setImmediate(cb, 'Invalid second passphrase');
-					}
-
-					var secondKeypair = null;
-
-					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-						secondKeypair = library.ed.makeKeypair(secondHash);
-					}
-
-					var transaction;
-
-					try {
-						transaction = library.logic.transaction.create({
-							type: transactionTypes.DELEGATE,
-							username: req.body.username,
-							sender: account,
-							keypair: keypair,
-							secondKeypair: secondKeypair
-						});
-					} catch (e) {
-						return setImmediate(cb, e.toString());
-					}
-					modules.transactions.receiveTransactions([transaction], true, cb);
-				});
-			}
-		}, function (err, transaction) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			return setImmediate(cb, null, {transaction: transaction[0]});
+				}
+			}, function (err, transaction) {
+				if (err) {
+					return setImmediate(cb, err);
+				} else {
+					return setImmediate(cb, null, {transaction: transaction[0]});
+				}
+			});
 		});
-	});
+	}
 };
 
 // Export

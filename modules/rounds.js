@@ -240,7 +240,7 @@ Rounds.prototype.cleanup = function (cb) {
 	return setImmediate(cb);
 };
 
-// Private
+// Private methods
 __private.getOutsiders = function (scope, cb) {
 	scope.outsiders = [];
 

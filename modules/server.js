@@ -2,7 +2,6 @@
 
 var async = require('async');
 var path = require('path');
-var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
@@ -15,40 +14,10 @@ function Server (cb, scope) {
 	library = scope;
 	self = this;
 
-	__private.attachApi();
-
 	setImmediate(cb, null, self);
 }
 
-// Private methods
-__private.attachApi = function () {
-	var router = new Router();
-
-	router.use(function (req, res, next) {
-		if (modules) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
-
-	router.get('/', function (req, res) {
-		if (__private.loaded) {
-			res.render('wallet.html', {layout: false});
-		} else {
-			res.render('loading.html');
-		}
-	});
-
-	router.use(function (req, res, next) {
-		if (req.url.indexOf('/api/') === -1 && req.url.indexOf('/peer/') === -1) {
-			return res.redirect('/');
-		}
-		next();
-	});
-
-	library.network.app.use('/', router);
-};
-
 // Public methods
-
 Server.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
@@ -67,7 +36,13 @@ Server.prototype.cleanup = function (cb) {
 	return setImmediate(cb);
 };
 
-// Shared
+Server.prototype.isLoaded = function () {
+	return __private.loaded;
+};
+
+Server.prototype.areModulesReady = function () {
+	return !!modules;
+};
 
 // Export
 module.exports = Server;
