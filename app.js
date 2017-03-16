@@ -343,10 +343,14 @@ d.run(function () {
 
 				if (parts.length > 1) {
 					if (parts[1] === 'api') {
-						if (!checkIpInList(scope.config.api.access.whiteList, ip, true)) {
-							res.sendStatus(403);
-						} else {
+						if (scope.config.api.access.public === true) {
 							next();
+						} else {
+							if (checkIpInList(scope.config.api.access.whiteList, ip, false)) {
+								next();
+							} else {
+								res.sendStatus(403);
+							}
 						}
 					} else if (parts[1] === 'peer') {
 						if (checkIpInList(scope.config.peers.blackList, ip, false)) {

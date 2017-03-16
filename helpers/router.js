@@ -8,7 +8,7 @@ var extend = require('extend');
  * @return {Router}
  * @constructor
  */
-var Router = function () {
+var Router = function (config) {
 	var router = require('express').Router();
 
 	router.use(httpApi.middleware.cors);
@@ -31,6 +31,12 @@ var Router = function () {
 			});
 		});
 	};
+
+	if (config.enabled === false) {
+		router.use(function (req, res, next) {
+			res.status(500).send({success: false, error: 'API endpoint disabled'});
+		});
+	}
 
 	return router;
 };

@@ -460,7 +460,7 @@ __private.createRoutes = function (dapp, cb) {
 				return setImmediate(cb, 'Failed to open routes.json file');
 			}
 
-			__private.routes[dapp.transactionId] = new Router();
+			__private.routes[dapp.transactionId] = new Router({});
 
 			routes.forEach(function (router) {
 				if (router.method === 'get' || router.method === 'post' || router.method === 'put') {
