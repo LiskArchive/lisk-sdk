@@ -21,7 +21,6 @@ describe('ParseOfflineRequests', function () {
 
 			(requestMethod3.requestMethod).should.be.equal('PUT');
 		});
-
 	});
 
 	describe('#checkDoubleNamedAPI', function() {
@@ -30,9 +29,7 @@ describe('ParseOfflineRequests', function () {
 			var requestMethodGetTx = LSK.parseOfflineRequests('transactions', { senderId: '123' });
 
 			(requestMethodGetTx.requestMethod).should.be.equal('GET');
-
 		});
-
 	});
 
 	describe('#checkOfflineRequestBefore', function () {
@@ -244,7 +241,6 @@ describe('ParseOfflineRequests', function () {
 		});
 
 		it('should not influence already finished calls - delegates', function () {
-
 			var request = {
 				'success': 'true',
 				'call': 'etc'
@@ -261,7 +257,6 @@ describe('ParseOfflineRequests', function () {
 		});
 
 		it('should not influence already finished calls - accounts/delegates', function () {
-
 			var request = {
 				'success': 'true',
 				'call': 'etc'
@@ -278,7 +273,6 @@ describe('ParseOfflineRequests', function () {
 		});
 
 		it('should not influence already finished calls - transactions', function () {
-
 			var request = {
 				'success': 'true',
 				'call': 'etc'
@@ -295,7 +289,6 @@ describe('ParseOfflineRequests', function () {
 		});
 
 		it('should not influence already finished calls - signatures', function () {
-
 			var request = {
 				'success': 'true',
 				'call': 'etc'
@@ -312,7 +305,6 @@ describe('ParseOfflineRequests', function () {
 		});
 
 		it('should not influence already finished calls - dapps', function () {
-
 			var request = {
 				'success': 'true',
 				'call': 'etc'
@@ -327,6 +319,5 @@ describe('ParseOfflineRequests', function () {
 
 			(outputRequest).should.be.eql(requestAnswer);
 		});
-
 	});
 });
