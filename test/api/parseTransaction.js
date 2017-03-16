@@ -86,8 +86,7 @@ describe('ParseOfflineRequests', function () {
 			(checkRequestRouting.checkOfflineRequestBefore().params).should.be.ok();
 		});
 
-		/*
-		it('should route dapps requests correctly', function () {
+		it.skip('should route dapps requests correctly', function () {
 			var options = {
 				category: '0',
 				name: 'Lisk Guestbook',
@@ -102,12 +101,10 @@ describe('ParseOfflineRequests', function () {
 			var checkRequestRouting = lisk.api().parseOfflineRequests('dapps', options);
 
 			(checkRequestRouting.requestMethod).should.be.equal('PUT');
-			//(checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
-			//(checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
+			(checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
+			(checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
 			(checkRequestRouting.checkOfflineRequestBefore().params).should.be.ok();
 		});
-		*/
-
 	});
 
 	describe('#transactionOutputAfter', function () {
