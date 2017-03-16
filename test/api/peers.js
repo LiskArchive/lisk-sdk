@@ -17,7 +17,7 @@ describe('GET /api/peers/version', function () {
 });
 
 describe('GET /api/peers/count', function () {
-	
+
 	it('should be ok', function (done) {
 		node.get('/api/peers/count', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
