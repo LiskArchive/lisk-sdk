@@ -53,13 +53,7 @@ module.exports = function (grunt) {
 		},
 
 		coveralls: {
-			options: {
-				debug: true,
-				coverageDir: 'coverage',
-				dryRun: true,
-				force: true,
-				recursive: true
-			}
+			src: 'test/.coverage-unit/*.info'
 		}
 	});
 
@@ -67,7 +61,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-force');
-	grunt.loadNpmTasks('grunt-karma-coveralls');
+	grunt.loadNpmTasks('grunt-coveralls');
 	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle', 'coveralls']);
 	grunt.registerTask('default', [
 		'force:on',
