@@ -357,7 +357,27 @@ describe('Lisk.api()', function() {
 					blockId: '123',
 					senderId: '123'
 				},
-				requestUrl: 'http://localhost:8000/api/transactions'
+				requestUrl: 'http://localhost:8000/api/transactions?blockId=123&senderId=123'
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+
+		});
+
+		it('should give the correct parameters for GET requests with parameters', function() {
+
+			var requestType = 'delegates/search/';
+			var options = {q: 'oliver'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: 'GET',
+				requestParams: {
+					q: 'oliver',
+				},
+				requestUrl: 'http://localhost:8000/api/delegates/search/?q=oliver'
 			};
 
 			(checkRequestAnswer).should.be.ok;
@@ -439,12 +459,14 @@ describe('Lisk.api()', function() {
 			};
 
 			(checkRequestAnswer).should.be.ok;
-			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.Number();
+			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.String();
 			(checkRequestAnswer.requestParams.transaction).should.have.property('amount').which.is.a.Number();
 			(checkRequestAnswer.requestParams).should.have.property('transaction').which.is.a.Object();
 
 		});
 
 	});
+
+
 
 });
