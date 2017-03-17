@@ -146,10 +146,10 @@
 var options = {
     ssl: false, // default false
     node: '', // default randomNode
-    noRandomNode: false, // default false
+    randomPeer: true, // default true
     testnet: true, // default false
     port: '7000', // default 8000
-    bannedNodes: [], // default empty
+    bannedPeers: [], // default empty
 
 };
 
@@ -166,10 +166,10 @@ var LSK = lisk.api(options);
 var options = {
     ssl: false, // default false
     node: 'localhost', // write node without http:// or port
-    noRandomNode: true, // default false
+    randomPeer: false, // default true
     testnet: false, // default false
     port: '8000', // default 8000
-    bannedNodes: [], // default empty
+    bannedPeers: [], // default empty
 
 };
 

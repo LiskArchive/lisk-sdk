@@ -26,10 +26,10 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('.currentNode', function () {
+	describe('.currentPeer', function () {
 
-		it('currentNode should be set by default', function () {
-			(LSK.currentNode).should.be.ok();
+		it('currentPeer should be set by default', function () {
+			(LSK.currentPeer).should.be.ok();
 		});
 	});
 
@@ -82,13 +82,13 @@ describe('Lisk.api()', function () {
 			var myOwnNode = 'myOwnNode.com';
 			LSK.setNode(myOwnNode);
 
-			(LSK.currentNode).should.be.equal(myOwnNode);
+			(LSK.currentPeer).should.be.equal(myOwnNode);
 		});
 
 		it('should select a node when not explicitly set', function () {
 			LSK.setNode();
 
-			(LSK.currentNode).should.be.ok();
+			(LSK.currentPeer).should.be.ok();
 		});
 	});
 
@@ -110,11 +110,11 @@ describe('Lisk.api()', function () {
 
 	describe('#banNode', function () {
 
-		it('should add current node to LSK.bannedNodes', function () {
-			var currentNode = LSK.currentNode;
+		it('should add current node to LSK.bannedPeers', function () {
+			var currentNode = LSK.currentPeer;
 			LSK.banNode();
 
-			(LSK.bannedNodes).should.containEql(currentNode);
+			(LSK.bannedPeers).should.containEql(currentNode);
 		});
 	});
 
