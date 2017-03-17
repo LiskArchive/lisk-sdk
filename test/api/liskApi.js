@@ -9,6 +9,8 @@ function getUrlVars(url) {
 	return myJson;
 }
 
+process.env.NODE_ENV = 'test';
+
 describe('Lisk.api()', function() {
 
 	var LSK = lisk.api();
@@ -194,6 +196,10 @@ describe('Lisk.api()', function() {
 
 	describe('#serialiseHttpData', function () {
 
+		before(function() {
+			process.env.NODE_ENV = 'main';
+		});
+
 		it('should create a http string from an object and trim.', function () {
 			var myObj = {
 				obj: ' myval',
@@ -206,6 +212,7 @@ describe('Lisk.api()', function() {
 		});
 
 		it('should add random if type is GET', function () {
+
 			var myObj = {
 				obj: ' myval',
 				key: 'my2ndval '
@@ -219,6 +226,10 @@ describe('Lisk.api()', function() {
 			(objectify).should.have.property('obj');
 			(objectify).should.have.property('key');
 
+		});
+
+		after(function() {
+			process.env.NODE_ENV = 'test';
 		});
 
 	});
@@ -467,6 +478,182 @@ describe('Lisk.api()', function() {
 
 	});
 
+	describe('#sendRequest', function() {
 
+		it('should receive Height from a random public peer', function(done) {
+
+			lisk.api().sendRequest('blocks/getHeight', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+
+
+		});
+
+	});
+
+	describe('#listActiveDelegates', function() {
+
+		it('should list active delegates', function(done) {
+
+			lisk.api().listActiveDelegates('5', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.delegates).should.have.length(5);
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#listStandyDelegates', function() {
+
+		it.skip('should list non-active delegates', function(done) {
+
+			lisk.api().listStandyDelegates('5', function (data) {
+				console.log(data);
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.delegates).should.have.length(5);
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#searchDelegateByUsername', function() {
+
+		it('should find a delegate by name', function(done) {
+
+			lisk.api().searchDelegateByUsername('oliver', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.delegates[0].username).should.be.equal('oliver');
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#listBlocks', function() {
+
+		it('should list amount of blocks defined', function(done) {
+
+			this.timeout(3000);
+			lisk.api().listBlocks('3', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.blocks).should.have.length(3);
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#listForgedBlocks', function() {
+
+		it('should list amount of ForgedBlocks', function(done) {
+
+			this.timeout(4000);
+			lisk.api().listForgedBlocks('130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#getBlock', function() {
+
+		it('should list a block of certain height', function(done) {
+
+			this.timeout(3500);
+			lisk.api().getBlock('2346638', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#listTransactions', function() {
+
+		it('should list transactions of a defined account', function(done) {
+
+			this.timeout(3000);
+			lisk.api().listTransactions('12731041415715717263L', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#listTransactions', function() {
+
+		it('should list a defined transaction', function(done) {
+
+			this.timeout(3000);
+			lisk.api().getTransaction('7520138931049441691', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#listVotes', function() {
+
+		it('should list votes of an account', function(done) {
+
+			this.timeout(3000);
+			lisk.api().listVotes('16010222169256538112L', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+
+		});
+
+	});
+
+	describe('#listVoters', function() {
+
+		it('should list voters of an account', function(done) {
+
+			this.timeout(3000);
+			lisk.api().listVoters('6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+
+		});
+
+	});
 
 });
