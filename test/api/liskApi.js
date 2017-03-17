@@ -238,4 +238,213 @@ describe('Lisk.api()', function() {
 
 	});
 
+	describe('#checkRequest', function() {
+
+		it('should identify GET requests', function() {
+
+			var requestType = 'api/loader/status';
+			var options = '';
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+
+			var requestType = 'api/loader/status/sync';
+			var options = '';
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+
+			var requestType = 'api/loader/status/ping';
+			var options = '';
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+
+			var requestType = 'api/transactions';
+			var options = {blockId: '123', senderId: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+
+		});
+
+		it('should identify POST requests', function() {
+
+			var requestType = 'accounts/generatePublicKey';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('POST');
+
+			var requestType = 'accounts/open';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('POST');
+
+		});
+
+		it('should identify PUT requests', function() {
+
+			var requestType = 'accounts/delegates';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('PUT');
+
+			var requestType = 'signatures';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('PUT');
+
+			var requestType = 'transactions';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('PUT');
+
+		});
+
+		it('should identify NOACTION requests', function() {
+
+			var requestType = 'delegates/forging/enable';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('NOACTION');
+
+			var requestType = 'dapps/uninstall';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('NOACTION');
+
+			var requestType = 'multisignatures/sign';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('NOACTION');
+
+		});
+
+	});
+
+	describe('#changeRequest', function() {
+
+		it('should give the correct parameters for GET requests', function() {
+
+			var requestType = 'transactions';
+			var options = {blockId: '123', senderId: '123'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: 'GET',
+				requestParams: {
+					blockId: '123',
+					senderId: '123'
+				},
+				requestUrl: 'http://localhost:8000/api/transactions'
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+
+		});
+
+		it('should give the correct parameters for NOACTION requests', function() {
+
+			var requestType = 'delegates/forging/enable';
+			var options = {secret: '123'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: '',
+				requestParams: '',
+				requestUrl: ''
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+
+		});
+
+		it('should give the correct parameters for POST requests', function() {
+
+			var requestType = 'accounts/open';
+			var options = {secret: '123'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: 'GET',
+				requestParams: {secret: '123'},
+				requestUrl: 'http://localhost:8000/api/accounts?address=12475940823804898745L'
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+
+		});
+
+		it('should give the correct parameters for PUT requests', function() {
+
+			var requestType = 'signatures';
+			var options = {secret: '123', secondSecret: '1234'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: {
+					'Content-Type': 'application/json',
+					'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					'os': 'lisk-js-api',
+					'version': '1.0.0',
+					'minVersion': '>=0.5.0',
+					'port': 8000
+				},
+				requestMethod: 'POST',
+				requestParams: {
+					transaction: {
+						amount: 0,
+						asset: {
+							signature: {
+								publicKey: 'caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc'
+							}
+						},
+						fee: 500000000,
+						id: '11971478862181949150',
+						recipientId: null,
+						senderPublicKey: 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+						signature: '98e30105c78b6a0b9e5e4e6c7fa83c2d7722939c0bcf575b7c7fe0f8a2f5d5867785140024d290a87de3c0c5518ceebb52dc7896a0cc26bb5f5099c71e33db07',
+						timestamp: '',
+						type: 1
+					}
+				},
+				requestUrl: 'http://localhost:8000/peer/transactions'
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.Number();
+			(checkRequestAnswer.requestParams.transaction).should.have.property('amount').which.is.a.Number();
+			(checkRequestAnswer.requestParams).should.have.property('transaction').which.is.a.Object();
+
+		});
+
+	});
+
 });
