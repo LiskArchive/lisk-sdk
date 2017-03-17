@@ -192,12 +192,12 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 	var toolBox = this;
 
 	this.sendRequestPromise(requestType, options).then(function (requestSuccess) {
-		var JSONAnswer = JSON.parse(requestSuccess);
+		var JSONAnswer = requestSuccess.body;
 		var checkRequestContent = parseOfflineRequest(requestType, options);
 
 		// Show offline Request if it is POST or PUT request
 		if (checkRequestContent.requestMethod === 'GET') {
-			return callback(JSON.parse(requestSuccess));
+			return callback(requestSuccess.body);
 		} else {
 			var interpretAnswer = checkRequestContent.transactionOutputAfter(JSONAnswer);
 			return callback(interpretAnswer);
@@ -214,85 +214,27 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 LiskAPI.prototype.sendRequestPromise = function (requestType, options) {
 	var that = this;
 
-	return new Promise(function (resolve, reject) {
-		var xhttp = new XMLHttpRequest();
+	if(that.checkRequest(requestType, options) === 'NOACTION') {
 
-		xhttp.onreadystatechange = function () {
-			if (this.readyState === 4 && this.status === 200) {
-				resolve(this.responseText);
-			} else {
-				// this.status === 500 - internal server error - description: Wrong API call
-				if ((this.status === 404 || this.status === 503 || this.status === 0) && this.readyState === 4) {
-					reject({
-						msg: 'Could not load xhttp request',
-						error: this.status
-					});
-				}
-			}
-		};
+		return new Promise(function(resolve, reject) {
+			resolve({ done: 'done'});
+		});
+	} else {
+		var requestValues = that.changeRequest(requestType, options);
+		return this.doPopsicleRequest(requestValues);
+	}
+
+};
 
 
-		if(that.checkRequest(requestType, options) === 'NOACTION') {
-			resolve(JSON.stringify({done: 'done'}));
-		} else {
-			var requestValues = that.changeRequest(requestType, options);
+LiskAPI.prototype.doPopsicleRequest = function(requestValue) {
 
-			for (var key in requestValues.nethash) {
-				if (Nethash.hasOwnProperty(key)) {
-					xhttp.setRequestHeader(key, Nethash[key]);
-				}
-			}
+	return popsicle.request({
+		method: requestValue.requestMethod,
+		url: requestValue.requestUrl,
+		headers: requestValue.nethash
+	})
 
-			xhttp.open(requestValues.requestMethod, requestValues.requestUrl, true);
-			xhttp.send(JSON.stringify(requestValues.requestParams));
-		}
-
-		/*
-		var InitRequest = parseOfflineRequest(requestType, options);
-		var requestMethod = InitRequest.requestMethod;
-		var requestUrl;
-		var sendParams = '';
-
-		// Send GET request by xhttp
-		if (requestMethod === 'GET') {
-			requestUrl = that.getFullUrl()  + '/api/'+ requestType;
-
-			if (Object.keys(options).length > 0) {
-				requestUrl = requestUrl + that.serialiseHttpData(options);
-			}
-
-			xhttp.open(requestMethod, requestUrl , true);
-			xhttp.send();
-			// Do not use xhttp to send
-		} else if (requestMethod === 'NOACTION') {
-			resolve(JSON.stringify({ done: 'done'}));
-			// Send POST or PUT requets with xhttp
-		} else {
-			var getNewRequest = InitRequest.checkOfflineRequestBefore();
-
-			if (getNewRequest.requestUrl === 'transactions') {
-				requestUrl = that.getFullUrl()  + '/peer/'+ getNewRequest.requestUrl;
-				// console.log(requestUpdate());
-				xhttp.open('POST', requestUrl, true);
-
-				var Nethash = that.nethash;
-
-				for (var key in Nethash) {
-					if (Nethash.hasOwnProperty(key)) {
-						xhttp.setRequestHeader(key, Nethash[key]);
-					}
-				}
-
-				sendParams = getNewRequest.params;
-			} else {
-				requestUrl = that.getFullUrl()  + '/api/'+ getNewRequest.requestUrl;
-				xhttp.open(getNewRequest.requestMethod, requestUrl, true);
-			}
-
-			xhttp.send(JSON.stringify(sendParams));
-		}
-		*/
-	});
 };
 
 LiskAPI.prototype.changeRequest = function (requestType, options) {
@@ -348,18 +290,6 @@ LiskAPI.prototype.changeRequest = function (requestType, options) {
 LiskAPI.prototype.checkRequest = function (requestType, options) {
 
 	return parseOfflineRequest(requestType, options).requestMethod;
-
-};
-
-LiskAPI.prototype.doPopsicleRequest = function(requestType, method, options) {
-
-		return popsicle.request({
-			method: 'POST',
-			url: 'http://example.com/api/users',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			}
-		});
 
 };
 
