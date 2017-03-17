@@ -99,7 +99,7 @@ describe('Lisk.api()', function() {
 
 		it('should return the node from initial settings when set', function () {
 
-			var LiskUrlInit = lisk.api({ port: 7000, node: 'localhost', ssl: true, noRandomNode: true });
+			var LiskUrlInit = lisk.api({ port: 7000, node: 'localhost', ssl: true, randomPeer: false });
 
 			(LiskUrlInit.selectNode()).should.be.equal('localhost');
 
