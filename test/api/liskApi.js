@@ -1,25 +1,27 @@
-function getUrlVars(url) {
+function getUrlVars (url) {
 	var hash;
 	var myJson = {};
 	var hashes = url.slice(url.indexOf('?') + 1).split('&');
+
 	for (var i = 0; i < hashes.length; i++) {
 		hash = hashes[i].split('=');
 		myJson[hash[0]] = hash[1];
 	}
+
 	return myJson;
 }
 
-describe('Lisk.api()', function() {
+describe('Lisk.api()', function () {
 
 	var LSK = lisk.api();
 
-	describe('lisk.api()', function() {
+	describe('lisk.api()', function () {
 
-		it('should create a new instance when using lisk.api()', function() {
+		it('should create a new instance when using lisk.api()', function () {
 			(LSK).should.be.ok();
 		});
 
-		it('new lisk.api() should be Object', function() {
+		it('new lisk.api() should be Object', function () {
 			(LSK).should.be.type('object');
 		});
 	});
@@ -59,24 +61,19 @@ describe('Lisk.api()', function() {
 			'port': 7000
 		};
 
-		it('should give corret Nethash for testnet', function() {
+		it('should give corret Nethash for testnet', function () {
 			(LSK.getNethash()).should.eql(NetHash);
 		});
-
-
 	});
 
 	describe('#setTestnet', function () {
 
-		it('should set to testnet', function() {
-
+		it('should set to testnet', function () {
 			var LISK = lisk.api();
 			LISK.setTestnet(true);
 
 			(LISK.testnet).should.be.true;
-
 		});
-
 	});
 
 	describe('#setNode', function () {
@@ -95,16 +92,13 @@ describe('Lisk.api()', function() {
 		});
 	});
 
-	describe('#selectNode', function() {
+	describe('#selectNode', function () {
 
 		it('should return the node from initial settings when set', function () {
-
-			var LiskUrlInit = lisk.api({ port: 7000, node: 'localhost', ssl: true, randomPeer: false });
+			var LiskUrlInit = lisk.api({ port: 7000, node: 'localhost', ssl: true, noRandomNode: true });
 
 			(LiskUrlInit.selectNode()).should.be.equal('localhost');
-
 		});
-
 	});
 
 	describe('#getRandomPeer', function () {
@@ -126,20 +120,19 @@ describe('Lisk.api()', function() {
 
 	describe('#getFullUrl', function () {
 
-		it('should give the full url inclusive port', function() {
+		it('should give the full url inclusive port', function () {
 			var LiskUrlInit = lisk.api({ port: 7000, node: 'localhost', ssl: false });
 			var fullUrl = 'http://localhost:7000';
 
 			(LiskUrlInit.getFullUrl()).should.be.equal(fullUrl);
 		});
 
-		it('should give the full url without port and with SSL', function() {
+		it('should give the full url without port and with SSL', function () {
 			var LiskUrlInit = lisk.api({ port: '', node: 'localhost', ssl: true });
 			var fullUrl = 'https://localhost';
 
 			(LiskUrlInit.getFullUrl()).should.be.equal(fullUrl);
 		});
-
 	});
 
 	describe('#getURLPrefix', function () {
@@ -218,9 +211,7 @@ describe('Lisk.api()', function() {
 			(objectify).should.have.property('random');
 			(objectify).should.have.property('obj');
 			(objectify).should.have.property('key');
-
 		});
-
 	});
 
 	describe('#getAddressFromSecret', function () {
@@ -233,9 +224,6 @@ describe('Lisk.api()', function() {
 			};
 
 			(LSK.getAddressFromSecret('123')).should.eql(address);
-
 		});
-
 	});
-
 });

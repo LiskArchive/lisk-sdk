@@ -89,11 +89,9 @@ describe('slots.js', function () {
 		});
 
 		it('should return real time, even when undefined input', function () {
-
 			var getRealTimeOutput = getRealTime(undefined);
 
 			(getRealTimeOutput).should.be.ok;
-
 		});
 	});
 

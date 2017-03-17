@@ -423,21 +423,12 @@ function ParseOfflineRequest (requestType, options) {
 	return this;
 }
 
-ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
-
+ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
 		if (options && !options.hasOwnProperty('secret')) {
 			requestType = 'getTransactions';
 		}
 	}
-
-	return requestType;
-
-};
-
-ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
-
-	requestType = this.checkDoubleNamedAPI(requestType, this.options);
 
 	var requestMethod;
 	var requestIdentification =  {
@@ -31058,3 +31049,9 @@ exports.createContext = Script.createContext = function (context) {
 
 },{"indexof":111}]},{},[1])(1)
 });
+ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
+	return requestType;
+};
+
+ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
+	requestType = this.checkDoubleNamedAPI(requestType, this.options);
