@@ -86,7 +86,17 @@ var BlocksSql = {
 
   getById: 'SELECT * FROM blocks_list WHERE "b_id" = ${id}',
 
-  getIdSequence: 'SELECT (ARRAY_AGG("id" ORDER BY "height" ASC))[1] AS "id", MIN("height") AS "height", CAST("height" / ${delegates} AS INTEGER) + (CASE WHEN "height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END) AS "round" FROM blocks WHERE "height" <= ${height} GROUP BY "round" ORDER BY "height" DESC LIMIT ${limit}',
+  getIdSequence: function () {
+    return [
+      'WITH',
+      'current_round AS (SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b WHERE b.height <= ${height} ORDER BY b.height DESC LIMIT 1),',
+      'rounds AS (SELECT * FROM generate_series((SELECT * FROM current_round),(SELECT * FROM current_round)-${limit}+1,-1))',
+      'SELECT',
+        'b.id, b.height, CEIL(b.height / ${delegates}::float)::bigint as round',
+        'FROM blocks b',
+        'WHERE b.height IN (SELECT ((n-1)*${delegates})+1 FROM rounds AS s(n)) ORDER BY height DESC'
+    ].filter(Boolean).join(' ');
+  },
 
   getCommonBlock: function (params) {
     return [
