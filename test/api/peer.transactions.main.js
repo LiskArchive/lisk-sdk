@@ -77,6 +77,18 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
+	it('using data field should be ok', function (done) {
+		var account = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+		transaction.data = 'sample data';
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+			done();
+		});
+	});
+
 	it('using valid headers should be ok', function (done) {
 		var account = node.randomAccount();
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);

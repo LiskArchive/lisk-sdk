@@ -463,6 +463,58 @@ describe('GET /api/transactions/queued/get?id=', function () {
 			done();
 		});
 	});
+
+	it('using valid id should be ok for transaction with data field', function (done) {
+
+		 function createTransactionWithData (done) {
+			var amountToSend = 123456789;
+			var expectedFee = node.expectedFee(amountToSend);
+			var data = 'extra information';
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				data: data
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+				console.log('res.body.transactionId');
+				console.log(res.body.transactionId);
+				var transaction = {
+					'sender': account.address,
+					'recipient': account2.address,
+					'grossSent': (amountToSend + expectedFee) / node.normalizer,
+					'fee': expectedFee / node.normalizer,
+					'netSent': amountToSend / node.normalizer,
+					'txId': res.body.transactionId,
+					'type': node.txTypes.SEND,
+					'data': data
+				};
+				transactionList.push(transaction);
+				done(transaction);
+			});
+		}
+
+		createTransactionWithData(function (transactionInCheck) {
+			var trsId = transactionInCheck.txId;
+			var params = 'id=' + trsId;
+			console.log('trsId');
+			console.log(trsId);
+			node.get('/api/transactions/queued/get?' + params, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
+				node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
+				node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
+				node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
+				node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
+				node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
+				node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+				node.expect(res.body.transaction.data).to.equal(transactionInCheck.data);
+				done();
+			});
+		});
+	});
 });
 
 describe('GET /api/transactions/queued', function () {
@@ -557,6 +609,33 @@ describe('PUT /api/transactions', function () {
 			done();
 		});
 	});
+
+	it('using valid paramets with data field should be ok', function (done) {
+		var amountToSend = 123456789;
+		var expectedFee = node.expectedFee(amountToSend);
+		var data = 'extra information';
+
+		putTransaction({
+			secret: account.password,
+			amount: amountToSend,
+			recipientId: account2.address,
+			data: data
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+			transactionList.push({
+				'sender': account.address,
+				'recipient': account2.address,
+				'grossSent': (amountToSend + expectedFee) / node.normalizer,
+				'fee': expectedFee / node.normalizer,
+				'netSent': amountToSend / node.normalizer,
+				'txId': res.body.transactionId,
+				'type': node.txTypes.SEND
+			});
+			done();
+		});
+	});
+
 
 	it('using negative amount should fail', function (done) {
 		var amountToSend = -100000000;
