@@ -1,4 +1,4 @@
-'use strict'; /*jslint mocha:true, expr:true */
+'use strict';/*eslint*/
 
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
