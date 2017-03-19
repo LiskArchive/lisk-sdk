@@ -4,6 +4,6 @@
 
 BEGIN;
 
-ALTER TABLE "trs" ADD COLUMN "data" VARCHAR(16);
+ALTER TABLE "trs" ADD COLUMN "data" bytea;
 
 COMMIT;

@@ -116,7 +116,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 		var assetSize = assetBytes ? assetBytes.length : 0;
 		var i;
 
-		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + 16 + assetSize, true);
+		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + 64 + assetSize, true);
 		bb.writeByte(trs.type);
 		bb.writeInt(trs.timestamp);
 
@@ -150,10 +150,10 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 		if (trs.data) {
 			var dataBuffer = new Buffer(trs.data, 'utf8');
-			for (i = 0; i < 16; i++) {
+			for (i = 0; i < 64; i++) {
 				bb.writeByte(dataBuffer[i] || 0);
 			}
-		} 
+		}
 		
 		if (assetSize > 0) {
 			for (i = 0; i < assetSize; i++) {
@@ -670,13 +670,14 @@ Transaction.prototype.dbSave = function (trs) {
 		throw 'Unknown transaction type ' + trs.type;
 	}
 
-	var senderPublicKey, signature, signSignature, requesterPublicKey;
+	var senderPublicKey, signature, signSignature, requesterPublicKey, data;
 
 	try {
 		senderPublicKey = new Buffer(trs.senderPublicKey, 'hex');
 		signature = new Buffer(trs.signature, 'hex');
 		signSignature = trs.signSignature ? new Buffer(trs.signSignature, 'hex') : null;
 		requesterPublicKey = trs.requesterPublicKey ? new Buffer(trs.requesterPublicKey, 'hex') : null;
+		data = trs.data ? new Buffer(trs.data, 'utf8') : null;
 	} catch (e) {
 		throw e;
 	}
@@ -699,7 +700,7 @@ Transaction.prototype.dbSave = function (trs) {
 				signature: signature,
 				signSignature: signSignature,
 				signatures: trs.signatures ? trs.signatures.join(',') : null,
-				data: trs.data
+				data: data
 			}
 		}
 	];
@@ -796,7 +797,7 @@ Transaction.prototype.schema = {
 		data: {
 			type: 'string',
 			minimum: 0,
-			maximum: 16
+			maximum: 64
 		}
 	},
 	required: ['type', 'timestamp', 'senderPublicKey', 'signature']

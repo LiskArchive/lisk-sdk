@@ -218,10 +218,9 @@ module.exports = {
 			data: {
 				type: 'string',
 				minLength: 0,
-				maxLength: 16
+				maxLength: 64
 			}
 		},
 		required: ['secret', 'amount', 'recipientId']
-
 	}
 };
