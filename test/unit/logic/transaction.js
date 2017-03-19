@@ -5,6 +5,7 @@ var ed = require('../../../helpers/ed');
 var crypto = require('crypto');
 
 var chai = require('chai');
+var sinon = require('sinon');
 var expect = require('chai').expect;
 var express = require('express');
 var ip = require('ip');
@@ -58,6 +59,20 @@ var validTransaction = {
 	'senderId': '16313739661670634666L',
 };
 
+var rawTransaction = {
+	b_height: 11914,
+	t_id: '4669815655990175999',
+	t_data: 'abcd',
+	t_type: 0,
+	t_timestamp: 24177404,
+	t_senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+	t_senderId: '16313739661670634666L',
+	t_recipientId: '11483172656590824880L',
+	t_amount: 232420792390,
+	t_fee: 10000000,
+	t_signature:  'faf3081850b92de3fcd46346b883ca0a0096ae5366a5dafce9ace6ddf7970338501ae51ef138ca63aad571c399144d713e5be34a61e6885c8074740c66e3d90b',
+};
+
 function getValidTransactionData () {
 	var hash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
 	var keypair = ed.makeKeypair(hash);
@@ -66,6 +81,7 @@ function getValidTransactionData () {
 		type: 0,
 		amount: 232420792390,
 		sender: node.gAccount,
+		timestamp: 24177404,
 		recipientId: '11483172656590824880L',
 		data: '50b92d',
 		keypair: keypair
@@ -114,11 +130,6 @@ describe('transaction', function () {
 			expect(transaction.create).to.throw();
 		});
 
-		it('should create a transaction', function () {
-			var trsData = getValidTransactionData();
-			expect(transaction.create(trsData)).to.be.an('object');
-		});
-
 		it('should throw an error when sender is not set', function () {
 			var trsData = getValidTransactionData();
 			delete trsData.sender;
@@ -129,6 +140,18 @@ describe('transaction', function () {
 			var trsData = getValidTransactionData();
 			delete trsData.keypair;
 			expect(transaction.create.bind(transaction, trsData)).to.throw();
+		});
+
+
+		it('should create a transaction with data property', function () {
+			var trsData = getValidTransactionData();
+			expect(transaction.create(trsData)).to.be.an('object');
+		});
+
+		it('should create a transaction without data property', function () {
+			var trsData = getValidTransactionData();
+			delete trsData.data;
+			expect(transaction.create(trsData)).to.be.an('object');
 		});
 
 		it('should return transaction with optional data field', function () {
@@ -200,13 +223,31 @@ describe('transaction', function () {
 			expect(transaction.getBytes).to.throw();
 		});
 
-		it('should return same result when called multiple times', function () {
-			attachAllAssets(transaction);
+		it('should return same result when called multiple times (without data field)', function () {
 			var firstCalculation = transaction.getBytes(validTransaction);
 			var secondCalculation = transaction.getBytes(validTransaction);
 			expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
 
+		it('should return same result when called multiple times (with data field)', function () {
+			var transactionWithData = transaction.create(getValidTransactionData());
+			var firstCalculation = transaction.getBytes(transactionWithData);
+			var secondCalculation = transaction.getBytes(transactionWithData);
+			expect(firstCalculation.equals(secondCalculation)).to.be.ok;
+		});
+
+		it('should return same result of getBytes using /logic/transaction and list-js package (without data field)', function () {
+			var trsBytesFromLogic = transaction.getBytes(validTransaction);
+			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(validTransaction);
+			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
+		});
+
+		it('should return same result of getBytes using /logic/transaction and list-js package (with data field)', function () {
+			var transactionWithData = transaction.create(getValidTransactionData());
+			var trsBytesFromLogic = transaction.getBytes(transactionWithData);
+			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(transactionWithData);
+			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
+		});
 	});
 
 	describe('ready', function () {
@@ -440,12 +481,45 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.dbSave).to.throw();
 		});
+
+		it('should throw an error when type is not specified', function () {
+			var trs = transaction.create(getValidTransactionData());
+			delete trs.type;
+			expect(transaction.create.bind(transaction, trs)).to.throw();
+		});
+
+		it('should return response for valid parameters with data field', function () {
+			var trs = transaction.create(getValidTransactionData());
+			var trsToSave = transaction.dbSave(trs);
+			expect(trsToSave).to.be.an('Array');
+			expect(trsToSave).to.have.length(1);
+			var trsValues = trsToSave[0].values;
+			expect(trsValues).to.have.property('data');
+		});
+
+		it('should return response for valid parameters', function () {
+			var trs = transaction.create(getValidTransactionData());
+			var trsToSave = transaction.dbSave(trs);
+			expect(trsToSave).to.be.an('Array');
+			expect(trsToSave).to.have.length(1);
+		});
+
 	});
 
 	describe('afterSave', function () {
 
 		it('should throw an error with no param', function () {
 			expect(transaction.afterSave).to.throw();
+		});
+
+		it('should call the passed callback', function (done) {
+			var trs = transaction.create(getValidTransactionData());
+			var callbackSpy = sinon.spy();
+			transaction.afterSave(trs, callbackSpy);
+			setImmediate(function () {
+				expect(callbackSpy.calledOnce).to.be.ok;
+				done();
+			});
 		});
 	});
 
@@ -454,6 +528,29 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.objectNormalize).to.throw();
 		});
+
+		it('should remove keys with null or undefined attribute', function () {
+			var trs = transaction.create(getValidTransactionData());
+			trs.amount = null;
+			expect(_.keys(transaction.objectNormalize(trs))).to.not.include('amount');
+		});
+
+		it('should not remove any keys with valid entries', function () {
+			var trs = transaction.create(getValidTransactionData());
+			expect(_.keys(transaction.objectNormalize(trs))).to.have.length(10);
+		});
+
+		it('should not remove data field after normalization', function () {
+			var trs = transaction.create(getValidTransactionData());
+			expect(_.keys(transaction.objectNormalize(trs))).to.include('data');
+		});
+
+		it('should throw error for invalid schema types', function () {
+			var trs = transaction.create(getValidTransactionData());
+			trs.amount = 'Invalid value';
+			trs.data = 124;
+			expect(transaction.objectNormalize.bind(transaction, trs)).to.throw();
+		});
 	});
 
 	describe('dbRead', function () {
@@ -461,6 +558,15 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.dbRead).to.throw();
 		});
-	});
 
+		it('should return transaction object with data field', function () {
+			var trs = transaction.dbRead(rawTransaction);
+			expect(trs).to.be.an('object');
+			expect(_.keys(trs)).to.be.contain('data');
+		});
+
+		it('should return transaction object', function () {
+			expect(transaction.dbRead(rawTransaction)).to.be.an('object');
+		});
+	});
 });
