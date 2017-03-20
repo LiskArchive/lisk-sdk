@@ -27,6 +27,7 @@ module.exports = lisk;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/vote.js":18,"js-nacl":115}],2:[function(require,module,exports){
+(function (process){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -214,31 +215,25 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 LiskAPI.prototype.sendRequestPromise = function (requestType, options) {
 	var that = this;
 
-	if(that.checkRequest(requestType, options) === 'NOACTION') {
-
-		return new Promise(function(resolve, reject) {
-			resolve({ done: 'done'});
-		});
-	} else {
+	if (that.checkRequest(requestType, options) !== 'NOACTION') {
 		var requestValues = that.changeRequest(requestType, options);
 		return this.doPopsicleRequest(requestValues);
+	} else {
+		return new Promise(function(resolve) {
+			resolve({ done: 'done'});
+		});
 	}
-
 };
 
-
 LiskAPI.prototype.doPopsicleRequest = function(requestValue) {
-
 	return popsicle.request({
 		method: requestValue.requestMethod,
 		url: requestValue.requestUrl,
 		headers: requestValue.nethash
-	})
-
+	}).use(popsicle.plugins.parse(['json', 'urlencoded']));
 };
 
 LiskAPI.prototype.changeRequest = function (requestType, options) {
-
 	var returnValue = {
 		requestMethod: '',
 		requestUrl: '',
@@ -248,55 +243,47 @@ LiskAPI.prototype.changeRequest = function (requestType, options) {
 
 	var that = this;
 	switch(this.checkRequest(requestType, options)) {
-		case 'GET':
-			returnValue.requestMethod = 'GET';
-			returnValue.requestUrl = this.getFullUrl() + '/api/' + requestType;
+	case 'GET':
+		returnValue.requestMethod = 'GET';
+		returnValue.requestUrl = this.getFullUrl() + '/api/' + requestType;
 
-			if (Object.keys(options).length > 0) {
-				returnValue.requestUrl = returnValue.requestUrl + that.serialiseHttpData(options);
-			}
+		if (Object.keys(options).length > 0) {
+			returnValue.requestUrl = returnValue.requestUrl + that.serialiseHttpData(options, returnValue.requestMethod);
+		}
 
+		returnValue.requestParams = options;
+		break;
+	case 'PUT':
+	case 'POST':
+		var transformRequest = parseOfflineRequest(requestType, options).checkOfflineRequestBefore();
+
+		if (transformRequest.requestUrl === 'transactions') {
+			returnValue.requestUrl = that.getFullUrl()  + '/peer/'+ transformRequest.requestUrl;
+
+			returnValue.nethash = that.nethash;
+			returnValue.requestMethod = 'POST';
+			returnValue.requestParams = transformRequest.params;
+		} else {
+			returnValue.requestUrl = that.getFullUrl()  + '/api/'+ transformRequest.requestUrl;
+			returnValue.requestMethod = transformRequest.requestMethod;
 			returnValue.requestParams = options;
-			break;
-		case 'PUT':
-		case 'POST':
-			var transformRequest = parseOfflineRequest(requestType, options).checkOfflineRequestBefore();
-
-			if(transformRequest.requestUrl === 'transactions') {
-				returnValue.requestUrl = that.getFullUrl()  + '/peer/'+ transformRequest.requestUrl;
-
-				returnValue.nethash = that.nethash;
-				returnValue.requestMethod = 'POST';
-				returnValue.requestParams = transformRequest.params;
-
-			} else {
-
-				returnValue.requestUrl = that.getFullUrl()  + '/api/'+ transformRequest.requestUrl;
-				returnValue.requestMethod = transformRequest.requestMethod;
-				returnValue.requestParams = options;
-
-			}
-
-			break;
-		default:
-			break;
-
+		}
+		break;
+	default:
+		break;
 	}
 
 	return returnValue;
-
 };
 
 LiskAPI.prototype.checkRequest = function (requestType, options) {
-
 	return parseOfflineRequest(requestType, options).requestMethod;
-
 };
 
 LiskAPI.prototype.serialiseHttpData = function (data, type) {
 	var serialised;
 
-	if (type === 'GET') {
+	if (type === 'GET' && process.env.NODE_ENV !== 'test') {
 		data.random = Math.random().toString();
 	}
 
@@ -359,7 +346,7 @@ LiskAPI.prototype.searchDelegateByUsername = function (username, callback) {
 };
 
 LiskAPI.prototype.listBlocks = function (amount, callback) {
-	this.sendRequest('blocks', { totalAmount:amount }, function (result) {
+	this.sendRequest('blocks', { limit: amount }, function (result) {
 		return callback(result);
 	});
 };
@@ -377,7 +364,7 @@ LiskAPI.prototype.getBlock = function (block, callback) {
 };
 
 LiskAPI.prototype.listTransactions = function (address, callback) {
-	this.sendRequest('transactions', { senderId: address, recipientId: address, orderBy: 'timestamp:desc' }, function (result) {
+	this.sendRequest('transactions', { senderId: address, recipientId: address }, function (result) {
 		return callback(result);
 	});
 };
@@ -402,7 +389,8 @@ LiskAPI.prototype.listVoters = function (publicKey, callback) {
 
 module.exports = LiskAPI;
 
-},{"../transactions/crypto":6,"./parseTransaction":3,"popsicle":133}],3:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"../transactions/crypto":6,"./parseTransaction":3,"_process":144,"popsicle":133}],3:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -483,7 +471,6 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 };
 
 ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
-	
 	if (this.options && this.options.hasOwnProperty('secret')) {
 		var accountKeys = LiskJS.crypto.getKeys(this.options['secret']);
 		var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
