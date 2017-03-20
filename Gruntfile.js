@@ -7,7 +7,7 @@ module.exports = function (grunt) {
 				configFile: 'eslint_ecma5.json',
 				reset: true
 			},
-			target: ['lib/**', 'test/**', 'Gruntfile.js', 'index.js']
+			target: ['lib/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js']
 		},
 
 		pkg: grunt.file.readJSON('package.json'),
