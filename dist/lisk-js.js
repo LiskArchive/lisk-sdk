@@ -74,10 +74,10 @@ function LiskAPI (options) {
 
 	this.options = options;
 	this.ssl = options.ssl || false;
+	this.randomPeer = (typeof options.randomPeer === 'boolean') ? options.randomPeer : true;
 	this.testnet = options.testnet || false;
-	this.autoFindNode = options.autoFindNode || true;
-	this.bannedNodes = [];
-	this.currentNode = options.node || this.selectNode();
+	this.bannedPeers = [];
+	this.currentPeer = options.node || this.selectNode();
 	if (options.port === '' || options.port) this.port = options.port;
 	else                                    this.port = 8000;
 	this.parseOfflineRequests = parseOfflineRequest;
@@ -113,13 +113,14 @@ LiskAPI.prototype.getNethash = function () {
 };
 
 LiskAPI.prototype.setNode = function (node) {
-	this.currentNode = node || this.selectNode();
-	return this.currentNode;
+	this.currentPeer = node || this.selectNode();
+	return this.currentPeer;
 };
 
 LiskAPI.prototype.setTestnet = function (testnet) {
 	if (this.testnet !== testnet) {
 		this.testnet = testnet;
+		this.port = 7000;
 		this.selectNode();
 	}
 };
@@ -132,7 +133,7 @@ LiskAPI.prototype.setSSL = function (ssl) {
 };
 
 LiskAPI.prototype.getFullUrl = function () {
-	var nodeUrl = this.currentNode;
+	var nodeUrl = this.currentPeer;
 
 	if (this.port) {
 		nodeUrl += ':'+this.port;
@@ -153,16 +154,16 @@ LiskAPI.prototype.selectNode = function () {
 	var currentRandomPeer;
 
 	if (this.options.node) {
-		currentRandomPeer = this.currentNode;
+		currentRandomPeer = this.currentPeer;
 	}
 
-	if (this.autoFindNode) {
+	if (this.randomPeer) {
 		currentRandomPeer = this.getRandomPeer();
 		var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 		if (this.testnet) peers = this.defaultTestnetPeers;
 
 		for (var x = 0; x< peers.length; x++) {
-			if (this.bannedNodes.indexOf(currentRandomPeer) === -1) break;
+			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) break;
 			currentRandomPeer = this.getRandomPeer();
 		}
 	}
@@ -179,7 +180,7 @@ LiskAPI.prototype.getRandomPeer = function () {
 };
 
 LiskAPI.prototype.banNode = function () {
-	if (this.bannedNodes.indexOf(this.currentNode) === -1) this.bannedNodes.push(this.currentNode);
+	if (this.bannedPeers.indexOf(this.currentPeer) === -1) this.bannedPeers.push(this.currentPeer);
 	this.selectNode();
 };
 
@@ -278,11 +279,7 @@ LiskAPI.prototype.serialiseHttpData = function (data, type) {
 	var serialised;
 
 	if (type === 'GET') {
-		if (typeof data === 'string') {
-			data += '&random=' + Math.random();
-		} else {
-			data.random = Math.random();
-		}
+		data.random = Math.random().toString();
 	}
 
 	serialised = this.trimObj(data);
@@ -426,12 +423,18 @@ function ParseOfflineRequest (requestType, options) {
 	return this;
 }
 
-ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
+ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
 	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
-		if (this.options && !this.options.hasOwnProperty('secret')) {
+		if (options && !options.hasOwnProperty('secret')) {
 			requestType = 'getTransactions';
 		}
 	}
+
+	return requestType;
+};
+
+ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
+	requestType = this.checkDoubleNamedAPI(requestType, this.options);
 
 	var requestMethod;
 	var requestIdentification =  {
@@ -544,10 +547,12 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				tags: OfflineRequestThis.options['tags'],
 				type: OfflineRequestThis.options['type'],
 				link: OfflineRequestThis.options['link'],
-				icon: OfflineRequestThis.options['icon']
+				icon: OfflineRequestThis.options['icon'],
+				secret: OfflineRequestThis.options['secret'],
+				secondSecret: OfflineRequestThis.options['secondSecret']
 			};
 
-			var transaction = LiskJS.dapp.createDapp(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], DappOptions);
+			var transaction = LiskJS.dapp.createDapp(DappOptions);
 
 			OfflineRequestThis.params = { transaction };
 
@@ -22579,7 +22584,7 @@ module.exports={
         "spec": ">=6.0.0 <7.0.0",
         "type": "range"
       },
-      "/Users/tobias/GitHub/lisk-js/node_modules/browserify-sign"
+      "/Users/Oliver/github/LiskHQ/lisk-js/node_modules/browserify-sign"
     ]
   ],
   "_from": "elliptic@>=6.0.0 <7.0.0",
@@ -22614,7 +22619,7 @@ module.exports={
   "_shasum": "cac9af8762c85836187003c8dfe193e5e2eae5df",
   "_shrinkwrap": null,
   "_spec": "elliptic@^6.0.0",
-  "_where": "/Users/tobias/GitHub/lisk-js/node_modules/browserify-sign",
+  "_where": "/Users/Oliver/github/LiskHQ/lisk-js/node_modules/browserify-sign",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"

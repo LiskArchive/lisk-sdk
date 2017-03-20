@@ -87,6 +87,12 @@ describe('slots.js', function () {
 			(real).should.be.ok;
 			(real).should.be.type('number').and.equal(1464109210000);
 		});
+
+		it('should return real time, even when undefined input', function () {
+			var getRealTimeOutput = getRealTime(undefined);
+
+			(getRealTimeOutput).should.be.ok;
+		});
 	});
 
 	describe('#getSlotNumber', function () {
