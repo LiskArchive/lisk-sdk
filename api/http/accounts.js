@@ -3,11 +3,12 @@
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 var schema = require('../../schema/accounts.js');
+var config = require('../../config.json');
 
 // Constructor
 function AccountsHttpApi (accountsModule, app) {
 
-	var router = new Router();
+	var router = new Router(config.api);
 
 	router.map(accountsModule.shared, {
 		'post /open': 'open',
