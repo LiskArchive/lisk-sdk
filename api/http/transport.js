@@ -3,11 +3,12 @@
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 var schema = require('../../schema/transport');
+var config = require('../../config.json');
 
 // Constructor
 function TransportHttpApi (transportModule, app, logger) {
 
-	var router = new Router();
+	var router = new Router(config.peers);
 
 	router.use(handshakeMiddleware);
 
