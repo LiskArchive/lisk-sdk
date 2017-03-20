@@ -114,7 +114,6 @@ describe('ParseOfflineRequests', function () {
 			// (checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
 			(checkRequestRouting.checkOfflineRequestBefore().params).should.be.ok();
 		});
-    
 	});
 
 	describe('#transactionOutputAfter', function () {
