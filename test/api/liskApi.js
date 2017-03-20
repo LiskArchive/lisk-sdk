@@ -495,8 +495,7 @@ describe('Lisk.api()', function () {
 
 	describe('#getBlock', function () {
 
-		it('should list a block of certain height', function (done) {
-			this.timeout(5000);
+		it('should get a block of certain height', function (done) {
 			lisk.api().getBlock('2346638', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
