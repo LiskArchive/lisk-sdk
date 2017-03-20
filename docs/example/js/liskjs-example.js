@@ -66,7 +66,7 @@ $(function () {
 		} catch (e) {
 			$('#validSignature').html('Failed to decrypt message.');
 
-			if (e.message === 'Cannot read property 'length' of null') {
+			if (e.message === "Cannot read property 'length' of null") {
 				$('#validSignature').append('<br>Invalid Signature');
 			} else if (e.message.substring(0,4) === 'nacl') {
 				$('#validSignature').append('<br>Invalid publicKey');
