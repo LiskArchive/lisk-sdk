@@ -10,6 +10,14 @@ function TransportHttpApi (transportModule, app, logger) {
 
 	var router = new Router(config.peers);
 
+	router.use(function (req, res, next) {
+		res.set(transportModule.headers());
+		if (transportModule.isLoaded()) {
+			return next();
+		}
+		res.status(500).send({success: false, error: 'Blockchain is loading'});
+	});
+
 	router.use(handshakeMiddleware);
 
 	router.get('/blocks/common', getCommonBlocksMiddleware);
@@ -43,14 +51,6 @@ function TransportHttpApi (transportModule, app, logger) {
 	});
 
 	router.use(httpApi.middleware.notFound);
-
-	router.use(function (req, res, next) {
-		res.set(transportModule.headers());
-		if (transportModule.isLoaded()) {
-			return next();
-		}
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
 
 	app.use('/peer', router);
 
