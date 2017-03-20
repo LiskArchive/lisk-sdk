@@ -219,13 +219,13 @@ LiskAPI.prototype.sendRequestPromise = function (requestType, options) {
 		var requestValues = that.changeRequest(requestType, options);
 		return this.doPopsicleRequest(requestValues);
 	} else {
-		return new Promise(function(resolve) {
+		return new Promise(function (resolve) {
 			resolve({ done: 'done'});
 		});
 	}
 };
 
-LiskAPI.prototype.doPopsicleRequest = function(requestValue) {
+LiskAPI.prototype.doPopsicleRequest = function (requestValue) {
 	return popsicle.request({
 		method: requestValue.requestMethod,
 		url: requestValue.requestUrl,
