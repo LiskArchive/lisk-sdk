@@ -23,18 +23,18 @@ describe('ParseOfflineRequests', function () {
 		});
 	});
 
-	describe('#checkDoubleNamedAPI', function() {
+	describe('#checkDoubleNamedAPI', function () {
 
-		it('should route to getTransactions when /transactions API is called and no secret is added', function() {
+		it('should route to getTransactions when /transactions API is called and no secret is added', function () {
 			var requestMethodGetTx = LSK.parseOfflineRequests('transactions', { senderId: '123' });
 
 			(requestMethodGetTx.requestMethod).should.be.equal('GET');
 		});
 	});
 
-	describe('#checkDoubleNamedAPI', function() {
+	describe('#checkDoubleNamedAPI', function () {
 
-		it('should route to getTransactions when /transactions API is called and no secret is added', function() {
+		it('should route to getTransactions when /transactions API is called and no secret is added', function () {
 			var requestMethodGetTx = LSK.parseOfflineRequests('transactions', { senderId: '123' });
 
 			(requestMethodGetTx.requestMethod).should.be.equal('GET');

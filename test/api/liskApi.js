@@ -416,7 +416,7 @@ describe('Lisk.api()', function () {
 
 	describe('#sendRequest', function () {
 
-		it('should receive Height from a random public peer', function(done) {
+		it('should receive Height from a random public peer', function (done) {
 			lisk.api().sendRequest('blocks/getHeight', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
@@ -428,7 +428,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listActiveDelegates', function () {
 
-		it('should list active delegates', function(done) {
+		it('should list active delegates', function (done) {
 			lisk.api().listActiveDelegates('5', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
@@ -441,7 +441,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listStandyDelegates', function () {
 
-		it.skip('should list non-active delegates', function(done) {
+		it.skip('should list non-active delegates', function (done) {
 			lisk.api().listStandyDelegates('5', function (data) {
 				console.log(data);
 				(data).should.be.ok;
@@ -455,7 +455,7 @@ describe('Lisk.api()', function () {
 
 	describe('#searchDelegateByUsername', function () {
 
-		it('should find a delegate by name', function(done) {
+		it('should find a delegate by name', function (done) {
 			lisk.api().searchDelegateByUsername('oliver', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
@@ -468,7 +468,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listBlocks', function () {
 
-		it('should list amount of blocks defined', function(done) {
+		it('should list amount of blocks defined', function (done) {
 			this.timeout(3000);
 			lisk.api().listBlocks('3', function (data) {
 				(data).should.be.ok;
@@ -482,7 +482,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listForgedBlocks', function () {
 
-		it('should list amount of ForgedBlocks', function(done) {
+		it('should list amount of ForgedBlocks', function (done) {
 			this.timeout(4000);
 			lisk.api().listForgedBlocks('130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0', function (data) {
 				(data).should.be.ok;
@@ -495,7 +495,7 @@ describe('Lisk.api()', function () {
 
 	describe('#getBlock', function () {
 
-		it('should list a block of certain height', function(done) {
+		it('should list a block of certain height', function (done) {
 			this.timeout(5000);
 			lisk.api().getBlock('2346638', function (data) {
 				(data).should.be.ok;
@@ -508,7 +508,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listTransactions', function () {
 
-		it('should list transactions of a defined account', function(done) {
+		it('should list transactions of a defined account', function (done) {
 			this.timeout(3000);
 			lisk.api().listTransactions('12731041415715717263L', function (data) {
 				(data).should.be.ok;
@@ -521,7 +521,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listTransactions', function () {
 
-		it('should list a defined transaction', function(done) {
+		it('should list a defined transaction', function (done) {
 			this.timeout(3000);
 			lisk.api().getTransaction('7520138931049441691', function (data) {
 				(data).should.be.ok;
@@ -534,7 +534,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listVotes', function () {
 
-		it('should list votes of an account', function(done) {
+		it('should list votes of an account', function (done) {
 			this.timeout(3000);
 			lisk.api().listVotes('16010222169256538112L', function (data) {
 				(data).should.be.ok;
@@ -547,7 +547,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listVoters', function () {
 
-		it('should list voters of an account', function(done) {
+		it('should list voters of an account', function (done) {
 			this.timeout(3000);
 			lisk.api().listVoters('6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a', function (data) {
 				(data).should.be.ok;
