@@ -17,9 +17,9 @@ Lisk JS is a JavaScript library for [Lisk - the cryptocurrency and blockchain ap
 
 ## CDN
 
-https://gitcdn.xyz/repo/LiskHQ/lisk-js/development/dist/lisk-js.min.js<br/>
+https://gitcdn.xyz/repo/LiskHQ/lisk-js/development/dist/lisk-js.js<br/>
 ```html
-<script src="https://gitcdn.xyz/repo/LiskHQ/lisk-js/development/dist/lisk-js.min.js"></script>
+<script src="https://gitcdn.xyz/repo/LiskHQ/lisk-js/development/dist/lisk-js.js"></script>
 ```
 
 ## Server
