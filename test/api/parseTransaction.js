@@ -23,18 +23,18 @@ describe('ParseOfflineRequests', function () {
 		});
 	});
 
-	describe('#checkDoubleNamedAPI', function() {
+	describe('#checkDoubleNamedAPI', function () {
 
-		it('should route to getTransactions when /transactions API is called and no secret is added', function() {
+		it('should route to getTransactions when /transactions API is called and no secret is added', function () {
 			var requestMethodGetTx = LSK.parseOfflineRequests('transactions', { senderId: '123' });
 
 			(requestMethodGetTx.requestMethod).should.be.equal('GET');
 		});
 	});
 
-	describe('#checkDoubleNamedAPI', function() {
+	describe('#checkDoubleNamedAPI', function () {
 
-		it('should route to getTransactions when /transactions API is called and no secret is added', function() {
+		it('should route to getTransactions when /transactions API is called and no secret is added', function () {
 			var requestMethodGetTx = LSK.parseOfflineRequests('transactions', { senderId: '123' });
 
 			(requestMethodGetTx.requestMethod).should.be.equal('GET');
@@ -172,7 +172,6 @@ describe('ParseOfflineRequests', function () {
 			var reqAnswer = {
 				'success': 'false',
 				'error': 'Forging not available via offlineRequest'
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('delegates/forging/enable', { secret: 'unknown' });
@@ -185,7 +184,6 @@ describe('ParseOfflineRequests', function () {
 			var reqAnswer = {
 				'success': 'false',
 				'error': 'Forging not available via offlineRequest'
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('delegates/forging/disable', { secret: 'unknown' });
@@ -198,7 +196,6 @@ describe('ParseOfflineRequests', function () {
 			var reqAnswer = {
 				'success': 'false',
 				'error': 'Install dapp not available via offlineRequest'
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('dapps/install', { secret: 'unknown' });
@@ -211,7 +208,6 @@ describe('ParseOfflineRequests', function () {
 			var reqAnswer = {
 				'success': 'false',
 				'error': 'Uninstall dapp not available via offlineRequest'
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('dapps/uninstall', { secret: 'unknown' });
@@ -224,7 +220,6 @@ describe('ParseOfflineRequests', function () {
 			var reqAnswer = {
 				'success': 'false',
 				'error': 'Launch dapp not available via offlineRequest'
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('dapps/launch', { secret: 'unknown' });
@@ -237,7 +232,6 @@ describe('ParseOfflineRequests', function () {
 			var reqAnswer = {
 				'success': 'false',
 				'error': 'Stop dapp not available via offlineRequest'
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('dapps/stop', { secret: 'unknown' });
@@ -253,7 +247,6 @@ describe('ParseOfflineRequests', function () {
 			};
 			var outputRequest = {
 				request: request
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('accounts/delegates', { secret: 'unknown' });
@@ -269,7 +262,6 @@ describe('ParseOfflineRequests', function () {
 			};
 			var outputRequest = {
 				request: request
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('accounts/delegates', { secret: 'unknown' });
@@ -285,7 +277,6 @@ describe('ParseOfflineRequests', function () {
 			};
 			var outputRequest = {
 				request: request
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('transactions', { secret: 'unknown' });
@@ -301,7 +292,6 @@ describe('ParseOfflineRequests', function () {
 			};
 			var outputRequest = {
 				request: request
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('signatures', { secret: 'unknown' });
@@ -317,7 +307,6 @@ describe('ParseOfflineRequests', function () {
 			};
 			var outputRequest = {
 				request: request
-
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('dapps', { secret: 'unknown' });

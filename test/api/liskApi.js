@@ -11,6 +11,8 @@ function getUrlVars (url) {
 	return myJson;
 }
 
+process.env.NODE_ENV = 'test';
+
 describe('Lisk.api()', function () {
 
 	var LSK = lisk.api();
@@ -187,6 +189,10 @@ describe('Lisk.api()', function () {
 
 	describe('#serialiseHttpData', function () {
 
+		before(function () {
+			process.env.NODE_ENV = 'main';
+		});
+
 		it('should create a http string from an object and trim.', function () {
 			var myObj = {
 				obj: ' myval',
@@ -212,6 +218,10 @@ describe('Lisk.api()', function () {
 			(objectify).should.have.property('obj');
 			(objectify).should.have.property('key');
 		});
+
+		after(function () {
+			process.env.NODE_ENV = 'test';
+		});
 	});
 
 	describe('#getAddressFromSecret', function () {
@@ -223,6 +233,321 @@ describe('Lisk.api()', function () {
 			};
 
 			(LSK.getAddressFromSecret('123')).should.eql(address);
+		});
+	});
+
+	describe('#checkRequest', function () {
+
+		it('should identify GET requests', function () {
+			var requestType = 'api/loader/status';
+			var options = '';
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+
+			var requestType = 'api/loader/status/sync';
+			var options = '';
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+
+			var requestType = 'api/loader/status/ping';
+			var options = '';
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+
+			var requestType = 'api/transactions';
+			var options = {blockId: '123', senderId: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('GET');
+		});
+
+		it('should identify POST requests', function () {
+			var requestType = 'accounts/generatePublicKey';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('POST');
+
+			var requestType = 'accounts/open';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('POST');
+		});
+
+		it('should identify PUT requests', function () {
+			var requestType = 'accounts/delegates';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('PUT');
+
+			var requestType = 'signatures';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('PUT');
+
+			var requestType = 'transactions';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('PUT');
+		});
+
+		it('should identify NOACTION requests', function () {
+			var requestType = 'delegates/forging/enable';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('NOACTION');
+
+			var requestType = 'dapps/uninstall';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('NOACTION');
+
+			var requestType = 'multisignatures/sign';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('NOACTION');
+		});
+	});
+
+	describe('#changeRequest', function () {
+
+		it('should give the correct parameters for GET requests', function () {
+			var requestType = 'transactions';
+			var options = {blockId: '123', senderId: '123'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: 'GET',
+				requestParams: {
+					blockId: '123',
+					senderId: '123'
+				},
+				requestUrl: 'http://localhost:8000/api/transactions?blockId=123&senderId=123'
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+		});
+
+		it('should give the correct parameters for GET requests with parameters', function () {
+			var requestType = 'delegates/search/';
+			var options = {q: 'oliver'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: 'GET',
+				requestParams: {
+					q: 'oliver',
+				},
+				requestUrl: 'http://localhost:8000/api/delegates/search/?q=oliver'
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+		});
+
+		it('should give the correct parameters for NOACTION requests', function () {
+			var requestType = 'delegates/forging/enable';
+			var options = {secret: '123'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: '',
+				requestParams: '',
+				requestUrl: ''
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+		});
+
+		it('should give the correct parameters for POST requests', function () {
+			var requestType = 'accounts/open';
+			var options = {secret: '123'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			var output = {
+				nethash: '',
+				requestMethod: 'GET',
+				requestParams: {secret: '123'},
+				requestUrl: 'http://localhost:8000/api/accounts?address=12475940823804898745L'
+			};
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.eql(output);
+		});
+
+		it('should give the correct parameters for PUT requests', function () {
+			var requestType = 'signatures';
+			var options = {secret: '123', secondSecret: '1234'};
+			var checkRequestAnswer = lisk.api({ node: 'localhost' }).changeRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.String();
+			(checkRequestAnswer.requestParams.transaction).should.have.property('amount').which.is.a.Number();
+			(checkRequestAnswer.requestParams).should.have.property('transaction').which.is.a.Object();
+		});
+	});
+
+	describe('#sendRequest', function () {
+
+		it('should receive Height from a random public peer', function (done) {
+			lisk.api().sendRequest('blocks/getHeight', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('#listActiveDelegates', function () {
+
+		it('should list active delegates', function (done) {
+			lisk.api().listActiveDelegates('5', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.delegates).should.have.length(5);
+				done();
+			});
+		});
+	});
+
+	describe('#listStandyDelegates', function () {
+
+		it.skip('should list non-active delegates', function (done) {
+			lisk.api().listStandyDelegates('5', function (data) {
+				console.log(data);
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.delegates).should.have.length(5);
+				done();
+			});
+		});
+	});
+
+	describe('#searchDelegateByUsername', function () {
+
+		it('should find a delegate by name', function (done) {
+			lisk.api().searchDelegateByUsername('oliver', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.delegates[0].username).should.be.equal('oliver');
+				done();
+			});
+		});
+	});
+
+	describe('#listBlocks', function () {
+
+		it('should list amount of blocks defined', function (done) {
+			lisk.api().listBlocks('3', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				(data.blocks).should.have.length(3);
+				done();
+			});
+		});
+	});
+
+	describe('#listForgedBlocks', function () {
+
+		it('should list amount of ForgedBlocks', function (done) {
+			lisk.api().listForgedBlocks('130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('#getBlock', function () {
+
+		it('should get a block of certain height', function (done) {
+			lisk.api().getBlock('2346638', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('#listTransactions', function () {
+
+		it('should list transactions of a defined account', function (done) {
+			lisk.api().listTransactions('12731041415715717263L', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('#listTransactions', function () {
+
+		it('should list a defined transaction', function (done) {
+			lisk.api().getTransaction('7520138931049441691', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('#listVotes', function () {
+
+		it('should list votes of an account', function (done) {
+			lisk.api().listVotes('16010222169256538112L', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('#listVoters', function () {
+
+		it('should list voters of an account', function (done) {
+			lisk.api().listVoters('6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a', function (data) {
+				(data).should.be.ok;
+				(data).should.be.type('object');
+				(data.success).should.be.true;
+				done();
+			});
 		});
 	});
 });
