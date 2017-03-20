@@ -74,7 +74,7 @@ function LiskAPI (options) {
 
 	this.options = options;
 	this.ssl = options.ssl || false;
-	this.noRandomNode = options.noRandomNode || false;
+	this.randomPeer = (typeof options.randomPeer === 'boolean') ? options.randomPeer : true;
 	this.testnet = options.testnet || false;
 	this.bannedPeers = [];
 	this.currentPeer = options.node || this.selectNode();
@@ -157,7 +157,7 @@ LiskAPI.prototype.selectNode = function () {
 		currentRandomPeer = this.currentPeer;
 	}
 
-	if (!this.noRandomNode) {
+	if (this.randomPeer) {
 		currentRandomPeer = this.getRandomPeer();
 		var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 		if (this.testnet) peers = this.defaultTestnetPeers;
@@ -423,12 +423,18 @@ function ParseOfflineRequest (requestType, options) {
 	return this;
 }
 
-ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
+ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
 	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
 		if (options && !options.hasOwnProperty('secret')) {
 			requestType = 'getTransactions';
 		}
 	}
+
+	return requestType;
+};
+
+ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
+	requestType = this.checkDoubleNamedAPI(requestType, this.options);
 
 	var requestMethod;
 	var requestIdentification =  {
@@ -22578,7 +22584,7 @@ module.exports={
         "spec": ">=6.0.0 <7.0.0",
         "type": "range"
       },
-      "/Users/tobias/GitHub/lisk-js/node_modules/browserify-sign"
+      "/Users/Oliver/github/LiskHQ/lisk-js/node_modules/browserify-sign"
     ]
   ],
   "_from": "elliptic@>=6.0.0 <7.0.0",
@@ -22613,7 +22619,7 @@ module.exports={
   "_shasum": "cac9af8762c85836187003c8dfe193e5e2eae5df",
   "_shrinkwrap": null,
   "_spec": "elliptic@^6.0.0",
-  "_where": "/Users/tobias/GitHub/lisk-js/node_modules/browserify-sign",
+  "_where": "/Users/Oliver/github/LiskHQ/lisk-js/node_modules/browserify-sign",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
@@ -31049,9 +31055,3 @@ exports.createContext = Script.createContext = function (context) {
 
 },{"indexof":111}]},{},[1])(1)
 });
-ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
-	return requestType;
-};
-
-ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
-	requestType = this.checkDoubleNamedAPI(requestType, this.options);
