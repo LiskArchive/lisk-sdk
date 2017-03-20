@@ -1,7 +1,7 @@
 {
     "port": 8000,
     "address": "0.0.0.0",
-    "version": "0.5.0",
+    "version": "0.7.0",
     "minVersion": ">=0.5.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
@@ -99,6 +99,9 @@
         "parallelLimit": 20,
         "releaseLimit": 25,
         "relayLimit": 2
+    },
+    "transactions": {
+        "maxTxsPerQueue": 1000
     },
     "forging": {
         "force": false,

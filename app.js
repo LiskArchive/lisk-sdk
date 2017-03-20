@@ -4,6 +4,7 @@ var async = require('async');
 var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
+
 var genesisblock = require('./genesisBlock.json');
 var git = require('./helpers/git.js');
 var https = require('https');
@@ -11,6 +12,7 @@ var Logger = require('./logger.js');
 var packageJson = require('./package.json');
 var path = require('path');
 var program = require('commander');
+var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
@@ -18,6 +20,7 @@ var z_schema = require('./helpers/z_schema.js');
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
+
 /**
  * Hash of last git commit
  *
@@ -103,6 +106,19 @@ var config = {
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
 		sql: './modules/sql.js'
+	},
+	api: {
+		accounts: { http: './api/http/accounts.js' },
+		blocks: { http: './api/http/blocks.js' },
+		dapps: { http: './api/http/dapps.js' },
+		delegates: { http: './api/http/delegates.js' },
+		loader: { http: './api/http/loader.js' },
+		multisignatures: { http: './api/http/multisignatures.js' },
+		peers: { http: './api/http/peers.js' },
+		server: { http: './api/http/server.js' },
+		signatures: { http: './api/http/signatures.js' },
+		transactions: { http: './api/http/transactions.js' },
+		transport: { http: './api/http/transport.js' }
 	}
 };
 
@@ -462,6 +478,23 @@ d.run(function () {
 			async.parallel(tasks, function (err, results) {
 				cb(err, results);
 			});
+		}],
+
+		api: ['modules', 'logger', 'network', function (scope, cb) {
+			Object.keys(config.api).forEach(function (moduleName) {
+				Object.keys(config.api[moduleName]).forEach(function (protocol) {
+					var apiEndpointPath = config.api[moduleName][protocol];
+					try {
+						var ApiEndpoint = require(apiEndpointPath);
+						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger);
+					} catch (e) {
+						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
+					}
+				});
+			});
+
+			scope.network.app.use(httpApi.middleware.errorLogger.bind(null, scope.logger));
+			cb();
 		}],
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {

@@ -195,6 +195,15 @@ module.exports = {
 					}
 				}
 			},
+			transactions: {
+				type: 'object',
+				maxTxsPerQueue: {
+					type: 'integer',
+					minimum: 100,
+					maximum: 5000
+				},
+				required: ['maxTxsPerQueue']
+			},
 			forging: {
 				type: 'object',
 				properties: {

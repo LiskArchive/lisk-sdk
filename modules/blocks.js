@@ -3,14 +3,12 @@
 var _ = require('lodash');
 var async = require('async');
 var BlockReward = require('../logic/blockReward.js');
-var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var genesisblock = null;
 var Inserts = require('../helpers/inserts.js');
 var ip = require('ip');
 var OrderBy = require('../helpers/orderBy.js');
-var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/blocks.js');
 var slots = require('../helpers/slots.js');
@@ -18,7 +16,7 @@ var sql = require('../sql/blocks.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, library, self, __private = {};
 
 __private.lastBlock = {};
 __private.lastReceipt = null;
@@ -80,48 +78,10 @@ function Blocks (cb, scope) {
 	genesisblock = library.genesisblock;
 	self = this;
 
-	__private.attachApi();
-
 	__private.saveGenesisBlock(function (err) {
 		return setImmediate(cb, err, self);
 	});
 }
-
-// Private methods
-__private.attachApi = function () {
-	var router = new Router(library.config.api);
-
-	router.use(function (req, res, next) {
-		if (modules) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
-
-	router.map(shared, {
-		'get /get': 'getBlock',
-		'get /': 'getBlocks',
-		'get /getBroadhash': 'getBroadhash',
-		'get /getEpoch': 'getEpoch',
-		'get /getHeight': 'getHeight',
-		'get /getNethash': 'getNethash',
-		'get /getFee': 'getFee',
-		'get /getFees': 'getFees',
-		'get /getMilestone': 'getMilestone',
-		'get /getReward': 'getReward',
-		'get /getSupply': 'getSupply',
-		'get /getStatus': 'getStatus'
-	});
-
-	router.use(function (req, res, next) {
-		res.status(500).send({success: false, error: 'API endpoint not found'});
-	});
-
-	library.network.app.use('/api/blocks', router);
-	library.network.app.use(function (err, req, res, next) {
-		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err.message);
-		res.status(500).send({success: false, error: 'API error: ' + err.message});
-	});
-};
 
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
@@ -1310,7 +1270,7 @@ Blocks.prototype.deleteAfterBlock = function (blockId, cb) {
 };
 
 Blocks.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
+	sandboxHelper.callMethod(Blocks.prototype.shared, call, args, cb);
 };
 
 // Events
@@ -1465,139 +1425,146 @@ Blocks.prototype.getBlockProgressLogger = function (transactionsCount, logsFrequ
 			library.logger.info(msg, ((this.applied / this.target) *  100).toPrecision(4)+ ' %' + ': applied ' + this.applied + ' of ' + this.target + ' transactions' );
 		};
 	}
+
 	return new BlockProgressLogger(transactionsCount, logsFrequency, msg);
 };
 
-// Shared
-shared.getBlock = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
+Blocks.prototype.isLoaded = function () {
+	return !!modules;
+};
 
-	library.schema.validate(req.body, schema.getBlock, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
+// Shared API
+Blocks.prototype.shared = {
+	getBlock: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
 		}
 
-		library.dbSequence.add(function (cb) {
-			__private.getById(req.body.id, function (err, block) {
-				if (!block || err) {
-					return setImmediate(cb, 'Block not found');
-				}
-				return setImmediate(cb, null, {block: block});
-			});
-		}, cb);
-	});
-};
+		library.schema.validate(req.body, schema.getBlock, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
 
-shared.getBlocks = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
+			library.dbSequence.add(function (cb) {
+				__private.getById(req.body.id, function (err, block) {
+					if (!block || err) {
+						return setImmediate(cb, 'Block not found');
+					}
+					return setImmediate(cb, null, {block: block});
+				});
+			}, cb);
+		});
+	},
 
-	library.schema.validate(req.body, schema.getBlocks, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
+	getBlocks: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
 		}
 
-		library.dbSequence.add(function (cb) {
-			__private.list(req.body, function (err, data) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				return setImmediate(cb, null, {blocks: data.blocks, count: data.count});
-			});
-		}, cb);
-	});
-};
+		library.schema.validate(req.body, schema.getBlocks, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
 
-shared.getBroadhash = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
+			library.dbSequence.add(function (cb) {
+				__private.list(req.body, function (err, data) {
+					if (err) {
+						return setImmediate(cb, err);
+					}
+					return setImmediate(cb, null, {blocks: data.blocks, count: data.count});
+				});
+			}, cb);
+		});
+	},
+
+	getBroadhash: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {broadhash: modules.system.getBroadhash()});
+	},
+
+	getEpoch: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {epoch: constants.epochTime});
+	},
+
+	getHeight: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {height: __private.lastBlock.height});
+	},
+
+	getFee: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {fee: library.logic.block.calculateFee()});
+	},
+
+	getFees: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {fees: constants.fees});
+	},
+
+	getNethash: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {nethash: modules.system.getNethash()});
+	},
+
+	getMilestone: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {milestone: __private.blockReward.calcMilestone(__private.lastBlock.height)});
+	},
+
+	getReward: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {reward: __private.blockReward.calcReward(__private.lastBlock.height)});
+	},
+
+	getSupply: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {supply: __private.blockReward.calcSupply(__private.lastBlock.height)});
+	},
+
+	getStatus: function (req, cb) {
+		if (!__private.loaded) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return setImmediate(cb, null, {
+			broadhash: modules.system.getBroadhash(),
+			epoch: constants.epochTime,
+			height: __private.lastBlock.height,
+			fee: library.logic.block.calculateFee(),
+			milestone: __private.blockReward.calcMilestone(__private.lastBlock.height),
+			nethash: modules.system.getNethash(),
+			reward: __private.blockReward.calcReward(__private.lastBlock.height),
+			supply: __private.blockReward.calcSupply(__private.lastBlock.height)
+		});
 	}
-
-	return setImmediate(cb, null, {broadhash: modules.system.getBroadhash()});
-};
-
-shared.getEpoch = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {epoch: constants.epochTime});
-};
-
-shared.getHeight = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {height: __private.lastBlock.height});
-};
-
-shared.getFee = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {fee: library.logic.block.calculateFee()});
-};
-
-shared.getFees = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {fees: constants.fees});
-};
-
-shared.getNethash = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {nethash: modules.system.getNethash()});
-};
-
-shared.getMilestone = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {milestone: __private.blockReward.calcMilestone(__private.lastBlock.height)});
-};
-
-shared.getReward = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {reward: __private.blockReward.calcReward(__private.lastBlock.height)});
-};
-
-shared.getSupply = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {supply: __private.blockReward.calcSupply(__private.lastBlock.height)});
-};
-
-shared.getStatus = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {
-		broadhash: modules.system.getBroadhash(),
-		epoch:     constants.epochTime,
-		height:    __private.lastBlock.height,
-		fee:       library.logic.block.calculateFee(),
-		milestone: __private.blockReward.calcMilestone(__private.lastBlock.height),
-		nethash:   modules.system.getNethash(),
-		reward:    __private.blockReward.calcReward(__private.lastBlock.height),
-		supply:    __private.blockReward.calcSupply(__private.lastBlock.height)
-	});
 };
 
 // Export
