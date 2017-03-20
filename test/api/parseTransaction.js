@@ -38,9 +38,7 @@ describe('ParseOfflineRequests', function () {
 			var requestMethodGetTx = LSK.parseOfflineRequests('transactions', { senderId: '123' });
 
 			(requestMethodGetTx.requestMethod).should.be.equal('GET');
-
 		});
-
 	});
 
 	describe('#checkOfflineRequestBefore', function () {
@@ -112,8 +110,8 @@ describe('ParseOfflineRequests', function () {
 			var checkRequestRouting = lisk.api().parseOfflineRequests('dapps', options);
 
 			(checkRequestRouting.requestMethod).should.be.equal('PUT');
-			//(checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
-			//(checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
+			// (checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
+			// (checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
 			(checkRequestRouting.checkOfflineRequestBefore().params).should.be.ok();
 		});
 	});

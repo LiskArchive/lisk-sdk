@@ -217,7 +217,6 @@ describe('Lisk.api()', function () {
 	describe('#getAddressFromSecret', function () {
 
 		it('should create correct address and publicKey', function () {
-
 			var address = {
 				publicKey: 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
 				address: '12475940823804898745L'
