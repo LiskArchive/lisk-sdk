@@ -89,7 +89,7 @@ To test that Lisk is built and configured correctly, run the following command:
 
 `node app.js`
 
-In a browser navigate to: <http://localhost:7000>. If  Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
+In a browser navigate to: <http://localhost:8000>. If  Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
 
 Once the process is verified as running correctly, `CTRL+C` and start the process with `forever`. This will fork the process into the background and automatically recover the process if it fails.
 
