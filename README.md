@@ -13,7 +13,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
 - Tool chain components -- Used for compiling dependencies
 
   `sudo apt-get install -y python build-essential curl automake autoconf libtool`
-  
+
 - Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
   `sudo apt-get install -y git`
@@ -44,7 +44,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
   sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
   sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
   ```
-  
+
 - Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
 
   `npm install -g bower`
@@ -98,7 +98,7 @@ To test that Lisk is built and configured correctly, run the following command:
 
 `node app.js`
 
-In a browser navigate to: <http://localhost:8000> (for the mainnet) or <http://localhost:7000> (for the testnet). If  Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
+In a browser navigate to: <http://localhost:8000> (for the mainnet) or <http://localhost:7000> (for the testnet). If Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
 
 Once the process is verified as running correctly, `CTRL+C` and start the process with `forever`. This will fork the process into the background and automatically recover the process if it fails.
 
