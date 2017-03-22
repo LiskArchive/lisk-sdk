@@ -51,8 +51,8 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 - Grunt.js (<http://gruntjs.com/>) -- Grunt is used to compile the frontend code and serves other functions.
 
-  `npm install -g grunt`
-  
+  `npm install -g grunt-cli`
+
 - Forever (<https://github.com/foreverjs/forever>) -- Forever manages the node process for Lisk (Optional)
 
   `npm install -g forever`
