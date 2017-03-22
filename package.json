@@ -8,7 +8,7 @@
     "travis": "./node_modules/.bin/grunt travis --verbose",
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose"
   },
-  "author": "Boris Povod <boris@crypti.me>, Pavel Nekrasov <landgraf.paul@gmail.com>, Oliver Beddows <oliver@lisk.io>",
+  "author": "lightcurve GmbH <admin@lightcurve.io>",
   "dependencies": {
     "async": "=2.1.4",
     "bignumber.js": "=4.0.0",
