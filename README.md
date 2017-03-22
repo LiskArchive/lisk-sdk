@@ -18,7 +18,16 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
   `sudo apt-get install -y git`
 
-- Nodejs v6.9.4 (<https://nodejs.org/>) -- Nodejs serves as the underlying engine for code execution.
+- Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for code execution.
+
+  System wide via package manager:
+
+  ```
+  curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
+
+  Locally using [nvm](https://github.com/creationix/nvm):
 
   ```
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
