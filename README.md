@@ -165,7 +165,10 @@ npm test -- test/lib/transactions.js
 - Boris Povod <boris@crypti.me>
 - Pavel Nekrasov <landgraf.paul@gmail.com>
 - Sebastian Stupurac <stupurac.sebastian@gmail.com>
-- Oliver Beddows <oliver@lisk.io>
+- Oliver Beddows <oliver@lightcurve.io>
+- Isabella Dell <isabella@lightcurve.io>
+- Marius Serek <mariusz@serek.net>
+- Maciej Baj <maciej@lightcurve.io>
 
 ## License
 
