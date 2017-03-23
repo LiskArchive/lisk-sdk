@@ -216,11 +216,11 @@ __private.dbSave = function (cb) {
 		}}
 	], {table: 'peers'});
 
-	// Generating insert query
-	var insert_peers = pgp.helpers.insert(peers, cs);
-
 	// Wrap sql queries in transaction and execute
 	library.db.tx(function (t) {
+		// Generating insert query
+		var insert_peers = pgp.helpers.insert(peers, cs);
+		
 		var queries = [
 			// Clear peers table
 			t.none(sql.clear),
