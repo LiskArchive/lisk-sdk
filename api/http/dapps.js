@@ -3,12 +3,11 @@
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 var schema = require('../../schema/dapps');
-var config = require('../../config.json');
 
 // Constructor
 function DappsHttpApi (dappsModule, app) {
 
-	var router = new Router(config.api);
+	var router = new Router();
 
 	router.map(dappsModule.internal, {
 		'get /categories': 'categories',

@@ -2,12 +2,11 @@
 
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
-var config = require('../../config.json');
 
 // Constructor
 function DelegatesHttpApi (delegatesModule, app) {
 
-	var router = new Router(config.api);
+	var router = new Router();
 
 	router.map(delegatesModule.shared, {
 		'get /count': 'count',
