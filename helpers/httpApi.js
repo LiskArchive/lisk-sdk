@@ -34,12 +34,11 @@ var middleware = {
 	/**
 	 * Log api client connections
 	 * @param {Logger} logger
-	 * @param {Error} err
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {Function} next
 	 */
-	logClientConnections: function (logger, err, req, res, next) {
+	logClientConnections: function (logger, req, res, next) {
 		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
 		// Log client connections
