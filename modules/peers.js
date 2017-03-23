@@ -328,10 +328,8 @@ Peers.prototype.discover = function (cb) {
 
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
-		// Removing peers with private or host's ip address
-		return !(ip.isPrivate(peer.ip) || ip.address('public', 'ipv4', true).some(function (address) {
-			return [address, library.config.port].join(':') === [peer.ip, peer.port].join(':');
-		}));
+		// Removing peers with private or address or with the same nonce
+		return !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);

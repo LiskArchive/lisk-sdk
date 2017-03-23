@@ -67,6 +67,18 @@ var middleware = {
 				return cb(sanitized, respond.bind(null, res));
 			});
 		};
+	},
+
+	/**
+	 * Pass getter for headers and assign then to response
+	 * @param {Function} getHeaders
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {Function} next
+	 */
+	attachResponseHeaders: function (getHeaders, req, res, next) {
+		res.set(getHeaders());
+		return next();
 	}
 };
 

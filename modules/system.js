@@ -24,6 +24,7 @@ function System (cb, scope) {
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;
 	__private.minVersion = library.config.minVersion;
+	__private.nonce = library.nonce;
 
 	if (rcRegExp.test(__private.minVersion)) {
 		this.minVersion = __private.minVersion.replace(rcRegExp, '');
