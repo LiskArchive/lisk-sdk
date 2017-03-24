@@ -19,7 +19,8 @@ Peer.prototype.properties = [
 	'broadhash',
 	'height',
 	'clock',
-	'updated'
+	'updated',
+	'nonce'
 ];
 
 Peer.prototype.immutable = [
@@ -33,7 +34,8 @@ Peer.prototype.headers = [
 	'version',
 	'dappid',
 	'broadhash',
-	'height'
+	'height',
+	'nonce'
 ];
 
 Peer.prototype.nullable = [
