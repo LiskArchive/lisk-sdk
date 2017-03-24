@@ -29,12 +29,12 @@ var BlocksSql = {
     return [
       'WITH',
       'delegate AS (SELECT',
-        '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE (${generatorPublicKey}, \'hex\') LIMIT 1),',
-      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards FROM blocks WHERE "generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\')',
+        '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE(${generatorPublicKey}, \'hex\') LIMIT 1),',
+      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards FROM blocks WHERE "generatorPublicKey" = DECODE(${generatorPublicKey}, \'hex\')',
           (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
           (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       '),',
-      'fees AS (SELECT SUM(fees) AS fees FROM rounds_rewards WHERE "publicKey" = DECODE (${generatorPublicKey}, \'hex\')',
+      'fees AS (SELECT SUM(fees) AS fees FROM rounds_rewards WHERE "publicKey" = DECODE(${generatorPublicKey}, \'hex\')',
           (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
           (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       ')',
@@ -61,11 +61,11 @@ var BlocksSql = {
     return [
       'WITH',
       'current_round AS (SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b WHERE b.height <= ${height} ORDER BY b.height DESC LIMIT 1),',
-      'rounds AS (SELECT * FROM generate_series((SELECT * FROM current_round),(SELECT * FROM current_round)-${limit}+1,-1))',
+      'rounds AS (SELECT * FROM generate_series((SELECT * FROM current_round), (SELECT * FROM current_round) - ${limit} + 1, -1))',
       'SELECT',
-        'b.id, b.height, CEIL(b.height / ${delegates}::float)::bigint as round',
+        'b.id, b.height, CEIL(b.height / ${delegates}::float)::bigint AS round',
         'FROM blocks b',
-        'WHERE b.height IN (SELECT ((n-1)*${delegates})+1 FROM rounds AS s(n)) ORDER BY height DESC'
+        'WHERE b.height IN (SELECT ((n - 1) * ${delegates}) + 1 FROM rounds AS s(n)) ORDER BY height DESC'
     ].filter(Boolean).join(' ');
   },
 

@@ -43,8 +43,8 @@ CREATE FUNCTION rounds_rewards_init() RETURNS void LANGUAGE PLPGSQL AS $$
 				FROM round AS test GROUP BY "generatorPublicKey")
 			INSERT INTO rounds_rewards
 				SELECT
-					(SELECT MAX(timestamp) FROM round) as timestamp,
-					(floor(fees/101)*cnt + (CASE WHEN last = 1 THEN (fees-floor(fees/101)*101) ELSE 0 END)) AS fees,
+					(SELECT MAX(timestamp) FROM round) AS timestamp,
+					(FLOOR(fees / 101) * cnt + (CASE WHEN last = 1 THEN (fees - FLOOR(fees / 101) * 101) ELSE 0 END)) AS fees,
 					CEIL((SELECT height FROM round LIMIT 1) / 101::float)::int AS round,
 					"generatorPublicKey" AS "publicKey"
 				FROM summary;
@@ -78,9 +78,8 @@ CREATE TRIGGER rounds_rewards_delete
 -- Create function for inserting round rewards when last block of round is inserted
 CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
-
 		WITH
-		borders AS (SELECT ((CEIL(NEW.height / 101::float)::int-1)*101)+1 AS min, CEIL(NEW.height / 101::float)::int*101 AS max),
+		borders AS (SELECT ((CEIL(NEW.height / 101::float)::int - 1) * 101) + 1 AS min, CEIL(NEW.height / 101::float)::int * 101 AS max),
 		round AS (SELECT timestamp, height, "generatorPublicKey", "totalFee", CEIL(height / 101::float)::int AS round FROM blocks WHERE height BETWEEN (SELECT min FROM borders) AND (SELECT max FROM borders) ORDER BY height DESC),
 		summary AS (
 			SELECT
@@ -91,8 +90,8 @@ CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 			FROM round AS test GROUP BY "generatorPublicKey")
 		INSERT INTO rounds_rewards
 			SELECT
-				(SELECT MAX(timestamp) FROM round) as timestamp,
-				(floor(fees/101)*cnt + (CASE WHEN last = 1 THEN (fees-floor(fees/101)*101) ELSE 0 END)) AS fees,
+				(SELECT MAX(timestamp) FROM round) AS timestamp,
+				(FLOOR(fees / 101) * cnt + (CASE WHEN last = 1 THEN (fees - FLOOR(fees / 101) * 101) ELSE 0 END)) AS fees,
 				CEIL((SELECT height FROM round LIMIT 1) / 101::float)::int AS round,
 				"generatorPublicKey" AS "publicKey"
 			FROM summary;
