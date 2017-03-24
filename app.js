@@ -285,7 +285,9 @@ d.run(function () {
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
+			var randomString = require('randomstring');
 
+			scope.nonce = randomString.generate(16);
 			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.set('view engine', 'ejs');

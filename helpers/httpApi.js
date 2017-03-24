@@ -107,7 +107,6 @@ var middleware = {
 	 * @param {Function} next
 	 */
 	applyAPIAccessRules: function (req, res, next) {
-
 		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
 		if (req.url.match(/^\/peer[\/]?.*/)) {
@@ -121,6 +120,18 @@ var middleware = {
 		function rejectDisabled (apiEnabled) {
 			return apiEnabled ? next() : res.status(500).send({success: false, error: 'API endpoint disabled'});
 		}
+	},
+
+	/**
+	 * Pass getter for headers and assign then to response
+	 * @param {Function} getHeaders
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {Function} next
+	 */
+	attachResponseHeaders: function (getHeaders, req, res, next) {
+		res.set(getHeaders());
+		return next();
 	}
 };
 

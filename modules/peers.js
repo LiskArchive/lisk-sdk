@@ -182,16 +182,16 @@ __private.dbSave = function (cb) {
 	// Creating set of columns
 	var cs = new pgp.helpers.ColumnSet([
 		'ip', 'port', 'state', 'height', 'os', 'version', 'clock',
-		{name: 'broadhash', def: null, init: function (col) {
+		{name: 'broadhash', init: function (col) {
 			return col.value ? new Buffer(col.value, 'hex') : null;
 		}}
 	], {table: 'peers'});
 
-	// Generating insert query
-	var insert_peers = pgp.helpers.insert(peers, cs);
-
 	// Wrap sql queries in transaction and execute
 	library.db.tx(function (t) {
+		// Generating insert query
+		var insert_peers = pgp.helpers.insert(peers, cs);
+		
 		var queries = [
 			// Clear peers table
 			t.none(sql.clear),
@@ -328,10 +328,8 @@ Peers.prototype.discover = function (cb) {
 
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
-		// Removing peers with private or host's ip address
-		return !(ip.isPrivate(peer.ip) || ip.address('public', 'ipv4', true).some(function (address) {
-			return [address, library.config.port].join(':') === [peer.ip, peer.port].join(':');
-		}));
+		// Removing peers with private or address or with the same nonce
+		return !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
