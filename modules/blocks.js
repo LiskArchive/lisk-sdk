@@ -234,7 +234,7 @@ __private.getById = function (id, cb) {
 };
 
 __private.getIdSequence = function (height, cb) {
-	library.db.query(sql.getIdSequence, { height: height, limit: 5, delegates: slots.delegates, activeDelegates: constants.activeDelegates }).then(function (rows) {
+	library.db.query(sql.getIdSequence(), {height: height, limit: 5, delegates: constants.activeDelegates}).then(function (rows) {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Failed to get id sequence for height: ' + height);
 		}
