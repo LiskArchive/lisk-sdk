@@ -8,15 +8,15 @@ var extend = require('extend');
  * @return {Router}
  * @constructor
  */
-var Router = function (config) {
+var Router = function () {
 	var router = require('express').Router();
 
 	router.use(httpApi.middleware.cors);
 
-	router.map = function (root, routesConfig) {
+	router.map = function (root, config) {
 		var router = this;
 
-		Object.keys(routesConfig).forEach(function (params) {
+		Object.keys(config).forEach(function (params) {
 			var route = params.split(' ');
 			if (route.length !== 2 || ['post', 'get', 'put'].indexOf(route[0]) === -1) {
 				throw Error('Invalid map config');
@@ -27,16 +27,10 @@ var Router = function (config) {
 					method: req.method,
 					path: req.path
 				};
-				root[routesConfig[params]](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), httpApi.respond.bind(null, res));
+				root[config[params]](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), httpApi.respond.bind(null, res));
 			});
 		});
 	};
-
-	if (config.enabled === false) {
-		router.use(function (req, res, next) {
-			res.status(500).send({success: false, error: 'API endpoint disabled'});
-		});
-	}
 
 	return router;
 };

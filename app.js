@@ -322,51 +322,22 @@ d.run(function () {
 
 			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.schema));
 
-			scope.network.app.use(function (req, res, next) {
-				var parts = req.url.split('/');
-				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+			scope.network.app.use(httpApi.middleware.logClientConnections.bind(null, scope.logger));
 
-				// Log client connections
-				logger.log(req.method + ' ' + req.url + ' from ' + ip);
+			/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
+			 *
+			 * RFC -> https://tools.ietf.org/html/rfc7034
+			 */
+			scope.network.app.use(httpApi.middleware.attachResponseHeader.bind(null, 'X-Frame-Options', 'DENY'));
+			/* Set Content-Security-Policy headers.
+			 *
+			 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
+			 *
+			 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
+			 */
+			scope.network.app.use(httpApi.middleware.attachResponseHeader.bind(null, 'Content-Security-Policy', 'frame-ancestors \'none\''));
 
-				/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
-				 *
-				 * RFC -> https://tools.ietf.org/html/rfc7034
-				 */
-				res.setHeader('X-Frame-Options', 'DENY');
-
-				/* Set Content-Security-Policy headers.
-				 *
-				 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
-				 *
-				 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
-				 */
-				res.setHeader('Content-Security-Policy', 'frame-ancestors \'none\'');
-
-				if (parts.length > 1) {
-					if (parts[1] === 'api') {
-						if (scope.config.api.access.public === true) {
-							next();
-						} else {
-							if (checkIpInList(scope.config.api.access.whiteList, ip, false)) {
-								next();
-							} else {
-								res.sendStatus(403);
-							}
-						}
-					} else if (parts[1] === 'peer') {
-						if (checkIpInList(scope.config.peers.blackList, ip, false)) {
-							res.sendStatus(403);
-						} else {
-							next();
-						}
-					} else {
-						next();
-					}
-				} else {
-					next();
-				}
-			});
+			scope.network.app.use(httpApi.middleware.applyAPIAccessRules);
 
 			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
 				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);

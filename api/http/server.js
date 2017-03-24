@@ -6,7 +6,7 @@ var httpApi = require('../../helpers/httpApi');
 // Constructor
 function ServerHttpApi (serverModule, app) {
 
-	var router = new Router({});
+	var router = new Router();
 
 	router.use(function (req, res, next) {
 		if (serverModule.areModulesReady()) { return next(); }

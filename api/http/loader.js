@@ -2,12 +2,11 @@
 
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
-var config = require('../../config.json');
 
 // Constructor
 function LoaderHttpApi (loaderModule, app) {
 
-	var router = new Router(config.api);
+	var router = new Router();
 
 	router.map(loaderModule.shared, {
 		'get /status': 'status',

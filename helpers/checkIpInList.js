@@ -3,14 +3,13 @@
 var _ = require('lodash');
 var ip = require('ip');
 
-/*
-  Checks if ip address is in list (e.g. whitelist, blacklist).
-
-  @param list an array of ip addresses or ip subnets
-  @param addr the ip address to check if in array
-  @param returnListIsEmpty the return value, if list is empty (default: true)
-  @returns true if ip is in the list, false otherwise
-*/
+/**
+ * Checks if ip address is in list (e.g. whitelist, blacklist).
+ * @param {array} list: an array of ip addresses or ip subnets
+ * @param {string} addr: the ip address to check if in array
+ * @param {boolean} [returnListIsEmpty=true] returnListIsEmpty: the return value, if list is empty
+ * @return {boolean} true if ip is in the list, false otherwise
+ */
 function CheckIpInList (list, addr, returnListIsEmpty) {
 	var i, n;
 
