@@ -182,16 +182,16 @@ __private.dbSave = function (cb) {
 	// Creating set of columns
 	var cs = new pgp.helpers.ColumnSet([
 		'ip', 'port', 'state', 'height', 'os', 'version', 'clock',
-		{name: 'broadhash', def: null, init: function (col) {
+		{name: 'broadhash', init: function (col) {
 			return col.value ? new Buffer(col.value, 'hex') : null;
 		}}
 	], {table: 'peers'});
 
-	// Generating insert query
-	var insert_peers = pgp.helpers.insert(peers, cs);
-
 	// Wrap sql queries in transaction and execute
 	library.db.tx(function (t) {
+		// Generating insert query
+		var insert_peers = pgp.helpers.insert(peers, cs);
+		
 		var queries = [
 			// Clear peers table
 			t.none(sql.clear),
