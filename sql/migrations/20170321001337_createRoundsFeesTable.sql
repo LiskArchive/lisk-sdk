@@ -6,9 +6,9 @@ BEGIN;
 
 -- Create table 'rounds_rewards' for storing rewards
 CREATE TABLE IF NOT EXISTS "rounds_rewards"(
+	"height"    INT     NOT NULL,
 	"timestamp" INT     NOT NULL,
 	"fees"      BIGINT  NOT NULL,
-	"round"     INT     NOT NULL,
 	"publicKey" BYTEA   NOT NULL
 );
 
@@ -24,47 +24,59 @@ CREATE FUNCTION rounds_rewards_init() RETURNS void LANGUAGE PLPGSQL AS $$
 	DECLARE
 		row record;
 	BEGIN
+		RAISE NOTICE 'Calculating rewards for rounds, please wait...';
 		FOR row IN
 			SELECT
+				-- Round number
 				CEIL(height / 101::float)::int AS round
 			FROM blocks
-			WHERE height % 101 = 0 AND CEIL(height / 101::float)::int NOT IN (SELECT DISTINCT round FROM rounds_rewards)
+			-- Perform only for rounds that are completed and not present in 'rounds_rewards'
+			WHERE height % 101 = 0 AND height NOT IN (SELECT height FROM rounds_rewards)
+			-- Group by round
 			GROUP BY CEIL(height / 101::float)::int
+			-- Order by round
 			ORDER BY CEIL(height / 101::float)::int ASC
 		LOOP
 			WITH
-			round AS (SELECT timestamp, height, "generatorPublicKey", "totalFee", CEIL(height / 101::float)::int AS round FROM blocks WHERE CEIL(height / 101::float)::int = row.round),
-			summary AS (
-				SELECT
-					"generatorPublicKey",
-					(SELECT SUM("totalFee") FROM round) AS fees,
-					(SELECT COUNT(1) FROM round WHERE "generatorPublicKey" = test."generatorPublicKey") AS cnt,
-					(CASE WHEN (SELECT "generatorPublicKey" FROM round ORDER BY height DESC LIMIT 1) = "generatorPublicKey" THEN 1 ELSE 0 END) AS last
-				FROM round AS test GROUP BY "generatorPublicKey")
+				-- Selecting all blocks of round
+				round AS (SELECT timestamp, height, "generatorPublicKey", "totalFee" FROM blocks WHERE CEIL(height / 101::float)::int = row.round),
+				-- Calculating total fees of round
+				fees AS (SELECT SUM("totalFee") AS total, FLOOR(SUM("totalFee") / 101) AS single FROM round),
+				-- Get last delegate and timestamp of round's last block
+				last AS (SELECT "generatorPublicKey" AS pk, timestamp FROM round ORDER BY height DESC LIMIT 1)
 			INSERT INTO rounds_rewards
 				SELECT
-					(SELECT MAX(timestamp) FROM round) AS timestamp,
-					(FLOOR(fees / 101) * cnt + (CASE WHEN last = 1 THEN (fees - FLOOR(fees / 101) * 101) ELSE 0 END)) AS fees,
-					CEIL((SELECT height FROM round LIMIT 1) / 101::float)::int AS round,
-					"generatorPublicKey" AS "publicKey"
-				FROM summary;
+					-- Block height
+					round.height,
+					-- Timestamp of last round's block
+					last.timestamp,
+					-- Calculating real fee reward for delegate:
+					-- Rounded fee per delegate + remaining fees if block is last one of round
+					(fees.single + (CASE WHEN last.pk = round."generatorPublicKey" AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
+					-- Delgate public key
+					round."generatorPublicKey" AS "publicKey"
+				FROM last, fees, round
+				-- Sort rewards by block height
+				ORDER BY round.height ASC;
 		END LOOP;
 	RETURN;
 END $$;
+--Execution tim
 
 -- Execute 'rounds_rewards_init' function
 SELECT rounds_rewards_init();
 
--- Create indexes on all columns of 'rounds_rewards'
+-- Create indexes on all columns of 'rounds_rewards' + additional index for round
 CREATE INDEX IF NOT EXISTS "rounds_rewards_timestamp" ON "rounds_rewards" ("timestamp");
 CREATE INDEX IF NOT EXISTS "rounds_rewards_fees" ON "rounds_rewards" ("fees");
-CREATE INDEX IF NOT EXISTS "rounds_rewards_round" ON "rounds_rewards" ("round");
+CREATE INDEX IF NOT EXISTS "rounds_rewards_height" ON "rounds_rewards" ("height");
+CREATE INDEX IF NOT EXISTS "rounds_rewards_round" ON "rounds_rewards" ((CEIL(height / 101::float)::int));
 CREATE INDEX IF NOT EXISTS "rounds_rewards_public_key" ON "rounds_rewards" ("publicKey");
 
 -- Create function for deleting round rewards when last block of round is deleted
 CREATE FUNCTION round_rewards_delete() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
-		DELETE FROM rounds_rewards WHERE round = (CEIL(OLD.height / 101::float)::int);
+		DELETE FROM rounds_rewards WHERE CEIL(height / 101::float)::int = (CEIL(OLD.height / 101::float)::int);
 	RETURN NULL;
 END $$;
 
@@ -79,22 +91,26 @@ CREATE TRIGGER rounds_rewards_delete
 CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
 		WITH
-		borders AS (SELECT ((CEIL(NEW.height / 101::float)::int - 1) * 101) + 1 AS min, CEIL(NEW.height / 101::float)::int * 101 AS max),
-		round AS (SELECT timestamp, height, "generatorPublicKey", "totalFee", CEIL(height / 101::float)::int AS round FROM blocks WHERE height BETWEEN (SELECT min FROM borders) AND (SELECT max FROM borders) ORDER BY height DESC),
-		summary AS (
-			SELECT
-				"generatorPublicKey",
-				(SELECT SUM("totalFee") FROM round) AS fees,
-				(SELECT COUNT(1) FROM round WHERE "generatorPublicKey" = test."generatorPublicKey") AS cnt,
-				(CASE WHEN (SELECT "generatorPublicKey" FROM round ORDER BY height DESC LIMIT 1) = "generatorPublicKey" THEN 1 ELSE 0 END) AS last
-			FROM round AS test GROUP BY "generatorPublicKey")
+			-- Selecting all blocks of round
+			round AS (SELECT timestamp, height, "generatorPublicKey", "totalFee" FROM blocks WHERE CEIL(height / 101::float)::int = CEIL(NEW.height / 101::float)::int),
+			-- Calculating total fees of round
+			fees AS (SELECT SUM("totalFee") AS total, FLOOR(SUM("totalFee") / 101) AS single FROM round),
+			-- Get last delegate and timestamp of round's last block
+			last AS (SELECT "generatorPublicKey" AS pk, timestamp FROM round ORDER BY height DESC LIMIT 1)
 		INSERT INTO rounds_rewards
 			SELECT
-				(SELECT MAX(timestamp) FROM round) AS timestamp,
-				(FLOOR(fees / 101) * cnt + (CASE WHEN last = 1 THEN (fees - FLOOR(fees / 101) * 101) ELSE 0 END)) AS fees,
-				CEIL((SELECT height FROM round LIMIT 1) / 101::float)::int AS round,
-				"generatorPublicKey" AS "publicKey"
-			FROM summary;
+				-- Block height
+				round.height,
+				-- Timestamp of last round's block
+				last.timestamp,
+				-- Calculating real fee reward for delegate:
+				-- Rounded fee per delegate + remaining fees if block is last one of round
+				(fees.single + (CASE WHEN last.pk = round."generatorPublicKey" AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
+				-- Delgate public key
+				round."generatorPublicKey" AS "publicKey"
+			FROM last, fees, round
+			-- Sort rewards by block height
+			ORDER BY round.height ASC;
 	RETURN NULL;
 END $$;
 
