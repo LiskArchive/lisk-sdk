@@ -6,6 +6,7 @@ var util = require('util');
 module.exports = function (grunt) {
 	var files = [
 		'logger.js',
+		'api/**/*.js',
 		'helpers/**/*.js',
 		'modules/*.js',
 		'logic/*.js',
@@ -110,6 +111,7 @@ module.exports = function (grunt) {
 				fix: false
 			},
 			target: [
+				'api',
 				'helpers',
 				'modules',
 				'logic',
