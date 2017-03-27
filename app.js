@@ -339,24 +339,7 @@ d.run(function () {
 
 			scope.network.app.use(httpApi.middleware.applyAPIAccessRules);
 
-			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
-				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
-
-				if (!err) {
-					if (scope.config.ssl.enabled) {
-						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
-							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
-
-							cb(err, scope.network);
-						});
-					} else {
-						cb(null, scope.network);
-					}
-				} else {
-					cb(err, scope.network);
-				}
-			});
-
+			cb();
 		}],
 
 		ed: function (cb) {
@@ -475,6 +458,26 @@ d.run(function () {
 			scope.logic.transaction.bindModules(scope.modules);
 			scope.logic.peers.bind(scope);
 			cb();
+		}],
+
+		listen: ['ready', function (scope, cb) {
+			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
+				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
+
+				if (!err) {
+					if (scope.config.ssl.enabled) {
+						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
+							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
+
+							cb(err, scope.network);
+						});
+					} else {
+						cb(null, scope.network);
+					}
+				} else {
+					cb(err, scope.network);
+				}
+			});
 		}]
 	}, function (err, scope) {
 		if (err) {
