@@ -34,7 +34,7 @@ var BlocksSql = {
           (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
           (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       '),',
-      'fees AS (SELECT SUM(fees) AS fees FROM rounds_rewards WHERE "publicKey" = DECODE(${generatorPublicKey}, \'hex\')',
+      'fees AS (SELECT SUM(fees) AS fees FROM rounds_fees WHERE "publicKey" = DECODE(${generatorPublicKey}, \'hex\')',
           (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
           (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       ')',
