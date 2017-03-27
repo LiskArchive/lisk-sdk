@@ -436,10 +436,6 @@ Delegates.prototype.isLoaded = function () {
 
 Delegates.prototype.internal = {
 	forgingEnable: function (req, cb) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return setImmediate(cb, 'Access denied');
-		}
-
 		library.schema.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
@@ -473,10 +469,6 @@ Delegates.prototype.internal = {
 	},
 
 	forgingDisable: function (req, cb) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return setImmediate(cb, 'Access denied');
-		}
-
 		library.schema.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
