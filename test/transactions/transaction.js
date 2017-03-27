@@ -39,7 +39,7 @@ describe('transaction.js', function () {
 				(trs.id).should.be.type('string');
 			});
 
-			it('should have type as number and eqaul 0', function () {
+			it('should have type as number and equal 0', function () {
 				(trs.type).should.be.type('number').and.equal(0);
 			});
 
