@@ -32,7 +32,7 @@ function Migrator (pgp, db) {
 	};
 
 	this.readPendingMigrations = function (lastMigration, waterCb) {
-		var migrationsPath = path.join('sql', 'migrations');
+		var migrationsPath = path.join(process.cwd(), 'sql', 'migrations');
 		var pendingMigrations = [];
 
 		function matchMigrationName (file) {
