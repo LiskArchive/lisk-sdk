@@ -53,7 +53,7 @@ CREATE FUNCTION rounds_fees_init() RETURNS void LANGUAGE PLPGSQL AS $$
 					-- Calculating real fee reward for delegate:
 					-- Rounded fee per delegate + remaining fees if block is last one of round
 					(fees.single + (CASE WHEN last.pk = round."generatorPublicKey" AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
-					-- Delgate public key
+					-- Delegate public key
 					round."generatorPublicKey" AS "publicKey"
 				FROM last, fees, round
 				-- Sort fees by block height
@@ -61,7 +61,7 @@ CREATE FUNCTION rounds_fees_init() RETURNS void LANGUAGE PLPGSQL AS $$
 		END LOOP;
 	RETURN;
 END $$;
---Execution tim
+-- Execution time
 
 -- Execute 'rounds_fees_init' function
 SELECT rounds_fees_init();
@@ -106,7 +106,7 @@ CREATE FUNCTION round_fees_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 				-- Calculating real fee reward for delegate:
 				-- Rounded fee per delegate + remaining fees if block is last one of round
 				(fees.single + (CASE WHEN last.pk = round."generatorPublicKey" AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
-				-- Delgate public key
+				-- Delegate public key
 				round."generatorPublicKey" AS "publicKey"
 			FROM last, fees, round
 			-- Sort fees by block height
