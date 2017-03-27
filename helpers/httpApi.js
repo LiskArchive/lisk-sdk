@@ -113,7 +113,7 @@ var middleware = {
 			var internalApiEnabled = config.peers.enabled && !checkIpInList(config.peers.access.blackList, ip, false);
 			rejectDisabled(internalApiEnabled);
 		} else {
-			var publicApiEnabled = config.api.enabled || config.api.access.public || checkIpInList(config.api.access.whiteList, ip, false);
+			var publicApiEnabled = config.api.enabled && (config.api.access.public || checkIpInList(config.api.access.whiteList, ip, false));
 			rejectDisabled(publicApiEnabled);
 		}
 
