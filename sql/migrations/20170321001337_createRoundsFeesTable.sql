@@ -1,11 +1,11 @@
 /*
- * Create table 'rounds_rewards', calculate rewards & populate it, set triggers
+ * Create table 'rounds_fees', calculate fees & populate it, set triggers
  */
 
 BEGIN;
 
--- Create table 'rounds_rewards' for storing rewards
-CREATE TABLE IF NOT EXISTS "rounds_rewards"(
+-- Create table 'rounds_fees' for storing fees
+CREATE TABLE IF NOT EXISTS "rounds_fees"(
 	"height"    INT     NOT NULL,
 	"timestamp" INT     NOT NULL,
 	"fees"      BIGINT  NOT NULL,
@@ -13,25 +13,25 @@ CREATE TABLE IF NOT EXISTS "rounds_rewards"(
 );
 
 -- Drop existing triggers and functions
-DROP FUNCTION IF EXISTS rounds_rewards_init();
-DROP TRIGGER  IF EXISTS rounds_rewards_delete ON "blocks";
-DROP FUNCTION IF EXISTS round_rewards_delete();
-DROP TRIGGER  IF EXISTS rounds_rewards_insert ON "blocks";
-DROP FUNCTION IF EXISTS round_rewards_insert();
+DROP FUNCTION IF EXISTS rounds_fees_init();
+DROP TRIGGER  IF EXISTS rounds_fees_delete ON "blocks";
+DROP FUNCTION IF EXISTS round_fees_delete();
+DROP TRIGGER  IF EXISTS rounds_fees_insert ON "blocks";
+DROP FUNCTION IF EXISTS round_fees_insert();
 
--- Create function that compute all rewards for previous rounds and insert them to 'rounds_rewards'
-CREATE FUNCTION rounds_rewards_init() RETURNS void LANGUAGE PLPGSQL AS $$
+-- Create function that compute all fees for previous rounds and insert them to 'rounds_fees'
+CREATE FUNCTION rounds_fees_init() RETURNS void LANGUAGE PLPGSQL AS $$
 	DECLARE
 		row record;
 	BEGIN
-		RAISE NOTICE 'Calculating rewards for rounds, please wait...';
+		RAISE NOTICE 'Calculating fees for rounds, please wait...';
 		FOR row IN
 			SELECT
 				-- Round number
 				CEIL(height / 101::float)::int AS round
 			FROM blocks
-			-- Perform only for rounds that are completed and not present in 'rounds_rewards'
-			WHERE height % 101 = 0 AND height NOT IN (SELECT height FROM rounds_rewards)
+			-- Perform only for rounds that are completed and not present in 'rounds_fees'
+			WHERE height % 101 = 0 AND height NOT IN (SELECT height FROM rounds_fees)
 			-- Group by round
 			GROUP BY CEIL(height / 101::float)::int
 			-- Order by round
@@ -44,7 +44,7 @@ CREATE FUNCTION rounds_rewards_init() RETURNS void LANGUAGE PLPGSQL AS $$
 				fees AS (SELECT SUM("totalFee") AS total, FLOOR(SUM("totalFee") / 101) AS single FROM round),
 				-- Get last delegate and timestamp of round's last block
 				last AS (SELECT "generatorPublicKey" AS pk, timestamp FROM round ORDER BY height DESC LIMIT 1)
-			INSERT INTO rounds_rewards
+			INSERT INTO rounds_fees
 				SELECT
 					-- Block height
 					round.height,
@@ -56,39 +56,39 @@ CREATE FUNCTION rounds_rewards_init() RETURNS void LANGUAGE PLPGSQL AS $$
 					-- Delgate public key
 					round."generatorPublicKey" AS "publicKey"
 				FROM last, fees, round
-				-- Sort rewards by block height
+				-- Sort fees by block height
 				ORDER BY round.height ASC;
 		END LOOP;
 	RETURN;
 END $$;
 --Execution tim
 
--- Execute 'rounds_rewards_init' function
-SELECT rounds_rewards_init();
+-- Execute 'rounds_fees_init' function
+SELECT rounds_fees_init();
 
--- Create indexes on all columns of 'rounds_rewards' + additional index for round
-CREATE INDEX IF NOT EXISTS "rounds_rewards_timestamp" ON "rounds_rewards" ("timestamp");
-CREATE INDEX IF NOT EXISTS "rounds_rewards_fees" ON "rounds_rewards" ("fees");
-CREATE INDEX IF NOT EXISTS "rounds_rewards_height" ON "rounds_rewards" ("height");
-CREATE INDEX IF NOT EXISTS "rounds_rewards_round" ON "rounds_rewards" ((CEIL(height / 101::float)::int));
-CREATE INDEX IF NOT EXISTS "rounds_rewards_public_key" ON "rounds_rewards" ("publicKey");
+-- Create indexes on all columns of 'rounds_fees' + additional index for round
+CREATE INDEX IF NOT EXISTS "rounds_fees_timestamp" ON "rounds_fees" ("timestamp");
+CREATE INDEX IF NOT EXISTS "rounds_fees_fees" ON "rounds_fees" ("fees");
+CREATE INDEX IF NOT EXISTS "rounds_fees_height" ON "rounds_fees" ("height");
+CREATE INDEX IF NOT EXISTS "rounds_fees_round" ON "rounds_fees" ((CEIL(height / 101::float)::int));
+CREATE INDEX IF NOT EXISTS "rounds_fees_public_key" ON "rounds_fees" ("publicKey");
 
--- Create function for deleting round rewards when last block of round is deleted
-CREATE FUNCTION round_rewards_delete() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+-- Create function for deleting round fees when last block of round is deleted
+CREATE FUNCTION round_fees_delete() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
-		DELETE FROM rounds_rewards WHERE CEIL(height / 101::float)::int = (CEIL(OLD.height / 101::float)::int);
+		DELETE FROM rounds_fees WHERE CEIL(height / 101::float)::int = (CEIL(OLD.height / 101::float)::int);
 	RETURN NULL;
 END $$;
 
--- Create trigger that will execute 'round_rewards_delete' after deletion of last block of round
-CREATE TRIGGER rounds_rewards_delete
+-- Create trigger that will execute 'round_fees_delete' after deletion of last block of round
+CREATE TRIGGER rounds_fees_delete
 	AFTER DELETE ON blocks
 	FOR EACH ROW
 	WHEN (OLD.height % 101 = 0)
-	EXECUTE PROCEDURE round_rewards_delete();
+	EXECUTE PROCEDURE round_fees_delete();
 
--- Create function for inserting round rewards when last block of round is inserted
-CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+-- Create function for inserting round fees when last block of round is inserted
+CREATE FUNCTION round_fees_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
 		WITH
 			-- Selecting all blocks of round
@@ -97,7 +97,7 @@ CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 			fees AS (SELECT SUM("totalFee") AS total, FLOOR(SUM("totalFee") / 101) AS single FROM round),
 			-- Get last delegate and timestamp of round's last block
 			last AS (SELECT "generatorPublicKey" AS pk, timestamp FROM round ORDER BY height DESC LIMIT 1)
-		INSERT INTO rounds_rewards
+		INSERT INTO rounds_fees
 			SELECT
 				-- Block height
 				round.height,
@@ -109,16 +109,16 @@ CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 				-- Delgate public key
 				round."generatorPublicKey" AS "publicKey"
 			FROM last, fees, round
-			-- Sort rewards by block height
+			-- Sort fees by block height
 			ORDER BY round.height ASC;
 	RETURN NULL;
 END $$;
 
--- Create trigger that will execute 'round_rewards_insert' after insertion of last block of round
-CREATE TRIGGER rounds_rewards_insert
+-- Create trigger that will execute 'round_fees_insert' after insertion of last block of round
+CREATE TRIGGER rounds_fees_insert
 	AFTER INSERT ON blocks
 	FOR EACH ROW
 	WHEN (NEW.height % 101 = 0)
-	EXECUTE PROCEDURE round_rewards_insert();
+	EXECUTE PROCEDURE round_fees_insert();
 
 COMMIT;
