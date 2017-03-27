@@ -51,7 +51,7 @@ function TransportHttpApi (transportModule, app, logger) {
 	function handshakeMiddleware (req, res, next) {
 		transportModule.internal.handshake(req.ip, req.headers.port, req.headers, validateHeaders, function (err, peer) {
 			if (err) {
-				return res.status(500).send(err)
+				return res.status(500).send(err);
 			}
 
 			req.peer = peer;
@@ -71,7 +71,7 @@ function TransportHttpApi (transportModule, app, logger) {
 				}
 
 				return cb();
-			})
+			});
 		}
 	}
 
