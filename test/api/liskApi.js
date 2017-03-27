@@ -28,10 +28,22 @@ describe('Lisk.api()', function () {
 		});
 	});
 
+	describe('#listPeers', function() {
+		it('should give a set of the peers', function() {
+
+			(LSK.listPeers()).should.be.ok;
+			(LSK.listPeers()).should.be.type.Object;
+			console.log(LSK.listPeers());
+			(LSK.listPeers().official.length).should.be.equal(8);
+			(LSK.listPeers().testnet.length).should.be.equal(1);
+
+		});
+	});
+
 	describe('.currentPeer', function () {
 
 		it('currentPeer should be set by default', function () {
-			(LSK.currentPeer).should.be.ok();
+			(LSK.currentPeer).should.be.ok;
 		});
 	});
 
@@ -506,10 +518,11 @@ describe('Lisk.api()', function () {
 	describe('#listTransactions', function () {
 
 		it('should list transactions of a defined account', function (done) {
-			lisk.api().listTransactions('12731041415715717263L', function (data) {
+			lisk.api().listTransactions('12731041415715717263L', '1', '2', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true;
+				(data.transactions.length).should.be.equal(1);
 				done();
 			});
 		});
@@ -549,5 +562,19 @@ describe('Lisk.api()', function () {
 				done();
 			});
 		});
+	});
+
+	describe('#getAccount', function() {
+
+		it('should get account information', function (done) {
+			lisk.api().getAccount('12731041415715717263L', function (data) {
+
+				(data).should.be.ok;
+				(data.account.publicKey).should.be.equal('a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4');
+				(data.account.address).should.be.equal('12731041415715717263L');
+				done();
+			});
+		});
+
 	});
 });
