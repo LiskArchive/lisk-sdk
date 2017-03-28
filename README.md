@@ -31,7 +31,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
   ```
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-  nvm install v6.9.5
+  nvm install v6.10.1
   ```
 
 - Install PostgreSQL (version 9.6.2):
