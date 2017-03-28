@@ -296,7 +296,7 @@ LiskAPI.prototype.checkRequest = function (requestType, options) {
 	return parseOfflineRequest(requestType, options).requestMethod;
 };
 
-LiskAPI.prototype.serialiseHttpData = function (data, type) {
+LiskAPI.prototype.serialiseHttpData = function (data) {
 	var serialised;
 
 	serialised = this.trimObj(data);
@@ -310,7 +310,7 @@ LiskAPI.prototype.trimObj = function (obj) {
 	if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
 
 	return Object.keys(obj).reduce(function (acc, key) {
-		acc[key.trim()] = (typeof obj[key] === 'string' || typeof obj[key] === 'number')? obj[key].trim() : this.trimObj(obj[key]);
+		acc[key.trim()] = (typeof obj[key] === 'string') ? obj[key].trim() : (Number.isInteger(obj[key])) ? obj[key].toString() : this.trimObj(obj[key]);
 		return acc;
 	}, Array.isArray(obj)? []:{});
 };
@@ -679,14 +679,11 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 			console.log(multiSigSignature);
 		},
 		'accounts/delegates': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
+
 		},
 		'transactions': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'signatures': function () {
 			return {
