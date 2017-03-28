@@ -169,6 +169,16 @@ describe('Lisk.api()', function () {
 
 			(trimIt).should.be.eql(trimmedObj);
 		});
+
+		it('should accept numbers and strings as value', function () {
+			var obj = {
+				'my_obj': 2
+			}
+			var trimmedObj = LSK.trimObj(obj);
+			(trimmedObj).should.be.ok;
+			(trimmedObj).should.be.eql({ my_obj: '2' });
+		});
+
 	});
 
 	describe('#toQueryString', function () {

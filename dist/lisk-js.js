@@ -307,11 +307,10 @@ LiskAPI.prototype.serialiseHttpData = function (data, type) {
 };
 
 LiskAPI.prototype.trimObj = function (obj) {
-	console.log(obj);
 	if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
 
 	return Object.keys(obj).reduce(function (acc, key) {
-		acc[key.trim()] = typeof obj[key] === 'string'? obj[key].trim() : this.trimObj(obj[key]);
+		acc[key.trim()] = (typeof obj[key] === 'string' || typeof obj[key] === 'number')? obj[key].trim() : this.trimObj(obj[key]);
 		return acc;
 	}, Array.isArray(obj)? []:{});
 };
