@@ -35,6 +35,11 @@ module.exports = {
 			height: {
 				type: 'integer',
 				minimum: 1
+			},
+			nonce: {
+				type: 'string',
+				minimum: 16,
+				max: 16
 			}
 		},
 		required: ['port', 'version', 'nethash']

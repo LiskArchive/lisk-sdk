@@ -358,7 +358,7 @@ function Account (scope, cb) {
 }
 
 Account.prototype.createTables = function (cb) {
-	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), {minify: true});
+	var sql = new pgp.QueryFile(path.join(process.cwd(), 'sql', 'memoryTables.sql'), {minify: true});
 
 	db.query(sql).then(function () {
 		return setImmediate(cb);

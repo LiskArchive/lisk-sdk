@@ -4,6 +4,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
 var sinon = require('sinon');
+var randomString = require('randomstring');
 var _  = require('lodash');
 
 var config = require('../../config.json');
@@ -15,6 +16,8 @@ var currentPeers = [];
 describe('peers', function () {
 
 	var peers, modules;
+
+	var NONCE = randomString.generate(16);
 
 	function getPeers (cb) {
 		peers.list({broadhash: config.nethash}, function (err, __peers) {
@@ -33,7 +36,7 @@ describe('peers', function () {
 			modules = __modules;
 			peers.onBind(modules);
 			done();
-		});
+		}, {nonce: NONCE});
 	});
 
 	beforeEach(function (done) {
@@ -239,7 +242,7 @@ describe('peers', function () {
 
 		it('should not accept peer with host\'s ip', function () {
 			var meAsPeer = _.clone(randomPeer);
-			meAsPeer.ip = ip.address('public', 'ipv4');
+			meAsPeer.nonce = NONCE;
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
 		});
 	});

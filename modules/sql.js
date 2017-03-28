@@ -23,6 +23,7 @@ function Sql (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+// Private methods
 __private.escape = function (what) {
 	switch (typeof what) {
 	case 'string':
@@ -84,7 +85,6 @@ __private.pass = function (obj, dappid) {
 	}
 };
 
-// Private methods
 __private.query = function (action, config, cb) {
 	var sql = null;
 
@@ -230,7 +230,7 @@ Sql.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 };
 
-// Shared
+// Shared API
 shared.select = function (req, cb) {
 	var config = extend({}, req.body, {dappid: req.dappid});
 	__private.query.call(this, 'select', config, cb);
