@@ -296,7 +296,7 @@ LiskAPI.prototype.checkRequest = function (requestType, options) {
 	return parseOfflineRequest(requestType, options).requestMethod;
 };
 
-LiskAPI.prototype.serialiseHttpData = function (data) {
+LiskAPI.prototype.serialiseHttpData = function (data, type) {
 	var serialised;
 
 	serialised = this.trimObj(data);
@@ -307,6 +307,7 @@ LiskAPI.prototype.serialiseHttpData = function (data) {
 };
 
 LiskAPI.prototype.trimObj = function (obj) {
+	console.log(obj);
 	if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
 
 	return Object.keys(obj).reduce(function (acc, key) {
