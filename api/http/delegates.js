@@ -21,8 +21,8 @@ function DelegatesHttpApi (delegatesModule, app) {
 	});
 
 	router.map(delegatesModule.internal, {
-		'get /forging/enable': 'forgingEnable',
-		'get /forging/disable': 'forgingDisable',
+		'post /forging/enable': 'forgingEnable',
+		'post /forging/disable': 'forgingDisable',
 		'get /forging/status': 'forgingStatus'
 	});
 
