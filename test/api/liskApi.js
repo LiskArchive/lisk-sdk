@@ -598,14 +598,9 @@ describe('Lisk.api()', function () {
 			var amount = 100000000; 
 
 			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function(result) { 
-
 				(result.request.success).should.be.equal(true); 
-
 				done(); 
 			}); 
-
-
 		});
-
 	});
 });
