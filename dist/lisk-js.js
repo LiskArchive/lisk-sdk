@@ -680,25 +680,18 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 		},
 		'accounts/delegates': function () {
 			return requestAnswer;
-
 		},
 		'transactions': function () {
 			return requestAnswer;
 		},
 		'signatures': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'delegates': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'dapps': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'multisignatures': function () {
 			console.log(OfflineRequestThis.options);

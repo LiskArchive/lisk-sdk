@@ -172,11 +172,12 @@ describe('Lisk.api()', function () {
 
 		it('should accept numbers and strings as value', function () {
 			var obj = {
-				'my_obj': 2
-			}
+				'myObj': 2
+			};
+			
 			var trimmedObj = LSK.trimObj(obj);
 			(trimmedObj).should.be.ok;
-			(trimmedObj).should.be.eql({ my_obj: '2' });
+			(trimmedObj).should.be.eql({ myObj: '2' });
 		});
 
 	});
