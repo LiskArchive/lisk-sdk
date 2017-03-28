@@ -12,29 +12,30 @@ var options = {
 var LSK = lisk.api({ testnet: true, port: 7000 });
 
 $(function () {
-	$('#showSecret').on('change', function () {
+	$('#send_show_secret,#info_show_secret').on('change', function () {
+		var secret = $(this).prop('id') == 'send_show_secret' ? '#send_secret_input' : '#info_secret_input';
 		if ($(this).prop('checked')) {
-			$('#secretInput').attr('type', 'text');
+			$(secret).attr('type', 'text');
 		} else {
-			$('#secretInput').attr('type', 'password');
+			$(secret).attr('type', 'password');
 		}
 	});
 
 	$('#usePassphrase').on('click', function (e) {
 		e.preventDefault();
-		var passphrase = $('#secretInput').val();
+		var passphrase = $('#info_secret_input').val();
 		init(passphrase);
 	});
 
 	$('#sendLsk').on('click', function (e) {
 		e.preventDefault();
-		var passphrase = $('#secretInput').val();
+		var passphrase = $('#send_secret_input').val();
 		var amount = $('#send_lsk_input').val();
 		var recipient = $('#send_lsk_recipient').val();
 
 		amount = Math.floor(amount * 100000000);
 
-		LSK.sendRequest('transactions', { secret: 'inject napkin ranch advance danger mandate vote bread assault tuna keep develop', amount: amount, recipientId: recipient } , function (data) {
+		LSK.sendRequest('transactions', { secret: passphrase, amount: amount, recipientId: recipient } , function (data) {
 			LSK.lastQuery = data;
 			// console.log(LSK.lastQuery);
 			console.log(data);
