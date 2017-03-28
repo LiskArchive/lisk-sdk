@@ -434,6 +434,7 @@ describe('BlockReward', function () {
 				it('should be ok', function () {
 					var supply = blockReward.calcSupply(13451519);
 					var prev = supply;
+
 					for (var i = 13451520; i < (13451520 + 100); i++) {
 						supply = blockReward.calcSupply(i);
 						expect(supply).to.equal(prev + constants.rewards.milestones[4]);
