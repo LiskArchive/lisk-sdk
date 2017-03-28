@@ -581,6 +581,28 @@ describe('Lisk.api()', function () {
 
 		it('should send testnet LSK', function(done) {
 
+			var options = { 
+				ssl: false, 
+				node: '', 
+				randomPeer: true, 
+				testnet: true, 
+				port: '7000', 
+				bannedPeers: []
+			};
+			 
+			var LSKnode = lisk.api(options);  
+
+			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor'; 
+			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
+			 var recipient = '10279923186189318946L'; 
+			var amount = 100000000; 
+
+			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function(result) { 
+
+				(result.request.success).should.be.equal(true); 
+
+				done(); 
+			}); 
 
 
 		});
