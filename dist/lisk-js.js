@@ -27,7 +27,6 @@ module.exports = lisk;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/vote.js":18,"js-nacl":115}],2:[function(require,module,exports){
-(function (process){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -297,12 +296,8 @@ LiskAPI.prototype.checkRequest = function (requestType, options) {
 	return parseOfflineRequest(requestType, options).requestMethod;
 };
 
-LiskAPI.prototype.serialiseHttpData = function (data, type) {
+LiskAPI.prototype.serialiseHttpData = function (data) {
 	var serialised;
-
-	if (type === 'GET' && process.env.NODE_ENV !== 'test') {
-		data.random = Math.random().toString();
-	}
 
 	serialised = this.trimObj(data);
 	serialised = this.toQueryString(serialised);
@@ -420,8 +415,7 @@ LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, c
 
 module.exports = LiskAPI;
 
-}).call(this,require('_process'))
-},{"../transactions/crypto":6,"./parseTransaction":3,"_process":144,"popsicle":133}],3:[function(require,module,exports){
+},{"../transactions/crypto":6,"./parseTransaction":3,"popsicle":133}],3:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
