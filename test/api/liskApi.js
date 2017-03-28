@@ -200,10 +200,6 @@ describe('Lisk.api()', function () {
 
 	describe('#serialiseHttpData', function () {
 
-		before(function () {
-			process.env.NODE_ENV = 'main';
-		});
-
 		it('should create a http string from an object and trim.', function () {
 			var myObj = {
 				obj: ' myval',
@@ -215,24 +211,6 @@ describe('Lisk.api()', function () {
 			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
 
-		it('should add random if type is GET', function () {
-			var myObj = {
-				obj: ' myval',
-				key: 'my2ndval '
-			};
-
-			var serialised = LSK.serialiseHttpData(myObj, 'GET');
-
-			var objectify = getUrlVars(serialised.substring(1));
-
-			(objectify).should.have.property('random');
-			(objectify).should.have.property('obj');
-			(objectify).should.have.property('key');
-		});
-
-		after(function () {
-			process.env.NODE_ENV = 'test';
-		});
 	});
 
 	describe('#getAddressFromSecret', function () {
@@ -454,7 +432,6 @@ describe('Lisk.api()', function () {
 
 		it.skip('should list non-active delegates', function (done) {
 			lisk.api().listStandyDelegates('5', function (data) {
-				console.log(data);
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true;
@@ -527,7 +504,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listTransactions', function () {
+	describe('#getTransaction', function () {
 
 		it('should list a defined transaction', function (done) {
 			lisk.api().getTransaction('7520138931049441691', function (data) {
