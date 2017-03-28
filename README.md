@@ -53,9 +53,9 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
   `npm install -g grunt-cli`
 
-- Forever (<https://github.com/foreverjs/forever>) -- Forever manages the node process for Lisk (Optional)
+- PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk (Optional)
 
-  `npm install -g forever`
+  `npm install -g pm2`
 
 ## Installation Steps
 
@@ -100,22 +100,22 @@ To test that Lisk is built and configured correctly, run the following command:
 
 In a browser navigate to: <http://localhost:8000> (for the mainnet) or <http://localhost:7000> (for the testnet). If Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
 
-Once the process is verified as running correctly, `CTRL+C` and start the process with `forever`. This will fork the process into the background and automatically recover the process if it fails.
+Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
 
-`forever start app.js`
+`pm2 start --name lisk app.js`
 
-After the process is started its runtime status and log location can be found by issuing this statement:
+After the process is started, its runtime status and log location can be retrieved by issuing the following command:
 
-`forever list`
+`pm2 show lisk`
 
-To stop Lisk after it has been started with `forever`, issue the following command:
+To stop Lisk after it has been started with `pm2`, issue the following command:
 
-`forever stop app.js`
+`pm2 stop lisk`
 
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-forever start app.js -p [port] -a [address] -c [config-path]
+pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 ```
 
 ## Tests
