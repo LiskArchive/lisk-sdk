@@ -515,7 +515,6 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#listVotes', function () {
-
 		it('should list votes of an account', function (done) {
 			lisk.api().listVotes('16010222169256538112L', function (data) {
 				(data).should.be.ok;
@@ -527,7 +526,6 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#listVoters', function () {
-
 		it('should list voters of an account', function (done) {
 			lisk.api().listVoters('6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a', function (data) {
 				(data).should.be.ok;
@@ -539,43 +537,36 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#getAccount', function() {
-
 		it('should get account information', function (done) {
 			lisk.api().getAccount('12731041415715717263L', function (data) {
-
 				(data).should.be.ok;
 				(data.account.publicKey).should.be.equal('a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4');
 				(data.account.address).should.be.equal('12731041415715717263L');
 				done();
 			});
 		});
-
 	});
 
 	describe('#sendLSK', function() {
-
-		it('should send testnet LSK', function(done) {
-
-			var options = { 
-				ssl: false, 
-				node: '', 
-				randomPeer: true, 
-				testnet: true, 
-				port: '7000', 
+		it('should send testnet LSK', function (done) {
+			var options = {
+				ssl: false,
+				node: '',
+				randomPeer: true,
+				testnet: true,
+				port: '7000',
 				bannedPeers: []
 			};
-			 
-			var LSKnode = lisk.api(options);  
 
-			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor'; 
+			var LSKnode = lisk.api(options);
+			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
 			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
-			 var recipient = '10279923186189318946L'; 
-			var amount = 100000000; 
-
-			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function(result) { 
-				(result.success).should.be.equal(true); 
-				done(); 
-			}); 
+			var recipient = '10279923186189318946L';
+			var amount = 100000000;
+			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function (result) {
+				(result.success).should.be.equal(true);
+				done();
+			});
 		});
 	});
 });
