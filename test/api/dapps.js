@@ -773,7 +773,7 @@ describe('PUT /api/dapps/withdrawal', function () {
 
 			putWithdrawal(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.propety('error').to.contain('Transaction is already processed');
+				node.expect(res.body).to.have.property('error').to.contain('Transaction is already processed');
 				done();
 			});
 		});
