@@ -39,10 +39,8 @@ var middleware = {
 	 * @param {Function} next
 	 */
 	logClientConnections: function (logger, req, res, next) {
-		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
 		// Log client connections
-		logger.log(req.method + ' ' + req.url + ' from ' + ip);
+		logger.log(req.method + ' ' + req.url + ' from ' + req.ip);
 
 		return next();
 	},
@@ -107,13 +105,11 @@ var middleware = {
 	 * @param {Function} next
 	 */
 	applyAPIAccessRules: function (req, res, next) {
-		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
 		if (req.url.match(/^\/peer[\/]?.*/)) {
-			var internalApiEnabled = config.peers.enabled && !checkIpInList(config.peers.access.blackList, ip, false);
+			var internalApiEnabled = config.peers.enabled && !checkIpInList(config.peers.access.blackList, req.ip, false);
 			rejectDisabled(internalApiEnabled);
 		} else {
-			var publicApiEnabled = config.api.enabled && (config.api.access.public || checkIpInList(config.api.access.whiteList, ip, false));
+			var publicApiEnabled = config.api.enabled && (config.api.access.public || checkIpInList(config.api.access.whiteList, req.ip, false));
 			rejectDisabled(publicApiEnabled);
 		}
 
