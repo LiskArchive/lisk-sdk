@@ -33,7 +33,6 @@ describe('Lisk.api()', function () {
 
 			(LSK.listPeers()).should.be.ok;
 			(LSK.listPeers()).should.be.type.Object;
-			console.log(LSK.listPeers());
 			(LSK.listPeers().official.length).should.be.equal(8);
 			(LSK.listPeers().testnet.length).should.be.equal(1);
 
@@ -574,6 +573,16 @@ describe('Lisk.api()', function () {
 				(data.account.address).should.be.equal('12731041415715717263L');
 				done();
 			});
+		});
+
+	});
+
+	describe('#sendLSK', function() {
+
+		it('should send testnet LSK', function(done) {
+
+
+
 		});
 
 	});
