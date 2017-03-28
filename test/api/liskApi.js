@@ -174,7 +174,7 @@ describe('Lisk.api()', function () {
 			var obj = {
 				'myObj': 2
 			};
-			
+
 			var trimmedObj = LSK.trimObj(obj);
 			(trimmedObj).should.be.ok;
 			(trimmedObj).should.be.eql({ myObj: '2' });
@@ -573,7 +573,7 @@ describe('Lisk.api()', function () {
 			var amount = 100000000; 
 
 			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function(result) { 
-				(result.request.success).should.be.equal(true); 
+				(result.success).should.be.equal(true); 
 				done(); 
 			}); 
 		});
