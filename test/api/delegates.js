@@ -1059,10 +1059,10 @@ describe('POST /api/delegates/forging/disable', function () {
 		});
 	});
 
-	it('using invalid should fail', function (done) {
+	it('using invalid secret should fail', function (done) {
 		node.post('/api/delegates/forging/disable', {
 			publicKey: testDelegate.publicKey,
-			secret: 'wrong secret password'
+			secret: 'invalid secret'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').not.to.be.ok;
 			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase');
@@ -1111,10 +1111,10 @@ describe('POST /api/delegates/forging/enable', function () {
 		});
 	});
 
-	it('using invalid should fail', function (done) {
+	it('using invalid secret should fail', function (done) {
 		node.post('/api/delegates/forging/enable', {
 			publicKey: testDelegate.publicKey,
-			secret: 'wrong secret password'
+			secret: 'invalid secret'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').not.to.be.ok;
 			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase');
