@@ -439,10 +439,10 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listStandyDelegates', function () {
+	describe('#listStandbyDelegates', function () {
 
 		it.skip('should list non-active delegates', function (done) {
-			lisk.api().listStandyDelegates('5', function (data) {
+			lisk.api().listStandbyDelegates('5', function (data) {
 				console.log(data);
 				(data).should.be.ok;
 				(data).should.be.type('object');
