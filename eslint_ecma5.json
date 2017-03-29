@@ -30,6 +30,7 @@
     "naclFactory": true,
     "naclInstance": true,
     "Promise": true,
-    "Uint8Array": true
+    "Uint8Array": true,
+    "expect": true
   }
 }
