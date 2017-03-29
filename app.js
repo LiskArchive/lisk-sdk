@@ -162,9 +162,9 @@ d.run(function () {
 					delete appConfig.loading.snapshot;
 				}
 
-				fs.writeFile('./config.json', JSON.stringify(appConfig, null, 4), 'utf8', function (err) {
-					cb(err, appConfig);
-				});
+				fs.writeFileSync('./config.json', JSON.stringify(appConfig, null, 4));
+
+				cb(null, appConfig);
 			} else {
 				cb(null, appConfig);
 			}
