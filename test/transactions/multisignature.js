@@ -136,7 +136,36 @@ describe('multisignature.js', function () {
 			*/
 		});
 
-		
+	});
+
+	describe('#createTransaction', function () {
+
+		var createTransaction = multisignature.createTransaction;
+		var trs = null;
+
+		it('should be a function', function () {
+			(createTransaction).should.be.type('function');
+		});
+
+		it('should create transaction without second signature or requesterPublicKey', function () {
+			trs = createTransaction('58191285901858109L', 1000, 'secret');
+			(trs).should.be.ok;
+			(trs.type).should.be.equal(0);
+		});
+
+		it('should create a transaction with secondSignature without requesterPublicKey', function () {
+			trs = createTransaction('58191285901858109L', 1000, 'secret', 'secondSecret');
+			(trs).should.be.ok;
+			(trs.type).should.be.equal(0);
+		});
+
+		it('should create a transaction with secondSignature and requesterPublicKey', function () {
+			var publicKey = '132321421321';
+			trs = createTransaction('58191285901858109L', 1000, 'secret', 'secondSecret', publicKey);
+			(trs).should.be.ok;
+			(trs.type).should.be.equal(0);
+			(trs.requesterPublicKey).should.be.equal(publicKey);
+		});
 
 	});
 
