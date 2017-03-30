@@ -1,8 +1,3 @@
-var common = require('../../common');
-var lisk = common.lisk;
-// var should = common.should;
-// var cryptoLib = common.cryptoLib;
-
 describe('crypto/index.js', function () {
 
 	var newcrypto = lisk.crypto;
@@ -178,4 +173,70 @@ describe('crypto/index.js', function () {
 			(printSignedMessage).should.be.equal(signedMessageExample);
 		});
 	});
+
+	describe('#encryptMessageWithSecret sign.js', function () {
+
+		var recipientKeyPair = newcrypto.getPrivateAndPublicKeyFromSecret('1234');
+		var encryptedMessage = newcrypto.encryptMessageWithSecret('hello', 'secret', recipientKeyPair.publicKey);
+
+		it('should encrypt a message', function () {
+
+			(encryptedMessage).should.be.ok;
+			(encryptedMessage).should.be.type('object');
+
+		});
+
+		it('encrypted message should have nonce and encrypted message hex', function () {
+
+			(encryptedMessage).should.have.property('nonce');
+			(encryptedMessage).should.have.property('encryptedMessage');
+
+		});
+
+	});
+
+	describe('#decryptMessageWithSecret sign.js', function () {
+
+		var recipientKeyPair = newcrypto.getPrivateAndPublicKeyFromSecret('1234');
+		var senderKeyPair = newcrypto.getPrivateAndPublicKeyFromSecret('secret');
+		var message = 'hello this is my secret message';
+		var encryptedMessage = newcrypto.encryptMessageWithSecret(message, 'secret', recipientKeyPair.publicKey);
+
+		it('should be able to decrypt the message correctly with given receiver secret', function () {
+
+			var decryptedMessage = newcrypto.decryptMessageWithSecret(encryptedMessage.encryptedMessage, encryptedMessage.nonce, '1234', senderKeyPair.publicKey);
+			(decryptedMessage).should.be.ok;
+			(decryptedMessage).should.be.equal(message);
+		});
+
+	});
+
+	describe('#convertPublicKeyEd2Curve', function () {
+
+		var keyPair = newcrypto.getRawPrivateAndPublicKeyFromSecret('123');
+
+		it('should convert publicKey ED25519 to Curve25519 key', function () {
+
+			var curveRepresentation = newcrypto.convertPublicKeyEd2Curve(keyPair.publicKey);
+			curveRepresentation = newcrypto.bufferToHex(curveRepresentation);
+
+			(curveRepresentation).should.be.equal('f65170b330e5ae94fe6372e0ff8b7c709eb8dfe78c816ffac94e7d3ed1729715');
+
+		});
+
+	});
+
+	describe('#convertPrivateKeyEd2Curve sign.js', function () {
+		var keyPair = newcrypto.getRawPrivateAndPublicKeyFromSecret('123');
+
+		it('should convert privateKey ED25519 to Curve25519 key', function () {
+
+			var curveRepresentation = newcrypto.convertPrivateKeyEd2Curve(keyPair.privateKey);
+			curveRepresentation = newcrypto.bufferToHex(curveRepresentation);
+
+			(curveRepresentation).should.be.equal('a05621ba2d3f69f054abb1f3c155338bb44ec8b718928cf9d5b206bafd364356');
+
+		});
+	});
+
 });
