@@ -428,7 +428,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listStandyDelegates', function () {
 
-		it.skip('should list non-active delegates', function (done) {
+		it('should list non-active delegates', function (done) {
 			lisk.api().listStandyDelegates('5', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
