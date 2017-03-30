@@ -6,37 +6,9 @@
 </head>
 <body>
 
-<div id="output"></div>
-
-
 <script src="https://gitcdn.xyz/repo/LiskHQ/lisk-js/development/dist/lisk-js.js"></script>
 <script>
     "use strict";
-
-
-    (function() {
-
-    	var keyPair = lisk.crypto.getKeys('secret');
-
-    	var keyPairPublicKeyLength = keyPair.publicKey.length;
-    	var keyPairSecretLength = keyPair.privateKey.slice(0,32).length;
-	    var rawKeyPair = lisk.crypto.getRawPrivateAndPublicKeyFromSecret('secret');
-
-    	var rows = '<h2>Hex</h2>';
-    	rows += 'PrivateKey Hex: '+keyPair.privateKey+ ' ('+keyPairSecretLength+')';
-	    rows += '<br/>';
-	    rows += 'PrivateKey Bytes: '+rawKeyPair.privateKey+' ('+rawKeyPair.privateKey.slice(0,32).length+')';
-    	rows += '<br/>';
-
-	    rows += '<hr/>';
-    	rows += 'PublicKey Hex: '+keyPair.publicKey+ ' ('+keyPairPublicKeyLength+')';
-	    rows += '<br/>';
-	    rows += 'PublicKey Bytes: '+rawKeyPair.publicKey+' ('+rawKeyPair.publicKey.length+')';
-
-    	document.getElementById('output').innerHTML = rows;
-
-    })();
-
 </script>
 </body>
 </html>
