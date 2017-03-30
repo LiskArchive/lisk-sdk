@@ -99,7 +99,7 @@ describe('multisignature.js', function () {
 
 		it('should be a string', function () {
 			(signTransaction).should.be.type('string');
-		})
+		});
 
 		it('should be crypto_sign_BYTES length', function () {
 			var length = 128;
@@ -121,12 +121,14 @@ describe('multisignature.js', function () {
 			var signatureBuffer = new Buffer(signTransaction, 'hex');
 			var senderPublicKeyBuffer = new Buffer(transaction.senderPublicKey, 'hex');
 			var res = naclInstance.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
+
+			(res).should.be.equal(true);
+
 			/*
 			console.log(hash);
 			console.log(signatureBuffer);
 			console.log(senderPublicKeyBuffer);
 			console.log(res);
-			(res).should.be.equal(true);
 
 
 
