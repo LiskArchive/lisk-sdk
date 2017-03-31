@@ -24,6 +24,7 @@
  */
 
 var async = require('async');
+var SocketCluster = require('socketcluster').SocketCluster;
 var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
@@ -39,6 +40,7 @@ var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
+var workersController = require('./api/ws/workersController');
 
 process.stdin.resume();
 
@@ -149,7 +151,7 @@ var config = {
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		transport: { http: './api/http/transport.js' }
+		transport: { http: './api/http/transport.js', ws: './api/ws/transport.js'}
 	}
 };
 
@@ -303,6 +305,43 @@ d.run(function () {
 				https: https,
 				https_io: https_io
 			});
+		}],
+
+		webSocket: ['network', function (scope, cb) {
+			var webSocketConfig = {
+				workers: 1,
+				port: 8000,
+				wsEngine: 'uws',
+				appName: 'lisk',
+				workerController: './api/ws/workersController',
+				perMessageDeflate: false
+			};
+
+			if (scope.config.ssl.enabled) {
+				extend(webSocketConfig, {
+					protocol: 'https',
+					// This is the same as the object provided to Node.js's https server
+					protocolOptions: {
+						key: fs.readFileSync(scope.config.ssl.options.key),
+						cert: fs.readFileSync(scope.config.ssl.options.cert),
+						ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
+					}
+				});
+			}
+
+			var socketCluster = new SocketCluster(webSocketConfig);
+
+			var masterProcessController = new MasterProcessController();
+
+			masterProcessController.setupWorkersCommunication(socketCluster);
+
+			socketCluster.on('workerExit', function (worker) {
+				workersController.removeWorker(worker);
+			});
+
+			scope.network.app.socketCluster = socketCluster;
+
+			cb();
 		}],
 
 		dbSequence: ['logger', function (scope, cb) {
@@ -524,15 +563,7 @@ d.run(function () {
 			});
 		}],
 
-		/**
-		 * Loads api from `api` folder using `config.api`, once modules, logger and
-		 * network are completed.
-		 * @method api
-		 * @param {object} scope - The results from current execution, 
-		 * at leats will contain the required elements.
-		 * @param {function} cb - Callback function.
-		 */	
-		api: ['modules', 'logger', 'network', function (scope, cb) {
+		api: ['modules', 'logger', 'network', 'webSocket', function (scope, cb) {
 			Object.keys(config.api).forEach(function (moduleName) {
 				Object.keys(config.api[moduleName]).forEach(function (protocol) {
 					var apiEndpointPath = config.api[moduleName][protocol];
