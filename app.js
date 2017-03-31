@@ -41,7 +41,7 @@ var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
 var workersController = require('./api/ws/workersController');
-var WsRPCServer = require('./api/RPC').WsRPCServer;
+var WsRPC = require('./api/RPC');
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
@@ -273,7 +273,7 @@ d.run(function () {
 				port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				// workerController: './api/ws/workersController',
+				workerController: './api/ws/workersController',
 				perMessageDeflate: false
 			};
 
@@ -289,7 +289,7 @@ d.run(function () {
 				});
 			}
 
-			scope.network.app.rpc = new WsRPCServer(new SocketCluster(webSocketConfig));
+			scope.network.app.rpc = new WsRPC(new SocketCluster(webSocketConfig));
 
 			cb();
 		}],

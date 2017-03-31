@@ -1,18 +1,21 @@
 'use strict';
 
 var Q = require('q');
-var _ = require('lodash');
-var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
+function WsRPC (socketCluster) {
 
-function WsRPCServer (socketCluster) {
+	//ip + port -> socketId
+	this.wsClientsConnectionsMap = {};
 
-	WsRPCServer.prototype.server = new MasterWAMPServer(socketCluster);
-	console.log('\x1b[31m%s\x1b[0m', 'WsRPCServer: server --- ');
+	this.wampClient = new WAMPClient();
 
-	this.sharedClient = {
+	this.server = new MasterWAMPServer(socketCluster);
+
+	this.scClient = require('socketcluster-client');
+
+	this.shared = {
 		broadcast: function (method, data) {
 			this.scClient.connections.forEach(function (socket) {
 				socket.emit(method, data);
@@ -29,16 +32,7 @@ function WsRPCServer (socketCluster) {
 	};
 }
 
-//ip + port -> socketId
-WsRPCServer.prototype.wsClientsConnectionsMap = {};
-WsRPCServer.prototype.wampClient = new WAMPClient();
-WsRPCServer.prototype.scClient = scClient;
-
-function WsRPCClient (ip, port) {
-
-	if (!ip || !port) {
-		throw new Error('WsRPCClient needs ip and port to establish WS connection.');
-	}
+WsRPC.prototype.client = function (ip, port, cb) {
 
 	var address = ip + ':' + port;
 
@@ -49,64 +43,33 @@ function WsRPCClient (ip, port) {
 		autoReconnect: true
 	};
 
-	this.socketReady = Q.defer();
-
 	//return registered client if established before
-	if (WsRPCServer.prototype.wsClientsConnectionsMap[address]) {
-		var clientSocket = WsRPCServer.prototype.connections[WsRPCServer.prototype.wsClientsConnectionsMap[address]];
-		this.socketReady.resolve(clientSocket);
-	} else {
-		this.initializeNewConnection(options, address, this.socketReady);
+	if (this.wsClientsConnectionsMap[address]) {
+		return this.scClient.connections[this.wsClientsConnectionsMap[address]];
 	}
 
-	this.sendAfterSocketReady = function (procedureName) {
-		return function (data) {
-			return this.socketReady.promise.then(function (socket) {
-				return socket.wampSend(procedureName, data);
-			});
-		}.bind(this);
-	}.bind(this);
+	var clientSocket = this.scClient.connect(options);
 
-	console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: server ---');
-	return this.clientStub(this.sendAfterSocketReady);
-}
-
-WsRPCClient.prototype.initializeNewConnection = function (options, address, socketReady) {
-
-	var clientSocket = WsRPCServer.prototype.scClient.connect(options);
-
-	WsRPCServer.prototype.wampClient.upgradeToWAMP(clientSocket);
+	this.wampClient.upgradeToWAMP(clientSocket);
 
 	clientSocket.on('error', function (err) {
-		return socketReady.reject('Socket error - ' + err);
+		return cb('Socket error - ' + err);
 	});
 
 	clientSocket.on('connect', function () {
-		WsRPCServer.prototype.wsClientsConnectionsMap[address] = clientSocket.id;
-		return socketReady.resolve(clientSocket);
-	});
+		this.wsClientsConnectionsMap[address] = clientSocket.id;
+		return cb(null, clientSocket);
+	}.bind(this));
 
 	clientSocket.on('connecting', function () {
 		console.log('CLIENT STARTED HANDSHAKE');
 	});
 
 	clientSocket.on('connectAbort', function (data) {
-		return socketReady.reject('CLIENT HANDSHAKE REJECTED' + JSON.stringify(data));
+		return cb('CLIENT HANDSHAKE REJECTED' + JSON.stringify(data));
 	});
+
+	return clientSocket;
 };
 
-WsRPCClient.prototype.clientStub = function (handler) {
-	if (!WsRPCServer.prototype.server) {
-		return {};
-	}
-	return _.reduce(Object.assign({}, WsRPCServer.prototype.server.endpoints.rpc, WsRPCServer.prototype.server.endpoints.event),
-		function (availableCalls, procedureHandler, procedureName) {
-			availableCalls[procedureName] = handler(procedureName);
-			return availableCalls;
-		}, {});
-};
-
-module.exports = {
-	WsRPCClient: WsRPCClient,
-	WsRPCServer: WsRPCServer
-};
+module.exports = WsRPC;

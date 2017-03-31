@@ -4,14 +4,19 @@ var checkIpInList = require('./checkIpInList');
 var Z_schema = require('../helpers/z_schema.js');
 var schema = require('../schema/transport.js');
 var Peer = require('../logic/peer.js');
+var System = require('../modules/system');
 
 var z_schema = new Z_schema();
+
 
 var middleware = {
 
 	Handshake: function (system) {
 		return function (headers, cb) {
+
+
 			z_schema.validate(headers, schema.headers, function (error) {
+
 				if (error) {
 					return setImmediate(cb, {
 						success: false,
@@ -52,7 +57,9 @@ var middleware = {
 			});
 		};
 	}
+
 };
+
 
 module.exports = {
 	middleware: middleware

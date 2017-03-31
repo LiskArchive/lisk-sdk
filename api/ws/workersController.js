@@ -17,12 +17,14 @@ var Handshake = require('../../helpers/wsApi').middleware.Handshake;
 /**
  * @class WorkerController
  */
-function WorkerController () {}
+function WorkerController () {
+	this.config = null;
+}
 
 WorkerController.path = __dirname + 'workersController.js';
 
 /**
- * Function is invoked by SocketCluster 
+ * Function is invoked by SocketCluster
  * @param {Worker} worker
  */
 WorkerController.prototype.run = function (worker) {
@@ -42,10 +44,9 @@ WorkerController.prototype.run = function (worker) {
 				console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- ERROR', err);
 			});
 
-			socket.on('disconnect', function (data) {
+			socket.on('disconnect', function () {
 				slaveWAMPServer.onSocketDisconnect(socket);
-				console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- DISCONNECTED', socket.id, data, socket.authToken);
-				//ToDo: DO REMOVE PEER HERE (AUTH TOKEN?)
+				console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- DISCONNECTED', socket.id);
 			}.bind(this));
 
 			socket.on('connect', function (data) {
@@ -75,15 +76,10 @@ function initializeHandshake (scServer, slaveWAMPServer, cb) {
 
 			var headers = _.get(url.parse(req.url, true), 'query', {});
 			console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: connection, socketId', headers, req.headers.host);
-			if (!headers.ip || !headers.port) {
-				return next('No port or ip specified');
-			}
-
-			headers.port = parseInt(headers.port);
-
 			handshake(headers, function (err, peer) {
-				req.socket.authToken = peer.ip + ':' + peer.port;
 				console.log('\x1b[36m%s\x1b[0m', 'WORKER handshake res: ', err, 'peer:', peer);
+
+
 				slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', {
 					peer: peer,
 					extraMessage: 'extraMessage'
