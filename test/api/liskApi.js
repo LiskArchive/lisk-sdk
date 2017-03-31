@@ -557,6 +557,7 @@ describe('Lisk.api()', function () {
 
 			lisk.api().sendRequest('blocks/getHeight', {}, 'promise').then(function(result) {
 				(result).should.be.type('object');
+				(result.success).should.be.equal(true);
 				done();
 			});
 
