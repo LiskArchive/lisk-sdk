@@ -550,4 +550,17 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
+
+	describe('#sendRequest with promise', function () {
+
+		it('should be able to use sendRequest as a promise', function (done) {
+
+			lisk.api().sendRequest('blocks/getHeight', {}, 'promise').then(function(result) {
+				(result).should.be.type('object');
+				done();
+			});
+
+		});
+
+	});
 });
