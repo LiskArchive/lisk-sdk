@@ -29,6 +29,8 @@ var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
 
+var MasterProcessController = require('./api/ws/masterProcessController');
+
 var genesisblock = require('./genesisBlock.json');
 var git = require('./helpers/git.js');
 var https = require('https');
@@ -307,13 +309,13 @@ d.run(function () {
 			});
 		}],
 
-		webSocket: ['network', function (scope, cb) {
+		webSocket: ['network', 'modules', function (scope, cb) {
 			var webSocketConfig = {
-				workers: 1,
+				// workers: 1,
 				port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				workerController: './api/ws/workersController',
+				// workerController: './api/ws/workersController',
 				perMessageDeflate: false
 			};
 
@@ -331,13 +333,17 @@ d.run(function () {
 
 			var socketCluster = new SocketCluster(webSocketConfig);
 
-			var masterProcessController = new MasterProcessController();
+			var masterProcessController = new MasterProcessController(scope.modules.transport.internal.handshake);
 
-			masterProcessController.setupWorkersCommunication(socketCluster);
+			masterProcessController.setupInterWorkersCommunication(socketCluster);
 
-			socketCluster.on('workerExit', function (worker) {
-				workersController.removeWorker(worker);
-			});
+			// socketCluster.on('workerStart', function (worker) {
+			// 	workersController.addWorker(worker, socketCluster);
+			// });
+			//
+			// socketCluster.on('workerExit', function (worker) {
+			// 	workersController.removeWorker(worker);
+			// });
 
 			scope.network.app.socketCluster = socketCluster;
 

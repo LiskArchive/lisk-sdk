@@ -2,29 +2,28 @@
 
 var wsApi = require('../../helpers/wsApi');
 var workersController = require('./workersController');
+var endpoints = require('./endpoints');
 
 function TransportWSApi (transportModule, app, logger) {
 
 	console.log('\x1b[36m%s\x1b[0m', 'TransportWSApi ----- invoke registerWorkerReceiver');
 
-	var transportEndpoints = {
+	var endpoints = {
 		rpc: {
-			dupaRpc: function (random, cb) {
-				console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT API: dupaRPC invoked', 2 * random);
-				return cb(null, 'dupa rpc ' + 2 * random);
+			dupaRpc: function (random) {
+				return 'dupa rpc ' + random;
 			}
 		},
 
 		event: {
-			dupaEmit: function (random, cb) {
-				console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT API: dupaEmit invoked', 2 * random);
-				return cb(null, 'dupa emit ' + 2 * random);
+			dupaEmit: function (random) {
+				return 'dupa emit ' + random;
 			}
 		}
 	};
 
-	endpoints.registerRPCEndpoints(transportEndpoints.rpc);
-	endpoints.registerEventEndpoints(transportEndpoints.event);
+	endpoints.registerRPCEndpoints(endpoints.rpc);
+	endpoints.registerEventEndpoints(endpoints.event);
 }
 
 module.exports = TransportWSApi;
