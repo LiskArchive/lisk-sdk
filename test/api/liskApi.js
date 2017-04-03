@@ -428,7 +428,7 @@ describe('Lisk.api()', function () {
 
 	describe('#listStandyDelegates', function () {
 
-		it('should list non-active delegates', function (done) {
+		it('should list standby delegates', function (done) {
 			lisk.api().listStandyDelegates('5', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
@@ -515,6 +515,7 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#listVotes', function () {
+
 		it('should list votes of an account', function (done) {
 			lisk.api().listVotes('16010222169256538112L', function (data) {
 				(data).should.be.ok;
@@ -526,6 +527,7 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#listVoters', function () {
+
 		it('should list voters of an account', function (done) {
 			lisk.api().listVoters('6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a', function (data) {
 				(data).should.be.ok;
@@ -537,6 +539,7 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#getAccount', function() {
+
 		it('should get account information', function (done) {
 			lisk.api().getAccount('12731041415715717263L', function (data) {
 				(data).should.be.ok;
@@ -548,6 +551,7 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#sendLSK', function() {
+
 		it('should send testnet LSK', function (done) {
 			var options = {
 				ssl: false,
