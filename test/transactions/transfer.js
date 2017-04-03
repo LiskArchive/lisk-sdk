@@ -48,7 +48,5 @@ describe('transfer.js', function () {
 			(transferTransactionOneSignature.signature).should.be.ok;
 			expect(transferTransactionOneSignature.secondSignature).to.be.undefined;
 		});
-
 	});
-
 });
