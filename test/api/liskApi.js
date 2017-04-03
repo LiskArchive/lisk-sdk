@@ -553,11 +553,37 @@ describe('Lisk.api()', function () {
 
 	describe('#sendRequest with promise', function () {
 
-		it('should be able to use sendRequest as a promise', function (done) {
+		it('should be able to use sendRequest as a promise for GET', function (done) {
 
 			lisk.api().sendRequest('blocks/getHeight', {}, 'promise').then(function(result) {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
+				(result.height).should.be.type('number');
+				done();
+			});
+
+		});
+
+		it('should be able to use sendRequest as a promise for POST', function (done) {
+
+			var options = {
+				ssl: false,
+				node: '',
+				randomPeer: true,
+				testnet: true,
+				port: '7000',
+				bannedPeers: []
+			};
+
+			var LSKnode = lisk.api(options);
+			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
+			var recipient = '10279923186189318946L';
+			var amount = 100000000;
+
+			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }, 'promise').then(function(result) {
+				(result).should.be.type('object');
+				(result.request.success).should.be.equal(true);
 				done();
 			});
 
