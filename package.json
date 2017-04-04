@@ -18,6 +18,7 @@
     "buffer": "=4.9.1",
     "bytebuffer": "=5.0.1",
     "crypto-browserify": "=3.11.0",
+    "ed2curve": "=0.2.1",
     "js-nacl": "LiskHQ/js-nacl#6dc1417",
     "popsicle": "=9.1.0"
   },

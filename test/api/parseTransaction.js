@@ -156,10 +156,8 @@ describe('ParseOfflineRequests', function () {
 
 		it('should route if everything is done already as for most API calls', function () {
 			var reqAnswer = {
-				'request': {
-					'success': 'true',
-					'account': 'account'
-				}
+				'success': 'true',
+				'account': 'account'
 			};
 
 			var offlineRequest = LSK.parseOfflineRequests('delegates', { secret: 'unknown' });
@@ -245,29 +243,24 @@ describe('ParseOfflineRequests', function () {
 				'success': 'true',
 				'call': 'etc'
 			};
-			var outputRequest = {
-				request: request
-			};
 
 			var offlineRequest = LSK.parseOfflineRequests('accounts/delegates', { secret: 'unknown' });
 			var requestAnswer = offlineRequest.transactionOutputAfter(request);
 
-			(outputRequest).should.be.eql(requestAnswer);
+			(request).should.be.eql(requestAnswer);
 		});
 
 		it('should not influence already finished calls - accounts/delegates', function () {
+
 			var request = {
 				'success': 'true',
 				'call': 'etc'
 			};
-			var outputRequest = {
-				request: request
-			};
 
 			var offlineRequest = LSK.parseOfflineRequests('accounts/delegates', { secret: 'unknown' });
 			var requestAnswer = offlineRequest.transactionOutputAfter(request);
 
-			(outputRequest).should.be.eql(requestAnswer);
+			(request).should.be.eql(requestAnswer);
 		});
 
 		it('should not influence already finished calls - transactions', function () {
@@ -275,14 +268,11 @@ describe('ParseOfflineRequests', function () {
 				'success': 'true',
 				'call': 'etc'
 			};
-			var outputRequest = {
-				request: request
-			};
 
 			var offlineRequest = LSK.parseOfflineRequests('transactions', { secret: 'unknown' });
 			var requestAnswer = offlineRequest.transactionOutputAfter(request);
 
-			(outputRequest).should.be.eql(requestAnswer);
+			(request).should.be.eql(requestAnswer);
 		});
 
 		it('should not influence already finished calls - signatures', function () {
@@ -290,14 +280,11 @@ describe('ParseOfflineRequests', function () {
 				'success': 'true',
 				'call': 'etc'
 			};
-			var outputRequest = {
-				request: request
-			};
 
 			var offlineRequest = LSK.parseOfflineRequests('signatures', { secret: 'unknown' });
 			var requestAnswer = offlineRequest.transactionOutputAfter(request);
 
-			(outputRequest).should.be.eql(requestAnswer);
+			(request).should.be.eql(requestAnswer);
 		});
 
 		it('should not influence already finished calls - dapps', function () {
@@ -305,14 +292,11 @@ describe('ParseOfflineRequests', function () {
 				'success': 'true',
 				'call': 'etc'
 			};
-			var outputRequest = {
-				request: request
-			};
 
 			var offlineRequest = LSK.parseOfflineRequests('dapps', { secret: 'unknown' });
 			var requestAnswer = offlineRequest.transactionOutputAfter(request);
 
-			(outputRequest).should.be.eql(requestAnswer);
+			(request).should.be.eql(requestAnswer);
 		});
 	});
 });
