@@ -206,12 +206,10 @@ LiskAPI.prototype.banNode = function () {
 };
 
 LiskAPI.prototype.checkReDial = function () {
-
 	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 	if (this.testnet) peers = this.defaultTestnetPeers;
 
-	return (peers.length != this.bannedPeers.length);
-
+	return (peers.length !== this.bannedPeers.length);
 };
 
 LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
@@ -221,7 +219,7 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 
 	return this.sendRequestPromise(requestType, options).then(function (requestSuccess) {
 
-		returnAnswer = (parseOfflineRequest(requestType, options).requestMethod === 'GET') ? requestSuccess.body : parseOfflineRequest(requestType, options).transactionOutputAfter(requestSuccess.body);
+		var returnAnswer = (parseOfflineRequest(requestType, options).requestMethod === 'GET') ? requestSuccess.body : parseOfflineRequest(requestType, options).transactionOutputAfter(requestSuccess.body);
 
 		if(!callback || (typeof callback !== 'function')) {
 			return Promise.resolve(returnAnswer);
@@ -229,10 +227,9 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 			return callback(returnAnswer);
 		}
 
-	}).then(function(API) {
+	}).then(function (API) {
 		return API;
 	}).catch(function (e) {
-
 		if(that.checkReDial()) {
 			setTimeout(function () {
 				that.banNode();
@@ -242,12 +239,10 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 		} else {
 			throw new Error({ error: e, message: 'could not create http request to any of the given peers' });
 		}
-
 	});
 };
 
 LiskAPI.prototype.sendRequestPromise = function (requestType, options) {
-
 	if (this.checkRequest(requestType, options) !== 'NOACTION') {
 		var requestValues = this.changeRequest(requestType, options);
 		return this.doPopsicleRequest(requestValues);
