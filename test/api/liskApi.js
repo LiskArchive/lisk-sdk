@@ -1,16 +1,3 @@
-function getUrlVars (url) {
-	var hash;
-	var myJson = {};
-	var hashes = url.slice(url.indexOf('?') + 1).split('&');
-
-	for (var i = 0; i < hashes.length; i++) {
-		hash = hashes[i].split('=');
-		myJson[hash[0]] = hash[1];
-	}
-
-	return myJson;
-}
-
 process.env.NODE_ENV = 'test';
 
 describe('Lisk.api()', function () {
@@ -28,10 +15,21 @@ describe('Lisk.api()', function () {
 		});
 	});
 
+	describe('#listPeers', function() {
+		it('should give a set of the peers', function() {
+
+			(LSK.listPeers()).should.be.ok;
+			(LSK.listPeers()).should.be.type.Object;
+			(LSK.listPeers().official.length).should.be.equal(8);
+			(LSK.listPeers().testnet.length).should.be.equal(1);
+
+		});
+	});
+
 	describe('.currentPeer', function () {
 
 		it('currentPeer should be set by default', function () {
-			(LSK.currentPeer).should.be.ok();
+			(LSK.currentPeer).should.be.ok;
 		});
 	});
 
@@ -171,6 +169,17 @@ describe('Lisk.api()', function () {
 
 			(trimIt).should.be.eql(trimmedObj);
 		});
+
+		it('should accept numbers and strings as value', function () {
+			var obj = {
+				'myObj': 2
+			};
+
+			var trimmedObj = LSK.trimObj(obj);
+			(trimmedObj).should.be.ok;
+			(trimmedObj).should.be.eql({ myObj: '2' });
+		});
+
 	});
 
 	describe('#toQueryString', function () {
@@ -189,10 +198,6 @@ describe('Lisk.api()', function () {
 
 	describe('#serialiseHttpData', function () {
 
-		before(function () {
-			process.env.NODE_ENV = 'main';
-		});
-
 		it('should create a http string from an object and trim.', function () {
 			var myObj = {
 				obj: ' myval',
@@ -204,24 +209,6 @@ describe('Lisk.api()', function () {
 			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
 
-		it('should add random if type is GET', function () {
-			var myObj = {
-				obj: ' myval',
-				key: 'my2ndval '
-			};
-
-			var serialised = LSK.serialiseHttpData(myObj, 'GET');
-
-			var objectify = getUrlVars(serialised.substring(1));
-
-			(objectify).should.have.property('random');
-			(objectify).should.have.property('obj');
-			(objectify).should.have.property('key');
-		});
-
-		after(function () {
-			process.env.NODE_ENV = 'test';
-		});
 	});
 
 	describe('#getAddressFromSecret', function () {
@@ -439,11 +426,10 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listStandyDelegates', function () {
-
-		it.skip('should list non-active delegates', function (done) {
-			lisk.api().listStandyDelegates('5', function (data) {
-				console.log(data);
+	describe('#listStandbyDelegates', function () {
+    
+		it('should list standby delegates', function (done) {
+			lisk.api().listStandbyDelegates('5', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true;
@@ -506,16 +492,17 @@ describe('Lisk.api()', function () {
 	describe('#listTransactions', function () {
 
 		it('should list transactions of a defined account', function (done) {
-			lisk.api().listTransactions('12731041415715717263L', function (data) {
+			lisk.api().listTransactions('12731041415715717263L', '1', '2', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true;
+				(data.transactions.length).should.be.equal(1);
 				done();
 			});
 		});
 	});
 
-	describe('#listTransactions', function () {
+	describe('#getTransaction', function () {
 
 		it('should list a defined transaction', function (done) {
 			lisk.api().getTransaction('7520138931049441691', function (data) {
@@ -546,6 +533,42 @@ describe('Lisk.api()', function () {
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('#getAccount', function() {
+
+		it('should get account information', function (done) {
+			lisk.api().getAccount('12731041415715717263L', function (data) {
+				(data).should.be.ok;
+				(data.account.publicKey).should.be.equal('a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4');
+				(data.account.address).should.be.equal('12731041415715717263L');
+				done();
+			});
+		});
+	});
+
+	describe('#sendLSK', function() {
+
+		it('should send testnet LSK', function (done) {
+			var options = {
+				ssl: false,
+				node: '',
+				randomPeer: true,
+				testnet: true,
+				port: '7000',
+				bannedPeers: []
+			};
+
+			var LSKnode = lisk.api(options);
+			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
+			var recipient = '10279923186189318946L';
+			var amount = 100000000;
+			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function (result) {
+				(result).should.be.ok;
 				done();
 			});
 		});
