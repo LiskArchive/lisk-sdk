@@ -426,10 +426,10 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listStandyDelegates', function () {
-
+	describe('#listStandbyDelegates', function () {
+    
 		it('should list standby delegates', function (done) {
-			lisk.api().listStandyDelegates('5', function (data) {
+			lisk.api().listStandbyDelegates('5', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true;
@@ -568,7 +568,7 @@ describe('Lisk.api()', function () {
 			var recipient = '10279923186189318946L';
 			var amount = 100000000;
 			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function (result) {
-				(result.success).should.be.equal(true);
+				(result).should.be.ok;
 				done();
 			});
 		});
