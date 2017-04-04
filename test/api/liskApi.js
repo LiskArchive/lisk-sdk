@@ -429,7 +429,7 @@ describe('Lisk.api()', function () {
 	describe('#listStandbyDelegates', function () {
     
 		it('should list standby delegates', function (done) {
-			lisk.api().listStandyDelegates('5', function (data) {
+			lisk.api().listStandbyDelegates('5', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true;
