@@ -57,14 +57,14 @@ function LiskAPI (options) {
 	options = options || {};
 
 	this.defaultPeers = [
-		'node01.lisk.io',
-		'node02.lisk.io',
-		'node03.lisk.io',
-		'node04.lisk.io',
-		'node05.lisk.io',
-		'node06.lisk.io',
-		'node07.lisk.io',
-		'node08.lisk.io'
+		'node001.lisk.io',
+		'node002.lisk.io',
+		'node003.lisk.io',
+		'node004.lisk.io',
+		'node005.lisk.io',
+		'node006.lisk.io',
+		'node007.lisk.io',
+		'node008.lisk.io'
 	];
 
 	this.defaultSSLPeers = [
@@ -123,6 +123,7 @@ LiskAPI.prototype.setNode = function (node) {
 LiskAPI.prototype.setTestnet = function (testnet) {
 	if (this.testnet !== testnet) {
 		this.testnet = testnet;
+		this.bannedPeers = [];
 		this.port = 7000;
 		this.selectNode();
 	}
@@ -131,6 +132,7 @@ LiskAPI.prototype.setTestnet = function (testnet) {
 LiskAPI.prototype.setSSL = function (ssl) {
 	if (this.ssl !== ssl) {
 		this.ssl = ssl;
+		this.bannedPeers = [];
 		this.selectNode();
 	}
 };
@@ -187,35 +189,58 @@ LiskAPI.prototype.banNode = function () {
 	this.selectNode();
 };
 
+LiskAPI.prototype.checkReDial = function () {
+
+	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+	if (this.testnet) peers = this.defaultTestnetPeers;
+
+	var dialAgain;
+	if(peers.length === this.bannedPeers.length) {
+		dialAgain = false;
+	} else {
+		dialAgain = true;
+	}
+
+	return dialAgain;
+
+};
+
 LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 	callback = callback || options;
 	options = typeof options !== 'function' && typeof options !== 'undefined' ? options : {};
 	var that = this;
+	var returnAnswer;
+
+	var output = document.getElementById('output');
 
 	return this.sendRequestPromise(requestType, options).then(function (requestSuccess) {
 
-		var returnAnswer = (parseOfflineRequest(requestType, options).requestMethod === 'GET') ? requestSuccess.body : parseOfflineRequest(requestType, options).transactionOutputAfter(requestSuccess.body);
+		returnAnswer = (parseOfflineRequest(requestType, options).requestMethod === 'GET') ? requestSuccess.body : parseOfflineRequest(requestType, options).transactionOutputAfter(requestSuccess.body);
 
-		//return callback(returnAnswer);
-
-		if((typeof callback === 'string') && callback === 'promise') {
-			return Promise.resolve(returnAnswer).then(function (successCall) {
-				return successCall;
-			});
+		if(!callback || (typeof callback !== 'function')) {
+			return Promise.resolve(returnAnswer);
 		} else {
 			return callback(returnAnswer);
 		}
 
-	}, function () {
+	}).then(function(API) {
+		return API;
+	}).catch(function (error) {
+
+		//console.log(error);
+		console.log(error.popsicle);
+		output.innerHTML = output.innerHTML + '<hr/>' + JSON.stringify(error.popsicle);
+		console.log(error.popsicle.events.abort.length);
+		//console.log(that.bannedPeers);
+
+
 		setTimeout(function () {
 			that.banNode();
 			that.setNode();
 			that.sendRequest(requestType, options, callback);
 		}, 1000);
-	}).then(function(API) {
-		return API;
-	}).catch(function (error) {
-		throw new Error(error);
+
+		
 	});
 };
 
