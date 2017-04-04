@@ -427,7 +427,7 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#listStandbyDelegates', function () {
-    
+
 		it('should list standby delegates', function (done) {
 			lisk.api().listStandbyDelegates('5', function (data) {
 				(data).should.be.ok;
@@ -577,18 +577,15 @@ describe('Lisk.api()', function () {
 	describe('#sendRequest with promise', function () {
 
 		it('should be able to use sendRequest as a promise for GET', function (done) {
-
 			lisk.api().sendRequest('blocks/getHeight', {}).then(function(result) {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
 				(result.height).should.be.type('number');
 				done();
 			});
-
 		});
 
 		it('should be able to use sendRequest as a promise for POST', function (done) {
-
 			var options = {
 				ssl: false,
 				node: '',
@@ -609,8 +606,6 @@ describe('Lisk.api()', function () {
 				(result.request.success).should.be.equal(true);
 				done();
 			});
-
 		});
-
 	});
 });
