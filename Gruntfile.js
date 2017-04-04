@@ -27,7 +27,7 @@ module.exports = function (grunt) {
 		watch: {
 			scripts: {
 				files: ['lib/*.js'],
-				tasks: ['eslint', 'browserify', 'uglify'],
+				tasks: ['eslint', 'browserify'],
 				options: {
 					spawn: false,
 					livereload: true
