@@ -19,6 +19,7 @@ lisk = {
 	multisignature : require('./lib/transactions/multisignature.js'),
 	signature : require('./lib/transactions/signature.js'),
 	transaction : require('./lib/transactions/transaction.js'),
+	transfer: require('./lib/transactions/transfer'),
 	vote : require('./lib/transactions/vote.js'),
 	api: require('./lib/api/liskApi')
 };
@@ -26,8 +27,7 @@ lisk = {
 module.exports = lisk;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/vote.js":18,"js-nacl":116}],2:[function(require,module,exports){
-(function (process){
+},{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/transfer":17,"./lib/transactions/vote.js":18,"js-nacl":116}],2:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -84,10 +84,10 @@ function LiskAPI (options) {
 	if (options.port === '' || options.port) this.port = options.port;
 	else                                    this.port = 8000;
 	this.parseOfflineRequests = parseOfflineRequest;
-	this.nethash = this.getNethash();
+	this.nethash = this.getNethash(options.nethash);
 }
 
-LiskAPI.prototype.getNethash = function () {
+LiskAPI.prototype.getNethash = function (nethash) {
 	var NetHash;
 
 	if (this.testnet) {
@@ -112,7 +112,23 @@ LiskAPI.prototype.getNethash = function () {
 		};
 	}
 
+	if(nethash) {
+		NetHash.nethash = nethash;
+		NetHash.version = '0.0.0a';
+	}
+
 	return NetHash;
+};
+
+LiskAPI.prototype.listPeers = function() {
+
+	return {
+		official: this.defaultPeers,
+		ssl: this.defaultSSLPeers,
+		testnet: this.defaultTestnetPeers,
+		localhost: [ 'localhost' ]
+	};
+
 };
 
 LiskAPI.prototype.setNode = function (node) {
@@ -281,12 +297,8 @@ LiskAPI.prototype.checkRequest = function (requestType, options) {
 	return parseOfflineRequest(requestType, options).requestMethod;
 };
 
-LiskAPI.prototype.serialiseHttpData = function (data, type) {
+LiskAPI.prototype.serialiseHttpData = function (data) {
 	var serialised;
-
-	if (type === 'GET' && process.env.NODE_ENV !== 'test') {
-		data.random = Math.random().toString();
-	}
 
 	serialised = this.trimObj(data);
 	serialised = this.toQueryString(serialised);
@@ -299,7 +311,7 @@ LiskAPI.prototype.trimObj = function (obj) {
 	if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
 
 	return Object.keys(obj).reduce(function (acc, key) {
-		acc[key.trim()] = typeof obj[key] === 'string'? obj[key].trim() : this.trimObj(obj[key]);
+		acc[key.trim()] = (typeof obj[key] === 'string') ? obj[key].trim() : (Number.isInteger(obj[key])) ? obj[key].toString() : this.trimObj(obj[key]);
 		return acc;
 	}, Array.isArray(obj)? []:{});
 };
@@ -309,7 +321,7 @@ LiskAPI.prototype.toQueryString = function (obj) {
 
 	for (var i in obj) {
 		if (obj.hasOwnProperty(i)) {
-			parts.push(encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]));
+			parts.push(encodeURIComponent(i) + '=' + encodeURI(obj[i]));
 		}
 	}
 
@@ -326,13 +338,19 @@ LiskAPI.prototype.getAddressFromSecret = function (secret) {
 	};
 };
 
+LiskAPI.prototype.getAccount = function(address, callback) {
+	this.sendRequest('accounts', { address: address }, function (result) {
+		return callback(result);
+	});
+};
+
 LiskAPI.prototype.listActiveDelegates = function (limit, callback) {
 	this.sendRequest('delegates/', { limit: limit}, function (result) {
 		return callback(result);
 	});
 };
 
-LiskAPI.prototype.listStandyDelegates = function (limit, callback) {
+LiskAPI.prototype.listStandbyDelegates = function (limit, callback) {
 	var standByOffset = +101 + +limit;
 
 	this.sendRequest('delegates/', { limit: limit, orderBy: 'rate:asc', offset: standByOffset}, function (result) {
@@ -364,8 +382,10 @@ LiskAPI.prototype.getBlock = function (block, callback) {
 	});
 };
 
-LiskAPI.prototype.listTransactions = function (address, callback) {
-	this.sendRequest('transactions', { senderId: address, recipientId: address }, function (result) {
+LiskAPI.prototype.listTransactions = function (address, limit, offset, callback) {
+	offset = offset || '0';
+	limit = limit || '20';
+	this.sendRequest('transactions', { senderId: address, recipientId: address, limit: limit, offset: offset, orderBy: 'timestamp:desc' }, function (result) {
 		return callback(result);
 	});
 };
@@ -388,10 +408,15 @@ LiskAPI.prototype.listVoters = function (publicKey, callback) {
 	});
 };
 
+LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, callback) {
+	this.sendRequest('transactions', { recipientId: recipient, amount: amount, secret: secret, secondSecret: secondSecret }, function (response) {
+		return callback(response);
+	});
+};
+
 module.exports = LiskAPI;
 
-}).call(this,require('_process'))
-},{"../transactions/crypto":6,"./parseTransaction":3,"_process":145,"popsicle":134}],3:[function(require,module,exports){
+},{"../transactions/crypto":6,"./parseTransaction":3,"popsicle":134}],3:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -505,45 +530,45 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		},
 		'accounts/delegates': function () {
 			var transaction = LiskJS.vote.createVote(OfflineRequestThis.options['secret'], OfflineRequestThis.options['delegates'], OfflineRequestThis.options['secondSecret'] );
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'transactions': function () {
 			var transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options['recipientId'], OfflineRequestThis.options['amount'], OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'signatures': function () {
 			var transaction = LiskJS.signature.createSignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'delegates': function () {
 			var transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options['secret'], OfflineRequestThis.options['username'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'dapps': function () {
@@ -561,12 +586,12 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 
 			var transaction = LiskJS.dapp.createDapp(DappOptions);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'multisignatures': 'PUT'
@@ -655,29 +680,19 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 			console.log(multiSigSignature);
 		},
 		'accounts/delegates': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'transactions': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'signatures': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'delegates': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'dapps': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'multisignatures': function () {
 			console.log(OfflineRequestThis.options);
@@ -1577,7 +1592,6 @@ function convertPrivateKeyEd2Curve (privateKey) {
 }
 
 function encryptMessageWithSecret (message, secret, recipientPublicKey) {
-
 	var senderPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
 	var recipientPublicKeyBytes = convert.hexToBuffer(recipientPublicKey);
 	var message = naclInstance.encode_utf8(message);
@@ -1591,12 +1605,10 @@ function encryptMessageWithSecret (message, secret, recipientPublicKey) {
 	return {
 		nonce: nonceHex,
 		encryptedMessage: encryptedMessage
-	}
-
+	};
 }
 
 function decryptMessageWithSecret (packet, nonce, secret, senderPublicKey) {
-
 	var recipientPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
 	var senderPublicKeyBytes = convert.hexToBuffer(senderPublicKey);
 	var packetBytes = convert.hexToBuffer(packet);
@@ -1605,9 +1617,7 @@ function decryptMessageWithSecret (packet, nonce, secret, senderPublicKey) {
 	var decoded = naclInstance.crypto_box_open(packetBytes, nonceBytes, convertPublicKeyEd2Curve(senderPublicKeyBytes), convertPrivateKeyEd2Curve(recipientPrivateKey));
 
 	return naclInstance.decode_utf8(decoded);
-
 }
-
 
 module.exports = {
 	verifyMessageWithPublicKey: verifyMessageWithPublicKey,
@@ -22906,7 +22916,7 @@ module.exports={
         "spec": ">=6.0.0 <7.0.0",
         "type": "range"
       },
-      "/Users/tobias/GitHub/lisk-js/node_modules/browserify-sign"
+      "/Users/Oliver/github/LiskHQ/lisk-js/node_modules/browserify-sign"
     ]
   ],
   "_from": "elliptic@>=6.0.0 <7.0.0",
@@ -22941,7 +22951,7 @@ module.exports={
   "_shasum": "cac9af8762c85836187003c8dfe193e5e2eae5df",
   "_shrinkwrap": null,
   "_spec": "elliptic@^6.0.0",
-  "_where": "/Users/tobias/GitHub/lisk-js/node_modules/browserify-sign",
+  "_where": "/Users/Oliver/github/LiskHQ/lisk-js/node_modules/browserify-sign",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
