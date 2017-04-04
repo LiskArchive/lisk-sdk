@@ -56,6 +56,7 @@
 
                         <a href="#api_functions_sub" data-toggle="collapse" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 24px;"><b>API Functions</b></a>
                         <div class="collapse list-group-submenu" id="api_functions_sub">
+                            <a href="#functions_getAccount" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">getAccount</a>
                             <a href="#functions_listActiveDelegates" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listActiveDelegates</a>
                             <a href="#functions_listStandyDelegates" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listStandyDelegates</a>
                             <a href="#functions_searchDelegateByUsername" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">searchDelegateByUsername</a>
@@ -73,6 +74,7 @@
                             <a href="#functions_sendRequest" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">sendRequest</a>
                             <a href="#functions_getNetHash" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">getNetHash</a>
                             <a href="#functions_setNode" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">setNode</a>
+                            <a href="#functions_listPeers" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">listPeers</a>
                             <a href="#functions_setSSL" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">setSSL</a>
                             <a href="#functions_setTestnet" class="list-group-item sub-item" data-parent="#network_sub" style="padding-left: 34px;">setTestnet</a>
                         </div>
@@ -183,6 +185,25 @@ var LSK = lisk.api(options);
                 </div>
 
                 <h2 id="api_functions">API Functions</h2>
+
+                <h3 id="functions_getAccount">getAccount</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Get single account by address</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+lisk.api().getAccount(accountAddress, callback);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <h3 id="functions_listActiveDelegates">listActiveDelegates</h3>
 
@@ -327,10 +348,13 @@ lisk.api().getTransaction(transactionId, callback);
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-lisk.api().listTransactions(address, callback);
+lisk.api().listTransactions(address, limit, offset, callback);
                                         </code>
                                     </pre>
                                 </figure>
+                                <p><b>Address:</b> The Lisk address for recipient and sender of the transactions.</p>
+                                <p><b>Limit:</b> The number of transactions to retrieve. Minimum: 1, Maximum: 1000.</p>
+                                <p><b>Offset:</b> The number of records to offset the query from, e.g. a given offset of 10 excludes the first 10 records from the yielded results.</p>
                             </div>
                         </div>
                     </div>
@@ -466,6 +490,35 @@ var LSK = lisk.api().setNode('mynode.com');
                                     </pre>
                                 </figure>
                                 <p>Use <code>LSK.setNode();</code> without any arguments to automatically choose a new random node.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_listPeers">listPeers</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Lists the peers configured for each network.</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api().listPeers();
+                                        </code>
+                                    </pre>
+                                </figure>
+                                <p>Yields an object containing arrays of network categorised peers:</p>
+                                <pre>
+{
+    official: [...],
+    ssl: [...],
+    testnet: [...],
+    localhost: [...]
+
+}
+                                </pre>
                             </div>
                         </div>
                     </div>

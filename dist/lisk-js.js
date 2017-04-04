@@ -27,7 +27,7 @@ lisk = {
 module.exports = lisk;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/transfer":17,"./lib/transactions/vote.js":18,"js-nacl":115}],2:[function(require,module,exports){
+},{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/vote.js":18,"js-nacl":115}],2:[function(require,module,exports){
 (function (process){
 /*
  * Copyright © 2017 Lisk Foundation
@@ -85,10 +85,10 @@ function LiskAPI (options) {
 	if (options.port === '' || options.port) this.port = options.port;
 	else                                    this.port = 8000;
 	this.parseOfflineRequests = parseOfflineRequest;
-	this.nethash = this.getNethash();
+	this.nethash = this.getNethash(options.nethash);
 }
 
-LiskAPI.prototype.getNethash = function () {
+LiskAPI.prototype.getNethash = function (nethash) {
 	var NetHash;
 
 	if (this.testnet) {
@@ -113,7 +113,23 @@ LiskAPI.prototype.getNethash = function () {
 		};
 	}
 
+	if(nethash) {
+		NetHash.nethash = nethash;
+		NetHash.version = '0.0.0a';
+	}
+
 	return NetHash;
+};
+
+LiskAPI.prototype.listPeers = function() {
+
+	return {
+		official: this.defaultPeers,
+		ssl: this.defaultSSLPeers,
+		testnet: this.defaultTestnetPeers,
+		localhost: [ 'localhost' ]
+	};
+
 };
 
 LiskAPI.prototype.setNode = function (node) {
@@ -282,12 +298,8 @@ LiskAPI.prototype.checkRequest = function (requestType, options) {
 	return parseOfflineRequest(requestType, options).requestMethod;
 };
 
-LiskAPI.prototype.serialiseHttpData = function (data, type) {
+LiskAPI.prototype.serialiseHttpData = function (data) {
 	var serialised;
-
-	if (type === 'GET' && process.env.NODE_ENV !== 'test') {
-		data.random = Math.random().toString();
-	}
 
 	serialised = this.trimObj(data);
 	serialised = this.toQueryString(serialised);
@@ -300,7 +312,7 @@ LiskAPI.prototype.trimObj = function (obj) {
 	if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
 
 	return Object.keys(obj).reduce(function (acc, key) {
-		acc[key.trim()] = typeof obj[key] === 'string'? obj[key].trim() : this.trimObj(obj[key]);
+		acc[key.trim()] = (typeof obj[key] === 'string') ? obj[key].trim() : (Number.isInteger(obj[key])) ? obj[key].toString() : this.trimObj(obj[key]);
 		return acc;
 	}, Array.isArray(obj)? []:{});
 };
@@ -325,6 +337,12 @@ LiskAPI.prototype.getAddressFromSecret = function (secret) {
 		address: accountAddress,
 		publicKey: accountKeys.publicKey
 	};
+};
+
+LiskAPI.prototype.getAccount = function(address, callback) {
+	this.sendRequest('accounts', { address: address }, function (result) {
+		return callback(result);
+	});
 };
 
 LiskAPI.prototype.listActiveDelegates = function (limit, callback) {
@@ -365,8 +383,10 @@ LiskAPI.prototype.getBlock = function (block, callback) {
 	});
 };
 
-LiskAPI.prototype.listTransactions = function (address, callback) {
-	this.sendRequest('transactions', { senderId: address, recipientId: address }, function (result) {
+LiskAPI.prototype.listTransactions = function (address, limit, offset, callback) {
+	offset = offset || '0';
+	limit = limit || '20';
+	this.sendRequest('transactions', { senderId: address, recipientId: address, limit: limit, offset: offset }, function (result) {
 		return callback(result);
 	});
 };
@@ -389,10 +409,16 @@ LiskAPI.prototype.listVoters = function (publicKey, callback) {
 	});
 };
 
+LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, callback) {
+	this.sendRequest('transactions', { recipientId: recipient, amount: amount, secret: secret, secondSecret: secondSecret }, function (response) {
+		return callback(response);
+	});
+};
+
 module.exports = LiskAPI;
 
 }).call(this,require('_process'))
-},{"../transactions/crypto":6,"./parseTransaction":3,"_process":144,"popsicle":133}],3:[function(require,module,exports){
+},{"../transactions/crypto":6,"./parseTransaction":3,"_process":145,"popsicle":134}],3:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -506,45 +532,45 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		},
 		'accounts/delegates': function () {
 			var transaction = LiskJS.vote.createVote(OfflineRequestThis.options['secret'], OfflineRequestThis.options['delegates'], OfflineRequestThis.options['secondSecret'] );
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'transactions': function () {
 			var transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options['recipientId'], OfflineRequestThis.options['amount'], OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'signatures': function () {
 			var transaction = LiskJS.signature.createSignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'delegates': function () {
 			var transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options['secret'], OfflineRequestThis.options['username'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'dapps': function () {
@@ -562,12 +588,12 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 
 			var transaction = LiskJS.dapp.createDapp(DappOptions);
 
-			OfflineRequestThis.params = { transaction };
+			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction }
+				params: { transaction: transaction }
 			};
 		},
 		'multisignatures': 'PUT'
@@ -656,29 +682,19 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 			console.log(multiSigSignature);
 		},
 		'accounts/delegates': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'transactions': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'signatures': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'delegates': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'dapps': function () {
-			return {
-				request: requestAnswer
-			};
+			return requestAnswer;
 		},
 		'multisignatures': function () {
 			console.log(OfflineRequestThis.options);
@@ -33483,3 +33499,7 @@ exports.createContext = Script.createContext = function (context) {
 
 },{"indexof":111}]},{},[1])(1)
 });
+},{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/transfer":17,"./lib/transactions/vote.js":18,"js-nacl":115}],2:[function(require,module,exports){
+(function (process){
+}).call(this,require('_process'))
+},{"../transactions/crypto":6,"./parseTransaction":3,"_process":144,"popsicle":133}],3:[function(require,module,exports){
