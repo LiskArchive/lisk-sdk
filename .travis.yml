@@ -1,6 +1,9 @@
 language: node_js
 node_js:
   - 'node' # Latest stable Node.js release
+cache:
+  directories:
+    - node_modules
 before_script:
   - npm install -g grunt
   - npm install -g grunt-cli

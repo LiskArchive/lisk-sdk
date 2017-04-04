@@ -17,6 +17,7 @@ lisk = {
 	multisignature : require('./lib/transactions/multisignature.js'),
 	signature : require('./lib/transactions/signature.js'),
 	transaction : require('./lib/transactions/transaction.js'),
+	transfer: require('./lib/transactions/transfer'),
 	vote : require('./lib/transactions/vote.js'),
 	api: require('./lib/api/liskApi')
 };
