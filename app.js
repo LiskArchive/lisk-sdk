@@ -259,11 +259,11 @@ d.run(function () {
 
 		webSocket: ['network', 'modules', function (scope, cb) {
 			var webSocketConfig = {
-				// workers: 1,
+				workers: 1,
 				port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				// workerController: './api/ws/workersController',
+				workerController: './api/ws/workersController',
 				perMessageDeflate: false
 			};
 
@@ -281,9 +281,9 @@ d.run(function () {
 
 			var socketCluster = new SocketCluster(webSocketConfig);
 
-			var masterProcessController = new MasterProcessController(scope.modules.transport.internal.handshake);
+			var masterProcessController = new MasterProcessController();
 
-			masterProcessController.setupInterWorkersCommunication(socketCluster);
+			masterProcessController.setupWorkersCommunication(socketCluster);
 
 			// socketCluster.on('workerStart', function (worker) {
 			// 	workersController.addWorker(worker, socketCluster);
