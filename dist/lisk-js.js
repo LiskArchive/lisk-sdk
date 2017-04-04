@@ -19,6 +19,7 @@ lisk = {
 	multisignature : require('./lib/transactions/multisignature.js'),
 	signature : require('./lib/transactions/signature.js'),
 	transaction : require('./lib/transactions/transaction.js'),
+	transfer: require('./lib/transactions/transfer'),
 	vote : require('./lib/transactions/vote.js'),
 	api: require('./lib/api/liskApi')
 };
@@ -27,6 +28,7 @@ module.exports = lisk;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/vote.js":18,"js-nacl":115}],2:[function(require,module,exports){
+(function (process){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -415,7 +417,8 @@ LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, c
 
 module.exports = LiskAPI;
 
-},{"../transactions/crypto":6,"./parseTransaction":3,"popsicle":133}],3:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"../transactions/crypto":6,"./parseTransaction":3,"_process":145,"popsicle":134}],3:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -33496,3 +33499,7 @@ exports.createContext = Script.createContext = function (context) {
 
 },{"indexof":111}]},{},[1])(1)
 });
+},{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/transfer":17,"./lib/transactions/vote.js":18,"js-nacl":115}],2:[function(require,module,exports){
+(function (process){
+}).call(this,require('_process'))
+},{"../transactions/crypto":6,"./parseTransaction":3,"_process":144,"popsicle":133}],3:[function(require,module,exports){
