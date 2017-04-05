@@ -15,9 +15,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listPeers', function() {
-		it('should give a set of the peers', function() {
-
+	describe('#listPeers', function () {
+		it('should give a set of the peers', function () {
 			(LSK.listPeers()).should.be.ok;
 			(LSK.listPeers()).should.be.type.Object;
 			(LSK.listPeers().official.length).should.be.equal(8);
@@ -555,7 +554,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#getAccount', function() {
+	describe('#getAccount', function () {
 
 		it('should get account information', function (done) {
 			lisk.api().getAccount('12731041415715717263L', function (data) {
@@ -600,7 +599,7 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should be able to get a new node when current one is not reachable', function (done) {
-			lisk.api({ node: '123' }).sendRequest('blocks/getHeight', {}, function(result) {
+			lisk.api({ node: '123' }).sendRequest('blocks/getHeight', {}, function (result) {
 				(result).should.be.type('object');
 				done();
 			});
@@ -687,7 +686,7 @@ describe('Lisk.api()', function () {
 			var recipient = '10279923186189318946L';
 			var amount = 100000000;
 
-			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function(result) {
+			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function (result) {
 				(result).should.be.type('object');
 				(result).should.be.ok;
 				done();
