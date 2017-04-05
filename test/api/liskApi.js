@@ -591,7 +591,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe.skip('#sendRequest with promise', function () {
+	describe('#sendRequest with promise', function () {
 
 		it('should be able to use sendRequest as a promise for GET', function (done) {
 			lisk.api().sendRequest('blocks/getHeight', {}).then(function (result) {
@@ -619,8 +619,9 @@ describe('Lisk.api()', function () {
 			var amount = 100000000;
 
 			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function(result) {
+				console.log(result);
 				(result).should.be.type('object');
-				(result.success).should.be.equal(true);
+				(result).should.be.ok;
 				done();
 			});
 		});
