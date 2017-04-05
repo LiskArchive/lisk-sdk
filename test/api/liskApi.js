@@ -567,7 +567,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#sendLSK', function() {
+	describe('#sendLSK', function () {
 
 		it('should send testnet LSK', function (done) {
 			var options = {
@@ -589,6 +589,53 @@ describe('Lisk.api()', function () {
 				done();
 			});
 		});
+	});
+
+	describe('#checkReDial', function() {
+
+		it('should check if all the peers are already banned', function () {
+
+			(lisk.api().checkReDial()).should.be.equal(true);
+
+		});
+
+		it('should recognize that now all the peers are banned for mainnet', function () {
+
+			var thisLSK = lisk.api();
+			thisLSK.bannedPeers = lisk.api().defaultPeers;
+
+			(thisLSK.checkReDial()).should.be.equal(false);
+		});
+
+		it('should recognize that now all the peers are banned for testnet', function () {
+
+			var thisLSK = lisk.api({ testnet: true });
+			thisLSK.bannedPeers = lisk.api().defaultTestnetPeers;
+
+			(thisLSK.checkReDial()).should.be.equal(false);
+		});
+
+		it('should recognize that now all the peers are banned for ssl', function () {
+
+			var thisLSK = lisk.api({ssl: true});
+			thisLSK.bannedPeers = lisk.api().defaultSSLPeers;
+
+			(thisLSK.checkReDial()).should.be.equal(false);
+		});
+
+		it('should stop redial when all the peers are banend already', function (done) {
+
+			var thisLSK = lisk.api();
+			thisLSK.bannedPeers = lisk.api().defaultPeers;
+			thisLSK.currentPeer = '';
+
+			thisLSK.sendRequest('blocks/getHeight').then(function (e) {
+				(e.message).should.be.equal('could not create http request to any of the given peers');
+				done();
+			});
+
+		});
+
 	});
 
 	describe('#sendRequest with promise', function () {
@@ -619,7 +666,6 @@ describe('Lisk.api()', function () {
 			var amount = 100000000;
 
 			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function(result) {
-				console.log(result);
 				(result).should.be.type('object');
 				(result).should.be.ok;
 				done();
