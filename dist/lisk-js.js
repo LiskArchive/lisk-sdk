@@ -218,7 +218,6 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 	var that = this;
 
 	return this.sendRequestPromise(requestType, options).then(function (requestSuccess) {
-
 		var returnAnswer = (parseOfflineRequest(requestType, options).requestMethod === 'GET') ? requestSuccess.body : parseOfflineRequest(requestType, options).transactionOutputAfter(requestSuccess.body);
 
 		if(!callback || (typeof callback !== 'function')) {
@@ -226,7 +225,6 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 		} else {
 			return callback(returnAnswer);
 		}
-
 	}).then(function (API) {
 		return API;
 	}).catch(function (e) {
