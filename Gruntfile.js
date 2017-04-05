@@ -56,6 +56,11 @@ module.exports = function (grunt) {
 			src: 'test/.coverage-unit/*.info'
 		}
 	});
+	
+	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
+		grunt.config.set('eslint.options.fix', true);
+		grunt.task.run('eslint');
+	});
 
 	grunt.loadNpmTasks('grunt-browserify');
 	grunt.loadNpmTasks('grunt-contrib-watch');
