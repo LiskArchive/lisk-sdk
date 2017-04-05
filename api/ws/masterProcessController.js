@@ -21,12 +21,18 @@ MasterProcessController.prototype.wsHandshake = function (data, next) {
 
 MasterProcessController.prototype.setupInterWorkersCommunication = function (socketCluster) {
 
-	socketCluster.on('workerMessage', function (msg) {
-		// if (v.valid(workerCommand, msg)) {
-		if (msg.command && msg.args) {
-			if (endpoints.rpcEndpoints[msg.command]) {
-				endpoints.rpcEndpoints[msg.command](msg.args, function (response) {
-					socketCluster.sendToWorker(msg.workerId, response);
+	socketCluster.on('workerMessage', function (worker, request) {
+		console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- request:', request);
+
+				// if (v.valid(workerprocedure, request)) {
+		//ToDo: different validation for WAMP and EVENT
+		if (request.procedure) {
+			if (endpoints.rpcEndpoints[request.procedure]) {
+				console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking RPC procedure:', endpoints.rpcEndpoints[request.procedure]);
+				endpoints.rpcEndpoints[request.procedure](request.data, function (err, response) {
+					console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking RPC callback ---- response', response, 'err', err);
+					response = _.extend(request, {data: response, err: err, success: !err});
+					socketCluster.sendToWorker(response.workerId, response);
 				});
 			} else if (endpoints.eventEndpoints[msg.command]) {
 				endpoints.eventEndpoints[msg.command](msg.args, function (err, message) {
