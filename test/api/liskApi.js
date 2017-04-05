@@ -649,6 +649,14 @@ describe('Lisk.api()', function () {
 			});
 		});
 
+		it('should route the request accordingly if POST can be omited', function (done) {
+			lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
+				(result).should.be.type('object');
+				(result.account).should.be.ok;
+				done();
+			});
+		});
+
 		it('should be able to use sendRequest as a promise for POST', function (done) {
 			var options = {
 				ssl: false,
