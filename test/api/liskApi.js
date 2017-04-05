@@ -65,7 +65,7 @@ describe('Lisk.api()', function () {
 		});
 
 
-		it('should be possible to use my own Nethash', function() {
+		it('should be possible to use my own Nethash', function () {
 
 			var NetHash = {
 				'Content-Type': 'application/json',
