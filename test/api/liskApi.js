@@ -603,7 +603,7 @@ describe('Lisk.api()', function () {
 
 			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function(result) {
 				(result).should.be.type('object');
-				(result.request.success).should.be.equal(true);
+				(result.success).should.be.equal(true);
 				done();
 			});
 		});
