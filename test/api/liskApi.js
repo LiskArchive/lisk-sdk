@@ -577,7 +577,7 @@ describe('Lisk.api()', function () {
 	describe('#sendRequest with promise', function () {
 
 		it('should be able to use sendRequest as a promise for GET', function (done) {
-			lisk.api().sendRequest('blocks/getHeight', {}).then(function(result) {
+			lisk.api().sendRequest('blocks/getHeight', {}).then(function (result) {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
 				(result.height).should.be.type('number');
