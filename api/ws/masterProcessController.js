@@ -34,7 +34,7 @@ MasterProcessController.prototype.setupWorkersCommunication = function (socketCl
 				console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking RPC procedure:', endpoints.rpcEndpoints[request.procedure]);
 				endpoints.rpcEndpoints[request.procedure](request.data, function (err, response) {
 					console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking RPC callback ---- response', response, 'err', err);
-					response = _.extend(request, {data: response, err: err});
+					response = _.extend(request, {data: response, err: err, success: !err});
 					socketCluster.sendToWorker(response.workerId, response);
 				});
 			} else if (endpoints.eventEndpoints[request.procedure]) {
