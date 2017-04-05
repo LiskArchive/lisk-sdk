@@ -656,7 +656,7 @@ describe('Lisk.api()', function () {
 			});
 		});
 
-		it('should route the request accordingly if POST can be omitted', function (done) {
+		it('should route the request accordingly when request method is GET', function (done) {
 			lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
 				(result).should.be.type('object');
 				(result.account).should.be.ok;
