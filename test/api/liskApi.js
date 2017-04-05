@@ -599,6 +599,13 @@ describe('Lisk.api()', function () {
 
 		});
 
+		it('should be able to get a new node when current one is not reachable', function (done) {
+			lisk.api({ node: '123' }).sendRequest('blocks/getHeight', {}, function(result) {
+				(result).should.be.type('object');
+				done();
+			});
+		});
+
 		it('should recognize that now all the peers are banned for mainnet', function () {
 
 			var thisLSK = lisk.api();
