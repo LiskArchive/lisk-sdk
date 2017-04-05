@@ -657,6 +657,13 @@ describe('Lisk.api()', function () {
 			});
 		});
 
+		it('should notify for disabled API calls', function (done) {
+			lisk.api().sendRequest('delegates/forging/enable', { secret: '123' }).then(function (result) {
+				(result.error).should.be.equal('Forging not available via offlineRequest');
+				done();
+			});
+		});
+
 		it('should be able to use sendRequest as a promise for POST', function (done) {
 			var options = {
 				ssl: false,
