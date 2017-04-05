@@ -591,7 +591,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#checkReDial', function() {
+	describe('#checkReDial', function () {
 
 		it('should check if all the peers are already banned', function () {
 
@@ -630,7 +630,7 @@ describe('Lisk.api()', function () {
 			(thisLSK.checkReDial()).should.be.equal(false);
 		});
 
-		it('should stop redial when all the peers are banend already', function (done) {
+		it('should stop redial when all the peers are banned already', function (done) {
 
 			var thisLSK = lisk.api();
 			thisLSK.bannedPeers = lisk.api().defaultPeers;
@@ -656,7 +656,7 @@ describe('Lisk.api()', function () {
 			});
 		});
 
-		it('should route the request accordingly if POST can be omited', function (done) {
+		it('should route the request accordingly if POST can be omitted', function (done) {
 			lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
 				(result).should.be.type('object');
 				(result.account).should.be.ok;
@@ -664,7 +664,7 @@ describe('Lisk.api()', function () {
 			});
 		});
 
-		it('should notify for disabled API calls', function (done) {
+		it('should respond with error when API call is disabled', function (done) {
 			lisk.api().sendRequest('delegates/forging/enable', { secret: '123' }).then(function (result) {
 				(result.error).should.be.equal('Forging not available via offlineRequest');
 				done();
