@@ -90,7 +90,7 @@ describe('multisignature.js', function () {
 	describe('#signTransaction', function () {
 
 		var secret = '123';
-		var transaction = lisk.transaction.createTransaction('58191285901858109L', 1000, 'secret');
+		var transaction = multisignature.createTransaction('58191285901858109L', 1000, 'secret');
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
 		it('should sign a transaction', function () {
@@ -106,7 +106,7 @@ describe('multisignature.js', function () {
 			(signTransaction).should.have.lengthOf(length);
 		});
 
-		it.skip('should be verifiable', function () {
+		it('should be verifiable', function () {
 
 
 			var bytes = lisk.crypto.getBytes(transaction);
