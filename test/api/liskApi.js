@@ -35,35 +35,52 @@ describe('Lisk.api()', function () {
 
 	describe('#getNethash', function () {
 
-		var NetHash = {
-			'Content-Type': 'application/json',
-			'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': 8000
-		};
-
 		it('Nethash should be hardcoded variables', function () {
+			var NetHash = {
+				'Content-Type': 'application/json',
+				'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				'os': 'lisk-js-api',
+				'version': '1.0.0',
+				'minVersion': '>=0.5.0',
+				'port': 8000
+			};
 			(LSK.getNethash()).should.eql(NetHash);
 		});
-
-		LSK.setTestnet(true);
-
-		NetHash = {
-			'Content-Type': 'application/json',
-			'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': 7000
-		};
 
 		it('should give corret Nethash for testnet', function () {
+			LSK.setTestnet(true);
+
+			var NetHash = {
+				'Content-Type': 'application/json',
+				'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				'os': 'lisk-js-api',
+				'version': '1.0.0',
+				'minVersion': '>=0.5.0',
+				'port': 7000
+			};
+
 			(LSK.getNethash()).should.eql(NetHash);
 		});
+
+
+		it('should be possible to use my own Nethash', function() {
+
+			var NetHash = {
+				'Content-Type': 'application/json',
+				'nethash': '123',
+				'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				'os': 'lisk-js-api',
+				'version': '0.0.0a',
+				'minVersion': '>=0.5.0',
+				'port': 8000
+			};
+			var LSKNethash = lisk.api({ nethash: '123' });
+
+			(LSKNethash.nethash).should.eql(NetHash);
+		});
+
 	});
 
 	describe('#setTestnet', function () {
@@ -574,7 +591,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#sendRequest with promise', function () {
+	describe.skip('#sendRequest with promise', function () {
 
 		it('should be able to use sendRequest as a promise for GET', function (done) {
 			lisk.api().sendRequest('blocks/getHeight', {}).then(function(result) {
@@ -608,4 +625,6 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
+
+
 });
