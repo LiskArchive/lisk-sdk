@@ -21,7 +21,6 @@ describe('Lisk.api()', function () {
 			(LSK.listPeers()).should.be.type.Object;
 			(LSK.listPeers().official.length).should.be.equal(8);
 			(LSK.listPeers().testnet.length).should.be.equal(1);
-
 		});
 	});
 
@@ -65,7 +64,6 @@ describe('Lisk.api()', function () {
 
 
 		it('should be possible to use my own Nethash', function () {
-
 			var NetHash = {
 				'Content-Type': 'application/json',
 				'nethash': '123',
@@ -79,7 +77,6 @@ describe('Lisk.api()', function () {
 
 			(LSKNethash.nethash).should.eql(NetHash);
 		});
-
 	});
 
 	describe('#setTestnet', function () {
@@ -195,7 +192,6 @@ describe('Lisk.api()', function () {
 			(trimmedObj).should.be.ok;
 			(trimmedObj).should.be.eql({ myObj: '2' });
 		});
-
 	});
 
 	describe('#toQueryString', function () {
@@ -224,7 +220,6 @@ describe('Lisk.api()', function () {
 
 			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
-
 	});
 
 	describe('#getAddressFromSecret', function () {
@@ -593,9 +588,7 @@ describe('Lisk.api()', function () {
 	describe('#checkReDial', function () {
 
 		it('should check if all the peers are already banned', function () {
-
 			(lisk.api().checkReDial()).should.be.equal(true);
-
 		});
 
 		it('should be able to get a new node when current one is not reachable', function (done) {
@@ -606,7 +599,6 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should recognize that now all the peers are banned for mainnet', function () {
-
 			var thisLSK = lisk.api();
 			thisLSK.bannedPeers = lisk.api().defaultPeers;
 
@@ -614,7 +606,6 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should recognize that now all the peers are banned for testnet', function () {
-
 			var thisLSK = lisk.api({ testnet: true });
 			thisLSK.bannedPeers = lisk.api().defaultTestnetPeers;
 
@@ -622,7 +613,6 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should recognize that now all the peers are banned for ssl', function () {
-
 			var thisLSK = lisk.api({ssl: true});
 			thisLSK.bannedPeers = lisk.api().defaultSSLPeers;
 
@@ -630,7 +620,6 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should stop redial when all the peers are banned already', function (done) {
-
 			var thisLSK = lisk.api();
 			thisLSK.bannedPeers = lisk.api().defaultPeers;
 			thisLSK.currentPeer = '';
@@ -639,9 +628,7 @@ describe('Lisk.api()', function () {
 				(e.message).should.be.equal('could not create http request to any of the given peers');
 				done();
 			});
-
 		});
-
 	});
 
 	describe('#sendRequest with promise', function () {
@@ -693,6 +680,4 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
-
-
 });
