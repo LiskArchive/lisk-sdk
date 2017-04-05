@@ -87,7 +87,7 @@ function LiskAPI (options) {
 	this.nethash = this.getNethash(options.nethash);
 }
 
-LiskAPI.prototype.getNethash = function (nethash) {
+LiskAPI.prototype.getNethash = function (providedNethash) {
 	var NetHash;
 
 	if (this.testnet) {
@@ -112,21 +112,20 @@ LiskAPI.prototype.getNethash = function (nethash) {
 		};
 	}
 
-	if(nethash) {
-		NetHash.nethash = nethash;
+	if (providedNethash) {
+		NetHash.nethash = providedNethash;
 		NetHash.version = '0.0.0a';
 	}
 
 	return NetHash;
 };
 
-LiskAPI.prototype.listPeers = function() {
+LiskAPI.prototype.listPeers = function () {
 
 	return {
-		official: this.defaultPeers,
-		ssl: this.defaultSSLPeers,
-		testnet: this.defaultTestnetPeers,
-		localhost: [ 'localhost' ]
+		official: this.defaultPeers.map(function(node) { return {node: node};}),
+		ssl: this.defaultSSLPeers.map(function(node) { return {node: node, ssl: true};}),
+		testnet: this.defaultTestnetPeers.map(function(node) { return {node: node, testnet: true};}),
 	};
 
 };
@@ -139,6 +138,7 @@ LiskAPI.prototype.setNode = function (node) {
 LiskAPI.prototype.setTestnet = function (testnet) {
 	if (this.testnet !== testnet) {
 		this.testnet = testnet;
+		this.bannedPeers = [];
 		this.port = 7000;
 		this.selectNode();
 	}
@@ -147,6 +147,7 @@ LiskAPI.prototype.setTestnet = function (testnet) {
 LiskAPI.prototype.setSSL = function (ssl) {
 	if (this.ssl !== ssl) {
 		this.ssl = ssl;
+		this.bannedPeers = [];
 		this.selectNode();
 	}
 };
@@ -203,36 +204,44 @@ LiskAPI.prototype.banNode = function () {
 	this.selectNode();
 };
 
+LiskAPI.prototype.checkReDial = function () {
+	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+	if (this.testnet) peers = this.defaultTestnetPeers;
+
+	return (peers.length !== this.bannedPeers.length);
+};
+
 LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 	callback = callback || options;
 	options = typeof options !== 'function' && typeof options !== 'undefined' ? options : {};
-	var toolBox = this;
+	var that = this;
 
-	this.sendRequestPromise(requestType, options).then(function (requestSuccess) {
-		var JSONAnswer = requestSuccess.body;
-		var checkRequestContent = parseOfflineRequest(requestType, options);
+	return this.sendRequestPromise(requestType, options).then(function (requestSuccess) {
+		var returnAnswer = (parseOfflineRequest(requestType, options).requestMethod === 'GET') ? requestSuccess.body : parseOfflineRequest(requestType, options).transactionOutputAfter(requestSuccess.body);
 
-		// Show offline Request if it is POST or PUT request
-		if (checkRequestContent.requestMethod === 'GET') {
-			return callback(requestSuccess.body);
+		if(!callback || (typeof callback !== 'function')) {
+			return Promise.resolve(returnAnswer);
 		} else {
-			var interpretAnswer = checkRequestContent.transactionOutputAfter(JSONAnswer);
-			return callback(interpretAnswer);
+			return callback(returnAnswer);
 		}
-	}, function () {
-		setTimeout(function () {
-			toolBox.banNode();
-			toolBox.setNode();
-			toolBox.sendRequest(requestType, options, callback);
-		}, 1000);
+	}).then(function (API) {
+		return API;
+	}).catch(function (e) {
+		if(that.checkReDial()) {
+			setTimeout(function () {
+				that.banNode();
+				that.setNode();
+				that.sendRequest(requestType, options, callback);
+			}, 1000);
+		} else {
+			return { error: e, message: 'could not create http request to any of the given peers' };
+		}
 	});
 };
 
 LiskAPI.prototype.sendRequestPromise = function (requestType, options) {
-	var that = this;
-
-	if (that.checkRequest(requestType, options) !== 'NOACTION') {
-		var requestValues = that.changeRequest(requestType, options);
+	if (this.checkRequest(requestType, options) !== 'NOACTION') {
+		var requestValues = this.changeRequest(requestType, options);
 		return this.doPopsicleRequest(requestValues);
 	} else {
 		return new Promise(function (resolve) {
@@ -351,7 +360,7 @@ LiskAPI.prototype.listActiveDelegates = function (limit, callback) {
 };
 
 LiskAPI.prototype.listStandbyDelegates = function (limit, callback) {
-	var standByOffset = +101 + +limit;
+	var standByOffset = 101;
 
 	this.sendRequest('delegates/', { limit: limit, orderBy: 'rate:asc', offset: standByOffset}, function (result) {
 		return callback(result);

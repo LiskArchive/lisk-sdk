@@ -15,14 +15,12 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listPeers', function() {
-		it('should give a set of the peers', function() {
-
+	describe('#listPeers', function () {
+		it('should give a set of the peers', function () {
 			(LSK.listPeers()).should.be.ok;
 			(LSK.listPeers()).should.be.type.Object;
 			(LSK.listPeers().official.length).should.be.equal(8);
 			(LSK.listPeers().testnet.length).should.be.equal(1);
-
 		});
 	});
 
@@ -35,34 +33,49 @@ describe('Lisk.api()', function () {
 
 	describe('#getNethash', function () {
 
-		var NetHash = {
-			'Content-Type': 'application/json',
-			'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': 8000
-		};
-
 		it('Nethash should be hardcoded variables', function () {
+			var NetHash = {
+				'Content-Type': 'application/json',
+				'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				'os': 'lisk-js-api',
+				'version': '1.0.0',
+				'minVersion': '>=0.5.0',
+				'port': 8000
+			};
 			(LSK.getNethash()).should.eql(NetHash);
 		});
 
-		LSK.setTestnet(true);
-
-		NetHash = {
-			'Content-Type': 'application/json',
-			'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': 7000
-		};
-
 		it('should give corret Nethash for testnet', function () {
+			LSK.setTestnet(true);
+
+			var NetHash = {
+				'Content-Type': 'application/json',
+				'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				'os': 'lisk-js-api',
+				'version': '1.0.0',
+				'minVersion': '>=0.5.0',
+				'port': 7000
+			};
+
 			(LSK.getNethash()).should.eql(NetHash);
+		});
+
+
+		it('should be possible to use my own Nethash', function () {
+			var NetHash = {
+				'Content-Type': 'application/json',
+				'nethash': '123',
+				'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				'os': 'lisk-js-api',
+				'version': '0.0.0a',
+				'minVersion': '>=0.5.0',
+				'port': 8000
+			};
+			var LSKNethash = lisk.api({ nethash: '123' });
+
+			(LSKNethash.nethash).should.eql(NetHash);
 		});
 	});
 
@@ -179,7 +192,6 @@ describe('Lisk.api()', function () {
 			(trimmedObj).should.be.ok;
 			(trimmedObj).should.be.eql({ myObj: '2' });
 		});
-
 	});
 
 	describe('#toQueryString', function () {
@@ -208,7 +220,6 @@ describe('Lisk.api()', function () {
 
 			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
-
 	});
 
 	describe('#getAddressFromSecret', function () {
@@ -427,7 +438,7 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#listStandbyDelegates', function () {
-    
+
 		it('should list standby delegates', function (done) {
 			lisk.api().listStandbyDelegates('5', function (data) {
 				(data).should.be.ok;
@@ -538,7 +549,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#getAccount', function() {
+	describe('#getAccount', function () {
 
 		it('should get account information', function (done) {
 			lisk.api().getAccount('12731041415715717263L', function (data) {
@@ -550,7 +561,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#sendLSK', function() {
+	describe('#sendLSK', function () {
 
 		it('should send testnet LSK', function (done) {
 			var options = {
@@ -568,6 +579,102 @@ describe('Lisk.api()', function () {
 			var recipient = '10279923186189318946L';
 			var amount = 100000000;
 			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function (result) {
+				(result).should.be.ok;
+				done();
+			});
+		});
+	});
+
+	describe('#checkReDial', function () {
+
+		it('should check if all the peers are already banned', function () {
+			(lisk.api().checkReDial()).should.be.equal(true);
+		});
+
+		it('should be able to get a new node when current one is not reachable', function (done) {
+			lisk.api({ node: '123' }).sendRequest('blocks/getHeight', {}, function (result) {
+				(result).should.be.type('object');
+				done();
+			});
+		});
+
+		it('should recognize that now all the peers are banned for mainnet', function () {
+			var thisLSK = lisk.api();
+			thisLSK.bannedPeers = lisk.api().defaultPeers;
+
+			(thisLSK.checkReDial()).should.be.equal(false);
+		});
+
+		it('should recognize that now all the peers are banned for testnet', function () {
+			var thisLSK = lisk.api({ testnet: true });
+			thisLSK.bannedPeers = lisk.api().defaultTestnetPeers;
+
+			(thisLSK.checkReDial()).should.be.equal(false);
+		});
+
+		it('should recognize that now all the peers are banned for ssl', function () {
+			var thisLSK = lisk.api({ssl: true});
+			thisLSK.bannedPeers = lisk.api().defaultSSLPeers;
+
+			(thisLSK.checkReDial()).should.be.equal(false);
+		});
+
+		it('should stop redial when all the peers are banned already', function (done) {
+			var thisLSK = lisk.api();
+			thisLSK.bannedPeers = lisk.api().defaultPeers;
+			thisLSK.currentPeer = '';
+
+			thisLSK.sendRequest('blocks/getHeight').then(function (e) {
+				(e.message).should.be.equal('could not create http request to any of the given peers');
+				done();
+			});
+		});
+	});
+
+	describe('#sendRequest with promise', function () {
+
+		it('should be able to use sendRequest as a promise for GET', function (done) {
+			lisk.api().sendRequest('blocks/getHeight', {}).then(function (result) {
+				(result).should.be.type('object');
+				(result.success).should.be.equal(true);
+				(result.height).should.be.type('number');
+				done();
+			});
+		});
+
+		it('should route the request accordingly when request method is POST but GET can be used', function (done) {
+			lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
+				(result).should.be.type('object');
+				(result.account).should.be.ok;
+				done();
+			});
+		});
+
+		it('should respond with error when API call is disabled', function (done) {
+			lisk.api().sendRequest('delegates/forging/enable', { secret: '123' }).then(function (result) {
+				(result.error).should.be.equal('Forging not available via offlineRequest');
+				done();
+			});
+		});
+
+		it('should be able to use sendRequest as a promise for POST', function (done) {
+			var options = {
+				ssl: false,
+				node: '',
+				randomPeer: true,
+				testnet: true,
+				port: '7000',
+				bannedPeers: []
+			};
+
+			var LSKnode = lisk.api(options);
+			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
+			var recipient = '10279923186189318946L';
+			var amount = 100000000;
+
+			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function (result) {
+				(result).should.be.type('object');
 				(result).should.be.ok;
 				done();
 			});
