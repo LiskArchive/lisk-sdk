@@ -1,11 +1,11 @@
-// var common = require('../common');
-// var lisk = common.lisk;
-// var should = common.should;
-// var cryptoLib = common.cryptoLib;
+if (typeof module !== 'undefined' && module.exports) {
+	var common = require('../common');
+	var lisk   = common.lisk;
+}
 
 describe('slots.js', function () {
 
-	var slots = require('../../lib/time/slots.js');
+	var slots = lisk.slots;
 
 	it('should be ok', function () {
 		(slots).should.be.ok;

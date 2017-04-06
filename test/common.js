@@ -17,3 +17,4 @@ exports.lisk = lisk;
 exports.cryptoLib = cryptoLib;
 exports.should = should;
 global.LiskAPI = require('../lib/api/liskApi');
+global.slots = require('../lib/time/slots');

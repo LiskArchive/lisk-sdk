@@ -5,6 +5,7 @@
  * @module lisk
  */
 
+global.Buffer = global.Buffer || require('buffer').Buffer;
 global.naclFactory = require('js-nacl');
 
 global.naclInstance;
@@ -21,13 +22,14 @@ lisk = {
 	transaction : require('./lib/transactions/transaction.js'),
 	transfer: require('./lib/transactions/transfer'),
 	vote : require('./lib/transactions/vote.js'),
-	api: require('./lib/api/liskApi')
+	api: require('./lib/api/liskApi'),
+	slots: require('./lib/time/slots')
 };
 
 module.exports = lisk;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/api/liskApi":2,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/transfer":17,"./lib/transactions/vote.js":18,"js-nacl":117}],2:[function(require,module,exports){
+},{"./lib/api/liskApi":2,"./lib/time/slots":5,"./lib/transactions/crypto.js":6,"./lib/transactions/dapp.js":12,"./lib/transactions/delegate.js":13,"./lib/transactions/multisignature.js":14,"./lib/transactions/signature.js":15,"./lib/transactions/transaction.js":16,"./lib/transactions/transfer":17,"./lib/transactions/vote.js":18,"buffer":66,"js-nacl":117}],2:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *

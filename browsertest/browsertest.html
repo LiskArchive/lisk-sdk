@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Browser tests</title>
+    <link rel="stylesheet" media="all" href="vendor/mocha.css">
+</head>
+<body>
+<div id="mocha"><p><a href=".">Index</a></p></div>
+<div id="messages"></div>
+<div id="fixtures"></div>
+<script src="vendor/mocha.js"></script>
+<script src="vendor/chai.js"></script>
+<script src="vendor/should.js"></script>
+<script src="../dist/lisk-js.js"></script>
+<script src="setup.js"></script>
+<script>mocha.setup({
+	ui: 'bdd',
+    timeout: 10000
+})</script>
+<!-- Crypto modules -->
+<script src="../test/transactions/crypto.js"></script>
+<!-- <script src="../test/transactions/dapp.js"></script> -->
+<script src="../test/transactions/delegate.js"></script>
+<script src="../test/transactions/multisignature.js"></script>
+<script src="../test/transactions/signature.js"></script>
+<script src="../test/transactions/transaction.js"></script>
+<script src="../test/transactions/transfer.js"></script>
+<script src="../test/transactions/vote.js"></script>
+
+<!-- new crypto modules -->
+<script src="../test/transactions/crypto/index.js"></script>
+
+<!-- time modules -->
+<script src="../test/time/slots.js"></script>
+
+<!-- API modules -->
+<script src="../test/api/liskApi.js"></script>
+<script src="../test/api/parseTransaction.js"></script>
+<script>mocha.run();</script>
+</body>
+</html>

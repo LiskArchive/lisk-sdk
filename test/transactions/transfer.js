@@ -1,3 +1,7 @@
+if (typeof module !== 'undefined' && module.exports) {
+	var common = require('../common');
+	var lisk = common.lisk;
+}
 describe('transfer.js', function () {
 
 	var transfer = lisk.transfer;

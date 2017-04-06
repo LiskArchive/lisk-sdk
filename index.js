@@ -3,6 +3,7 @@
  * @module lisk
  */
 
+global.Buffer = global.Buffer || require('buffer').Buffer;
 global.naclFactory = require('js-nacl');
 
 global.naclInstance;
@@ -19,7 +20,8 @@ lisk = {
 	transaction : require('./lib/transactions/transaction.js'),
 	transfer: require('./lib/transactions/transfer'),
 	vote : require('./lib/transactions/vote.js'),
-	api: require('./lib/api/liskApi')
+	api: require('./lib/api/liskApi'),
+	slots: require('./lib/time/slots')
 };
 
 module.exports = lisk;

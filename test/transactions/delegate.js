@@ -1,7 +1,7 @@
-var common = require('../common');
-var lisk = common.lisk;
-// var should = common.should;
-// var cryptoLib = common.cryptoLib;
+if (typeof module !== 'undefined' && module.exports) {
+	var common = require('../common');
+	var lisk = common.lisk;
+}
 
 describe('delegate.js', function () {
 

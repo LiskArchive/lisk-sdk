@@ -1,3 +1,8 @@
+if (typeof module !== 'undefined' && module.exports) {
+	var common = require('../common');
+	var lisk = common.lisk;
+}
+
 describe('ParseOfflineRequests', function () {
 
 	var LSK = lisk.api();
@@ -118,7 +123,7 @@ describe('ParseOfflineRequests', function () {
 
 	describe('#transactionOutputAfter', function () {
 
-		var LSK = new LiskAPI();
+		var LSK = new lisk.api();
 
 		it('should calculate crypto for accounts/open instead of using the API', function () {
 			var transformAnswer = {
