@@ -1,7 +1,6 @@
 'use strict';
 
 var extend = require('extend');
-var config = require('../config.json');
 var checkIpInList = require('./checkIpInList');
 
 var middleware = {
@@ -100,11 +99,12 @@ var middleware = {
 
 	/**
 	 * Apply rules of public / internal API described in config.json
+	 * @param {Object} config
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {Function} next
 	 */
-	applyAPIAccessRules: function (req, res, next) {
+	applyAPIAccessRules: function (config, req, res, next) {
 		if (req.url.match(/^\/peer[\/]?.*/)) {
 			var internalApiEnabled = config.peers.enabled && !checkIpInList(config.peers.access.blackList, req.ip, false);
 			rejectDisabled(internalApiEnabled);
