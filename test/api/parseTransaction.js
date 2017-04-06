@@ -123,7 +123,7 @@ describe('ParseOfflineRequests', function () {
 
 	describe('#transactionOutputAfter', function () {
 
-		var LSK = new lisk.api();
+		var LSK = lisk.api();
 
 		it('should calculate crypto for accounts/open instead of using the API', function () {
 			var transformAnswer = {
