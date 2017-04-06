@@ -110,7 +110,7 @@ describe('multisignature.js', function () {
 			(signTransaction).should.have.lengthOf(length);
 		});
 
-		it('should be verifiable', function () {
+		it.skip('should be verifiable', function () {
 
 
 			var bytes = lisk.crypto.getBytes(transaction);
