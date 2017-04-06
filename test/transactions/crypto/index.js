@@ -1,3 +1,8 @@
+if (typeof module !== 'undefined' && module.exports) {
+	var common = require('../../common');
+	var lisk = common.lisk;
+}
+
 describe('crypto/index.js', function () {
 
 	var newcrypto = lisk.crypto;

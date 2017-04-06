@@ -1,4 +1,8 @@
-process.env.NODE_ENV = 'test';
+if (typeof module !== 'undefined' && module.exports) {
+	var common = require('../common');
+	var lisk = common.lisk;
+	process.env.NODE_ENV = 'test';
+}
 
 describe('Lisk.api()', function () {
 

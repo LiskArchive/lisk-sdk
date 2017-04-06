@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Browser tests</title>
+    <link rel="stylesheet" media="all" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.min.css">
+</head>
+<body>
+
+<div id="mocha"><p><a href=".">Index</a></p></div>
+<div id="messages"></div>
+<div id="fixtures"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chai/3.5.0/chai.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/should.js/11.2.1/should.min.js"></script>
+<script src="../dist/lisk-js.min.js"></script>
+<script src="setup.js"></script>
+<script>mocha.setup({
+    ui: 'bdd',
+    timeout: 10000
+})</script>
+
+<!-- Crypto modules -->
+<script src="../test/transactions/crypto.js"></script>
+
+<!-- <script src="../test/transactions/dapp.js"></script> -->
+<script src="../test/transactions/delegate.js"></script>
+<script src="../test/transactions/multisignature.js"></script>
+<script src="../test/transactions/signature.js"></script>
+<script src="../test/transactions/transaction.js"></script>
+<script src="../test/transactions/transfer.js"></script>
+<script src="../test/transactions/vote.js"></script>
+
+<!-- New crypto modules -->
+<script src="../test/transactions/crypto/index.js"></script>
+
+<!-- Time modules -->
+<script src="../test/time/slots.js"></script>
+
+<!-- API modules -->
+<script src="../test/api/liskApi.js"></script>
+<script src="../test/api/parseTransaction.js"></script>
+<script>mocha.run();</script>
+
+</body>
+</html>

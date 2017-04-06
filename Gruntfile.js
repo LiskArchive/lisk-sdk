@@ -47,7 +47,7 @@ module.exports = function (grunt) {
 			},
 			myTarget: {
 				files: {
-					'dist/lisk-js.min.js': ['./index.js']
+					'dist/lisk-js.min.js': ['dist/lisk-js.js']
 				}
 			}
 		},

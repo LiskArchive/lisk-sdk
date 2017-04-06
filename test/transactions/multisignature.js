@@ -1,4 +1,8 @@
-var crypto = require('crypto-browserify');
+if (typeof module !== 'undefined' && module.exports) {
+	var common = require('../common');
+	var lisk = common.lisk;
+}
+
 describe('multisignature.js', function () {
 
 	var multisignature = lisk.multisignature;
@@ -90,7 +94,7 @@ describe('multisignature.js', function () {
 	describe('#signTransaction', function () {
 
 		var secret = '123';
-		var transaction = lisk.transaction.createTransaction('58191285901858109L', 1000, 'secret');
+		var transaction = multisignature.createTransaction('58191285901858109L', 1000, 'secret');
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
 		it('should sign a transaction', function () {
