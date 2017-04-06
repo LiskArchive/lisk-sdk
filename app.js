@@ -337,7 +337,7 @@ d.run(function () {
 			 */
 			scope.network.app.use(httpApi.middleware.attachResponseHeader.bind(null, 'Content-Security-Policy', 'frame-ancestors \'none\''));
 
-			scope.network.app.use(httpApi.middleware.applyAPIAccessRules);
+			scope.network.app.use(httpApi.middleware.applyAPIAccessRules.bind(null, scope.config));
 
 			cb();
 		}],
