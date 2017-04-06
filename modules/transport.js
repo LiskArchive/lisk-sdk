@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
+var Peer = require('../logic/peer.js');
 var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
@@ -550,15 +551,30 @@ Transport.prototype.internal = {
 		});
 	},
 
-	handshake: function (ip, port, headers, validateHeaders, cb) {
-		var peer = library.logic.peers.create(
-			{
-				ip: ip,
-				port: port
-			}
-		);
 
-		var headers = peer.applyHeaders(headers);
+	/**
+	 * @param {Peer} peer
+	 * @param {string} code
+	 * @param {string} extraMessage
+	 */
+	removePeer: function (peer, code, extraMessage) {
+		__private.removePeer({peer: peer, code: code}, extraMessage);
+	},
+
+	/**
+	 * @param {Peer} peer
+	 */
+	acceptPeer: function (peer) {
+		return modules.peers.update(peer);
+	},
+
+	handshake: function (ip, port, headers, validateHeaders, cb) {
+		var peer = new Peer({
+			ip: ip,
+			port: port
+		});
+
+		headers = peer.applyHeaders(headers);
 
 		validateHeaders(headers, function (error, extraMessage) {
 			if (error) {
