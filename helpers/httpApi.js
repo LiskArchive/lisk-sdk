@@ -115,7 +115,8 @@ var middleware = {
 
 		function rejectDisallowed (apiAllowed, isEnabled) {
 			return apiAllowed ? next() : isEnabled ?
-					res.status(403).send({success: false, error: 'API access denied'}) : res.status(500).send({success: false, error: 'API access disabled'});
+				res.status(403).send({success: false, error: 'API access denied'}) :
+				res.status(500).send({success: false, error: 'API access disabled'});
 		}
 	},
 
