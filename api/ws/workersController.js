@@ -26,6 +26,7 @@ WorkerController.prototype.run = function (worker) {
 
 	// worker.addMiddleware(masterProcessController.wsHandshake)
 
+	this.concurrentWAMPServer = new ConcurrentWAMPServer(worker, this.sockets);
 	//ToDo: handshake goes here
 	// worker.addMiddleware(masterProcessController.wsHandshake)
 
@@ -34,8 +35,11 @@ WorkerController.prototype.run = function (worker) {
 		// ToDo: masterMessageConfig protocol to validate
 		// if (v.valid(workerConfig, config))
 		if (config.endpoints && config.endpoints.rpc && config.endpoints.event) {
-			this.concurrentWAMPServer = new ConcurrentWAMPServer(worker, this.sockets, config.endpoints.rpc);
 			this.config = config;
+			this.concurrentWAMPServer.reassignEndpoints(config.endpoints.rpc.reduce(function (memo, endpoint) {
+				memo[endpoint] = true;
+				return memo;
+			}, {}));
 			console.log('\x1b[36m%s\x1b[0m', 'WORKERS masterMessage WILL Setup the sockets: ', this.sockets);
 
 			_.filter(this.sockets, function (socket) {
@@ -51,14 +55,17 @@ WorkerController.prototype.run = function (worker) {
 		sockets[socket.id] = socket;
 		// socket.id
 
-		// socket.remoteAddress
+	//ToDo: Extend basic listener- move it somewhere?
+	socket.on('error', function (err) {
+		//ToDo: Again logger here- log errors somewhere
+		console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- ERROR', err);
+
+		//err.message: 'Socket hung up'
+	});
 
 	socket.on('disconnect', function () {
 		delete this.sockets[socket.id];
-		//ToDo: add reassign endpoints to ConcurrentWAMPServer to avoid instant init
-		if (this.concurrentWAMPServer) {
-			this.concurrentWAMPServer.onSocketDisconnect(socket);
-		}
+		this.concurrentWAMPServer.onSocketDisconnect(socket);
 		console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- DISCONNECTED', socket.id);
 	}.bind(this));
 
@@ -91,9 +98,7 @@ WorkerController.prototype.run = function (worker) {
 	//ToDo: possible problems with registering multiple listeners on same events
 	socket.settedUp = true;
 	this.sockets[socket.id] = socket;
-	if (this.concurrentWAMPServer) {
-		this.concurrentWAMPServer.upgradeToWAMP(socket);
-	}
+	this.concurrentWAMPServer.upgradeToWAMP(socket);
 };
 
 
