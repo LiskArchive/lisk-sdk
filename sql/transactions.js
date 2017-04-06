@@ -39,7 +39,7 @@ var TransactionsSql = {
       (params.where.length ? '(' + params.where.join(' ') + ')' : ''),
       // FIXME: Backward compatibility, should be removed after transitional period
       (params.where.length && params.owner ? ' AND ' + params.owner : params.owner),
-      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') + ' NULLS LAST' : ''),
+      (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },
