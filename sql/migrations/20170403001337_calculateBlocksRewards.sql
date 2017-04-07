@@ -1,5 +1,5 @@
 /*
- * Create data type and functions for mainteaning blocks rewards data
+ * Create data type and functions for calculating blocks rewards data
  */
 
 BEGIN;
@@ -62,7 +62,7 @@ CREATE FUNCTION calcBlockReward(block_height int) RETURNS bigint LANGUAGE PLPGSQ
 	RETURN reward;
 END $$;
 
--- Create function that calculate current supply
+-- Create function that calculates current supply
 -- @STABLE - for the same argument returns the same result within a single table scan
 CREATE FUNCTION calcSupply(block_height int DEFAULT NULL) RETURNS bigint LANGUAGE PLPGSQL STABLE AS $$
 	DECLARE
