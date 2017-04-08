@@ -4,6 +4,7 @@
 .project
 __MACOSX/
 dapps/
+docs/yuidocs/
 logs/*.log
 node_modules
 nodejs/

@@ -1,0 +1,16 @@
+{
+	"name": "lisk docs",
+	"description": "Lisk Documentation",
+	"version": "0.0.1",
+	"url": "to-be-done",
+	"logo": "https://lisk.io/i/mediakit/logo_1.png",
+	"options": {
+		"linkNatives": "true",
+		"attributesEmit": "true",
+		"selleck": "true",
+		"ignorePaths": [
+			"public"
+		],
+		"outdir": "./docs/yuidocs"
+	}
+}

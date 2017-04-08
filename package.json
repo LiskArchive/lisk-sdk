@@ -6,7 +6,9 @@
     "start": "node app.js",
     "test": "./node_modules/.bin/grunt test --verbose",
     "travis": "./node_modules/.bin/grunt travis --verbose",
-    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose"
+    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
+    "docs": "yuidoc -x public .",
+    "server-docs": "npm run docs && http-server docs/yuidocs"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
