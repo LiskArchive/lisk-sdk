@@ -861,12 +861,12 @@ describe('GET /api/delegates/search', function () {
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates).to.have.length(101);
 			done();
 		});
 	});
 
-	it('using string limit should be ok', function (done) {
+	it('using string limit should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 'one';
 
