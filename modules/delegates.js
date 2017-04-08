@@ -615,7 +615,7 @@ Delegates.prototype.shared = {
 
 			library.db.query(sql.search({
 				q: req.body.q,
-				limit: req.body.limit || 100,
+				limit: req.body.limit || 101,
 				sortField: orderBy.sortField,
 				sortMethod: orderBy.sortMethod
 			})).then(function (rows) {
