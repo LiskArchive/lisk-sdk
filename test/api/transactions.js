@@ -610,7 +610,7 @@ describe('PUT /api/transactions', function () {
 		});
 	});
 
-	it('using valid paramets with data field should be ok', function (done) {
+	it('using valid parameters with data field should be ok', function (done) {
 		var amountToSend = 123456789;
 		var expectedFee = node.expectedFee(amountToSend);
 		var data = 'extra information';

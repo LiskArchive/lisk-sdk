@@ -236,13 +236,13 @@ describe('transaction', function () {
 			expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
 
-		it('should return same result of getBytes using /logic/transaction and list-js package (without data field)', function () {
+		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
 			var trsBytesFromLogic = transaction.getBytes(validTransaction);
 			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(validTransaction);
 			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
 		});
 
-		it('should return same result of getBytes using /logic/transaction and list-js package (with data field)', function () {
+		it('should return same result of getBytes using /logic/transaction and lisk-js package (with data field)', function () {
 			var transactionWithData = transaction.create(getValidTransactionData());
 			var trsBytesFromLogic = transaction.getBytes(transactionWithData);
 			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(transactionWithData);
