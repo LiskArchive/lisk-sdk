@@ -479,8 +479,6 @@ describe('GET /api/transactions/queued/get?id=', function () {
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
-				console.log('res.body.transactionId');
-				console.log(res.body.transactionId);
 				var transaction = {
 					'sender': account.address,
 					'recipient': account2.address,
