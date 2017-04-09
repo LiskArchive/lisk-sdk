@@ -150,8 +150,8 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 		if (trs.data) {
 			var dataBuffer = new Buffer(trs.data, 'utf8');
-			for (i = 0; i < 64; i++) {
-				bb.writeByte(dataBuffer[i] || 0);
+			for (i = 0; i < dataBuffer.length; i++) {
+				bb.writeByte(dataBuffer[i]);
 			}
 		}
 		
