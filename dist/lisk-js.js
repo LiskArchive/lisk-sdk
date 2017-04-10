@@ -937,8 +937,8 @@ function getTransactionBytes (transaction) {
 	function isSendTransaction () {
 
 		return {
-			assetSize: 0,
-			assetBytes: null
+			assetBytes: null,
+			assetSize: 0
 		}
 	}
 
@@ -956,27 +956,30 @@ function getTransactionBytes (transaction) {
 		var signatureBytes = new Uint8Array(bb.toArrayBuffer());
 
 		return {
-			assetSize: 32,
-			assetBytes: signatureBytes
+			assetBytes: signatureBytes,
+			assetSize: 32
 		};
 	}
 
 	function isDelegateTransaction () {
+
 		return {
-			assetSize: Buffer.from(transaction.asset.delegate.username).length,
-			assetBytes: Buffer.from(transaction.asset.delegate.username)
+			assetBytes: Buffer.from(transaction.asset.delegate.username),
+			assetSize: Buffer.from(transaction.asset.delegate.username).length
 		}
 	}
 
 	function isVoteTransaction () {
+
 		var voteTransactionBytes = (Buffer.from(transaction.asset.votes.join('')) || null);
 		return {
-			assetBytes: (Buffer.from(transaction.asset.votes.join('')) || null),
+			assetBytes: voteTransactionBytes,
 			assetSize: (voteTransactionBytes.length || 0)
 		}
 	}
 
 	function isMultisignatureTransaction () {
+
 		var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''));
 		var bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
 
@@ -989,9 +992,11 @@ function getTransactionBytes (transaction) {
 
 		bb.flip();
 
+		var multiSignatureBuffer = Buffer.concat([Buffer.alloc(transaction.asset.multisignature.min), Buffer.alloc(transaction.asset.multisignature.lifetime), keysgroupBuffer]);
+
 		return {
-			assetBytes: bb.toBuffer(),
-			assetSize: bb.toBuffer().length
+			assetBytes: multiSignatureBuffer,
+			assetSize: multiSignatureBuffer.length
 
 		}
 	}
@@ -1073,9 +1078,10 @@ function createTransactionBuffer (transaction) {
 	var assetSize = transactionAssetSizeBuffer.assetSize;
 	var assetBytes = transactionAssetSizeBuffer.assetBytes;
 
-	var transactionBuffer = createEmptyTransactionBuffer(assetSize);
+	var emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
+	var assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer);
 
-
+	return assignedTransactionBuffer;
 
 	function createEmptyTransactionBuffer (assetSize) {
 
@@ -1097,83 +1103,70 @@ function createTransactionBuffer (transaction) {
 			}
 		}
 
-		//return Buffer.alloc(totalBytes + assetSize);
-		return new ByteBuffer(totalBytes + assetSize);
+		return new ByteBuffer(totalBytes + assetSize, true);
 	}
 
-	console.log(transactionBuffer);
+	function assignTransactionBuffer (transactionBuffer) {
 
+		transactionBuffer.writeInt8(transaction.type);
+		transactionBuffer.writeInt(transaction.timestamp);
 
-	transactionBuffer.writeByte(transaction.type);
-	console.log(transactionBuffer);
-	transactionBuffer.writeInt(transaction.timestamp);
-	console.log(transactionBuffer);
+		assignHexToTransactionBytes(transactionBuffer, transaction.senderPublicKey);
 
-	var senderPublicKeyBuffer = new Buffer(transaction.senderPublicKey, 'hex');
-	for (var i = 0; i < senderPublicKeyBuffer.length; i++) {
-		transactionBuffer.writeByte(senderPublicKeyBuffer[i]);
-	}
-	console.log(transactionBuffer);
-
-	if (transaction.requesterPublicKey) {
-		var requesterPublicKey = new Buffer(transaction.requesterPublicKey, 'hex');
-
-		for (var i = 0; i < requesterPublicKey.length; i++) {
-			transactionBuffer.writeByte(requesterPublicKey[i]);
+		if (transaction.requesterPublicKey) {
+			assignHexToTransactionBytes(transactionBuffer, transaction.requesterPublicKey);
 		}
-	}
 
-	console.log(transactionBuffer);
-	if (transaction.recipientId) {
-		var recipient = transaction.recipientId.slice(0, -1);
-		recipient = bignum(recipient).toBuffer({size: 8});
+		if (transaction.recipientId) {
+			var recipient = transaction.recipientId.slice(0, -1);
+			recipient = bignum(recipient).toBuffer({size: 8});
 
-		for (var i = 0; i < 8; i++) {
-			transactionBuffer.writeByte(recipient[i] || 0);
+			for (var i = 0; i < 8; i++) {
+				transactionBuffer.writeByte(recipient[i] || 0);
+			}
+		} else {
+			for (var i = 0; i < 8; i++) {
+				transactionBuffer.writeByte(0);
+			}
 		}
-	} else {
-		for (var i = 0; i < 8; i++) {
-			transactionBuffer.writeByte(0);
+
+		transactionBuffer.writeLong(transaction.amount);
+
+		if (assetSize > 0) {
+			for (var i = 0; i < assetSize; i++) {
+				transactionBuffer.writeByte(assetBytes[i]);
+			}
 		}
-	}
 
-	console.log(transactionBuffer);
-	transactionBuffer.writeLong(transaction.amount);
-
-	console.log(transactionBuffer);
-	if (assetSize > 0) {
-		for (var i = 0; i < assetSize; i++) {
-			transactionBuffer.writeByte(assetBytes[i]);
+		if (transaction.signature) {
+			assignHexToTransactionBytes(transactionBuffer, transaction.signature);
 		}
-	}
 
-	console.log(transactionBuffer);
-	if (transaction.signature) {
-		var signatureBuffer = new Buffer(transaction.signature, 'hex');
-		for (var i = 0; i < signatureBuffer.length; i++) {
-			transactionBuffer.writeByte(signatureBuffer[i]);
+		if (transaction.signSignature) {
+			assignHexToTransactionBytes(transactionBuffer, transaction.signSignature);
 		}
-	}
 
-	console.log(transactionBuffer);
-	if (transaction.signSignature) {
-		var signSignatureBuffer = new Buffer(transaction.signSignature, 'hex');
-		for (var i = 0; i < signSignatureBuffer.length; i++) {
-			transactionBuffer.writeByte(signSignatureBuffer[i]);
+		transactionBuffer.flip();
+		var arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
+		var buffer = [];
+
+		for (var i = 0; i < arrayBuffer.length; i++) {
+			buffer[i] = arrayBuffer[i];
 		}
+
+		return Buffer.from(buffer);
+
 	}
 
-	console.log(transactionBuffer);
-	transactionBuffer.flip();
-	console.log(transactionBuffer);
-	var arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
-	var buffer = [];
+	function assignHexToTransactionBytes (partTransactionBuffer, hexValue) {
+		var hexBuffer = Buffer.from(hexValue, 'hex');
+		for (var i = 0; i < hexBuffer.length; i++) {
+			partTransactionBuffer.writeByte(hexBuffer[i]);
+		}
+		return partTransactionBuffer;
 
-	for (var i = 0; i < arrayBuffer.length; i++) {
-		buffer[i] = arrayBuffer[i];
 	}
 
-	return Buffer.from(buffer);
 }
 
 /**
