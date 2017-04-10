@@ -972,7 +972,7 @@ DApps.prototype.internal = {
 		});
 	},
 
-	isMasterPaswordEnabled: function (req, cb) {
+	isMasterPasswordEnabled: function (req, cb) {
 		return setImmediate(cb, null, {success: true, enabled: !!library.config.dapp.masterpassword});
 	},
 
