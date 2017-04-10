@@ -72,7 +72,7 @@ module.exports = {
 			limit: {
 				type: 'integer',
 				minimum: 1,
-				maximum: 100
+				maximum: 1000
 			}
 		},
 		required: ['q']
