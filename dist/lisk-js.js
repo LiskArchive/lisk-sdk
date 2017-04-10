@@ -74,7 +74,7 @@ function LiskAPI (options) {
 	];
 
 	this.defaultTestnetPeers = [
-		'83.136.249.129'
+		'testnet.lisk.io'
 	];
 
 	this.options = options;
@@ -126,8 +126,8 @@ LiskAPI.prototype.listPeers = function () {
 
 	return {
 		official: this.defaultPeers.map(function(node) { return {node: node};}),
-		ssl: this.defaultSSLPeers.map(function(node) { return {node: node, ssl: true};}),
-		testnet: this.defaultTestnetPeers.map(function(node) { return {node: node, testnet: true};}),
+		ssl: this.defaultSSLPeers.map(function(node) { return {node: node, ssl: true, port: 443};}),
+		testnet: this.defaultTestnetPeers.map(function(node) { return {node: node, testnet: true, port: 7000};}),
 	};
 
 };
@@ -732,6 +732,14 @@ module.exports = {
 		vote: 100000000,
 		multisignature: 1500000000,
 		dapp: 2500000000
+	},
+	fee: {
+		0: 10000000,
+		1: 500000000,
+		2: 2500000000,
+		3: 100000000,
+		4: 1500000000,
+		5: 2500000000
 	}
 };
 
@@ -1157,31 +1165,7 @@ function getHash (transaction) {
  */
 
 function getFee (transaction) {
-	switch (transaction.type) {
-	case 0: // Normal
-		return constants.fees.send;
-		break;
-
-	case 1: // Signature
-		return constants.fees.signature;
-		break;
-
-	case 2: // Delegate
-		return constants.fees.delegate;
-		break;
-
-	case 3: // Vote
-		return constants.fees.vote;
-		break;
-
-	case 4: // Multisignature
-		return constants.fees.multisignature;
-		break;
-
-	case 5: // Dapp
-		return constants.fees.dapp;
-		break;
-	}
+	return constants.fee[transaction.type];
 }
 
 /**
