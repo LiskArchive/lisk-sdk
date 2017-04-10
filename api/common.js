@@ -1,64 +1,51 @@
 'use strict';
 
+var z_schema = require('../helpers/z_schema.js');
+
+var schema = require('../schema/transport.js');
 var Peer = require('../logic/peer.js');
+var System = require('../modules/system');
 
-module.exports = {
-	handshake: function (ip, port, headers, validateHeaders, cb) {
+module.exports.handshake = function (headers, cb) {
 
-		var headersRequirements = [
-			{'nethash': {
-				errorMessage: 'Request is made on the wrong network',
-				expected: modules.system.getNethash()
-				// received: headers.nethash
-			}},
-			{'version': modules.system.versionCompatible}
-		];
+	var peer = new Peer({
+		ip: headers.ip,
+		port: headers.port
+	});
 
-		var peer = new Peer({
-			ip: ip,
-			port: port
-		});
+	headers = peer.applyHeaders(headers);
 
-		headers = peer.applyHeaders(headers);
+	z_schema.validate(headers, schema.headers, function (error) {
 
-		validateHeaders(headers, function (error, extraMessage) {
-			if (error) {
-				__private.removePeer({peer: peer, code: 'EHEADERS'}, extraMessage);
-				return setImmediate(cb, {success: false, error: error});
-			}
+		if (error) {
+			return setImmediate(cb, {
+				success: false,
+				error: error,
+				code: 'EHEADERS'
+			}, peer);
+		}
 
-			var headersError = headersRequirements.any();
+		if (!System.prototype.networkCompatible(headers.nethash)) {
+			return setImmediate(cb, {
+				success: false,
+				message: 'Request is made on the wrong network',
+				expected: System.prototype.getNethash(),
+				received: headers.nethash,
+				code: 'ENETHASH'
+			}, peer);
+		}
 
-			if (!modules.system.networkCompatible(headers.nethash)) {
-				// Remove peer
-				__private.removePeer({peer: peer, code: 'ENETHASH'}, extraMessage);
+		if (!System.prototype.versionCompatible(headers.version)) {
+			return setImmediate(cb, {
+				success: false,
+				message: 'Request is made from incompatible version',
+				expected: System.prototype.getMinVersion(),
+				received: headers.version,
+				code: 'EVERSION'
+			}, peer);
+		}
 
-				return setImmediate(cb, {
-					success: false,
-					message: 'Request is made on the wrong network',
-					expected: modules.system.getNethash(),
-					received: headers.nethash
-				});
-			}
+		return setImmediate(cb, null, peer);
+	});
 
-			if (!modules.system.versionCompatible(headers.version)) {
-				// Remove peer
-				__private.removePeer({
-					peer: peer,
-					code: 'EVERSION:' + headers.version
-				}, extraMessage);
-
-				return setImmediate(cb, {
-					success: false,
-					message: 'Request is made from incompatible version',
-					expected: modules.system.getMinVersion(),
-					received: headers.version
-				});
-			}
-
-			modules.peers.update(peer);
-
-			return setImmediate(cb, null, peer);
-		});
-	}
 };

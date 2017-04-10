@@ -7,10 +7,15 @@ module.exports = {
 		id: 'transport.headers',
 		type: 'object',
 		properties: {
+			ip: {
+				type: 'string',
+				minimum: 7,
+				maximum: 31
+			},
 			port: {
-				type: 'integer',
+				type: 'string',
 				minimum: 1,
-				maximum: 65535
+				maximum: 5
 			},
 			os: {
 				type: 'string',

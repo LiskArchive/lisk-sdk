@@ -43,7 +43,7 @@ var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
 var workersController = require('./api/ws/workersController');
-
+var rpc = require('./api/RPC');
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
@@ -69,47 +69,7 @@ program
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
-/**
- * @property {object} - The default list of configuration options. Can be updated by CLI.
- * @default 'config.json'
- */
-var appConfig = require('./helpers/config.js')(program.config);
-
-if (program.port) {
-	appConfig.port = program.port;
-}
-
-if (program.address) {
-	appConfig.address = program.address;
-}
-
-if (program.peers) {
-	if (typeof program.peers === 'string') {
-		appConfig.peers.list = program.peers.split(',').map(function (peer) {
-			peer = peer.split(':');
-			return {
-				ip: peer.shift(),
-				port: peer.shift() || appConfig.port
-			};
-		});
-	} else {
-		appConfig.peers.list = [];
-	}
-}
-
-if (program.log) {
-	appConfig.consoleLogLevel = program.log;
-}
-
-if (program.snapshot) {
-	appConfig.loading.snapshot = Math.abs(
-		Math.floor(program.snapshot)
-	);
-}
-
-if (process.env.NODE_ENV === 'test') {
-	appConfig.coverage = true;
-}
+var appConfig = require('./helpers/config.js')(program);
 
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
@@ -311,7 +271,7 @@ d.run(function () {
 
 		webSocket: ['network', 'modules', function (scope, cb) {
 			var webSocketConfig = {
-				// workers: 1,
+				workers: 2,
 				port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
@@ -333,9 +293,13 @@ d.run(function () {
 
 			var socketCluster = new SocketCluster(webSocketConfig);
 
-			var masterProcessController = new MasterProcessController(scope.modules.transport.internal.handshake);
+			scope.network.app.rpc = {
+				broadcast: rpc.wsRPCBroadcast,
+				server: rpc.wsRPCServer(socketCluster),
+				client: rpc.wsRPCClient
+			};
 
-			masterProcessController.setupInterWorkersCommunication(socketCluster);
+			// var masterProcessController = new MasterProcessCoz
 
 			// socketCluster.on('workerStart', function (worker) {
 			// 	workersController.addWorker(worker, socketCluster);
