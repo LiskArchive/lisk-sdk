@@ -980,19 +980,11 @@ function getTransactionBytes (transaction) {
 
 	function isMultisignatureTransaction () {
 
-		var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''));
-		var bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
+		var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
+		var minimumMultisig = Buffer.alloc(transaction.asset.multisignature.min);
+		var multisigLifetime = Buffer.alloc(transaction.asset.multisignature.lifetime);
 
-		bb.writeByte(transaction.asset.multisignature.min);
-		bb.writeByte(transaction.asset.multisignature.lifetime);
-
-		for (var i = 0; i < keysgroupBuffer.length; i++) {
-			bb.writeByte(keysgroupBuffer[i]);
-		}
-
-		bb.flip();
-
-		var multiSignatureBuffer = Buffer.concat([Buffer.alloc(transaction.asset.multisignature.min), Buffer.alloc(transaction.asset.multisignature.lifetime), keysgroupBuffer]);
+		var multiSignatureBuffer = Buffer.concat([minimumMultisig, multisigLifetime, keysgroupBuffer]);
 
 		return {
 			assetBytes: multiSignatureBuffer,
@@ -1073,15 +1065,6 @@ function getTransactionBytes (transaction) {
 
 
 function createTransactionBuffer (transaction) {
-
-	var transactionAssetSizeBuffer = getTransactionBytes(transaction);
-	var assetSize = transactionAssetSizeBuffer.assetSize;
-	var assetBytes = transactionAssetSizeBuffer.assetBytes;
-
-	var emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
-	var assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer);
-
-	return assignedTransactionBuffer;
 
 	function createEmptyTransactionBuffer (assetSize) {
 
@@ -1167,22 +1150,27 @@ function createTransactionBuffer (transaction) {
 
 	}
 
+	//Get Transaction Size and Bytes
+	var transactionAssetSizeBuffer = getTransactionBytes(transaction);
+	var assetSize = transactionAssetSizeBuffer.assetSize;
+	var assetBytes = transactionAssetSizeBuffer.assetBytes;
+
+	var emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
+	var assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer);
+
+	return assignedTransactionBuffer;
+
 }
 
 /**
  * @method getBytes
  * @param transaction Object
- * @param skipSignature boolean
- * @param skipSecondSignature boolean
  *
  * @return {buffer}
  */
 
 function getBytes (transaction) {
-
-	var transactionBuffer = createTransactionBuffer(transaction);
-
-	return transactionBuffer;
+	return createTransactionBuffer(transaction);
 }
 
 /**
