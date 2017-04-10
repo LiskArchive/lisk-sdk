@@ -927,117 +927,57 @@ var bignum = require('browserify-bignum');
 var fixedPoint = Math.pow(10, 8);
 
 /**
- * @method getSignatureBytes
- * @param signature
- * @return {typed array}
- */
-
-function getSignatureBytes (signature) {
-	var bb = new ByteBuffer(32, true);
-	var publicKeyBuffer = new Buffer(signature.publicKey, 'hex');
-
-	for (var i = 0; i < publicKeyBuffer.length; i++) {
-		bb.writeByte(publicKeyBuffer[i]);
-	}
-
-	bb.flip();
-	return new Uint8Array(bb.toArrayBuffer());
-}
-
-/**
- * @method getDAppBytes
- * @param dapp Object
- * @return {buffer}
- */
-
-function getDAppBytes (dapp) {
-	try {
-		var buf = new Buffer([]);
-		var nameBuf = new Buffer(dapp.name, 'utf8');
-		buf = Buffer.concat([buf, nameBuf]);
-
-		if (dapp.description) {
-			var descriptionBuf = new Buffer(dapp.description, 'utf8');
-			buf = Buffer.concat([buf, descriptionBuf]);
-		}
-
-		if (dapp.tags) {
-			var tagsBuf = new Buffer(dapp.tags, 'utf8');
-			buf = Buffer.concat([buf, tagsBuf]);
-		}
-
-		if (dapp.link) {
-			buf = Buffer.concat([buf, new Buffer(dapp.link, 'utf8')]);
-		}
-
-		if (dapp.icon) {
-			buf = Buffer.concat([buf, new Buffer(dapp.icon, 'utf8')]);
-		}
-
-		var bb = new ByteBuffer(4 + 4, true);
-		bb.writeInt(dapp.type);
-		bb.writeInt(dapp.category);
-		bb.flip();
-
-		buf = Buffer.concat([buf, bb.toBuffer()]);
-	} catch (e) {
-		throw Error(e.toString());
-	}
-
-	return buf;
-}
-
-/**
- * @method getTransferBytes
- * @param dapptransfer
- * @return {buffer}
- */
-
-function getTransferBytes (dapptransfer) {
-	try {
-		var buf = new Buffer([]);
-		var nameBuf = new Buffer(dapptransfer.dappid, 'utf8');
-		buf = Buffer.concat([buf, nameBuf]);
-	} catch (e) {
-		throw Error(e.toString());
-	}
-
-	return buf;
-}
-
-/**
- * @method getBytes
+ * @method getTransactionBytes
  * @param transaction Object
- * @param skipSignature boolean
- * @param skipSecondSignature boolean
- *
- * @return {buffer}
+ * @return {object}
  */
 
-function getBytes (transaction, skipSignature, skipSecondSignature) {
-	var assetSize = 0,
-		assetBytes = null;
+function getTransactionBytes (transaction) {
 
-	switch (transaction.type) {
-	case 1: // Signature
-		assetSize = 32;
-		assetBytes = getSignatureBytes(transaction.asset.signature);
-		break;
+	function isSendTransaction () {
 
-	case 2: // Delegate
-		assetBytes = new Buffer(transaction.asset.delegate.username, 'utf8');
-		assetSize = assetBytes.length;
-		break;
-
-	case 3: // Vote
-		if (transaction.asset.votes !== null) {
-			assetBytes = new Buffer(transaction.asset.votes.join(''), 'utf8');
-			assetSize = assetBytes.length;
+		return {
+			assetSize: 0,
+			assetBytes: null
 		}
-		break;
+	}
 
-	case 4: // Multi-Signature
-		var keysgroupBuffer = new Buffer(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
+	function isSignatureTransaction () {
+
+		var bb = new ByteBuffer(32, true);
+		var publicKey = transaction.asset.signature.publicKey;
+		var publicKeyBuffer = Buffer.from(publicKey, 'hex');
+
+		for (var i = 0; i < publicKeyBuffer.length; i++) {
+			bb.writeByte(publicKeyBuffer[i]);
+		}
+
+		bb.flip();
+		var signatureBytes = new Uint8Array(bb.toArrayBuffer());
+
+		return {
+			assetSize: 32,
+			assetBytes: signatureBytes
+		};
+	}
+
+	function isDelegateTransaction () {
+		return {
+			assetSize: Buffer.from(transaction.asset.delegate.username).length,
+			assetBytes: Buffer.from(transaction.asset.delegate.username)
+		}
+	}
+
+	function isVoteTransaction () {
+		var voteTransactionBytes = (Buffer.from(transaction.asset.votes.join('')) || null);
+		return {
+			assetBytes: (Buffer.from(transaction.asset.votes.join('')) || null),
+			assetSize: (voteTransactionBytes.length || 0)
+		}
+	}
+
+	function isMultisignatureTransaction () {
+		var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''));
 		var bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
 
 		bb.writeByte(transaction.asset.multisignature.min);
@@ -1049,83 +989,207 @@ function getBytes (transaction, skipSignature, skipSecondSignature) {
 
 		bb.flip();
 
-		assetBytes = bb.toBuffer();
-		assetSize  = assetBytes.length;
-		break;
+		return {
+			assetBytes: bb.toBuffer(),
+			assetSize: bb.toBuffer().length
 
-	case 5: // Dapp
-		assetBytes = getDAppBytes(transaction.asset.dapp);
-		assetSize = assetBytes.length;
-		break;
-
-	case 6: // Dapp Transfer
-		assetBytes = getTransferBytes(transaction.asset.dapptransfer);
-		assetSize = assetBytes.length;
-		break;
+		}
 	}
 
-	var bb = new ByteBuffer(1 + 4 + 32 + 8 + 8 + 64 + 64 + assetSize, true);
+	function isDappTransaction () {
 
-	bb.writeByte(transaction.type);
-	bb.writeInt(transaction.timestamp);
+		var dapp = transaction.asset.dapp;
+		var buf = new Buffer([]);
+		var nameBuf = Buffer.from(dapp.name);
+		buf = Buffer.concat([buf, nameBuf]);
+
+		if (dapp.description) {
+			var descriptionBuf = Buffer.from(dapp.description);
+			buf = Buffer.concat([buf, descriptionBuf]);
+		}
+
+		if (dapp.tags) {
+			var tagsBuf = Buffer.from(dapp.tags);
+			buf = Buffer.concat([buf, tagsBuf]);
+		}
+
+		if (dapp.link) {
+			buf = Buffer.concat([buf, Buffer.from(dapp.link)]);
+		}
+
+		if (dapp.icon) {
+			buf = Buffer.concat([buf, Buffer.from(dapp.icon)]);
+		}
+
+		var bb = new ByteBuffer(4 + 4, true);
+		bb.writeInt(dapp.type);
+		bb.writeInt(dapp.category);
+		bb.flip();
+
+		buf = Buffer.concat([buf, bb.toBuffer()]);
+
+		return {
+			assetBytes: buf,
+			assetSize: buf.length
+		}
+	}
+
+	function isDappTransferTransaction () {
+
+		var arrayBuf = new Buffer([]);
+		var dappBuffer = Buffer.from(transaction.asset.dapptransfer.dappid);
+		arrayBuf = Buffer.concat([arrayBuf, dappBuffer]);
+
+		return {
+			assetBytes: arrayBuf,
+			assetSize: arrayBuf.length
+		}
+	}
+
+	var transactionType = {
+		'0': isSendTransaction,
+		'1': isSignatureTransaction,
+		'2': isDelegateTransaction,
+		'3': isVoteTransaction,
+		'4': isMultisignatureTransaction,
+		'5': isDappTransaction,
+		'6': isDappTransferTransaction
+	};
+
+	return transactionType[transaction.type]();
+
+}
+
+/**
+ * @method createTransactionBuffer
+ * @param transaction Object
+ * @return {buffer}
+ */
+
+
+function createTransactionBuffer (transaction) {
+
+	var transactionAssetSizeBuffer = getTransactionBytes(transaction);
+	var assetSize = transactionAssetSizeBuffer.assetSize;
+	var assetBytes = transactionAssetSizeBuffer.assetBytes;
+
+	var transactionBuffer = createEmptyTransactionBuffer(assetSize);
+
+
+
+	function createEmptyTransactionBuffer (assetSize) {
+
+		var typeSizes = {
+			TRANSACTION_TYPE: 1,
+			TIMESTAMP: 4,
+			MULTISIGNATURE_PUBLICKEY: 32,
+			RECIPIENT_ID: 8,
+			AMOUNT: 8,
+			SIGNATURE_TRANSACTION: 64,
+			SECOND_SIGNATURE_TRANSACTION: 64
+		};
+
+		var totalBytes = 0;
+
+		for (var key in typeSizes) {
+			if (typeSizes.hasOwnProperty(key)) {
+				totalBytes += typeSizes[key];
+			}
+		}
+
+		//return Buffer.alloc(totalBytes + assetSize);
+		return new ByteBuffer(totalBytes + assetSize);
+	}
+
+	console.log(transactionBuffer);
+
+
+	transactionBuffer.writeByte(transaction.type);
+	console.log(transactionBuffer);
+	transactionBuffer.writeInt(transaction.timestamp);
+	console.log(transactionBuffer);
 
 	var senderPublicKeyBuffer = new Buffer(transaction.senderPublicKey, 'hex');
 	for (var i = 0; i < senderPublicKeyBuffer.length; i++) {
-		bb.writeByte(senderPublicKeyBuffer[i]);
+		transactionBuffer.writeByte(senderPublicKeyBuffer[i]);
 	}
+	console.log(transactionBuffer);
 
 	if (transaction.requesterPublicKey) {
 		var requesterPublicKey = new Buffer(transaction.requesterPublicKey, 'hex');
 
 		for (var i = 0; i < requesterPublicKey.length; i++) {
-			bb.writeByte(requesterPublicKey[i]);
+			transactionBuffer.writeByte(requesterPublicKey[i]);
 		}
 	}
 
+	console.log(transactionBuffer);
 	if (transaction.recipientId) {
 		var recipient = transaction.recipientId.slice(0, -1);
 		recipient = bignum(recipient).toBuffer({size: 8});
 
 		for (var i = 0; i < 8; i++) {
-			bb.writeByte(recipient[i] || 0);
+			transactionBuffer.writeByte(recipient[i] || 0);
 		}
 	} else {
 		for (var i = 0; i < 8; i++) {
-			bb.writeByte(0);
+			transactionBuffer.writeByte(0);
 		}
 	}
 
-	bb.writeLong(transaction.amount);
+	console.log(transactionBuffer);
+	transactionBuffer.writeLong(transaction.amount);
 
+	console.log(transactionBuffer);
 	if (assetSize > 0) {
 		for (var i = 0; i < assetSize; i++) {
-			bb.writeByte(assetBytes[i]);
+			transactionBuffer.writeByte(assetBytes[i]);
 		}
 	}
 
-	if (!skipSignature && transaction.signature) {
+	console.log(transactionBuffer);
+	if (transaction.signature) {
 		var signatureBuffer = new Buffer(transaction.signature, 'hex');
 		for (var i = 0; i < signatureBuffer.length; i++) {
-			bb.writeByte(signatureBuffer[i]);
+			transactionBuffer.writeByte(signatureBuffer[i]);
 		}
 	}
 
-	if (!skipSecondSignature && transaction.signSignature) {
+	console.log(transactionBuffer);
+	if (transaction.signSignature) {
 		var signSignatureBuffer = new Buffer(transaction.signSignature, 'hex');
 		for (var i = 0; i < signSignatureBuffer.length; i++) {
-			bb.writeByte(signSignatureBuffer[i]);
+			transactionBuffer.writeByte(signSignatureBuffer[i]);
 		}
 	}
 
-	bb.flip();
-	var arrayBuffer = new Uint8Array(bb.toArrayBuffer());
+	console.log(transactionBuffer);
+	transactionBuffer.flip();
+	console.log(transactionBuffer);
+	var arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
 	var buffer = [];
 
 	for (var i = 0; i < arrayBuffer.length; i++) {
 		buffer[i] = arrayBuffer[i];
 	}
 
-	return new Buffer(buffer);
+	return Buffer.from(buffer);
+}
+
+/**
+ * @method getBytes
+ * @param transaction Object
+ * @param skipSignature boolean
+ * @param skipSecondSignature boolean
+ *
+ * @return {buffer}
+ */
+
+function getBytes (transaction) {
+
+	var transactionBuffer = createTransactionBuffer(transaction);
+
+	return transactionBuffer;
 }
 
 /**
