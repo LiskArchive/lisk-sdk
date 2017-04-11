@@ -285,7 +285,7 @@ LiskAPI.prototype.changeRequest = function (requestType, options) {
 	case 'POST':
 		var transformRequest = parseOfflineRequest(requestType, options).checkOfflineRequestBefore();
 
-		if (transformRequest.requestUrl === 'transactions') {
+		if (transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures') {
 			returnValue.requestUrl = that.getFullUrl()  + '/peer/'+ transformRequest.requestUrl;
 
 			returnValue.nethash = that.nethash;
@@ -489,7 +489,7 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 		'dapps/uninstall': 'NOACTION',
 		'dapps/launch': 'NOACTION',
 		'dapps/stop': 'NOACTION',
-		'multisignatures/sign': 'NOACTION',
+		'multisignatures/sign': 'POST',
 		'accounts/delegates': 'PUT',
 		'transactions': 'PUT',
 		'signatures': 'PUT',
@@ -534,12 +534,13 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'dapps/launch': 'POST',
 		'dapps/stop': 'POST',
 		'multisignatures/sign': function () {
-			var transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options['transaction'], OfflineRequestThis.options['secret']);
+			var signature = LiskJS.multisignature.signTransaction(OfflineRequestThis.options['transaction'], OfflineRequestThis.options['secret']);
 
+			//console.log(transaction);
 			return {
 				requestMethod: 'POST',
-				requestUrl: 'signature',
-				params: { transaction: transaction }
+				requestUrl: 'signatures',
+				params: { signature: signature }
 			};
 		},
 		'accounts/delegates': function () {
@@ -602,7 +603,6 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'multisignatures': function () {
 			var transaction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['keysgroup'], OfflineRequestThis.options['lifetime'], OfflineRequestThis.options['min']);
 
-			console.log(transaction);
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
@@ -715,7 +715,6 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 };
 
 module.exports = ParseOfflineRequest;
-
 },{"../transactions/crypto":6,"../transactions/dapp":12,"../transactions/delegate":13,"../transactions/multisignature":14,"../transactions/signature":15,"../transactions/transaction":16,"../transactions/transfer":17,"../transactions/vote":18}],4:[function(require,module,exports){
 module.exports = {
 	fees: {
@@ -1130,6 +1129,7 @@ function createTransactionBuffer (transaction, options) {
 
 
 		if(options !== 'multisignature') {
+
 			if (transaction.signature) {
 				assignHexToTransactionBytes(transactionBuffer, transaction.signature);
 			}
@@ -1845,8 +1845,10 @@ function signTransaction (trs, secret) {
 	var signature = crypto.multiSign(trs, keys);
 
 	return {
-		transactionId: trs.id,
-		signature: signature
+		signature: {
+			transaction: trs.id,
+			signature: signature
+		}
 	};
 }
 
