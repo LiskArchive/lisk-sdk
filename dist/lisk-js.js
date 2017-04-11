@@ -495,7 +495,7 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 		'signatures': 'PUT',
 		'delegates': 'PUT',
 		'dapps': 'PUT',
-		'multisignatures': 'NOACTION'
+		'multisignatures': 'POST'
 	};
 
 	if (!requestIdentification[requestType]) {
@@ -534,14 +534,16 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'dapps/launch': 'POST',
 		'dapps/stop': 'POST',
 		'multisignatures/sign': function () {
+			var transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options['transaction'], OfflineRequestThis.options['secret']);
+
 			return {
-				requestMethod: 'GET',
-				requestUrl: 'transactions/get?id=' + this.options['transactionId']
+				requestMethod: 'POST',
+				requestUrl: 'signature',
+				params: { transaction: transaction }
 			};
 		},
 		'accounts/delegates': function () {
 			var transaction = LiskJS.vote.createVote(OfflineRequestThis.options['secret'], OfflineRequestThis.options['delegates'], OfflineRequestThis.options['secondSecret'] );
-			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
@@ -552,8 +554,6 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'transactions': function () {
 			var transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options['recipientId'], OfflineRequestThis.options['amount'], OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction: transaction };
-
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
@@ -563,8 +563,6 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'signatures': function () {
 			var transaction = LiskJS.signature.createSignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret']);
 
-			OfflineRequestThis.params = { transaction: transaction };
-
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
@@ -573,8 +571,6 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		},
 		'delegates': function () {
 			var transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options['secret'], OfflineRequestThis.options['username'], OfflineRequestThis.options['secondSecret']);
-
-			OfflineRequestThis.params = { transaction: transaction };
 
 			return {
 				requestMethod: 'POST',
@@ -597,15 +593,22 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 
 			var transaction = LiskJS.dapp.createDapp(DappOptions);
 
-			OfflineRequestThis.params = { transaction: transaction };
-
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
 				params: { transaction: transaction }
 			};
 		},
-		'multisignatures': 'PUT'
+		'multisignatures': function () {
+			var transaction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['keysgroup'], OfflineRequestThis.options['lifetime'], OfflineRequestThis.options['min']);
+
+			console.log(transaction);
+			return {
+				requestMethod: 'POST',
+				requestUrl: 'transactions',
+				params: { transaction: transaction }
+			};
+		}
 	};
 
 	return requestIdentification[this.requestType]();
@@ -637,16 +640,17 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 						'u_multisignatures': null
 					}
 				};
+			} else {
+				transformAnswer = requestAnswer;
 			}
 
 			return transformAnswer;
 		},
 		'accounts/generatePublicKey': function () {
-			transformAnswer = {
+			return {
 				'success': 'true',
 				'publicKey': accountKeys.publicKey
 			};
-			return transformAnswer;
 		},
 		'delegates/forging/enable': function () {
 			return {
@@ -685,10 +689,7 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 			};
 		},
 		'multisignatures/sign': function () {
-			var transactionObj = requestAnswer.transaction;
-
-			var multiSigSignature = LiskJS.multisignature.signTransaction(transactionObj, OfflineRequestThis.options['secondSecret']);
-			console.log(multiSigSignature);
+			return requestAnswer;
 		},
 		'accounts/delegates': function () {
 			return requestAnswer;
@@ -706,15 +707,7 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 			return requestAnswer;
 		},
 		'multisignatures': function () {
-			console.log(OfflineRequestThis.options);
-
-			var multisigTransction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['keysgroup'], OfflineRequestThis.options['lifetime'], OfflineRequestThis.options['min']);
-			console.log(multisigTransction);
-
-			return {
-				'success': 'trying',
-				'error': multisigTransction
-			};
+			return requestAnswer;
 		}
 	};
 
@@ -730,7 +723,7 @@ module.exports = {
 		signature: 500000000,
 		delegate: 2500000000,
 		vote: 100000000,
-		multisignature: 1500000000,
+		multisignature: 500000000,
 		dapp: 2500000000
 	},
 	fee: {
@@ -738,7 +731,7 @@ module.exports = {
 		1: 500000000,
 		2: 2500000000,
 		3: 100000000,
-		4: 1500000000,
+		4: 500000000,
 		5: 2500000000
 	}
 };
@@ -909,10 +902,6 @@ module.exports = {
 var crypto = require('crypto-browserify');
 var constants = require('../constants.js');
 
-if (typeof Buffer === 'undefined') {
-	Buffer = require('buffer/').Buffer;
-}
-
 var ByteBuffer = require('bytebuffer');
 var bignum = require('browserify-bignum');
 
@@ -939,7 +928,7 @@ function getTransactionBytes (transaction) {
 		return {
 			assetBytes: null,
 			assetSize: 0
-		}
+		};
 	}
 
 	function isSignatureTransaction () {
@@ -966,7 +955,7 @@ function getTransactionBytes (transaction) {
 		return {
 			assetBytes: Buffer.from(transaction.asset.delegate.username),
 			assetSize: Buffer.from(transaction.asset.delegate.username).length
-		}
+		};
 	}
 
 	function isVoteTransaction () {
@@ -975,22 +964,30 @@ function getTransactionBytes (transaction) {
 		return {
 			assetBytes: voteTransactionBytes,
 			assetSize: (voteTransactionBytes.length || 0)
-		}
+		};
 	}
 
 	function isMultisignatureTransaction () {
 
+		var MINSIGNATURES = 1;
+		var LIFETIME = 1;
 		var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
-		var minimumMultisig = Buffer.alloc(transaction.asset.multisignature.min);
-		var multisigLifetime = Buffer.alloc(transaction.asset.multisignature.lifetime);
 
-		var multiSignatureBuffer = Buffer.concat([minimumMultisig, multisigLifetime, keysgroupBuffer]);
-
-		return {
-			assetBytes: multiSignatureBuffer,
-			assetSize: multiSignatureBuffer.length
-
+		var bb = new ByteBuffer(MINSIGNATURES + LIFETIME + keysgroupBuffer.length, true);
+		bb.writeByte(transaction.asset.multisignature.min);
+		bb.writeByte(transaction.asset.multisignature.lifetime);
+		for (var i = 0; i < keysgroupBuffer.length; i++) {
+			bb.writeByte(keysgroupBuffer[i]);
 		}
+		bb.flip();
+
+		bb.toBuffer();
+		var multiSigBuffer = new Uint8Array(bb.toArrayBuffer());
+		return {
+			assetBytes: multiSigBuffer,
+			assetSize: multiSigBuffer.length
+
+		};
 	}
 
 	function isDappTransaction () {
@@ -1028,7 +1025,7 @@ function getTransactionBytes (transaction) {
 		return {
 			assetBytes: buf,
 			assetSize: buf.length
-		}
+		};
 	}
 
 	function isDappTransferTransaction () {
@@ -1040,7 +1037,7 @@ function getTransactionBytes (transaction) {
 		return {
 			assetBytes: arrayBuf,
 			assetSize: arrayBuf.length
-		}
+		};
 	}
 
 	var transactionType = {
@@ -1060,11 +1057,21 @@ function getTransactionBytes (transaction) {
 /**
  * @method createTransactionBuffer
  * @param transaction Object
+ * @param options String
  * @return {buffer}
  */
 
 
-function createTransactionBuffer (transaction) {
+function createTransactionBuffer (transaction, options) {
+
+	function assignHexToTransactionBytes (partTransactionBuffer, hexValue) {
+		var hexBuffer = Buffer.from(hexValue, 'hex');
+		for (var i = 0; i < hexBuffer.length; i++) {
+			partTransactionBuffer.writeByte(hexBuffer[i]);
+		}
+		return partTransactionBuffer;
+
+	}
 
 	function createEmptyTransactionBuffer (assetSize) {
 
@@ -1089,7 +1096,7 @@ function createTransactionBuffer (transaction) {
 		return new ByteBuffer(totalBytes + assetSize, true);
 	}
 
-	function assignTransactionBuffer (transactionBuffer) {
+	function assignTransactionBuffer (transactionBuffer, assetSize, assetBytes) {
 
 		transactionBuffer.writeInt8(transaction.type);
 		transactionBuffer.writeInt(transaction.timestamp);
@@ -1121,12 +1128,15 @@ function createTransactionBuffer (transaction) {
 			}
 		}
 
-		if (transaction.signature) {
-			assignHexToTransactionBytes(transactionBuffer, transaction.signature);
-		}
 
-		if (transaction.signSignature) {
-			assignHexToTransactionBytes(transactionBuffer, transaction.signSignature);
+		if(options !== 'multisignature') {
+			if (transaction.signature) {
+				assignHexToTransactionBytes(transactionBuffer, transaction.signature);
+			}
+
+			if (transaction.signSignature) {
+				assignHexToTransactionBytes(transactionBuffer, transaction.signSignature);
+			}
 		}
 
 		transactionBuffer.flip();
@@ -1141,22 +1151,13 @@ function createTransactionBuffer (transaction) {
 
 	}
 
-	function assignHexToTransactionBytes (partTransactionBuffer, hexValue) {
-		var hexBuffer = Buffer.from(hexValue, 'hex');
-		for (var i = 0; i < hexBuffer.length; i++) {
-			partTransactionBuffer.writeByte(hexBuffer[i]);
-		}
-		return partTransactionBuffer;
-
-	}
-
 	//Get Transaction Size and Bytes
 	var transactionAssetSizeBuffer = getTransactionBytes(transaction);
 	var assetSize = transactionAssetSizeBuffer.assetSize;
 	var assetBytes = transactionAssetSizeBuffer.assetBytes;
 
 	var emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
-	var assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer);
+	var assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer, assetSize, assetBytes);
 
 	return assignedTransactionBuffer;
 
@@ -1169,8 +1170,8 @@ function createTransactionBuffer (transaction) {
  * @return {buffer}
  */
 
-function getBytes (transaction) {
-	return createTransactionBuffer(transaction);
+function getBytes (transaction, options) {
+	return createTransactionBuffer(transaction, options);
 }
 
 /**
@@ -1223,12 +1224,12 @@ function getFee (transaction) {
 
 function sign (transaction, keys) {
 	var hash = getHash(transaction);
-	var signature = naclInstance.crypto_sign_detached(hash, new Buffer(keys.privateKey, 'hex'));
+	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
 
 	if (!transaction.signature) {
-		transaction.signature = new Buffer(signature).toString('hex');
+		transaction.signature = Buffer.from(signature).toString('hex');
 	} else {
-		return new Buffer(signature).toString('hex');
+		return Buffer.from(signature).toString('hex');
 	}
 }
 
@@ -1242,8 +1243,8 @@ function sign (transaction, keys) {
 
 function secondSign (transaction, keys) {
 	var hash = getHash(transaction);
-	var signature = naclInstance.crypto_sign_detached(hash, new Buffer(keys.privateKey, 'hex'));
-	transaction.signSignature = new Buffer(signature).toString('hex');
+	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
+	transaction.signSignature = Buffer.from(signature).toString('hex');
 }
 
 /**
@@ -1255,11 +1256,11 @@ function secondSign (transaction, keys) {
  */
 
 function multiSign (transaction, keys) {
-	var bytes = getBytes(transaction, true, true);
+	var bytes = getBytes(transaction, 'multisignature');
 	var hash = crypto.createHash('sha256').update(bytes).digest();
-	var signature = naclInstance.crypto_sign_detached(hash, new Buffer(keys.privateKey, 'hex'));
+	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
 
-	return new Buffer(signature).toString('hex');
+	return Buffer.from(signature).toString('hex');
 }
 
 /**
@@ -1277,7 +1278,7 @@ function verify (transaction) {
 	}
 
 	var bytes = getBytes(transaction);
-	var data2 = new Buffer(bytes.length - remove);
+	var data2 = Buffer.alloc(bytes.length - remove);
 
 	for (var i = 0; i < data2.length; i++) {
 		data2[i] = bytes[i];
@@ -1285,8 +1286,8 @@ function verify (transaction) {
 
 	var hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
 
-	var signatureBuffer = new Buffer(transaction.signature, 'hex');
-	var senderPublicKeyBuffer = new Buffer(transaction.senderPublicKey, 'hex');
+	var signatureBuffer = Buffer.from(transaction.signature, 'hex');
+	var senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
 	var res = naclInstance.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
 
 	return res;
@@ -1302,7 +1303,7 @@ function verify (transaction) {
 
 function verifySecondSignature (transaction, publicKey) {
 	var bytes = getBytes(transaction);
-	var data2 = new Buffer(bytes.length - 64);
+	var data2 = Buffer.alloc(bytes.length - 64);
 
 	for (var i = 0; i < data2.length; i++) {
 		data2[i] = bytes[i];
@@ -1310,8 +1311,8 @@ function verifySecondSignature (transaction, publicKey) {
 
 	var hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
 
-	var signSignatureBuffer = new Buffer(transaction.signSignature, 'hex');
-	var publicKeyBuffer = new Buffer(publicKey, 'hex');
+	var signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
+	var publicKeyBuffer = Buffer.from(publicKey, 'hex');
 	var res = naclInstance.crypto_sign_verify_detached(signSignatureBuffer, hash, publicKeyBuffer);
 
 	return res;
@@ -1329,8 +1330,8 @@ function getKeys (secret) {
 	var keypair = naclInstance.crypto_sign_keypair_from_seed(hash);
 
 	return {
-		publicKey : new Buffer(keypair.signPk).toString('hex'),
-		privateKey : new Buffer(keypair.signSk).toString('hex')
+		publicKey : Buffer.from(keypair.signPk).toString('hex'),
+		privateKey : Buffer.from(keypair.signSk).toString('hex')
 	};
 }
 
@@ -1343,7 +1344,7 @@ function getKeys (secret) {
 
 function getAddress (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey.toString('hex'), 'hex').digest();
-	var temp = new Buffer(8);
+	var temp = Buffer.alloc(8);
 
 	for (var i = 0; i < 8; i++) {
 		temp[i] = publicKeyHash[7 - i];
@@ -1387,7 +1388,7 @@ module.exports = {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"../constants.js":4,"./crypto/index":9,"browserify-bignum":52,"buffer":66,"buffer/":66,"bytebuffer":67,"crypto-browserify":75}],7:[function(require,module,exports){
+},{"../constants.js":4,"./crypto/index":9,"browserify-bignum":52,"buffer":66,"bytebuffer":67,"crypto-browserify":75}],7:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -1843,7 +1844,10 @@ function signTransaction (trs, secret) {
 	var keys = crypto.getKeys(secret);
 	var signature = crypto.multiSign(trs, keys);
 
-	return signature;
+	return {
+		transactionId: trs.id,
+		signature: signature
+	};
 }
 
 /**
@@ -1860,10 +1864,12 @@ function signTransaction (trs, secret) {
 function createMultisignature (secret, secondSecret, keysgroup, lifetime, min) {
 	var keys = crypto.getKeys(secret);
 
+	var keygroupFees = keysgroup.length + 1;
+
 	var transaction = {
 		type: 4,
 		amount: 0,
-		fee: constants.fees.multisignature,
+		fee: (constants.fees.multisignature * keygroupFees),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTime(),

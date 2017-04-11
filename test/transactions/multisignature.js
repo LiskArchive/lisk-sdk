@@ -102,44 +102,12 @@ describe('multisignature.js', function () {
 		});
 
 		it('should be a string', function () {
-			(signTransaction).should.be.type('string');
+			(signTransaction.signature).should.be.type('string');
 		});
 
 		it('should be crypto_sign_BYTES length', function () {
 			var length = 128;
-			(signTransaction).should.have.lengthOf(length);
-		});
-
-		it.skip('should be verifiable', function () {
-
-
-			var bytes = lisk.crypto.getBytes(transaction);
-			var data2 = new Buffer(bytes.length - 64);
-
-			for (var i = 0; i < data2.length; i++) {
-				data2[i] = bytes[i];
-			}
-
-			var hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
-
-			var signatureBuffer = new Buffer(signTransaction, 'hex');
-			var senderPublicKeyBuffer = new Buffer(transaction.senderPublicKey, 'hex');
-			var res = naclInstance.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
-
-			(res).should.be.equal(true);
-
-			/*
-			console.log(hash);
-			console.log(signatureBuffer);
-			console.log(senderPublicKeyBuffer);
-			console.log(res);
-
-
-
-			var verification = lisk.crypto.verify(signTransaction);
-			console.log(verification);
-			(verification).should.be.true;
-			*/
+			(signTransaction.signature).should.have.lengthOf(length);
 		});
 
 	});
