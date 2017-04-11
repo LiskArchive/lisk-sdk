@@ -5,7 +5,8 @@
   },
   "source": {
     "include": [
-      "./app.js", 
+      "./docs/functional-lisk-modules.js",
+      "./app.js",
       "./api/http/",
       "./helpers/",
       "./logic/",
