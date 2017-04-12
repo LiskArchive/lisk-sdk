@@ -23,10 +23,6 @@ describe('multisignature.js', function () {
 		(multisignature.createMultisignature).should.be.type('function');
 	});
 
-	it('should have function createTransaction', function () {
-		(multisignature.createTransaction).should.be.type('function');
-	});
-
 	describe('#createMultisignature with one secret', function () {
 
 		var minimumSignatures = 2;
@@ -94,83 +90,23 @@ describe('multisignature.js', function () {
 	describe('#signTransaction', function () {
 
 		var secret = '123';
-		var transaction = multisignature.createTransaction('58191285901858109L', 1000, 'secret');
+		var transaction = lisk.transaction.createTransaction('58191285901858109L', 1000, 'secret');
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
-		it('should sign a transaction', function () {
-			(signTransaction).should.be.ok;
+		it('should return an object', function () {
+			(signTransaction).should.be.type('object');
 		});
 
-		it('should be a string', function () {
-			(signTransaction).should.be.type('string');
+		it('should have a transaction property', function () {
+			(signTransaction.transaction).should.be.type('string');
+			(signTransaction.transaction).should.be.equal(transaction.id);
 		});
 
-		it('should be crypto_sign_BYTES length', function () {
-			var length = 128;
-			(signTransaction).should.have.lengthOf(length);
-		});
+		it('should have a signature property', function () {
+			var length = 128; // crypto_sign_BYTES length
 
-		it.skip('should be verifiable', function () {
-
-
-			var bytes = lisk.crypto.getBytes(transaction);
-			var data2 = new Buffer(bytes.length - 64);
-
-			for (var i = 0; i < data2.length; i++) {
-				data2[i] = bytes[i];
-			}
-
-			var hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
-
-			var signatureBuffer = new Buffer(signTransaction, 'hex');
-			var senderPublicKeyBuffer = new Buffer(transaction.senderPublicKey, 'hex');
-			var res = naclInstance.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
-
-			(res).should.be.equal(true);
-
-			/*
-			console.log(hash);
-			console.log(signatureBuffer);
-			console.log(senderPublicKeyBuffer);
-			console.log(res);
-
-
-
-			var verification = lisk.crypto.verify(signTransaction);
-			console.log(verification);
-			(verification).should.be.true;
-			*/
-		});
-
-	});
-
-	describe('#createTransaction', function () {
-
-		var createTransaction = multisignature.createTransaction;
-		var trs = null;
-
-		it('should be a function', function () {
-			(createTransaction).should.be.type('function');
-		});
-
-		it('should create transaction without second signature or requesterPublicKey', function () {
-			trs = createTransaction('58191285901858109L', 1000, 'secret');
-			(trs).should.be.ok;
-			(trs.type).should.be.equal(0);
-		});
-
-		it('should create a transaction with secondSignature without requesterPublicKey', function () {
-			trs = createTransaction('58191285901858109L', 1000, 'secret', 'secondSecret');
-			(trs).should.be.ok;
-			(trs.type).should.be.equal(0);
-		});
-
-		it('should create a transaction with secondSignature and requesterPublicKey', function () {
-			var publicKey = '132321421321';
-			trs = createTransaction('58191285901858109L', 1000, 'secret', 'secondSecret', publicKey);
-			(trs).should.be.ok;
-			(trs.type).should.be.equal(0);
-			(trs.requesterPublicKey).should.be.equal(publicKey);
+			(signTransaction.signature).should.be.type('string');
+			(signTransaction.signature).should.have.lengthOf(length);
 		});
 
 	});

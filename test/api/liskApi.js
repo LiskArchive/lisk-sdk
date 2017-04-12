@@ -284,6 +284,13 @@ describe('Lisk.api()', function () {
 
 			(checkRequestAnswer).should.be.ok;
 			(checkRequestAnswer).should.be.equal('POST');
+
+			var requestType = 'multisignatures/sign';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('POST');
 		});
 
 		it('should identify PUT requests', function () {
@@ -318,13 +325,6 @@ describe('Lisk.api()', function () {
 			(checkRequestAnswer).should.be.equal('NOACTION');
 
 			var requestType = 'dapps/uninstall';
-			var options = {secret: '123'};
-			var checkRequestAnswer = LSK.checkRequest(requestType, options);
-
-			(checkRequestAnswer).should.be.ok;
-			(checkRequestAnswer).should.be.equal('NOACTION');
-
-			var requestType = 'multisignatures/sign';
 			var options = {secret: '123'};
 			var checkRequestAnswer = LSK.checkRequest(requestType, options);
 
