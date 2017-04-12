@@ -684,5 +684,4 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
-
 });
