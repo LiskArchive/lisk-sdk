@@ -57,7 +57,7 @@ __private.list = function (filter, cb) {
 		senderPublicKeys:    'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKeys:csv})',
 		recipientPublicKeys: 'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKeys:csv})',
 		minAmount:           '"t_amount" >= ${minAmount}',
-		maxAmount:           '"t_amount" <= ${minAmount}',
+		maxAmount:           '"t_amount" <= ${maxAmount}',
 		type:                '"t_type" = ${type}',
 		minConfirmations:    'confirmations >= ${minConfirmations}',
 		limit: null,
