@@ -23,10 +23,6 @@ describe('multisignature.js', function () {
 		(multisignature.createMultisignature).should.be.type('function');
 	});
 
-	it('should have function createTransaction', function () {
-		(multisignature.createTransaction).should.be.type('function');
-	});
-
 	describe('#createMultisignature with one secret', function () {
 
 		var minimumSignatures = 2;
@@ -94,7 +90,7 @@ describe('multisignature.js', function () {
 	describe('#signTransaction', function () {
 
 		var secret = '123';
-		var transaction = multisignature.createTransaction('58191285901858109L', 1000, 'secret');
+		var transaction = lisk.transaction.createTransaction('58191285901858109L', 1000, 'secret');
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
 		it('should sign a transaction', function () {
@@ -108,37 +104,6 @@ describe('multisignature.js', function () {
 		it('should be crypto_sign_BYTES length', function () {
 			var length = 128;
 			(signTransaction.signature).should.have.lengthOf(length);
-		});
-
-	});
-
-	describe('#createTransaction', function () {
-
-		var createTransaction = multisignature.createTransaction;
-		var trs = null;
-
-		it('should be a function', function () {
-			(createTransaction).should.be.type('function');
-		});
-
-		it('should create transaction without second signature or requesterPublicKey', function () {
-			trs = createTransaction('58191285901858109L', 1000, 'secret');
-			(trs).should.be.ok;
-			(trs.type).should.be.equal(0);
-		});
-
-		it('should create a transaction with secondSignature without requesterPublicKey', function () {
-			trs = createTransaction('58191285901858109L', 1000, 'secret', 'secondSecret');
-			(trs).should.be.ok;
-			(trs.type).should.be.equal(0);
-		});
-
-		it('should create a transaction with secondSignature and requesterPublicKey', function () {
-			var publicKey = '132321421321';
-			trs = createTransaction('58191285901858109L', 1000, 'secret', 'secondSecret', publicKey);
-			(trs).should.be.ok;
-			(trs.type).should.be.equal(0);
-			(trs.requesterPublicKey).should.be.equal(publicKey);
 		});
 
 	});
