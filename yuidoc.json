@@ -5,6 +5,6 @@
   "url": "https://www.npmjs.com/package/lisk-js",
   "options": {
     "outdir": "yuidoc",
-    "exclude": "app.js"
+    "exclude": "dist"
   }
 }
