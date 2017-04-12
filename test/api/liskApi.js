@@ -284,6 +284,13 @@ describe('Lisk.api()', function () {
 
 			(checkRequestAnswer).should.be.ok;
 			(checkRequestAnswer).should.be.equal('POST');
+
+			var requestType = 'multisignatures/sign';
+			var options = {secret: '123'};
+			var checkRequestAnswer = LSK.checkRequest(requestType, options);
+
+			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.equal('POST');
 		});
 
 		it('should identify PUT requests', function () {
@@ -318,13 +325,6 @@ describe('Lisk.api()', function () {
 			(checkRequestAnswer).should.be.equal('NOACTION');
 
 			var requestType = 'dapps/uninstall';
-			var options = {secret: '123'};
-			var checkRequestAnswer = LSK.checkRequest(requestType, options);
-
-			(checkRequestAnswer).should.be.ok;
-			(checkRequestAnswer).should.be.equal('NOACTION');
-
-			var requestType = 'multisignatures/sign';
 			var options = {secret: '123'};
 			var checkRequestAnswer = LSK.checkRequest(requestType, options);
 
@@ -684,4 +684,19 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
+
+	describe('#multisignature', function () {
+		/*
+
+		 var minimumSignatures = 2; 
+		 var requestLifeTime = 5;
+		  var multiSignaturePublicKeyArray = ['+9ff43f4be47c55c671b64bf39cb182066da5ac08bdf0cab1aaa5f1edd34d096a', '+9cc69eb423abc2531394ce133a0e9111f6a1a65f68b805615db22f2f1273fe84', '+c18718d3bcec893e88ed15b05a046a9f490d228e886f97c6f1f52c18f6bbf501', '+ab07c7db0a0e4da201a3cd7355a9b7478a94bfcdbf0ce5bd648581e0c89e9bc6']; 
+		 var secret = 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon'
+
+		 LSK.sendRequest('multisignatures', { min: minimumSignatures, lifetime: requestLifeTime, keysgroup: multiSignaturePublicKeyArray, secret: secret }, function (response) {
+		 console.log(response);
+		 });
+		 */
+	});
+
 });

@@ -12,33 +12,7 @@
 <script>
     "use strict";
 
-    var LSK = lisk.api({ testnet: true, node: '83.136.249.129', port: '7000'});  
-    //11868577848952392155
 
-    var tx = {
-    	"type":4,
-        "amount":0,
-        "fee":2000000000,
-        "senderPublicKey":"a056010eed1ad3233d7872a5e158d90a777a6d894a3c0ec7ff1a2ddfd393f530",
-        "timestamp":27805422,
-        "asset":{
-    		"multisignature": {
-        	"min":2,
-            "lifetime":24,
-            "keysgroup":[
-            	"+9cc69eb423abc2531394ce133a0e9111f6a1a65f68b805615db22f2f1273fe84",
-                "+9ff43f4be47c55c671b64bf39cb182066da5ac08bdf0cab1aaa5f1edd34d096a",
-                "+c18718d3bcec893e88ed15b05a046a9f490d228e886f97c6f1f52c18f6bbf501"]
-    		}
-    	},
-        "signature":"70fd23a1f1ab87b21f62a2ffce87d34d7d141c18ab7177bdc8a4cb72314cad19354e38800aebc954bcf50d5afaec5e758994956c2fb6dd274c2a1e4340d8fc05",
-        "id":"1213555903609601305",
-        "senderId":"8437095464619135969L"
-    };
-
-    LSK.sendRequest('multisignatures/sign', { transaction: tx, secret: 'brief excite retire bunker lizard giraffe author tent roof tennis vibrant device' }, function(response) {
-    	console.log(response);
-    })
 </script>
 
 </body>

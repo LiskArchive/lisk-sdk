@@ -253,6 +253,7 @@ LiskAPI.prototype.sendRequestPromise = function (requestType, options) {
 };
 
 LiskAPI.prototype.doPopsicleRequest = function (requestValue) {
+	console.log(requestValue);
 	return popsicle.request({
 		method: requestValue.requestMethod,
 		url: requestValue.requestUrl,
@@ -534,13 +535,12 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'dapps/launch': 'POST',
 		'dapps/stop': 'POST',
 		'multisignatures/sign': function () {
-			var signature = LiskJS.multisignature.signTransaction(OfflineRequestThis.options['transaction'], OfflineRequestThis.options['secret']);
+			var transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options['transaction'], OfflineRequestThis.options['secret']);
 
-			//console.log(transaction);
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'signatures',
-				params: { signature: signature }
+				params: { signature: transaction }
 			};
 		},
 		'accounts/delegates': function () {
@@ -621,8 +621,6 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 	}
 
 	var transformAnswer;
-	var OfflineRequestThis = this;
-
 	var requestIdentification =  {
 		'accounts/open': function () {
 			if (requestAnswer.error === 'Account not found') {
@@ -1845,10 +1843,8 @@ function signTransaction (trs, secret) {
 	var signature = crypto.multiSign(trs, keys);
 
 	return {
-		signature: {
-			transaction: trs.id,
-			signature: signature
-		}
+		transaction: trs.id,
+		signature: signature
 	};
 }
 
