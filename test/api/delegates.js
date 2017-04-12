@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('./../node.js');
+var genesisDelegates = require('../genesisDelegates.json');
 
 function openAccount (params, done) {
 	node.post('/api/accounts/open', params, function (err, res) {
@@ -383,7 +384,7 @@ describe('GET /api/delegates', function () {
 			node.expect(res.body.delegates[0]).to.have.property('address');
 			node.expect(res.body.delegates[0]).to.have.property('publicKey');
 			node.expect(res.body.delegates[0]).to.have.property('vote');
-			node.expect(res.body.delegates[0]).to.have.property('rate');
+			node.expect(res.body.delegates[0]).to.have.property('rank');
 			node.expect(res.body.delegates[0]).to.have.property('productivity');
 			done();
 		});
@@ -424,8 +425,8 @@ describe('GET /api/delegates', function () {
 		});
 	});
 
-	it('using orderBy == "rate:asc" should be ok', function (done) {
-		var orderBy = 'rate:asc';
+	it('using orderBy == "rank:asc" should be ok', function (done) {
+		var orderBy = 'rank:asc';
 		var params = 'orderBy=' + orderBy;
 
 		node.get('/api/delegates?' + params, function (err, res) {
@@ -434,15 +435,15 @@ describe('GET /api/delegates', function () {
 			node.expect(res.body.delegates).to.have.lengthOf(101);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
-					node.expect(res.body.delegates[i].rate).to.be.at.below(res.body.delegates[i + 1].rate);
+					node.expect(res.body.delegates[i].rank).to.be.at.below(res.body.delegates[i + 1].rank);
 				}
 			}
 			done();
 		});
 	});
 
-	it('using orderBy == "rate:desc" should be ok', function (done) {
-		var orderBy = 'rate:desc';
+	it('using orderBy == "rank:desc" should be ok', function (done) {
+		var orderBy = 'rank:desc';
 		var params = 'orderBy=' + orderBy;
 
 		node.get('/api/delegates?' + params, function (err, res) {
@@ -451,7 +452,7 @@ describe('GET /api/delegates', function () {
 			node.expect(res.body.delegates).to.have.lengthOf(101);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
-					node.expect(res.body.delegates[i].rate).to.be.at.above(res.body.delegates[i + 1].rate);
+					node.expect(res.body.delegates[i].rank).to.be.at.above(res.body.delegates[i + 1].rank);
 				}
 			}
 			done();
@@ -631,7 +632,7 @@ describe('GET /api/delegates', function () {
 	});
 
 	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
-		var delegatesSortFields = ['approval', 'productivity', 'rate', 'vote'];
+		var delegatesSortFields = ['approval', 'productivity', 'rank', 'vote'];
 		node.async.each(delegatesSortFields, function (sortField, cb) {
 			node.get('/api/delegates?orderBy=' + sortField, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -1024,6 +1025,110 @@ describe('GET /api/delegates/forging/status', function () {
 		node.get('/api/delegates/forging/status?publicKey=' + '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('enabled').to.be.true;
+			done();
+		});
+	});
+});
+
+describe('POST /api/delegates/forging/disable', function () {
+	var testDelegate = genesisDelegates.delegates[0];
+
+	before(function (done) {
+		node.get('/api/delegates/forging/status?publicKey=' + testDelegate.publicKey, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('enabled').to.be.a('boolean');
+			if (!res.body.enabled) {
+				node.post('/api/delegates/forging/enable', {
+					publicKey: testDelegate.publicKey,
+					secret: testDelegate.secret
+				}, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('address').equal(testDelegate.address);
+					done();
+				});
+			}
+			done();
+		});
+	});
+
+	it('using no params should fail', function (done) {
+		node.post('/api/delegates/forging/disable', {}, function (err, res) {
+			node.expect(res.body).to.have.property('success').not.to.be.ok;
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Missing required property: secret');
+			done();
+		});
+	});
+
+	it('using invalid secret should fail', function (done) {
+		node.post('/api/delegates/forging/disable', {
+			publicKey: testDelegate.publicKey,
+			secret: 'invalid secret'
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').not.to.be.ok;
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase');
+			done();
+		});
+	});
+
+	it('using valid params should be ok', function (done) {
+		node.post('/api/delegates/forging/disable', {
+			publicKey: testDelegate.publicKey,
+			secret: testDelegate.secret
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('address').equal(testDelegate.address);
+			done();
+		});
+	});
+});
+
+describe('POST /api/delegates/forging/enable', function () {
+	var testDelegate = genesisDelegates.delegates[0];
+
+	before(function (done) {
+		node.get('/api/delegates/forging/status?publicKey=' + testDelegate.publicKey, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('enabled').to.be.a('boolean');
+			if (res.body.enabled) {
+				node.post('/api/delegates/forging/disable', {
+					publicKey: testDelegate.publicKey,
+					secret: testDelegate.secret
+				}, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('address').equal(testDelegate.address);
+					done();
+				});
+			}
+			done();
+		});
+	});
+
+	it('using no params should fail', function (done) {
+		node.post('/api/delegates/forging/enable', {}, function (err, res) {
+			node.expect(res.body).to.have.property('success').not.to.be.ok;
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Missing required property: secret');
+			done();
+		});
+	});
+
+	it('using invalid secret should fail', function (done) {
+		node.post('/api/delegates/forging/enable', {
+			publicKey: testDelegate.publicKey,
+			secret: 'invalid secret'
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').not.to.be.ok;
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase');
+			done();
+		});
+	});
+
+	it('using valid params should be ok', function (done) {
+		node.post('/api/delegates/forging/enable', {
+			publicKey: testDelegate.publicKey,
+			secret: testDelegate.secret
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('address').equal(testDelegate.address);
 			done();
 		});
 	});
