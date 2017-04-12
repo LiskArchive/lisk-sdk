@@ -93,16 +93,19 @@ describe('multisignature.js', function () {
 		var transaction = lisk.transaction.createTransaction('58191285901858109L', 1000, 'secret');
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
-		it('should sign a transaction', function () {
-			(signTransaction).should.be.ok;
+		it('should return an object', function () {
+			(signTransaction).should.be.type('object');
 		});
 
-		it('should be a string', function () {
+		it('should have a transaction property', function () {
+			(signTransaction.transaction).should.be.type('string');
+			(signTransaction.transaction).should.be.equal(transaction.id);
+		});
+
+		it('should have a signature property', function () {
+			var length = 128; // crypto_sign_BYTES length
+
 			(signTransaction.signature).should.be.type('string');
-		});
-
-		it('should be crypto_sign_BYTES length', function () {
-			var length = 128;
 			(signTransaction.signature).should.have.lengthOf(length);
 		});
 
