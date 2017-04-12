@@ -29,9 +29,7 @@ process.stdin.resume();
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
 /**
- * Hash of last git commit
- * @property lastCommit
- * @type String
+ * @property {string} - Hash of last git commit
  */
 var lastCommit = '';
 
@@ -52,9 +50,7 @@ program
 	.parse(process.argv);
 
 /**
- * The default list of configuration options. Can be updated by CLI.
- * @property appConfig
- * @type Object
+ * @property {object} - The default list of configuration options. Can be updated by CLI.
  * @default 'config.json'
  */
 var appConfig = require('./helpers/config.js')(program.config);
@@ -102,8 +98,9 @@ process.env.TOP = appConfig.topAccounts;
  * The config object to handle lisk modules and lisk api. 
  * It loads `modules` and `api` folders content.
  * Also contains db configuration from config.json
- * @property config
- * @type Object
+ * @property {object} db - configuration values for database
+ * @property {object} modules - modules folder content
+ * @property {object} api - api/http folder content
  */
 var config = {
 	db: appConfig.db,
@@ -143,8 +140,7 @@ var config = {
  * Logger holder so we can log with custom functionality.
  * 
  * The Object is initialized here and pass to others as parameter.
- * @property logger
- * @type Object
+ * @property {object} - Logger instance
  */
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, 
 	filename: appConfig.logFileName });
@@ -158,8 +154,7 @@ try {
 
 /**
  * Creates the express server and loads all the Modules and logic.
- * @property d
- * @type Object
+ * @property {object} - domain instance
  */
 var d = require('domain').create();
 
@@ -217,7 +212,6 @@ d.run(function () {
 
 		/**
 		 * Returns hash of last git commit
-		 *
 		 * @method lastCommit
 		 * @param {function(null,object)} cb Callback function with Hash of last git commit
 		 */
@@ -242,16 +236,10 @@ d.run(function () {
 		/**
 		 * Once config is completed, creates app, http & https servers & sockets with express.
 		 * @method network
-		 * @param  {Object} scope the results from current execution, 
+		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elementss
-		 * @param  {function(null,object)} cb Callback function with created Object: `{
-				express,
-				app,
-				server,
-				io,
-				https,
-				https_io
-			}`
+		 * @param {function(null,object)} cb - Callback function with created Object: 
+		 * `{express, app, server, io, https, https_io}`
 		 */	
 		network: ['config', function (scope, cb) {
 			var express = require('express');
@@ -330,11 +318,10 @@ d.run(function () {
 		/**
 		 * Once config, public, genesisblock, logger, build and network are completed, 
 		 * adds configuration to `network.app`
-		 *
 		 * @method connect
-		 * @param  {Object} scope the results from current execution, 
+		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elements
-		 * @param  {Function} cb Callback function
+		 * @param {function} cb - Callback function
 		 */	
 		connect: ['config', 'public', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
 			var path = require('path');
@@ -428,11 +415,10 @@ d.run(function () {
 		/**
 		 * Once db, bus, schema and genesisblock are completed,  
 		 * loads transaction, block, account and peers from logic folder
-		 *
 		 * @method logic
-		 * @param  {Object} scope the results from current execution, 
+		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elements
-		 * @param  {Function} cb Callback function
+		 * @param {function} cb - Callback function
 		 */	
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
@@ -480,11 +466,10 @@ d.run(function () {
 		 * Once network, connect, config, logger, bus, sequence, 
 		 * dbSequence, balancesSequence, db and logic are completed,
 		 * loads modules from `modules` folder using `config.modules`
-		 *
 		 * @method modules
-		 * @param  {Object} scope the results from current execution, 
+		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elements
-		 * @param  {Function} cb Callback function with resulted load
+		 * @param {function} cb - Callback function with resulted load
 		 */	
 		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
 			var tasks = {};
@@ -514,11 +499,10 @@ d.run(function () {
 		/**
 		 * Once modules, logger and network are completed,
 		 * loads api from `api` folder using `config.api`
-		 *
 		 * @method api
-		 * @param  {Object} scope the results from current execution, 
+		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elements
-		 * @param  {Function} cb Callback function
+		 * @param {function} cb - Callback function
 		 */	
 		api: ['modules', 'logger', 'network', function (scope, cb) {
 			Object.keys(config.api).forEach(function (moduleName) {
@@ -547,11 +531,10 @@ d.run(function () {
 		/**
 		 * Once 'ready' is completed, binds and listens for connections on the 
 		 * specified host and port for `scope.network.server`
-		 *
 		 * @method listen
-		 * @param  {Object} scope the results from current execution, 
+		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elements
-		 * @param  {Function} cb Callback function with `scope.network`
+		 * @param {function} cb - Callback function with `scope.network`
 		 */	
 		listen: ['ready', function (scope, cb) {
 			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {

@@ -3,6 +3,50 @@
 # Lisk JSDoc Source code documentation
 
 This is an ongoing process
+## Best Practices
+* To indicate the data type for a `@param` or `@return` tag, put the data type in `{}` brackets: `@param {TheType} paramName` or `@return {TheType}`. 
+For non-object data, use `number`, `string`, `bool`, `null`, `undefined`, `object`, `function`, `Array`. 
+For particular objects, use the constructor name; this could be a built-in JavaScript class (`Date`, `RegExp`) or custom classes.
+
+* when documenting an object that is not being used as a `namespace` or `class`, use `@prop {type} name` tags to document its properties (these work like `@param` for function parameters).
+
+* Use `@name` to tell JSDoc the name of what is being documented, if it is not the same as the name in the code.
+
+* No need to use `@function` in most cases - JSDoc will assume anything declared as a function is a regular function or method.
+
+#### Tag order
+Tags available should be declared in the following order:
+``` js
+@global
+
+@typedef
+@var
+@name
+@namespace
+@constructor
+@callback
+@event
+@function
+
+@augments
+@lends
+
+@type
+@prop
+
+@param
+@return
+
+@throws
+@fires
+@listens
+
+@ingroup
+@deprecated
+@see
+@todo
+@ignore
+```
 
 ## Syntax
 ### General
@@ -99,6 +143,27 @@ hgm.cookie = {
 
     /** describe me */
     remove: function (name) {  }
+};
+```
+
+#### A namespace with defaults and nested default properties
+``` js
+/**
+ * @namespace
+ * @property {object} defaults - The default values for parties.
+ * @property {number} defaults.players - The default number of players.
+ * @property {string} defaults.level - The default level for the party.
+ * @property {object} defaults.treasure - The default treasure.
+ * @property {number} defaults.treasure.gold - How much gold the party starts with.
+ */
+var config = {
+    defaults: {
+        players: 1,
+        level:   'beginner',
+        treasure: {
+            gold: 0
+        }
+    }
 };
 ```
 
