@@ -1,9 +1,22 @@
 'use strict';
-
+/**
+ * A node-style callback as used by {@link logic} and {@link modules}.
+ * @see {@link https://nodejs.org/api/errors.html#errors_node_js_style_callbacks}
+ * @callback nodeStyleCallback
+ * @param {?Error} error Error, if any, otherwise `null`
+ * @param {Data} [data] Data, if there hasn't been an error
+ */
+/**
+ * A triggered by setImmediate callback as used by {@link logic}, {@link modules} and {@link helpers}.
+ * @see {@link https://nodejs.org/api/timers.html#timers_setimmediate_callback_args}
+ * @callback setImmediateCallback
+ * @param {?Error} error Error, if any, otherwise `null`
+ * @param {Data} [data] Data, if there hasn't been an error
+ */
 /**
  * Main entry point.
  * Loads the lisk modules, the lisk api and run the express server as Domain master.
- * CLI options available
+ * CLI options available.
  * @module app
  */
 
@@ -170,7 +183,7 @@ d.run(function () {
 		 * Loads `payloadHash` and generate dapp password if it is empty and required.
 		 * Then updates config.json with new random  password.
 		 * @method config
-		 * @param {function(null,object)} cb Callback function with the mutated `appConfig`
+		 * @param {nodeStyleCallback} cb Callback function with the mutated `appConfig`
 		 * @throws {Error} If failed to assign nethash from genesis block
 		 */		
 		config: function (cb) {
@@ -213,7 +226,7 @@ d.run(function () {
 		/**
 		 * Returns hash of last git commit
 		 * @method lastCommit
-		 * @param {function(null,object)} cb Callback function with Hash of last git commit
+		 * @param {nodeStyleCallback} cb Callback function with Hash of last git commit
 		 */
 		lastCommit: function (cb) {
 			cb(null, lastCommit);
@@ -238,7 +251,7 @@ d.run(function () {
 		 * @method network
 		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elementss
-		 * @param {function(null,object)} cb - Callback function with created Object: 
+		 * @param {nodeStyleCallback} cb - Callback function with created Object: 
 		 * `{express, app, server, io, https, https_io}`
 		 */	
 		network: ['config', function (scope, cb) {
@@ -469,7 +482,7 @@ d.run(function () {
 		 * @method modules
 		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elements
-		 * @param {function} cb - Callback function with resulted load
+		 * @param {nodeStyleCallback} cb - Callback function with resulted load
 		 */	
 		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
 			var tasks = {};
@@ -534,7 +547,7 @@ d.run(function () {
 		 * @method listen
 		 * @param {object} scope - the results from current execution, 
 		 * at leats will contain the required elements
-		 * @param {function} cb - Callback function with `scope.network`
+		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`
 		 */	
 		listen: ['ready', function (scope, cb) {
 			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {

@@ -197,3 +197,7 @@ Example: Account module is composed by:
 - [ ] Patterns examples
 - [ ] More Lisk examples: callback, throws, class, nested objects
 - [ ] JSDoc tutorials for best practices
+- [ ] Callback patterns
+    * node style: cb(err, data); - `app.js`
+    * setImmediate style: return setImmediate(cb, null, data); - `modules/blocks.js`
+    * next style: cb(); - `app.js`
