@@ -13,6 +13,7 @@
  * @param {?Error} error Error, if any, otherwise `null`
  * @param {Data} [data] Data, if there hasn't been an error
  */
+
 /**
  * Main entry point.
  * Loads the lisk modules, the lisk api and run the express server as Domain master.
@@ -176,6 +177,7 @@ d.on('error', function (err) {
 	process.exit(0);
 });
 
+// runs domain
 d.run(function () {
 	var modules = [];
 	async.auto({
@@ -572,8 +574,16 @@ d.run(function () {
 		if (err) {
 			logger.fatal(err);
 		} else {
+	
 			scope.logger.info('Modules ready and launched');
-
+			/**
+			 * Event reporting a cleanup.
+			 * @event cleanup
+			 */
+			/**
+			 * Receives a 'cleanup' signal and cleans all modules.
+			 * @listens cleanup
+			 */
 			process.once('cleanup', function () {
 				scope.logger.info('Cleaning up...');
 				async.eachSeries(modules, function (module, cb) {
@@ -588,27 +598,79 @@ d.run(function () {
 					} else {
 						scope.logger.info('Cleaned up successfully');
 					}
+					/**
+					 * process.exit(1) exits with a 'failure' code (node.js method)
+					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+					 */
 					process.exit(1);
 				});
 			});
 
+			/**
+			 * Event reporting a SIGTERM.
+			 * @event SIGTERM
+			 */
+			/**
+			 * Receives a 'SIGTERM' signal and emits a cleanup.
+			 * @listens SIGTERM
+			 */
 			process.once('SIGTERM', function () {
+				/**
+				 * emits cleanup once 'SIGTERM'.
+				 * @emits cleanup
+				 */
 				process.emit('cleanup');
 			});
 
+			/**
+			 * Event reporting an exit.
+			 * @event exit
+			 */
+			/**
+			 * Receives an 'exit' signal and emits a cleanup.
+			 * @listens exit
+			 */
 			process.once('exit', function () {
+				/**
+				 * emits cleanup once 'exit'.
+				 * @emits cleanup
+				 */
 				process.emit('cleanup');
 			});
 
+			/**
+			 * Event reporting a SIGINT.
+			 * @event SIGINT
+			 */
+			/**
+			 * Receives a 'SIGINT' signal and emits a cleanup.
+			 * @listens SIGINT
+			 */
 			process.once('SIGINT', function () {
+				/**
+				 * emits cleanup once 'SIGINT'.
+				 * @emits cleanup
+				 */
 				process.emit('cleanup');
 			});
 		}
 	});
 });
 
+/**
+ * Event reporting an uncaughtException.
+ * @event uncaughtException
+ */
+/**
+ * Receives a 'uncaughtException' signal and emits a cleanup.
+ * @listens uncaughtException
+ */
 process.on('uncaughtException', function (err) {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
+	/**
+	 * emits cleanup once 'uncaughtException'.
+	 * @emits cleanup
+	 */
 	process.emit('cleanup');
 });
