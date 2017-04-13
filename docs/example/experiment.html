@@ -41,6 +41,8 @@
                 <li><a href="#send_lsk" class="pageLink" data-id="send_lsk">Send LSK</a></li>
                 <li><a href="#sign" class="pageLink" data-id="sign">Sign Message</a></li>
                 <li><a href="#verify" class="pageLink" data-id="verify">Verify Message</a></li>
+                <li><a href="#encrypt" class="pageLink" data-id="verify">Encrypt Message</a></li>
+                <li><a href="#decrypt" class="pageLink" data-id="verify">Decrypt Message</a></li>
             </ul>
         </div>
         <div class="col-sm-10">
@@ -153,6 +155,69 @@
                         <label for="verifyResult">Result</label>
                         <p id="validSignature" style="color: red;"></p>
                         <textarea class="form-control" id="verifyResult" rows="5"></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row pageX" id="encrypt">
+                <h2>Encrypt Message</h2>
+
+                <form class="experimentForm">
+                    <div class="form-group">
+                        <label for="encryptMessageSecret">Secret</label>
+                        <input type="text" class="form-control" id="encryptMessageSecret">
+                    </div>
+                    <div class="form-group">
+                        <label for="encryptMessageRecipientPublicKey">Recipient PublicKey</label>
+                        <input type="text" class="form-control" id="encryptMessageRecipientPublicKey">
+                    </div>
+                    <div class="form-group">
+                        <label for="encryptMessage">Message</label>
+                        <textarea class="form-control" id="encryptMessage" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitMessageToEncrypt">Sign</button>
+
+                    <div class="form-group">
+                        <br>
+                        <label for="verifyResult">Encrypted Message</label>
+                        <textarea class="form-control" id="encryptedMessage" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="verifyResult">Nonce for encrypted Message</label>
+                        <textarea class="form-control" id="encryptedMessageNonce" rows="1"></textarea>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="row pageX" id="decrypt">
+                <h2>Decrypt Message</h2>
+
+                <form class="experimentForm">
+                    <div class="form-group">
+                        <label for="decryptMessageSecret">Secret</label>
+                        <input type="text" class="form-control" id="decryptMessageSecret">
+                    </div>
+                    <div class="form-group">
+                        <label for="encryptedMessageToDecrypt">Encrypted Message</label>
+                        <input type="text" class="form-control" id="encryptedMessageToDecrypt">
+                    </div>
+                    <div class="form-group">
+                        <label for="nonceToDecrypt">Nonce</label>
+                        <input type="text" class="form-control" id="nonceToDecrypt">
+                    </div>
+                    <div class="form-group">
+                        <label for="senderPublicKey">Sender PublicKey</label>
+                        <input type="text" class="form-control" id="senderPublicKey">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="decryptMessage">Decrypt</button>
+
+                    <div class="form-group">
+                        <br>
+                        <label for="verifyResult">Result</label>
+                        <p id="decryptedMessageValidity" style="color: red;"></p>
+                        <textarea class="form-control" id="decryptedMessage" rows="5"></textarea>
                     </div>
                 </form>
             </div>

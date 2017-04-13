@@ -81,7 +81,66 @@ $(function () {
 			$('#validSignature').html('Valid Signature').css('color', 'green');
 		}
 	});
+
+	$("#submitMessageToEncrypt").on("click", function (e) {
+		e.preventDefault();
+
+		var secret = $("#encryptMessageSecret").val();
+		var recipientPublicKey = $("#encryptMessageRecipientPublicKey").val();
+		var message = $("#encryptMessage").val();
+
+		var encryptedObject = lisk.crypto.encryptMessageWithSecret(message, secret, recipientPublicKey);
+		var nonce = encryptedObject.nonce;
+		var encryptedMessage = encryptedObject.encryptedMessage;
+		$("#encryptedMessage").html(encryptedMessage);
+		$("#encryptedMessageNonce").html(nonce);
+
+	});
+
+	$("#decryptMessage").on("click", function (e) {
+		e.preventDefault();
+
+		var secret = $("#decryptMessageSecret").val();
+		var encryptedMessage = $("#encryptedMessageToDecrypt").val();
+		var senderPublicKey = $("#senderPublicKey").val();
+		var nonce = $("#nonceToDecrypt").val();
+
+		try {
+			var message = lisk.crypto.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);
+		} catch (e) {
+			$("#decryptedMessageValidity").html(convertNaclError(e)).css('color', 'red');
+		}
+
+		if(message) {
+			$("#decryptedMessageValidity").html('Success').css('color', 'green');
+			$("#decryptedMessage").html(message);
+		}
+
+
+	});
+
 });
+
+function convertNaclError (e) {
+	var errorMessage = e.message;
+
+	var displayError = '';
+	switch (errorMessage) {
+		case 'nacl.crypto_box_open expected 24-byte nonce but got length 0':
+			displayError = 'expected 24-byte nonce but got length 0';
+			break;
+
+		case 'nacl_raw._crypto_box_open signalled an error':
+			displayError = 'Your secret, the encrypted message or the senderPublicKey are not correct';
+			break;
+		default:
+			displayError = 'could not decrypt message';
+			break;
+	}
+
+	return displayError;
+
+}
 
 function init (passphrase) {
 	(function () {
