@@ -63,6 +63,8 @@ Tests written using mocha + schedule.js.
 	- [Send LSK](http://liskhq.github.io/lisk-js/example/experiment.html#send_lsk)
 	- [Sign Message](http://liskhq.github.io/lisk-js/example/experiment.html#sign)
 	- [Verify Message](http://liskhq.github.io/lisk-js/example/experiment.html#verify)
+	- [Encrypt Message](http://liskhq.github.io/lisk-js/example/experiment.html#encrypt)
+	- [Decrypt Message](http://liskhq.github.io/lisk-js/example/experiment.html#decrypt)
 
 ## Authors
 
