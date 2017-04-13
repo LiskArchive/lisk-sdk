@@ -684,7 +684,7 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
-
+  
 	describe('#listMultisignatureTransactions', function () {
 
 		it('should list all current not signed multisignature transactions', function (done) {
@@ -712,5 +712,4 @@ describe('Lisk.api()', function () {
 		});
 
 	});
-
 });
