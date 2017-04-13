@@ -67,6 +67,9 @@
                             <a href="#functions_listTransactions" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listTransactions</a>
                             <a href="#functions_listVotes" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVotes</a>
                             <a href="#functions_listVoters" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVoters</a>
+
+                            <a href="#functions_listMultisignatureTransactions" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listMultisignatureTransactions</a>
+                            <a href="#functions_getMultisignatureTransaction" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">getMultisignatureTransaction</a>
                         </div>
 
                         <a href="#network_sub" data-toggle="collapse" class="list-group-item sub-item" data-parent="#api_sub" style="padding-left: 24px;"><b>Network Functions</b></a>
@@ -396,6 +399,44 @@ lisk.api().listVotes(address, callback);
                                     <pre>
                                         <code class="language-html" data-lang="html">
 lisk.api().listVoters(publicKey, callback);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_listMultisignatureTransactions">listMultisignatureTransactions</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Lists all pending multisignature transactions</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+lisk.api().listMultisignatureTransactions(callback);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_getMultisignatureTransaction">getMultisignatureTransaction</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Lists a multisignature transaction by a given transaction ID</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+lisk.api().getMultisignatureTransaction('transactionID', callback);
                                         </code>
                                     </pre>
                                 </figure>
