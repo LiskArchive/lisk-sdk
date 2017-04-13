@@ -126,6 +126,8 @@
                         <a href="#functions_createDapp" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Dapp</a>
                         <a href="#functions_createDelegate" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Delegate</a>
                         <a href="#functions_createSignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Signature</a>
+                        <a href="#functions_createMultisignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Multisignature</a>
+                        <a href="#functions_signMultisignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Sign Multisignature Transaction</a>
                     </div>
                 </div>
             </div>
@@ -1203,6 +1205,50 @@ var transaction = lisk.signature.createTransaction('secret', 'secondSecret');
                         </div>
                     </div>
                 </div>
+
+                <h3 id="functions_createMultisignature">Create Multisignature Account</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Create a multisignature account transaction</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var secret = 'myprivatesecret';
+var secondSecret = '';
+var keysgroup = ['+publicKey1', '+publicKey2']; //add publicKeys for multisignature
+var lifetime = 20; //time in hours until transactions will be invalid
+var min = 2; //minimum signatures so that a transaction is valid.
+var transaction = lisk.multisignature.createMultisignature(secret, secondSecret, keysgroup, lifetime, min);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_signMultisignature">Sign multisignature transaction</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Sign a transaction and add your signature</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var signature = lisk.multisignature.signTransaction(transaction, secret);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
