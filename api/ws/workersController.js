@@ -2,11 +2,19 @@
 
 var _ = require('lodash');
 var memored = require('memored');
-var ConcurrentWAMPServer = require('wamp-socket-cluster/ConcurrentWAMPServer');
-var wsApi = require('../../helpers/wsApi');
+var commander = require('commander');
+var packageJson = require('../../package.json');
+var url = require('url');
+
+var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 var config = require('../../config.json');
 var masterProcessController = require('./masterProcessController');
 var endpoints = require('./endpoints');
+
+var Peer = require('../../logic/peer');
+var Config = require('../../helpers/config');
+var System = require('../../modules/system');
+var Handshake = require('../../helpers/wsApi').middleware.Handshake;
 
 /**
  * @class WorkerController
@@ -24,80 +32,71 @@ WorkerController.path = __dirname + 'workersController.js';
 WorkerController.prototype.run = function (worker) {
 	console.log('\x1b[36m%s\x1b[0m', 'WORKERS CONTROLLER ----- RUN');
 
-	this.sockets = {};
-
 	var scServer = worker.getSCServer();
 
-	this.concurrentWAMPServer = new ConcurrentWAMPServer(worker, this.sockets);
-	//ToDo: handshake goes here
-	// worker.addMiddleware(masterProcessController.wsHandshake)
+	var slaveWAMPServer = new SlaveWAMPServer(worker);
 
-	worker.once('masterMessage', function (config) {
-		console.log('\x1b[36m%s\x1b[0m', 'WORKERS masterMessage GET THE CONFIG FROM MASTER ----- config', config);
-		// ToDo: masterMessageConfig protocol to validate
-		// if (v.valid(workerConfig, config))
-		if (config.endpoints && config.endpoints.rpc && config.endpoints.event) {
-			this.config = config;
-			this.concurrentWAMPServer.reassignEndpoints(config.endpoints.rpc.reduce(function (memo, endpoint) {
-				memo[endpoint] = true;
-				return memo;
-			}, {}));
-			console.log('\x1b[36m%s\x1b[0m', 'WORKERS masterMessage WILL Setup the sockets: ', this.sockets);
+	initializeHandshake(scServer, slaveWAMPServer, function (err, handshake) {
+		scServer.on('connection', function (socket) {
+			console.log('\x1b[36m%s\x1b[0m', 'WORKER CONNECTION');
+			slaveWAMPServer.upgradeToWAMP(socket);
 
-			_.filter(this.sockets, function (socket) {
-				return !socket.settedUp;
-			}).forEach(function (notSetSocket) {
-				this.setupSocket(notSetSocket, worker);
+			socket.on('error', function (err) {
+				//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
+				console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- ERROR', err);
 			});
 
-		} else {
-			//ToDo: bring logger here and log process exited info
-			//logger.trace('Received unvalid config from master');
-			process.exit();
-		}
-	}.bind(this));
-
-	scServer.on('connection', function (socket) {
-		console.log('\x1b[36m%s\x1b[0m', 'WORKER CONNECTION');
-		this.setupSocket(socket, worker);
-	}.bind(this));
-};
-
-WorkerController.prototype.setupSocket = function (socket, worker) {
-
-	//ToDo: Extend basic listener- move it somewhere?
-	socket.on('error', function (err) {
-		//ToDo: Again logger here- log errors somewhere
-		console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- ERROR', err);
-
-		//err.message: 'Socket hung up'
-	});
-
-	socket.on('disconnect', function () {
-		delete this.sockets[socket.id];
-		this.concurrentWAMPServer.onSocketDisconnect(socket);
-		console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- DISCONNECTED', socket.id);
-	}.bind(this));
-
-	this.config.endpoints.event.forEach(function (endpoint) {
-		console.log('\x1b[36m%s\x1b[0m', 'WORKERS CONNECTION ----- REGISTER EVENT ENDPOINT', endpoint);
-		socket.on(endpoint, function (data) {
-			console.log('\x1b[36m%s\x1b[0m', 'WORKERS CTRL ----- RECEIVED EVENT CALL FOR', endpoint);
-			worker.sendToMaster({
-				procedure: endpoint,
-				data: data
-			});
+			socket.on('disconnect', function () {
+				slaveWAMPServer.onSocketDisconnect(socket);
+				console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- DISCONNECTED', socket.id);
+			}.bind(this));
 		});
 	});
-
-	//ToDo: possible problems with registering multiple listeners on same events
-	socket.settedUp = true;
-	this.sockets[socket.id] = socket;
-	this.concurrentWAMPServer.upgradeToWAMP(socket);
 };
 
-var workerController = new WorkerController();
+console.log('\x1b[36m%s\x1b[0m', 'WORKER CONTROLLER ACCESSED:');
 
-console.log('\x1b[36m%s\x1b[0m', 'WORKER CONTROLLER ACCESSED:', workerController);
-module.exports = workerController;
+function initializeHandshake (scServer, slaveWAMPServer, cb) {
+	var config = getProcessConfig();
+	console.log('\x1b[36m%s\x1b[0m', 'WORKER initializeHandshake: config', config.port);
+
+	new System(function (err, system) {
+		var handshake = Handshake(system);
+		scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, function (req, next) {
+
+			var headers = _.get(url.parse(req.url, true), 'query', {});
+			console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: connection', headers);
+			console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: socketId', req.headers.host);
+			handshake(headers, function (err, peer) {
+				console.log('\x1b[36m%s\x1b[0m', 'WORKER handshake res: ', err, "peer:", peer);
+
+
+				slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', {
+					peer: peer,
+					extraMessage: 'extraMessage'
+				}, req.headers.host, function (err, peer) {
+					return next(err);
+				});
+			});
+		});
+		cb(null, handshake);
+	}, {config: config});
+}
+
+function getProcessConfig () {
+
+	commander
+		.version(packageJson.version)
+		.option('-c, --config <path>', 'config file path')
+		.option('-p, --port <port>', 'listening port number')
+		.option('-a, --address <ip>', 'listening host name or ip')
+		.option('-x, --peers [peers...]', 'peers list')
+		.option('-l, --log <level>', 'log level')
+		.option('-s, --snapshot <round>', 'verify snapshot')
+		.parse(process.argv);
+
+	return require('../../helpers/config.js')(commander);
+
+}
+module.exports =  new WorkerController();
 
