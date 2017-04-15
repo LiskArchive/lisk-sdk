@@ -193,7 +193,8 @@ module.exports = {
 						minimum: 1,
 						maximum: 100
 					}
-				}
+				},
+				required: ['broadcastInterval', 'broadcastLimit', 'parallelLimit', 'releaseLimit', 'relayLimit']
 			},
 			transactions: {
 				type: 'object',
@@ -287,6 +288,6 @@ module.exports = {
 				format: 'hex'
 			}
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'forging', 'loading', 'ssl', 'dapp', 'nethash']
+		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash']
 	}
 };
