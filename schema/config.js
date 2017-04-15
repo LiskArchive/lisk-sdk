@@ -193,7 +193,8 @@ module.exports = {
 						minimum: 1,
 						maximum: 100
 					}
-				}
+				},
+				required: ['broadcastInterval', 'broadcastLimit', 'parallelLimit', 'releaseLimit', 'relayLimit']
 			},
 			transactions: {
 				type: 'object',
