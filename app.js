@@ -3,15 +3,17 @@
  * A node-style callback as used by {@link logic} and {@link modules}.
  * @see {@link https://nodejs.org/api/errors.html#errors_node_js_style_callbacks}
  * @callback nodeStyleCallback
- * @param {?Error} error Error, if any, otherwise `null`
- * @param {Data} [data] Data, if there hasn't been an error
+ * @param {?Error} error - Error, if any, otherwise `null`.
+ * @param {Data} data - Data, if there hasn't been an error.
  */
 /**
  * A triggered by setImmediate callback as used by {@link logic}, {@link modules} and {@link helpers}.
+ * Parameters formats: (cb, error, data), (cb, error), (cb).
  * @see {@link https://nodejs.org/api/timers.html#timers_setimmediate_callback_args}
  * @callback setImmediateCallback
- * @param {?Error} error Error, if any, otherwise `null`
- * @param {Data} [data] Data, if there hasn't been an error
+ * @param {function} cb - Callback function.
+ * @param {?Error} [error] - Error, if any, otherwise `null`.
+ * @param {Data} [data] - Data, if there hasn't been an error and the function should return data.
  */
 
 /**
@@ -43,7 +45,7 @@ process.stdin.resume();
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
 /**
- * @property {string} - Hash of last git commit
+ * @property {string} - Hash of last git commit.
  */
 var lastCommit = '';
 
@@ -109,12 +111,12 @@ if (process.env.NODE_ENV === 'test') {
 process.env.TOP = appConfig.topAccounts;
 
 /**
- * The config object to handle lisk modules and lisk api. 
+ * The config object to handle lisk modules and lisk api.
  * It loads `modules` and `api` folders content.
- * Also contains db configuration from config.json
- * @property {object} db - configuration values for database
- * @property {object} modules - modules folder content
- * @property {object} api - api/http folder content
+ * Also contains db configuration from config.json.
+ * @property {object} db - Config values for database.
+ * @property {object} modules - `modules` folder content.
+ * @property {object} api - `api/http` folder content.
  */
 var config = {
 	db: appConfig.db,
@@ -152,9 +154,8 @@ var config = {
 
 /**
  * Logger holder so we can log with custom functionality.
- * 
  * The Object is initialized here and pass to others as parameter.
- * @property {object} - Logger instance
+ * @property {object} - Logger instance.
  */
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, 
 	filename: appConfig.logFileName });
@@ -168,7 +169,7 @@ try {
 
 /**
  * Creates the express server and loads all the Modules and logic.
- * @property {object} - domain instance
+ * @property {object} - Domain instance.
  */
 var d = require('domain').create();
 
@@ -185,9 +186,9 @@ d.run(function () {
 		 * Loads `payloadHash` and generate dapp password if it is empty and required.
 		 * Then updates config.json with new random  password.
 		 * @method config
-		 * @param {nodeStyleCallback} cb Callback function with the mutated `appConfig`
-		 * @throws {Error} If failed to assign nethash from genesis block
-		 */		
+		 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`.
+		 * @throws {Error} If failed to assign nethash from genesis block.
+		 */
 		config: function (cb) {
 			try {
 				appConfig.nethash = new Buffer(genesisblock.payloadHash, 'hex').toString('hex');
@@ -226,9 +227,9 @@ d.run(function () {
 		},
 
 		/**
-		 * Returns hash of last git commit
+		 * Returns hash of last git commit.
 		 * @method lastCommit
-		 * @param {nodeStyleCallback} cb Callback function with Hash of last git commit
+		 * @param {nodeStyleCallback} cb - Callback function with Hash of last git commit.
 		 */
 		lastCommit: function (cb) {
 			cb(null, lastCommit);
@@ -251,11 +252,11 @@ d.run(function () {
 		/**
 		 * Once config is completed, creates app, http & https servers & sockets with express.
 		 * @method network
-		 * @param {object} scope - the results from current execution, 
-		 * at leats will contain the required elementss
+		 * @param {object} scope - The results from current execution,
+		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with created Object: 
-		 * `{express, app, server, io, https, https_io}`
-		 */	
+		 * `{express, app, server, io, https, https_io}`.
+		 */
 		network: ['config', function (scope, cb) {
 			var express = require('express');
 			var compression = require('compression');
@@ -331,13 +332,13 @@ d.run(function () {
 		}],
 
 		/**
-		 * Once config, public, genesisblock, logger, build and network are completed, 
-		 * adds configuration to `network.app`
+		 * Once config, public, genesisblock, logger, build and network are completed,
+		 * adds configuration to `network.app`.
 		 * @method connect
-		 * @param {object} scope - the results from current execution, 
-		 * at leats will contain the required elements
-		 * @param {function} cb - Callback function
-		 */	
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {function} cb - Callback function.
+		 */
 		connect: ['config', 'public', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
 			var path = require('path');
 			var bodyParser = require('body-parser');
@@ -411,6 +412,7 @@ d.run(function () {
 					var args = [];
 					Array.prototype.push.apply(args, arguments);
 					var topic = args.shift();
+					// executes the each module onBind function
 					modules.forEach(function (module) {
 						var eventName = 'on' + changeCase.pascalCase(topic);
 						if (typeof(module[eventName]) === 'function') {
@@ -428,12 +430,12 @@ d.run(function () {
 		},
 
 		/**
-		 * Once db, bus, schema and genesisblock are completed,  
-		 * loads transaction, block, account and peers from logic folder
+		 * Once db, bus, schema and genesisblock are completed,
+		 * loads transaction, block, account and peers from logic folder.
 		 * @method logic
-		 * @param {object} scope - the results from current execution, 
-		 * at leats will contain the required elements
-		 * @param {function} cb - Callback function
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {function} cb - Callback function.
 		 */	
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
@@ -478,14 +480,14 @@ d.run(function () {
 		}],
 
 		/**
-		 * Once network, connect, config, logger, bus, sequence, 
+		 * Once network, connect, config, logger, bus, sequence,
 		 * dbSequence, balancesSequence, db and logic are completed,
-		 * loads modules from `modules` folder using `config.modules`
+		 * loads modules from `modules` folder using `config.modules`.
 		 * @method modules
-		 * @param {object} scope - the results from current execution, 
-		 * at leats will contain the required elements
-		 * @param {nodeStyleCallback} cb - Callback function with resulted load
-		 */	
+		 * @param {object} scope - The results from current execution,
+		 * at leats will contain the required elements.
+		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
+		 */
 		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
 			var tasks = {};
 
@@ -512,12 +514,12 @@ d.run(function () {
 		}],
 
 		/**
-		 * Once modules, logger and network are completed,
-		 * loads api from `api` folder using `config.api`
+		 * Loads api from `api` folder using `config.api`, once modules, logger and
+		 * network are completed.
 		 * @method api
-		 * @param {object} scope - the results from current execution, 
-		 * at leats will contain the required elements
-		 * @param {function} cb - Callback function
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {function} cb - Callback function.
 		 */	
 		api: ['modules', 'logger', 'network', function (scope, cb) {
 			Object.keys(config.api).forEach(function (moduleName) {
@@ -544,13 +546,13 @@ d.run(function () {
 		}],
 
 		/**
-		 * Once 'ready' is completed, binds and listens for connections on the 
-		 * specified host and port for `scope.network.server`
+		 * Once 'ready' is completed, binds and listens for connections on the
+		 * specified host and port for `scope.network.server`.
 		 * @method listen
-		 * @param {object} scope - the results from current execution, 
-		 * at leats will contain the required elements
-		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`
-		 */	
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
+		 */
 		listen: ['ready', function (scope, cb) {
 			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
 				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
@@ -574,7 +576,34 @@ d.run(function () {
 		if (err) {
 			logger.fatal(err);
 		} else {
-	
+			/**
+			 * Handles app instance (acts as global variable, passed as parameter).
+			 * @global
+			 * @typedef scope
+			 * @type {Object}
+			 * @property {Object} scope.api - Undefined.
+			 * @property {undefined} scope.balancesSequence - Sequence function, sequence Array.
+			 * @property {string} scope.build - Empty.
+			 * @property {Object} scope.bus - Message function, bus constructor.
+			 * @property {Object} scope.config - Configuration.
+			 * @property {undefined} scope.connect - Undefined.
+			 * @property {Object} scope.db - Database constructor, database functions.
+			 * @property {function} scope.dbSequence - Database function.
+			 * @property {Object} scope.ed - Crypto functions from lisk node-sodium.
+			 * @property {Object} scope.genesisblock - Block information.
+			 * @property {string} scope.lastCommit - Hash transaction.
+			 * @property {Object} scope.listen - Block information.
+			 * @property {Object} scope.logger - Log functions.
+			 * @property {Object} scope.logic - several logic functions and objects.
+			 * Repeats: bus, ed, genesisblock, logger, schema.
+			 * @property {Object} scope.modules - Several modules functions.
+			 * @property {Object} scope.network - Several network functions.
+			 * @property {string} scope.nonce - ??
+			 * @property {string} scope.public - Path to lisk public folder.
+			 * @property {undefined} scope.ready - ??
+			 * @property {Object} scope.schema - ZSchema with objects (TODO: new typedef?)
+			 * @property {Object} scope.sequence - Sequence function, sequence Array (TODO: new typedef?)
+			 */
 			scope.logger.info('Modules ready and launched');
 			/**
 			 * Event reporting a cleanup.
