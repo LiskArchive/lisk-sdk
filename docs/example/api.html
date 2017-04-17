@@ -152,12 +152,12 @@
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var options = {
-    ssl: false, // default false
-    node: '', // default randomNode
-    randomPeer: true, // default true
-    testnet: true, // default false
-    port: '7000', // default 8000
-    bannedPeers: [], // default empty
+    ssl: false, // default false . Set to true enables https instead of http protocol
+    node: '', // default randomNode . Insert a node without http or https protocol. Use ssl in order to set http or https
+    randomPeer: true, // default true . Lisk-js automatically connects to a random peer to get lisk blockchain information. Set to false to disable this behaviour.
+    testnet: true, // default false . Set to true to use the testnet. false to use the mainnet.
+    port: '7000', // default 8000 . Enter the port as the protocol http(s)://node:port - can be any string
+    bannedPeers: [], // default empty . Array of peers that should not be connected to. Without http(s) or port
 
 };
 
