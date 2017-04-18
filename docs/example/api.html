@@ -108,6 +108,10 @@
                         <a href="#functions_printSignedMessage" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">printSignedMessage</a>
                         <a href="#functions_signAndPrintMessage" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">signAndPrintMessage</a>
                         <a href="#functions_verifyMessageWithPublicKey" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verifyMessageWithPublicKey</a>
+
+                        <a href="#functions_encryptMessageWithSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">encryptMessageWithSecret</a>
+                        <a href="#functions_decryptMessageWithSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">decryptMessageWithSecret</a>
+
                         <a href="#functions_getPrivateAndPublicKeyFromSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getPrivateAndPublicKeyFromSecret</a>
                         <a href="#functions_getRawPrivateAndPublicKeyFromSecret" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getRawPrivateAndPublicKeyFromSecret</a>
                         <a href="#functions_getAddressFromPublicKey" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getAddressFromPublicKey</a>
@@ -126,6 +130,8 @@
                         <a href="#functions_createDapp" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Dapp</a>
                         <a href="#functions_createDelegate" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Delegate</a>
                         <a href="#functions_createSignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Signature</a>
+                        <a href="#functions_createMultisignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Multisignature</a>
+                        <a href="#functions_signMultisignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Sign Multisignature Transaction</a>
                     </div>
                 </div>
             </div>
@@ -146,13 +152,12 @@
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var options = {
-    ssl: false, // default false
-    node: '', // default randomNode
-    randomPeer: true, // default true
-    testnet: true, // default false
-    port: '7000', // default 8000
-    bannedPeers: [], // default empty
-
+    ssl: false, // Default false. Set to true to enable the https instead of http protocol.
+    node: '', // Default randomNode. Insert a node without http or https protocol. Use ssl option in order to set http or https.
+    randomPeer: true, // Default true. Lisk-js automatically connects to a random peer to get lisk blockchain information. Set to false to disable this behaviour.
+    testnet: true, // Default false. Set to true to use the testnet. Set to false to use the mainnet.
+    port: '7000', // Default 8000. Enter the port as the protocol http(s)://node:port - can be any string.
+    bannedPeers: [], // Default empty. Array of peers that should not be connected to. Without http(s) or port.
 };
 
 var LSK = lisk.api(options);
@@ -979,6 +984,67 @@ var verifySignedMessage = lisk.crypto.verifyMessageWithPublicKey(signedMessage, 
                     </div>
                 </div>
 
+                <h3 id="functions_encryptMessageWithSecret">encryptMessageWithSecret</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Encrypts a message with the given secret and recipient PublicKey</small></h3>
+                                <p>Where message is a UTF-8 message, secret a passphrase and recipientPublicKey the publicKey in hex.</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var encrypted = lisk.crypto.encryptMessageWithSecret(message, secret, recipientPublicKey);
+                                        </code>
+                                    </pre>
+                                </figure>
+                                Returning
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+{
+    encryptedMessage: encryptedMessage(hex),
+    nonce: nonce(hex)
+}
+                                        </code>
+                                    </pre>
+                                </figure>
+                                <p>Returns an object with the encrypted message and a nonce. Both are necessary in order to decrypt the message.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_decryptMessageWithSecret">decryptMessageWithSecret</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Decrypts a message with secret, senderPublicKey and the nonce of the message</small></h3>
+                                <p>Where encrypted message is the hex format of the encrypted message, nonce also hex. The secret as the passphrase of the recipient and the sender publicKey in hex.</p>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var encrypted = lisk.crypto.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);
+                                        </code>
+                                    </pre>
+                                </figure>
+                                Returning
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+Original Message
+                                        </code>
+                                    </pre>
+                                </figure>
+                                <p>If successfull, returns the plain text of the senders message.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <h3 id="functions_getPrivateAndPublicKeyFromSecret">getPrivateAndPublicKeyFromSecret</h3>
 
                 <div class="panel panel-default">
@@ -1196,6 +1262,49 @@ var transaction = lisk.delegate.createDelegate('secret', 'username', 'secondSecr
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var transaction = lisk.signature.createTransaction('secret', 'secondSecret');
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_createMultisignature">Create Multisignature Account</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Create a multisignature account transaction</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var secret = 'myprivatesecret';
+var secondSecret = '';
+var keysgroup = ['+publicKey1', '+publicKey2']; // Add publicKeys for multisignature.
+var lifetime = 20; // Time in hours until transactions will be invalid.
+var min = 2; // Minimum signatures so that a transaction is valid.
+var transaction = lisk.multisignature.createMultisignature(secret, secondSecret, keysgroup, lifetime, min);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_signMultisignature">Sign multisignature transaction</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Sign a transaction and add your signature</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var signature = lisk.multisignature.signTransaction(transaction, secret);
                                         </code>
                                     </pre>
                                 </figure>
