@@ -116,15 +116,17 @@ var middleware = {
 	 */
 	applyAPIAccessRules: function (config, req, res, next) {
 		if (req.url.match(/^\/peer[\/]?.*/)) {
-			var internalApiEnabled = config.peers.enabled && !checkIpInList(config.peers.access.blackList, req.ip, false);
-			rejectDisabled(internalApiEnabled);
+			var internalApiAllowed = config.peers.enabled && !checkIpInList(config.peers.access.blackList, req.ip, false);
+			rejectDisallowed(internalApiAllowed, config.peers.enabled);
 		} else {
-			var publicApiEnabled = config.api.enabled && (config.api.access.public || checkIpInList(config.api.access.whiteList, req.ip, false));
-			rejectDisabled(publicApiEnabled);
+			var publicApiAllowed = config.api.enabled && (config.api.access.public || checkIpInList(config.api.access.whiteList, req.ip, false));
+			rejectDisallowed(publicApiAllowed, config.api.enabled);
 		}
 
-		function rejectDisabled (apiEnabled) {
-			return apiEnabled ? next() : res.status(500).send({success: false, error: 'API endpoint disabled'});
+		function rejectDisallowed (apiAllowed, isEnabled) {
+			return apiAllowed ? next() : isEnabled ?
+				res.status(403).send({success: false, error: 'API access denied'}) :
+				res.status(500).send({success: false, error: 'API access disabled'});
 		}
 	},
 
