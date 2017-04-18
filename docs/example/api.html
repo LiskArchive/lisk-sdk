@@ -129,8 +129,8 @@
                         <a href="#functions_createVote" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Vote</a>
                         <a href="#functions_createDapp" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Dapp</a>
                         <a href="#functions_createDelegate" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Delegate</a>
-                        <a href="#functions_createSignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Signature</a>
-                        <a href="#functions_createMultisignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Multisignature</a>
+                        <a href="#functions_createSignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Second Signature</a>
+                        <a href="#functions_createMultisignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Create Multisignature Account</a>
                         <a href="#functions_signMultisignature" class="list-group-item sub-item" data-parent="#transactions_sub" style="padding-left: 34px;">Sign Multisignature Transaction</a>
                     </div>
                 </div>
@@ -1251,7 +1251,7 @@ var transaction = lisk.delegate.createDelegate('secret', 'username', 'secondSecr
                     </div>
                 </div>
 
-                <h3 id="functions_createSignature">Create Signature</h3>
+                <h3 id="functions_createSignature">Create Second Signature</h3>
 
                 <div class="panel panel-default">
                     <div class="panel-body">
@@ -1276,7 +1276,7 @@ var transaction = lisk.signature.createTransaction('secret', 'secondSecret');
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>Create a multisignature account transaction</small></h3>
+                                <h3>Example <small>Create a signed "multisignature account" transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
@@ -1294,13 +1294,13 @@ var transaction = lisk.multisignature.createMultisignature(secret, secondSecret,
                     </div>
                 </div>
 
-                <h3 id="functions_signMultisignature">Sign multisignature transaction</h3>
+                <h3 id="functions_signMultisignature">Sign Multisignature Transaction</h3>
 
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>Sign a transaction and add your signature</small></h3>
+                                <h3>Example <small>Sign a multisignature transaction object</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
