@@ -688,7 +688,7 @@ describe('Lisk.api()', function () {
 	describe('#listMultisignatureTransactions', function () {
 
 		it('should list all current not signed multisignature transactions', function (done) {
-			lisk.api().listMultisignatureTransactions(function(result) {
+			lisk.api().listMultisignatureTransactions(function (result) {
 				(result).should.be.ok;
 				(result).should.be.type('object');
 				done();
@@ -699,7 +699,7 @@ describe('Lisk.api()', function () {
 	describe('#getMultisignatureTransaction', function () {
 
 		it('should list all current not signed multisignature transactions', function (done) {
-			lisk.api().getMultisignatureTransaction('123', function(result) {
+			lisk.api().getMultisignatureTransaction('123', function (result) {
 				(result).should.be.ok;
 				(result).should.be.type('object');
 				done();
