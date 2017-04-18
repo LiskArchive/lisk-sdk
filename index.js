@@ -1,6 +1,7 @@
 /**
  * Index module comprising all submodules of lisk-js.
  * @module lisk
+ * @main lisk
  */
 
 global.Buffer = global.Buffer || require('buffer').Buffer;
