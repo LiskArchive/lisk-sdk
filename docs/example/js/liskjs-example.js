@@ -124,14 +124,14 @@ function convertNaclError (e) {
 	var displayError = '';
 	switch (errorMessage) {
 		case 'nacl.crypto_box_open expected 24-byte nonce but got length 0':
-			displayError = 'expected 24-byte nonce but got length 0';
+			displayError = 'Expected 24-byte nonce but got length 0';
 			break;
 
 		case 'nacl_raw._crypto_box_open signalled an error':
-			displayError = 'Your secret, the encrypted message or the senderPublicKey are not correct';
+			displayError = 'Your secret, the encrypted message or the senderPublicKey are invalid';
 			break;
 		default:
-			displayError = 'could not decrypt message';
+			displayError = 'Could not decrypt message';
 			break;
 	}
 
