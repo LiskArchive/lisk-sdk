@@ -61,6 +61,12 @@
 
 /**
  * Functional Module `transport`
- * 
+ *
  * @module transport
+ */
+
+/**
+ * Core Module `helpers`
+ *
+ * @module helpers
  */
