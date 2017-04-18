@@ -1,11 +1,5 @@
 
 /**
- * Functional Module `accounts`
- * 
- * @module accounts
- */
-
-/**
  * Functional Module `blocks`
  * 
  * @module blocks
@@ -15,12 +9,6 @@
  * Functional Module `dapss`
  * 
  * @module dapss
- */
-
-/**
- * Functional Module `delegates`
- * 
- * @module delegates
  */
 
 /**
@@ -63,10 +51,4 @@
  * Functional Module `transport`
  *
  * @module transport
- */
-
-/**
- * Core Module `helpers`
- *
- * @module helpers
  */
