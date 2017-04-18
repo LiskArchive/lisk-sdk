@@ -92,9 +92,9 @@ $(function () {
 		var encryptedObject = lisk.crypto.encryptMessageWithSecret(message, secret, recipientPublicKey);
 		var nonce = encryptedObject.nonce;
 		var encryptedMessage = encryptedObject.encryptedMessage;
+
 		$("#encryptedMessage").html(encryptedMessage);
 		$("#encryptedMessageNonce").html(nonce);
-
 	});
 
 	$("#decryptMessage").on("click", function (e) {
@@ -111,14 +111,11 @@ $(function () {
 			$("#decryptedMessageValidity").html(convertNaclError(e)).css('color', 'red');
 		}
 
-		if(message) {
+		if (message) {
 			$("#decryptedMessageValidity").html('Success').css('color', 'green');
 			$("#decryptedMessage").html(message);
 		}
-
-
 	});
-
 });
 
 function convertNaclError (e) {
@@ -139,7 +136,6 @@ function convertNaclError (e) {
 	}
 
 	return displayError;
-
 }
 
 function init (passphrase) {
