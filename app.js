@@ -592,7 +592,7 @@ d.run(function () {
 			 * @property {Object} scope.ed - Crypto functions from lisk node-sodium.
 			 * @property {Object} scope.genesisblock - Block information.
 			 * @property {string} scope.lastCommit - Hash transaction.
-			 * @property {Object} scope.listen - Block information.
+			 * @property {Object} scope.listen - Network information.
 			 * @property {Object} scope.logger - Log functions.
 			 * @property {Object} scope.logic - several logic functions and objects.
 			 * Repeats: bus, ed, genesisblock, logger, schema.
@@ -601,8 +601,8 @@ d.run(function () {
 			 * @property {string} scope.nonce - ??
 			 * @property {string} scope.public - Path to lisk public folder.
 			 * @property {undefined} scope.ready - ??
-			 * @property {Object} scope.schema - ZSchema with objects (TODO: new typedef?)
-			 * @property {Object} scope.sequence - Sequence function, sequence Array (TODO: new typedef?)
+			 * @property {Object} scope.schema - ZSchema with objects.
+			 * @property {Object} scope.sequence - Sequence function, sequence Array.
 			 */
 			scope.logger.info('Modules ready and launched');
 			/**
