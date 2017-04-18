@@ -11,7 +11,15 @@ var slots = require('../helpers/slots.js');
 // Private fields
 var self, db, library, __private = {}, genesisBlock = null;
 
-// Constructor
+/**
+ * Main account logic.
+ * @memberof module:accounts
+ * @class
+ * @classdesc Main account logic.
+ * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} With `this` as data.
+ */
 function Account (scope, cb) {
 	this.scope = scope;
 
@@ -311,7 +319,8 @@ function Account (scope, cb) {
 			immutable: true
 		}
 	];
-
+	
+	// Obtains fields from model
 	this.fields = this.model.map(function (field) {
 		var _tmp = {};
 
@@ -329,24 +338,28 @@ function Account (scope, cb) {
 
 		return _tmp;
 	});
-
+	
+	// Obtains bynary fields from model
 	this.binary = [];
 	this.model.forEach(function (field) {
 		if (field.type === 'Binary') {
 			this.binary.push(field.name);
 		}
 	}.bind(this));
-
+	
+	// Obtains filters from model
 	this.filter = {};
 	this.model.forEach(function (field) {
 		this.filter[field.name] = field.filter;
 	}.bind(this));
 
+	// Obtains conv from model
 	this.conv = {};
 	this.model.forEach(function (field) {
 		this.conv[field.name] = field.conv;
 	}.bind(this));
 
+	// Obtains editable fields from model
 	this.editable = [];
 	this.model.forEach(function (field) {
 		if (!field.immutable) {
@@ -357,6 +370,11 @@ function Account (scope, cb) {
 	return setImmediate(cb, null, this);
 }
 
+/**
+ * Creates database tables.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb|error.
+ */
 Account.prototype.createTables = function (cb) {
 	var sql = new pgp.QueryFile(path.join(process.cwd(), 'sql', 'memoryTables.sql'), {minify: true});
 
@@ -368,6 +386,11 @@ Account.prototype.createTables = function (cb) {
 	});
 };
 
+/**
+ * Removes mem_* tables from database.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb|error.
+ */
 Account.prototype.removeTables = function (cb) {
 	var sqles = [], sql;
 
@@ -392,6 +415,12 @@ Account.prototype.removeTables = function (cb) {
 	});
 };
 
+/**
+ * Validates account schema.
+ * @param {Object} account - Desc.
+ * @returns {err|account} Error message or input parameter account.
+ * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
+ */
 Account.prototype.objectNormalize = function (account) {
 	var report = this.scope.schema.validate(account, {
 		id: 'Account',
@@ -408,6 +437,11 @@ Account.prototype.objectNormalize = function (account) {
 	return account;
 };
 
+/**
+ * Checks type, lenght and format from publicKey.
+ * @param {Object} publicKey public key address
+ * @throws {string} throws one error for every check
+ */
 Account.prototype.verifyPublicKey = function (publicKey) {
 	if (publicKey !== undefined) {
 		// Check type
@@ -427,6 +461,11 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 	}
 };
 
+/**
+ * Normalizes address.
+ * @param {Object} raw - with address and public key.
+ * @returns {Object} Normalized address.
+ */
 Account.prototype.toDB = function (raw) {
 	this.binary.forEach(function (field) {
 		if (raw[field]) {
@@ -440,6 +479,13 @@ Account.prototype.toDB = function (raw) {
 	return raw;
 };
 
+/**
+ * Gets account information.
+ * @param {Object} filter - Address.
+ * @param {Object|function} fields - Table fields.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} Returns null or Object with database data.
+ */
 Account.prototype.get = function (filter, fields, cb) {
 	if (typeof(fields) === 'function') {
 		cb = fields;
@@ -453,6 +499,13 @@ Account.prototype.get = function (filter, fields, cb) {
 	});
 };
 
+/**
+ * Gets accounts information from mem_accounts.
+ * @param {Object} filter - Address.
+ * @param {Object|function} fields - Table fields.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
+ */
 Account.prototype.getAll = function (filter, fields, cb) {
 	if (typeof(fields) === 'function') {
 		cb = fields;
@@ -514,6 +567,13 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	});
 };
 
+/**
+ * Sets fields for specific address in mem_accounts table.
+ * @param {string} address
+ * @param {Object} fields
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb | 'Account#set error'.
+ */
 Account.prototype.set = function (address, fields, cb) {
 	// Verify public key
 	this.verifyPublicKey(fields.publicKey);
@@ -538,6 +598,13 @@ Account.prototype.set = function (address, fields, cb) {
 	});
 };
 
+/**
+ * Inserts into mem_round balance, blockId and round based on address.
+ * @param {string} address - Address.
+ * @param {Object} diff - Content: balance, blockId, round.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
+ */
 Account.prototype.merge = function (address, diff, cb) {
 	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
 
@@ -771,6 +838,12 @@ Account.prototype.merge = function (address, diff, cb) {
 	});
 };
 
+/**
+ * Removes address from mem_account table.
+ * @param {string} address
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} Data with address | Account#remove error.
+ */
 Account.prototype.remove = function (address, cb) {
 	var sql = jsonSql.build({
 		type: 'remove',
