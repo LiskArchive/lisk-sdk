@@ -698,7 +698,7 @@ describe('Lisk.api()', function () {
 
 	describe('#getMultisignatureTransaction', function () {
 
-		it('should list all current not signed multisignature transactions', function (done) {
+		it('should get a multisignature transaction by id', function (done) {
 			lisk.api().getMultisignatureTransaction('123', function (result) {
 				(result).should.be.ok;
 				(result).should.be.type('object');
