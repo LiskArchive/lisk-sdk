@@ -155,13 +155,12 @@
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var options = {
-    ssl: false, // default false
-    node: '', // default randomNode
-    randomPeer: true, // default true
-    testnet: true, // default false
-    port: '7000', // default 8000
-    bannedPeers: [], // default empty
-
+    ssl: false, // Default false. Set to true to enable the https instead of http protocol.
+    node: '', // Default randomNode. Insert a node without http or https protocol. Use ssl option in order to set http or https.
+    randomPeer: true, // Default true. Lisk-js automatically connects to a random peer to get lisk blockchain information. Set to false to disable this behaviour.
+    testnet: true, // Default false. Set to true to use the testnet. Set to false to use the mainnet.
+    port: '7000', // Default 8000. Enter the port as the protocol http(s)://node:port - can be any string.
+    bannedPeers: [], // Default empty. Array of peers that should not be connected to. Without http(s) or port.
 };
 
 var LSK = lisk.api(options);
@@ -1324,9 +1323,9 @@ var transaction = lisk.signature.createTransaction('secret', 'secondSecret');
                                         <code class="language-html" data-lang="html">
 var secret = 'myprivatesecret';
 var secondSecret = '';
-var keysgroup = ['+publicKey1', '+publicKey2']; //add publicKeys for multisignature
-var lifetime = 20; //time in hours until transactions will be invalid
-var min = 2; //minimum signatures so that a transaction is valid.
+var keysgroup = ['+publicKey1', '+publicKey2']; // Add publicKeys for multisignature.
+var lifetime = 20; // Time in hours until transactions will be invalid.
+var min = 2; // Minimum signatures so that a transaction is valid.
 var transaction = lisk.multisignature.createMultisignature(secret, secondSecret, keysgroup, lifetime, min);
                                         </code>
                                     </pre>
@@ -1354,7 +1353,6 @@ var signature = lisk.multisignature.signTransaction(transaction, secret);
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
