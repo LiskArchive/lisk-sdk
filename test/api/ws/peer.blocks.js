@@ -5,8 +5,6 @@ var node = require('../../node.js');
 var scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
-var genesisblock = require('../../genesisBlock.json');
-
 var options = {
 	protocol: 'http',
 	hostname: '127.0.0.1',
@@ -20,14 +18,14 @@ describe('WS /peer/dupaRpc', function () {
 
 	before(function (done) {
 		var wampClient = new WAMPClient();
-		clientSocket = scClient.connect(options);
-		wampClient.upgradeToWAMP(clientSocket);
-		clientSocket.on('connect', function () {
+		socket = scClient.connect(options);
+		wampClient.upgradeToWAMP(socket);
+		socket.on('connect', function () {
 			console.log('CONNECTED');
 			done();
 		});
 
-		clientSocket.on('error', function (err) {
+		socket.on('error', function (err) {
 			console.log('ERROR', err);
 			done(err);
 		});
@@ -38,12 +36,7 @@ describe('WS /peer/dupaRpc', function () {
 
 		var randNumber =  Math.floor( Math.random() * 5 );
 
-		// clientSocket.emit('dupaEmit', randNumber);
-
-		// done();
-		// clientSocket.send('dupaRpc', randNumber);
-		// var interval = setTimeout(function ()  {
-		clientSocket.wampSend('dupaRpc', randNumber)
+		socket.wampSend('dupaRpc', randNumber)
 			.then(function (result) {
 				console.log('RPC result: ' + randNumber + ' * 2 = ' + result);
 				done();
@@ -51,11 +44,9 @@ describe('WS /peer/dupaRpc', function () {
 				console.error('RPC multiply by two error', err);
 				done(err);
 			});
-		// }, 1000);
 
-		clientSocket.on('disconnect', function () {
+		socket.on('disconnect', function () {
 			console.log('DISCONNECTED');
-			clearInterval(interval);
 		});
 
 

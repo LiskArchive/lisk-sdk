@@ -75,7 +75,7 @@ function initializeHandshake (scServer, slaveWAMPServer, cb) {
 			var headers = _.get(url.parse(req.url, true), 'query', {});
 			console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: connection, socketId', headers, req.headers.host);
 			handshake(headers, function (err, peer) {
-				console.log('\x1b[36m%s\x1b[0m', 'WORKER handshake res: ', err, "peer:", peer);
+				console.log('\x1b[36m%s\x1b[0m', 'WORKER handshake res: ', err, 'peer:', peer);
 
 
 				slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', {
