@@ -53,8 +53,8 @@ function WsRPCClient (ip, port) {
 
 	//return registered client if established before
 	if (WsRPCServer.prototype.wsClientsConnectionsMap[address]) {
-		this.clientSocket = WsRPCServer.prototype.connections[WsRPCServer.prototype.wsClientsConnectionsMap[address]];
-		this.socketReady.resolve(this.clientSocket);
+		var clientSocket = WsRPCServer.prototype.connections[WsRPCServer.prototype.wsClientsConnectionsMap[address]];
+		this.socketReady.resolve(clientSocket);
 	} else {
 		this.initializeNewConnection(options, address, this.socketReady);
 	}
@@ -65,7 +65,7 @@ function WsRPCClient (ip, port) {
 				return socket.wampSend(procedureName, data);
 			});
 		}.bind(this);
-	};
+	}.bind(this);
 
 	console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: server ---');
 	return this.clientStub(this.sendAfterSocketReady);
