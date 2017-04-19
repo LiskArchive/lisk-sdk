@@ -13,9 +13,9 @@ module.exports = {
 				maximum: 31
 			},
 			port: {
-				type: 'string',
+				type: 'number',
 				minimum: 1,
-				maximum: 5
+				maximum: 65535
 			},
 			os: {
 				type: 'string',
