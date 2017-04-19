@@ -8,8 +8,6 @@ var url = require('url');
 
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 var config = require('../../config.json');
-var masterProcessController = require('./masterProcessController');
-var endpoints = require('./endpoints');
 
 var Peer = require('../../logic/peer');
 var Config = require('../../helpers/config');
@@ -36,7 +34,7 @@ WorkerController.prototype.run = function (worker) {
 
 	initializeHandshake(scServer, slaveWAMPServer, function (err, handshake) {
 		scServer.on('connection', function (socket) {
-			console.log('\x1b[36m%s\x1b[0m', 'WORKER CONNECTION');
+			console.log('\x1b[36m%s\x1b[0m', 'WORKERS CONTROLLER: NEW SOCKET CONN --- socket.id', socket.id);
 			slaveWAMPServer.upgradeToWAMP(socket);
 
 			socket.on('error', function (err) {
@@ -48,6 +46,18 @@ WorkerController.prototype.run = function (worker) {
 				slaveWAMPServer.onSocketDisconnect(socket);
 				console.log('\x1b[36m%s\x1b[0m', 'WorkerController:SOCKET-ON --- DISCONNECTED', socket.id);
 			}.bind(this));
+
+			socket.on('connect', function (data) {
+				console.log('\x1b[36m%s\x1b[0m', 'CLIENT CONNECTED AFTER HANDSHAKE', data);
+			});
+
+			socket.on('connecting', function () {
+				console.log('\x1b[36m%s\x1b[0m', 'CLIENT STARTED HANDSHAKE');
+			});
+
+			socket.on('connectAbort', function (data) {
+				console.log('\x1b[36m%s\x1b[0m', 'CLIENT HANDSHAKE REJECTED', data);
+			});
 		});
 	});
 };
@@ -63,8 +73,7 @@ function initializeHandshake (scServer, slaveWAMPServer, cb) {
 		scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, function (req, next) {
 
 			var headers = _.get(url.parse(req.url, true), 'query', {});
-			console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: connection', headers);
-			console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: socketId', req.headers.host);
+			console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: connection, socketId', headers, req.headers.host);
 			handshake(headers, function (err, peer) {
 				console.log('\x1b[36m%s\x1b[0m', 'WORKER handshake res: ', err, "peer:", peer);
 
@@ -73,7 +82,8 @@ function initializeHandshake (scServer, slaveWAMPServer, cb) {
 					peer: peer,
 					extraMessage: 'extraMessage'
 				}, req.headers.host, function (err, peer) {
-					return next(err);
+					console.log('\x1b[36m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE FINISH: invoking cb with err: ', err);
+					return next(err || null);
 				});
 			});
 		});
