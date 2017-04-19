@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var ip = require('ip');
+var WsRPCClient = require('../api/RPC').WsRPCClient;
 
 /**
  * Creates a peer.
@@ -102,6 +103,7 @@ Peer.prototype.accept = function (peer) {
 
 	if (this.ip && this.port) {
 		this.string = this.ip + ':' + this.port;
+		this.rpc = new WsRPCClient(this.ip, this.port);
 	}
 
 	return this;
