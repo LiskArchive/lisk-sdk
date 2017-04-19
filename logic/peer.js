@@ -4,15 +4,6 @@ var _ = require('lodash');
 var ip = require('ip');
 var WsRPCClient = require('../api/RPC').WsRPCClient;
 
-/**
- * Creates a peer.
- * @memberof module:peers
- * @class
- * @classdesc Main peer logic.
- * @implements {Peer.accept}
- * @param {peer} peer
- * @return calls accept method
- */
 // Constructor
 function Peer (peer) {
 	return this.accept(peer || {});
