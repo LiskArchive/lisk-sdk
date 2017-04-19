@@ -56,7 +56,7 @@ function WsRPCClient (ip, port) {
 		this.clientSocket = WsRPCServer.prototype.connections[WsRPCServer.prototype.wsClientsConnectionsMap[address]];
 		this.socketReady.resolve(this.clientSocket);
 	} else {
-		this.initializeNewConnection(options, this.socketReady);
+		this.initializeNewConnection(options, address, this.socketReady);
 	}
 
 	this.sendAfterSocketReady = function (procedureName) {
@@ -68,10 +68,10 @@ function WsRPCClient (ip, port) {
 	};
 
 	console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: server ---');
-	return this.clientStub(this.sendAfterSocketReady)
+	return this.clientStub(this.sendAfterSocketReady);
 }
 
-WsRPCClient.prototype.initializeNewConnection = function (options, socketReady) {
+WsRPCClient.prototype.initializeNewConnection = function (options, address, socketReady) {
 
 	var clientSocket = WsRPCServer.prototype.scClient.connect(options);
 
