@@ -94,7 +94,7 @@ __private.hashsum = function (obj) {
  * @param {string} extraMessage
  */
 __private.removePeer = function (options, extraMessage) {
-	library.logger.debug([options.code, 'Removing peer', options.peer.string, extraMessage].join(' '));
+	library.logger.debug([options.code, 'Removing peer', options.peer.ip + ':' + options.peer.port, extraMessage].join(' '));
 	return modules.peers.remove(options.peer.ip, options.peer.port);
 };
 
@@ -618,6 +618,7 @@ Transport.prototype.internal = {
 	},
 
 	ping: function (req, cb) {
+		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: ping');
 		return setImmediate(cb, null, {success: true});
 	},
 
