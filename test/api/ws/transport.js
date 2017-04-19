@@ -99,8 +99,8 @@ describe('RPC', function () {
 					node.expect(result).to.have.property('success').to.be.ok;
 					done();
 				}).catch(function (err) {
-				done(err);
-			});
+					done(err);
+				});
 		});
 	});
 
@@ -113,8 +113,8 @@ describe('RPC', function () {
 					node.expect(result).to.have.property('height').to.be.a('number');
 					done();
 				}).catch(function (err) {
-				done(err);
-			});
+					done(err);
+				});
 		});
 	});
 
@@ -127,8 +127,8 @@ describe('RPC', function () {
 					node.expect(result).to.have.property('peers').to.be.an('array');
 					done();
 				}).catch(function (err) {
-				done(err);
-			});
+					done(err);
+				});
 		});
 	});
 });
