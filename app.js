@@ -6,8 +6,6 @@ var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
 
-var MasterProcessController = require('./api/ws/masterProcessController');
-
 var genesisblock = require('./genesisBlock.json');
 var git = require('./helpers/git.js');
 var https = require('https');
@@ -20,7 +18,7 @@ var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
 var workersController = require('./api/ws/workersController');
-var rpc = require('./api/RPC');
+var WsRPC = require('./api/RPC');
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
@@ -221,7 +219,7 @@ d.run(function () {
 			});
 		}],
 
-		webSocket: ['network', 'modules', function (scope, cb) {
+		webSocket: ['network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: 2,
 				port: 8000,
@@ -243,25 +241,7 @@ d.run(function () {
 				});
 			}
 
-			var socketCluster = new SocketCluster(webSocketConfig);
-
-			scope.network.app.rpc = {
-				broadcast: rpc.wsRPCBroadcast,
-				server: rpc.wsRPCServer(socketCluster),
-				client: rpc.wsRPCClient
-			};
-
-			// var masterProcessController = new MasterProcessCoz
-
-			// socketCluster.on('workerStart', function (worker) {
-			// 	workersController.addWorker(worker, socketCluster);
-			// });
-			//
-			// socketCluster.on('workerExit', function (worker) {
-			// 	workersController.removeWorker(worker);
-			// });
-
-			scope.network.app.socketCluster = socketCluster;
+			scope.network.app.rpc = new WsRPC(new SocketCluster(webSocketConfig));
 
 			cb();
 		}],
@@ -424,7 +404,7 @@ d.run(function () {
 			}, cb);
 		}],
 
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+		modules: ['network', 'webSocket', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
 			var tasks = {};
 
 			Object.keys(config.modules).forEach(function (name) {
@@ -457,7 +437,7 @@ d.run(function () {
 						var ApiEndpoint = require(apiEndpointPath);
 						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger);
 					} catch (e) {
-						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
+						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e.message);
 					}
 				});
 			});
