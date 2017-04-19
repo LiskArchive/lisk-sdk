@@ -41,7 +41,7 @@ var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
 var workersController = require('./api/ws/workersController');
-var WsRPC = require('./api/RPC');
+var WsRPCServer = require('./api/RPC').WsRPCServer;
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
@@ -289,7 +289,7 @@ d.run(function () {
 				});
 			}
 
-			scope.network.app.rpc = new WsRPC(new SocketCluster(webSocketConfig));
+			scope.network.app.rpc = new WsRPCServer(new SocketCluster(webSocketConfig));
 
 			cb();
 		}],
