@@ -42,7 +42,7 @@ describe('peers', function () {
 	function arePeersEqual (peerA, peerB) {
 		var allPeersProperties = function (peer) {
 			return 	_.keys(peer).every(function (property) {
-				return Peer.prototype.properties.concat(['string']).indexOf(property) !== -1;
+				return Peer.prototype.properties.concat(['string', 'rpc']).indexOf(property) !== -1;
 			});
 		};
 

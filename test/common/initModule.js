@@ -6,7 +6,7 @@ var randomString = require('randomstring');
 
 var _ = require('lodash');
 
-var async = require('../node').async;
+var async = require('async');
 var dirname = path.join(__dirname, '..', '..');
 var config = require(path.join(dirname, '/config.json'));
 var database = require(path.join(dirname, '/helpers', 'database.js'));
