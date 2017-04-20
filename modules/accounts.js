@@ -80,8 +80,8 @@ __private.openAccount = function (secret, cb) {
 
 /**
  * Generates address based on public key.
- * @param {string} publicKey - PublicKey.
- * @returns {string} Address generated.
+ * @param {publicKey} publicKey - PublicKey.
+ * @returns {address} Address generated.
  * @throws {string} If address is invalid throws `Invalid public key`.
  */
 Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
@@ -103,7 +103,7 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 
 /**
  * Gets account information, calls logic.account.get().
- * @implements module:account#Account~get
+ * @implements module:accounts#Account~get
  * @param {Object} filter - Containts publicKey.
  * @param {function} fields - Fields to get.
  * @param {function} cb - Callback function.
@@ -119,7 +119,7 @@ Accounts.prototype.getAccount = function (filter, fields, cb) {
 
 /**
  * Gets accounts information, calls logic.account.getAll().
- * @implements module:account#Account~getAll
+ * @implements module:accounts#Account~getAll
  * @param {Object} filter
  * @param {Object} fields
  * @param {function} cb - Callback function.
@@ -130,9 +130,9 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
 
 /**
  * Validates input address and calls logic.account.set() and logic.account.get().
- * @implements module:account#Account~set
- * @implements module:account#Account~get
- * @param {Object} data - Contains address and public key.
+ * @implements module:accounts#Account~set
+ * @implements module:accounts#Account~get
+ * @param {Object} data - Contains address or public key to generate address.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Errors.
  * @returns {function()} Call to logic.account.get().
@@ -162,7 +162,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 
 /**
  * Validates input address and calls logic.account.merge().
- * @implements module:account#Account~merge
+ * @implements module:accounts#Account~merge
  * @param {Object} data - Contains address and public key.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} for errors wit address and public key.
@@ -202,7 +202,7 @@ Accounts.prototype.sandboxApi = function (call, args, cb) {
 // Events
 /**
  * Calls Vote.bind() with scope.
- * @implements module:account#Vote~bind
+ * @implements module:accounts#Vote~bind
  * @param {Object} scope - Loaded modules.
  */
 Accounts.prototype.onBind = function (scope) {
@@ -213,8 +213,8 @@ Accounts.prototype.onBind = function (scope) {
 	});
 };
 /**
- * Checks if modules are loaded.
- * @return {boolean} true if modules are loaded
+ * Checks if modules is loaded.
+ * @return {boolean} true if modules is loaded
  */
 Accounts.prototype.isLoaded = function () {
 	return !!modules;

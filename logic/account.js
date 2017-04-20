@@ -29,7 +29,38 @@ function Account (scope, cb) {
 	genesisBlock = this.scope.genesisblock.block;
 
 	this.table = 'mem_accounts';
-
+	/**
+	 * @typedef {Object} account
+	 * @property {string} username - Lowercase, between 1 and 20 chars.
+	 * @property {boolean} isDelegate
+	 * @property {boolean} u_isDelegate
+	 * @property {boolean} secondSignature
+	 * @property {boolean} u_secondSignature
+	 * @property {string} u_username
+	 * @property {address} address - Uppercase, between 1 and 22 chars.
+	 * @property {publicKey} publicKey
+	 * @property {publicKey} secondPublicKey
+	 * @property {number} balance - Between 0 and totalAmount from constants.
+	 * @property {number} u_balance - Between 0 and totalAmount from constants.
+	 * @property {number} vote
+	 * @property {number} rate
+	 * @property {String[]} delegates - From mem_account2delegates table, filtered by address.
+	 * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address.
+	 * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address.
+	 * @property {String[]} u_multisignatures - From mem_account2u_multisignatures table, filtered by address.
+	 * @property {number} multimin - Between 0 and 17.
+	 * @property {number} u_multimin - Between 0 and 17.
+	 * @property {number} multilifetime - Between 1 and 72.
+	 * @property {number} u_multilifetime - Between 1 and 72.
+	 * @property {string} blockId
+	 * @property {boolean} nameexist
+	 * @property {boolean} u_nameexist
+	 * @property {number} producedblocks - Between -1 and 1.
+	 * @property {number} missedblocks - Between -1 and 1.
+	 * @property {number} fees
+	 * @property {number} rewards
+	 * @property {boolean} virgin
+	 */
 	this.model = [
 		{
 			name: 'username',

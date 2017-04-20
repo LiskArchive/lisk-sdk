@@ -18,12 +18,6 @@
  */
 
 /**
- * Functional Module `multisignatures`
- * 
- * @module multisignatures
- */
-
-/**
  * Functional Module `peers`
  * 
  * @module peers

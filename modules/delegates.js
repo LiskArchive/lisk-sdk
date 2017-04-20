@@ -184,7 +184,7 @@ __private.forge = function (cb) {
  * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
  * @private
  * @implements module:accounts#Account#getAccount
- * @param {string} publicKey
+ * @param {publicKey} publicKey
  * @param {Array} votes
  * @param {string} state - 'confirmed' to delegates, otherwise u_delegates.
  * @param {function} cb - Callback function.
@@ -351,6 +351,7 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
  * @param {Object} query
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error| object with delegates ordered, offset, count, limit.
+ * @todo OrderBy does not affects data? What is the impact?.
  */
 Delegates.prototype.getDelegates = function (query, cb) {
 	if (!query) {
@@ -409,7 +410,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 };
 
 /**
- * @param {string} publicKey
+ * @param {publicKey} publicKey
  * @param {Array} votes
  * @param {function} cb
  * @return {function} Calls checkDelegates() with 'confirmed' state.
@@ -419,7 +420,7 @@ Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb) {
 };
 
 /**
- * @param {string} publicKey
+ * @param {publicKey} publicKey
  * @param {Array} votes
  * @param {function} cb
  * @return {function} Calls checkDelegates() with 'unconfirmed' state.

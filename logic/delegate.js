@@ -25,7 +25,7 @@ Delegate.prototype.bind = function (scope) {
 /**
  * Creates a delegate.
  * @param {Object} data - Entry information: username, publicKey.
- * @param {Transaction} trs - Transaction to assign the delegate.
+ * @param {transaction} trs - Transaction to assign the delegate.
  * @returns {Object} trs with new data
  */
 Delegate.prototype.create = function (data, trs) {
@@ -56,8 +56,8 @@ Delegate.prototype.calculateFee = function (trs, sender) {
 /**
  * Verifies fields from transaction and sender, calls modules.accounts.getAccount().
  * @implements module:accounts#Account~getAccount
- * @param {Transaction} trs
- * @param {Object} sender
+ * @param {transaction} trs
+ * @param {account} sender
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|Object} returns error if invalid parameter | 
  * trs validated.
@@ -125,8 +125,8 @@ Delegate.prototype.verify = function (trs, sender, cb) {
 
 /**
  * Returns transaction with setImmediate.
- * @param {Transaction} trs
- * @param {Object} sender
+ * @param {transaction} trs
+ * @param {account} sender
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Null error
  * @todo delete extra parameter sender.
@@ -137,7 +137,7 @@ Delegate.prototype.process = function (trs, sender, cb) {
 
 /**
  * Validates delegate username and returns buffer.
- * @param {Transaction} trs
+ * @param {transaction} trs
  * @returns {null|string} Returns null if no delegate| buffer.
  * @throws {error} If buffer fails.
  */
@@ -160,8 +160,8 @@ Delegate.prototype.getBytes = function (trs) {
 /**
  * Checks trs delegate and calls modules.accounts.setAccountAndGet() with username.
  * @implements module:accounts#Accounts~setAccountAndGet
- * @param {Transaction} trs
- * @param {Object} sender
+ * @param {transaction} trs
+ * @param {account} sender
  * @param {function} cb - Callback function.
  * @todo delete extra parameter block.
  */
@@ -184,8 +184,8 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 /**
  * Checks trs delegate and no nameexist and calls modules.accounts.setAccountAndGet() with u_username.
  * @implements module:accounts#Accounts~setAccountAndGet
- * @param {Transaction} trs
- * @param {Object} sender
+ * @param {transaction} trs
+ * @param {account} sender
  * @param {function} cb - Callback function.
  * @todo delete extra parameter block.
  */
@@ -208,8 +208,8 @@ Delegate.prototype.undo = function (trs, block, sender, cb) {
 /**
  * Checks trs delegate and calls modules.accounts.setAccountAndGet() with u_username.
  * @implements module:accounts#Accounts~setAccountAndGet
- * @param {Transaction} trs
- * @param {Object} sender
+ * @param {transaction} trs
+ * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
@@ -231,8 +231,8 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
  * Checks trs delegate and calls modules.accounts.setAccountAndGet() with 
  * username and u_username both null.
  * @implements module:accounts#Accounts~setAccountAndGet
- * @param {Transaction} trs
- * @param {Object} sender
+ * @param {transaction} trs
+ * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {
@@ -264,7 +264,7 @@ Delegate.prototype.schema = {
 
 /**
  * Validates transaction delegate schema.
- * @param {Transaction} trs
+ * @param {transaction} trs
  * @returns {err|trs} Error message if fails validation | input parameter.
  * @throws {string} Failed to validate delegate schema.
  */
@@ -308,7 +308,7 @@ Delegate.prototype.dbFields = [
 
 /**
  * Creates Object based on trs data.
- * @param {Transaction} trs - Contains delegate username.
+ * @param {transaction} trs - Contains delegate username.
  * @returns {Object} {table:delegates, username and transaction id}.
  */
 Delegate.prototype.dbSave = function (trs) {
@@ -324,8 +324,8 @@ Delegate.prototype.dbSave = function (trs) {
 
 /**
  * Evaluates transaction signatures and sender multisignatures.
- * @param {Transaction} trs - signatures.
- * @param {Object} sender
+ * @param {transaction} trs - signatures.
+ * @param {account} sender
  * @return {Boolean} logic based on trs signatures and sender multisignatures.
  */
 Delegate.prototype.ready = function (trs, sender) {
