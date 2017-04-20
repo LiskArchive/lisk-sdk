@@ -115,7 +115,7 @@ describe('POST /peer/transactions', function () {
 	it('using undefined transaction', function (done) {
 		postVote(undefined, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.contain('Invalid transaction body');
+			node.expect(res.body).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
 			done();
 		});
 	});
