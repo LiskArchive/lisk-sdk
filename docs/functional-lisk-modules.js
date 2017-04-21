@@ -30,12 +30,6 @@
  */
 
 /**
- * Functional Module `signatures`
- * 
- * @module signatures
- */
-
-/**
  * Functional Module `transactions`
  * 
  * @module transactions

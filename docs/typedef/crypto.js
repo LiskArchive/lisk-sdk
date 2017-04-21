@@ -11,10 +11,6 @@
  * @typedef {string} address
  */
 /**
- * Crypto signature
- * @typedef {string} signature
- */
-/**
  * Crypto hash hex
  * @typedef {string} hash
  */
