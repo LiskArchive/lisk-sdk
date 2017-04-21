@@ -219,9 +219,9 @@ d.run(function () {
 			});
 		}],
 
-		webSocket: ['network', function (scope, cb) {
+		webSocket: ['connect', 'network', function (scope, cb) {
 			var webSocketConfig = {
-				workers: 2,
+				workers: 1,
 				port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
@@ -241,7 +241,13 @@ d.run(function () {
 				});
 			}
 
-			scope.network.app.rpc = new WsRPCServer(new SocketCluster(webSocketConfig));
+			var childProcessOptions = {
+				version: scope.config.version,
+				minVersion: scope.config.minVersion,
+				nethash: scope.config.nethash,
+				nonce: scope.nonce
+			};
+			scope.network.app.rpc = new WsRPCServer(new SocketCluster(webSocketConfig), childProcessOptions);
 
 			cb();
 		}],
@@ -281,6 +287,7 @@ d.run(function () {
 			var randomString = require('randomstring');
 
 			scope.nonce = randomString.generate(16);
+			process.env['NONCE'] = scope.nonce;
 			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.set('view engine', 'ejs');

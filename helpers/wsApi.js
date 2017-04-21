@@ -27,6 +27,16 @@ var middleware = {
 
 				headers = peer.applyHeaders(headers);
 
+				if (!system.nonceCompatible(headers.nonce)) {
+					return setImmediate(cb, {
+						success: false,
+						message: 'Request is made by itself',
+						expected: 'different than ' + system.getNonce(),
+						received: headers.nonce,
+						code: 'ENONCE'
+					}, peer);
+				}
+
 				if (!system.networkCompatible(headers.nethash)) {
 					return setImmediate(cb, {
 						success: false,

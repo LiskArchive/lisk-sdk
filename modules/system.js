@@ -61,6 +61,30 @@ System.prototype.getNethash = function () {
 	return __private.nethash;
 };
 
+System.prototype.getNonce = function () {
+	return __private.nonce;
+};
+
+System.prototype.getBroadhash = function (cb) {
+	if (typeof cb !== 'function') {
+		return __private.broadhash;
+	}
+
+	library.db.query(sql.getBroadhash, { limit: 5 }).then(function (rows) {
+		if (rows.length <= 1) {
+			return setImmediate(cb, null, __private.nethash);
+		} else {
+			var seed = rows.map(function (row) { return row.id; }).join('');
+			var hash = crypto.createHash('sha256').update(seed, 'utf8').digest();
+
+			return setImmediate(cb, null, hash.toString('hex'));
+		}
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, err);
+	});
+};
+
 System.prototype.networkCompatible = function (nethash) {
 	return __private.nethash === nethash;
 };
@@ -87,24 +111,8 @@ System.prototype.versionCompatible = function (version) {
 	return semver.satisfies(version, this.minVersion);
 };
 
-System.prototype.getBroadhash = function (cb) {
-	if (typeof cb !== 'function') {
-		return __private.broadhash;
-	}
-
-	library.db.query(sql.getBroadhash, { limit: 5 }).then(function (rows) {
-		if (rows.length <= 1) {
-			return setImmediate(cb, null, __private.nethash);
-		} else {
-			var seed = rows.map(function (row) { return row.id; }).join('');
-			var hash = crypto.createHash('sha256').update(seed, 'utf8').digest();
-
-			return setImmediate(cb, null, hash.toString('hex'));
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, err);
-	});
+System.prototype.nonceCompatible = function (nonce) {
+	return __private.nonce !== nonce;
 };
 
 System.prototype.update = function (cb) {

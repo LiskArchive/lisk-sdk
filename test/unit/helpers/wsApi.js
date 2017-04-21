@@ -25,7 +25,12 @@ describe('handshake', function () {
 			system = __system;
 			handshake = wsApi.middleware.Handshake(system);
 			done(err);
-		}, {config: config});
+		}, {config: {
+			version: config.version,
+			minVersion: config.minVersion,
+			nethash: config.nethash,
+			nonce: 'EXAMPLE_NONCE'
+		}});
 
 		validRequest = {
 			ip: '0.0.0.0',

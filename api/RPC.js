@@ -7,9 +7,9 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 
-function WsRPCServer (socketCluster) {
+function WsRPCServer (socketCluster, childProcessConfig) {
 
-	WsRPCServer.prototype.server = new MasterWAMPServer(socketCluster);
+	WsRPCServer.prototype.server = new MasterWAMPServer(socketCluster, childProcessConfig);
 	console.log('\x1b[31m%s\x1b[0m', 'WsRPCServer: server --- ');
 
 	this.sharedClient = {
