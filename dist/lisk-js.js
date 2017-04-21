@@ -324,9 +324,9 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 				that.sendRequest(requestType, options, callback);
 			}, 1000);
 		} else {
-			var rejectAnswer = { error: error, message: 'could not create http request to any of the given peers' };
+			var rejectAnswer = { success: false, error: error, message: 'could not create http request to any of the given peers' };
 			if(!callback || (typeof callback !== 'function')) {
-				return Promise.reject(rejectAnswer);
+				return rejectAnswer;
 			} else {
 				return callback(rejectAnswer);
 			}
@@ -1975,14 +1975,31 @@ function printSignedMessage (message, signedMessage, publicKey) {
 	return outputArray.join('\n');
 }
 
+function verifyMessageVerification (signedMessageBytes, publicKeyBytes) {
+
+	try {
+		var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+		// Returns original message
+		if(openSignature) {
+			return naclInstance.decode_utf8(openSignature);
+		} else {
+			return { message: 'cannot verify message' };
+		}
+	} catch (e) {
+		return e;
+	}
+
+}
+
 function verifyMessageWithPublicKey (signedMessage, publicKey) {
 	var signedMessageBytes = convert.hexToBuffer(signedMessage);
 	var publicKeyBytes = convert.hexToBuffer(publicKey);
 
-	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+	if(publicKeyBytes.length !== 32) return { message: 'Invalid PublicKey' };
 
-	// Returns original message
-	return naclInstance.decode_utf8(openSignature);
+	//is there to give appropriate error messages from crypto_sign_open
+	return verifyMessageVerification(signedMessageBytes, publicKeyBytes);
+
 }
 
 function convertPublicKeyEd2Curve (publicKey) {
