@@ -3,6 +3,13 @@
 var extend = require('extend');
 var util = require('util');
 
+/**
+ * Creates a FIFO sequence array and default settings with config values.
+ * Calls __tick with 3 
+ * @memberof module:helpers
+ * @constructor
+ * @param {string} config
+ */
 function Sequence (config) {
 	var _default = {
 		onWarning: null,
@@ -22,6 +29,11 @@ function Sequence (config) {
 	});
 }
 
+/**
+ * Removes the first task from sequence and execute it with args.
+ * @param {function} cb
+ * @return {setImmediateCallback} With cb or task.done
+ */
 Sequence.prototype.__tick = function (cb) {
 	var task = this.sequence.shift();
 	if (!task) {
@@ -39,6 +51,12 @@ Sequence.prototype.__tick = function (cb) {
 	task.worker.apply(task.worker, args);
 };
 
+/**
+ * Adds a new task to sequence.
+ * @param {function} worker
+ * @param {Array} args
+ * @param {function} done
+ */
 Sequence.prototype.add = function (worker, args, done) {
 	if (!done && args && typeof(args) === 'function') {
 		done = args;
@@ -53,6 +71,10 @@ Sequence.prototype.add = function (worker, args, done) {
 	}
 };
 
+/**
+ * Gets pending task in sequence.
+ * @return {number} sequence lenght.
+ */
 Sequence.prototype.count = function () {
 	return this.sequence.length;
 };
