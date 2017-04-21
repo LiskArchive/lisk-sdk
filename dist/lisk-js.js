@@ -1975,30 +1975,21 @@ function printSignedMessage (message, signedMessage, publicKey) {
 	return outputArray.join('\n');
 }
 
-function verifyMessageVerification (signedMessageBytes, publicKeyBytes) {
-
-	try {
-		var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
-		// Returns original message
-		if(openSignature) {
-			return naclInstance.decode_utf8(openSignature);
-		} else {
-			return { message: 'cannot verify message' };
-		}
-	} catch (e) {
-		return e;
-	}
-
-}
-
 function verifyMessageWithPublicKey (signedMessage, publicKey) {
 	var signedMessageBytes = convert.hexToBuffer(signedMessage);
 	var publicKeyBytes = convert.hexToBuffer(publicKey);
 
-	if(publicKeyBytes.length !== 32) return { message: 'Invalid PublicKey' };
+	if(publicKeyBytes.length !== 32) return { message: 'Invalid publicKey, expected 32-byte publicKey' };
 
-	//is there to give appropriate error messages from crypto_sign_open
-	return verifyMessageVerification(signedMessageBytes, publicKeyBytes);
+	//give appropriate error messages from crypto_sign_open
+
+	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+	// Returns original message
+	if(openSignature) {
+		return naclInstance.decode_utf8(openSignature);
+	} else {
+		return { message: 'Invalid signature publicKey combination, cannot verify message' };
+	}
 
 }
 
