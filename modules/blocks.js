@@ -317,7 +317,7 @@ __private.getIdSequence = function (height, cb) {
 
 		var ids = [];
 
-		// Add genesis block at the end if set not cointains it already
+		// Add genesis block at the end if the set doesn't contain it already
 		if (genesisblock && genesisblock.block) {
 			var __genesisblock = {
 				id: genesisblock.block.id,
@@ -329,7 +329,7 @@ __private.getIdSequence = function (height, cb) {
 			}
 		}
 
-		// Add last block at the beginning if set not cointains it already
+		// Add last block at the beginning if the set doesn't contain it already
 		if (__private.lastBlock && !_.includes(rows, __private.lastBlock.id)) {
 			rows.unshift({
 				id: __private.lastBlock.id,
@@ -364,7 +364,7 @@ __private.getIdSequence = function (height, cb) {
  * @return {Object}   cb.err Error if occurred
  */
 __private.saveGenesisBlock = function (cb) {
-	// Check if there is already block with genesis block ID in database
+	// Check if genesis block ID already exists in the database
 	// FIXME: Duplicated, there is another SQL query that we can use for that
 	library.db.query(sql.getGenesisBlockId, { id: genesisblock.block.id }).then(function (rows) {
 		var blockId = rows.length && rows[0].id;
@@ -446,14 +446,15 @@ __private.applyGenesisBlock = function (block, cb) {
  * @method saveBlock
  * @param  {Object}   block Full normalized block
  * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
+ * @return {Function|afterSave} cb If SQL transaction was OK - returns safterSave execution,
+ *                                 if not returns callback function from params (through setImmediate)
+ * @return {String}   cb.err Error if occurred
  */
 __private.saveBlock = function (block, cb) {
 	// Prepare and execute SQL transaction
 	// WARNING: DB_WRITE
 	library.db.tx(function (t) {
-		// Create bytea fileds (buffers), and returns pseudo-row object promise-like
+		// Create bytea fields (buffers), and returns pseudo-row object promise-like
 		var promise = library.logic.block.dbSave(block);
 		// Initialize insert helper
 		var inserts = new Inserts(promise, promise.values);
@@ -486,6 +487,7 @@ __private.saveBlock = function (block, cb) {
  * @param  {Object} block Full normalized block
  * @param  {Object} blockPromises Not used
  * @return {Object} t SQL connection object filled with inserts
+ * @throws Will throw 'Invalid promise' when no promise, promise.values or promise.table
  */
 __private.promiseTransactions = function (t, block, blockPromises) {
 	if (_.isEmpty(block.transactions)) {
@@ -536,6 +538,7 @@ __private.promiseTransactions = function (t, block, blockPromises) {
  * @private
  * @async
  * @method applyBlock
+ * @emits  SIGTERM
  * @param  {Object}   block Full normalized block
  * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
  * @param  {Function} cb Callback function
@@ -1163,7 +1166,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 		if (blocks.length === 0) {
 			return setImmediate(seriesCb);
 		}
-		// NIterate over received blocks, normalize block first...
+		// Iterate over received blocks, normalize block first...
 		async.eachSeries(__private.readDbRows(blocks), function (block, eachSeriesCb) {
 			if (__private.cleanup) {
 				// Cancel processing if node shutdown was requested
@@ -1208,7 +1211,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 };
 
 /**
- * Loads full blocks from database, used when remote node ask us for blocks
+ * Generates a list of full blocks for another node upon sync request from that node
  * see: modules.transport.internal.blocks
  *
  * @async
@@ -1297,7 +1300,7 @@ Blocks.prototype.loadBlocksPart = function (filter, cb) {
 };
 
 /**
- * Loads full blocks from database, used when rebuilding blockchain, snapshoting
+ * Loads full blocks from database, used when rebuilding blockchain, snapshotting
  * see: loader.loadBlockChain (private)
  * 
  * @async
@@ -1305,7 +1308,7 @@ Blocks.prototype.loadBlocksPart = function (filter, cb) {
  * @method loadBlocksOffset
  * @param  {number}   limit Limit amount of blocks
  * @param  {number}   offset Offset to start at
- * @param  {boolean}  verify Indicator that block need to be verified
+ * @param  {boolean}  verify Indicator that block needs to be verified
  * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
@@ -1320,7 +1323,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	// Execute in sequence via dbSequence
 	library.dbSequence.add(function (cb) {
 		// Loads full blocks from database
-		// FIXME: Weird logic in that SQL query, also ordering used can be performance bootleneck - to rewrite
+		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
 			// Normalize blocks
 			var blocks = __private.readDbRows(rows);
@@ -1347,7 +1350,7 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 					__private.applyGenesisBlock(block, cb);
 				} else {
 					// Apply block - broadcast: false, saveBlock: false
-					// FIXME: Looks like we missing some validations here, because applyBlock is different than processBlock used elesewhere
+					// FIXME: Looks like we are missing some validations here, because applyBlock is different than processBlock used elesewhere
 					// - that need to be checked and adjusted to be consistent
 					__private.applyBlock(block, false, cb, false);
 				}
@@ -1778,7 +1781,7 @@ Blocks.prototype.deleteAfterBlock = function (blockId, cb) {
  * @method sandboxApi
  * @param  {string}   call Name of the function to be called 
  * @param  {Object}   args Arguments
- * @return {Function} cb Callback function
+ * @param  {Function} cb Callback function
  */
 Blocks.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(Blocks.prototype.shared, call, args, cb);
@@ -1792,9 +1795,9 @@ Blocks.prototype.sandboxApi = function (call, args, cb) {
  * Handle newly received block
  *
  * @public
- * @method onReceiveBlock
+ * @method  onReceiveBlock
  * @listens module:transport~event:receiveBlock
- * @param  {block}   block New block
+ * @param   {block}   block New block
  */
 Blocks.prototype.onReceiveBlock = function (block) {
 	// When client is not loaded, is syncing or round is ticking
