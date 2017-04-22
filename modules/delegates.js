@@ -430,8 +430,9 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 };
 
 /**
- * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal.
- * @param {Object} block
+ * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal
+ * with fork data: cause + block.
+ * @param {block} block
  * @param {string} cause
  */
 Delegates.prototype.fork = function (block, cause) {
@@ -458,7 +459,7 @@ Delegates.prototype.fork = function (block, cause) {
 /**
  * Generates delegate list and checks if block generator public Key
  * matches delegate id.
- * @param {Object} block
+ * @param {block} block
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error message | cb
  */
@@ -497,7 +498,7 @@ Delegates.prototype.sandboxApi = function (call, args, cb) {
 /**
  * Calls Delegate.bind() with scope.
  * @implements module:delegates#Delegate~bind
- * @param {Object} scope - Loaded modules.
+ * @param {scope} scope - Loaded modules.
  */
 Delegates.prototype.onBind = function (scope) {
 	modules = scope;

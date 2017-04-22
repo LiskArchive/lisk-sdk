@@ -402,7 +402,13 @@ function Account (scope, cb) {
 }
 
 /**
- * Creates database tables.
+ * Creates memory tables related to accounts:
+ * - mem_accounts
+ * - mem_round
+ * - mem_accounts2delegates
+ * - mem_accounts2u_delegates
+ * - mem_accounts2multisignatures
+ * - mem_accounts2u_multisignatures
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb|error.
  */
@@ -418,7 +424,12 @@ Account.prototype.createTables = function (cb) {
 };
 
 /**
- * Removes mem_* tables from database.
+ * Deletes the contents of these tables:
+ * - mem_round
+ * - mem_accounts2delegates
+ * - mem_accounts2u_delegates
+ * - mem_accounts2multisignatures
+ * - mem_accounts2u_multisignatures
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb|error.
  */
@@ -448,7 +459,7 @@ Account.prototype.removeTables = function (cb) {
 
 /**
  * Validates account schema.
- * @param {Object} account - Desc.
+ * @param {account} account
  * @returns {err|account} Error message or input parameter account.
  * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
  */
@@ -470,8 +481,8 @@ Account.prototype.objectNormalize = function (account) {
 
 /**
  * Checks type, lenght and format from publicKey.
- * @param {Object} publicKey public key address
- * @throws {string} throws one error for every check
+ * @param {publicKey} publicKey
+ * @throws {string} throws one error for every check.
  */
 Account.prototype.verifyPublicKey = function (publicKey) {
 	if (publicKey !== undefined) {
@@ -493,7 +504,7 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 };
 
 /**
- * Normalizes address.
+ * Normalizes address and creates binary buffers to insert.
  * @param {Object} raw - with address and public key.
  * @returns {Object} Normalized address.
  */
@@ -511,8 +522,8 @@ Account.prototype.toDB = function (raw) {
 };
 
 /**
- * Gets account information.
- * @param {Object} filter - Address.
+ * Gets account information for specified fields and filter criteria.
+ * @param {Object} filter - Contains address.
  * @param {Object|function} fields - Table fields.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Returns null or Object with database data.
@@ -532,7 +543,7 @@ Account.prototype.get = function (filter, fields, cb) {
 
 /**
  * Gets accounts information from mem_accounts.
- * @param {Object} filter - Address.
+ * @param {Object} filter - Contains address.
  * @param {Object|function} fields - Table fields.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
@@ -600,7 +611,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 
 /**
  * Sets fields for specific address in mem_accounts table.
- * @param {string} address
+ * @param {address} address
  * @param {Object} fields
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb | 'Account#set error'.
@@ -630,9 +641,11 @@ Account.prototype.set = function (address, fields, cb) {
 };
 
 /**
- * Inserts into mem_round balance, blockId and round based on address.
- * @param {string} address - Address.
- * @param {Object} diff - Content: balance, blockId, round.
+ * Updates account from mem_account with diff data belonging to an editable field.
+ * Inserts into mem_round "address", "amount", "delegate", "blockId", "round"
+ * based on field balance or delegates.
+ * @param {address} address
+ * @param {Object} diff - Must contains only mem_account editable fields.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
@@ -870,8 +883,8 @@ Account.prototype.merge = function (address, diff, cb) {
 };
 
 /**
- * Removes address from mem_account table.
- * @param {string} address
+ * Removes an account from mem_account table based on address.
+ * @param {address} address
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Data with address | Account#remove error.
  */

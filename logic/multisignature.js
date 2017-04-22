@@ -64,7 +64,7 @@ Multisignature.prototype.calculateFee = function (trs, sender) {
  * @param {transaction} trs 
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|Object} returns error string if invalid parameter | 
+ * @returns {setImmediateCallback|transaction} returns error string if invalid parameter | 
  * trs validated.
  */
 Multisignature.prototype.verify = function (trs, sender, cb) {
@@ -364,6 +364,7 @@ Multisignature.prototype.objectNormalize = function (trs) {
 
 	return trs;
 };
+
 /**
  * Creates multisignature object based on raw data.
  * @param {Object} raw - Data from database.
