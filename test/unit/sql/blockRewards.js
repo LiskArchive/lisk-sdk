@@ -65,6 +65,18 @@ function calcSupply_test (height_start, height_end, expected_reward, done) {
 	});
 };
 
+function calcSupply_test_fail (height_start, height_end, expected_reward, done) {
+	return db.query(sql.calcSupply_test, {height_start: height_start, height_end: height_end, expected_reward: expected_reward}).then(function (rows) {
+		expect(rows).to.be.array;
+		expect(rows.length).to.equal(1);
+		expect(rows[0]).to.be.object;
+		expect(rows[0].result).to.equal(false);
+		done();
+	}).catch(function (err) {
+		done(err);
+	});
+};
+
 function calcBlockReward_test (height_start, height_end, expected_reward, done) {
 	return db.query(sql.calcBlockReward_test, {height_start: height_start, height_end: height_end, expected_reward: expected_reward}).then(function (rows) {
 		expect(rows).to.be.array;
@@ -76,7 +88,6 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 		done(err);
 	});
 };
-
 
 describe('BlockRewardsSQL', function () {
 
@@ -340,12 +351,29 @@ describe('BlockRewardsSQL', function () {
 
 	describe('checking completely SQL functions calcSupply(int) and calcBlockReward(int)', function () {
 
+		describe('check if calcBlockReward_test can fail', function () {
+			it('calcBlockReward_test should return 1000 for 1000 not matching block rewards', function (done) {
+				db.query(sql.calcBlockReward_test, {height_start: 1, height_end: 1000, expected_reward: 1}).then(function (rows) {
+					expect(rows).to.be.array;
+					expect(rows.length).to.equal(1);
+					expect(rows[0]).to.be.object;
+					expect(Number(rows[0].result)).to.equal(1000);
+					done();
+				}).catch(function (err) {
+					done(err);
+				});
+			});
+		});
+
 		describe('before reward offset', function () {
 			it('calcBlockReward_test should return 0', function (done) {
 				calcBlockReward_test(1, 1451519, 0, done);
 			});
 			it('calcSupply_test should return true', function (done) {
 				calcSupply_test(1, 1451519, 0, done);
+			});
+			it('calcSupply_test_fail should return false', function (done) {
+				calcSupply_test_fail(1, 1451519, 1, done);
 			});
 		});
 
@@ -356,6 +384,9 @@ describe('BlockRewardsSQL', function () {
 			it('calcSupply_test should return true', function (done) {
 				calcSupply_test(1451520, 4451519, constants.rewards.milestones[0], done);
 			});
+			it('calcSupply_test_fail should return false', function (done) {
+				calcSupply_test_fail(1451520, 4451519, 1, done);
+			});
 		});
 
 		describe('for milestone 1', function () {
@@ -364,6 +395,9 @@ describe('BlockRewardsSQL', function () {
 			});
 			it('calcSupply_test should return true', function (done) {
 				calcSupply_test(4451520, 7451519, constants.rewards.milestones[1], done);
+			});
+			it('calcSupply_test_fail should return false', function (done) {
+				calcSupply_test_fail(4451520, 7451519, 1, done);
 			});
 		});
 
@@ -374,6 +408,9 @@ describe('BlockRewardsSQL', function () {
 			it('calcSupply_test should return true', function (done) {
 				calcSupply_test(7451520, 10451519, constants.rewards.milestones[2], done);
 			});
+			it('calcSupply_test_fail should return false', function (done) {
+				calcSupply_test_fail(7451520, 10451519, 1, done);
+			});
 		});
 
 		describe('for milestone 3', function () {
@@ -383,6 +420,9 @@ describe('BlockRewardsSQL', function () {
 			it('calcSupply_test should return true', function (done) {
 				calcSupply_test(10451520, 13451519, constants.rewards.milestones[3], done);
 			});
+			it('calcSupply_test_fail should return false', function (done) {
+				calcSupply_test_fail(10451520, 13451519, 1, done);
+			});
 		});
 
 		describe('for milestone 4 and beyond', function () {
@@ -391,6 +431,9 @@ describe('BlockRewardsSQL', function () {
 			});
 			it('calcSupply_test should return true', function (done) {
 				calcSupply_test(13451520, (13451520 + 100), constants.rewards.milestones[4], done);
+			});
+			it('calcSupply_test_fail should return false', function (done) {
+				calcSupply_test_fail(13451520, (13451520 + 100), 1, done);
 			});
 		});
 	});
