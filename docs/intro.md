@@ -13,6 +13,7 @@ For particular objects, use the constructor name; this could be a built-in JavaS
 * Variable number of that type `@param {...number} num`
 * Optional parameter `@param {number} [foo]` or `@param {number=} foo`
 * An optional parameter foo with default value 1. `@param {number} [foo=1]`
+* [multiple types and repeatable parameters](http://usejsdoc.org/tags-param.html#multiple-types-and-repeatable-parameters)
 
 * when documenting an object that is not being used as a `namespace` or `class`, use `@prop {type} name` tags to document its properties (these work like `@param` for function parameters).
 

@@ -18,12 +18,6 @@
  */
 
 /**
- * Functional Module `peers`
- * 
- * @module peers
- */
-
-/**
  * Functional Module `server`
  * 
  * @module server
