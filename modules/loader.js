@@ -235,7 +235,7 @@ __private.loadBlockChain = function () {
 					if (count > 1) {
 						library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
 					}
-					modules.blocks.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
+					modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
 						if (err) {
 							return setImmediate(cb, err);
 						}
@@ -255,7 +255,7 @@ __private.loadBlockChain = function () {
 				library.logger.error(err);
 				if (err.block) {
 					library.logger.error('Blockchain failed at: ' + err.block.height);
-					modules.blocks.deleteAfterBlock(err.block.id, function (err, res) {
+					modules.blocks.chain.deleteAfterBlock(err.block.id, function (err, res) {
 						library.logger.error('Blockchain clipped');
 						library.bus.message('blockchainReady');
 					});
@@ -373,7 +373,7 @@ __private.loadBlockChain = function () {
 				return reload(count, 'No delegates found');
 			}
 
-			modules.blocks.loadLastBlock(function (err, block) {
+			modules.blocks.utils.loadLastBlock(function (err, block) {
 				if (err) {
 					return reload(count, err || 'Failed to load last block');
 				} else {
@@ -408,7 +408,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 					function loadBlocks () {
 						__private.blocksToSync = peer.height;
 
-						modules.blocks.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
+						modules.blocks.process.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
 								library.logger.error(err.toString());
 								library.logger.error('Failed to load blocks from: ' + peer.string);
@@ -422,7 +422,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 
 					function getCommonBlock (cb) {
 						library.logger.info('Looking for common block with: ' + peer.string);
-						modules.blocks.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
+						modules.blocks.process.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 							if (!commonBlock) {
 								if (err) { library.logger.error(err.toString()); }
 								library.logger.error('Failed to find common block with: ' + peer.string);

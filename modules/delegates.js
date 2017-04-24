@@ -124,7 +124,7 @@ __private.forge = function (cb) {
 					library.logger.warn(err);
 					return setImmediate(cb, err);
 				} else {
-					return modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
+					return modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
 				}
 			});
 		}, function (err) {
@@ -722,7 +722,7 @@ Delegates.prototype.shared = {
 			}
 
 			if (req.body.start !== undefined || req.body.end !== undefined) {
-				modules.blocks.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
+				modules.blocks.utils.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
