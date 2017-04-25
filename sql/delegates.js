@@ -21,7 +21,7 @@ var DelegatesSql = {
   search: function (params) {
     var sql = [
       'WITH',
-      'supply AS (SELECT calcSupply()::numeric),',
+      'supply AS (SELECT calcSupply((SELECT height FROM blocks ORDER BY height DESC LIMIT 1))::numeric),',
       'delegates AS (SELECT row_number() OVER (ORDER BY vote DESC, m."publicKey" ASC)::int AS rank,',
         'm.username,',
         'm.address,',
