@@ -847,8 +847,8 @@ describe('GET /api/delegates/search', function () {
 			node.expect(res.body.delegates[0]).to.have.property('vote').that.is.an('string');
 			node.expect(res.body.delegates[0]).to.have.property('producedblocks').that.is.an('number');
 			node.expect(res.body.delegates[0]).to.have.property('missedblocks').that.is.an('number');
-			node.expect(res.body.delegates[0]).to.have.property('approval').that.is.an('string');
-			node.expect(res.body.delegates[0]).to.have.property('productivity').that.is.an('string');
+			node.expect(res.body.delegates[0]).to.have.property('approval').that.is.an('number');
+			node.expect(res.body.delegates[0]).to.have.property('productivity').that.is.an('number');
 			node.expect(res.body.delegates[0]).to.have.property('voters_cnt').that.is.an('number');
 			node.expect(res.body.delegates[0]).to.have.property('register_timestamp').that.is.an('number');
 			done();
