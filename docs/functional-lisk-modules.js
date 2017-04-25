@@ -24,12 +24,6 @@
  */
 
 /**
- * Functional Module `transactions`
- * 
- * @module transactions
- */
-
-/**
  * Functional Module `transport`
  *
  * @module transport
