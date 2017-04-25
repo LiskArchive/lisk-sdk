@@ -70,8 +70,6 @@ CREATE FUNCTION calcBlockReward(block_height int) RETURNS bigint LANGUAGE PLPGSQ
 		RETURN r.milestones[mile];
 END $$;
 
-
-
 -- Create function that calculate current supply
 -- @IMMUTABLE - always returns the same result for the same argument
 CREATE FUNCTION calcSupply(block_height int) RETURNS bigint LANGUAGE PLPGSQL IMMUTABLE AS $$
