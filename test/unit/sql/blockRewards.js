@@ -220,7 +220,7 @@ describe('BlockRewardsSQL', function () {
 			calcBlockReward((13451520 * 100), 100000000, done);
 		});
 
-		// That query expect to fail because height is int and (milestoneFour * 1000) is bigint
+		// Following example expected to fail because height is int and (milestoneFour * 1000) is bigint
 		// However, it will take 400+ years to reach height of last passing test, so is safe to ignore
 		it('when height == (milestoneFour * 1000) should overflow int and return error', function (done) {
 			db.query(sql.calcBlockReward, {height: (13451520 * 1000)}).then(function (rows) {
@@ -335,7 +335,7 @@ describe('BlockRewardsSQL', function () {
 			calcSupply((13451520 * 100), 147370048100000000, done);
 		});
 
-		// That query expect to fail because height is int and (milestoneFour * 1000) is bigint
+		// Following example expected to fail because height is int and (milestoneFour * 1000) is bigint
 		// However, it will take 400+ years to reach height of last passing test, so is safe to ignore
 		it('when height == (milestoneFour * 1000) should overflow int and return error', function (done) {
 			db.query(sql.calcSupply, {height: (13451520 * 1000)}).then(function (rows) {

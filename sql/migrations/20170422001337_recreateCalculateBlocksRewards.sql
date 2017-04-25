@@ -60,7 +60,7 @@ CREATE FUNCTION calcBlockReward(block_height int) RETURNS bigint LANGUAGE PLPGSQ
 		-- Calculate milestone for height (we use +1 here because array indexes by default begins from 1 in postgres)
 		mile := FLOOR((block_height-r.start)/r.distance)+1;
 
-		-- If calculated milestone exceed last milestone
+		-- If calculated milestone exceeds last milestone
 		IF mile > array_length(r.milestones, 1) THEN
 			-- Use last milestone
 			mile := array_length(r.milestones, 1);
@@ -93,7 +93,7 @@ CREATE FUNCTION calcSupply(block_height int) RETURNS bigint LANGUAGE PLPGSQL IMM
 		-- Calculate milestone for height (we use +1 here because array indexes by default begins from 1 in postgres)
 		mile := FLOOR((block_height-r.start)/r.distance)+1;
 
-		-- If calculated milestone exceed last milestone
+		-- If calculated milestone exceeds last milestone
 		IF mile > array_length(r.milestones, 1) THEN
 			-- Use last milestone
 			mile := array_length(r.milestones, 1);
