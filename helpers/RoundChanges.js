@@ -3,6 +3,14 @@
 var bignum = require('./bignum');
 var slots = require('./slots');
 
+/**
+ * Sets round fees and rewards
+ * @requires helpers/bignum
+ * @requires helpers/slots
+ * @memberof module:helpers
+ * @constructor
+ * @param {Object} scope
+ */
 // Constructor
 function RoundChanges (scope) {
 	if (scope.backwards) {
@@ -15,6 +23,14 @@ function RoundChanges (scope) {
 }
 
 // Public methods
+/**
+ * Calculates rewards at round position.
+ * Fees and feesRemaining based on slots
+ * @implements bignum
+ * @implements slots
+ * @param {number} index
+ * @return {Object} Contains fees, feesRemaining, rewards, balance
+ */
 RoundChanges.prototype.at = function (index) {
 	var fees = new bignum(this.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor();
 	var feesRemaining = new bignum(this.roundFees.toPrecision(15)).minus(fees.times(slots.delegates));
