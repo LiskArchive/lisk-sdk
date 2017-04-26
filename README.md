@@ -5,7 +5,7 @@ Lisk JS is a JavaScript library for [Lisk - the cryptocurrency and blockchain ap
 [![Build Status](https://travis-ci.org/LiskHQ/lisk-js.svg?branch=development)](https://travis-ci.org/LiskHQ/lisk-js)
 [![Coverage Status](https://coveralls.io/repos/github/LiskHQ/lisk-js/badge.svg?branch=development)](https://coveralls.io/github/LiskHQ/lisk-js?branch=development)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-[![GitHub release](https://img.shields.io/badge/version-0.4-blue.svg)](#)
+[![GitHub release](https://img.shields.io/badge/version-0.4.1-blue.svg)](#)
 
 ## Browser
 
