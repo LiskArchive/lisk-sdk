@@ -333,6 +333,54 @@ describe('Lisk.api()', function () {
 		});
 	});
 
+	describe('#checkOptions', function () {
+
+		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
+
+			try {
+				lisk.api().sendRequest('delegates/', {limit:undefined}, function () {  });
+			} catch (e) {
+				(e.message).should.be.equal('parameter value "limit" should not be undefined');
+				done();
+			}
+
+		});
+
+		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
+
+			try {
+				lisk.api().sendRequest('delegates/', {limit:null}, function () {  });
+			} catch (e) {
+				(e.message).should.be.equal('parameter value "limit" should not be null');
+				done();
+			}
+
+		});
+
+		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
+
+			try {
+				lisk.api().sendRequest('delegates/', {limit:NaN}, function () {  });
+			} catch (e) {
+				(e.message).should.be.equal('parameter value "limit" should not be NaN');
+				done();
+			}
+
+		});
+
+		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
+
+			try {
+				lisk.api().sendRequest('delegates/', {limit:false}, function () {  });
+			} catch (e) {
+				(e.message).should.be.equal('parameter value "limit" should not be false');
+				done();
+			}
+
+		});
+
+	});
+
 	describe('#changeRequest', function () {
 
 		it('should give the correct parameters for GET requests', function () {
