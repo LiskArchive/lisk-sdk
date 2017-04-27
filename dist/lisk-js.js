@@ -105,21 +105,26 @@ function LiskAPI (options) {
 
 	this.options = options;
 	this.ssl = options.ssl || false;
-	this.randomPeer = (typeof options.randomPeer === 'boolean') ? options.randomPeer : true;
+	// Random peer can be set by settings with randomPeer: true | false
+	// Random peer is automatically enabled when no options.node has been entered. Else will be set to false
+	// If the desired behaviour is to have an own node and automatic peer discovery, randomPeer should be set to true explicitly
+	this.randomPeer = (typeof options.randomPeer === 'boolean') ? options.randomPeer : !(options.node);
 	this.testnet = options.testnet || false;
 	this.bannedPeers = [];
 	this.currentPeer = options.node || this.selectNode();
-	if (options.port === '' || options.port) this.port = options.port;
-	else                                    this.port = 8000;
+	this.port = (options.port === '' || options.port) ? options.port : 8000;
 	this.parseOfflineRequests = parseOfflineRequest;
 	this.nethash = this.getNethash(options.nethash);
 }
 
-LiskAPI.prototype.getNethash = function (providedNethash) {
-	var NetHash;
+/**
+ * @method netHashOptions
+ * @return {object}
+ */
 
-	if (this.testnet) {
-		NetHash = {
+LiskAPI.prototype.netHashOptions = function () {
+	return {
+		testnet: {
 			'Content-Type': 'application/json',
 			'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -127,9 +132,8 @@ LiskAPI.prototype.getNethash = function (providedNethash) {
 			'version': '1.0.0',
 			'minVersion': '>=0.5.0',
 			'port': this.port
-		};
-	} else {
-		NetHash = {
+		},
+		mainnet: {
 			'Content-Type': 'application/json',
 			'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
 			'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
@@ -137,8 +141,17 @@ LiskAPI.prototype.getNethash = function (providedNethash) {
 			'version': '1.0.0',
 			'minVersion': '>=0.5.0',
 			'port': this.port
-		};
-	}
+		}
+	};
+};
+
+/**
+ * @method getNethash
+ * @return {object}
+ */
+
+LiskAPI.prototype.getNethash = function (providedNethash) {
+	var NetHash = (this.testnet) ? this.netHashOptions().testnet : this.netHashOptions().mainnet;
 
 	if (providedNethash) {
 		NetHash.nethash = providedNethash;
@@ -154,13 +167,11 @@ LiskAPI.prototype.getNethash = function (providedNethash) {
  */
 
 LiskAPI.prototype.listPeers = function () {
-
 	return {
-		official: this.defaultPeers.map(function(node) { return {node: node};}),
-		ssl: this.defaultSSLPeers.map(function(node) { return {node: node, ssl: true, port: 443};}),
-		testnet: this.defaultTestnetPeers.map(function(node) { return {node: node, testnet: true, port: 7000};}),
+		official: this.defaultPeers.map(function (node) { return {node: node};}),
+		ssl: this.defaultSSLPeers.map(function (node) { return {node: node, ssl: true, port: 443};}),
+		testnet: this.defaultTestnetPeers.map(function (node) { return {node: node, testnet: true, port: 7000};}),
 	};
-
 };
 
 /**
@@ -184,6 +195,11 @@ LiskAPI.prototype.setTestnet = function (testnet) {
 		this.testnet = testnet;
 		this.bannedPeers = [];
 		this.port = 7000;
+		this.selectNode();
+	} else {
+		this.testnet = false;
+		this.bannedPeers = [];
+		this.port = 8000;
 		this.selectNode();
 	}
 };
@@ -286,7 +302,34 @@ LiskAPI.prototype.checkReDial = function () {
 	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 	if (this.testnet) peers = this.defaultTestnetPeers;
 
-	return (peers.length !== this.bannedPeers.length);
+	var reconnect = true;
+
+	// RandomPeer discovery explicitly set
+	if (this.randomPeer === true) {
+		// A nethash has been set by the user. This influences internal redirection
+		if (this.options.nethash) {
+			// Nethash is equal to testnet nethash, we can proceed to get testnet peers
+			if (this.options.nethash === this.netHashOptions().testnet.nethash) {
+				this.setTestnet(true);
+				reconnect = true;
+			// Nethash is equal to mainnet nethash, we can proceed to get mainnet peers
+			} else if (this.options.nethash === this.netHashOptions().mainnet.nethash) {
+				this.setTestnet(false);
+				reconnect = true;
+			// Nethash is neither mainnet nor testnet, do not proceed to get peers
+			} else {
+				reconnect = false;
+			}
+		// No nethash set, we can take the usual approach, just when there are not-banned peers, take one
+		} else {
+			reconnect = (peers.length !== this.bannedPeers.length);
+		}
+	// RandomPeer is not explicitly set, no peer discovery
+	} else {
+		reconnect = false;
+	}
+
+	return reconnect;
 };
 
 /**
@@ -295,15 +338,13 @@ LiskAPI.prototype.checkReDial = function () {
  */
 
 LiskAPI.prototype.checkOptions = function (options) {
-
 	Object.keys(options).forEach(function (optionKey) {
-		if(options[optionKey] === undefined || options[optionKey] === null || options[optionKey] !== options[optionKey] || options[optionKey] === false) {
+		if (options[optionKey] === undefined || options[optionKey] === null || options[optionKey] !== options[optionKey] || options[optionKey] === false) {
 			throw { message: 'parameter value "'+optionKey+'" should not be '+ options[optionKey]  };
 		}
 	});
 
 	return options;
-
 };
 
 /**
@@ -323,18 +364,17 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 	return this.sendRequestPromise(requestType, options).then(function (requestSuccess) {
 		var returnAnswer = (parseOfflineRequest(requestType, options).requestMethod === 'GET') ? requestSuccess.body : parseOfflineRequest(requestType, options).transactionOutputAfter(requestSuccess.body);
 
-		if(!callback || (typeof callback !== 'function')) {
+		if (!callback || (typeof callback !== 'function')) {
 			return Promise.resolve(returnAnswer);
 		} else {
 			return callback(returnAnswer);
 		}
 	}).then(function (API) {
 		return API;
-	}, function(error) {
+	}, function (error) {
 		return Promise.reject(error);
 	}).catch(function (error) {
-
-		if(that.checkReDial()) {
+		if (that.checkReDial()) {
 			setTimeout(function () {
 				that.banNode();
 				that.setNode();
@@ -342,13 +382,13 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 			}, 1000);
 		} else {
 			var rejectAnswer = { success: false, error: error, message: 'could not create http request to any of the given peers' };
-			if(!callback || (typeof callback !== 'function')) {
+
+			if (!callback || (typeof callback !== 'function')) {
 				return rejectAnswer;
 			} else {
 				return callback(rejectAnswer);
 			}
 		}
-
 	});
 };
 
@@ -527,7 +567,7 @@ LiskAPI.prototype.getAddressFromSecret = function (secret) {
  * @return API object
  */
 
-LiskAPI.prototype.getAccount = function(address, callback) {
+LiskAPI.prototype.getAccount = function (address, callback) {
 	this.sendRequest('accounts', { address: address }, function (result) {
 		return callback(result);
 	});
@@ -2000,23 +2040,21 @@ function verifyMessageWithPublicKey (signedMessage, publicKey) {
 	var signedMessageBytes = convert.hexToBuffer(signedMessage);
 	var publicKeyBytes = convert.hexToBuffer(publicKey);
 
-	if(publicKeyBytes.length !== 32) return { message: 'Invalid publicKey, expected 32-byte publicKey' };
+	if (publicKeyBytes.length !== 32) return { message: 'Invalid publicKey, expected 32-byte publicKey' };
 
-	//give appropriate error messages from crypto_sign_open
+	// Give appropriate error messages from crypto_sign_open
 	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
 
-	if(openSignature) {
+	if (openSignature) {
 		// Returns original message
 		return naclInstance.decode_utf8(openSignature);
 	} else {
 		return { message: 'Invalid signature publicKey combination, cannot verify message' };
 	}
-
 }
 
 function convertPublicKeyEd2Curve (publicKey) {
 	return ed2curve.convertPublicKey(publicKey);
-
 }
 
 function convertPrivateKeyEd2Curve (privateKey) {
