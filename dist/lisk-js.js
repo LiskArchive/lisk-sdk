@@ -324,9 +324,9 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
 				that.sendRequest(requestType, options, callback);
 			}, 1000);
 		} else {
-			var rejectAnswer = { error: error, message: 'could not create http request to any of the given peers' };
+			var rejectAnswer = { success: false, error: error, message: 'could not create http request to any of the given peers' };
 			if(!callback || (typeof callback !== 'function')) {
-				return Promise.reject(rejectAnswer);
+				return rejectAnswer;
 			} else {
 				return callback(rejectAnswer);
 			}
@@ -1979,10 +1979,18 @@ function verifyMessageWithPublicKey (signedMessage, publicKey) {
 	var signedMessageBytes = convert.hexToBuffer(signedMessage);
 	var publicKeyBytes = convert.hexToBuffer(publicKey);
 
-	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+	if(publicKeyBytes.length !== 32) return { message: 'Invalid publicKey, expected 32-byte publicKey' };
 
+	//give appropriate error messages from crypto_sign_open
+
+	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
 	// Returns original message
-	return naclInstance.decode_utf8(openSignature);
+	if(openSignature) {
+		return naclInstance.decode_utf8(openSignature);
+	} else {
+		return { message: 'Invalid signature publicKey combination, cannot verify message' };
+	}
+
 }
 
 function convertPublicKeyEd2Curve (publicKey) {
