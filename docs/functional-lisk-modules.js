@@ -6,12 +6,6 @@
  */
 
 /**
- * Functional Module `dapss`
- * 
- * @module dapss
- */
-
-/**
  * Functional Module `loader`
  * 
  * @module loader
