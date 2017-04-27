@@ -91,6 +91,13 @@ describe('Lisk.api()', function () {
 
 			(LISK.testnet).should.be.true;
 		});
+
+		it('should set to mainnet', function () {
+			var LISK = lisk.api();
+			LISK.setTestnet(false);
+
+			(LISK.testnet).should.be.false;
+		});
 	});
 
 	describe('#setNode', function () {
@@ -644,7 +651,7 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should be able to get a new node when current one is not reachable', function (done) {
-			lisk.api({ node: '123' }).sendRequest('blocks/getHeight', {}, function (result) {
+			lisk.api({ node: '123', randomPeer: true }).sendRequest('blocks/getHeight', {}, function (result) {
 				(result).should.be.type('object');
 				done();
 			});
@@ -681,6 +688,39 @@ describe('Lisk.api()', function () {
 				done();
 			});
 		});
+
+		it('should redial to new node when randomPeer is set true', function (done) {
+			var thisLSK = lisk.api({ randomPeer: true, node: '123' });
+			thisLSK.getAccount('12731041415715717263L', function (data) {
+				(data).should.be.ok;
+				(data.success).should.be.equal(true);
+				done();
+			});
+		});
+
+		it('should not redial to new node when randomPeer is set to true but unknown nethash provided', function () {
+			var thisLSK = lisk.api({ randomPeer: true, node: '123', nethash: '123' });
+			(thisLSK.checkReDial()).should.be.equal(false);
+
+		});
+
+		it('should redial to mainnet nodes when nethash is set and randomPeer is true', function () {
+			var thisLSK = lisk.api({ randomPeer: true, node: '123', nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511' });
+			(thisLSK.checkReDial()).should.be.equal(true);
+			(thisLSK.testnet).should.be.equal(false);
+		});
+
+		it('should redial to testnet nodes when nethash is set and randomPeer is true', function () {
+			var thisLSK = lisk.api({ randomPeer: true, node: '123', nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba' });
+			(thisLSK.checkReDial()).should.be.equal(true);
+			(thisLSK.testnet).should.be.equal(true);
+		});
+
+		it('should not redial when randomPeer is set false', function () {
+			var thisLSK = lisk.api({ randomPeer: false});
+			(thisLSK.checkReDial()).should.be.equal(false);
+		});
+
 	});
 
 	describe('#sendRequest with promise', function () {
