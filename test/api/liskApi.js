@@ -343,49 +343,40 @@ describe('Lisk.api()', function () {
 	describe('#checkOptions', function () {
 
 		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
-
 			try {
-				lisk.api().sendRequest('delegates/', {limit:undefined}, function () {  });
+				lisk.api().sendRequest('delegates/', {limit:undefined}, function () {});
 			} catch (e) {
 				(e.message).should.be.equal('parameter value "limit" should not be undefined');
 				done();
 			}
-
 		});
 
 		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
-
 			try {
-				lisk.api().sendRequest('delegates/', {limit:null}, function () {  });
+				lisk.api().sendRequest('delegates/', {limit:null}, function () {});
 			} catch (e) {
 				(e.message).should.be.equal('parameter value "limit" should not be null');
 				done();
 			}
-
 		});
 
 		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
-
 			try {
-				lisk.api().sendRequest('delegates/', {limit:NaN}, function () {  });
+				lisk.api().sendRequest('delegates/', {limit:NaN}, function () {});
 			} catch (e) {
 				(e.message).should.be.equal('parameter value "limit" should not be NaN');
 				done();
 			}
-
 		});
 
 		it('should not accept falsy options like undefined, null, NaN or false', function (done) {
-
 			try {
-				lisk.api().sendRequest('delegates/', {limit:false}, function () {  });
+				lisk.api().sendRequest('delegates/', {limit:false}, function () {});
 			} catch (e) {
 				(e.message).should.be.equal('parameter value "limit" should not be false');
 				done();
 			}
-
 		});
-
 	});
 
 	describe('#changeRequest', function () {
@@ -691,6 +682,7 @@ describe('Lisk.api()', function () {
 
 		it('should redial to new node when randomPeer is set true', function (done) {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123' });
+
 			thisLSK.getAccount('12731041415715717263L', function (data) {
 				(data).should.be.ok;
 				(data.success).should.be.equal(true);
@@ -700,27 +692,29 @@ describe('Lisk.api()', function () {
 
 		it('should not redial to new node when randomPeer is set to true but unknown nethash provided', function () {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123', nethash: '123' });
-			(thisLSK.checkReDial()).should.be.equal(false);
 
+			(thisLSK.checkReDial()).should.be.equal(false);
 		});
 
 		it('should redial to mainnet nodes when nethash is set and randomPeer is true', function () {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123', nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511' });
+
 			(thisLSK.checkReDial()).should.be.equal(true);
 			(thisLSK.testnet).should.be.equal(false);
 		});
 
 		it('should redial to testnet nodes when nethash is set and randomPeer is true', function () {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123', nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba' });
+
 			(thisLSK.checkReDial()).should.be.equal(true);
 			(thisLSK.testnet).should.be.equal(true);
 		});
 
 		it('should not redial when randomPeer is set false', function () {
 			var thisLSK = lisk.api({ randomPeer: false});
+
 			(thisLSK.checkReDial()).should.be.equal(false);
 		});
-
 	});
 
 	describe('#sendRequest with promise', function () {
