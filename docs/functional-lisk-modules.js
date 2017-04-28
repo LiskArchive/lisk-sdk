@@ -10,9 +10,3 @@
  * 
  * @module loader
  */
-
-/**
- * Functional Module `transport`
- *
- * @module transport
- */
