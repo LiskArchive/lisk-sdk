@@ -12,12 +12,6 @@
  */
 
 /**
- * Functional Module `server`
- * 
- * @module server
- */
-
-/**
  * Functional Module `transport`
  *
  * @module transport
