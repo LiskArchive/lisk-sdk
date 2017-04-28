@@ -34,6 +34,10 @@ function Config (program) {
 			appConfig.address = program.address;
 		}
 
+		if (program.database) {
+			appConfig.db.database = program.database;
+		}
+
 		if (program.peers) {
 			if (typeof program.peers === 'string') {
 				appConfig.peers.list = program.peers.split(',').map(function (peer) {

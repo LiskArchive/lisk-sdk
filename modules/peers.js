@@ -47,6 +47,12 @@ function Peers (cb, scope) {
 	};
 	self = this;
 
+	setInterval(function () {
+		this.list({}, function (err, peers) {
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers);
+		})
+	}.bind(this), 5000);
+
 	setImmediate(cb, null, self);
 }
 
@@ -108,7 +114,7 @@ __private.getByFilter = function (filter, cb) {
 	};
 
 	// Apply filters (by AND)
-	var peers = library.logic.peers.list(true);
+	var peers = library.logic.peers.list();
 
 	peers = peers.filter(function (peer) {
 		// var peer = __private.peers[index];
@@ -163,10 +169,27 @@ __private.insertSeeds = function (cb) {
 	async.each(library.config.peers.list, function (peer, eachCb) {
 		peer = library.logic.peers.create(peer);
 		library.logger.trace('Processing seed peer: ' + peer.string);
-		self.ping(peer, function (err) {
-			++updated;
+		peer.attachRPC(function (err, peer) {
+			console.log('Peers-> insert seeds cb ', err, peer);
+			if (err) {
+				return setImmediate(eachCb);
+			}
+			peer.rpc.status(function (err, status) {
+				if (err) {
+					return setImmediate(eachCb);
+				}
+				peer.height = status.height;
+				peer.broadhash = status.broadhash;
+				++updated;
+			});
 			return setImmediate(eachCb);
 		});
+
+		// self.ping(peer, function (err) {
+		// 	console.log('Peers-> insert seeds cb ', err);
+		// 	++updated;
+		// 	return setImmediate(eachCb);
+		// });
 	}, function (err) {
 		library.logger.trace('Peers->insertSeeds - Peers discovered', {updated: updated, total: library.config.peers.list.length});
 		return setImmediate(cb);
@@ -187,23 +210,34 @@ __private.dbLoad = function (cb) {
 	library.db.any(sql.getAll).then(function (rows) {
 		library.logger.info('Imported peers from database', {count: rows.length});
 		async.each (rows, function (peer, eachCb) {
-			peer = library.logic.peers.create(peer);
 
+			function updatePeer (peer) {
+				peer.attachRPC(function (err, peer) {
+					if (err) {
+						return setImmediate(eachCb);
+					}
+					peer.rpc.status(function (err, status) {
+						if (!err) {
+							peer.height = status.height;
+							peer.broadhash = status.broadhash;
+							++updated;
+						}
+						return setImmediate(eachCb);
+
+					});
+				});
+			}
+
+			peer = library.logic.peers.create(peer);
 			if (library.logic.peers.exists(peer)) {
 				peer = library.logic.peers.get(peer);
 				if (peer && peer.state > 0 && Date.now() - peer.updated > 3000) {
-					self.ping(peer, function (err) {
-						++updated;
-						return setImmediate(eachCb);
-					});
+					updatePeer(peer);
 				} else {
 					return setImmediate(eachCb);
 				}
 			} else {
-				self.ping(peer, function (err) {
-					++updated;
-					return setImmediate(eachCb);
-				});
+				updatePeer(peer);
 			}
 		}, function (err) {
 			library.logger.trace('Peers->dbLoad Peers discovered', {updated: updated, total: rows.length});
@@ -325,17 +359,38 @@ Peers.prototype.remove = function (pip, port) {
  */
 Peers.prototype.ping = function (peer, cb) {
 	library.logger.trace('Pinging peer: ' + peer.string);
-	modules.transport.getFromPeer(peer, {
-		api: '/height',
-		method: 'GET'
-	}, function (err, res) {
-		if (err) {
-			library.logger.trace('Ping peer failed: ' + peer.string, err);
-			return setImmediate(cb, err);
-		} else {
-			return setImmediate(cb);
-		}
-	});
+	if (library.config.peerProtocol === 'ws') {
+
+		console.log(peer);
+		// console.trace('before ping');
+		peer.rpc.status(function (err, response) {
+			console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: status cb invoked: ', arguments);
+			if (err) {
+				library.logger.trace('Ping peer failed: ' + peer.string, err);
+				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping error');
+				return setImmediate(cb, err);
+			} else {
+				peer.height = response.height;
+				peer.broadhash = response.broadhash;
+				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping success --- status: ', response);
+				library.logic.peers.update(peer);
+				return setImmediate(cb);
+			}
+		});
+	} else {
+		modules.transport.getFromPeer(peer, {
+			api: '/height',
+			method: 'GET'
+		}, function (err, res) {
+			if (err) {
+				library.logger.trace('Ping peer failed: ' + peer.string, err);
+				return setImmediate(cb, err);
+			} else {
+				return setImmediate(cb);
+			}
+		});
+	}
+
 };
 
 /**
@@ -346,17 +401,25 @@ Peers.prototype.ping = function (peer, cb) {
 Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
-		modules.transport.getFromRandomPeer({
-			api: '/list',
-			method: 'GET'
-		}, function (err, res) {
-			return setImmediate(waterCb, err, res);
-		});
+		modules.peers.list({limit: 1}, function (err, peers) {
+			if (!err && peers.length) {
+				console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discover ---- ', peers);
+				peers[0].rpc.list(waterCb);
+			} else {
+				return setImmediate(waterCb, err || 'No acceptable peers found');
+			}
+			// modules.transport.getFromRandomPeer({
+			// 	api: '/list',
+			// 	method: 'GET'
+			// }, function (err, res) {
+			// 	return setImmediate(waterCb, err, res);
+			// });
+		})
 	}
 
-	function validatePeersList (res, waterCb) {
-		library.schema.validate(res.body, schema.discover.peers, function (err) {
-			return setImmediate(waterCb, err, res.body.peers);
+	function validatePeersList (peers, waterCb) {
+		library.schema.validate(peers, schema.discover.peers, function (err) {
+			return setImmediate(waterCb, err, peers);
 		});
 	}
 
@@ -405,18 +468,24 @@ Peers.prototype.discover = function (cb) {
  * @return {peer[]} Filtered list of peers
  */
 Peers.prototype.acceptable = function (peers) {
-	return _(peers)
-		.uniqWith(function (a, b) {
-			// Removing non-unique peers
-			return (a.ip + a.port) === (b.ip + b.port);
-		})
-		.filter(function (peer) {
-			// Removing peers with private address or nonce equal to self
-			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-				return peer.nonce !== modules.system.getNonce() && (peer.os !== 'lisk-js-api');
-			}
-			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce() && (peer.os !== 'lisk-js-api');
-		}).value();
+	return _.chain(peers).filter(function (peer) {
+		// Removing peers with private or address or with the same nonce
+		// return !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
+		console.log("PROCESSS ENV TEST", process.env.NODE_ENV, modules.system.getNonce());
+		return peer.nonce !== modules.system.getNonce();
+		// if (peer.nonce !== modules.system.getNonce()) {
+		// 	return false;
+		// }
+		// // else if (process.env.NODE_ENV.toLowerCase() !== 'test') {
+		// // 	return !ip.isPrivate(peer.ip);
+		// // }
+		// return true;
+		// return process.env.NODE_ENV.toLowerCase() === 'test' ? peer.nonce !== library.nonce : !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
+
+	}).uniqWith(function (a, b) {
+		// Removing non-unique peers
+		return (a.ip + a.port) === (b.ip + b.port);
+	}).value();
 };
 
 /**
@@ -454,6 +523,7 @@ Peers.prototype.list = function (options, cb) {
 					return options.allowedStates.indexOf(peer.state) !== -1;
 				}
 			});
+
 			matched = peersList.length;
 			// Apply limit
 			peersList = peersList.slice(0, options.limit);
@@ -509,23 +579,37 @@ Peers.prototype.onBind = function (scope) {
  * - Discover peers by getting list and validates them.
  */
 Peers.prototype.onBlockchainReady = function () {
+
+	library.logger.trace('PEERS MODULE -- onBlockchainReady');
 	async.series({
 		insertSeeds: function (seriesCb) {
+			library.logger.trace('INSERT SEEDS - START ');
+
 			__private.insertSeeds(function (err) {
+				library.logger.trace('IinsertSeeds -- end', err);
+
 				return setImmediate(seriesCb);
 			});
 		},
 		importFromDatabase: function (seriesCb) {
+			library.logger.trace('importFromDatabase -- start');
+
 			__private.dbLoad (function (err) {
+				library.logger.trace('importFromDatabase -- end', err);
+
 				return setImmediate(seriesCb);
 			});
 		},
 		discoverNew: function (seriesCb) {
+			library.logger.trace('discoverNew -- start');
 			self.discover (function (err) {
+				library.logger.trace('discoverNew -- end', err);
+
 				return setImmediate(seriesCb);
 			});
 		}
 	}, function (err) {
+		library.logger.trace('INVOKE PEERS READY');
 		library.bus.message('peersReady');
 	});
 };
@@ -550,7 +634,7 @@ Peers.prototype.onPeersReady = function () {
 				var updated = 0;
 				var peers = library.logic.peers.list();
 
-				library.logger.trace('Updating peers', {count: peers.length});
+				library.logger.trace('Updating peers', {peers: peers});
 
 				async.each(peers, function (peer, eachCb) {
 					// If peer is not banned and not been updated during last 3 sec - ping
@@ -646,7 +730,6 @@ Peers.prototype.shared = {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
-
 			__private.getByFilter({
 				ip: req.body.ip,
 				port: req.body.port

@@ -153,6 +153,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		},
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
+			console.log('\x1b[36m%s\x1b[0m', 'BROADCASTER --- getPeers for params ---- ', params, peers);
 
 			if (params.limit === self.config.peerLimit) { 
 				peers = peers.slice(0, self.config.broadcastLimit);
@@ -160,12 +161,18 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = library.logic.peers.create(peer);
-
-				modules.transport.getFromPeer(peer, options, function (err) {
+				console.log('\x1b[36m%s\x1b[0m', 'BROADCASTER LOGIC --- broadcast to ---- ', peer, options);
+				peer.attachRPC(function (err, peer) {
 					if (err) {
-						library.logger.debug('Failed to broadcast to peer: ' + peer.string, err);
+						library.logger.debug('Failed Initialize WS connection with peer' + peer.string, err);
+						return setImmediate(waterCb, err, peer);
 					}
-					return setImmediate(eachLimitCb);
+					modules.transport.getFromPeer(peer, options, function (err) {
+						if (err) {
+							library.logger.debug('Failed to broadcast to peer: ' + peer.string, err);
+						}
+						return setImmediate(eachLimitCb);
+					});
 				});
 			}, function (err) {
 				library.logger.debug('End broadcast');

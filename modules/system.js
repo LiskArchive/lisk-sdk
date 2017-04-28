@@ -6,7 +6,7 @@ var os = require('os');
 var sandboxHelper = require('../helpers/sandbox.js');
 var semver = require('semver');
 var sql = require('../sql/system.js');
-
+var WsRPCClient = require('../api/RPC').WsRPCClient;
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
@@ -58,6 +58,13 @@ function System (cb, scope) {
 	} else {
 		this.minVersion = __private.minVersion;
 	}
+
+	WsRPCClient.prototype.attachSystemConstants({
+		port: __private.port,
+		nethash: __private.nethash,
+		version: __private.version,
+		nonce: __private.nonce
+	});
 
 	setImmediate(cb, null, self);
 }
@@ -172,7 +179,7 @@ System.prototype.versionCompatible = function (version) {
 };
 
 System.prototype.nonceCompatible = function (nonce) {
-	return __private.nonce !== nonce;
+	return nonce && __private.nonce !== nonce;
 };
 
 /**
@@ -217,6 +224,17 @@ System.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
+
+System.prototype.onNewBlock = function () {
+	modules.system.update(function (err) {
+		if (err) {
+			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE ERROR", err);
+		} else {
+			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE SUCCESS", modules.system.getHeight(), modules.system.getBroadhash());
+
+		}
+	});
+};
 // Events
 /**
  * Assigns used modules to modules variable.

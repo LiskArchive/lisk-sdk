@@ -7,6 +7,7 @@ var ip = require('ip');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
 var sql = require('../sql/loader.js');
+var WsRPCClient = require('../api/RPC').WsRPCClient;
 
 require('colors');
 
@@ -100,6 +101,15 @@ __private.syncTrigger = function (turnOn) {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.lastBlock.get().height
 			});
+
+			WsRPCClient.prototype.attachSystemConstants({
+				nethash: __private.nethash,
+				version: __private.version,
+				nonce: __private.nonce,
+				broadhash: library.modules.system.getBroadhash(),
+				height: library.modules.system.getHeight()
+			});
+
 			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
 		});
 	}

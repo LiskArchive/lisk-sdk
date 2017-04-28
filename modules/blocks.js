@@ -101,42 +101,54 @@ Blocks.prototype.lastBlock = {
 	}
 };
 
-/**
- * Last Receipt functions: get, update and isStale.
- * @property {function} get Returns lastReceipt
- * @property {function} update Updates lastReceipt
- * @property {function} isStale Returns status of last receipt - if it fresh or not
- */
-Blocks.prototype.lastReceipt = {
-	get: function () {
-		return __private.lastReceipt;
-	},
-	update: function () {
-		__private.lastReceipt = Math.floor(Date.now() / 1000);
-		return __private.lastReceipt;
-	},
-	/**
-	 * Returns status of last receipt - if it stale or not
-	 *
-	 * @public
-	 * @method lastReceipt.isStale
-	 * @return {Boolean} Stale status of last receipt
-	 */
-	isStale: function () {
-		if (!__private.lastReceipt) { return true; }
-		// Current time in seconds - lastReceipt (seconds)
-		var secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
-		return (secondsAgo > constants.blockReceiptTimeOut);
-	}
+Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
+	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
+	var ready = [];
+
+	async.eachSeries(transactions, function (transaction, cb) {
+		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
+			if (err || !sender) {
+				return setImmediate(cb, 'Sender not found');
+			}
+
+			if (library.logic.transaction.ready(transaction, sender)) {
+				library.logic.transaction.verify(transaction, sender, function (err) {
+					ready.push(transaction);
+					return setImmediate(cb);
+				});
+			} else {
+				return setImmediate(cb);
+			}
+		});
+	}, function () {
+		var block;
+
+		try {
+			block = library.logic.block.create({
+				keypair: keypair,
+				timestamp: timestamp,
+				previousBlock: __private.lastBlock,
+				transactions: ready
+			});
+		} catch (e) {
+			library.logger.error(e.stack);
+			return setImmediate(cb, e);
+		}
+
+
+		self.processBlock(block, true, cb, true);
+	});
 };
 
-Blocks.prototype.isActive = {
-	get: function () {
-		return __private.isActive;
-	},
-	set: function (isActive) {
-		__private.isActive = isActive;
-		return __private.isActive;
+// Main function to process a Block.
+// * Verify the block looks ok
+// * Verify the block is compatible with database state (DATABASE readonly)
+// * Apply the block to database if both verifications are ok
+Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
+	if (__private.cleanup) {
+		return setImmediate(cb, 'Cleaning up');
+	} else if (!__private.loaded) {
+		return setImmediate(cb, 'Blockchain is loading');
 	}
 };
 

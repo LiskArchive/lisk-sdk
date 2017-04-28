@@ -505,6 +505,15 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
 			}
 			library.network.io.sockets.emit('blocks/change', block);
+			console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT  --- ON onNewBlock --- received sending new config: ', broadhash, modules.system.getHeight());
+
+			// library.network.app.rpc.sharedClient.broadcast('peerUpdate', {peer: {
+			// 	broadhash: broadhash,
+			// 	ip: constants.externalAddress,
+			// 	port: modules.system.getPort(),
+			// 	nonce: modules.system.getNonce(),
+			// 	height: modules.system.getHeight()
+			// }});
 		});
 	}
 };
@@ -607,19 +616,28 @@ Transport.prototype.internal = {
 	},
 
 	list: function (req, cb) {
-		modules.peers.list({limit: constants.maxPeers}, function (err, peers) {
+		req = req || {};
+		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list', Object.assign({}, {limit: constants.maxPeers}, req.query));
+		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
+			if (err) 		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list ERROR', err);
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
 	},
 
 	height: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.blocks.lastBlock.get().height});
+		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: height');
+		return setImmediate(cb, null, {success: true, height: modules.system.getHeight()});
 	},
 
 	ping: function (req, cb) {
 		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: ping');
 		return setImmediate(cb, null, {success: true});
+	},
+
+	status: function (req, cb) {
+		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: status');
+		return setImmediate(cb, null, {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash()});
 	},
 
 	postSignatures: function (query, cb) {
@@ -752,6 +770,11 @@ Transport.prototype.internal = {
 				return setImmediate(cb, null, extend({}, body, {success: true}));
 			}
 		});
+	},
+
+	onPeerUpdate: function (query) {
+		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE: onPeerUpdate', query);
+		library.logic.peers.update(query.peer);
 	},
 
 	handshake: function (ip, port, headers, validateHeaders, cb) {

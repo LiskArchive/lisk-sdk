@@ -61,6 +61,7 @@ program
 	.version(packageJson.version)
 	.option('-c, --config <path>', 'config file path')
 	.option('-p, --port <port>', 'listening port number')
+	.option('-d, --database <database>', 'database name')
 	.option('-a, --address <ip>', 'listening host name or ip')
 	.option('-x, --peers [peers...]', 'peers list')
 	.option('-l, --log <level>', 'log level')
@@ -267,14 +268,28 @@ d.run(function () {
 			});
 		}],
 
-		webSocket: ['connect', 'network', function (scope, cb) {
+		webSocket: ['config', 'connect', 'network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: 1,
-				port: 8000,
+				port: parseInt(scope.config.port) + 1000,
+				// port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
 				workerController: './api/ws/workersController',
-				perMessageDeflate: false
+				perMessageDeflate: false,
+				secretKey: 'dupa',
+				// The interval in milliseconds on which to
+				// send a ping to the client to check that
+				// it is still alive
+				pingInterval: 5000,
+
+				// How many milliseconds to wait without receiving a ping
+				// before closing the socket
+				pingTimeout: 60000,
+
+				// Maximum amount of milliseconds to wait before force-killing
+				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
+				processTermTimeout: 10000
 			};
 
 			if (scope.config.ssl.enabled) {
@@ -343,6 +358,7 @@ d.run(function () {
 			var randomString = require('randomstring');
 
 			scope.nonce = randomString.generate(16);
+			// scope.nonce = 'ABCD';
 			process.env['NONCE'] = scope.nonce;
 			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));

@@ -18,7 +18,8 @@ function TransportWSApi (transportModule, app, logger) {
 		blocks: transportModule.internal.blocks,
 		list: transportModule.internal.list,
 		height: transportModule.internal.height,
-		getTransactions: transportModule.internal.getTransactions
+		getTransactions: transportModule.internal.getTransactions,
+		status: transportModule.internal.status
 	};
 
 	this.eventEndpoints = {
@@ -29,7 +30,8 @@ function TransportWSApi (transportModule, app, logger) {
 		postSignatures: transportModule.internal.postSignatures,
 		postTransactions: transportModule.internal.postTransactions,
 		postDappMessage: transportModule.internal.postDappMessage,
-		postDappRequest: transportModule.internal.postDappRequest
+		postDappRequest: transportModule.internal.postDappRequest,
+		peerUpdate: transportModule.internal.onPeerUpdate
 	};
 
 	console.log('\x1b[36m%s\x1b[0m', 'TransportWSApi ----- invoke registerWorkerReceiver', app.rpc.server.registerRPCEndpoints);

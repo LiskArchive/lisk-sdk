@@ -94,17 +94,22 @@ Peer.prototype.accept = function (peer) {
 
 	if (this.ip && this.port) {
 		this.string = this.ip + ':' + this.port;
-		this.rpc = new WsRPCClient(this.ip, this.port);
 	}
 
 	return this;
 };
 
-/**
- * Normalizes peer data.
- * @param {peer} peer
- * @return {peer} 
- */
+Peer.prototype.attachRPC = function (cb) {
+	if (!this.ip || !this.port) {
+		return setImmediate(cb, 'No ip or port set in peer');
+	}
+	if (this.rpc) {
+		return this;
+	}
+	new WsRPCClient(this.ip, this.port, cb);
+	return this;
+};
+
 Peer.prototype.normalize = function (peer) {
 	if (peer.dappid && !Array.isArray(peer.dappid)) {
 		var dappid = peer.dappid;

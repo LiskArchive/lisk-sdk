@@ -1,46 +1,6 @@
 'use strict';
 
-/**
- * @namespace constants
- * @memberof module:helpers
- * @property {number} activeDelegates - The default number of delegates.
- * @property {number} addressLength - The default address length.
- * @property {number} blockHeaderLength - The default block header length.
- * @property {number} blockReceiptTimeOut
- * @property {number} confirmationLength
- * @property {Date} epochTime
- * @property {object} fees - The default values for fees.
- * @property {number} fees.send
- * @property {number} fees.vote
- * @property {number} fees.secondsignature
- * @property {number} fees.delegate
- * @property {number} fees.multisignature
- * @property {number} fees.dapp
- * @property {number} feeStart
- * @property {number} feeStartVolume
- * @property {number} fixedPoint
- * @property {number} maxAddressesLength
- * @property {number} maxAmount
- * @property {number} maxConfirmations
- * @property {number} maxPayloadLength
- * @property {number} maxPeers
- * @property {number} maxRequests
- * @property {number} maxSharedTxs
- * @property {number} maxSignaturesLength
- * @property {number} maxTxsPerBlock
- * @property {number} minBroadhashConsensus
- * @property {string[]} nethashes - Mainnet and Testnet.
- * @property {number} numberLength
- * @property {number} requestLength
- * @property {object} rewards
- * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
- * @property {number} rewards.offset - Start rewards at block (n).
- * @property {number} rewards.distance - Distance between each milestone
- * @property {number} signatureLength
- * @property {number} totalAmount
- * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
- */
-module.exports = {
+var constants = {
 	activeDelegates: 101,
 	addressLength: 208,
 	blockHeaderLength: 248,
@@ -93,3 +53,5 @@ module.exports = {
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
 };
+
+module.exports = constants;

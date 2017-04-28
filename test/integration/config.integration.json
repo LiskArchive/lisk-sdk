@@ -1,6 +1,6 @@
 {
-    "port": 4000,
-    "address": "0.0.0.0",
+    "port": 4002,
+    "address": "127.0.0.1",
     "version": "0.0.0a",
     "minVersion": "0.0.0a",
     "fileLogLevel": "info",
@@ -12,7 +12,7 @@
     "db": {
         "host": "localhost",
         "port": 5432,
-        "database": "lisk_local",
+        "database": "lisk_local_1",
         "user": "",
         "password": "password",
         "poolSize": 95,
@@ -21,12 +21,6 @@
         "logEvents": [
             "error"
         ]
-    },
-    "redis": {
-        "host": "127.0.0.1",
-        "port": 6380,
-        "db": 0,
-        "password": null
     },
     "api": {
         "enabled": true,
@@ -47,10 +41,12 @@
     },
     "peers": {
         "enabled": true,
-        "list": [{
-            "ip": "127.0.0.1",
-            "port": "4001"
-        }],
+        "list": [
+            {
+                "ip": "127.0.0.1",
+                "port": 4001
+            }
+        ],
         "access": {
             "blackList": []
         },
@@ -203,5 +199,6 @@
         "masterpassword": "F6XK8Zn5EYr5",
         "autoexec": []
     },
-    "nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
+    "nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d",
+    "database": "lisk_local_1"
 }

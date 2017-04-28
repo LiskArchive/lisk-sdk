@@ -26,6 +26,10 @@ function Peers (logger, cb) {
 	};
 	self = this;
 	__private.peers = {};
+
+	setInterval(function () {
+		console.log('\x1b[36m%s\x1b[0m', 'PEERS LOGIC --- peers ---- ', __private.peers);
+	}.bind(this), 5000);
 	return setImmediate(cb, null, this);
 }
 
@@ -176,7 +180,7 @@ Peers.prototype.list = function (normalize) {
 	if (normalize) {
 		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].object(); });
 	} else {
-		return Object.keys(__private.peers).map(function (key) { return __private.peers[key]; });
+		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].attachRPC(); });
 	}
 };
 
