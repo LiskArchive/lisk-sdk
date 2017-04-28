@@ -11,19 +11,21 @@ var middleware = {
 
 	Handshake: function (system) {
 		return function (headers, cb) {
+
+			var peer = new Peer({
+				ip: headers.ip,
+				port: headers.port,
+				nonce: headers.nonce
+			});
+
 			z_schema.validate(headers, schema.headers, function (error) {
 				if (error) {
 					return setImmediate(cb, {
 						success: false,
 						error: error,
 						code: 'EHEADERS'
-					}, null);
+					}, peer);
 				}
-
-				var peer = new Peer({
-					ip: headers.ip,
-					port: headers.port
-				});
 
 				headers = peer.applyHeaders(headers);
 

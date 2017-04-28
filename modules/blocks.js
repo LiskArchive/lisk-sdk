@@ -1043,6 +1043,7 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 			return setImmediate(cb, e);
 		}
 
+
 		self.processBlock(block, true, cb, true);
 	});
 };

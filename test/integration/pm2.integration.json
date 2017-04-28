@@ -1,0 +1,27 @@
+{
+  "apps": [
+    {
+      "exec_mode": "fork",
+      "script": "app.js",
+      "name": "lisk-test-node-0",
+      "args": "-p 4001 -x 127.0.0.1:4002 -d lisk_local_0",
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "error_file": "./test/integration/logs/lisk-test-node-0.err.log",
+      "out_file": "./test/integration/logs/lisk-test-node-0.out.log"
+    },
+    {
+      "exec_mode": "fork",
+      "script": "app.js",
+      "name": "lisk-test-node-1",
+      "args": "-p 4002 -x 127.0.0.1:4001 -d lisk_local_1",
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "error_file": "./test/integration/logs/lisk-test-node-1.err.log",
+      "out_file": "./test/integration/logs/lisk-test-node-1.out.log"
+    }
+  ]
+}
+

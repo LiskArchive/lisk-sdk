@@ -68,9 +68,19 @@ Peer.prototype.accept = function (peer) {
 
 	if (this.ip && this.port) {
 		this.string = this.ip + ':' + this.port;
-		this.rpc = new WsRPCClient(this.ip, this.port);
 	}
 
+	return this;
+};
+
+Peer.prototype.attachRPC = function (cb) {
+	if (!this.ip || !this.port) {
+		return setImmediate(cb, 'No ip or port set in peer');
+	}
+	if (this.rpc) {
+		return this;
+	}
+	new WsRPCClient(this.ip, this.port, cb);
 	return this;
 };
 
