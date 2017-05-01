@@ -209,7 +209,7 @@ Transaction.prototype.checkConfirmed = function (trs, cb) {
 
 Transaction.prototype.checkBalance = function (amount, balance, trs, sender) {
 	var exceededBalance = new bignum(sender[balance].toString()).lessThan(amount);
-	var exceeded = (trs.blockId !== genesisblock.block.id && exceededBalance);
+	var exceeded = (trs.blockId !== genesisblock.block.id && exceededBalance && exceptions.balance.indexOf(trs.id) === -1);
 
 	return {
 		exceeded: exceeded,
