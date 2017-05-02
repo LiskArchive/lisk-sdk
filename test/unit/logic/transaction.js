@@ -81,11 +81,16 @@ function getValidTransactionData () {
 		type: 0,
 		amount: 232420792390,
 		sender: node.gAccount,
+		senderId: node.gAccount.address,
 		timestamp: 24177404,
 		recipientId: '11483172656590824880L',
 		data: '50b92d',
-		keypair: keypair
+		keypair: keypair,
+		senderPublicKey: node.gAccount.publicKey,
+		fee: 20000000
 	};
+
+
 	return trsData;
 }
 
@@ -158,6 +163,20 @@ describe('transaction', function () {
 			var trsData = getValidTransactionData();
 			expect(transaction.create(trsData).data).to.be.a('string');
 		});
+
+		it('should return transaction fee based on transaction type and data field', function () {
+			var trsData = getValidTransactionData();
+			delete trsData.fee;
+			expect(transaction.create(trsData).fee).to.equal(20000000);
+		});
+
+		it('should return transaction fee based on transaction type', function () {
+			var trsData = getValidTransactionData();
+			delete trsData.data;
+			delete trsData.fee;
+			expect(transaction.create(trsData).fee).to.equal(10000000);
+		});
+
 
 	});
 
@@ -418,6 +437,30 @@ describe('transaction', function () {
 			transaction.verify(validTransaction, validSender, {}, function (err, res) {
 				expect(err).to.be.empty;
 				expect(res).to.be.empty;
+				done();
+			});
+		});
+
+	
+		it('should verify transaction with correct fee (with data field)', function (done) {
+			var trsData = getValidTransactionData();
+			var trsSignature = transaction.sign(trsData.keypair, trsData);
+			trsData.signature = trsSignature;
+			transaction.verify(trsData, trsData.sender, {}, function (err, res) {
+				expect(err).to.be.empty;
+				done();
+			});
+		});
+
+		it('should verify transaction with correct fee (without data field)', function (done) {
+			var trsData = getValidTransactionData();
+			// remove trs data field and set fee to correct value
+			delete trsData.data;
+			trsData.fee = 10000000;
+			var trsSignature = transaction.sign(trsData.keypair, trsData);
+			trsData.signature = trsSignature;
+			transaction.verify(trsData, trsData.sender, {}, function (err, res) {
+				expect(err).to.be.empty;
 				done();
 			});
 		});
