@@ -48,6 +48,8 @@ Rounds.prototype.flush = function (round, cb) {
 };
 
 Rounds.prototype.directionSwap = function (direction, lastBlock, cb) {
+	library.logger.debug('Changing round direction to', direction);
+
 	__private.feesByRound = {};
 	__private.rewardsByRound = {};
 	__private.delegatesByRound = {};
@@ -88,6 +90,8 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 
 	function BackwardTick (t) {
 		var promised = new Round(scope, t);
+
+		library.logger.debug('Performing backward tick', scope);
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
@@ -158,6 +162,8 @@ Rounds.prototype.tick = function (block, done) {
 
 	function Tick (t) {
 		var promised = new Round(scope, t);
+
+		library.logger.debug('Performing forward tick', scope);
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
@@ -252,6 +258,8 @@ __private.getOutsiders = function (scope, cb) {
 };
 
 __private.sumRound = function (round, cb) {
+	library.logger.debug('Summing round', round);
+
 	library.db.query(sql.summedRound, { round: round, activeDelegates: constants.activeDelegates }).then(function (rows) {
 		var rewards = [];
 
@@ -262,6 +270,10 @@ __private.sumRound = function (round, cb) {
 		__private.feesByRound[round] = Math.floor(rows[0].fees);
 		__private.rewardsByRound[round] = rewards;
 		__private.delegatesByRound[round] = rows[0].delegates;
+
+		library.logger.debug('feesByRound', __private.feesByRound[round]);
+		library.logger.debug('rewardsByRound', __private.rewardsByRound[round]);
+		library.logger.debug('delegatesByRound', __private.delegatesByRound[round]);
 
 		return setImmediate(cb);
 	}).catch(function (err) {
