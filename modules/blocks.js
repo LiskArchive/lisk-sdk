@@ -399,7 +399,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		undoUnconfirmedList: function (seriesCb) {
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
 				if (err) {
-					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+					// Fatal error, memory tables will be inconsistent
 					return process.exit(0);
 				} else {
 					unconfirmedTransactionIds = ids;
@@ -466,7 +466,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						// Fatal error, memory tables will be inconsistent
 						process.exit(0);
 					}
 					// DATABASE: write
@@ -475,7 +475,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
-							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+							// Fatal error, memory tables will be inconsistent
 							process.exit(0);
 						}
 						// Transaction applied, removed from the unconfirmed list.
@@ -497,7 +497,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					if (err) {
 						library.logger.error('Failed to save block...');
 						library.logger.error('Block', block);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						// Fatal error, memory tables will be inconsistent
 						process.exit(0);
 					}
 
