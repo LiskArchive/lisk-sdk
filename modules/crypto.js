@@ -31,5 +31,5 @@ Crypto.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 };
 
-// Shared
+// Export
 module.exports = Crypto;

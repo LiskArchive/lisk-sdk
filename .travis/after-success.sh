@@ -8,12 +8,12 @@ TRAVIS_BRANCH=$5
 TRAVIS_PULL_REQUEST_BRANCH=$6
 
 if [ ${TEST_TYPE} == "FUNC" ]; then
-  npm run fetchCoverage;
+	npm run fetchCoverage;
 fi
 bash .travis/send-report.sh \
-    ${TRAVIS_BUILD_NUMBER} \
-    ${JOB_NUMBER} \
-    ${TEST_TYPE} \
-    ${TRAVIS_BUILD_DIR} \
-    ${TRAVIS_BRANCH} \
-    ${TRAVIS_PULL_REQUEST_BRANCH};
+	${TRAVIS_BUILD_NUMBER} \
+	${JOB_NUMBER} \
+	${TEST_TYPE} \
+	${TRAVIS_BUILD_DIR} \
+	${TRAVIS_BRANCH} \
+	${TRAVIS_PULL_REQUEST_BRANCH};

@@ -137,7 +137,8 @@ describe('peer', function () {
 				version: '0.0.0',
 				dappid: ['test dappid'],
 				broadhash: 'test broadhash',
-				height: 3
+				height: 3,
+				nonce: 'ABCD123'
 			};
 			expect(_.isEqual(_.keys(updateData), peer.headers)).to.be.ok;
 			peer.update(updateData);

@@ -405,7 +405,7 @@ describe('GET /accounts', function () {
 		getAccounts('address=' + node.gAccount.address + '&publicKey=' + account.publicKey, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			node.expect(res.body.error).to.contain('Account publicKey do not match address');
+			node.expect(res.body.error).to.contain('Account publicKey does not match address');
 			done();
 		});
 	});

@@ -29,49 +29,20 @@ var BlocksSql = {
     return [
       'WITH',
       'delegate AS (SELECT',
-        '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE (${generatorPublicKey}, \'hex\') LIMIT 1),',
-      'borders AS (SELECT',
-        '(SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b ORDER BY b.height DESC LIMIT 1) AS current,',
-        '(SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b',
-          (params.start !== undefined ? ' WHERE b.timestamp >= ${start}' : ''),
-          'ORDER BY b.height ASC LIMIT 1) AS min,',
-        '(SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b',
-          (params.end !== undefined ? ' WHERE b.timestamp <= ${end}' : ''),
-          'ORDER BY b.height DESC LIMIT 1) AS max',
+        '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE(${generatorPublicKey}, \'hex\') LIMIT 1),',
+      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards FROM blocks WHERE "generatorPublicKey" = DECODE(${generatorPublicKey}, \'hex\')',
+          (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
+          (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       '),',
-      'r AS (SELECT DISTINCT ',
-        'CEIL(b.height / ${delegates}::float)::bigint AS round',
-        'FROM blocks b WHERE b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\')),',
-      're AS (SELECT r.round AS round, ((r.round-1)*${delegates})+1 AS min, r.round*${delegates} AS max',
-        'FROM r WHERE r.round >= (SELECT min FROM borders) AND round <= (SELECT max FROM borders)),',
-      'sum_min AS (SELECT',
-        'SUM(CASE WHEN b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') THEN b.reward ELSE 0 END) AS rewards,',
-        'SUM(CASE WHEN b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') THEN 1 ELSE 0 END) AS blocks',
-        'FROM blocks b WHERE b.height BETWEEN (SELECT min FROM re ORDER BY round ASC LIMIT 1) AND (SELECT max FROM re ORDER BY round ASC LIMIT 1)',
-        (params.start !== undefined ? 'AND b.timestamp >= ${start}' : ''),
-      '),',
-      'sum_max AS (SELECT',
-        'SUM(CASE WHEN b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') THEN b.reward ELSE 0 END) AS rewards,',
-        'SUM(CASE WHEN b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') THEN 1 ELSE 0 END) AS blocks',
-        'FROM blocks b WHERE b.height BETWEEN (SELECT min FROM re ORDER BY round DESC LIMIT 1) AND (SELECT max FROM re ORDER BY round DESC LIMIT 1)',
-        (params.end !== undefined ? 'AND b.timestamp <= ${end}' : ''),
-      '),',
-      'rs AS (SELECT re.*, SUM(b."totalFee") AS fees,',
-        'SUM(CASE WHEN b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') THEN b.reward ELSE 0 END) AS rewards,',
-        'SUM(CASE WHEN b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') THEN 1 ELSE 0 END) AS blocks',
-        'FROM re, blocks b WHERE b.height BETWEEN re.min AND re.max GROUP BY re.round, re.min, re.max),',
-      'rsc AS (SELECT',
-        '(CASE WHEN round = borders.current THEN 0 ELSE fees END), round,',
-        '(CASE WHEN round = borders.min THEN (SELECT blocks FROM sum_min) ELSE (CASE WHEN round = borders.max THEN (SELECT blocks FROM sum_max) ELSE blocks END) END) AS blocks,',
-        '(CASE WHEN round = borders.min THEN (SELECT rewards FROM sum_min) ELSE (CASE WHEN round = borders.max THEN (SELECT rewards FROM sum_max) ELSE rewards END) END) AS rewards,',
-        '(SELECT 1 FROM blocks b WHERE b.height = rs.max AND b."generatorPublicKey" = DECODE (${generatorPublicKey}, \'hex\') LIMIT 1) AS last',
-        'FROM rs, borders)',
+      'fees AS (SELECT SUM(fees) AS fees FROM rounds_fees WHERE "publicKey" = DECODE(${generatorPublicKey}, \'hex\')',
+          (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
+          (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
+      ')',
       'SELECT',
         '(SELECT * FROM delegate) AS delegate,',
-        'SUM(rsc.blocks) AS count,',
-        'SUM(floor(rsc.fees/${delegates})*rsc.blocks + (CASE WHEN rsc.last = 1 THEN (rsc.fees-floor(rsc.fees/${delegates})*${delegates}) ELSE 0 END)) AS fees,',
-        'SUM(rsc.rewards) AS rewards',
-        'FROM rsc'
+        '(SELECT count FROM rewards) AS count,',
+        '(SELECT fees FROM fees) AS fees,',
+        '(SELECT rewards FROM rewards) AS rewards'
     ].filter(Boolean).join(' ');
   },
 
@@ -86,7 +57,17 @@ var BlocksSql = {
 
   getById: 'SELECT * FROM blocks_list WHERE "b_id" = ${id}',
 
-  getIdSequence: 'SELECT (ARRAY_AGG("id" ORDER BY "height" ASC))[1] AS "id", MIN("height") AS "height", CAST("height" / ${delegates} AS INTEGER) + (CASE WHEN "height" % ${activeDelegates} > 0 THEN 1 ELSE 0 END) AS "round" FROM blocks WHERE "height" <= ${height} GROUP BY "round" ORDER BY "height" DESC LIMIT ${limit}',
+  getIdSequence: function () {
+    return [
+      'WITH',
+      'current_round AS (SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b WHERE b.height <= ${height} ORDER BY b.height DESC LIMIT 1),',
+      'rounds AS (SELECT * FROM generate_series((SELECT * FROM current_round), (SELECT * FROM current_round) - ${limit} + 1, -1))',
+      'SELECT',
+        'b.id, b.height, CEIL(b.height / ${delegates}::float)::bigint AS round',
+        'FROM blocks b',
+        'WHERE b.height IN (SELECT ((n - 1) * ${delegates}) + 1 FROM rounds AS s(n)) ORDER BY height DESC'
+    ].filter(Boolean).join(' ');
+  },
 
   getCommonBlock: function (params) {
     return [

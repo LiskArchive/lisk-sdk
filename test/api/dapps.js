@@ -773,18 +773,8 @@ describe('PUT /api/dapps/withdrawal', function () {
 
 			putWithdrawal(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				if (res.body.error !== 'Transaction is already processed: ' + validParams.transactionId) {
-					node.get('/api/transactions/queued', function (err, trsRes) {
-						node.expect(trsRes.body).to.have.property('success').to.be.ok;
-						node.expect(trsRes.body.transactions).to.be.an('array').and.to.have.length.of.at.least(1);
-						var trsQueued = trsRes.body.transactions.find(function (t) {
-							return t.asset.outTransfer.transactionId === validParams.transactionId;
-						});
-						node.expect(trsQueued).to.be.not.empty;
-						node.expect(res.body).to.have.property('error').to.equal('Transaction is already processed: ' + trsQueued.id);
-						done();
-					});
-				}
+				node.expect(res.body).to.have.property('error').to.contain('Transaction is already processed');
+				done();
 			});
 		});
 	});

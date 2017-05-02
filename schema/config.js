@@ -76,14 +76,20 @@ module.exports = {
 			api: {
 				type: 'object',
 				properties: {
+					enabled: {
+						type: 'boolean'
+					},
 					access: {
 						type: 'object',
 						properties: {
+							public: {
+								type: 'boolean'
+							},
 							whiteList: {
 								type: 'array'
 							}
 						},
-						required: ['whiteList']
+						required: ['public', 'whiteList']
 					},
 					options: {
 						type: 'object',
@@ -110,16 +116,25 @@ module.exports = {
 						required: ['limits']
 					}
 				},
-				required: ['access', 'options']
+				required: ['enabled', 'access', 'options']
 			},
 			peers: {
 				type: 'object',
 				properties: {
+					enabled: {
+						type: 'boolean'
+					},
 					list: {
 						type: 'array'
 					},
-					blackList: {
-						type: 'array'
+					access: {
+						type: 'object',
+						properties: {
+							blackList: {
+								type: 'array'
+							}
+						},
+						required: ['blackList']
 					},
 					options: {
 						properties: {
@@ -148,7 +163,7 @@ module.exports = {
 						required: ['limits', 'timeout']
 					}
 				},
-				required: ['list', 'blackList', 'options']
+				required: ['enabled', 'list', 'access', 'options']
 			},
 			broadcasts: {
 				type: 'object',
@@ -178,7 +193,17 @@ module.exports = {
 						minimum: 1,
 						maximum: 100
 					}
-				}
+				},
+				required: ['broadcastInterval', 'broadcastLimit', 'parallelLimit', 'releaseLimit', 'relayLimit']
+			},
+			transactions: {
+				type: 'object',
+				maxTxsPerQueue: {
+					type: 'integer',
+					minimum: 100,
+					maximum: 5000
+				},
+				required: ['maxTxsPerQueue']
 			},
 			forging: {
 				type: 'object',
@@ -263,6 +288,6 @@ module.exports = {
 				format: 'hex'
 			}
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'forging', 'loading', 'ssl', 'dapp', 'nethash']
+		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash']
 	}
 };
