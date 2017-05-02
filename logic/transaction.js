@@ -15,6 +15,15 @@ var self, modules, __private = {}, genesisblock = null;
 
 __private.types = {};
 
+// Private methods
+__private.calulateFee = function (trs, sender) {
+	var fee = 0;
+	if ( trs.data ) {
+		fee = constants.fees.data;
+	}
+	return __private.types[trs.type].calculateFee.call(this, trs, sender) + fee || false;
+};
+
 // Constructor
 function Transaction (scope, cb) {
 	this.scope = scope;
@@ -57,8 +66,7 @@ Transaction.prototype.create = function (data) {
 	}
 
 	trs.id = this.getId(trs);
-
-	trs.fee = __private.types[trs.type].calculateFee.call(this, trs, data.sender) || false;
+	trs.fee = __private.calculateFee(trs, data.sender);
 
 	return trs;
 };
@@ -428,7 +436,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Calculate fee
-	var fee = __private.types[trs.type].calculateFee.call(this, trs, sender) || false;
+	var fee = __private.calulateFee(trs, sender);
 	if (!fee || trs.fee !== fee) {
 		return setImmediate(cb, 'Invalid transaction fee');
 	}
