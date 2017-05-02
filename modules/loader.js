@@ -1,8 +1,10 @@
 'use strict';
 
 var async = require('async');
+var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
 var ip = require('ip');
+var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
 var sql = require('../sql/loader.js');
@@ -27,18 +29,41 @@ function Loader (cb, scope) {
 	library = scope;
 	self = this;
 
-	__private.initialize();
+	__private.initalize();
+	__private.attachApi();
 	__private.genesisBlock = __private.lastBlock = library.genesisblock;
 
 	setImmediate(cb, null, self);
 }
 
 // Private methods
-__private.initialize = function () {
+__private.initalize = function () {
 	__private.network = {
 		height: 0, // Network height
-		peers: [] // "Good" peers and with height close to network height
+		peers: [], // "Good" peers and with height close to network height
 	};
+};
+
+__private.attachApi = function () {
+	var router = new Router();
+
+	router.get('/status/ping', function (req, res) {
+		__private.ping(function (status, body) {
+			return res.status(status).json(body);
+		});
+	});
+
+	router.map(shared, {
+		'get /status': 'status',
+		'get /status/sync': 'sync'
+	});
+
+	library.network.app.use('/api/loader', router);
+	library.network.app.use(function (err, req, res, next) {
+		if (!err) { return next(); }
+		library.logger.error('API error ' + req.url, err.message);
+		res.status(500).send({success: false, error: 'API error: ' + err.message});
+	});
 };
 
 __private.syncTrigger = function (turnOn) {
@@ -72,7 +97,7 @@ __private.syncTimer = function () {
 			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
-					__private.initialize();
+					__private.initalize();
 				}
 
 				return setTimeout(nextSync, __private.syncInterval);
@@ -466,7 +491,7 @@ __private.sync = function (cb) {
 			return modules.transactions.undoUnconfirmedList(seriesCb);
 		},
 		getPeersBefore: function (seriesCb) {
-			library.logger.debug('Establishing broadhash consensus before sync');
+			library.logger.debug('Establishling broadhash consensus before sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 		},
 		loadBlocksFromNetwork: function (seriesCb) {
@@ -476,7 +501,7 @@ __private.sync = function (cb) {
 			return modules.system.update(seriesCb);
 		},
 		getPeersAfter: function (seriesCb) {
-			library.logger.debug('Establishing broadhash consensus after sync');
+			library.logger.debug('Establishling broadhash consensus after sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 		},
 		applyUnconfirmedList: function (seriesCb) {
@@ -580,10 +605,6 @@ Loader.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
-Loader.prototype.isLoaded = function () {
-	return !!modules;
-};
-
 // Events
 Loader.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready', {module: 'loader'});
@@ -622,7 +643,7 @@ Loader.prototype.onPeersReady = function () {
 			library.logger.trace('Transactions and signatures pulled');
 
 			if (err) {
-				__private.initialize();
+				__private.initalize();
 			}
 
 			return __private.syncTimer();
@@ -645,33 +666,34 @@ Loader.prototype.cleanup = function (cb) {
 	return setImmediate(cb);
 };
 
-// Internal API
-Loader.prototype.internal = {
-	statusPing: function () {
-		var lastBlock = modules.blocks.getLastBlock();
-		return lastBlock && lastBlock.fresh;
+// Private
+__private.ping = function (cb) {
+	var lastBlock = modules.blocks.getLastBlock();
+
+	if (lastBlock && lastBlock.fresh) {
+		return setImmediate(cb, 200, {success: true});
+	} else {
+		return setImmediate(cb, 503, {success: false});
 	}
 };
 
-// Shared API
-Loader.prototype.shared = {
-	status: function (req, cb) {
-		return setImmediate(cb, null, {
-			loaded: __private.loaded,
-			now: __private.lastBlock.height,
-			blocksCount: __private.total
-		});
-	},
+// Shared
+shared.status = function (req, cb) {
+	return setImmediate(cb, null, {
+		loaded: __private.loaded,
+		now: __private.lastBlock.height,
+		blocksCount: __private.total
+	});
+};
 
-	sync: function (req, cb) {
-		return setImmediate(cb, null, {
-			syncing: self.syncing(),
-			blocks: __private.blocksToSync,
-			height: modules.blocks.getLastBlock().height,
-			broadhash: modules.system.getBroadhash(),
-			consensus: modules.transport.consensus()
-		});
-	}
+shared.sync = function (req, cb) {
+	return setImmediate(cb, null, {
+		syncing: self.syncing(),
+		blocks: __private.blocksToSync,
+		height: modules.blocks.getLastBlock().height,
+		broadhash: modules.system.getBroadhash(),
+		consensus: modules.transport.consensus()
+	});
 };
 
 // Export

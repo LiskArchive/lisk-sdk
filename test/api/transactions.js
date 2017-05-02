@@ -20,12 +20,13 @@ function putTransaction (params, done) {
 	node.put('/api/transactions', params, done);
 }
 
-function sendLISK (account, amount, done) {
-	var expectedFee = node.expectedFee(amount);
+function sendLISK (account, done) {
+	var randomLISK = node.randomLISK();
+	var expectedFee = node.expectedFee(randomLISK);
 
 	putTransaction({
 		secret: node.gAccount.password,
-		amount: amount,
+		amount: randomLISK,
 		recipientId: account.address
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
@@ -33,9 +34,9 @@ function sendLISK (account, amount, done) {
 		transactionList.push({
 			'sender': node.gAccount.address,
 			'recipient': account.address,
-			'grossSent': (amount + expectedFee) / node.normalizer,
+			'grossSent': (randomLISK + expectedFee) / node.normalizer,
 			'fee': expectedFee / node.normalizer,
-			'netSent': amount / node.normalizer,
+			'netSent': randomLISK / node.normalizer,
 			'txId': res.body.transactionId,
 			'type': node.txTypes.SEND
 		});
@@ -45,27 +46,13 @@ function sendLISK (account, amount, done) {
 
 before(function (done) {
 	setTimeout(function () {
-		sendLISK(account, node.randomLISK(), done);
+		sendLISK(account, done);
 	}, 2000);
 });
 
 before(function (done) {
 	setTimeout(function () {
-		sendLISK(account2, node.randomLISK(), done);
-	}, 2000);
-});
-
-before(function (done) {
-	setTimeout(function () {
-		// Send 20 LSK
-		sendLISK(account2, 20*100000000, done);
-	}, 2000);
-});
-
-before(function (done) {
-	setTimeout(function () {
-		// Send 100 LSK
-		sendLISK(account2, 100*100000000, done);
+		sendLISK(account2, done);
 	}, 2000);
 });
 
@@ -126,36 +113,6 @@ describe('GET /api/transactions', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
-				}
-			}
-			done();
-		});
-	});
-
-	it('using minAmount with and:maxAmount ordered by amount and limited should be ok', function (done) {
-		var limit = 10;
-		var offset = 0;
-		var orderBy = 'amount:asc';
-		var minAmount = 20*100000000; // 20 LSK
-		var maxAmount = 100*100000000; // 100 LSK
-
-		var params = [
-			'minAmount=' + minAmount,
-			'and:maxAmount=' + maxAmount,
-			'limit=' + limit,
-			'offset=' + offset,
-			'orderBy=' + orderBy
-		];
-
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(2, limit);
-			node.expect(res.body.transactions[0].amount).to.be.equal(minAmount);
-			node.expect(res.body.transactions[res.body.transactions.length-1].amount).to.be.equal(maxAmount);
 			for (var i = 0; i < res.body.transactions.length; i++) {
 				if (res.body.transactions[i + 1]) {
 					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);

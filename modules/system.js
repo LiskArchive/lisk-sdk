@@ -24,7 +24,6 @@ function System (cb, scope) {
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;
 	__private.minVersion = library.config.minVersion;
-	__private.nonce = library.nonce;
 
 	if (rcRegExp.test(__private.minVersion)) {
 		this.minVersion = __private.minVersion.replace(rcRegExp, '');
@@ -35,6 +34,8 @@ function System (cb, scope) {
 
 	setImmediate(cb, null, self);
 }
+
+// Private methods
 
 // Public methods
 System.prototype.headers = function () {
@@ -137,6 +138,8 @@ System.prototype.sandboxApi = function (call, args, cb) {
 System.prototype.onBind = function (scope) {
 	modules = scope;
 };
+
+// Shared
 
 // Export
 module.exports = System;

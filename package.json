@@ -1,6 +1,6 @@
 {
   "name": "lisk",
-  "version": "0.8.1",
+  "version": "0.5.0",
   "private": true,
   "scripts": {
     "start": "node app.js",
@@ -8,8 +8,7 @@
     "travis": "./node_modules/.bin/grunt travis --verbose",
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose"
   },
-  "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-  "license": "GPL-3.0",
+  "author": "Boris Povod <boris@crypti.me>, Pavel Nekrasov <landgraf.paul@gmail.com>, Oliver Beddows <oliver@lisk.io>",
   "dependencies": {
     "async": "=2.1.4",
     "bignumber.js": "=4.0.0",
@@ -27,7 +26,7 @@
     "express-query-int": "=1.0.1",
     "express-rate-limit": "=2.6.0",
     "extend": "=3.0.0",
-    "ip": "=1.1.5",
+    "ip": "https://github.com/LiskHQ/node-ip/tarball/ec401f16915024450bf9b843eeb4c5366ef5235c",
     "json-schema": "=0.2.3",
     "json-sql": "LiskHQ/json-sql#27e1ed1",
     "lisk-sandbox": "LiskHQ/lisk-sandbox#162da38",
@@ -63,6 +62,7 @@
     "grunt-contrib-compress": "=1.4.1",
     "grunt-eslint": "=19.0.0",
     "grunt-exec": "=1.0.1",
+    "grunt-jsdox": "=0.1.7",
     "grunt-obfuscator": "=0.1.0",
     "istanbul": "=0.4.5",
     "istanbul-middleware": "=0.2.2",

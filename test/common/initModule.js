@@ -2,8 +2,6 @@
 
 var express = require('express');
 var path = require('path');
-var randomString = require('randomstring');
-
 var _ = require('lodash');
 
 var async = require('../node').async;
@@ -29,8 +27,7 @@ var modulesLoader = new function () {
 		schema: new z_schema(),
 		bus: {
 			message: function () {}
-		},
-		nonce: randomString.generate(16)
+		}
 	};
 
 	/**
@@ -69,7 +66,7 @@ var modulesLoader = new function () {
 				this.getDbConnection(waterCb);
 			}.bind(this),
 			function (db, waterCb) {
-				scope = _.merge(this.scope, {db: db}, scope);
+				scope = _.merge(this.scope, {db: db});
 				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
@@ -79,7 +76,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope = _.merge(this.scope, {logic: logic}, scope);
+				scope = _.merge(this.scope, {logic: logic});
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
@@ -95,9 +92,8 @@ var modulesLoader = new function () {
 	 * Initializes all created Modules in directory
 	 *
 	 * @param {Function} cb
-	 * @param {object} [scope={}] scope
 	 */
-	this.initAllModules = function (cb, scope) {
+	this.initAllModules = function (cb) {
 		this.initModules([
 			{accounts: require('../../modules/accounts')},
 			{blocks: require('../../modules/blocks')},
@@ -118,7 +114,7 @@ var modulesLoader = new function () {
 			{'account': require('../../logic/account')},
 			{'block': require('../../logic/block')},
 			{'peers': require('../../logic/peers.js')}
-		], scope || {}, cb);
+		], {}, cb);
 	};
 
 	/**
