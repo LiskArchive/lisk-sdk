@@ -18,11 +18,9 @@ describe('RoundChanges', function () {
 				feesByRound: {
 					1: 500
 				},
-				unFeesByRound: {},
 				rewardsByRound: {
 					1: [0, 0, 100, 10]
-				},
-				unRewardsByRound: {}
+				}
 			}
 		};
 	});
@@ -58,19 +56,6 @@ describe('RoundChanges', function () {
 			var roundChanges = new RoundChanges(validScope);
 
 			node.expect(roundChanges.roundFees).equal(Infinity);
-		});
-
-		it('should accept backwards values when present', function () {
-			validScope.__private.unRewardsByRound[1] = validScope.__private.rewardsByRound[1].map(function (reward) {
-				return reward + 1;
-			});
-			validScope.__private.unFeesByRound[1] = validScope.__private.feesByRound[1] + 1;
-			validScope.backwards = true;
-
-			var roundChanges = new RoundChanges(validScope);
-
-			node.expect(roundChanges.roundFees).equal(validScope.__private.unFeesByRound[1]);
-			node.expect(_.isEqual(roundChanges.roundRewards, validScope.__private.unRewardsByRound[1])).to.be.ok;
 		});
 	});
 
