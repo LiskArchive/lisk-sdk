@@ -678,9 +678,9 @@ __private.receiveBlock = function (block, cb) {
 	library.logger.info([
 		'Received new block id:', block.id,
 		'height:', block.height,
-		'round:',  modules.rounds.calc(modules.blocks.getLastBlock().height),
+		'round:',  modules.rounds.calc(block.height),
 		'slot:', slots.getSlotNumber(block.timestamp),
-		'reward:', modules.blocks.getLastBlock().reward
+		'reward:', block.reward
 	].join(' '));
 
 	self.lastReceipt(new Date());
