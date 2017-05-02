@@ -53,13 +53,13 @@ WorkerController.prototype.run = function (worker) {
 			}],
 
 			system: ['config', function (scope, cb) {
-				console.log('\x1b[32m%s\x1b[0m', 'slaveWAMPServer system -- config');
+				console.log('\x1b[32m%s\x1b[0m', 'slaveWAMPServer system -- config', scope.config);
 				new System(cb, {config: scope.config});
 			}],
 
 			handshake: ['system', function (scope, cb) {
-				console.log('\x1b[32m%s\x1b[0m', 'slaveWAMPServer handshake -- system');
 				var handshake = Handshake(scope.system);
+				console.log('\x1b[32m%s\x1b[0m', 'slaveWAMPServer handshake -- system', scope.system.getNonce(), scope.system.getNethash());
 
 				scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, function (req, next) {
 					console.log('\x1b[32m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE: headers, host, socket', req.headers.host, _.get(url.parse(req.url, true), 'query', {}));
@@ -88,7 +88,7 @@ WorkerController.prototype.run = function (worker) {
 					function sendActionToMaster(procedure, data, error) {
 						return scope.slaveWAMPServer.sendToMaster(procedure, data, req.headers.host, function (err, peer) {
 							console.log('\x1b[32m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE FINISH: invoking cb with err: ');
-							return next(error || err);
+							return next(error);
 						});
 					}
 
@@ -114,7 +114,8 @@ WorkerController.prototype.run = function (worker) {
 					var payload = {
 						peer: new Peer({
 							ip: headers.ip,
-							port: headers.port
+							port: headers.port,
+							nonce: headers.nonce
 						}),
 						extraMessage: 'extraMessage'
 					};

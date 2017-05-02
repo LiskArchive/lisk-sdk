@@ -15,16 +15,7 @@ function WsRPCServer (socketCluster, childProcessConfig) {
 	this.sharedClient = {
 		broadcast: function (method, data) {
 			console.log('\x1b[31m%s\x1b[0m', 'sharedClient: broadcast --- scClient --- ', Object.keys(this.server.clients));
-
 			this.server.broadcast(method, data);
-			// _.each(this.server.clients, function (socket) {
-			// 	console.log('\x1b[31m%s\x1b[0m', 'sharedClient: broadcast --- socket --- ', socket.id);
-			// 	socket.emit(method, data);
-			// });
-			// this.scClient.publish(method, data);
-			// this.scClient.connections.forEach(function (socket) {
-			// 	socket.emit(method, data);
-			// });
 		}.bind(this),
 
 		sendToPeer: function (peer, procedure, data) {
@@ -35,10 +26,6 @@ function WsRPCServer (socketCluster, childProcessConfig) {
 			return peerSocket.wampSend(procedure, data);
 		}.bind(this)
 	};
-
-	// setInterval(function () {
-	// 	this.sharedClient.broadcast('dupaEmit', 99);
-	// }.bind(this), 2000)
 }
 
 //ip + port -> socketId
@@ -46,7 +33,7 @@ WsRPCServer.prototype.wsClientsConnectionsMap = {};
 WsRPCServer.prototype.wampClient = new WAMPClient();
 WsRPCServer.prototype.scClient = scClient;
 
-function WsRPCClient (ip, port, cb) {
+function WsRPCClient (ip, port) {
 
 	console.log('new RPC Client created');
 
@@ -64,12 +51,17 @@ function WsRPCClient (ip, port, cb) {
 		query: WsRPCClient.prototype.systemHeaders
 	};
 
+	console.log('new RPC Client created');
+
+	this.socketReady = Q.defer();
+
 	//return registered client if established before
 	if (WsRPCServer.prototype.wsClientsConnectionsMap[address]) {
 		var clientSocket = WsRPCServer.prototype.scClient.connections[WsRPCServer.prototype.wsClientsConnectionsMap[address]];
-		return setImmediate(cb, null, clientSocket);
+		this.socketReady.resolve();
+		return clientSocket;
 	} else {
-		this.initializeNewConnection(options, address, cb);
+		this.initializeNewConnection(options, address, this.socketReady);
 	}
 
 	// this.sendAfterSocketReady = function (procedureName) {
@@ -89,23 +81,29 @@ function WsRPCClient (ip, port, cb) {
 		return function () {
 			var cb = _.isFunction(_.last(arguments)) ? _.last(arguments) : _.noop();
 			var data = !_.isFunction(arguments[0]) ? arguments[0] : {};
-				console.log('\x1b[38m%s\x1b[0m', 'RPC CLIENT --- SOCKET READY - SENDING REQ: ', procedureName, data);
+			console.log('\x1b[38m%s\x1b[0m', 'RPC CLIENT --- SOCKET READY - SENDING REQ: ', procedureName, data);
+			this.socketReady.promise.then(function () {
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
 					})
 					.catch(function (err) {
-						console.log('\x1b[38m%s\x1b[0m', 'BANNING PEER AFTER WRONG RESPONSE');
+						console.log('\x1b[38m%s\x1b[0m', 'BANNING PEER AFTER WRONG RESPONSE', procedureName);
 						return setImmediate(cb, err);
 					});
+			}).catch(function (err) {
+				console.log('\x1b[38m%s\x1b[0m', 'RPC CLIENT - Connection rejected by failed handshake', procedureName, data, err);
+				this.socketReady = Q.defer();
+				return setImmediate(cb, 'RPC CLIENT - Connection rejected by failed handshake procedure --- ', procedureName, err);
+			}.bind(this));
 		}.bind(this);
 	}.bind(this);
 
 	console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: server ---');
-	return this.clientStub(this.sendAfterSocketReadyCb);
+	this.clientStub(this.sendAfterSocketReadyCb, this);
 }
 
-WsRPCClient.prototype.initializeNewConnection = function (options, address, cb) {
+WsRPCClient.prototype.initializeNewConnection = function (options, address, socketReady) {
 
 	console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: initializeNewConnection --- with: ', options);
 
@@ -115,7 +113,7 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, cb) 
 
 	clientSocket.on('error', function (err) {
 		console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: HANDSHAKE ERROR --- with: ', options.ip, options.port);
-		return setImmediate(cb, 'Socket error - ' + err);
+		return socketReady.reject('WsRPCClient: HANDSHAKE ERROR --- with: ', options.ip, options.port);
 	});
 
 	clientSocket.on('connect', function (data) {
@@ -134,7 +132,7 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, cb) 
 		// 		return socketReady.reject();
 		// 	});
 		// } else {
-			return setImmediate(cb, null, clientSocket);
+		return socketReady.resolve(clientSocket);
 		// }
 	});
 
@@ -142,9 +140,9 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, cb) 
 		console.log('CLIENT STARTED HANDSHAKE');
 	});
 
-	clientSocket.on('connectAbort', function (data) {
-		console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: HANDSHAKE ABORT --- with: ',  options.ip, options.port, data);
-		return setImmediate(cb, 'CLIENT HANDSHAKE REJECTED' + JSON.stringify(data));
+	clientSocket.on('connectAbort', function (err, data) {
+		console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: HANDSHAKE ABORT --- with: ',  options.ip, options.port, data, err);
+		return socketReady.reject(err);
 	});
 };
 
@@ -152,6 +150,7 @@ WsRPCClient.prototype.clientStub = function (handler) {
 	if (!WsRPCServer.prototype.server) {
 		return {};
 	}
+
 	return _.reduce(Object.assign({}, WsRPCServer.prototype.server.endpoints.rpc, WsRPCServer.prototype.server.endpoints.event),
 		function (availableCalls, procedureHandler, procedureName) {
 			availableCalls[procedureName] = handler(procedureName);
