@@ -400,6 +400,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
 				if (err) {
 					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo unconfirmed list', err);
 					return process.exit(0);
 				} else {
 					unconfirmedTransactionIds = ids;
