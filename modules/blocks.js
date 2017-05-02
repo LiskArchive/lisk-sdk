@@ -961,7 +961,7 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 
 	async.series({
 		backwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('backward', null, seriesCb);
+			modules.rounds.directionSwap('backward', __private.lastBlock, seriesCb);
 		},
 		popLastBlock: function (seriesCb) {
 			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
@@ -1235,7 +1235,7 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 
 	async.series({
 		backwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('backward', null, seriesCb);
+			modules.rounds.directionSwap('backward', __private.lastBlock, seriesCb);
 		},
 		popBlocks: function (seriesCb) {
 			async.whilst(
