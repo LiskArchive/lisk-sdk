@@ -16,9 +16,6 @@ __private.ticking = false;
 __private.feesByRound = {};
 __private.rewardsByRound = {};
 __private.delegatesByRound = {};
-__private.unFeesByRound = {};
-__private.unRewardsByRound = {};
-__private.unDelegatesByRound = {};
 
 // Constructor
 function Rounds (cb, scope) {
@@ -51,22 +48,14 @@ Rounds.prototype.flush = function (round, cb) {
 };
 
 Rounds.prototype.directionSwap = function (direction, lastBlock, cb) {
-	if (direction === 'backward') {
-		__private.feesByRound = {};
-		__private.rewardsByRound = {};
-		__private.delegatesByRound = {};
+	__private.feesByRound = {};
+	__private.rewardsByRound = {};
+	__private.delegatesByRound = {};
 
-		return setImmediate(cb);
+	if (lastBlock) {
+		return __private.sumRound(self.calc(lastBlock.height), cb);
 	} else {
-		__private.unFeesByRound = {};
-		__private.unRewardsByRound = {};
-		__private.unDelegatesByRound = {};
-
-		if (lastBlock) {
-			return __private.sumRound(self.calc(lastBlock.height), cb);
-		} else {
-			return setImmediate(cb);
-		}
+		return setImmediate(cb);
 	}
 };
 
@@ -74,14 +63,14 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	var round = self.calc(block.height);
 	var prevRound = self.calc(previousBlock.height);
 
-	__private.unFeesByRound[round] = Math.floor(__private.unFeesByRound[round]) || 0;
-	__private.unFeesByRound[round] += Math.floor(block.totalFee);
+	__private.feesByRound[round] = Math.floor(__private.feesByRound[round]) || 0;
+	__private.feesByRound[round] += Math.floor(block.totalFee);
 
-	__private.unRewardsByRound[round] = (__private.unRewardsByRound[round] || []);
-	__private.unRewardsByRound[round].push(block.reward);
+	__private.rewardsByRound[round] = (__private.rewardsByRound[round] || []);
+	__private.rewardsByRound[round].push(block.reward);
 
-	__private.unDelegatesByRound[round] = __private.unDelegatesByRound[round] || [];
-	__private.unDelegatesByRound[round].push(block.generatorPublicKey);
+	__private.delegatesByRound[round] = __private.delegatesByRound[round] || [];
+	__private.delegatesByRound[round].push(block.generatorPublicKey);
 
 	var scope = {
 		modules: modules,
@@ -89,11 +78,11 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		block: block,
 		round: round,
 		backwards: true,
-		delegates: __private.unDelegatesByRound[round]
+		delegates: __private.delegatesByRound[round]
 	};
 
 	scope.finishRound = (
-		(prevRound !== round && __private.unDelegatesByRound[round].length === slots.delegates) ||
+		(prevRound !== round && __private.delegatesByRound[round].length === slots.delegates) ||
 		(previousBlock.height === 1)
 	);
 
@@ -103,9 +92,9 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
 				return promised.land().then(function () {
-					delete __private.unFeesByRound[round];
-					delete __private.unRewardsByRound[round];
-					delete __private.unDelegatesByRound[round];
+					delete __private.feesByRound[round];
+					delete __private.rewardsByRound[round];
+					delete __private.delegatesByRound[round];
 				}).then(function () {
 					return promised.markBlockId();
 				});
