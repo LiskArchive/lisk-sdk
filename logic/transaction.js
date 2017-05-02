@@ -16,7 +16,7 @@ var self, modules, __private = {}, genesisblock = null;
 __private.types = {};
 
 // Private methods
-__private.calulateFee = function (trs, sender) {
+__private.calculateFee = function (trs, sender) {
 	var fee = 0;
 	if ( trs.data ) {
 		fee = constants.fees.data;
@@ -436,7 +436,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Calculate fee
-	var fee = __private.calulateFee(trs, sender);
+	var fee = __private.calculateFee(trs, sender);
 	if (!fee || trs.fee !== fee) {
 		return setImmediate(cb, 'Invalid transaction fee');
 	}
