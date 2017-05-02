@@ -99,14 +99,13 @@ Peer.prototype.accept = function (peer) {
 	return this;
 };
 
-Peer.prototype.attachRPC = function (cb) {
+Peer.prototype.attachRPC = function () {
 	if (!this.ip || !this.port) {
 		return setImmediate(cb, 'No ip or port set in peer');
 	}
-	if (this.rpc) {
-		return this;
+	if (!this.rpc) {
+		this.rpc = new WsRPCClient(this.ip, this.port);
 	}
-	new WsRPCClient(this.ip, this.port, cb);
 	return this;
 };
 

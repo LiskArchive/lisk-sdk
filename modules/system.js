@@ -50,7 +50,7 @@ function System (cb, scope) {
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;
 	__private.minVersion = library.config.minVersion;
-	__private.nonce = library.nonce;
+	__private.nonce = library.config.nonce;
 
 	if (rcRegExp.test(__private.minVersion)) {
 		this.minVersion = __private.minVersion.replace(rcRegExp, '');
@@ -224,17 +224,17 @@ System.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
-
-System.prototype.onNewBlock = function () {
-	modules.system.update(function (err) {
-		if (err) {
-			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE ERROR", err);
-		} else {
-			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE SUCCESS", modules.system.getHeight(), modules.system.getBroadhash());
-
-		}
-	});
-};
+// ToDo: Done in transport module already in the same event
+// System.prototype.onNewBlock = function () {
+// 	modules.system.update(function (err) {
+// 		if (err) {
+// 			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE ERROR", err);
+// 		} else {
+// 			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE SUCCESS", modules.system.getHeight(), modules.system.getBroadhash());
+//
+// 		}
+// 	});
+// };
 // Events
 /**
  * Assigns used modules to modules variable.

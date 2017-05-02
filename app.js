@@ -310,9 +310,15 @@ d.run(function () {
 				nethash: scope.config.nethash,
 				nonce: scope.nonce
 			};
-			scope.network.app.rpc = new WsRPCServer(new SocketCluster(webSocketConfig), childProcessOptions);
 
-			cb();
+			var socketCluster = new SocketCluster(webSocketConfig);
+			scope.network.app.rpc = new WsRPCServer(socketCluster, childProcessOptions);
+
+			socketCluster.on('ready', function (err, result) {
+				console.log('APP.JS --- SOCKET CLUSTER READY', result, err);
+				cb();
+			});
+
 		}],
 
 		dbSequence: ['logger', function (scope, cb) {

@@ -169,19 +169,13 @@ __private.insertSeeds = function (cb) {
 	async.each(library.config.peers.list, function (peer, eachCb) {
 		peer = library.logic.peers.create(peer);
 		library.logger.trace('Processing seed peer: ' + peer.string);
-		peer.attachRPC(function (err, peer) {
-			console.log('Peers-> insert seeds cb ', err, peer);
-			if (err) {
-				return setImmediate(eachCb);
-			}
-			peer.rpc.status(function (err, status) {
-				if (err) {
-					return setImmediate(eachCb);
-				}
+		peer.attachRPC();
+		peer.rpc.status(function (err, status) {
+			if (!err) {
 				peer.height = status.height;
 				peer.broadhash = status.broadhash;
 				++updated;
-			});
+			}
 			return setImmediate(eachCb);
 		});
 
@@ -212,19 +206,15 @@ __private.dbLoad = function (cb) {
 		async.each (rows, function (peer, eachCb) {
 
 			function updatePeer (peer) {
-				peer.attachRPC(function (err, peer) {
-					if (err) {
-						return setImmediate(eachCb);
+				peer.attachRPC();
+				peer.rpc.status(function (err, status) {
+					if (!err) {
+						peer.height = status.height;
+						peer.broadhash = status.broadhash;
+						++updated;
 					}
-					peer.rpc.status(function (err, status) {
-						if (!err) {
-							peer.height = status.height;
-							peer.broadhash = status.broadhash;
-							++updated;
-						}
-						return setImmediate(eachCb);
+					return setImmediate(eachCb);
 
-					});
 				});
 			}
 
