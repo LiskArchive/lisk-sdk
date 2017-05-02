@@ -579,30 +579,30 @@ d.run(function () {
 			/**
 			 * Handles app instance (acts as global variable, passed as parameter).
 			 * @global
-			 * @typedef scope
-			 * @type {Object}
-			 * @property {Object} scope.api - Undefined.
-			 * @property {undefined} scope.balancesSequence - Sequence function, sequence Array.
-			 * @property {string} scope.build - Empty.
-			 * @property {Object} scope.bus - Message function, bus constructor.
-			 * @property {Object} scope.config - Configuration.
-			 * @property {undefined} scope.connect - Undefined.
-			 * @property {Object} scope.db - Database constructor, database functions.
-			 * @property {function} scope.dbSequence - Database function.
-			 * @property {Object} scope.ed - Crypto functions from lisk node-sodium.
-			 * @property {Object} scope.genesisblock - Block information.
-			 * @property {string} scope.lastCommit - Hash transaction.
-			 * @property {Object} scope.listen - Network information.
-			 * @property {Object} scope.logger - Log functions.
-			 * @property {Object} scope.logic - several logic functions and objects.
-			 * Repeats: bus, ed, genesisblock, logger, schema.
-			 * @property {Object} scope.modules - Several modules functions.
-			 * @property {Object} scope.network - Several network functions.
-			 * @property {string} scope.nonce - ??
-			 * @property {string} scope.public - Path to lisk public folder.
-			 * @property {undefined} scope.ready - ??
-			 * @property {Object} scope.schema - ZSchema with objects.
-			 * @property {Object} scope.sequence - Sequence function, sequence Array.
+			 * @typedef {Object} scope
+			 * @property {Object} api - Undefined.
+			 * @property {undefined} balancesSequence - Sequence function, sequence Array.
+			 * @property {string} build - Empty.
+			 * @property {Object} bus - Message function, bus constructor.
+			 * @property {Object} config - Configuration.
+			 * @property {undefined} connect - Undefined.
+			 * @property {Object} db - Database constructor, database functions.
+			 * @property {function} dbSequence - Database function.
+			 * @property {Object} ed - Crypto functions from lisk node-sodium.
+			 * @property {Object} genesisblock - Block information.
+			 * @property {string} lastCommit - Hash transaction.
+			 * @property {Object} listen - Network information.
+			 * @property {Object} logger - Log functions.
+			 * @property {Object} logic - several logic functions and objects.
+			 * @property {Object} modules - Several modules functions.
+			 * @property {Object} network - Several network functions.
+			 * @property {string} nonce
+			 * @property {string} public - Path to lisk public folder.
+			 * @property {undefined} ready
+			 * @property {Object} schema - ZSchema with objects.
+			 * @property {Object} sequence - Sequence function, sequence Array.
+			 * @todo logic repeats: bus, ed, genesisblock, logger, schema.
+			 * @todo description for nonce and ready
 			 */
 			scope.logger.info('Modules ready and launched');
 			/**

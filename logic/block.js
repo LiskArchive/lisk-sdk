@@ -226,6 +226,23 @@ Block.prototype.dbSave = function (block) {
 	};
 };
 
+/**
+ * @typedef {Object} block
+ * @property {string} id - Between 1 and 20 chars
+ * @property {number} height
+ * @property {signature} blockSignature
+ * @property {publicKey} generatorPublicKey
+ * @property {number} numberOfTransactions
+ * @property {hash} payloadHash
+ * @property {number} payloadLength
+ * @property {string} previousBlock - Between 1 and 20 chars
+ * @property {number} timestamp
+ * @property {number} totalAmount - Minimun 0
+ * @property {number} totalFee - Minimun 0
+ * @property {number} reward - Minimun 0
+ * @property {Array} transactions - Unique items
+ * @property {number} version - Minimun 0
+ */
 Block.prototype.schema = {
 	id: 'Block',
 	type: 'object',

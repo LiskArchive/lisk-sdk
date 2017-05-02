@@ -174,7 +174,7 @@ Transfer.prototype.objectNormalize = function (trs) {
 };
 
 /**
- * @param {string} raw
+ * @param {Object} raw
  * @return {null}
  */
 Transfer.prototype.dbRead = function (raw) {
@@ -190,11 +190,12 @@ Transfer.prototype.dbSave = function (trs) {
 };
 
 /**
+ * Checks sender multisignatures and transaction signatures.
  * @param {transaction} trs
  * @param {account} sender
- * @return {boolean} true if is not multisignature
+ * @return {boolean} True if transaction signatures greather than 
+ * sender multimin or there are not sender multisignatures.
  */
-
 Transfer.prototype.ready = function (trs, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 		if (!Array.isArray(trs.signatures)) {

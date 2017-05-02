@@ -35,6 +35,7 @@ DApp.prototype.bind = function (scope) {
  * Creates transaction.asset.dapp based on data.
  * @param {dapp} data
  * @param {transaction} trs
+ * @return {transaction} trs with new data
  */
 DApp.prototype.create = function (data, trs) {
 	trs.recipientId = null;

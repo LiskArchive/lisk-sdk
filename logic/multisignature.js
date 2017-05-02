@@ -186,10 +186,8 @@ Multisignature.prototype.process = function (trs, sender, cb) {
  * @requires bytebuffer
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
  * @param {transaction} trs - Uses multisignature from asset.
- * @param {undefined} skip
+ * @param {boolean} skip
  * @returns {!Array} Contents as an ArrayBuffer.
- * @throws {error} If buffer fails.
- * @todo check extra skip parameter, check if this function is called.
  */
 Multisignature.prototype.getBytes = function (trs, skip) {
 	var keysgroupBuffer = new Buffer(trs.asset.multisignature.keysgroup.join(''), 'utf8');

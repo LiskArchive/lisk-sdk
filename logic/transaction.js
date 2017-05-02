@@ -962,6 +962,10 @@ Transaction.prototype.afterSave = function (trs, cb) {
  * @property {Object} asset
  * @property {multisignature} [asset.multisignature]
  * @property {signature} [asset.signature]
+ * @property {dapp} [asset.dapp]
+ * @property {Object} [asset.outTransfer] - Contains dappId and transactionId
+ * @property {Object} [asset.inTransfer] - Contains dappId
+ * @property {votes} [asset.votes] - Contains multiple votes to a transactionId
  * 
  */
 Transaction.prototype.schema = {
