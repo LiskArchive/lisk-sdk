@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+var url = require('url');
 var checkIpInList = require('./checkIpInList');
 var Z_schema = require('../helpers/z_schema.js');
 var schema = require('../schema/transport.js');
@@ -67,6 +69,19 @@ var middleware = {
 	}
 };
 
+var extractHeaders = function (request) {
+	var headers = _.get(url.parse(request.url, true), 'query', {});
+	if (!headers) {
+		throw new Error('No headers specified');
+	}
+
+	headers.ip = request.headers.host.split(':')[0];
+	headers.port = parseInt(headers.port);
+
+	return headers;
+};
+
 module.exports = {
-	middleware: middleware
+	middleware: middleware,
+	extractHeaders: extractHeaders
 };

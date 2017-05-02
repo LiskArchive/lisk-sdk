@@ -143,8 +143,8 @@ describe('RPC', function () {
 					node.expect(result).to.have.property('broadhash').to.be.a('string');
 					done();
 				}).catch(function (err) {
-				done(err);
-			});
+					done(err);
+				});
 		});
 	});
 
@@ -159,6 +159,20 @@ describe('RPC', function () {
 				}).catch(function (err) {
 					done(err);
 				});
+		});
+
+		it('should should work ok with asking for a list multiple times', function (done) {
+
+			for (var i = 0; i < 100; i += 1) {
+				clientSocket.wampSend('list')
+					.then(function (result) {
+						node.expect(result).to.have.property('success').to.be.ok;
+						node.expect(result).to.have.property('peers').to.be.an('array');
+						done();
+					}).catch(function (err) {
+						done(err);
+					});
+			}
 		});
 	});
 });

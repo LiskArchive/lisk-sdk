@@ -308,7 +308,8 @@ d.run(function () {
 				version: scope.config.version,
 				minVersion: scope.config.minVersion,
 				nethash: scope.config.nethash,
-				nonce: scope.nonce
+				port: scope.config.port,
+				nonce: scope.config.nonce
 			};
 
 			var socketCluster = new SocketCluster(webSocketConfig);
@@ -363,9 +364,8 @@ d.run(function () {
 			var queryParser = require('express-query-int');
 			var randomString = require('randomstring');
 
-			scope.nonce = randomString.generate(16);
-			// scope.nonce = 'ABCD';
-			process.env['NONCE'] = scope.nonce;
+			scope.config.nonce = randomString.generate(16);
+			process.env['NONCE'] = scope.config.nonce;
 			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));

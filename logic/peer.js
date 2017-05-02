@@ -100,10 +100,7 @@ Peer.prototype.accept = function (peer) {
 };
 
 Peer.prototype.attachRPC = function () {
-	if (!this.ip || !this.port) {
-		return setImmediate(cb, 'No ip or port set in peer');
-	}
-	if (!this.rpc) {
+	if (this.ip && this.port && !this.rpc) {
 		this.rpc = new WsRPCClient(this.ip, this.port);
 	}
 	return this;
@@ -120,6 +117,7 @@ Peer.prototype.normalize = function (peer) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
 
+	console.trace(peer);
 	peer.port = this.parseInt(peer.port, 0);
 	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 

@@ -620,7 +620,11 @@ Transport.prototype.internal = {
 		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list', Object.assign({}, {limit: constants.maxPeers}, req.query));
 		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
-			if (err) 		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list ERROR', err);
+			if (err) 		{console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list ERROR', err);}
+			peers = peers.map(function (peer) {
+				delete peer.rpc;
+				return peer;
+			});
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
 	},
