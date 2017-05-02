@@ -57,14 +57,6 @@ __private.syncTrigger = function (turnOn) {
 				height: modules.blocks.getLastBlock().height
 			});
 
-			WsRPCClient.prototype.attachSystemConstants({
-				nethash: __private.nethash,
-				version: __private.version,
-				nonce: __private.nonce,
-				broadhash: library.modules.system.getBroadhash(),
-				height: library.modules.system.getHeight()
-			});
-
 			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
 		});
 	}
