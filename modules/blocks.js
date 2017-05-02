@@ -639,10 +639,24 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					}
 				], cb);
 			}, function (err) {
-				modules.rounds.backwardTick(oldLastBlock, previousBlock, function () {
+				if (err) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo transactions', err);
+					return process.exit(0);
+				}
+
+				modules.rounds.backwardTick(oldLastBlock, previousBlock, function (err) {
+					if (err) {
+						// Fatal error, memory tables will be inconsistent
+						library.logger.error('Failed to perform backwards tick', err);
+						return process.exit(0);
+					}
+
 					__private.deleteBlock(oldLastBlock.id, function (err) {
 						if (err) {
-							return setImmediate(cb, err);
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to delete block', err);
+							return process.exit(0);
 						}
 
 						return setImmediate(cb, null, previousBlock);
@@ -967,10 +981,11 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
 				if (err) {
 					library.logger.error('Error deleting last block', __private.lastBlock);
+					return setImmediate(seriesCb, err);
+				} else {
+					__private.lastBlock = newLastBlock;
+					return setImmediate(seriesCb);
 				}
-
-				__private.lastBlock = newLastBlock;
-				return setImmediate(seriesCb);
 			});
 		},
 		forwardSwap: function (seriesCb) {
