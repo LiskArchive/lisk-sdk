@@ -65,8 +65,8 @@ InTransfer.prototype.getBytes = function (trs) {
 	var buf;
 
 	try {
-		buf = new Buffer([]);
-		var nameBuf = new Buffer(trs.asset.inTransfer.dappId, 'utf8');
+		buf = Buffer.from([]);
+		var nameBuf = Buffer.from(trs.asset.inTransfer.dappId, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 	} catch (e) {
 		throw e;

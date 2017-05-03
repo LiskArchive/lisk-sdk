@@ -38,7 +38,7 @@ Signature.prototype.verify = function (trs, sender, cb) {
 	}
 
 	try {
-		if (!trs.asset.signature.publicKey || new Buffer(trs.asset.signature.publicKey, 'hex').length !== 32) {
+		if (!trs.asset.signature.publicKey || Buffer.from(trs.asset.signature.publicKey, 'hex').length !== 32) {
 			return setImmediate(cb, 'Invalid public key');
 		}
 	} catch (e) {
@@ -58,7 +58,7 @@ Signature.prototype.getBytes = function (trs) {
 
 	try {
 		bb = new ByteBuffer(32, true);
-		var publicKeyBuffer = new Buffer(trs.asset.signature.publicKey, 'hex');
+		var publicKeyBuffer = Buffer.from(trs.asset.signature.publicKey, 'hex');
 
 		for (var i = 0; i < publicKeyBuffer.length; i++) {
 			bb.writeByte(publicKeyBuffer[i]);
@@ -149,7 +149,7 @@ Signature.prototype.dbSave = function (trs) {
 	var publicKey;
 
 	try {
-		publicKey = new Buffer(trs.asset.signature.publicKey, 'hex');
+		publicKey = Buffer.from(trs.asset.signature.publicKey, 'hex');
 	} catch (e) {
 		throw e;
 	}

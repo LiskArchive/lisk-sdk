@@ -180,7 +180,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			var publicKey = action.slice(1);
 
 			try {
-				new Buffer(publicKey, 'hex');
+				Buffer.from(publicKey, 'hex');
 			} catch (e) {
 				library.logger.error(e.stack);
 				return setImmediate(cb, 'Invalid public key');

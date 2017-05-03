@@ -143,7 +143,7 @@ d.run(function () {
 	async.auto({
 		config: function (cb) {
 			try {
-				appConfig.nethash = new Buffer(genesisblock.payloadHash, 'hex').toString('hex');
+				appConfig.nethash = Buffer.from(genesisblock.payloadHash, 'hex').toString('hex');
 			} catch (e) {
 				logger.error('Failed to assign nethash from genesis block');
 				throw Error(e);

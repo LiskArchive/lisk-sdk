@@ -163,26 +163,26 @@ DApp.prototype.getBytes = function (trs) {
 	var buf;
 
 	try {
-		buf = new Buffer([]);
-		var nameBuf = new Buffer(trs.asset.dapp.name, 'utf8');
+		buf = Buffer.from([]);
+		var nameBuf = Buffer.from(trs.asset.dapp.name, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 
 		if (trs.asset.dapp.description) {
-			var descriptionBuf = new Buffer(trs.asset.dapp.description, 'utf8');
+			var descriptionBuf = Buffer.from(trs.asset.dapp.description, 'utf8');
 			buf = Buffer.concat([buf, descriptionBuf]);
 		}
 
 		if (trs.asset.dapp.tags) {
-			var tagsBuf = new Buffer(trs.asset.dapp.tags, 'utf8');
+			var tagsBuf = Buffer.from(trs.asset.dapp.tags, 'utf8');
 			buf = Buffer.concat([buf, tagsBuf]);
 		}
 
 		if (trs.asset.dapp.link) {
-			buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.link, 'utf8')]);
+			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.link, 'utf8')]);
 		}
 
 		if (trs.asset.dapp.icon) {
-			buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.icon, 'utf8')]);
+			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.icon, 'utf8')]);
 		}
 
 		var bb = new ByteBuffer(4 + 4, true);

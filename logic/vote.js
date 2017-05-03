@@ -116,7 +116,7 @@ Vote.prototype.getBytes = function (trs) {
 	var buf;
 
 	try {
-		buf = trs.asset.votes ? new Buffer(trs.asset.votes.join(''), 'utf8') : null;
+		buf = trs.asset.votes ? Buffer.from(trs.asset.votes.join(''), 'utf8') : null;
 	} catch (e) {
 		throw e;
 	}

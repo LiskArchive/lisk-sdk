@@ -420,7 +420,7 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 		}
 		// Check format
 		try {
-			new Buffer(publicKey, 'hex');
+			Buffer.from(publicKey, 'hex');
 		} catch (e) {
 			throw 'Invalid public key, must be a hex string';
 		}
@@ -430,7 +430,7 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 Account.prototype.toDB = function (raw) {
 	this.binary.forEach(function (field) {
 		if (raw[field]) {
-			raw[field] = new Buffer(raw[field], 'hex');
+			raw[field] = Buffer.from(raw[field], 'hex');
 		}
 	});
 

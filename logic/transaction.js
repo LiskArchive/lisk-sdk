@@ -90,7 +90,7 @@ Transaction.prototype.multisign = function (keypair, trs) {
 
 Transaction.prototype.getId = function (trs) {
 	var hash = this.getHash(trs);
-	var temp = new Buffer(8);
+	var temp = Buffer.alloc(8);
 	for (var i = 0; i < 8; i++) {
 		temp[i] = hash[7 - i];
 	}
@@ -119,13 +119,13 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 		bb.writeByte(trs.type);
 		bb.writeInt(trs.timestamp);
 
-		var senderPublicKeyBuffer = new Buffer(trs.senderPublicKey, 'hex');
+		var senderPublicKeyBuffer = Buffer.from(trs.senderPublicKey, 'hex');
 		for (i = 0; i < senderPublicKeyBuffer.length; i++) {
 			bb.writeByte(senderPublicKeyBuffer[i]);
 		}
 
 		if (trs.requesterPublicKey) {
-			var requesterPublicKey = new Buffer(trs.requesterPublicKey, 'hex');
+			var requesterPublicKey = Buffer.from(trs.requesterPublicKey, 'hex');
 			for (i = 0; i < requesterPublicKey.length; i++) {
 				bb.writeByte(requesterPublicKey[i]);
 			}
@@ -153,14 +153,14 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 		}
 
 		if (!skipSignature && trs.signature) {
-			var signatureBuffer = new Buffer(trs.signature, 'hex');
+			var signatureBuffer = Buffer.from(trs.signature, 'hex');
 			for (i = 0; i < signatureBuffer.length; i++) {
 				bb.writeByte(signatureBuffer[i]);
 			}
 		}
 
 		if (!skipSecondSignature && trs.signSignature) {
-			var signSignatureBuffer = new Buffer(trs.signSignature, 'hex');
+			var signSignatureBuffer = Buffer.from(trs.signSignature, 'hex');
 			for (i = 0; i < signSignatureBuffer.length; i++) {
 				bb.writeByte(signSignatureBuffer[i]);
 			}
@@ -495,15 +495,15 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
 	var res;
 
 	try {
-		var data2 = new Buffer(bytes.length);
+		var data2 = Buffer.alloc(bytes.length);
 
 		for (var i = 0; i < data2.length; i++) {
 			data2[i] = bytes[i];
 		}
 
 		var hash = crypto.createHash('sha256').update(data2).digest();
-		var signatureBuffer = new Buffer(signature, 'hex');
-		var publicKeyBuffer = new Buffer(publicKey, 'hex');
+		var signatureBuffer = Buffer.from(signature, 'hex');
+		var publicKeyBuffer = Buffer.from(publicKey, 'hex');
 
 		res = this.scope.ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
 	} catch (e) {
@@ -663,10 +663,10 @@ Transaction.prototype.dbSave = function (trs) {
 	var senderPublicKey, signature, signSignature, requesterPublicKey;
 
 	try {
-		senderPublicKey = new Buffer(trs.senderPublicKey, 'hex');
-		signature = new Buffer(trs.signature, 'hex');
-		signSignature = trs.signSignature ? new Buffer(trs.signSignature, 'hex') : null;
-		requesterPublicKey = trs.requesterPublicKey ? new Buffer(trs.requesterPublicKey, 'hex') : null;
+		senderPublicKey = Buffer.from(trs.senderPublicKey, 'hex');
+		signature = Buffer.from(trs.signature, 'hex');
+		signSignature = trs.signSignature ? Buffer.from(trs.signSignature, 'hex') : null;
+		requesterPublicKey = trs.requesterPublicKey ? Buffer.from(trs.requesterPublicKey, 'hex') : null;
 	} catch (e) {
 		throw e;
 	}
