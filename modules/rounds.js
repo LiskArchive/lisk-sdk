@@ -89,6 +89,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		},
 		function (cb) {
 			scope.delegates = __private.delegatesByRound[scope.round];
+			scope.outsiders = [];
 
 			if (scope.finishRound) {
 				return __private.getOutsiders(scope, cb);
@@ -161,6 +162,7 @@ Rounds.prototype.tick = function (block, done) {
 		},
 		function (cb) {
 			scope.delegates = __private.delegatesByRound[scope.round];
+			scope.outsiders = [];
 
 			if (scope.finishRound) {
 				return __private.getOutsiders(scope, cb);
