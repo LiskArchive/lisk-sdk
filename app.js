@@ -135,7 +135,7 @@ var d = require('domain').create();
 
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exit(0);
+	process.exitCode = 0;
 });
 
 d.run(function () {
@@ -499,7 +499,7 @@ d.run(function () {
 					} else {
 						scope.logger.info('Cleaned up successfully');
 					}
-					process.exit(1);
+					process.exitCode = 1;
 				});
 			});
 

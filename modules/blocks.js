@@ -315,7 +315,7 @@ __private.applyGenesisBlock = function (block, cb) {
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...
-			return process.exit(0);
+			return process.exitCode = 0;
 		} else {
 			__private.lastBlock = block;
 			modules.rounds.tick(__private.lastBlock, cb);
@@ -400,7 +400,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
 				if (err) {
 					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-					return process.exit(0);
+					return process.exitCode = 0;
 				} else {
 					unconfirmedTransactionIds = ids;
 					return setImmediate(seriesCb);
@@ -467,7 +467,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
 						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-						process.exit(0);
+						process.exitCode = 0;
 					}
 					// DATABASE: write
 					modules.transactions.apply(transaction, block, sender, function (err) {
@@ -476,7 +476,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-							process.exit(0);
+							process.exitCode = 0;
 						}
 						// Transaction applied, removed from the unconfirmed list.
 						modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -498,7 +498,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						library.logger.error('Failed to save block...');
 						library.logger.error('Block', block);
 						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
-						process.exit(0);
+						process.exitCode = 0;
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');

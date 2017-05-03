@@ -11,7 +11,7 @@ function Config (configPath) {
 
 	if (!configData.length) {
 		console.log('Failed to read config file');
-		process.exit(1);
+		process.exitCode = 1;
 	} else {
 		configData = JSON.parse(configData);
 	}
@@ -21,7 +21,7 @@ function Config (configPath) {
 
 	if (!valid) {
 		console.log('Failed to validate config data', validator.getLastErrors());
-		process.exit(1);
+		process.exitCode = 1;
 	} else {
 		validateForce(configData);
 		return configData;
