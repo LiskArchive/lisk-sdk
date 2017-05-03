@@ -3,6 +3,10 @@
 // var node = require('../node.js');
 var _ = require('lodash');
 var fs = require('fs');
+var Q = require('q');
+
+var chai = require('chai');
+var expect = require('chai').expect;
 
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
@@ -38,12 +42,18 @@ var testNodeConfigs = [
 var monitorWSClient = {
 	protocol: 'http',
 	hostname: '127.0.0.1',
-	port: 8000,
-	autoReconnect: true
+	port: 'toOverwrite',
+	autoReconnect: true,
+	query: {
+		port: 9999,
+		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+		version: '0.0.0a',
+		nonce: 'ABCD'
+	}
 };
 
 
-function launchTestNodes (testNodeConfigs) {
+function launchTestNodes (cb) {
 
 	// var integrartionConfigPath = __dirname + '/config.integration.json';
 	// var initialConfig = require(integrartionConfigPath);
@@ -73,51 +83,133 @@ function launchTestNodes (testNodeConfigs) {
 	// 	});
 	// });
 
-
 	child_process.exec('pm2 start test/integration/pm2.integration.json', function (err, stdout) {
-
+		return cb(err);
 	});
 }
 
-launchTestNodes(testNodeConfigs);
+function killTestNodes (cb) {
+	child_process.exec('pm2 delete all', function (err, stdout) {
+		return cb(err);
+	});
+}
 
-describe('WS /peer/dupaRpc', function () {
+function recreateDatabases (done) {
+	var recreatedCnt = 0;
+	testNodeConfigs.forEach(function (nodeConfig) {
+		child_process.exec('dropdb ' + nodeConfig.database + ' || createdb ' + nodeConfig.database, function (err, stdout) {
+			if (err) {
+				return done(err);
+			}
+			recreatedCnt += 1;
+			if (recreatedCnt === testNodeConfigs.length) {
+				done();
+			}
+		});
+	});
+}
 
-	var socket;
+before(function (done) {
+	recreateDatabases(done);
+});
+
+before(function (done) {
+	launchTestNodes(done);
+});
+
+describe('WS /peer/list', function () {
+
+	var sockets = [];
 
 	before(function (done) {
+		var connectedTo = 0;
 		var wampClient = new WAMPClient();
-		socket = scClient.connect(monitorWSClient);
-		wampClient.upgradeToWAMP(socket);
-		socket.on('connect', function () {
-			console.log('CONNECTED');
-			done();
-		});
+		//ToDo: more clever way for waiting until all test node being able to receive connections
+		setTimeout(function () {
+			testNodeConfigs.forEach(function (testNodeConfig) {
+				monitorWSClient.port = testNodeConfig.port + 1000;
+				var socket = scClient.connect(monitorWSClient);
+				wampClient.upgradeToWAMP(socket);
+				socket.on('connect', function () {
+					console.log('CONNECTED');
+					sockets.push(socket);
+					connectedTo += 1;
+					if (connectedTo === testNodeConfigs.length) {
+						done()
+					}
+				});
+				socket.on('error', function (err) {
+					console.log('ERROR', err);
+					done(err);
+				});
+			});
+		}, 5000);
 
-		socket.on('error', function (err) {
-			console.log('ERROR', err);
-			done(err);
-		});
-
+		function mockPeering () {
+			testNodeConfigs.forEach(function (testNodeConfig) {
+				connectedTo = 0;
+				monitorWSClient.port = testNodeConfig.port + 1000;
+				var fakeConnectionAttempt = Object.assign({}, monitorWSClient, {
+					port: testNodeConfig.port + 1000,
+					query: {
+						port: 9999,
+						nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+						version: '0.0.0a',
+						nonce: 'ABCD'
+					}
+				});
+				socket = scClient.connect(fakeConnectionAttempt);
+				wampClient.upgradeToWAMP(socket);
+				socket.on('connect', function () {
+					console.log('CONNECTED');
+					sockets.push(socket);
+					connectedTo += 1;
+					if (connectedTo === testNodeConfigs.length) {
+						done();
+					}
+				});
+				socket.on('error', function (err) {
+					console.log('ERROR', err);
+					done(err);
+				});
+			});
+		}
 	});
 
-	it('should invoke dupaRpc', function (done) {
+	it('should return a list of peer mutually interconnected', function (done) {
 
-		var randNumber =  Math.floor( Math.random() * 5 );
+		Q.all(sockets.map(function (socket) {
+			return socket.wampSend('list');
+		})).then(function (results) {
+			console.log("ALL LISTS RESULTS", JSON.stringify(results), null, 2);
+			var resultsFrom = 0;
+			results.forEach(function (result) {
+				resultsFrom += 1;
+				expect(result).to.have.property('success').to.be.ok;
+				expect(result).to.have.property('peers').to.be.a('array');
+				var peerPorts = result.peers.map(function (p) {
+					return p.port;
+				});
+				var everyPeerPorts = _.flatten(testNodeConfigs.map(function (testNodeConfig) {
+					return testNodeConfig.peers.list.map(function (p) {
+						return p.port;
+					})
+				}));
 
-		socket.wampSend('dupaRpc', randNumber)
-			.then(function (result) {
-				console.log('RPC result: ' + randNumber + ' * 2 = ' + result);
-				done();
-			}).catch(function (err) {
-				console.error('RPC multiply by two error', err);
-				done(err);
+				expect(_.intersection(everyPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
+				if (resultsFrom === testNodeConfigs.length) {
+					done();
+				}
 			});
 
-		socket.on('disconnect', function () {
-			console.log('DISCONNECTED');
+
+		}).catch(function (err) {
+			done(err);
 		});
-
-
 	});
+});
+
+
+after(function (done) {
+	killTestNodes(done);
 });

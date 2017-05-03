@@ -91,7 +91,6 @@ Peer.prototype.normalize = function (peer) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
 
-	console.trace(peer);
 	peer.port = this.parseInt(peer.port, 0);
 
 	if (!/^[0-2]{1}$/.test(peer.state)) {

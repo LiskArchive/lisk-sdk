@@ -118,7 +118,7 @@ WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
 			var data = !_.isFunction(arguments[0]) ? arguments[0] : {};
 			console.log('\x1b[38m%s\x1b[0m', 'RPC CLIENT --- SOCKET READY - SENDING REQ: ', procedureName, data);
 			socketReady.promise.then(function (socket) {
-				console.trace('\x1b[31m%s\x1b[0m', 'WsRPCClient: sendAfterSocketReadyCb socketReady resolved with', socket.id);
+				console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: sendAfterSocketReadyCb socketReady resolved with', socket.id);
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
