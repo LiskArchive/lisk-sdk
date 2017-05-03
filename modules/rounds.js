@@ -50,6 +50,7 @@ Rounds.prototype.flush = function (round, cb) {
 Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	var round = self.calc(block.height);
 	var prevRound = self.calc(previousBlock.height);
+	var nextRound = self.calc(block.height + 1);
 
 	var scope = {
 		modules: modules,
@@ -61,8 +62,8 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	};
 
 	scope.finishRound = (
-		(prevRound !== round && __private.delegatesByRound[round].length === slots.delegates) ||
-		(previousBlock.height === 1)
+		(prevRound === round && nextRound !== round && __private.delegatesByRound[round].length === slots.delegates) ||
+		(block.height === 1 || block.height === 101)
 	);
 
 	function BackwardTick (t) {
