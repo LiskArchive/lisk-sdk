@@ -135,7 +135,7 @@ describe('WS /peer/list', function () {
 					sockets.push(socket);
 					connectedTo += 1;
 					if (connectedTo === testNodeConfigs.length) {
-						done()
+						done();
 					}
 				});
 				socket.on('error', function (err) {
@@ -145,35 +145,6 @@ describe('WS /peer/list', function () {
 			});
 		}, 5000);
 
-		function mockPeering () {
-			testNodeConfigs.forEach(function (testNodeConfig) {
-				connectedTo = 0;
-				monitorWSClient.port = testNodeConfig.port + 1000;
-				var fakeConnectionAttempt = Object.assign({}, monitorWSClient, {
-					port: testNodeConfig.port + 1000,
-					query: {
-						port: 9999,
-						nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-						version: '0.0.0a',
-						nonce: 'ABCD'
-					}
-				});
-				socket = scClient.connect(fakeConnectionAttempt);
-				wampClient.upgradeToWAMP(socket);
-				socket.on('connect', function () {
-					console.log('CONNECTED');
-					sockets.push(socket);
-					connectedTo += 1;
-					if (connectedTo === testNodeConfigs.length) {
-						done();
-					}
-				});
-				socket.on('error', function (err) {
-					console.log('ERROR', err);
-					done(err);
-				});
-			});
-		}
 	});
 
 	it('should return a list of peer mutually interconnected', function (done) {
@@ -181,7 +152,7 @@ describe('WS /peer/list', function () {
 		Q.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
-			console.log("ALL LISTS RESULTS", JSON.stringify(results), null, 2);
+			console.log('ALL LISTS RESULTS', JSON.stringify(results), null, 2);
 			var resultsFrom = 0;
 			results.forEach(function (result) {
 				resultsFrom += 1;
@@ -193,7 +164,7 @@ describe('WS /peer/list', function () {
 				var everyPeerPorts = _.flatten(testNodeConfigs.map(function (testNodeConfig) {
 					return testNodeConfig.peers.list.map(function (p) {
 						return p.port;
-					})
+					});
 				}));
 
 				expect(_.intersection(everyPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;

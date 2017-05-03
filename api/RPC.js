@@ -84,21 +84,21 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, sock
 	clientSocket.on('connect', function (data) {
 		console.log('\x1b[31m%s\x1b[0m', 'WsRPCClient: HANDSHAKE SUCCEESS --- with: ', options.ip, options.port);
 		WsRPCServer.prototype.wsClientsConnectionsMap[address] = clientSocket;
-		// if (!constants.externalAddress) {
-		// 	this.socket.wampSend('list', {query: {
-		// 		nonce: options.query.nonce
-		// 	}}).then(function (peers) {
-		// 		console.log('this is me: ', peers[0]);
-		// 		constants.externalAddress = peers[0].ip;
-		// 		return socketReady.resolve(clientSocket);
-		// 	}).catch(function (err) {
-		// 		console.log('get myself error: ', err);
-		// 		clientSocket.disconnect();
-		// 		return socketReady.reject();
-		// 	});
-		// } else {
-		return socketReady.resolve(clientSocket);
-		// }
+		if (!constants.externalAddress) {
+			clientSocket.wampSend('list', {query: {
+				nonce: options.query.nonce
+			}}).then(function (res) {
+				console.log('\x1b[31m%s\x1b[0m', 'this is me: ', res.peers[0]);
+				constants.externalAddress = res.peers[0].ip;
+				return socketReady.resolve(clientSocket);
+			}).catch(function (err) {
+				console.log('\x1b[31m%s\x1b[0m', 'get myself error: ', err);
+				clientSocket.disconnect();
+				return socketReady.reject();
+			});
+		} else {
+			return socketReady.resolve(clientSocket);
+		}
 	});
 
 	clientSocket.on('connecting', function () {

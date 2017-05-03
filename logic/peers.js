@@ -4,6 +4,8 @@ var _ = require('lodash');
 var async = require('async');
 var Peer = require('../logic/peer.js');
 var schema = require('../schema/peers.js');
+var constants = require('../helpers/constants.js');
+var WsRPCClient = require('../api/RPC').WsRPCClient;
 
 // Private fields
 var __private = {};
@@ -26,6 +28,7 @@ function Peers (logger, cb) {
 	};
 	self = this;
 	__private.peers = {};
+	__private.me = null;
 
 	setInterval(function () {
 		console.log('\x1b[36m%s\x1b[0m', 'PEERS LOGIC --- peers ---- ', __private.peers);
@@ -33,11 +36,21 @@ function Peers (logger, cb) {
 	return setImmediate(cb, null, this);
 }
 
-/**
- * Returns a peer instance.
- * @param {peer} peer
- * @return {peer} peer instance
- */
+Peers.prototype.me = function () {
+	if (__private.me) {
+		return __private.me;
+	}
+	if (!constants.externalAddress) {
+		return null;
+	}
+
+	__private.me = new Peer(_.assign({}, {
+		ip: constants.externalAddress
+	}, WsRPCClient.prototype.systemHeaders));
+
+	return __private.me;
+};
+
 Peers.prototype.create = function (peer) {
 	if (!(peer instanceof Peer)) {
 		return new Peer(peer);
