@@ -1279,14 +1279,14 @@ Blocks.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 Blocks.prototype.onReceiveBlock = function (block) {
-	// When client is not loaded, is syncing or round is ticking
-	// Do not receive new blocks as client is not ready
-	if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
-		library.logger.debug('Client not ready to receive block', block.id);
-		return;
-	}
-
 	library.sequence.add(function (cb) {
+		// When client is not loaded, is syncing or round is ticking
+		// Do not receive new blocks as client is not ready
+		if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
+			library.logger.debug('Client not ready to receive block', block.id);
+			return setImmediate(cb);
+		}
+
 		if (block.previousBlock === __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
 			return __private.receiveBlock(block, cb);
 		} else if (block.previousBlock !== __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
