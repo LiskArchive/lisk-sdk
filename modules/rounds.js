@@ -74,9 +74,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
 				return promised.land().then(function () {
-					delete __private.feesByRound[round];
-					delete __private.rewardsByRound[round];
-					delete __private.delegatesByRound[round];
+					__private.deleteRound(round);
 				}).then(function () {
 					return promised.markBlockId();
 				});
@@ -144,9 +142,7 @@ Rounds.prototype.tick = function (block, done) {
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
 				return promised.land().then(function () {
-					delete __private.feesByRound[round];
-					delete __private.rewardsByRound[round];
-					delete __private.delegatesByRound[round];
+					__private.deleteRound(round);
 					library.bus.message('finishRound', round);
 					if (scope.snapshotRound) {
 						promised.truncateBlocks().then(function () {
@@ -286,6 +282,12 @@ __private.sumRound = function (round, cb) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, err);
 	});
+};
+
+__private.deleteRound = function (round) {
+	delete __private.feesByRound[round];
+	delete __private.rewardsByRound[round];
+	delete __private.delegatesByRound[round];
 };
 
 // Export
