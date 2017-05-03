@@ -128,10 +128,6 @@ Rounds.prototype.tick = function (block, done) {
 		backwards: false
 	};
 
-	scope.snapshotRound = (
-		library.config.loading.snapshot > 0 && library.config.loading.snapshot === round
-	);
-
 	function Tick (t) {
 		var promised = new Round(scope, t);
 
@@ -173,6 +169,10 @@ Rounds.prototype.tick = function (block, done) {
 			scope.finishRound = (
 				(round !== nextRound && scope.delegates.length === slots.delegates) ||
 				(block.height === 1 || block.height === 101)
+			);
+
+			scope.snapshotRound = (
+				library.config.loading.snapshot > 0 && library.config.loading.snapshot === round
 			);
 
 			return setImmediate(cb);
