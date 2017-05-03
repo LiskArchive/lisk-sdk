@@ -103,7 +103,11 @@ Round.prototype.applyRound = function () {
 
 	console.log('Applying round', queries);
 
-	return this.t.none(queries.join(''));
+	if (queries.length > 0) {
+		return this.t.none(queries.join(''));
+	} else {
+		return this.t;
+	}
 };
 
 Round.prototype.land = function () {
