@@ -117,7 +117,6 @@ Peer.prototype.normalize = function (peer) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
 
-	console.trace(peer);
 	peer.port = this.parseInt(peer.port, 0);
 	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
