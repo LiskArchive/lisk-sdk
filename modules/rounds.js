@@ -89,6 +89,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			}
 		},
 		function (cb) {
+			// Get outsiders if finishing round
 			if (scope.finishRound) {
 				return __private.getOutsiders(scope, cb);
 			} else {
