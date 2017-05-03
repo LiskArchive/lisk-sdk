@@ -145,7 +145,7 @@ Rounds.prototype.tick = function (block, done) {
 					__private.deleteRound(round);
 					library.bus.message('finishRound', round);
 					if (scope.snapshotRound) {
-						promised.truncateBlocks().then(function () {
+						return promised.truncateBlocks().then(function () {
 							scope.finishSnapshot = true;
 						});
 					}
