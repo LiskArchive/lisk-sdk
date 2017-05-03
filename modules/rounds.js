@@ -60,11 +60,6 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		backwards: true
 	};
 
-	scope.finishRound = (
-		(prevRound === round && nextRound !== round && __private.delegatesByRound[round].length === slots.delegates) ||
-		(block.height === 1 || block.height === 101)
-	);
-
 	function BackwardTick (t) {
 		var promised = new Round(scope, t);
 
@@ -101,6 +96,14 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			}
 		},
 		function (cb) {
+			scope.finishRound = (
+				(prevRound === round && nextRound !== round && scope.delegates.length === slots.delegates) ||
+				(block.height === 1 || block.height === 101)
+			);
+
+			return setImmediate(cb);
+		},
+		function (cb) {
 			library.db.tx(BackwardTick).then(function () {
 				return setImmediate(cb);
 			}).catch(function (err) {
@@ -127,11 +130,6 @@ Rounds.prototype.tick = function (block, done) {
 
 	scope.snapshotRound = (
 		library.config.loading.snapshot > 0 && library.config.loading.snapshot === round
-	);
-
-	scope.finishRound = (
-		(round !== nextRound && __private.delegatesByRound[round].length === slots.delegates) ||
-		(block.height === 1 || block.height === 101)
 	);
 
 	function Tick (t) {
@@ -170,6 +168,14 @@ Rounds.prototype.tick = function (block, done) {
 			} else {
 				return setImmediate(cb);
 			}
+		},
+		function (cb) {
+			scope.finishRound = (
+				(round !== nextRound && scope.delegates.length === slots.delegates) ||
+				(block.height === 1 || block.height === 101)
+			);
+
+			return setImmediate(cb);
 		},
 		function (cb) {
 			library.db.tx(Tick).then(function () {
