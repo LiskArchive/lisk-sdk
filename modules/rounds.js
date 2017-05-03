@@ -79,8 +79,10 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 
 	async.series([
 		function (cb) {
+			// Start round ticking
 			__private.ticking = true;
 
+			// Sum round or block
 			if (scope.finishRound) {
 				return __private.sumRound(scope.round, cb);
 			} else {
@@ -88,6 +90,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			}
 		},
 		function (cb) {
+			// Get delegates and outsiders
 			scope.delegates = __private.delegatesByRound[scope.round];
 			scope.outsiders = [];
 
@@ -98,6 +101,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			}
 		},
 		function (cb) {
+			// Establish if finishing round or not
 			scope.finishRound = (
 				(prevRound === round && nextRound !== round && scope.delegates.length === slots.delegates) ||
 				(block.height === 1 || block.height === 101)
@@ -106,6 +110,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			return setImmediate(cb);
 		},
 		function (cb) {
+			// Perform round tick
 			library.db.tx(BackwardTick).then(function () {
 				return setImmediate(cb);
 			}).catch(function (err) {
@@ -114,6 +119,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			});
 		}
 	], function (err) {
+		// Stop round ticking
 		__private.ticking = false;
 		return done(err);
 	});
@@ -152,8 +158,10 @@ Rounds.prototype.tick = function (block, done) {
 
 	async.series([
 		function (cb) {
+			// Start round ticking
 			__private.ticking = true;
 
+			// Sum round or block
 			if (scope.finishRound) {
 				return __private.sumRound(scope.round, cb);
 			} else {
@@ -161,6 +169,7 @@ Rounds.prototype.tick = function (block, done) {
 			}
 		},
 		function (cb) {
+			// Get delegates and outsiders
 			scope.delegates = __private.delegatesByRound[scope.round];
 			scope.outsiders = [];
 
@@ -171,17 +180,20 @@ Rounds.prototype.tick = function (block, done) {
 			}
 		},
 		function (cb) {
+			// Establish if finishing round or not
 			scope.finishRound = (
 				(round !== nextRound && scope.delegates.length === slots.delegates) ||
 				(block.height === 1 || block.height === 101)
 			);
 
+			// Establish if snapshotting round or not
 			scope.snapshotRound = (
 				library.config.loading.snapshot > 0 && library.config.loading.snapshot === round
 			);
 
 			return setImmediate(cb);
 		},
+		// Perform round tick
 		function (cb) {
 			library.db.tx(Tick).then(function () {
 				return setImmediate(cb);
@@ -191,6 +203,7 @@ Rounds.prototype.tick = function (block, done) {
 			});
 		}
 	], function (err) {
+		// Stop round ticking
 		__private.ticking = false;
 
 		if (scope.finishSnapshot) {
