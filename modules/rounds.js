@@ -81,7 +81,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			// Start round ticking
 			__private.ticking = true;
 
-			// Sum round or block
+			// Sum round if finishing round
 			if (scope.finishRound) {
 				return __private.sumRound(scope, cb);
 			} else {
