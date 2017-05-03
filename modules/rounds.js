@@ -57,8 +57,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		__private: __private,
 		block: block,
 		round: round,
-		backwards: true,
-		delegates: __private.delegatesByRound[round]
+		backwards: true
 	};
 
 	scope.finishRound = (
@@ -87,16 +86,18 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	async.series([
 		function (cb) {
 			if (scope.finishRound) {
-				return __private.getOutsiders(scope, cb);
-			} else {
-				return setImmediate(cb);
-			}
-		},
-		function (cb) {
-			if (scope.finishRound) {
 				return __private.sumRound(scope.round, cb);
 			} else {
 				return __private.sumBlock(scope.block, cb);
+			}
+		},
+		function (cb) {
+			scope.delegates = __private.delegatesByRound[scope.round];
+
+			if (scope.finishRound) {
+				return __private.getOutsiders(scope, cb);
+			} else {
+				return setImmediate(cb);
 			}
 		},
 		function (cb) {
@@ -121,8 +122,7 @@ Rounds.prototype.tick = function (block, done) {
 		__private: __private,
 		block: block,
 		round: round,
-		backwards: false,
-		delegates: __private.delegatesByRound[round]
+		backwards: false
 	};
 
 	scope.snapshotRound = (
@@ -157,16 +157,18 @@ Rounds.prototype.tick = function (block, done) {
 	async.series([
 		function (cb) {
 			if (scope.finishRound) {
-				return __private.getOutsiders(scope, cb);
-			} else {
-				return setImmediate(cb);
-			}
-		},
-		function (cb) {
-			if (scope.finishRound) {
 				return __private.sumRound(scope.round, cb);
 			} else {
 				return __private.sumBlock(scope.block, cb);
+			}
+		},
+		function (cb) {
+			scope.delegates = __private.delegatesByRound[scope.round];
+
+			if (scope.finishRound) {
+				return __private.getOutsiders(scope, cb);
+			} else {
+				return setImmediate(cb);
 			}
 		},
 		function (cb) {
