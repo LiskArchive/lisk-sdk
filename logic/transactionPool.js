@@ -521,9 +521,10 @@ __private.expireTransactions = function (transactions, parentIds, cb) {
 			return setImmediate(eachSeriesCb);
 		}
 
-		var timeNow = new Date();
+		var timeNow = Date.now();
 		var timeOut = __private.transactionTimeOut(transaction);
-		var seconds = Math.floor((timeNow.getTime() - new Date(transaction.receivedAt).getTime()) / 1000);
+		// transaction.receivedAt is instance of Date
+		var seconds = Math.floor((timeNow - transaction.receivedAt.getTime()) / 1000);
 
 		if (seconds > timeOut) {
 			ids.push(transaction.id);
