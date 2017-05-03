@@ -235,6 +235,7 @@ __private.getOutsiders = function (scope, cb) {
 			}
 			return setImmediate(eachCb);
 		}, function (err) {
+			library.logger.debug('Got outsiders', scope.outsiders);
 			return setImmediate(cb, err);
 		});
 	});
