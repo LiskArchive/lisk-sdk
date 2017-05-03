@@ -107,7 +107,6 @@ Round.prototype.applyRound = function () {
 };
 
 Round.prototype.land = function () {
-	this.scope.__private.ticking = true;
 	return this.updateVotes()
 		.then(this.updateMissedBlocks.bind(this))
 		.then(this.flushRound.bind(this))
@@ -115,7 +114,6 @@ Round.prototype.land = function () {
 		.then(this.updateVotes.bind(this))
 		.then(this.flushRound.bind(this))
 		.then(function () {
-			this.scope.__private.ticking = false;
 			return this.t;
 		}.bind(this));
 };

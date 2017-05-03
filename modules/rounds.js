@@ -54,7 +54,6 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 
 	var scope = {
 		modules: modules,
-		__private: __private,
 		block: block,
 		round: round,
 		backwards: true
@@ -80,6 +79,8 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 
 	async.series([
 		function (cb) {
+			__private.ticking = true;
+
 			if (scope.finishRound) {
 				return __private.sumRound(scope.round, cb);
 			} else {
@@ -112,6 +113,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			});
 		}
 	], function (err) {
+		__private.ticking = false;
 		return done(err);
 	});
 };
@@ -122,7 +124,6 @@ Rounds.prototype.tick = function (block, done) {
 
 	var scope = {
 		modules: modules,
-		__private: __private,
 		block: block,
 		round: round,
 		backwards: false
@@ -150,6 +151,8 @@ Rounds.prototype.tick = function (block, done) {
 
 	async.series([
 		function (cb) {
+			__private.ticking = true;
+
 			if (scope.finishRound) {
 				return __private.sumRound(scope.round, cb);
 			} else {
@@ -186,6 +189,8 @@ Rounds.prototype.tick = function (block, done) {
 			});
 		}
 	], function (err) {
+		__private.ticking = false;
+
 		if (scope.finishSnapshot) {
 			return done('Snapshot finished');
 		} else {
