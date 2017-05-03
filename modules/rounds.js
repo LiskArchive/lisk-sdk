@@ -122,14 +122,14 @@ Rounds.prototype.tick = function (block, done) {
 		backwards: false
 	};
 
-	// Establish if finishing round or not
-	scope.finishRound = (
-		(round !== nextRound) || (block.height === 1 || block.height === 101)
-	);
-
 	// Establish if snapshotting round or not
 	scope.snapshotRound = (
 		library.config.loading.snapshot > 0 && library.config.loading.snapshot === round
+	);
+
+	// Establish if finishing round or not
+	scope.finishRound = (
+		(round !== nextRound) || (block.height === 1 || block.height === 101)
 	);
 
 	function Tick (t) {
