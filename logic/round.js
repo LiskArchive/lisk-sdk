@@ -8,6 +8,21 @@ var sql = require('../sql/rounds.js');
 function Round (scope, t) {
 	this.scope = scope;
 	this.t = t;
+
+	// List of required scope properties
+	var requiredProperties = ['modules', 'block', 'round', 'backwards'];
+
+	// Require extra scope properties when finishing round
+	if (scope.finishRound) {
+		requiredProperties = requiredProperties.concat(['roundFees', 'roundRewards', 'roundDelegates', 'roundOutsiders']);
+	}
+
+	// Iterate over requiredProperties, checking for undefined scope properties
+	requiredProperties.forEach(function (property) {
+		if (scope[property] === undefined) {
+			throw 'Missing required scope property: ' + property;
+		}
+	});
 }
 
 // Public methods
