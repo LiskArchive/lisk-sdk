@@ -7,7 +7,6 @@ var sql = require('../sql/rounds.js');
 // Constructor
 function Round (scope, t) {
 	this.scope = scope;
-	this.scope.roundOutsiders = this.scope.roundOutsiders || [];
 	this.t = t;
 }
 
