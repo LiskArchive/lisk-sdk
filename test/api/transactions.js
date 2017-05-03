@@ -468,7 +468,7 @@ describe('GET /api/transactions/queued/get?id=', function () {
 
 		 function createTransactionWithData (done) {
 			var amountToSend = 123456789;
-			var expectedFee = node.expectedFee(amountToSend);
+			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
 			var data = 'extra information';
 
 			putTransaction({
@@ -497,8 +497,6 @@ describe('GET /api/transactions/queued/get?id=', function () {
 		createTransactionWithData(function (transactionInCheck) {
 			var trsId = transactionInCheck.txId;
 			var params = 'id=' + trsId;
-			console.log('trsId');
-			console.log(trsId);
 			node.get('/api/transactions/queued/get?' + params, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
@@ -610,7 +608,7 @@ describe('PUT /api/transactions', function () {
 
 	it('using valid parameters with data field should be ok', function (done) {
 		var amountToSend = 123456789;
-		var expectedFee = node.expectedFee(amountToSend);
+		var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
 		var data = 'extra information';
 
 		putTransaction({

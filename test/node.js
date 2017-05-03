@@ -38,7 +38,8 @@ node.fees = {
 	secondPasswordFee: node.constants.fees.secondsignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappAddFee: node.constants.fees.dapp
+	dappAddFee: node.constants.fees.dapp,
+	dataFee: node.constants.fees.data
 };
 
 // Test application
@@ -246,6 +247,11 @@ node.randomNumber = function (min, max) {
 // Returns the expected fee for the given amount
 node.expectedFee = function (amount) {
 	return parseInt(node.fees.transactionFee);
+};
+
+// Returns the expected fee for the given amount with data property
+node.expectedFeeForTrsWithData = function (amount) {
+	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
 };
 
 // Returns a random username

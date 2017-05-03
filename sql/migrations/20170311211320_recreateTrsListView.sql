@@ -1,6 +1,5 @@
 /*
- * Add 'm_recipientPublicKey' column to 'trs_list' view
- * Change 't_senderPublicKey' data type from 'string' to 'bytea'
+ *	Added 't_data' field in trs_list view 
  */
 
 BEGIN;

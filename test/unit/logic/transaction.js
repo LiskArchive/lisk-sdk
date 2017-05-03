@@ -90,7 +90,6 @@ function getValidTransactionData () {
 		fee: 20000000
 	};
 
-
 	return trsData;
 }
 
@@ -164,19 +163,18 @@ describe('transaction', function () {
 			expect(transaction.create(trsData).data).to.be.a('string');
 		});
 
-		it('should return transaction fee based on transaction type and data field', function () {
+		it('should return transaction fee based on trs type and data field', function () {
 			var trsData = getValidTransactionData();
 			delete trsData.fee;
 			expect(transaction.create(trsData).fee).to.equal(20000000);
 		});
 
-		it('should return transaction fee based on transaction type', function () {
+		it('should return transaction fee based on trs type', function () {
 			var trsData = getValidTransactionData();
 			delete trsData.data;
 			delete trsData.fee;
 			expect(transaction.create(trsData).fee).to.equal(10000000);
 		});
-
 
 	});
 

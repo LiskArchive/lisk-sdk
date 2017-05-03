@@ -18,7 +18,7 @@ __private.types = {};
 // Private methods
 __private.calculateFee = function (trs, sender) {
 	var fee = 0;
-	if ( trs.data ) {
+	if (trs.data) {
 		fee = constants.fees.data;
 	}
 	return __private.types[trs.type].calculateFee.call(this, trs, sender) + fee || false;
