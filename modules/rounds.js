@@ -13,10 +13,6 @@ var modules, library, self, __private = {}, shared = {};
 __private.loaded = false;
 __private.ticking = false;
 
-__private.feesByRound = {};
-__private.rewardsByRound = {};
-__private.delegatesByRound = {};
-
 // Constructor
 function Rounds (cb, scope) {
 	library = scope;
@@ -72,8 +68,6 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
 				return promised.land().then(function () {
-					__private.deleteRound(round);
-				}).then(function () {
 					return promised.markBlockId();
 				});
 			} else {
@@ -89,15 +83,12 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 
 			// Sum round or block
 			if (scope.finishRound) {
-				return __private.sumRound(scope.round, cb);
+				return __private.sumRound(scope, cb);
 			} else {
-				return __private.sumBlock(scope.block, cb);
+				return setImmediate(cb);
 			}
 		},
 		function (cb) {
-			// Get delegates and outsiders
-			scope.delegates = __private.delegatesByRound[scope.round];
-
 			if (scope.finishRound) {
 				return __private.getOutsiders(scope, cb);
 			} else {
@@ -149,7 +140,6 @@ Rounds.prototype.tick = function (block, done) {
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
 				return promised.land().then(function () {
-					__private.deleteRound(round);
 					library.bus.message('finishRound', round);
 					if (scope.snapshotRound) {
 						return promised.truncateBlocks().then(function () {
@@ -166,17 +156,15 @@ Rounds.prototype.tick = function (block, done) {
 			// Start round ticking
 			__private.ticking = true;
 
-			// Sum round or block
+			// Sum round if finishing round
 			if (scope.finishRound) {
-				return __private.sumRound(scope.round, cb);
+				return __private.sumRound(scope, cb);
 			} else {
-				return __private.sumBlock(scope.block, cb);
+				return setImmediate(cb);
 			}
 		},
 		function (cb) {
-			// Get delegates and outsiders
-			scope.delegates = __private.delegatesByRound[scope.round];
-
+			// Get outsiders if finishing round
 			if (scope.finishRound) {
 				return __private.getOutsiders(scope, cb);
 			} else {
@@ -244,8 +232,8 @@ __private.getOutsiders = function (scope, cb) {
 			return setImmediate(cb, err);
 		}
 		async.eachSeries(roundDelegates, function (delegate, eachCb) {
-			if (scope.delegates.indexOf(delegate) === -1) {
 				scope.outsiders.push(modules.accounts.generateAddressByPublicKey(delegate));
+			if (scope.roundDelegates.indexOf(delegate) === -1) {
 			}
 			return setImmediate(eachCb);
 		}, function (err) {
@@ -255,57 +243,30 @@ __private.getOutsiders = function (scope, cb) {
 	});
 };
 
-__private.sumBlock = function (block, cb) {
-	library.logger.debug('Summing block', block);
+__private.sumRound = function (scope, cb) {
+	library.logger.debug('Summing round', scope.round);
 
-	var round = self.calc(block.height);
-
-	__private.feesByRound[round] = Math.floor(__private.feesByRound[round]) || 0;
-	__private.feesByRound[round] += Math.floor(block.totalFee);
-
-	__private.rewardsByRound[round] = (__private.rewardsByRound[round] || []);
-	__private.rewardsByRound[round].push(block.reward);
-
-	__private.delegatesByRound[round] = __private.delegatesByRound[round] || [];
-	__private.delegatesByRound[round].push(block.generatorPublicKey);
-
-	library.logger.debug('feesByRound', __private.feesByRound[round]);
-	library.logger.debug('rewardsByRound', __private.rewardsByRound[round]);
-	library.logger.debug('delegatesByRound', __private.delegatesByRound[round]);
-
-	return setImmediate(cb);
-};
-
-__private.sumRound = function (round, cb) {
-	library.logger.debug('Summing round', round);
-
-	library.db.query(sql.summedRound, { round: round, activeDelegates: constants.activeDelegates }).then(function (rows) {
+	library.db.query(sql.summedRound, { round: scope.round, activeDelegates: constants.activeDelegates }).then(function (rows) {
 		var rewards = [];
 
 		rows[0].rewards.forEach(function (reward) {
 			rewards.push(Math.floor(reward));
 		});
 
-		__private.feesByRound[round] = Math.floor(rows[0].fees);
-		__private.rewardsByRound[round] = rewards;
-		__private.delegatesByRound[round] = rows[0].delegates;
+		scope.roundFees = Math.floor(rows[0].fees);
+		scope.roundRewards = rewards;
+		scope.roundDelegates = rows[0].delegates;
 
-		library.logger.debug('feesByRound', __private.feesByRound[round]);
-		library.logger.debug('rewardsByRound', __private.rewardsByRound[round]);
-		library.logger.debug('delegatesByRound', __private.delegatesByRound[round]);
+		library.logger.debug('roundFees', scope.roundFees);
+		library.logger.debug('roundRewards', scope.roundRewards);
+		library.logger.debug('roundDelegates', scope.roundDelegates);
 
 		return setImmediate(cb);
 	}).catch(function (err) {
-		library.logger.error('Failed to sum round', round);
+		library.logger.error('Failed to sum round', scope.round);
 		library.logger.error(err.stack);
 		return setImmediate(cb, err);
 	});
-};
-
-__private.deleteRound = function (round) {
-	delete __private.feesByRound[round];
-	delete __private.rewardsByRound[round];
-	delete __private.delegatesByRound[round];
 };
 
 // Export

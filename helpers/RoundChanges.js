@@ -6,8 +6,8 @@ var exceptions = require('./exceptions');
 
 // Constructor
 function RoundChanges (scope) {
-	this.roundFees = Math.floor(scope.__private.feesByRound[scope.round]) || 0;
-	this.roundRewards = (scope.__private.rewardsByRound[scope.round] || []);
+	this.roundFees = Math.floor(scope.roundFees) || 0;
+	this.roundRewards = (scope.roundRewards || []);
 
 	// Apply exception for round if required
 	if (exceptions.rounds[scope.round]) {

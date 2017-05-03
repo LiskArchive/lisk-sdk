@@ -74,8 +74,8 @@ Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
 	var queries = [];
 
-	for (var i = 0; i < this.scope.delegates.length; i++) {
-		var delegate = this.scope.delegates[i];
+	for (var i = 0; i < this.scope.roundDelegates.length; i++) {
+		var delegate = this.scope.roundDelegates[i];
 		var changes = roundChanges.at(i);
 
 		console.log('Round changes', delegate, changes);
@@ -90,7 +90,7 @@ Round.prototype.applyRound = function () {
 			rewards: (this.scope.backwards ? -changes.rewards : changes.rewards)
 		}));
 
-		if (i === this.scope.delegates.length - 1) {
+		if (i === this.scope.roundDelegates.length - 1) {
 			queries.push(this.scope.modules.accounts.mergeAccountAndGet({
 				publicKey: delegate,
 				balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
