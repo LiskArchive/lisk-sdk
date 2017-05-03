@@ -975,9 +975,6 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 	}
 
 	async.series({
-		backwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('backward', __private.lastBlock, seriesCb);
-		},
 		popLastBlock: function (seriesCb) {
 			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
 				if (err) {
@@ -988,9 +985,6 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 					return setImmediate(seriesCb);
 				}
 			});
-		},
-		forwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('forward', __private.lastBlock, seriesCb);
 		}
 	}, function (err) {
 		return setImmediate(cb, err, __private.lastBlock);
@@ -1250,9 +1244,6 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	var blocks = [];
 
 	async.series({
-		backwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('backward', __private.lastBlock, seriesCb);
-		},
 		popBlocks: function (seriesCb) {
 			async.whilst(
 				function () {
@@ -1269,9 +1260,6 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 					return setImmediate(seriesCb, err, blocks);
 				}
 			);
-		},
-		forwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('forward', __private.lastBlock, seriesCb);
 		}
 	});
 };

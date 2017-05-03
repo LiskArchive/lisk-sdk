@@ -47,32 +47,9 @@ Rounds.prototype.flush = function (round, cb) {
 	});
 };
 
-Rounds.prototype.directionSwap = function (direction, lastBlock, cb) {
-	library.logger.debug('Changing round direction to', direction);
-
-	__private.feesByRound = {};
-	__private.rewardsByRound = {};
-	__private.delegatesByRound = {};
-
-	if (lastBlock) {
-		return __private.sumRound(self.calc(lastBlock.height), cb);
-	} else {
-		return setImmediate(cb);
-	}
-};
-
 Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	var round = self.calc(block.height);
 	var prevRound = self.calc(previousBlock.height);
-
-	__private.feesByRound[round] = Math.floor(__private.feesByRound[round]) || 0;
-	__private.feesByRound[round] += Math.floor(block.totalFee);
-
-	__private.rewardsByRound[round] = (__private.rewardsByRound[round] || []);
-	__private.rewardsByRound[round].push(block.reward);
-
-	__private.delegatesByRound[round] = __private.delegatesByRound[round] || [];
-	__private.delegatesByRound[round].push(block.generatorPublicKey);
 
 	var scope = {
 		modules: modules,
@@ -117,6 +94,13 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 			}
 		},
 		function (cb) {
+			if (scope.finishRound) {
+				return __private.sumRound(scope.round, cb);
+			} else {
+				return __private.sumBlock(scope.block, cb);
+			}
+		},
+		function (cb) {
 			library.db.tx(BackwardTick).then(function () {
 				return setImmediate(cb);
 			}).catch(function (err) {
@@ -132,15 +116,6 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 Rounds.prototype.tick = function (block, done) {
 	var round = self.calc(block.height);
 	var nextRound = self.calc(block.height + 1);
-
-	__private.feesByRound[round] = Math.floor(__private.feesByRound[round]) || 0;
-	__private.feesByRound[round] += Math.floor(block.totalFee);
-
-	__private.rewardsByRound[round] = (__private.rewardsByRound[round] || []);
-	__private.rewardsByRound[round].push(block.reward);
-
-	__private.delegatesByRound[round] = __private.delegatesByRound[round] || [];
-	__private.delegatesByRound[round].push(block.generatorPublicKey);
 
 	var scope = {
 		modules: modules,
@@ -188,6 +163,13 @@ Rounds.prototype.tick = function (block, done) {
 				return __private.getOutsiders(scope, cb);
 			} else {
 				return setImmediate(cb);
+			}
+		},
+		function (cb) {
+			if (scope.finishRound) {
+				return __private.sumRound(scope.round, cb);
+			} else {
+				return __private.sumBlock(scope.block, cb);
 			}
 		},
 		function (cb) {
@@ -255,6 +237,27 @@ __private.getOutsiders = function (scope, cb) {
 			return setImmediate(cb, err);
 		});
 	});
+};
+
+__private.sumBlock = function (block, cb) {
+	library.logger.debug('Summing block', block);
+
+	var round = self.calc(block.height);
+
+	__private.feesByRound[round] = Math.floor(__private.feesByRound[round]) || 0;
+	__private.feesByRound[round] += Math.floor(block.totalFee);
+
+	__private.rewardsByRound[round] = (__private.rewardsByRound[round] || []);
+	__private.rewardsByRound[round].push(block.reward);
+
+	__private.delegatesByRound[round] = __private.delegatesByRound[round] || [];
+	__private.delegatesByRound[round].push(block.generatorPublicKey);
+
+	library.logger.debug('feesByRound', __private.feesByRound[round]);
+	library.logger.debug('rewardsByRound', __private.rewardsByRound[round]);
+	library.logger.debug('delegatesByRound', __private.delegatesByRound[round]);
+
+	return setImmediate(cb);
 };
 
 __private.sumRound = function (round, cb) {
