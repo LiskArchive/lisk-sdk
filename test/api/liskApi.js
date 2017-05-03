@@ -17,6 +17,14 @@ describe('Lisk.api()', function () {
 		it('new lisk.api() should be Object', function () {
 			(LSK).should.be.type('object');
 		});
+
+		it('should use testnet peer for testnet settings', function () {
+			var TESTLSK = lisk.api({ testnet: true });
+
+			(TESTLSK.port).should.be.equal(7000);
+			(TESTLSK.testnet).should.be.equal(true);
+		});
+
 	});
 
 	describe('#listPeers', function () {
