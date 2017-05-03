@@ -7,7 +7,7 @@ var sql = require('../sql/rounds.js');
 // Constructor
 function Round (scope, t) {
 	this.scope = scope;
-	this.scope.outsiders = this.scope.outsiders || [];
+	this.scope.roundOutsiders = this.scope.roundOutsiders || [];
 	this.t = t;
 }
 
@@ -24,11 +24,11 @@ Round.prototype.mergeBlockGenerator = function () {
 };
 
 Round.prototype.updateMissedBlocks = function () {
-	if (this.scope.outsiders.length === 0) {
+	if (this.scope.roundOutsiders.length === 0) {
 		return this.t;
 	}
 
-	return this.t.none(sql.updateMissedBlocks(this.scope.backwards), [this.scope.outsiders]);
+	return this.t.none(sql.updateMissedBlocks(this.scope.backwards), [this.scope.roundOutsiders]);
 };
 
 Round.prototype.getVotes = function () {

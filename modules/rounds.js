@@ -222,7 +222,7 @@ Rounds.prototype.cleanup = function (cb) {
 
 // Private methods
 __private.getOutsiders = function (scope, cb) {
-	scope.outsiders = [];
+	scope.roundOutsiders = [];
 
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
@@ -232,12 +232,12 @@ __private.getOutsiders = function (scope, cb) {
 			return setImmediate(cb, err);
 		}
 		async.eachSeries(roundDelegates, function (delegate, eachCb) {
-				scope.outsiders.push(modules.accounts.generateAddressByPublicKey(delegate));
 			if (scope.roundDelegates.indexOf(delegate) === -1) {
+				scope.roundOutsiders.push(modules.accounts.generateAddressByPublicKey(delegate));
 			}
 			return setImmediate(eachCb);
 		}, function (err) {
-			library.logger.debug('Got outsiders', scope.outsiders);
+			library.logger.debug('Got outsiders', scope.roundOutsiders);
 			return setImmediate(cb, err);
 		});
 	});
