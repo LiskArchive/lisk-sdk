@@ -351,8 +351,8 @@ Transport.prototype.isLoaded = function () {
 
 // Internal API
 Transport.prototype.internal = {
-	blocksCommon: function (ids, peer, extraLogMessage, cb) {
-		var escapedIds = ids
+	blocksCommon: function (query, cb) {
+		var escapedIds = query.ids
 			// Remove quotes
 			.replace(/['"]+/g, '')
 			// Separate by comma into an array
@@ -363,10 +363,10 @@ Transport.prototype.internal = {
 			});
 
 		if (!escapedIds.length) {
-			library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: ids});
+			library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: query.ids});
 
 			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'ECOMMON', clock: 600}, extraLogMessage);
+			__private.banPeer({peer: query.peer, code: 'ECOMMON', clock: 600}, query.extraLogMessage);
 
 			return setImmediate(cb, 'Invalid block id sequence');
 		}
@@ -396,14 +396,14 @@ Transport.prototype.internal = {
 		});
 	},
 
-	postBlock: function (block, peer, extraLogMessage, cb) {
+	postBlock: function (query, cb) {
 		try {
-			block = library.logic.block.objectNormalize(block);
+			var block = library.logic.block.objectNormalize(query.block);
 		} catch (e) {
-			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: block });
+			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 
 			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'EBLOCK', clock: 600}, extraLogMessage);
+			__private.banPeer({peer: query.peer, code: 'EBLOCK', clock: 600}, query.extraLogMessage);
 
 			return setImmediate(cb, null, {success: false, error: e.toString()});
 		}
@@ -486,9 +486,9 @@ Transport.prototype.internal = {
 		return setImmediate(cb, null, {success: true, transactions: transactions});
 	},
 
-	postTransactions: function (query, peer, extraLogMessage, cb) {
+	postTransactions: function (query, cb) {
 		if (query.transactions) {
-			__private.receiveTransactions(query, peer, extraLogMessage, function (err) {
+			__private.receiveTransactions(query, query.peer, query.extraLogMessage, function (err) {
 				if (err) {
 					return setImmediate(cb, null, {success: false, message: err});
 				} else {
@@ -496,7 +496,7 @@ Transport.prototype.internal = {
 				}
 			});
 		} else {
-			__private.receiveTransaction(query.transaction, peer, extraLogMessage, function (err, id) {
+			__private.receiveTransaction(query.transaction, query.peer, query.extraLogMessage, function (err, id) {
 				if (err) {
 					return setImmediate(cb, null, {success: false,  message: err});
 				} else {

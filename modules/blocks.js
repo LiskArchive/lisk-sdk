@@ -739,28 +739,54 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 		function (res, waterCb) {
 			var ids = res.ids;
 
-			modules.transport.getFromPeer(peer, {
-				api: '/blocks/common?ids=' + ids,
-				method: 'GET'
-			}, function (err, res) {
-				if (err || res.body.error) {
-					return setImmediate(waterCb, err || res.body.error.toString());
-				} else if (!res.body.common) {
-					comparisionFailed = true;
-					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
-				} else {
-					return setImmediate(waterCb, null, res);
-				}
-			});
+			if (library.config.peerProtocol === 'ws') {
+				peer.rpc.blocksCommon({ids: ids}, function (err, res) {
+					console.log('\x1b[30m%s\x1b[0m', 'BLOCKS MODULE: LOADED COMMON BLOCKS: err / res ', err, res);
+					if (err || !res.success) {
+						return setImmediate(waterCb, err);
+					} else if (!res.common) {
+						comparisionFailed = true;
+						return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
+					} else {
+						return setImmediate(waterCb, null, res);
+					}
+				});
+			} else {
+				modules.transport.getFromPeer(peer, {
+					api: '/blocks/common?ids=' + ids,
+					method: 'GET'
+				}, function (err, res) {
+					if (err || res.body.error) {
+						return setImmediate(waterCb, err || res.body.error.toString());
+					} else if (!res.body.common) {
+						comparisionFailed = true;
+						return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
+					} else {
+						return setImmediate(waterCb, null, res);
+					}
+				});
+			}
 		},
 		function (res, waterCb) {
-			library.schema.validate(res.body.common, schema.getCommonBlock, function (err) {
-				if (err) {
-					return setImmediate(waterCb, err[0].message);
-				} else {
-					return setImmediate(waterCb, null, res);
-				}
-			});
+			if (library.config.peerProtocol === 'ws') {
+				library.schema.validate(res.common, schema.getCommonBlock, function (err) {
+					if (err) {
+						return setImmediate(waterCb, err[0].message);
+					} else {
+						return setImmediate(waterCb, null, res);
+					}
+				});
+			} else {
+				library.schema.validate(res.body.common, schema.getCommonBlock, function (err) {
+					if (err) {
+						return setImmediate(waterCb, err[0].message);
+					} else {
+						return setImmediate(waterCb, null, res);
+					}
+				});
+			}
+
+
 		},
 		function (res, waterCb) {
 			library.db.query(sql.getCommonBlock(res.body.common.previousBlock), {
@@ -795,17 +821,31 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	library.logger.info('Loading blocks from: ' + peer.string);
 
 	function getFromPeer (seriesCb) {
-		modules.transport.getFromPeer(peer, {
-			method: 'GET',
-			api: '/blocks?lastBlockId=' + lastValidBlock.id
-		}, function (err, res) {
-			err = err || res.body.error;
-			if (err) {
-				return setImmediate(seriesCb, err);
-			} else {
-				return setImmediate(seriesCb, null, res.body.blocks);
-			}
-		});
+
+		if (library.config.peerProtocol === 'ws') {
+			peer.rpc.blocks({lastBlockId: lastValidBlock.id}, function (err, res) {
+				console.log('\x1b[30m%s\x1b[0m', 'BLOCKS MODULE: LOADED BLOCKS: err / res ', err, res);
+				err = err || res.error;
+				if (err) {
+					return setImmediate(seriesCb, err);
+				} else {
+					return setImmediate(seriesCb, null, res.blocks);
+				}
+			});
+		} else {
+			modules.transport.getFromPeer(peer, {
+				method: 'GET',
+				api: '/blocks?lastBlockId=' + lastValidBlock.id
+			}, function (err, res) {
+				err = err || res.body.error;
+				if (err) {
+					return setImmediate(seriesCb, err);
+				} else {
+					return setImmediate(seriesCb, null, res.body.blocks);
+				}
+			});
+		}
+
 	}
 
 	function validateBlocks (blocks, seriesCb) {

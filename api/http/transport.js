@@ -30,7 +30,13 @@ function TransportHttpApi (transportModule, app, logger) {
 
 	// Custom parameters internal functions
 	router.post('/blocks', function (req, res) {
-		transportModule.internal.postBlock(req.body.block, req.peer, req.method + ' ' + req.url, httpApi.respond.bind(null, res));
+		var query = {
+			block: req.body.block,
+			peer: req.peer,
+			extraLogMessage: req.method + ' ' + req.url
+		};
+
+		transportModule.internal.postBlock(query, httpApi.respond.bind(null, res));
 	});
 
 	router.post('/signatures', function (req, res) {
@@ -40,8 +46,10 @@ function TransportHttpApi (transportModule, app, logger) {
 	router.post('/transactions', function (req, res) {
 		transportModule.internal.postTransactions({
 			transactions: req.body.transactions,
-			transaction: req.body.transaction
-		}, req.peer, req.method + ' ' + req.url, httpApi.respond.bind(null, res));
+			transaction: req.body.transaction,
+			peer: req.peer,
+			extraLogMessage: req.method + ' ' + req.url
+		}, httpApi.respond.bind(null, res));
 	});
 
 	router.use(httpApi.middleware.notFound);
@@ -86,7 +94,12 @@ function TransportHttpApi (transportModule, app, logger) {
 				return res.json({success: false, error: report.issues});
 			}
 
-			return transportModule.internal.blocksCommon(query.ids, req.peer, req.method + ' ' + req.url, httpApi.respond.bind(null, res));
+			var req = {
+				ids: query.ids,
+				peer: req.peer,
+				extraLogMessage: req.method + ' ' + req.url
+			};
+			return transportModule.internal.blocksCommon(req, httpApi.respond.bind(null, res));
 		});
 	}
 }
