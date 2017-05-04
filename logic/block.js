@@ -10,6 +10,15 @@ var constants = require('../helpers/constants.js');
 // Private fields
 var __private = {}, genesisblock = null;
 
+/**
+ * Main Block logic.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main Block logic.
+ * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} With `this` as data.
+ */
 // Constructor
 function Block (scope, cb) {
 	this.scope = scope;
@@ -20,8 +29,20 @@ function Block (scope, cb) {
 }
 
 // Private methods
+/**
+ * Creates a blockReward instance.
+ * @private
+ */
 __private.blockReward = new BlockReward();
 
+/**
+ * Gets address by public
+ * @private
+ * @implements {crypto.createHash}
+ * @implements {bignum.fromBuffer}
+ * @param {publicKey} publicKey
+ * @return {address} address
+ */
 __private.getAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
 	var temp = new Buffer(8);
@@ -35,6 +56,18 @@ __private.getAddressByPublicKey = function (publicKey) {
 };
 
 // Public methods
+/**
+ * Sorts input data transactions.
+ * Calculates reward based on previous block data.
+ * Generates new block.
+ * @implements {BlockReward.calcReward}
+ * @implements {crypto.createHash}
+ * @implements {scope.transaction.getBytes}
+ * @implements {Block.sign}
+ * @implements {Block.objectNormalize}
+ * @param {Object} data
+ * @returns {block} block
+ */
 Block.prototype.create = function (data) {
 	var transactions = data.transactions.sort(function compare (a, b) {
 		if (a.type < b.type) { return -1; }
@@ -94,12 +127,27 @@ Block.prototype.create = function (data) {
 	return block;
 };
 
+/**
+ * Creates a block signature.
+ * @implements {Block.getHash}
+ * @implements {scope.ed.sign}
+ * @param {block} block
+ * @param {Object} keypair
+ * @returns {signature} block signature
+ */
 Block.prototype.sign = function (block, keypair) {
 	var hash = this.getHash(block);
 
 	return this.scope.ed.sign(hash, keypair).toString('hex');
 };
 
+/**
+ * @implements {ByteBuffer}
+ * @implements {bignum}
+ * @param {block} block
+ * @return {!Array} Contents as an ArrayBuffer
+ * @throws {error} If buffer fails
+ */
 Block.prototype.getBytes = function (block) {
 	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
 	var b, i;
@@ -154,6 +202,15 @@ Block.prototype.getBytes = function (block) {
 	return b;
 };
 
+/**
+ * Verifies block hash, generator block publicKey and block signature.
+ * @implements {Block.getBytes}
+ * @implements {crypto.createHash}
+ * @implements {scope.ed.verify}
+ * @param {block} block
+ * @return {boolean} verified hash, signature and publicKey
+ * @throws {error} catch error
+ */
 Block.prototype.verifySignature = function (block) {
 	var remove = 64;
 	var res;
@@ -194,6 +251,12 @@ Block.prototype.dbFields = [
 	'blockSignature'
 ];
 
+/**
+ * Creates db object transaction to `blocks` table.
+ * @param {block} block
+ * @return {Object} created object {table, fields, values}
+ * @throws {error} catch error
+ */
 Block.prototype.dbSave = function (block) {
 	var payloadHash, generatorPublicKey, blockSignature;
 
@@ -307,6 +370,13 @@ Block.prototype.schema = {
 	required: ['blockSignature', 'generatorPublicKey', 'numberOfTransactions', 'payloadHash', 'payloadLength', 'timestamp', 'totalAmount', 'totalFee', 'reward', 'transactions', 'version']
 };
 
+/**
+ * @implements {scope.schema.validate}
+ * @implements {scope.transaction.objectNormalize}
+ * @param {block} block
+ * @return {error|transaction} error string | block normalized
+ * @throws {string|error} error message | catch error
+ */
 Block.prototype.objectNormalize = function (block) {
 	var i;
 
@@ -335,6 +405,14 @@ Block.prototype.objectNormalize = function (block) {
 	return block;
 };
 
+/**
+ * Calculates block id based on block.
+ * @implements {crypto.createHash}
+ * @implements {Block.getBytes}
+ * @implements {bignum.fromBuffer}
+ * @param {block} block
+ * @return {string} id string
+ */
 Block.prototype.getId = function (block) {
 	var hash = crypto.createHash('sha256').update(this.getBytes(block)).digest();
 	var temp = new Buffer(8);
@@ -346,14 +424,33 @@ Block.prototype.getId = function (block) {
 	return id;
 };
 
+/**
+ * Creates hash based on block bytes.
+ * @implements {Block.getBytes}
+ * @implements {crypto.createHash}
+ * @param {block} block
+ * @return {hash} sha256 crypto hash
+ */
 Block.prototype.getHash = function (block) {
 	return crypto.createHash('sha256').update(this.getBytes(block)).digest();
 };
 
+/**
+ * Returns send fees from constants.
+ * @param {block} block
+ * @return {number} fee
+ * @todo delete unused input parameter
+ */
 Block.prototype.calculateFee = function (block) {
 	return constants.fees.send;
 };
 
+/**
+ * Creates block object based on raw data.
+ * @implements {bignum}
+ * @param {Object} raw
+ * @return {null|block} blcok object
+ */
 Block.prototype.dbRead = function (raw) {
 	if (!raw.b_id) {
 		return null;
