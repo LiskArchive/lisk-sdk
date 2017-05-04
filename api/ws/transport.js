@@ -19,18 +19,19 @@ function TransportWSApi (transportModule, app, logger) {
 		list: transportModule.internal.list,
 		height: transportModule.internal.height,
 		getTransactions: transportModule.internal.getTransactions,
-		status: transportModule.internal.status
+		status: transportModule.internal.status,
+		postBlock: transportModule.internal.postBlock,
+		postSignatures: transportModule.internal.postSignatures,
+		postTransactions: transportModule.internal.postTransactions,
+		postDappMessage: transportModule.internal.postDappMessage,
+		postDappRequest: transportModule.internal.postDappRequest
 	};
 
 	this.eventEndpoints = {
 		dupaEmit: function (random) {
 			console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT API: dupaEmit invoked', 2 * random);
 		},
-		postBlock: transportModule.internal.postBlock,
-		postSignatures: transportModule.internal.postSignatures,
-		postTransactions: transportModule.internal.postTransactions,
-		postDappMessage: transportModule.internal.postDappMessage,
-		postDappRequest: transportModule.internal.postDappRequest,
+
 		peerUpdate: transportModule.internal.onPeerUpdate
 	};
 

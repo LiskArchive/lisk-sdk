@@ -12,7 +12,6 @@ var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var child_process = require('child_process');
 
-
 var testNodeConfigs = [
 	{
 		ip: '127.0.0.1',
@@ -54,35 +53,6 @@ var monitorWSClient = {
 
 
 function launchTestNodes (cb) {
-
-	// var integrartionConfigPath = __dirname + '/config.integration.json';
-	// var initialConfig = require(integrartionConfigPath);
-	//
-	// testNodeConfigs.forEach(function (testNodeConfig) {
-	// 	var config = _.assign({}, initialConfig);
-	//
-	// 	child_process.exec('dropdb ' + initialConfig.database + ' || createdb ' + initialConfig.database, function (err, stdout) {
-	// 		// if (err) {
-	// 		// 	throw new Error(err);
-	// 		// }
-	// 		config.address = testNodeConfig.ip;
-	// 		config.port = testNodeConfig.port;
-	// 		config.db.database = testNodeConfig.database;
-	// 		config.peers.list = testNodeConfig.peers.list;
-	//
-	// 		fs.writeFileSync(integrartionConfigPath, JSON.stringify(config, null, 4));
-	//
-	//
-	// 		child_process.exec('node app.js -c ' + integrartionConfigPath, function (err, stdout) {
-	// 			console.log(stdout);
-	// 		});
-	//
-	// 		// child_process.exec('node app.js -c ' + integrartionConfigPath, function (err, stdout) {
-	// 		// 	console.log(stdout);
-	// 		// });
-	// 	});
-	// });
-
 	child_process.exec('pm2 start test/integration/pm2.integration.json', function (err, stdout) {
 		return cb(err);
 	});
@@ -143,7 +113,7 @@ describe('WS /peer/list', function () {
 					done(err);
 				});
 			});
-		}, 5000);
+		}, 8000);
 
 	});
 
