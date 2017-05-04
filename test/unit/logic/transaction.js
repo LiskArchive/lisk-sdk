@@ -299,11 +299,11 @@ describe('transaction', function () {
 
 		var randomRequester = {};
 
-		it.skip('should work for signing transaction', function (done) {
+		it('should work for signing transaction', function (done) {
 			attachAllAssets(transaction);
 			transaction.process(validTransaction, validSender, randomRequester, function (err, res) {
-				expect(err).to.be.empty;
-				expect(res).to.be.empty;
+				expect(err).to.not.be.ok;
+				expect(res).to.be.an('object');
 				done();
 			});
 		});
@@ -321,8 +321,9 @@ describe('transaction', function () {
 
 		it('should verify proper SEND transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.SEND;
+
 			transaction.verify(validTransaction, validSender, {}, function (err, res) {
-				expect(err).to.be.empty;
+				expect(err).to.not.be.ok;
 				expect(res).to.be.empty;
 				done();
 			});

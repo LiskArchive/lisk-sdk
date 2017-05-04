@@ -609,7 +609,7 @@ describe('PUT /api/transactions', function () {
 	it('using valid parameters with data field should be ok', function (done) {
 		var amountToSend = 123456789;
 		var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
-		var data = 'extra information';
+		var data = 'other extra information';
 
 		putTransaction({
 			secret: account.password,
