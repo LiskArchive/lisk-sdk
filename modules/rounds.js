@@ -64,7 +64,8 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	function BackwardTick (t) {
 		var promised = new Round(scope, t);
 
-		library.logger.debug('Performing backward tick', scope);
+		library.logger.debug('Performing backward tick');
+		library.logger.trace(scope);
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
@@ -138,7 +139,8 @@ Rounds.prototype.tick = function (block, done) {
 	function Tick (t) {
 		var promised = new Round(scope, t);
 
-		library.logger.debug('Performing forward tick', scope);
+		library.logger.debug('Performing forward tick');
+		library.logger.trace(scope);
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
@@ -234,7 +236,7 @@ __private.getOutsiders = function (scope, cb) {
 			}
 			return setImmediate(eachCb);
 		}, function (err) {
-			library.logger.debug('Got outsiders', scope.roundOutsiders);
+			library.logger.trace('Got outsiders', scope.roundOutsiders);
 			return setImmediate(cb, err);
 		});
 	});
@@ -254,9 +256,9 @@ __private.sumRound = function (scope, cb) {
 		scope.roundRewards = rewards;
 		scope.roundDelegates = rows[0].delegates;
 
-		library.logger.debug('roundFees', scope.roundFees);
-		library.logger.debug('roundRewards', scope.roundRewards);
-		library.logger.debug('roundDelegates', scope.roundDelegates);
+		library.logger.trace('roundFees', scope.roundFees);
+		library.logger.trace('roundRewards', scope.roundRewards);
+		library.logger.trace('roundDelegates', scope.roundDelegates);
 
 		return setImmediate(cb);
 	}).catch(function (err) {
