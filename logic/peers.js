@@ -115,7 +115,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		__private.peers[peer.string].update(peer);
 
 		if (Object.keys(diff).length) {
-			library.logger.debug('Updated peer ' + peer.string, diff);
+			library.logger.debug('Updated peer ' + peer.string, diff, peer);
 		} else {
 			library.logger.trace('Peer not changed', peer.string);
 		}

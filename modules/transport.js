@@ -465,7 +465,7 @@ Transport.prototype.onBlockchainReady = function () {
  */
 Transport.prototype.onSignature = function (signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
-		__private.broadcaster.enqueue({}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: 'postSignatures', data: {signature: signature}});
 		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
@@ -481,7 +481,7 @@ Transport.prototype.onSignature = function (signature, broadcast) {
  */
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
-		__private.broadcaster.enqueue({}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: 'postTransactions', data: {transaction: transaction}});
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
@@ -502,7 +502,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 
 		modules.system.update(function () {
 			if (!__private.broadcaster.maxRelays(block)) {
-				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
+				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: 'postBlock', data: {block: block}, immediate: true});
 			}
 			library.network.io.sockets.emit('blocks/change', block);
 			console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT  --- ON onNewBlock --- received sending new config: ', broadhash, modules.system.getHeight());
@@ -619,7 +619,7 @@ Transport.prototype.internal = {
 
 	list: function (req, cb) {
 		req = req || {};
-		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list', Object.assign({}, {limit: constants.maxPeers}, req.query));
+		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list', Object.assign({}, {limit: constants.maxPeers}, req.query), process.pid);
 		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
 			if (err) 		{console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list ERROR', err);}

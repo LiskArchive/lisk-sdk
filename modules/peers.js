@@ -350,7 +350,6 @@ Peers.prototype.remove = function (pip, port) {
 Peers.prototype.ping = function (peer, cb) {
 	library.logger.trace('Pinging peer: ' + peer.string);
 	if (library.config.peerProtocol === 'ws') {
-
 		console.log(peer);
 		// console.trace('before ping');
 		peer.rpc.status(function (err, response) {
@@ -360,10 +359,12 @@ Peers.prototype.ping = function (peer, cb) {
 				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping error');
 				return setImmediate(cb, err);
 			} else {
-				peer.height = response.height;
-				peer.broadhash = response.broadhash;
-				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping success --- status: ', response, this.update);
-				this.update(peer);
+				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping success --- APPLYING HEADERS: ');
+				peer.applyHeaders({
+					height: response.height,
+					broadhash: response.broadhash
+				});
+				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping success --- status: ', response, peer);
 				return setImmediate(cb);
 			}
 		}.bind(this));
@@ -501,8 +502,9 @@ Peers.prototype.list = function (options, cb) {
 			// Apply filters
 			peersList = peersList.filter(function (peer) {
 				if (options.broadhash) {
-					// Skip banned and disconnected peers (state 0 and 1)
-					return options.allowedStates.indexOf(peer.state) !== -1 && (
+					console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- list --- checking peers broadhash: ', peer.string, peer.broadhash);
+					// Skip banned peers (state 0)
+					return peer.state > 0 && (
 						// Matched broadhash when attempt 0
 						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
 						// Unmatched broadhash when attempt 1

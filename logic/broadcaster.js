@@ -52,15 +52,13 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 
 	// Broadcast routes
 	self.routes = [{
-		path: '/transactions',
+		path: 'transactions',
 		collection: 'transactions',
-		object: 'transaction',
-		method: 'POST'
+		object: 'transaction'
 	}, {
-		path: '/signatures',
+		path: 'signatures',
 		collection: 'signatures',
-		object: 'signature',
-		method: 'POST'
+		object: 'signature'
 	}];
 
 	// Broadcaster timer
@@ -105,6 +103,8 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 
 	var originalLimit = params.limit;
 
+	console.log('\x1b[36m%s\x1b[0m', 'BROADCASTER MODULES --- asking of peers with broadhash: ', params.broadhash);
+
 	modules.peers.list(params, function (err, peers, consensus) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -140,6 +140,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
  * @return {setImmediateCallback} err | peers
  */
 Broadcaster.prototype.broadcast = function (params, options, cb) {
+	options.data.peer = library.logic.peers.me();
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
@@ -151,28 +152,30 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 				return setImmediate(waterCb, null, params.peers);
 			}
 		},
-		function getFromPeer (peers, waterCb) {
+		function sendToPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 			console.log('\x1b[36m%s\x1b[0m', 'BROADCASTER --- getPeers for params ---- ', params, peers);
 
-			if (params.limit === self.config.peerLimit) { 
-				peers = peers.slice(0, self.config.broadcastLimit);
-			}
-
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
-				peer = library.logic.peers.create(peer);
-				console.log('\x1b[36m%s\x1b[0m', 'BROADCASTER LOGIC --- broadcast to ---- ', peer, options);
-				peer.attachRPC();
+				// peer = library.logic.peers.create(peer).attachRPC();
+				console.log('\x1b[36m%s\x1b[0m', 'BROADCASTER --- broadcast to ---- peer / options', peer, options);
+				if (library.config.peerProtocol === 'ws') {
+					peer.rpc[options.api](options.data, function (err, result) {
+						console.log('\x1b[36m%s\x1b[0m', 'BROADCASTER --- broadcast results cb err / results ', err, result);
+						if (err) {
+							library.logger.debug('Failed to broadcast to peer: ' + peer.string, err);
+						}
+						return setImmediate(eachLimitCb);
+					});
+				} else {
+					modules.transport.getFromPeer(peer, options, function (err) {
+						if (err) {
+							library.logger.debug('Failed to broadcast to peer: ' + peer.string, err);
+						}
 
-				// peer.rpc[options.api](options.data, function (err, result) {
-				//
-				// });
-				modules.transport.getFromPeer(peer, options, function (err) {
-					if (err) {
-						library.logger.debug('Failed to broadcast to peer: ' + peer.string, err);
-					}
-					return setImmediate(eachLimitCb);
-				});
+						return setImmediate(eachLimitCb);
+					});
+				}
 			}, function (err) {
 				library.logger.debug('End broadcast');
 				return setImmediate(waterCb, err, peers);
@@ -277,7 +280,7 @@ __private.squashQueue = function (broadcasts) {
 			}).filter(Boolean);
 
 			squashed.push({
-				options: { api: route.path, data: data, method: route.method },
+				options: { api: route.path, data: data },
 				immediate: false
 			});
 		}

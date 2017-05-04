@@ -444,7 +444,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			var ids = res.ids;
 
 			if (library.config.peerProtocol === 'ws') {
-				peer.rpc.blocksCommon({ids: ids}, function (err, res) {
+				peer.rpc.blocksCommon({ids: ids, peer: library.logic.peers.me()}, function (err, res) {
 					console.log('\x1b[30m%s\x1b[0m', 'BLOCKS MODULE: LOADED COMMON BLOCKS: err / res ', err, res);
 					if (err || !res.success) {
 						return setImmediate(waterCb, err);
@@ -527,7 +527,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	function getFromPeer (seriesCb) {
 
 		if (library.config.peerProtocol === 'ws') {
-			peer.rpc.blocks({lastBlockId: lastValidBlock.id}, function (err, res) {
+			peer.rpc.blocks({lastBlockId: lastValidBlock.id, peer: library.logic.peers.me()}, function (err, res) {
 				console.log('\x1b[30m%s\x1b[0m', 'BLOCKS MODULE: LOADED BLOCKS: err / res ', err, res);
 				err = err || res.error;
 				if (err) {
