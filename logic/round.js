@@ -88,6 +88,10 @@ Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
 	var queries = [];
 
+	// Reverse delegates if going backwards
+	var delegates = (this.scope.backwards) ? this.scope.roundDelegates.reverse() : this.scope.roundDelegates;
+
+	// Apply round changes to each delegate
 	for (var i = 0; i < this.scope.roundDelegates.length; i++) {
 		var delegate = this.scope.roundDelegates[i];
 		var changes = roundChanges.at(i);
@@ -103,17 +107,29 @@ Round.prototype.applyRound = function () {
 			fees: (this.scope.backwards ? -changes.fees : changes.fees),
 			rewards: (this.scope.backwards ? -changes.rewards : changes.rewards)
 		}));
+	}
 
-		if (i === this.scope.roundDelegates.length - 1) {
-			queries.push(this.scope.modules.accounts.mergeAccountAndGet({
-				publicKey: delegate,
-				balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-				u_balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-				blockId: this.scope.block.id,
-				round: this.scope.round,
-				fees: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining)
-			}));
-		}
+	// Decide which delegate receives fees remainder
+	var remainderIndex = (this.scope.backwards) ? 0 : delegates.length - 1;
+	var remainderDelegate = delegates[remainderIndex];
+
+	// Get round changes for chosen delegate
+	var changes = roundChanges.at(remainderIndex);
+
+	// Apply fees remaining to chosen delegate
+	if (changes.feesRemaining > 0) {
+		var feesRemaining = (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining);
+
+		this.scope.library.logger.trace('Fees Remainder', { index: remainderIndex, delegate: remainderDelegate, fees: feesRemaining });
+
+		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
+			publicKey: remainderDelegate,
+			balance: feesRemaining,
+			u_balance: feesRemaining,
+			blockId: this.scope.block.id,
+			round: this.scope.round,
+			fees: feesRemaining
+		}));
 	}
 
 	this.scope.library.logger.trace('Applying round', queries);
