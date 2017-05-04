@@ -92,7 +92,7 @@ Round.prototype.applyRound = function () {
 		var delegate = this.scope.roundDelegates[i];
 		var changes = roundChanges.at(i);
 
-		console.log('Round changes', delegate, changes);
+		this.scope.library.logger.trace('Round changes', { delegate: delegate, changes: changes });
 
 		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
 			publicKey: delegate,
@@ -116,7 +116,7 @@ Round.prototype.applyRound = function () {
 		}
 	}
 
-	console.log('Applying round', queries);
+	this.scope.library.logger.trace('Applying round', queries);
 
 	if (queries.length > 0) {
 		return this.t.none(queries.join(''));
