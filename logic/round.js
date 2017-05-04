@@ -96,7 +96,7 @@ Round.prototype.applyRound = function () {
 		var delegate = this.scope.roundDelegates[i];
 		var changes = roundChanges.at(i);
 
-		this.scope.library.logger.trace('Round changes', { delegate: delegate, changes: changes });
+		this.scope.library.logger.trace('Delegate changes', { delegate: delegate, changes: changes });
 
 		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
 			publicKey: delegate,
@@ -120,7 +120,7 @@ Round.prototype.applyRound = function () {
 	if (changes.feesRemaining > 0) {
 		var feesRemaining = (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining);
 
-		this.scope.library.logger.trace('Fees Remainder', { index: remainderIndex, delegate: remainderDelegate, fees: feesRemaining });
+		this.scope.library.logger.trace('Fees remaining', { index: remainderIndex, delegate: remainderDelegate, fees: feesRemaining });
 
 		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
 			publicKey: remainderDelegate,
