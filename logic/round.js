@@ -10,7 +10,7 @@ function Round (scope, t) {
 	this.t = t;
 
 	// List of required scope properties
-	var requiredProperties = ['modules', 'block', 'round', 'backwards'];
+	var requiredProperties = ['library', 'modules', 'block', 'round', 'backwards'];
 
 	// Require extra scope properties when finishing round
 	if (scope.finishRound) {

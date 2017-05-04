@@ -49,6 +49,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	var nextRound = self.calc(block.height + 1);
 
 	var scope = {
+		library: library,
 		modules: modules,
 		block: block,
 		round: round,
@@ -117,6 +118,7 @@ Rounds.prototype.tick = function (block, done) {
 	var nextRound = self.calc(block.height + 1);
 
 	var scope = {
+		library: library,
 		modules: modules,
 		block: block,
 		round: round,
