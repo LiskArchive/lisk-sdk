@@ -203,7 +203,6 @@ Rounds.prototype.onBind = function (scope) {
 };
 
 Rounds.prototype.onBlockchainReady = function () {
-	var round = self.calc(modules.blocks.getLastBlock().height);
 	__private.loaded = true;
 };
 
