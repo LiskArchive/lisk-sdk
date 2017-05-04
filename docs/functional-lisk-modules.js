@@ -5,8 +5,3 @@
  * @module blocks
  */
 
-/**
- * Functional Module `loader`
- * 
- * @module loader
- */
