@@ -10,24 +10,19 @@ var modulesLoader = require('../../common/initModule').modulesLoader;
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var Peers = require('../../../logic/peers.js');
 var Peer = require('../../../logic/peer.js');
+var constants = require('../../../helpers/constants');
 
 describe('peers', function () {
 
 	var peers;
 
-	before(function (done) {
-		modulesLoader.initAllModules(function (err, __modules) {
-			if (err) {
-				return done(err);
-			}
+	before(function () {
+		constants.setConst('headers', {});
+	});
 
-			__modules.peers.onBind(__modules);
-
-			modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
-				peers = __peers;
-				peers.bindModules({peers: __modules.peers});
-				done();
-			});
+	before(function () {
+		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
+			peers = __peers;
 		});
 	});
 

@@ -117,13 +117,13 @@ function TransportHttpApi (transportModule, app, logger, cache) {
 				return res.json({success: false, error: report.issues});
 			}
 
-			var req = {
+			var payload = {
 				ids: query.ids,
 				peer: req.peer,
 				extraLogMessage: req.method + ' ' + req.url
 			};
-			return transportModule.internal.blocksCommon(req, httpApi.respond.bind(null, res));
-		});
+			return transportModule.internal.blocksCommon(payload, httpApi.respond.bind(null, res));
+		}.bind(this));
 	}
 }
 
