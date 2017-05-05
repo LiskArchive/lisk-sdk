@@ -1,6 +1,5 @@
 'use strict';
 
-// var node = require('../node.js');
 var _ = require('lodash');
 var fs = require('fs');
 var Q = require('q');
