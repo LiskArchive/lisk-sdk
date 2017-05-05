@@ -10,10 +10,15 @@ var modulesLoader = require('../../common/initModule').modulesLoader;
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var Peers = require('../../../logic/peers.js');
 var Peer = require('../../../logic/peer.js');
+var constants = require('../../../helpers/constants');
 
 describe('peers', function () {
 
 	var peers;
+
+	before(function () {
+		constants.setConst('headers', {});
+	});
 
 	before(function () {
 		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
