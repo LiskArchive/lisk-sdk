@@ -57,7 +57,7 @@ var constants = {
 		constants[key] = value;
 	},
 
-	getConst: function(key) {
+	getConst: function (key) {
 		if (!constants[key]) {
 			throw new Error('No ' + key + ' constant set.');
 		}
