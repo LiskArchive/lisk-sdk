@@ -168,6 +168,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 };
 
 // Public methods
+//ToDo: To remove
 Transport.prototype.headers = function (headers) {
 	if (headers) {
 		__private.headers = headers;
@@ -208,6 +209,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	});
 };
 
+//ToDo: To remove
 Transport.prototype.getFromPeer = function (peer, options, cb) {
 	var url;
 
