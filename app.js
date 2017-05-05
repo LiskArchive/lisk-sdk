@@ -319,7 +319,7 @@ d.run(function () {
 			scope.network.app.rpc = WsRPCServer.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
 
 			socketCluster.on('ready', function (err, result) {
-				console.log('APP.JS --- SOCKET CLUSTER READY', result, err);
+				scope.logger.info('Socket Cluster ready for incoming connections');
 				cb();
 			});
 

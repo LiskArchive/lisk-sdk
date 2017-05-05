@@ -23,7 +23,6 @@ var middleware = {
 			headers = peer.applyHeaders(headers);
 
 			z_schema.validate(headers, schema.headers, function (error) {
-				console.log('WsAPI --- handshake --- compare system with peer: system', system.getNonce(), system.getNethash());
 				if (error) {
 					return setImmediate(cb, {
 						success: false,

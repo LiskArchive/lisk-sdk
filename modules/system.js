@@ -220,17 +220,6 @@ System.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
-// ToDo: Done in transport module already in the same event
-// System.prototype.onNewBlock = function () {
-// 	modules.system.update(function (err) {
-// 		if (err) {
-// 			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE ERROR", err);
-// 		} else {
-// 			console.log("SYSTEM MODULE -- onNewBlock --- UPDATE SUCCESS", modules.system.getHeight(), modules.system.getBroadhash());
-//
-// 		}
-// 	});
-// };
 // Events
 /**
  * Assigns used modules to modules variable.

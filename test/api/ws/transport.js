@@ -86,22 +86,19 @@ describe('RPC', function () {
 		wampClient.upgradeToWAMP(clientSocket);
 
 		clientSocket.on('connect', function () {
-			console.log('CONNECTED');
+			console.log('connect');
 			done();
 		});
 
 		clientSocket.on('connecting', function (data) {
 			console.log('connecting');
-
 		});
 
 		clientSocket.on('connectAbort', function (data) {
 			done('should not reject handshake with valid params', data);
 		});
 
-
 		clientSocket.on('error', function (err) {
-			console.log('ERROR', err);
 			done(err);
 		});
 	});

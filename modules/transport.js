@@ -482,15 +482,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: 'postBlock', data: {block: block}, immediate: true});
 			}
 			library.network.io.sockets.emit('blocks/change', block);
-			console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT  --- ON onNewBlock --- received sending new config: ', broadhash, modules.system.getHeight());
-
-			// library.network.app.rpc.sharedClient.broadcast('peerUpdate', {peer: {
-			// 	broadhash: broadhash,
-			// 	ip: constants.externalAddress,
-			// 	port: modules.system.getPort(),
-			// 	nonce: modules.system.getNonce(),
-			// 	height: modules.system.getHeight()
-			// }});
+			//ToDo: broadcasting block to peers should take place here
 		});
 	}
 };
@@ -534,7 +526,6 @@ Transport.prototype.isLoaded = function () {
 Transport.prototype.internal = {
 	blocksCommon: function (query, cb) {
 		query = query || {};
-		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: blocksCommon', query);
 
 		var escapedIds = query.ids
 			// Remove quotes
@@ -556,7 +547,6 @@ Transport.prototype.internal = {
 		}
 
 		library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
-			console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: blocksCommon result positive: ', rows);
 			return setImmediate(cb, null, { success: true, common: rows[0] || null });
 		}).catch(function (err) {
 			library.logger.error(err.stack);
@@ -600,10 +590,8 @@ Transport.prototype.internal = {
 
 	list: function (req, cb) {
 		req = req || {};
-		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list', Object.assign({}, {limit: constants.maxPeers}, req.query), process.pid);
 		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
-			if (err) 		{console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: list ERROR', err);}
 			peers = peers.map(function (peer) {
 				delete peer.rpc;
 				return peer;
@@ -613,17 +601,14 @@ Transport.prototype.internal = {
 	},
 
 	height: function (req, cb) {
-		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: height');
 		return setImmediate(cb, null, {success: true, height: modules.system.getHeight()});
 	},
 
 	ping: function (req, cb) {
-		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: ping');
 		return setImmediate(cb, null, {success: true});
 	},
 
 	status: function (req, cb) {
-		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: status');
 		return setImmediate(cb, null, {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash()});
 	},
 
@@ -760,7 +745,6 @@ Transport.prototype.internal = {
 	},
 
 	onPeerUpdate: function (query) {
-		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE: onPeerUpdate', query);
 		library.logic.peers.update(query.peer);
 	},
 
@@ -821,9 +805,6 @@ Transport.prototype.internal = {
 	 * @param {string} extraMessage
 	 */
 	removePeer: function (query, cb) {
-		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE: removePeer', query.peer, query.code, query.extraMessage);
-		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE: removePeer returns: ', __private.removePeer({peer: query.peer, code: query.code}, query.extraMessage));
-
 		return setImmediate(cb, __private.removePeer({peer: query.peer, code: query.code}, query.extraMessage) ? null : 'Failed to remove peer');
 	},
 
@@ -831,9 +812,6 @@ Transport.prototype.internal = {
 	 * @param {Peer} peer
 	 */
 	acceptPeer: function (query, cb) {
-		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE: acceptPeer', query.peer);
-		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE: acceptPeer returns: ', modules.peers.update(query.peer));
-
 		return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
 	}
 };

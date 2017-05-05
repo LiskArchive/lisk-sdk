@@ -347,18 +347,14 @@ Peers.prototype.ping = function (peer, cb) {
 		console.log(peer);
 		// console.trace('before ping');
 		peer.rpc.status(function (err, response) {
-			console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: status cb invoked: ', arguments);
 			if (err) {
 				library.logger.trace('Ping peer failed: ' + peer.string, err);
-				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping error');
 				return setImmediate(cb, err);
 			} else {
-				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping success --- APPLYING HEADERS: ');
 				peer.applyHeaders({
 					height: response.height,
 					broadhash: response.broadhash
 				});
-				console.log('\x1b[31m%s\x1b[0m', 'PEERS MODULE: ping success --- status: ', response, peer);
 				return setImmediate(cb);
 			}
 		}.bind(this));
@@ -387,23 +383,15 @@ Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
 		modules.peers.list({limit: 1}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discover ---- drawn out peer: ', peers[0]);
 			if (!err && peers.length) {
 				peers[0].rpc.list(waterCb);
 			} else {
 				return setImmediate(waterCb, err || 'No acceptable peers found');
 			}
-			// modules.transport.getFromRandomPeer({
-			// 	api: '/list',
-			// 	method: 'GET'
-			// }, function (err, res) {
-			// 	return setImmediate(waterCb, err, res);
-			// });
 		});
 	}
 
 	function validatePeersList (result, waterCb) {
-		console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discover ---- validatePeersList list from peer', result);
 		library.schema.validate(result, schema.discover.peers, function (err) {
 			return setImmediate(waterCb, err, result.peers);
 		});
