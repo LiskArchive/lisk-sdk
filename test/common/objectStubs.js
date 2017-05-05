@@ -11,7 +11,8 @@ var randomPeer = {
 	'port': 4000,
 	'state': 2,
 	'version': '0.0.0',
-	'nonce': 'randomnonce'
+	'nonce': 'randomnonce',
+	rpc: {}
 };
 
 module.exports = {

@@ -4,12 +4,13 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
 var sinon = require('sinon');
-var randomString = require('randomstring');
 var _  = require('lodash');
+var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../config.json');
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var modulesLoader = require('../../common/initModule').modulesLoader;
+var WsRPCServer = require('../../../api/RPC').WsRPCServer;
 
 var currentPeers = [];
 
@@ -17,7 +18,7 @@ describe('peers', function () {
 
 	var peers, modules;
 
-	var NONCE = randomString.generate(16);
+	var NONCE;
 
 	function getPeers (cb) {
 		peers.list({broadhash: config.nethash}, function (err, __peers) {
@@ -34,9 +35,10 @@ describe('peers', function () {
 			}
 			peers = __modules.peers;
 			modules = __modules;
-			peers.onBind(__modules);
+			NONCE = __modules.system.getNonce();
+			peers.onBind(modules);
 			done();
-		}, {nonce: NONCE});
+		}, {});
 	});
 
 	beforeEach(function (done) {
@@ -126,7 +128,8 @@ describe('peers', function () {
 
 		var ipAndPortPeer = {
 			ip: '40.41.40.41',
-			port: 4000
+			port: 4000,
+			nonce: 'randomnonce'
 		};
 
 		it('should insert new peer with only ip and port defined', function (done) {
@@ -208,11 +211,12 @@ describe('peers', function () {
 			expect(peers.acceptable([randomPeer])).that.is.an('array').and.to.deep.equal([randomPeer]);
 		});
 
-		it('should not accept peer with private ip', function () {
-			var privatePeer = _.clone(randomPeer);
-			privatePeer.ip = '127.0.0.1';
-			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
-		});
+		//ToDo: uncomment when acceptance of private addressees will be enabled
+		// it('should not accept peer with private ip', function () {
+		// 	var privatePeer = _.clone(randomPeer);
+		// 	privatePeer.ip = '127.0.0.1';
+		// 	expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+		// });
 
 		it('should not accept peer with lisk-js-api os', function () {
 			var privatePeer = _.clone(randomPeer);
@@ -243,19 +247,21 @@ describe('peers', function () {
 
 	describe('ping', function () {
 
-		it('should accept peer with public ip', function (done) {
-			sinon.stub(modules.transport, 'getFromPeer').callsArgWith(2, null, {
+		before(function () {
+			randomPeer.rpc.status = function () {};
+			sinon.stub(randomPeer.rpc, 'status').callsArgWith(0, null, {
 				success: true,
-				peer: randomPeer,
-				body: {
-					success: true, height: randomPeer.height, peers: [randomPeer]
-				}
+				broadhash: '123456789broadhash',
+				nethash: '123456789nethash'
 			});
 
+			randomPeer.applyHeaders = function () {};
+			sinon.spy(randomPeer, 'applyHeaders');
+		});
+
+		it('should accept peer with public ip', function (done) {
 			peers.ping(randomPeer, function (err, res) {
-				expect(modules.transport.getFromPeer.calledOnce).to.be.ok;
-				expect(modules.transport.getFromPeer.calledWith(randomPeer)).to.be.ok;
-				modules.transport.getFromPeer.restore();
+				expect(randomPeer.applyHeaders.calledOnce).to.be.ok;
 				done();
 			});
 		});
@@ -265,6 +271,20 @@ describe('peers', function () {
 
 		before(function () {
 			modules.transport.onBind(modules);
+
+			var testWampServer = new MasterWAMPServer({on: sinon.spy()}, {});
+
+			var usedRPCEndpoints = {
+				status: function () {}
+			};
+			sinon.stub(usedRPCEndpoints, 'status').callsArgWith(0, null, {
+				success: true,
+				broadhash: '123456789broadhash',
+				nethash: '123456789nethash'
+			});
+
+			testWampServer.registerRPCEndpoints(usedRPCEndpoints);
+			WsRPCServer.setServer(testWampServer);
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {

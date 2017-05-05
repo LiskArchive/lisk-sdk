@@ -36,7 +36,8 @@ describe('handshake', function () {
 			ip: '0.0.0.0',
 			port: 4000,
 			nethash: config.nethash,
-			version: config.version
+			version: config.version,
+			nonce: 'PEER_NONCE'
 		};
 	});
 

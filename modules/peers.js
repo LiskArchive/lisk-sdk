@@ -178,12 +178,6 @@ __private.insertSeeds = function (cb) {
 			}
 			return setImmediate(eachCb);
 		});
-
-		// self.ping(peer, function (err) {
-		// 	console.log('Peers-> insert seeds cb ', err);
-		// 	++updated;
-		// 	return setImmediate(eachCb);
-		// });
 	}, function (err) {
 		library.logger.trace('Peers->insertSeeds - Peers discovered', {updated: updated, total: library.config.peers.list.length});
 		return setImmediate(cb);
@@ -461,18 +455,9 @@ Peers.prototype.discover = function (cb) {
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
 		// Removing peers with private or address or with the same nonce
-		// return !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
-		console.log('PROCESSS ENV TEST', process.env.NODE_ENV, modules.system.getNonce());
+		// ToDo: It will not work with integration tests
+		// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 		return peer.nonce !== modules.system.getNonce();
-		// if (peer.nonce !== modules.system.getNonce()) {
-		// 	return false;
-		// }
-		// // else if (process.env.NODE_ENV.toLowerCase() !== 'test') {
-		// // 	return !ip.isPrivate(peer.ip);
-		// // }
-		// return true;
-		// return process.env.NODE_ENV.toLowerCase() === 'test' ? peer.nonce !== library.nonce : !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
-
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
