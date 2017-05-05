@@ -100,7 +100,7 @@ __private.loadSignatures = function (cb) {
 		function (peer, waterCb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
 			if (library.config.peerProtocol === 'ws') {
-				peer.rpc.signatures(function (err, res) {
+				peer.rpc.getSignatures(function (err, res) {
 					console.log('\x1b[30m%s\x1b[0m', 'LOADER MODULE: LOADED SIGNATURES: err / res ', err, res);
 					if (err) {
 						return setImmediate(waterCb, err);
@@ -160,7 +160,7 @@ __private.loadTransactions = function (cb) {
 		function (peer, waterCb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
 			if (library.config.peerProtocol === 'ws') {
-				peer.rpc.transactions(function (err, res) {
+				peer.rpc.getTransactions(function (err, res) {
 					console.log('\x1b[30m%s\x1b[0m', 'LOADER MODULE: LOADED TRANSACTIONS: err / res ', err, res);
 					if (err) {
 						return setImmediate(waterCb, err);

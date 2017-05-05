@@ -2,16 +2,12 @@
 
 var async = require('async');
 var _ = require('lodash');
-var memored = require('memored');
-var commander = require('commander');
-var packageJson = require('../../package.json');
 var url = require('url');
 
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 var config = require('../../config.json');
 
 var Peer = require('../../logic/peer');
-var Config = require('../../helpers/config');
 var System = require('../../modules/system');
 var Handshake = require('../../helpers/wsApi').middleware.Handshake;
 var extractHeaders = require('../../helpers/wsApi').extractHeaders;

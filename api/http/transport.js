@@ -25,7 +25,6 @@ function TransportHttpApi (transportModule, app, logger) {
 		'get /transactions': 'getTransactions',
 		'post /dapp/message': 'postDappMessage',
 		'post /dapp/request': 'postDappRequest'
-
 	});
 
 	// Custom parameters internal functions

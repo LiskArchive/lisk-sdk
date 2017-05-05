@@ -51,7 +51,7 @@ function WsRPCClient (ip, port) {
 			port: +port + 1000,
 			protocol: 'http',
 			autoReconnect: true,
-			query: WsRPCClient.prototype.systemHeaders
+			query: constants.getConst('headers')
 		}, address, socketDefer);
 		console.log('\x1b[32m%s\x1b[0m', 'socket defer promise state promise state', socketDefer.promise.inspect().state);
 		WsRPCServer.prototype.wsClientsConnectionsMap[address] = socketDefer;
@@ -142,10 +142,6 @@ WsRPCClient.prototype.clientStub = function (handler) {
 			availableCalls[procedureName] = handler(procedureName);
 			return availableCalls;
 		}, {});
-};
-
-WsRPCClient.prototype.attachSystemConstants = function (systemHeaders) {
-	WsRPCClient.prototype.systemHeaders = systemHeaders;
 };
 
 module.exports = {
