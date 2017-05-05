@@ -313,7 +313,10 @@ d.run(function () {
 			};
 
 			var socketCluster = new SocketCluster(webSocketConfig);
-			scope.network.app.rpc = new WsRPCServer(socketCluster, childProcessOptions);
+
+			var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+			scope.network.app.rpc = WsRPCServer.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
 
 			socketCluster.on('ready', function (err, result) {
 				console.log('APP.JS --- SOCKET CLUSTER READY', result, err);
