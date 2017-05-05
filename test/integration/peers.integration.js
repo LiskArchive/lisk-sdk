@@ -52,13 +52,13 @@ var monitorWSClient = {
 
 
 function launchTestNodes (cb) {
-	child_process.exec('pm2 start test/integration/pm2.integration.json', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err, stdout) {
 		return cb(err);
 	});
 }
 
 function killTestNodes (cb) {
-	child_process.exec('pm2 delete all', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 delete all', function (err, stdout) {
 		return cb(err);
 	});
 }
@@ -66,7 +66,7 @@ function killTestNodes (cb) {
 function recreateDatabases (done) {
 	var recreatedCnt = 0;
 	testNodeConfigs.forEach(function (nodeConfig) {
-		child_process.exec('dropdb ' + nodeConfig.database + ' || createdb ' + nodeConfig.database, function (err, stdout) {
+		child_process.exec('dropdb ' + nodeConfig.database + ' && createdb ' + nodeConfig.database, function (err, stdout) {
 			if (err) {
 				return done(err);
 			}
@@ -86,6 +86,10 @@ before(function (done) {
 	launchTestNodes(done);
 });
 
+before(function (done) {
+	require('../common/globalBefore').waitUntilBlockchainReady(done, 10, 2000, 'http://' + testNodeConfigs[0].ip + ':' + testNodeConfigs[0].port);
+});
+
 describe('WS /peer/list', function () {
 
 	var sockets = [];
@@ -94,24 +98,21 @@ describe('WS /peer/list', function () {
 		var connectedTo = 0;
 		var wampClient = new WAMPClient();
 		//ToDo: more clever way for waiting until all test node being able to receive connections
-		setTimeout(function () {
-			testNodeConfigs.forEach(function (testNodeConfig) {
-				monitorWSClient.port = testNodeConfig.port + 1000;
-				var socket = scClient.connect(monitorWSClient);
-				wampClient.upgradeToWAMP(socket);
-				socket.on('connect', function () {
-					sockets.push(socket);
-					connectedTo += 1;
-					if (connectedTo === testNodeConfigs.length) {
-						done();
-					}
-				});
-				socket.on('error', function (err) {
-					done(err);
-				});
+		testNodeConfigs.forEach(function (testNodeConfig) {
+			monitorWSClient.port = testNodeConfig.port + 1000;
+			var socket = scClient.connect(monitorWSClient);
+			wampClient.upgradeToWAMP(socket);
+			socket.on('connect', function () {
+				sockets.push(socket);
+				connectedTo += 1;
+				if (connectedTo === testNodeConfigs.length) {
+					done();
+				}
 			});
-		}, 8000);
-
+			socket.on('error', function (err) {
+				done(err);
+			});
+		});
 	});
 
 	it('should return a list of peer mutually interconnected', function (done) {
@@ -119,7 +120,7 @@ describe('WS /peer/list', function () {
 		Q.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
-			console.log('ALL LISTS RESULTS', JSON.stringify(results), null, 2);
+			console.log('ALL LISTS RESULTS', JSON.stringify(results, null, 2));
 			var resultsFrom = 0;
 			results.forEach(function (result) {
 				resultsFrom += 1;

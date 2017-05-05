@@ -167,9 +167,8 @@ __private.insertSeeds = function (cb) {
 	var updated = 0;
 	library.logger.trace('Peers->insertSeeds');
 	async.each(library.config.peers.list, function (peer, eachCb) {
-		peer = library.logic.peers.create(peer);
+		peer = library.logic.peers.create(peer).attachRPC();
 		library.logger.trace('Processing seed peer: ' + peer.string);
-		peer.attachRPC();
 		peer.rpc.status(function (err, status) {
 			if (!err) {
 				peer.height = status.height;
@@ -468,7 +467,7 @@ Peers.prototype.list = function (options, cb) {
 
 	function randomList (options, peers, cb) {
 		// Get full peers list (random)
-		__private.getByFilter ({}, function (err, peersList) {
+		__private.getByFilter({}, function (err, peersList) {
 			var accepted, found, matched, picked;
 
 			found = peersList.length;

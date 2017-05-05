@@ -268,7 +268,7 @@ d.run(function () {
 			});
 		}],
 
-		webSocket: ['config', 'connect', 'network', function (scope, cb) {
+		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: 1,
 				port: parseInt(scope.config.port) + 1000,

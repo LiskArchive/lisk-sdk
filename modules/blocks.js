@@ -519,8 +519,8 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = __private.lastBlock;
 
-	peer = library.logic.peers.create(peer);
-	library.logger.info('Loading blocks from: ' + peer.string);
+	peer = library.logic.peers.create(peer).attachRPC();
+	library.logger.info('Loading blocks from: ' + peer.string, peer);
 
 	function getFromPeer (seriesCb) {
 

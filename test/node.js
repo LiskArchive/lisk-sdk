@@ -22,6 +22,7 @@ node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
+var randomString = require('randomstring');
 require('colors');
 
 // Node configuration
@@ -32,6 +33,7 @@ node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
+node.nonce = randomString.generate(16);
 
 // Transaction fees
 node.fees = {
@@ -230,7 +232,7 @@ node.addPeers = function (numOfPeers, ip, cb) {
 				ip: ip,
 				port: port,
 				version: version,
-				nonce: 'randomNonce'
+				nonce: node.nonce
 			}
 		});
 
