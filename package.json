@@ -1,6 +1,6 @@
 {
   "name": "lisk",
-  "version": "0.8.0c",
+  "version": "0.8.2b",
   "private": true,
   "scripts": {
     "start": "node app.js",
