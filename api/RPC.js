@@ -28,7 +28,6 @@ var WsRPCServer = {
 };
 
 function WsRPCClient (ip, port) {
-	console.log('new RPC Client created');
 
 	if (!ip || !port) {
 		throw new Error('WsRPCClient needs ip and port to establish WS connection.');
@@ -47,37 +46,28 @@ function WsRPCClient (ip, port) {
 			autoReconnect: true,
 			query: constants.getConst('headers')
 		}, address, socketDefer);
-		console.log('\x1b[32m%s\x1b[0m', 'socket defer promise state promise state', socketDefer.promise.inspect().state);
 		WsRPCServer.wsClientsConnectionsMap[address] = socketDefer;
-	} else {
-		console.log('\x1b[32m%s\x1b[0m', 'WsRPCClient: found existing connection - deffer');
 	}
 
-	console.log('\x1b[32m%s\x1b[0m', 'WsRPCClient: return a new stub for  --- port', port);
 	return this.clientStub(this.sendAfterSocketReadyCb(socketDefer));
 }
 
 WsRPCClient.prototype.initializeNewConnection = function (options, address, socketReady) {
-
-	console.log('\x1b[32m%s\x1b[0m', 'WsRPCClient: initializeNewConnection --- with: ', options);
 
 	var clientSocket = WsRPCServer.scClient.connect(options);
 
 	WsRPCServer.wampClient.upgradeToWAMP(clientSocket);
 
 	clientSocket.on('connect', function () {
-		console.log('\x1b[32m%s\x1b[0m', 'WsRPCClient: HANDSHAKE SUCCEESS --- with: ', options.ip, options.port);
 		if (!constants.externalAddress) {
 			clientSocket.wampSend('list', {query: {
 				nonce: options.query.nonce
 			}}).then(function (res) {
-				console.log('\x1b[32m%s\x1b[0m', 'this is me: ', res.peers[0]);
-				constants.externalAddress = res.peers[0].ip;
+				constants.setConst('externalAddress', res.peers[0].ip);
 				return socketReady.resolve(clientSocket);
 			}).catch(function (err) {
-				console.log('\x1b[32m%s\x1b[0m', 'get myself error: ', err);
 				clientSocket.disconnect();
-				return socketReady.reject();
+				return socketReady.reject(err);
 			});
 		} else {
 			return socketReady.resolve(clientSocket);
@@ -86,18 +76,15 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, sock
 
 	clientSocket.on('error', function () {
 		clientSocket.disconnect();
-		console.log('RPC CLIENT --- CLIENT SOCKET ON ERROR');
 	});
 
 	clientSocket.on('connectAbort', function (err, data) {
 		socketReady.reject(err);
-		console.log('\x1b[32m%s\x1b[0m', 'WsRPCClient: HANDSHAKE ABORT --- with: ',  options.ip, options.port, data, err);
 	});
 
 	clientSocket.on('disconnect', function () {
 		socketReady.reject();
 		clientSocket.disconnect();
-		console.log('CLIENT STARTED HANDSHAKE');
 	});
 };
 
@@ -106,21 +93,16 @@ WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
 		return function () {
 			var cb = _.isFunction(_.last(arguments)) ? _.last(arguments) : _.noop();
 			var data = !_.isFunction(arguments[0]) ? arguments[0] : {};
-			console.log('\x1b[38m%s\x1b[0m', 'RPC CLIENT --- SOCKET READY - SENDING REQ: ', procedureName, data);
 			socketReady.promise.then(function (socket) {
-				console.log('\x1b[32m%s\x1b[0m', 'WsRPCClient: sendAfterSocketReadyCb socketDefer resolved with', socket.id);
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
 					})
 					.catch(function (err) {
-						console.log('\x1b[38m%s\x1b[0m', 'BANNING PEER AFTER WRONG RESPONSE', procedureName);
 						return setImmediate(cb, err);
 					});
 			}).catch(function (err) {
-				console.log('\x1b[38m%s\x1b[0m', 'RPC CLIENT - Connection rejected by failed handshake', procedureName, data, err);
-				// socketReady = Q.defer();
-				return setImmediate(cb, 'RPC CLIENT - Connection rejected by failed handshake procedure --- ', procedureName, err);
+				return setImmediate(cb, 'RPC CLIENT - Connection rejected by failed handshake procedure');
 			});
 		};
 	};

@@ -23,6 +23,7 @@ function Peers (scope, cb) {
 	setInterval(function () {
 		console.log('\x1b[36m%s\x1b[0m', 'PEERS LOGIC --- peers ---- ', __private.peers);
 	}.bind(this), 5000);
+
 	return setImmediate(cb, null, this);
 }
 

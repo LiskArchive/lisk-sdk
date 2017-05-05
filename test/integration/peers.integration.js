@@ -100,7 +100,6 @@ describe('WS /peer/list', function () {
 				var socket = scClient.connect(monitorWSClient);
 				wampClient.upgradeToWAMP(socket);
 				socket.on('connect', function () {
-					console.log('CONNECTED');
 					sockets.push(socket);
 					connectedTo += 1;
 					if (connectedTo === testNodeConfigs.length) {
@@ -108,7 +107,6 @@ describe('WS /peer/list', function () {
 					}
 				});
 				socket.on('error', function (err) {
-					console.log('ERROR', err);
 					done(err);
 				});
 			});
