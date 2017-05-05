@@ -4,6 +4,7 @@ var async = require('async');
 var crypto = require('crypto');
 var os = require('os');
 var sandboxHelper = require('../helpers/sandbox.js');
+var constants = require('../helpers/constants.js');
 var semver = require('semver');
 var sql = require('../sql/system.js');
 var WsRPCClient = require('../api/RPC').WsRPCClient;
@@ -59,12 +60,7 @@ function System (cb, scope) {
 		this.minVersion = __private.minVersion;
 	}
 
-	WsRPCClient.prototype.attachSystemConstants({
-		port: __private.port,
-		nethash: __private.nethash,
-		version: __private.version,
-		nonce: __private.nonce
-	});
+	constants.setConst('headers', __private);
 
 	setImmediate(cb, null, self);
 }

@@ -556,6 +556,9 @@ Transport.prototype.isLoaded = function () {
  */
 Transport.prototype.internal = {
 	blocksCommon: function (query, cb) {
+		query = query || {};
+		console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: blocksCommon', query);
+
 		var escapedIds = query.ids
 			// Remove quotes
 			.replace(/['"]+/g, '')
@@ -576,6 +579,7 @@ Transport.prototype.internal = {
 		}
 
 		library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
+			console.log('\x1b[31m%s\x1b[0m', 'TRANSPORT MODULE: blocksCommon result positive: ', rows);
 			return setImmediate(cb, null, { success: true, common: rows[0] || null });
 		}).catch(function (err) {
 			library.logger.error(err.stack);

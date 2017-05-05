@@ -444,6 +444,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			var ids = res.ids;
 
 			if (library.config.peerProtocol === 'ws') {
+				peer.attachRPC();
 				peer.rpc.blocksCommon({ids: ids, peer: library.logic.peers.me()}, function (err, res) {
 					console.log('\x1b[30m%s\x1b[0m', 'BLOCKS MODULE: LOADED COMMON BLOCKS: err / res ', err, res);
 					if (err || !res.success) {
@@ -485,24 +486,22 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					} else {
-						return setImmediate(waterCb, null, res);
+						return setImmediate(waterCb, null, res.body);
 					}
 				});
 			}
-
-
 		},
 		function (res, waterCb) {
-			library.db.query(sql.getCommonBlock(res.body.common.previousBlock), {
-				id: res.body.common.id,
-				previousBlock: res.body.common.previousBlock,
-				height: res.body.common.height
+			library.db.query(sql.getCommonBlock(res.common.previousBlock), {
+				id: res.common.id,
+				previousBlock: res.common.previousBlock,
+				height: res.common.height
 			}).then(function (rows) {
 				if (!rows.length || !rows[0].count) {
 					comparisionFailed = true;
-					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using block:', JSON.stringify(res.body.common)].join(' '));
+					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using block:', JSON.stringify(res.common)].join(' '));
 				} else {
-					return setImmediate(waterCb, null, res.body.common);
+					return setImmediate(waterCb, null, res.common);
 				}
 			}).catch(function (err) {
 				library.logger.error(err.stack);

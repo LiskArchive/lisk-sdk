@@ -46,7 +46,7 @@ Peers.prototype.me = function () {
 
 	__private.me = new Peer(_.assign({}, {
 		ip: constants.externalAddress
-	}, WsRPCClient.prototype.systemHeaders));
+	}, constants.getConst('headers')));
 
 	return __private.me;
 };

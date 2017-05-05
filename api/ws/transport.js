@@ -19,6 +19,7 @@ function TransportWSApi (transportModule, app, logger) {
 		list: transportModule.internal.list,
 		height: transportModule.internal.height,
 		getTransactions: transportModule.internal.getTransactions,
+		getSignatures: transportModule.internal.getSignatures,
 		status: transportModule.internal.status,
 		postBlock: transportModule.internal.postBlock,
 		postSignatures: transportModule.internal.postSignatures,

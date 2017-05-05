@@ -20,6 +20,8 @@ var middleware = {
 				nonce: headers.nonce
 			});
 
+			headers = peer.applyHeaders(headers);
+
 			z_schema.validate(headers, schema.headers, function (error) {
 				console.log('WsAPI --- handshake --- compare system with peer: system', system.getNonce(), system.getNethash());
 				if (error) {
@@ -29,8 +31,6 @@ var middleware = {
 						code: 'EHEADERS'
 					}, peer);
 				}
-
-				headers = peer.applyHeaders(headers);
 
 				if (!system.nonceCompatible(headers.nonce)) {
 					return setImmediate(cb, {
