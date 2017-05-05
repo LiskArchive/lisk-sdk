@@ -93,17 +93,26 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
 
 Accounts.prototype.setAccountAndGet = function (data, cb) {
 	var address = data.address || null;
+	var err;
 
 	if (address === null) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			return setImmediate(cb, 'Missing address or public key');
+			err = 'Missing address or public key';
 		}
 	}
 
 	if (!address) {
-		return setImmediate(cb, 'Invalid public key');
+		err = 'Invalid public key';
+	}
+
+	if (err) {
+		if (typeof cb === 'function') {
+			return setImmediate(cb, err);
+		} else {
+			throw err;
+		}
 	}
 
 	library.logic.account.set(address, data, function (err) {
@@ -116,17 +125,26 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 
 Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	var address = data.address || null;
+	var err;
 
 	if (address === null) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			return setImmediate(cb, 'Missing address or public key');
+			err = 'Missing address or public key';
 		}
 	}
 
 	if (!address) {
-		return setImmediate(cb, 'Invalid public key');
+		err = 'Invalid public key';
+	}
+
+	if (err) {
+		if (typeof cb === 'function') {
+			return setImmediate(cb, err);
+		} else {
+			throw err;
+		}
 	}
 
 	return library.logic.account.merge(address, data, cb);
