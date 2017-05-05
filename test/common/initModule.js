@@ -18,6 +18,7 @@ var modulesLoader = new function () {
 
 	this.db = null;
 	this.logger = new Logger({ echo: null, errorLevel: config.fileLogLevel, filename: config.logFileName });
+	config.nonce = randomString.generate(16);
 	this.scope = {
 		config: config,
 		genesisblock: { block: genesisblock },
@@ -29,8 +30,7 @@ var modulesLoader = new function () {
 		schema: new z_schema(),
 		bus: {
 			message: function () {}
-		},
-		nonce: randomString.generate(16)
+		}
 	};
 
 	/**
