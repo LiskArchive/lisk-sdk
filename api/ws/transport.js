@@ -28,7 +28,6 @@ function TransportWSApi (transportModule, app, logger) {
 		peerUpdate: transportModule.internal.onPeerUpdate
 	};
 
-
 	var wsServer = WsRPCServer.getServer();
 	console.log('\x1b[36m%s\x1b[0m', 'TransportWSApi ----- invoke registerWorkerReceiver', wsServer.registerRPCEndpoints);
 	wsServer.registerRPCEndpoints(this.rpcEndpoints);

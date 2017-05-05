@@ -143,7 +143,6 @@ Peer.prototype.parseInt = function (integer, fallback) {
  */
 Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
-	headers = this.normalize(headers);
 	this.update(headers);
 	return headers;
 };

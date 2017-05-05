@@ -23,22 +23,6 @@ var WsRPCServer = {
 			throw new Error('WS server haven\'t been initialized!');
 		}
 		return this.wsServer;
-	},
-
-	sharedClient: {
-		broadcast: function (method, data) {
-			var wsServer = this.getServer();
-			console.log('\x1b[32m%s\x1b[0m', 'sharedClient: broadcast --- scClient --- ', Object.keys(wsServer.clients));
-			wsServer.broadcast(method, data);
-		}.bind(this),
-
-		sendToPeer: function (peer, procedure, data) {
-			var peerSocket = this.scClient.connections[this.wsClientsConnectionsMap[peer.ip + ':' + peer.port]];
-			if (!peerSocket) {
-				return Q.reject();
-			}
-			return peerSocket.wampSend(procedure, data);
-		}.bind(this)
 	}
 
 };
@@ -47,7 +31,7 @@ function WsRPCClient (ip, port) {
 	console.log('new RPC Client created');
 
 	if (!ip || !port) {
-		throw new Error('\x1b[38m%s\x1b[0m', 'WsRPCClient needs ip and port to establish WS connection.');
+		throw new Error('WsRPCClient needs ip and port to establish WS connection.');
 	}
 
 	var address = ip + ':' + port;

@@ -251,11 +251,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 };
 
 // Public methods
-/**
- * Sets or gets headers
- * @param {Object} [headers]
- * @return {Object} private variable with headers
- */
+//ToDo: To remove
 Transport.prototype.headers = function (headers) {
 	if (headers) {
 		__private.headers = headers;
@@ -323,26 +319,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 	});
 };
 
-/**
- * Requests information from peer(ip, port, url) and validates response:
- * - status 200
- * - headers valid schema
- * - same network (response headers nethash)
- * - compatible version (response headers version)
- * Removes peer if error, updates peer otherwise
- * @requires {popsicle}
- * @implements {library.logic.peers.create}
- * @implements {library.schema.validate}
- * @implements {modules.system.networkCompatible}
- * @implements {modules.system.versionCompatible}
- * @implements {modules.peers.update}
- * @implements {__private.removePeer}
- * @param {peer} peer
- * @param {Object} options
- * @param {function} cb
- * @return {setImmediateCallback|Object} error message | {body, peer}
- * @todo implements secure http request with https
- */
+//ToDo: To remove
 Transport.prototype.getFromPeer = function (peer, options, cb) {
 	var url;
 

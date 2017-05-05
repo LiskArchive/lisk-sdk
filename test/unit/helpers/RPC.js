@@ -8,18 +8,20 @@ var express = require('express');
 var _  = require('lodash');
 var sinon = require('sinon');
 
+var constants = require('../../../helpers/constants');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var WsRPCServer = require('../../../api/RPC').WsRPCServer;
 var WsRPCClient = require('../../../api/RPC').WsRPCClient;
+var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var socketClusterMock = {
 	on: sinon.spy()
 };
 
-var wsRPCServer;
 before(function () {
-	wsRPCServer = new WsRPCServer(socketClusterMock);
+	WsRPCServer.setServer(socketClusterMock);
+	constants.setConst('headers', {});
 });
 
 describe('WsRPCServer', function () {
@@ -27,84 +29,33 @@ describe('WsRPCServer', function () {
 	describe('constructor', function () {
 
 		it('should have empty wsClientsConnectionsMap field', function () {
-			expect(wsRPCServer).to.have.property('wsClientsConnectionsMap').to.be.a('object').and.to.be.empty;
+			expect(WsRPCServer).to.have.property('wsClientsConnectionsMap').to.be.a('object').and.to.be.empty;
 		});
 
 		it('should have wampClient field of instance WAMPClient', function () {
-			expect(wsRPCServer).to.have.property('wampClient').and.to.be.a('object');
-			expect(wsRPCServer.wampClient.constructor.name).equal('WAMPClient');
+			expect(WsRPCServer).to.have.property('wampClient').and.to.be.a('object');
+			expect(WsRPCServer.wampClient.constructor.name).equal('WAMPClient');
 		});
 
 		it('should have scClient field without connections', function () {
-			expect(wsRPCServer).to.have.property('scClient').and.to.be.a('object');
-			expect(wsRPCServer).to.have.deep.property('scClient.connections').to.be.a('object').and.to.be.empty;
+			expect(WsRPCServer).to.have.property('scClient').and.to.be.a('object');
+			expect(WsRPCServer).to.have.deep.property('scClient.connections').to.be.a('object').and.to.be.empty;
 		});
 
 	});
 
-	describe('shared', function () {
-
-		describe('sendToPeer', function () {
-
-			var validPeer, validProcedure, validData;
-
-			beforeEach(function () {
-
-				validPeer = {
-					ip: '127.0.0.1',
-					port: 4000
-				};
-
-				validProcedure = 'procedureA';
-
-				validData = 'valid string';
-			});
-
-			it('should fail when no socket connection is registered', function (done) {
-				wsRPCServer.sharedClient.sendToPeer(validPeer, validProcedure, validData)
-					.then(function (res) {
-						done(res);
-					})
-					.catch(function (err) {
-						expect(err).to.be.empty;
-						done();
-					});
-			});
-
-			var validWAMPSocket, validSocketId = 'abc';
-
-			beforeEach(function () {
-				validWAMPSocket = {
-					wampSend: sinon.stub().resolves(true)
-				};
-			});
-
-			var registerValidConnection = function (validPeer, validSocketId, validWAMPSocket) {
-				wsRPCServer.wsClientsConnectionsMap[validPeer.ip + ':' + validPeer.port] = validSocketId;
-				wsRPCServer.scClient.connections[validSocketId] = validWAMPSocket;
-			};
-
-
-			it('should call wampSend on socket when called registered peer connection', function (done) {
-				registerValidConnection(validPeer, validSocketId, validWAMPSocket);
-				wsRPCServer.sharedClient.sendToPeer(validPeer, validProcedure, validData)
-					.then(function (res) {
-						expect(res).to.be.ok;
-						done();
-					})
-					.catch(function (err) {
-						done(err || 'should not reject it');
-					});
-			});
-		});
-	});
 });
 
 describe('WsRPCClient', function () {
 
 	var validPort = 4000, validIp = '127.0.0.1';
 
+
 	describe('constructor', function () {
+
+		before(function () {
+			WsRPCServer.setServer(null);
+		});
 
 		it('should initialize new connection', function () {
 			WsRPCClient.prototype.initializeNewConnection = sinon.spy();
@@ -155,8 +106,14 @@ describe('WsRPCClient', function () {
 			'rpcProcedure': validRpcHandler
 		};
 
+		var masterWAMPServer, masterWAMPServerConfig = {};
+		before(function () {
+			masterWAMPServer = new MasterWAMPServer(socketClusterMock, masterWAMPServerConfig);
+			WsRPCServer.setServer(masterWAMPServer);
+		});
+
 		it('should return client stub with rpc methods registered on MasterWAMPServer', function () {
-			wsRPCServer.server.reassignRPCEndpoints(validRPCEndpoint);
+			WsRPCServer.wsServer.reassignRPCEndpoints(validRPCEndpoint);
 			var rpcStub = new WsRPCClient(validIp, validPort);
 			expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 		});
@@ -170,14 +127,14 @@ describe('WsRPCClient', function () {
 		};
 
 		it('should return client stub with event methods registered on MasterWAMPServer', function () {
-			wsRPCServer.server.reassignEventEndpoints(validEventEndpoint);
+			WsRPCServer.wsServer.reassignEventEndpoints(validEventEndpoint);
 			var rpcStub = new WsRPCClient(validIp, validPort);
 			expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 		});
 
 		it('should return client stub with event and rpc methods registered on MasterWAMPServer', function () {
-			wsRPCServer.server.reassignRPCEndpoints(validRPCEndpoint);
-			wsRPCServer.server.reassignEventEndpoints(validEventEndpoint);
+			WsRPCServer.wsServer.reassignRPCEndpoints(validRPCEndpoint);
+			WsRPCServer.wsServer.reassignEventEndpoints(validEventEndpoint);
 			var rpcStub = new WsRPCClient(validIp, validPort);
 			expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 			expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
