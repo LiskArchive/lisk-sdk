@@ -566,25 +566,17 @@ Chain.prototype.deleteLastBlock = function (cb) {
 	library.logger.warn('Deleting last block', lastBlock);
 
 	if (lastBlock.height === 1) {
-		return setImmediate(cb, 'Can not delete genesis block');
+		return setImmediate(cb, 'Cannot delete genesis block');
 	}
 
-	// FIXME: Not need async.series here
-	async.series({
-		// Delete last block, replace last block with previous block, undo things
-		popLastBlock: function (seriesCb) {
-			__private.popLastBlock(lastBlock, function (err, newLastBlock) {
-				if (err) {
-					library.logger.error('Error deleting last block', lastBlock);
-					return setImmediate(seriesCb, err);
-				} else {
-					// Replace last block with previous
-					lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-					return setImmediate(seriesCb);
-				}
-			});
+	// Delete last block, replace last block with previous block, undo things
+	__private.popLastBlock(lastBlock, function (err, newLastBlock) {
+		if (err) {
+			library.logger.error('Error deleting last block', lastBlock);
+		} else {
+			// Replace last block with previous
+			lastBlock = modules.blocks.lastBlock.set(newLastBlock);
 		}
-	}, function (err) {
 		return setImmediate(cb, err, lastBlock);
 	});
 };
