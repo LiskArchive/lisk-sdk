@@ -330,7 +330,8 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 		undoUnconfirmedList: function (seriesCb) {
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
 				if (err) {
-					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo unconfirmed list', err);
 					return process.exit(0);
 				} else {
 					unconfirmedTransactionIds = ids;
@@ -397,7 +398,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 						err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						// Fatal error, memory tables will be inconsistent
 						process.exit(0);
 					}
 					// DATABASE: write
@@ -406,7 +407,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
-							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+							// Fatal error, memory tables will be inconsistent
 							process.exit(0);
 						}
 						// Transaction applied, removed from the unconfirmed list.
@@ -428,7 +429,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 					if (err) {
 						library.logger.error('Failed to save block...');
 						library.logger.error('Block', block);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						// Fatal error, memory tables will be inconsistent
 						process.exit(0);
 					}
 
@@ -517,16 +518,28 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					}
 				], cb);
 			}, function (err) {
-				// FIXME: We should check for errors here?
-				
+				if (err) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo transactions', err);
+					return process.exit(0);
+				}
+
 				// Perform backward tick on rounds
 				// WARNING: DB_WRITE
-				modules.rounds.backwardTick(oldLastBlock, previousBlock, function () {
+				modules.rounds.backwardTick(oldLastBlock, previousBlock, function (err) {
+					if (err) {
+						// Fatal error, memory tables will be inconsistent
+						library.logger.error('Failed to perform backwards tick', err);
+						return process.exit(0);
+					}
+
 					// Delete last block from blockchain
 					// WARNING: Db_WRITE
 					self.deleteBlock(oldLastBlock.id, function (err) {
 						if (err) {
-							return setImmediate(cb, err);
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to delete block', err);
+							return process.exit(0);
 						}
 
 						return setImmediate(cb, null, previousBlock);
@@ -556,25 +569,19 @@ Chain.prototype.deleteLastBlock = function (cb) {
 		return setImmediate(cb, 'Can not delete genesis block');
 	}
 
+	// FIXME: Not need async.series here
 	async.series({
-		// Reset current round (fees, rewards, delegates)
-		backwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('backward', null, seriesCb);
-		},
 		// Delete last block, replace last block with previous block, undo things
 		popLastBlock: function (seriesCb) {
 			__private.popLastBlock(lastBlock, function (err, newLastBlock) {
 				if (err) {
 					library.logger.error('Error deleting last block', lastBlock);
-				}
-				// Replace last block with previous
-				lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-				return setImmediate(seriesCb);
+					return setImmediate(seriesCb, err);
+				} else {
+					// Replace last block with previous
+					lastBlock = modules.blocks.lastBlock.set(newLastBlock);
+					return setImmediate(seriesCb);
 			});
-		},
-		// Reset undo round (fees, rewards, delegates), recalculate current round
-		forwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('forward', lastBlock, seriesCb);
 		}
 	}, function (err) {
 		return setImmediate(cb, err, lastBlock);

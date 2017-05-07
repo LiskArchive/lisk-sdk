@@ -334,16 +334,18 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
  */
 Process.prototype.onReceiveBlock = function (block) {
 	var lastBlock;
-	// When client is not loaded, is syncing or round is ticking
-	// Do not receive new blocks as client is not ready
-	if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
-		library.logger.debug('Client not ready to receive block', block.id);
-		return;
-	}
 
 	// Execute in sequence via sequence
 	library.sequence.add(function (cb) {
+		// When client is not loaded, is syncing or round is ticking
+		// Do not receive new blocks as client is not ready
+		if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
+			library.logger.debug('Client not ready to receive block', block.id);
+			return;
+		}
+
 		lastBlock = modules.blocks.lastBlock.get();
+
 		// Initial check if new block looks fine
 		if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
 			// Process received block
@@ -410,9 +412,9 @@ __private.receiveBlock = function (block, cb) {
 	library.logger.info([
 		'Received new block id:', block.id,
 		'height:', block.height,
-		'round:',  modules.rounds.calc(modules.blocks.getLastBlock().height),
+		'round:',  modules.rounds.calc(block.height),
 		'slot:', slots.getSlotNumber(block.timestamp),
-		'reward:', modules.blocks.getLastBlock().reward
+		'reward:', block.reward
 	].join(' '));
 
 	// Update last receipt

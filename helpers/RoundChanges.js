@@ -2,15 +2,22 @@
 
 var bignum = require('./bignum');
 var slots = require('./slots');
+var exceptions = require('./exceptions');
 
 // Constructor
 function RoundChanges (scope) {
-	if (scope.backwards) {
-		this.roundFees = Math.floor(scope.__private.unFeesByRound[scope.round]) || 0;
-		this.roundRewards = (scope.__private.unRewardsByRound[scope.round] || []);
-	} else {
-		this.roundFees = Math.floor(scope.__private.feesByRound[scope.round]) || 0;
-		this.roundRewards = (scope.__private.rewardsByRound[scope.round] || []);
+	this.roundFees = Math.floor(scope.roundFees) || 0;
+	this.roundRewards = (scope.roundRewards || []);
+
+	// Apply exception for round if required
+	if (exceptions.rounds[scope.round]) {
+		// Apply rewards factor
+		this.roundRewards.forEach(function (reward, index) {
+			this.roundRewards[index] = new bignum(reward.toPrecision(15)).times(exceptions.rounds[scope.round].rewards_factor).floor();
+		}.bind(this));
+
+		// Apply fees factor and bonus
+		this.roundFees = new bignum(this.roundFees.toPrecision(15)).times(exceptions.rounds[scope.round].fees_factor).plus(exceptions.rounds[scope.round].fees_bonus).floor();
 	}
 }
 
