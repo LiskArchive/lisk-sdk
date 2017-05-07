@@ -148,7 +148,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 		// Ban peer for 10 minutes
 		__private.banPeer({peer: peer, code: 'ETRANSACTION', clock: 600}, extraLogMessage);
 
-		return setImmediate(cb, 'Invalid transaction body');
+		return setImmediate(cb, 'Invalid transaction body - ' + e.toString());
 	}
 
 	library.balancesSequence.add(function (cb) {
