@@ -581,6 +581,7 @@ Chain.prototype.deleteLastBlock = function (cb) {
 					// Replace last block with previous
 					lastBlock = modules.blocks.lastBlock.set(newLastBlock);
 					return setImmediate(seriesCb);
+				}
 			});
 		}
 	}, function (err) {
