@@ -66,7 +66,7 @@ function killTestNodes (cb) {
 function recreateDatabases (done) {
 	var recreatedCnt = 0;
 	testNodeConfigs.forEach(function (nodeConfig) {
-		child_process.exec('dropdb ' + nodeConfig.database + ' && createdb ' + nodeConfig.database, function (err, stdout) {
+		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, function (err, stdout) {
 			if (err) {
 				return done(err);
 			}
@@ -109,8 +109,9 @@ describe('WS /peer/list', function () {
 					done();
 				}
 			});
-			socket.on('error', function (err) {
-				done(err);
+			socket.on('error', function (err) {});
+			socket.on('connectAbort', function () {
+				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
 			});
 		});
 	});
