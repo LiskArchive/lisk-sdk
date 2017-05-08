@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS "rounds_rewards"(
 	"timestamp" INT    NOT NULL,
 	"fees"      BIGINT NOT NULL,
 	"reward"    BIGINT NOT NULL,
+	"round"     INT    NOT NULL,
 	"pk"        BYTEA  NOT NULL
 );
 
@@ -75,6 +76,8 @@ CREATE FUNCTION rounds_rewards_init() RETURNS void LANGUAGE PLPGSQL AS $$
 					(fees.single + (CASE WHEN last.pk = round.pk AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
 					-- Block reward
 					round.reward,
+					-- Round
+					CEIL(round.height / 101::float)::int,
 					-- Delegate public key
 					round.pk
 				FROM last, fees, round
@@ -129,6 +132,8 @@ CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 				(fees.single + (CASE WHEN last.pk = round.pk AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
 				-- Block reward
 				round.reward,
+				-- Round
+				CEIL(round.height / 101::float)::int,
 				-- Delegate public key
 				round.pk
 			FROM last, fees, round
@@ -147,7 +152,7 @@ CREATE TRIGGER rounds_rewards_insert
 -- Create indexes on columns of 'rounds_rewards' + additional index for round
 CREATE INDEX IF NOT EXISTS "rounds_rewards_timestamp" ON rounds_rewards (timestamp);
 CREATE INDEX IF NOT EXISTS "rounds_rewards_height" ON rounds_rewards (height);
-CREATE INDEX IF NOT EXISTS "rounds_rewards_round" ON rounds_rewards ((CEIL(height / 101::float)::int));
+CREATE INDEX IF NOT EXISTS "rounds_rewards_round" ON rounds_rewards (round);
 CREATE INDEX IF NOT EXISTS "rounds_rewards_public_key" ON rounds_rewards (pk);
 
 COMMIT;

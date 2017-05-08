@@ -281,7 +281,8 @@ __private.loadBlockChain = function () {
 			t.one(sql.countBlocks),
 			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
-			t.query(sql.getMemRounds)
+			t.query(sql.getMemRounds),
+			t.query(sql.validateMemBalances)
 		];
 
 		return t.batch(promises);
@@ -352,6 +353,10 @@ __private.loadBlockChain = function () {
 
 		if (unapplied.length > 0) {
 			return reload(count, 'Detected unapplied rounds in mem_round');
+		}
+
+		if (results[4].length) {
+			return reload(count, 'Memory balances doesn\'t match blockchain balances');
 		}
 
 		function updateMemAccounts (t) {
