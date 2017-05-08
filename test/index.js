@@ -1,6 +1,7 @@
 require('./unit/helpers/request-limiter.js');
 require('./unit/logic/blockReward.js');
 require('./unit/sql/blockRewards.js');
+require('./unit/sql/delegatesList.js');
 require('./unit/modules/peers.js');
 require('./unit/modules/blocks.js');
 
