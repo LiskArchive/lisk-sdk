@@ -161,6 +161,22 @@ describe('peer', function () {
 				expect(peer[header]).equals(peerBeforeUpdate[header]).and.not.equal(updateImmutableData);
 			});
 		});
+
+		it('should not delete values which were previously set but are not updated now', function () {
+			var updateData = {
+				os: 'test os',
+				version: '0.0.0',
+				dappid: ['test dappid'],
+				broadhash: 'test broadhash',
+				height: 3,
+				nonce: 'ABCD123'
+			};
+			peer.update(updateData);
+			var peerBeforeUpdate = _.clone(peer);
+			peer.update({height: peer.height += 1});
+			peer.height -= 1;
+			expect(_.isEqual(peer, peerBeforeUpdate)).to.be.ok;
+		})
 	});
 
 	describe('object', function () {
