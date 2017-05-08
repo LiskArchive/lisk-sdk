@@ -21,7 +21,8 @@ Peer.prototype.properties = [
 	'height',
 	'clock',
 	'updated',
-	'nonce'
+	'nonce',
+	'rpc'
 ];
 
 Peer.prototype.immutable = [
