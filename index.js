@@ -1,5 +1,3 @@
-'use strict'
-
 function up (number) {
 	return +number+1;
 }
