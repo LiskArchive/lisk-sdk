@@ -52,13 +52,13 @@ var monitorWSClient = {
 
 
 function launchTestNodes (cb) {
-	child_process.exec('pm2 start test/integration/pm2.integration.json', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err, stdout) {
 		return cb(err);
 	});
 }
 
 function killTestNodes (cb) {
-	child_process.exec('pm2 delete all', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 delete all', function (err, stdout) {
 		return cb(err);
 	});
 }

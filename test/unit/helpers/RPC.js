@@ -68,7 +68,7 @@ describe('WsRPCClient', function () {
 				new WsRPCClient(validIp, null);
 			} catch (er) {
 				expect(er.message).equal('WsRPCClient needs ip and port to establish WS connection.');
-				done();
+				return done();
 			}
 			done('Should not be here');
 		});
@@ -78,7 +78,7 @@ describe('WsRPCClient', function () {
 				new WsRPCClient(null, validPort);
 			} catch (er) {
 				expect(er.message).equal('WsRPCClient needs ip and port to establish WS connection.');
-				done();
+				return done();
 			}
 			done('Should not be here');
 		});
@@ -88,7 +88,7 @@ describe('WsRPCClient', function () {
 				new WsRPCClient();
 			} catch (er) {
 				expect(er.message).equal('WsRPCClient needs ip and port to establish WS connection.');
-				done();
+				return done();
 			}
 			done('Should not be here');
 		});
