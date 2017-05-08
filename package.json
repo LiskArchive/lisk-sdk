@@ -4,7 +4,7 @@
   "description": "A command line interface for Lisk",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "nyc mocha"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
+    "nyc": "^10.3.2",
     "should": "^11.2.1"
   }
 }
