@@ -369,6 +369,11 @@ d.run(function () {
 			db.connect(config.db, logger, cb);
 		},
 
+		cache: function (cb) {
+			var cache = require('./helpers/cache.js');
+			cache.connect(config.cache, logger, cb);
+		},
+
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
@@ -411,7 +416,7 @@ d.run(function () {
 			}, cb);
 		}],
 
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
 			var tasks = {};
 
 			Object.keys(config.modules).forEach(function (name) {
