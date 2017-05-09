@@ -38,7 +38,10 @@
     },
     "peers": {
         "enabled": true,
-        "list": [],
+        "list": [{
+            "ip": "127.0.0.1",
+            "port": "4000"
+        }],
         "access": {
             "blackList": []
         },
