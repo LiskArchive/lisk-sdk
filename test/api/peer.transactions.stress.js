@@ -1,15 +1,16 @@
 'use strict';
 
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	http.post('/peer/transactions', {
 		transaction: transaction
 	}, done);
 }
 
 function postTransactions (transactions, done) {
-	node.post('/peer/transactions', {
+	http.post('/peer/transactions', {
 		transactions: transactions
 	}, done);
 }
@@ -53,7 +54,7 @@ describe('POST /peer/transactions', function () {
 			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
 			node.waitForBlocks(blocksToWait, function (err) {
 				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('transaction').that.is.an('object');
 						return setImmediate(eachSeriesCb);
@@ -95,7 +96,7 @@ describe('POST /peer/transactions', function () {
 			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
 			node.waitForBlocks(blocksToWait, function (err) {
 				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						node.expect(res.body).to.have.property('transaction').that.is.an('object');
 						return setImmediate(eachSeriesCb);

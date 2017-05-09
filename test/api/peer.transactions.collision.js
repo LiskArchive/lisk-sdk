@@ -1,13 +1,14 @@
 'use strict';
 
 var crypto = require('crypto');
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var modulesLoader = require('../common/initModule').modulesLoader;
 var Account = require('../../logic/account');
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	http.post('/peer/transactions', {
 		transaction: transaction
 	}, done);
 }

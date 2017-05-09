@@ -526,32 +526,42 @@ Transport.prototype.isLoaded = function () {
 Transport.prototype.internal = {
 	blocksCommon: function (query, cb) {
 		query = query || {};
+		return library.schema.validate(query, schema.commonBlock, function (err, valid) {
+			if (err) {
+				console.log("blocks ocmmon validation failed: ", err, valid);
+				err = err[0].message + ': ' + err[0].path;
+				library.logger.debug('Common block request validation failed', {err: err.toString(), req: query});
+				return setImmediate(cb, err);
+			}
 
-		var escapedIds = query.ids
-			// Remove quotes
-			.replace(/['"]+/g, '')
-			// Separate by comma into an array
-			.split(',')
-			// Reject any non-numeric values
-			.filter(function (id) {
-				return /^[0-9]+$/.test(id);
+			var escapedIds = query.ids
+				// Remove quotes
+				.replace(/['"]+/g, '')
+				// Separate by comma into an array
+				.split(',')
+				// Reject any non-numeric values
+				.filter(function (id) {
+					return /^[0-9]+$/.test(id);
+				});
+
+			if (!escapedIds.length) {
+				library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: query.ids});
+
+				// Ban peer for 10 minutes
+				__private.banPeer({peer: query.peer, code: 'ECOMMON', clock: 600}, query.extraLogMessage);
+
+				return setImmediate(cb, 'Invalid block id sequence');
+			}
+
+			library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
+				return setImmediate(cb, null, { success: true, common: rows[0] || null });
+			}).catch(function (err) {
+				library.logger.error(err.stack);
+				return setImmediate(cb, 'Failed to get common block');
 			});
 
-		if (!escapedIds.length) {
-			library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: query.ids});
-
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: query.peer, code: 'ECOMMON', clock: 600}, query.extraLogMessage);
-
-			return setImmediate(cb, 'Invalid block id sequence');
-		}
-
-		library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
-			return setImmediate(cb, null, { success: true, common: rows[0] || null });
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Failed to get common block');
 		});
+
 	},
 
 	blocks: function (query, cb) {
@@ -559,7 +569,8 @@ Transport.prototype.internal = {
 		// According to maxium payload of 58150 bytes per block with every transaction being a vote
 		// Discounting maxium compression setting used in middleware
 		// Maximum transport payload = 2000000 bytes
-		modules.blocks.utils.loadBlocksData({
+		query = query || {};
+		modules.blocks.loadBlocksData({
 			limit: 34, // 1977100 bytes
 			lastId: query.lastBlockId
 		}, function (err, data) {
@@ -572,6 +583,7 @@ Transport.prototype.internal = {
 	},
 
 	postBlock: function (query, cb) {
+		query = query || {};
 		try {
 			var block = library.logic.block.objectNormalize(query.block);
 		} catch (e) {
@@ -580,7 +592,7 @@ Transport.prototype.internal = {
 			// Ban peer for 10 minutes
 			__private.banPeer({peer: query.peer, code: 'EBLOCK', clock: 600}, query.extraLogMessage);
 
-			return setImmediate(cb, null, {success: false, error: e.toString()});
+			return setImmediate(cb, e.toString());
 		}
 
 		library.bus.message('receiveBlock', block);

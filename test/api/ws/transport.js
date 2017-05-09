@@ -1,77 +1,126 @@
 'use strict';
 
-var node = require('../../node.js');
+var Q = require('q');
 var _ = require('lodash');
+var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
-var scClient = require('socketcluster-client');
-const WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var node = require('../../node');
+var ws = require('../../common/wsCommunication');
 
-var validOptions = {
-	protocol: 'http',
-	hostname: '127.0.0.1',
-	port: 5000,
-	autoReconnect: true,
-	query: {
-		port: 4002,
-		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		version: '0.0.0a',
-		nonce: 'ABCD'
-	}
-};
 
 describe('handshake', function () {
 
-	var socket;
+	var socketDefer = null;
+
+	beforeEach(function () {
+		socketDefer = Q.defer();
+	});
 
 	it('should not connect without headers', function (done) {
 
-		var invalidOptions = _.clone(validOptions);
-		delete invalidOptions.query;
-		socket = scClient.connect(invalidOptions);
+		ws.connect('127.0.0.1', 4000, socketDefer, null);
 
-		socket.on('connecting', function (data) {
-			node.expect(data).not.to.be.empty;
-		});
+		socketDefer.promise
+			.then(function (socket) {
+				return done('Should not be here');
+			}).catch(function () {
+				return done();
+			});
+	});
 
-		socket.on('connectAbort', function (data) {
-			node.expect(data).not.to.be.empty;
-			done();
-		});
+	it('using incorrect nethash in headers should fail', function (done) {
+		socketDefer = Q.defer();
 
-		socket.on('connect', function (data) {
-			done('should not be able to connect');
-		});
+		var headers = node.generatePeerHeaders('127.0.0.1', 4002);
+		headers['nethash'] = 'incorrect';
 
-		socket.on('error', function (err) {
-			node.expect(err).not.to.be.empty;
-		});
+		ws.connect('127.0.0.1', 4000, socketDefer, headers);
+
+		socketDefer.promise
+			.then(function (socket) {
+				return done('Should not be here');
+			}).catch(function (err) {
+				return done();
+			});
+	});
+
+	it('using incorrect version in headers should fail', function (done) {
+		socketDefer = Q.defer();
+
+		var headers = node.generatePeerHeaders('127.0.0.1', 4002);
+		headers['version'] = '0.1.0a';
+
+		ws.connect('127.0.0.1', 4000, socketDefer, headers);
+
+		socketDefer.promise
+			.then(function (socket) {
+				return done('Should not be here');
+			}).catch(function (err) {
+				return done();
+			});
+	});
+
+	it('should not accept itself as a peer', function (done) {
+		socketDefer = Q.defer();
+
+		var headers = node.generatePeerHeaders('127.0.0.1', 4000);
+		headers['version'] = '0.1.0a';
+
+		ws.connect('127.0.0.1', 4000, socketDefer, headers);
+
+		socketDefer.promise
+			.then(function (socket) {
+				return done('Should not be here');
+			}).catch(function (err) {
+				return done();
+			});
 	});
 
 	it('should connect with valid options', function (done) {
 
-		socket = scClient.connect(validOptions);
+		var socketDefer = Q.defer();
 
-		socket.on('connecting', function (data) {
-			console.log('CONNECTING...', data);
-		});
+		ws.connect('127.0.0.1', 4000, socketDefer, node.generatePeerHeaders('127.0.0.1', 4002));
 
-		socket.on('connectAbort', function (data) {
-			done('should not reject handshake with valid params', data);
-		});
-
-		socket.on('connect', function (data) {
-			done();
-		});
-
-		socket.on('error', function (err) {
-			done(err);
-		});
+		socketDefer.promise
+			.then(function (socket) {
+				socket.disconnect();
+				return done();
+			}).catch(function (err) {
+				return done(err);
+			});
 	});
 
-	after(function (done) {
-		socket.disconnect();
-		done();
+	it('should list connected peer properly', function (done) {
+
+		var socketDefer = Q.defer();
+
+		ws.connect('127.0.0.1', 4000, socketDefer, node.generatePeerHeaders('127.0.0.1', 4002));
+
+		socketDefer.promise
+			.then(function (socket) {
+				socket.wampSend('list').then(function (res) {
+					node.debug('> Response:'.grey, JSON.stringify(res));
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('peers').that.is.an('array').and.not.empty;
+					res.peers.forEach(function (peer) {
+						node.expect(peer).to.have.property('ip').that.is.a('string');
+						node.expect(peer).to.have.property('port').that.is.a('number');
+						node.expect(peer).to.have.property('state').that.is.a('number');
+						node.expect(peer).to.have.property('os');
+						node.expect(peer).to.have.property('version');
+						node.expect(peer).to.have.property('broadhash');
+						node.expect(peer).to.have.property('height');
+					});
+				}).catch(function (err) {
+					done(err);
+				});
+				return done();
+			}).catch(function (err) {
+				return done(err);
+			});
 	});
+
 
 });
 
@@ -80,27 +129,15 @@ describe('RPC', function () {
 	var clientSocket;
 
 	before(function (done) {
-		var wampClient = new WAMPClient();
-		clientSocket = scClient.connect(validOptions);
-
-		wampClient.upgradeToWAMP(clientSocket);
-
-		clientSocket.on('connect', function () {
-			console.log('connect');
-			done();
-		});
-
-		clientSocket.on('connecting', function (data) {
-			console.log('connecting');
-		});
-
-		clientSocket.on('connectAbort', function (data) {
-			done('should not reject handshake with valid params', data);
-		});
-
-		clientSocket.on('error', function (err) {
-			done(err);
-		});
+		var socketDefer = Q.defer();
+		ws.connect('127.0.0.1', 4000, socketDefer);
+		socketDefer.promise
+			.then(function (socket) {
+				clientSocket = socket;
+				return done();
+			}).catch(function (err) {
+				return done(err);
+			});
 	});
 
 	describe('ping', function () {

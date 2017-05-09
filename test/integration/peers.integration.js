@@ -14,7 +14,7 @@ var child_process = require('child_process');
 var testNodeConfigs = [
 	{
 		ip: '127.0.0.1',
-		port: 4001,
+		port: 4000,
 		database: 'lisk_local_0',
 		peers: {list: [
 			{
@@ -31,7 +31,7 @@ var testNodeConfigs = [
 			list: [
 				{
 					ip: '127.0.0.1',
-					port: 4001
+					port: 4000
 				}
 			]}
 	}
@@ -50,6 +50,11 @@ var monitorWSClient = {
 	}
 };
 
+function clearLogs (cb) {
+	child_process.exec('rm -rf test/integration/logs/*', function (err, stdout) {
+		return cb(err);
+	});
+}
 
 function launchTestNodes (cb) {
 	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err, stdout) {
@@ -79,6 +84,10 @@ function recreateDatabases (done) {
 }
 
 before(function (done) {
+	clearLogs(done);
+});
+
+before(function (done) {
 	recreateDatabases(done);
 });
 
@@ -90,7 +99,7 @@ before(function (done) {
 	require('../common/globalBefore').waitUntilBlockchainReady(done, 10, 2000, 'http://' + testNodeConfigs[0].ip + ':' + testNodeConfigs[0].port);
 });
 
-describe('WS /peer/list', function () {
+describe('Peers mutual connections', function () {
 
 	var sockets = [];
 
@@ -98,20 +107,23 @@ describe('WS /peer/list', function () {
 		var connectedTo = 0;
 		var wampClient = new WAMPClient();
 		//ToDo: more clever way for waiting until all test node being able to receive connections
-		testNodeConfigs.forEach(function (testNodeConfig) {
-			monitorWSClient.port = testNodeConfig.port + 1000;
-			var socket = scClient.connect(monitorWSClient);
-			wampClient.upgradeToWAMP(socket);
-			socket.on('connect', function () {
-				sockets.push(socket);
-				connectedTo += 1;
-				if (connectedTo === testNodeConfigs.length) {
-					done();
-				}
-			});
-			socket.on('error', function (err) {
-				done(err);
-			});
+		setTimeout(function () {
+			testNodeConfigs.forEach(function (testNodeConfig) {
+				monitorWSClient.port = testNodeConfig.port + 1000;
+				var socket = scClient.connect(monitorWSClient);
+				wampClient.upgradeToWAMP(socket);
+				socket.on('connect', function () {
+					sockets.push(socket);
+					connectedTo += 1;
+					if (connectedTo === testNodeConfigs.length) {
+						done();
+					}
+				});
+				socket.on('error', function (err) {});
+				socket.on('connectAbort', function (err) {
+					done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+				});
+			}, 1000);
 		});
 	});
 
@@ -140,7 +152,6 @@ describe('WS /peer/list', function () {
 					done();
 				}
 			});
-
 
 		}).catch(function (err) {
 			done(err);

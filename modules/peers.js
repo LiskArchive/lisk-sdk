@@ -333,13 +333,18 @@ Peers.prototype.remove = function (pip, port) {
 	}
 };
 
-/**
- * Pings peer.
- * @implements transport.getFromPeer
- * @param {peer} peer - List of arguments.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb | error when ping peer fails
- */
+Peers.prototype.ban = function (pip, port, seconds) {
+	var frozenPeer = _.find(library.config.peers.list, function (peer) {
+		return peer.ip === pip && peer.port === port;
+	});
+	if (frozenPeer) {
+		// FIXME: Keeping peer frozen is bad idea at all
+		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
+	} else {
+		return library.logic.peers.ban (pip, port, seconds);
+	}
+};
+
 Peers.prototype.ping = function (peer, cb) {
 	library.logger.trace('Pinging peer: ' + peer.string);
 	if (library.config.peerProtocol === 'ws') {
@@ -474,7 +479,6 @@ Peers.prototype.list = function (options, cb) {
 			// Apply filters
 			peersList = peersList.filter(function (peer) {
 				if (options.broadhash) {
-					console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- list --- checking peers broadhash: ', peer.string, peer.broadhash);
 					// Skip banned peers (state 0)
 					return peer.state > 0 && (
 						// Matched broadhash when attempt 0

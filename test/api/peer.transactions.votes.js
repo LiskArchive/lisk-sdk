@@ -1,6 +1,8 @@
 'use strict';
 
-var node = require('./../node.js');
+var async = require('async');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var account = node.randomAccount();
 
@@ -9,7 +11,7 @@ var delegates = [];
 var votedDelegates = [];
 
 function getDelegates (done) {
-	node.get('/api/delegates', function (err, res) {
+	http.get('/api/delegates', function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.expect(res.body).to.have.property('delegates').that.is.an('array');
 		return done(err, res);
@@ -17,7 +19,7 @@ function getDelegates (done) {
 }
 
 function getVotes (address, done) {
-	node.get('/api/accounts/delegates/?address=' + address, function (err, res) {
+	http.get('/api/accounts/delegates/?address=' + address, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.expect(res.body).to.have.property('delegates').that.is.an('array');
 		return done(err, res);
@@ -43,13 +45,13 @@ function postVotes (params, done) {
 }
 
 function postVote (transaction, done) {
-	node.post('/peer/transactions', { transaction: transaction }, function (err, res) {
+	http.post('/peer/transactions', { transaction: transaction }, function (err, res) {
 		return done(err, res);
 	});
 }
 
 function sendLISK (params, done) {
-	node.put('/api/transactions', params, function (err, res) {
+	http.put('/api/transactions', params, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.onNewBlock(function (err) {
 			return done(err, res);
@@ -61,7 +63,7 @@ function registerDelegate (account, done) {
 	account.username = node.randomDelegateName().toLowerCase();
 	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
-	node.post('/peer/transactions', { transaction: transaction }, function (err, res) {
+	http.post('/peer/transactions', { transaction: transaction }, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.onNewBlock(function (err) {
 			return done(err, res);

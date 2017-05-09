@@ -1,24 +1,25 @@
 'use strict';
 
 var crypto = require('crypto');
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var genesisblock = require('../../genesisBlock.json');
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	http.post('/peer/transactions', {
 		transaction: transaction
 	}, done);
 }
 
 function getAddress (address, done) {
-	node.get('/api/accounts?address=' + address, done);
+	http.get('/api/accounts?address=' + address, done);
 }
 
 describe('GET /peer/transactions', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.get('/peer/transactions')
+		http.get('/peer/transactions')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -29,7 +30,7 @@ describe('GET /peer/transactions', function () {
 	});
 
 	it('using incompatible version in headers should fail', function (done) {
-		node.get('/peer/transactions')
+		http.get('/peer/transactions')
 			.set('version', '0.1.0a')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -42,7 +43,7 @@ describe('GET /peer/transactions', function () {
 	});
 
 	it('using valid headers should be ok', function (done) {
-		node.get('/peer/transactions')
+		http.get('/peer/transactions')
 			.end(function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').to.be.an('array');
@@ -54,7 +55,7 @@ describe('GET /peer/transactions', function () {
 describe('POST /peer/transactions', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.post('/peer/transactions')
+		http.post('/peer/transactions')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -65,7 +66,7 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('using incompatible version in headers should fail', function (done) {
-		node.post('/peer/transactions')
+		http.post('/peer/transactions')
 			.set('version', '0.1.0a')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
