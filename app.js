@@ -90,6 +90,7 @@ process.env.TOP = appConfig.topAccounts;
 
 var config = {
 	db: appConfig.db,
+	cache: appConfig.cache,
 	modules: {
 		server: './modules/server.js',
 		accounts: './modules/accounts.js',
@@ -447,7 +448,7 @@ d.run(function () {
 					var apiEndpointPath = config.api[moduleName][protocol];
 					try {
 						var ApiEndpoint = require(apiEndpointPath);
-						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger);
+						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.cache);
 					} catch (e) {
 						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
 					}

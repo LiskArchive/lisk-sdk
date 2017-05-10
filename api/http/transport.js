@@ -5,7 +5,7 @@ var httpApi = require('../../helpers/httpApi');
 var schema = require('../../schema/transport');
 
 // Constructor
-function TransportHttpApi (transportModule, app, logger) {
+function TransportHttpApi (transportModule, app, logger, cache) {
 
 	var router = new Router();
 

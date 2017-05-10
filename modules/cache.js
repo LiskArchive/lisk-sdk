@@ -1,33 +1,35 @@
-var library, self, __private = {}, errorMessage = 'Cache Unavailable';
-
-__private.keys =  {
-	GET_LATEST_BLOCK: 'latest_block'
-};
-
+var library, self, errorMessage = 'Cache Unavailable';
 
 // Constructor
 function Cache (cb, scope) {
 	library = scope;
 	self = this;
-
 	setImmediate(cb, null, self);
 }
 
-Cache.prototype.getLatestBlock = function (cb) {
+Cache.prototype.getJsonForKey = function (key, cb) {
 	// we can use config var to check if caching is activated
-	if ( library.cache.connected ) {
-		library.cache.get(__private.keys.GET_LATEST_BLOCK, cb);
+	if (this.isConnected()) {
+		library.cache.get(key, function (err, value) {
+			// parsing string to json
+			cb(err, JSON.parse(value));
+		});
 	} else {
 		cb(errorMessage);
 	}
 };
 
-Cache.prototype.setLatestBlock = function (value, cb) {
-	if ( library.cache.connected ) {
-		library.cache.get(__private.keys.GET_LATEST_BLOCK, cb);
+Cache.prototype.setJsonForKey = function (key, value, cb) {
+	if (this.isConnected()) {
+		// redis calls toString on objects, which converts it to object [object] so calling stringify before saving
+		library.cache.set(key, JSON.stringify(value), cb);
 	} else {
 		cb(errorMessage);
 	}
+};
+
+Cache.prototype.isConnected = function () {
+	return library.cache.connect;
 };
 
 module.exports = Cache;
