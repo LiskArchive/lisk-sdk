@@ -1,0 +1,31 @@
+{
+  "name": "lisky",
+  "version": "0.1.0",
+  "description": "A command line interface for Lisk",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LiskHQ/lisky.git"
+  },
+  "keywords": [
+    "lisk",
+    "blockchain",
+    "command-line",
+    "nodejs",
+    "javascript"
+  ],
+  "author": "",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/LiskHQ/lisky/issues"
+  },
+  "homepage": "https://github.com/LiskHQ/lisky#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.3.0",
+    "should": "^11.2.1"
+  }
+}
