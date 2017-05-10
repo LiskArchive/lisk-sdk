@@ -25,8 +25,11 @@
   "homepage": "https://github.com/LiskHQ/lisky#readme",
   "devDependencies": {
     "chai": "^3.5.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
     "grunt": "^1.0.1",
     "grunt-mocha-test": "^0.13.2",
+    "gruntify-eslint": "^3.1.0",
     "mocha": "^3.3.0",
     "nyc": "^10.3.2",
     "should": "^11.2.1"

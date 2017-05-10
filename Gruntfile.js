@@ -2,6 +2,7 @@ module.exports = function(grunt) {
 
 	// Add the grunt-mocha-test tasks.
 	grunt.loadNpmTasks('grunt-mocha-test');
+	grunt.loadNpmTasks("gruntify-eslint");
 
 	grunt.initConfig({
 		// Configure a mochaTest task
@@ -15,9 +16,16 @@ module.exports = function(grunt) {
 				},
 				src: ['test/**/*.js']
 			}
+		},
+		// Configure EsLint
+		eslint: {
+			options: {
+				configFile: "conf/eslint.json"
+			},
+			src: ["index.js"]
 		}
 	});
 
-	grunt.registerTask('default', 'mochaTest');
+	grunt.registerTask('default', ['mochaTest', 'eslint']);
 
 };
