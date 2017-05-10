@@ -33,5 +33,12 @@
     "mocha": "^3.3.0",
     "nyc": "^10.3.2",
     "should": "^11.2.1"
+  },
+  "dependencies": {
+    "cli-table2": "^0.2.0",
+    "colors": "^1.1.2",
+    "file-system": "^2.2.2",
+    "lisk-js": "^0.4.1",
+    "vorpal": "^1.12.0"
   }
 }
