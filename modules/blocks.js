@@ -19,6 +19,16 @@ __private.loaded = false;
 __private.cleanup = false;
 __private.isActive = false;
 
+/**
+ * Initializes library with scope content.
+ * Calls __private.saveGenesisBlock.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main Blocks methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Blocks (cb, scope) {
 	library = scope;
