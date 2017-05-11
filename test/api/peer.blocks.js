@@ -1,13 +1,14 @@
 'use strict';
 
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var genesisblock = require('../../genesisBlock.json');
 
 describe('GET /peer/blocks', function () {
 
 	it('using valid headers should be ok', function (done) {
-		node.get('/peer/blocks')
+		http.get('/peer/blocks')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
@@ -63,7 +64,7 @@ describe('GET /peer/blocks', function () {
 describe('GET /peer/blocks/common', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.get('/peer/blocks/common')
+		http.get('/peer/blocks/common')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -74,7 +75,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using no params should fail', function (done) {
-		node.get('/peer/blocks/common')
+		http.get('/peer/blocks/common')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -84,7 +85,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids == "";"";"" should fail', function (done) {
-		node.get('/peer/blocks/common?ids="";"";""')
+		http.get('/peer/blocks/common?ids="";"";""')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -94,7 +95,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids == \'\',\'\',\'\' should fail', function (done) {
-		node.get('/peer/blocks/common?ids=\'\',\'\',\'\'')
+		http.get('/peer/blocks/common?ids=\'\',\'\',\'\'')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -104,7 +105,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids == "","","" should fail', function (done) {
-		node.get('/peer/blocks/common?ids="","",""')
+		http.get('/peer/blocks/common?ids="","",""')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -114,7 +115,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids == one,two,three should fail', function (done) {
-		node.get('/peer/blocks/common?ids=one,two,three')
+		http.get('/peer/blocks/common?ids=one,two,three')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -124,7 +125,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids == "1","2","3" should be ok and return null common block', function (done) {
-		node.get('/peer/blocks/common?ids="1","2","3"')
+		http.get('/peer/blocks/common?ids="1","2","3"')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -134,7 +135,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids == \'1\',\'2\',\'3\' should be ok and return null common block', function (done) {
-		node.get('/peer/blocks/common?ids=\'1\',\'2\',\'3\'')
+		http.get('/peer/blocks/common?ids=\'1\',\'2\',\'3\'')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -144,7 +145,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids == 1,2,3 should be ok and return null common block', function (done) {
-		node.get('/peer/blocks/common?ids=1,2,3')
+		http.get('/peer/blocks/common?ids=1,2,3')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -154,7 +155,7 @@ describe('GET /peer/blocks/common', function () {
 	});
 
 	it('using ids which include genesisblock.id should be ok', function (done) {
-		node.get('/peer/blocks/common?ids=' + [genesisblock.id.toString(),'2','3'].join(','))
+		http.get('/peer/blocks/common?ids=' + [genesisblock.id.toString(),'2','3'].join(','))
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -171,7 +172,7 @@ describe('GET /peer/blocks/common', function () {
 describe('POST /peer/blocks', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.post('/peer/blocks', { dummy: 'dummy' })
+		http.post('/peer/blocks', { dummy: 'dummy' })
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -182,7 +183,7 @@ describe('POST /peer/blocks', function () {
 	});
 
 	it('using no block should fail', function (done) {
-		node.post('/peer/blocks')
+		http.post('/peer/blocks')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -195,7 +196,7 @@ describe('POST /peer/blocks', function () {
 		var blockSignature = genesisblock.blockSignature;
 		genesisblock.blockSignature = null;
 
-		node.post('/peer/blocks', { block: genesisblock })
+		http.post('/peer/blocks', { block: genesisblock })
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -211,7 +212,7 @@ describe('POST /peer/blocks', function () {
 				transaction.asset.delegate.publicKey = transaction.senderPublicKey;
 			}
 		});
-		node.post('/peer/blocks', { block: genesisblock })
+		http.post('/peer/blocks', { block: genesisblock })
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;

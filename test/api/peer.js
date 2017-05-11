@@ -1,20 +1,22 @@
 'use strict';
 
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
+
 var ip = require('ip');
 
 describe('GET /peer/list', function () {
 
 	before(function (done) {
-		node.addPeers(2, '0.0.0.0', done);
+		http.addPeers(2, '0.0.0.0', done);
 	});
 
 	before(function (done) {
-		node.addPeers(1, ip.address('public'), done);
+		http.addPeers(1, ip.address('public'), done);
 	});
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.get('/peer/list')
+		http.get('/peer/list')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -25,7 +27,7 @@ describe('GET /peer/list', function () {
 	});
 
 	it('using incompatible version in headers should fail', function (done) {
-		node.get('/peer/list')
+		http.get('/peer/list')
 			.set('version', '0.1.0a')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -38,7 +40,7 @@ describe('GET /peer/list', function () {
 	});
 
 	it('using valid headers should be ok', function (done) {
-		node.get('/peer/list')
+		http.get('/peer/list')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -57,7 +59,7 @@ describe('GET /peer/list', function () {
 	});
 
 	it('should not accept itself as a peer', function (done) {
-		node.get('/peer/list')
+		http.get('/peer/list')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -74,7 +76,7 @@ describe('GET /peer/list', function () {
 describe('GET /peer/height', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.get('/peer/height')
+		http.get('/peer/height')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -85,7 +87,7 @@ describe('GET /peer/height', function () {
 	});
 
 	it('using incompatible version in headers should fail', function (done) {
-		node.get('/peer/height')
+		http.get('/peer/height')
 			.set('version', '0.1.0a')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -98,7 +100,7 @@ describe('GET /peer/height', function () {
 	});
 
 	it('using valid headers should be ok', function (done) {
-		node.get('/peer/height')
+		http.get('/peer/height')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;

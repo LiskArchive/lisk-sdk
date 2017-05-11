@@ -1,25 +1,26 @@
 'use strict';
 
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var owner = node.randomAccount();
 var coSigner1 = node.randomAccount();
 var coSigner2 = node.randomAccount();
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	http.post('/peer/transactions', {
 		transaction: transaction
 	}, done);
 }
 
 function postTransactions (transactions, done) {
-	node.post('/peer/transactions', {
+	http.post('/peer/transactions', {
 		transactions: transactions
 	}, done);
 }
 
 function postSignature (transaction, signature, done) {
-	node.post('/peer/signatures', {
+	http.post('/peer/signatures', {
 		signature: {
 			transaction: transaction.id,
 			signature: signature
@@ -30,7 +31,7 @@ function postSignature (transaction, signature, done) {
 describe('GET /peer/signatures', function () {
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.get('/peer/signatures')
+		http.get('/peer/signatures')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -41,7 +42,7 @@ describe('GET /peer/signatures', function () {
 	});
 
 	it('using incompatible version in headers should fail', function (done) {
-		node.get('/peer/signatures')
+		http.get('/peer/signatures')
 			.set('version', '0.1.0a')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -54,7 +55,7 @@ describe('GET /peer/signatures', function () {
 	});
 
 	it('using valid headers should be ok', function (done) {
-		node.get('/peer/signatures')
+		http.get('/peer/signatures')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
@@ -81,7 +82,7 @@ describe('POST /peer/signatures', function () {
 	});
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		node.post('/peer/signatures')
+		http.post('/peer/signatures')
 			.set('nethash', 'incorrect')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -92,7 +93,7 @@ describe('POST /peer/signatures', function () {
 	});
 
 	it('using incompatible version in headers should fail', function (done) {
-		node.post('/peer/signatures')
+		http.post('/peer/signatures')
 			.set('version', '0.1.0a')
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
@@ -107,7 +108,7 @@ describe('POST /peer/signatures', function () {
 	it('using invalid signature schema should fail', function (done) {
 		delete validParams.signature.transaction;
 
-		node.post('/peer/signatures', validParams)
+		http.post('/peer/signatures', validParams)
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -119,7 +120,7 @@ describe('POST /peer/signatures', function () {
 	it('using unprocessable signature should fail', function (done) {
 		validParams.signature.transaction = '1';
 
-		node.post('/peer/signatures', validParams)
+		http.post('/peer/signatures', validParams)
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -191,7 +192,7 @@ describe('POST /peer/signatures', function () {
 		it('using processable signature for coSigner1 should not confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
 				node.onNewBlock(function (err) {
-					node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
 						done();
 					});
@@ -210,7 +211,7 @@ describe('POST /peer/signatures', function () {
 
 		it('using processable signature for coSigner2 should confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+				http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(transaction.id);
@@ -252,7 +253,7 @@ describe('POST /peer/signatures', function () {
 		it('using processable signature for coSigner1 should not confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
 				node.onNewBlock(function (err) {
-					node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
 						done();
 					});
@@ -271,7 +272,7 @@ describe('POST /peer/signatures', function () {
 
 		it('using processable signature for coSigner2 should confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+				http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(transaction.id);

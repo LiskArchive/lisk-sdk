@@ -1,13 +1,14 @@
 'use strict';
 
 var crypto = require('crypto');
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var account = node.randomAccount();
 var account2 = node.randomAccount();
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	http.post('/peer/transactions', {
 		transaction: transaction
 	}, function (err, res) {
 		done(err, res);
