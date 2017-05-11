@@ -17,6 +17,21 @@ var sql = require('../sql/rounds.js');
 function Round (scope, t) {
 	this.scope = scope;
 	this.t = t;
+
+	// List of required scope properties
+	var requiredProperties = ['library', 'modules', 'block', 'round', 'backwards'];
+
+	// Require extra scope properties when finishing round
+	if (scope.finishRound) {
+		requiredProperties = requiredProperties.concat(['roundFees', 'roundRewards', 'roundDelegates', 'roundOutsiders']);
+	}
+
+	// Iterate over requiredProperties, checking for undefined scope properties
+	requiredProperties.forEach(function (property) {
+		if (scope[property] === undefined) {
+			throw 'Missing required scope property: ' + property;
+		}
+	});
 }
 
 // Public methods
@@ -41,11 +56,11 @@ Round.prototype.mergeBlockGenerator = function () {
  * @return {}
  */
 Round.prototype.updateMissedBlocks = function () {
-	if (this.scope.outsiders.length === 0) {
+	if (this.scope.roundOutsiders.length === 0) {
 		return this.t;
 	}
 
-	return this.t.none(sql.updateMissedBlocks(this.scope.backwards), [this.scope.outsiders]);
+	return this.t.none(sql.updateMissedBlocks(this.scope.backwards), [this.scope.roundOutsiders]);
 };
 
 /**
@@ -121,9 +136,15 @@ Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
 	var queries = [];
 
-	for (var i = 0; i < this.scope.delegates.length; i++) {
-		var delegate = this.scope.delegates[i];
+	// Reverse delegates if going backwards
+	var delegates = (this.scope.backwards) ? this.scope.roundDelegates.reverse() : this.scope.roundDelegates;
+
+	// Apply round changes to each delegate
+	for (var i = 0; i < this.scope.roundDelegates.length; i++) {
+		var delegate = this.scope.roundDelegates[i];
 		var changes = roundChanges.at(i);
+
+		this.scope.library.logger.trace('Delegate changes', { delegate: delegate, changes: changes });
 
 		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
 			publicKey: delegate,
@@ -134,20 +155,38 @@ Round.prototype.applyRound = function () {
 			fees: (this.scope.backwards ? -changes.fees : changes.fees),
 			rewards: (this.scope.backwards ? -changes.rewards : changes.rewards)
 		}));
-
-		if (i === this.scope.delegates.length - 1) {
-			queries.push(this.scope.modules.accounts.mergeAccountAndGet({
-				publicKey: delegate,
-				balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-				u_balance: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining),
-				blockId: this.scope.block.id,
-				round: this.scope.round,
-				fees: (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining)
-			}));
-		}
 	}
 
-	return this.t.none(queries.join(''));
+	// Decide which delegate receives fees remainder
+	var remainderIndex = (this.scope.backwards) ? 0 : delegates.length - 1;
+	var remainderDelegate = delegates[remainderIndex];
+
+	// Get round changes for chosen delegate
+	var changes = roundChanges.at(remainderIndex);
+
+	// Apply fees remaining to chosen delegate
+	if (changes.feesRemaining > 0) {
+		var feesRemaining = (this.scope.backwards ? -changes.feesRemaining : changes.feesRemaining);
+
+		this.scope.library.logger.trace('Fees remaining', { index: remainderIndex, delegate: remainderDelegate, fees: feesRemaining });
+
+		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
+			publicKey: remainderDelegate,
+			balance: feesRemaining,
+			u_balance: feesRemaining,
+			blockId: this.scope.block.id,
+			round: this.scope.round,
+			fees: feesRemaining
+		}));
+	}
+
+	this.scope.library.logger.trace('Applying round', queries);
+
+	if (queries.length > 0) {
+		return this.t.none(queries.join(''));
+	} else {
+		return this.t;
+	}
 };
 
 /**
@@ -165,7 +204,6 @@ Round.prototype.applyRound = function () {
  * @return {function} call result
  */
 Round.prototype.land = function () {
-	this.scope.__private.ticking = true;
 	return this.updateVotes()
 		.then(this.updateMissedBlocks.bind(this))
 		.then(this.flushRound.bind(this))
@@ -173,7 +211,6 @@ Round.prototype.land = function () {
 		.then(this.updateVotes.bind(this))
 		.then(this.flushRound.bind(this))
 		.then(function () {
-			this.scope.__private.ticking = false;
 			return this.t;
 		}.bind(this));
 };

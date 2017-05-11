@@ -573,7 +573,8 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		undoUnconfirmedList: function (seriesCb) {
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
 				if (err) {
-					// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo unconfirmed list', err);
 					return process.exit(0);
 				} else {
 					unconfirmedTransactionIds = ids;
@@ -640,7 +641,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						// Fatal error, memory tables will be inconsistent
 						process.exit(0);
 					}
 					// DATABASE: write
@@ -649,7 +650,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
-							// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+							// Fatal error, memory tables will be inconsistent
 							process.exit(0);
 						}
 						// Transaction applied, removed from the unconfirmed list.
@@ -671,7 +672,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					if (err) {
 						library.logger.error('Failed to save block...');
 						library.logger.error('Block', block);
-						// TODO: Send a numbered signal to be caught by forever to trigger a rebuild.
+						// Fatal error, memory tables will be inconsistent
 						process.exit(0);
 					}
 
@@ -877,16 +878,28 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					}
 				], cb);
 			}, function (err) {
-				// FIXME: We should check for errors here?
-				
+				if (err) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo transactions', err);
+					return process.exit(0);
+				}
+
 				// Perform backward tick on rounds
 				// WARNING: DB_WRITE
-				modules.rounds.backwardTick(oldLastBlock, previousBlock, function () {
+				modules.rounds.backwardTick(oldLastBlock, previousBlock, function (err) {
+					if (err) {
+						// Fatal error, memory tables will be inconsistent
+						library.logger.error('Failed to perform backwards tick', err);
+						return process.exit(0);
+					}
+
 					// Delete last block from blockchain
 					// WARNING: Db_WRITE
 					__private.deleteBlock(oldLastBlock.id, function (err) {
 						if (err) {
-							return setImmediate(cb, err);
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to delete block', err);
+							return process.exit(0);
 						}
 
 						return setImmediate(cb, null, previousBlock);
@@ -954,9 +967,9 @@ __private.receiveBlock = function (block, cb) {
 	library.logger.info([
 		'Received new block id:', block.id,
 		'height:', block.height,
-		'round:',  modules.rounds.calc(modules.blocks.getLastBlock().height),
+		'round:',  modules.rounds.calc(block.height),
 		'slot:', slots.getSlotNumber(block.timestamp),
-		'reward:', modules.blocks.getLastBlock().reward
+		'reward:', block.reward
 	].join(' '));
 
 	// Update last receipt
@@ -1394,25 +1407,20 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 		return setImmediate(cb, 'Can not delete genesis block');
 	}
 
+	// FIXME: Not need async.series here
 	async.series({
-		// Reset current round (fees, rewards, delegates)
-		backwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('backward', null, seriesCb);
-		},
 		// Delete last block, replace last block with previous block, undo things
 		popLastBlock: function (seriesCb) {
 			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
 				if (err) {
 					library.logger.error('Error deleting last block', __private.lastBlock);
+					return setImmediate(seriesCb, err);
+				} else {
+					// Replace last block with previous
+					__private.lastBlock = newLastBlock;
+					return setImmediate(seriesCb);
 				}
-				// Replace last block with previous
-				__private.lastBlock = newLastBlock;
-				return setImmediate(seriesCb);
 			});
-		},
-		// Reset undo round (fees, rewards, delegates), recalculate current round
-		forwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('forward', __private.lastBlock, seriesCb);
 		}
 	}, function (err) {
 		return setImmediate(cb, err, __private.lastBlock);
@@ -1736,9 +1744,6 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	var blocks = [];
 
 	async.series({
-		backwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('backward', null, seriesCb);
-		},
 		popBlocks: function (seriesCb) {
 			async.whilst(
 				function () {
@@ -1755,9 +1760,6 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 					return setImmediate(seriesCb, err, blocks);
 				}
 			);
-		},
-		forwardSwap: function (seriesCb) {
-			modules.rounds.directionSwap('forward', __private.lastBlock, seriesCb);
 		}
 	});
 };
@@ -1810,16 +1812,15 @@ Blocks.prototype.sandboxApi = function (call, args, cb) {
  * @param   {block}   block New block
  */
 Blocks.prototype.onReceiveBlock = function (block) {
-	// When client is not loaded, is syncing or round is ticking
-	// Do not receive new blocks as client is not ready
-	if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
-		library.logger.debug('Client not ready to receive block', block.id);
-		return;
-	}
-
 	// Execute in sequence via sequence
 	library.sequence.add(function (cb) {
-		// Initial check if new block looks fine
+		// When client is not loaded, is syncing or round is ticking
+		// Do not receive new blocks as client is not ready
+		if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
+			library.logger.debug('Client not ready to receive block', block.id);
+			return setImmediate(cb);
+		}
+
 		if (block.previousBlock === __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
 			// Process received block
 			return __private.receiveBlock(block, cb);
