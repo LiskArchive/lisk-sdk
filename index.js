@@ -1,7 +1,10 @@
-function up (number) {
-	return +number+1;
-}
+const vorpal = require('vorpal')();
+const get = require('./commands/get');
 
-module.exports = {
-	up
-}
+  vorpal.use(get);
+
+  vorpal 
+	  .delimiter('>') 
+	  .show();
+
+module.exports = vorpal;
