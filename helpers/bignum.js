@@ -1,9 +1,19 @@
 'use strict';
 
+/**
+ * Buffer functions that implements bignumber.
+ * @memberof module:helpers
+ * @requires bignumber
+ * @constructor
+ */
 var BigNumber = require('bignumber.js');
 
-/*
- * Create an instance from a Buffer
+/**
+ * Creates an instance from a Buffer.
+ * @param {ArrayBuffer} buf
+ * @param {Object} opts
+ * @return {ArrayBuffer} new BigNumber instance
+ * @throws {RangeError} error description multiple of size
  */
 BigNumber.fromBuffer = function (buf, opts) {
 	if (!opts) opts = {};
@@ -38,8 +48,10 @@ BigNumber.fromBuffer = function (buf, opts) {
 	return new BigNumber(hex.join(''), 16);
 };
 
-/*
- * Return instance as Buffer
+/**
+ * Returns an instance as Buffer.
+ * @param {Object} opts
+ * @return {ArrayBuffer} new buffer | error message invalid option
  */
 BigNumber.prototype.toBuffer = function ( opts ) {
 	if (typeof opts === 'string') {

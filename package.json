@@ -1,12 +1,14 @@
 {
   "name": "lisk",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "private": true,
   "scripts": {
     "start": "node app.js",
     "test": "./node_modules/.bin/grunt test --verbose",
     "travis": "./node_modules/.bin/grunt travis --verbose",
-    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose"
+    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
+    "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
+    "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
@@ -66,6 +68,7 @@
     "grunt-obfuscator": "=0.1.0",
     "istanbul": "=0.4.5",
     "istanbul-middleware": "=0.2.2",
+    "jsdoc": "^3.4.3",
     "jsdox": "=0.4.10",
     "mocha": "=3.2.0",
     "moment": "=2.17.1",

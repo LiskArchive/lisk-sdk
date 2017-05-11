@@ -1,6 +1,27 @@
 'use strict';
 
 var ip = require('ip');
+/**
+ * Uses JSON Schema validator z_schema to register custom formats.
+ * - id
+ * - address
+ * - username
+ * - hex
+ * - publicKey
+ * - csv
+ * - signature
+ * - queryList
+ * - delegatesList
+ * - parsedInt
+ * - ip
+ * - os
+ * - version
+ * @see {@link https://github.com/zaggino/z-schema}
+ * @memberof module:helpers
+ * @requires ip
+ * @constructor
+ * @return {Boolean} True if the format is valid
+ */
 var z_schema = require('z-schema');
 
 z_schema.registerFormat('id', function (str) {
