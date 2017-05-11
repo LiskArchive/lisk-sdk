@@ -528,7 +528,6 @@ Transport.prototype.internal = {
 		query = query || {};
 		return library.schema.validate(query, schema.commonBlock, function (err, valid) {
 			if (err) {
-				console.log("blocks ocmmon validation failed: ", err, valid);
 				err = err[0].message + ': ' + err[0].path;
 				library.logger.debug('Common block request validation failed', {err: err.toString(), req: query});
 				return setImmediate(cb, err);
