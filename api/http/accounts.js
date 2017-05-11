@@ -4,7 +4,28 @@ var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 var schema = require('../../schema/accounts.js');
 
-// Constructor
+/**
+ * Binds api with modules and creates common url.
+ * - End point: `/api/accounts`
+ * - Public API:
+	- post 	/open
+	- get 	/getBalance
+	- get 	/getPublicKey
+	- post 	/generatePublicKey
+	- get 	/delegates
+	- get 	/delegates/fee
+	- put 	/delegates
+	- get 	/
+ * - Private API:
+ * 	- get 	/count
+ * @memberof module:accounts
+ * @requires helpers/Router
+ * @requires helpers/httpApi
+ * @constructor
+ * @param {Object} accountsModule - Module account instance.
+ * @param {scope} app - Network app.
+ */
+
 function AccountsHttpApi (accountsModule, app) {
 
 	var router = new Router();
