@@ -412,11 +412,19 @@ d.run(function () {
 					var args = [];
 					Array.prototype.push.apply(args, arguments);
 					var topic = args.shift();
+					var eventName = 'on' + changeCase.pascalCase(topic);
+
 					// executes the each module onBind function
 					modules.forEach(function (module) {
-						var eventName = 'on' + changeCase.pascalCase(topic);
 						if (typeof(module[eventName]) === 'function') {
 							module[eventName].apply(module[eventName], args);
+						}
+						if (module.submodules) {
+							async.each(module.submodules, function (submodule) {
+								if (submodule && typeof(submodule[eventName]) === 'function') {
+									submodule[eventName].apply(submodule[eventName], args);
+								}
+							});
 						}
 					});
 				};
