@@ -234,7 +234,7 @@ __private.dbSave = function (cb) {
 	var cs = new pgp.helpers.ColumnSet([
 		'ip', 'port', 'state', 'height', 'os', 'version', 'clock',
 		{name: 'broadhash', init: function (col) {
-			return col.value ? new Buffer(col.value, 'hex') : null;
+			return col.value ? Buffer.from(col.value, 'hex') : null;
 		}}
 	], {table: 'peers'});
 

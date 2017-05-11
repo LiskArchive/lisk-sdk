@@ -136,9 +136,9 @@ OutTransfer.prototype.getBytes = function (trs) {
 	var buf;
 
 	try {
-		buf = new Buffer([]);
-		var dappIdBuf = new Buffer(trs.asset.outTransfer.dappId, 'utf8');
-		var transactionIdBuff = new Buffer(trs.asset.outTransfer.transactionId, 'utf8');
+		buf = Buffer.from([]);
+		var dappIdBuf = Buffer.from(trs.asset.outTransfer.dappId, 'utf8');
+		var transactionIdBuff = Buffer.from(trs.asset.outTransfer.transactionId, 'utf8');
 		buf = Buffer.concat([buf, dappIdBuf, transactionIdBuff]);
 	} catch (e) {
 		throw e;

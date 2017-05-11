@@ -50,9 +50,9 @@ function Transport (cb, scope) {
  * @return {string} Buffer array to string
  */
 __private.hashsum = function (obj) {
-	var buf = new Buffer(JSON.stringify(obj), 'utf8');
+	var buf = Buffer.from(JSON.stringify(obj), 'utf8');
 	var hashdig = crypto.createHash('sha256').update(buf).digest();
-	var temp = new Buffer(8);
+	var temp = Buffer.alloc(8);
 	for (var i = 0; i < 8; i++) {
 		temp[i] = hashdig[7 - i];
 	}

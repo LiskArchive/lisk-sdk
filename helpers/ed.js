@@ -32,7 +32,7 @@ ed.makeKeypair = function (hash) {
  * @return {signature} signature
  */
 ed.sign = function (hash, keypair) {
-	return sodium.crypto_sign_detached(hash, new Buffer(keypair.privateKey, 'hex'));
+	return sodium.crypto_sign_detached(hash, Buffer.from(keypair.privateKey, 'hex'));
 };
 
 /**
