@@ -11,15 +11,30 @@ var modules, library, __private = {};
 
 __private.unconfirmedSignatures = {};
 
+/**
+ * Main multisignature logic.
+ * @memberof module:multisignatures
+ * @class
+ * @classdesc Main multisignature logic.
+ */
 // Constructor
 function Multisignature () {}
 
 // Public methods
+/**
+ * @param {scope} scope - App instance.
+ */
 Multisignature.prototype.bind = function (scope) {
 	modules = scope.modules;
 	library = scope.library;
 };
 
+/**
+ * Creates a multisignature.
+ * @param {multisignature} data - Entry information: min, keysgroup, lifetime.
+ * @param {transaction} trs - Transaction to add multisignature data.
+ * @returns {transaction} trs with new data
+ */
 Multisignature.prototype.create = function (data, trs) {
 	trs.recipientId = null;
 	trs.amount = 0;
@@ -32,10 +47,26 @@ Multisignature.prototype.create = function (data, trs) {
 	return trs;
 };
 
+/**
+ * Obtains constant fee multisignature and multiply by quantity of signatures.
+ * @see {@link module:helpers~constants}
+ * @param {transaction} trs
+ * @param {account} sender - Unnecessary parameter.
+ * @returns {number} Quantity of multisignature keysgroup * multisignature fees.
+ */
 Multisignature.prototype.calculateFee = function (trs, sender) {
 	return (trs.asset.multisignature.keysgroup.length + 1) * constants.fees.multisignature;
 };
 
+/**
+ * Verifies multisignature fields from transaction asset and sender.
+ * @implements module:transactions#Transaction~verifySignature
+ * @param {transaction} trs 
+ * @param {account} sender
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback|transaction} returns error string if invalid parameter | 
+ * trs validated.
+ */
 Multisignature.prototype.verify = function (trs, sender, cb) {
 	if (!trs.asset || !trs.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
@@ -138,10 +169,26 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 	});
 };
 
+/**
+ * Returns transaction with setImmediate.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} Null error
+ * @todo check extra parameter sender.
+ */
 Multisignature.prototype.process = function (trs, sender, cb) {
 	return setImmediate(cb, null, trs);
 };
 
+/**
+ * Returns a buffer with bytes from transaction asset information.
+ * @requires bytebuffer
+ * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
+ * @param {transaction} trs - Uses multisignature from asset.
+ * @param {boolean} skip
+ * @returns {!Array} Contents as an ArrayBuffer.
+ */
 Multisignature.prototype.getBytes = function (trs, skip) {
 	var keysgroupBuffer = Buffer.from(trs.asset.multisignature.keysgroup.join(''), 'utf8');
 
@@ -156,6 +203,16 @@ Multisignature.prototype.getBytes = function (trs, skip) {
 	return bb.toBuffer();
 };
 
+/**
+ * Merges transaction data into mem_accounts table.
+ * Checks public keys from multisignature and creates accounts.
+ * @implements module:accounts#Accounts~setAccountAndGet
+ * @param {transaction} trs - Uses multisignature from asset.
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} for errors
+ */
 Multisignature.prototype.apply = function (trs, block, sender, cb) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
@@ -186,6 +243,15 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 	});
 };
 
+/**
+ * Inverts multisignature signs and merges into sender address.
+ * Stores sender address into private unconfirmedSignatures.
+ * @param {transaction} trs - Uses multisignature from asset.
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} For error.
+ */
 Multisignature.prototype.undo = function (trs, block, sender, cb) {
 	var multiInvert = Diff.reverse(trs.asset.multisignature.keysgroup);
 
@@ -202,6 +268,14 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 	});
 };
 
+/**
+ * Stores sender address into private unconfirmedSignatures.
+ * Merges into sender address transaction asset to unconfirmed fields.
+ * @param {transaction} trs - Uses multisignature from asset.
+ * @param {account} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} For error.
+ */
 Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	if (__private.unconfirmedSignatures[sender.address]) {
 		return setImmediate(cb, 'Signature on this account is pending confirmation');
@@ -218,6 +292,16 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	});
 };
 
+/**
+ * Turns off unconfirmedSignatures for sender address.
+ * Inverts multisignature signs and merges into sender address
+ * to unconfirmed fields.
+ * 
+ * @param {transaction} trs - Uses multisignature from asset.
+ * @param {account} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} For error.
+ */
 Multisignature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	var multiInvert = Diff.reverse(trs.asset.multisignature.keysgroup);
 
@@ -232,6 +316,12 @@ Multisignature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	});
 };
 
+/**
+ * @typedef {Object} multisignature
+ * @property {number} min - From 1 to 15
+ * @property {Array} keysgroup - Between 1 and 16 keys
+ * @property {number} lifetime - From 1 to 72
+ */
 Multisignature.prototype.schema = {
 	id: 'Multisignature',
 	type: 'object',
@@ -255,6 +345,12 @@ Multisignature.prototype.schema = {
 	required: ['min', 'keysgroup', 'lifetime']
 };
 
+/**
+ * Validates multisignature schema.
+ * @param {transaction} trs - Uses multisignature from asset.
+ * @return {transaction} Transaction validated.
+ * @throws {string} Error message.
+ */
 Multisignature.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.multisignature, Multisignature.prototype.schema);
 
@@ -267,6 +363,12 @@ Multisignature.prototype.objectNormalize = function (trs) {
 	return trs;
 };
 
+/**
+ * Creates multisignature object based on raw data.
+ * @param {Object} raw - Data from database.
+ * @return {multisignature} multisignature Object.
+ * @todo check if this function is called.
+ */
 Multisignature.prototype.dbRead = function (raw) {
 	if (!raw.m_keysgroup) {
 		return null;
@@ -295,6 +397,12 @@ Multisignature.prototype.dbFields = [
 	'transactionId'
 ];
 
+/**
+ * Creates database Object based on trs data.
+ * @param {transaction} trs - Contains multisignature object.
+ * @returns {Object} {table:multisignatures, values: multisignature and transaction id}.
+ * @todo check if this function is called.
+ */
 Multisignature.prototype.dbSave = function (trs) {
 	return {
 		table: this.dbTable,
@@ -308,11 +416,23 @@ Multisignature.prototype.dbSave = function (trs) {
 	};
 };
 
+/**
+ * Emits a 'multisignatures/change' socket signal with transaction info.
+ * @param {transaction} trs
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 Multisignature.prototype.afterSave = function (trs, cb) {
 	library.network.io.sockets.emit('multisignatures/change', trs);
 	return setImmediate(cb);
 };
 
+/**
+ * Evaluates transaction signatures and sender multisignatures.
+ * @param {transaction} trs - signatures.
+ * @param {account} sender
+ * @return {boolean} logic based on trs signatures and sender multisignatures.
+ */
 Multisignature.prototype.ready = function (trs, sender) {
 	if (!Array.isArray(trs.signatures)) {
 		return false;

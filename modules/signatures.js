@@ -13,6 +13,16 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
 
+/**
+ * Initializes library with scope content and generates a Signature instance.
+ * Calls logic.transaction.attachAssetType().
+ * @memberof module:signatures
+ * @class
+ * @classdesc Main signatures methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Signatures (cb, scope) {
 	library = scope;
@@ -26,15 +36,31 @@ function Signatures (cb, scope) {
 }
 
 // Public methods
+/**
+ * Checks if `modules` is loaded.
+ * @return {boolean} True if `modules` is loaded.
+ */
 Signatures.prototype.isLoaded = function () {
 	return !!modules;
 };
 
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Signatures.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Calls Signature.bind() with scope to create closure.
+ * @implements module:signatures#Signature~bind
+ * @param {scope} scope - Loaded modules.
+ */
 Signatures.prototype.onBind = function (scope) {
 	modules = scope;
 
@@ -44,6 +70,10 @@ Signatures.prototype.onBind = function (scope) {
 };
 
 // Shared API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
 Signatures.prototype.shared = {
 	getFee: function (req, cb) {
 		var fee = constants.fees.secondsignature;

@@ -3,6 +3,33 @@
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 
+/**
+ * Binds api with modules and creates common url.
+ * - End point: `/api/delegates`
+ * - Public API:
+	- get 	/count
+	- get 	/search
+	- get 	/voters
+	- get 	/get
+	- get 	/
+	- get 	/fee
+	- get 	/forging/getForgedByAccount
+	- put	/
+	- get	/getNextForgers
+ * - Private API:
+ * 	- post 	/forging/enable
+ * 	- post 	/forging/disable
+ * 	- get 	/forging/status
+ * - Debug API:
+ * 	- get	/forging/disableAll
+ * 	- get	/forging/enableAll
+ * @memberof module:delegates
+ * @requires helpers/Router
+ * @requires helpers/httpApi
+ * @constructor
+ * @param {Object} delegatesModule - Module delegate instance.
+ * @param {scope} app - Network app.
+ */
 // Constructor
 function DelegatesHttpApi (delegatesModule, app) {
 

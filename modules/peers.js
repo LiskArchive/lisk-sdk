@@ -16,6 +16,15 @@ var util = require('util');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
+/**
+ * Initializes library with scope content.
+ * @memberof module:peers
+ * @class
+ * @classdesc Main peers methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Peers (cb, scope) {
 	library = scope;
@@ -25,12 +34,26 @@ function Peers (cb, scope) {
 }
 
 // Private methods
+/**
+ * Returns peers lenght after get them by filter.
+ * @private
+ * @param {Object} filter
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} peers length
+ */
 __private.countByFilter = function (filter, cb) {
 	__private.getByFilter(filter, function (err, peers) {
 		return setImmediate(cb, null, peers.length);
 	});
 };
 
+/**
+ * Gets randomly ordered list of peers by filter.
+ * @private
+ * @param {Object} filter
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} peers
+ */
 __private.getByFilter = function (filter, cb) {
 	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height'];
 	var limit  = filter.limit ? Math.abs(filter.limit) : null;
@@ -110,6 +133,12 @@ __private.getByFilter = function (filter, cb) {
 	return setImmediate(cb, null, peers);
 };
 
+/**
+ * Remove bans from peers list if clock period time has been pass.
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.removeBans = function (cb) {
 	var now = Date.now();
 	_.each(library.logic.peers.list(), function (peer, index) {
@@ -120,6 +149,12 @@ __private.removeBans = function (cb) {
 	return setImmediate(cb);
 };
 
+/**
+ * Pings to every member of peers list.
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.insertSeeds = function (cb) {
 	var updated = 0;
 	library.logger.trace('Peers->insertSeeds');
@@ -136,6 +171,14 @@ __private.insertSeeds = function (cb) {
 	});
 };
 
+/**
+ * Loads peers from database and checks every peer state and updated time.
+ * Pings when checks are true.
+ * @implements library.db
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.dbLoad = function (cb) {
 	var updated = 0;
 	library.logger.trace('Importing peers from database');
@@ -170,6 +213,14 @@ __private.dbLoad = function (cb) {
 	});
 };
 
+/**
+ * Inserts list of peers into `peers` table and inserts dapps peers
+ * into `peers_dapp` table.
+ * @implements library.db
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.dbSave = function (cb) {
 	var peers = library.logic.peers.list(true);
 
@@ -222,15 +273,35 @@ __private.dbSave = function (cb) {
 };
 
 // Public methods
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {*} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Peers.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(Peers.prototype.shared, call, args, cb);
 };
 
+/**
+ * Sets peer state to active (2).
+ * @param {peer} peer
+ * @return {function} Calls peers.upsert
+ * @todo rename this function to activePeer or similar
+ */
 Peers.prototype.update = function (peer) {
 	peer.state = 2;
 	return library.logic.peers.upsert(peer);
 };
 
+/**
+ * Removes peer from peers list if it is not a peer from config file list.
+ * @implements logic.peers.remove
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @return {function} Calls peers.remove
+ */
 Peers.prototype.remove = function (pip, port) {
 	var frozenPeer = _.find(library.config.peers.list, function (peer) {
 		return peer.ip === pip && peer.port === port;
@@ -243,6 +314,14 @@ Peers.prototype.remove = function (pip, port) {
 	}
 };
 
+/**
+ * Bans peer in peers list if it is not a peer from config file list.
+ * @implements logic.peers.ban
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @param {number} seconds
+ * @return {function} Calls peers.ban
+ */
 Peers.prototype.ban = function (pip, port, seconds) {
 	var frozenPeer = _.find(library.config.peers, function (peer) {
 		return peer.ip === pip && peer.port === port;
@@ -255,6 +334,13 @@ Peers.prototype.ban = function (pip, port, seconds) {
 	}
 };
 
+/**
+ * Pings peer.
+ * @implements transport.getFromPeer
+ * @param {peer} peer - List of arguments.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb | error when ping peer fails
+ */
 Peers.prototype.ping = function (peer, cb) {
 	library.logger.trace('Pinging peer: ' + peer.string);
 	modules.transport.getFromPeer(peer, {
@@ -270,6 +356,11 @@ Peers.prototype.ping = function (peer, cb) {
 	});
 };
 
+/**
+ * Discovers peers by getting list and validates them.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb | error
+ */
 Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
@@ -326,6 +417,11 @@ Peers.prototype.discover = function (cb) {
 	});
 };
 
+/**
+ * Filters peers with private or address or with the same nonce.
+ * @param {peer[]} peers
+ * @return {peer[]} Filtered list of peers
+ */
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
 		// Removing peers with private or address or with the same nonce
@@ -336,6 +432,12 @@ Peers.prototype.acceptable = function (peers) {
 	}).value();
 };
 
+/**
+ * Gets peers list and calculated consensus.
+ * @param {Object} options - Constains limit, broadhash.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} error | peers, consensus
+ */
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
@@ -401,10 +503,20 @@ Peers.prototype.list = function (options, cb) {
 };
 
 // Events
+/**
+ * assign scope to modules variable
+ * @param {scope} scope
+ */
 Peers.prototype.onBind = function (scope) {
 	modules = scope;
 };
 
+/**
+ * Triggers onPeersReady after:
+ * - Ping to every member of peers list.
+ * - Load peers from database and checks every peer state and updated time.
+ * - Discover peers by getting list and validates them.
+ */
 Peers.prototype.onBlockchainReady = function () {
 	async.series({
 		insertSeeds: function (seriesCb) {
@@ -427,6 +539,9 @@ Peers.prototype.onBlockchainReady = function () {
 	});
 };
 
+/**
+ * Discovers peers, updates them and removes bans in 10sec intervals loop.
+ */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
 	setImmediate(function nextSeries () {
@@ -476,6 +591,10 @@ Peers.prototype.onPeersReady = function () {
 	});
 };
 
+/**
+ * Export peers to database.
+ * @param {function} cb - Callback function.
+ */
 Peers.prototype.cleanup = function (cb) {
 	// Save peers on exit
 	__private.dbSave (function () {
@@ -483,11 +602,19 @@ Peers.prototype.cleanup = function (cb) {
 	});
 };
 
+/**
+ * Checks if `modules` is loaded.
+ * @return {boolean} True if `modules` is loaded.
+ */
 Peers.prototype.isLoaded = function () {
 	return !!modules;
 };
 
 // Shared API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
 Peers.prototype.shared = {
 	count: function (req, cb) {
 		async.series({
@@ -552,7 +679,7 @@ Peers.prototype.shared = {
 		});
 	},
 
-	/**
+	/*
 	 * Returns information about version
 	 *
 	 * @public
