@@ -729,8 +729,7 @@ Blocks.prototype.getLastBlock = function () {
 
 Blocks.prototype.lastReceipt = function (lastReceipt) {
 	if (lastReceipt) {
-		__private.lastReceipt = lastReceipt;
-		__private.lastReceipt.timestamp = Math.floor(lastReceipt / 1000);
+		__private.lastReceipt = {timestamp: Math.floor(lastReceipt / 1000)};
 	}
 
 	if (__private.lastReceipt) {
