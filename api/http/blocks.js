@@ -4,14 +4,14 @@ var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 
 // Constructor
-function BlocksHttpApi (blocksModule, app) {
+function BlocksHttpApi (blocksModule, app, logger, cache) {
 
 	var router = new Router();
 
 	router.map(blocksModule.shared, {
 		'get /get': 'getBlock',
 		'get /': 'getBlocks',
-		'get /getBroadhash': 'getBroadhash',
+		'get /getBroadhash': [httpApi.middleware.useCache.bind(null, logger, cache), 'getBroadhash'],
 		'get /getEpoch': 'getEpoch',
 		'get /getHeight': 'getHeight',
 		'get /getNethash': 'getNethash',

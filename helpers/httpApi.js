@@ -133,15 +133,16 @@ var middleware = {
 	},
 
 	/**
-	 * Lookup cache, and reply with cached response if it's a hit
+	 * Lookup cache, and reply with cached response if it's a hit.
+	 * If it's a miss, forward the request but cache the response if it's a success.
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {Function} next
 	 */
 	useCache: function (logger, cache, req, res, next) {
 		if (cache.isConnected()) {
-			logger.info('Req parameters', req.url, req.body);
-			var key = req.url + req.data;
+			logger.info('Req parameters', req.url, JSON.stringify(req.params));
+			var key = req.url + JSON.stringify(req.params);
 
 			cache.getJsonForKey(key, function (err, cachedValue) {
 				//there was an error or value doesn't exist for key
@@ -153,6 +154,7 @@ var middleware = {
 							cache.setJsonForKey(key,response);
 							expressSendJson.call(res, response);
 						} else {
+							logger.info('serving response for url: ', req.url, ' from cache');
 							expressSendJson.call(res, response);
 						}
 					};

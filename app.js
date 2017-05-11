@@ -106,7 +106,8 @@ var config = {
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js'
+		sql: './modules/sql.js',
+		cache: './modules/cache.js'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -448,7 +449,7 @@ d.run(function () {
 					var apiEndpointPath = config.api[moduleName][protocol];
 					try {
 						var ApiEndpoint = require(apiEndpointPath);
-						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.cache);
+						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
 					} catch (e) {
 						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
 					}
