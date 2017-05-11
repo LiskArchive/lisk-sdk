@@ -734,7 +734,7 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 
 	if (__private.lastReceipt) {
 		var timeNow = Math.floor(Date.now() / 1000);
-		__private.lastReceipt.timestamp = Math.floor( __private.lastReceipt / 1000);
+		__private.lastReceipt.timestamp = Math.floor(__private.lastReceipt / 1000);
 		__private.lastReceipt.secondsAgo = timeNow - __private.lastReceipt.timestamp;
 		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > constants.blockReceiptTimeOut);
 	}
