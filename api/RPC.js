@@ -90,9 +90,9 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, sock
 
 WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
 	return function (procedureName) {
-		return function () {
-			var cb = _.isFunction(_.last(arguments)) ? _.last(arguments) : _.noop();
-			var data = !_.isFunction(arguments[0]) ? arguments[0] : {};
+		return function (data, cb) {
+			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
+			data = (data && !_.isFunction(data)) ? data : {};
 			socketReady.promise.then(function (socket) {
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
