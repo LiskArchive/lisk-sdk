@@ -43,18 +43,21 @@ var wsCommunication = {
 	},
 
 	// Get the given path
-	call: function (procedure, data, done) {
-		done = _.isFunction(_.last(arguments)) ? _.last(arguments) : _.noop();
-		data = !_.isFunction(arguments[1]) ? arguments[1] : {};
-
+	call: function (procedure, data, done, includePeer) {
 		if (!this.defaultSocketDefer) {
 			this.defaultSocketDefer = Q.defer();
+			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 4000);
 			this.connect('127.0.0.1', 4000, this.defaultSocketDefer);
 			this.caller = WsRPCClient.prototype.sendAfterSocketReadyCb(this.defaultSocketDefer);
 		}
+		if (includePeer && typeof data == 'object') {
+			data.peer =  _.assign({
+				ip: '127.0.0.1',
+				port: 4000
+			}, this.defaultSocketPeerHeaders);
+		}
 
 		return this.caller(procedure)(data, done);
-
 	},
 
 	// Adds peers to local node
@@ -62,7 +65,7 @@ var wsCommunication = {
 
 		var peersConnectionsDefers = Array.apply(null, new Array(numOfPeers)).map(function () {
 			var socketDefer = Q.defer();
-			this.connect(ip, node.randomizeSelection(1000) + 4001, socketDefer);
+			this.connect(ip, node.randomizeSelection(1000) + 4001, socketDefer, this.defaultSocketPeerHeaders);
 			return socketDefer;
 		}.bind(this));
 

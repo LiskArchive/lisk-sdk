@@ -23,7 +23,7 @@ var httpCommunication = {
 
 		if (done) {
 			request.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
+				node.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
 				done(err, res);
 			});
 		} else {
