@@ -16,7 +16,17 @@ var modules, library, self, __private = {}, shared = {};
 __private.assetTypes = {};
 __private.blockReward = new BlockReward();
 
-// Constructor
+/**
+ * Initializes library with scope content and generates a Vote instance.
+ * Calls logic.transaction.attachAssetType().
+ * @memberof module:accounts
+ * @class
+ * @classdesc Main accounts methods.
+ * @implements module:accounts.Account#Vote
+ * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 function Accounts (cb, scope) {
 	library = scope;
 	self = this;
@@ -28,7 +38,15 @@ function Accounts (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
-// Private methods
+/**
+ * Gets account from publicKey obtained from secret parameter.
+ * If not existes, generates new account data with public address
+ * obtained from secret parameter.
+ * @private
+ * @param {function} secret
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} As per logic new|current account data object.
+ */
 __private.openAccount = function (secret, cb) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
 	var keypair = library.ed.makeKeypair(hash);
@@ -60,10 +78,15 @@ __private.openAccount = function (secret, cb) {
 	});
 };
 
-// Public methods
+/**
+ * Generates address based on public key.
+ * @param {publicKey} publicKey - PublicKey.
+ * @returns {address} Address generated.
+ * @throws {string} If address is invalid throws `Invalid public key`.
+ */
 Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
-	var temp = new Buffer(8);
+	var temp = Buffer.alloc(8);
 
 	for (var i = 0; i < 8; i++) {
 		temp[i] = publicKeyHash[7 - i];
@@ -78,6 +101,13 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 	return address;
 };
 
+/**
+ * Gets account information, calls logic.account.get().
+ * @implements module:accounts#Account~get
+ * @param {Object} filter - Containts publicKey.
+ * @param {function} fields - Fields to get.
+ * @param {function} cb - Callback function.
+ */
 Accounts.prototype.getAccount = function (filter, fields, cb) {
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
@@ -87,10 +117,26 @@ Accounts.prototype.getAccount = function (filter, fields, cb) {
 	library.logic.account.get(filter, fields, cb);
 };
 
+/**
+ * Gets accounts information, calls logic.account.getAll().
+ * @implements module:accounts#Account~getAll
+ * @param {Object} filter
+ * @param {Object} fields
+ * @param {function} cb - Callback function.
+ */
 Accounts.prototype.getAccounts = function (filter, fields, cb) {
 	library.logic.account.getAll(filter, fields, cb);
 };
 
+/**
+ * Validates input address and calls logic.account.set() and logic.account.get().
+ * @implements module:accounts#Account~set
+ * @implements module:accounts#Account~get
+ * @param {Object} data - Contains address or public key to generate address.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} Errors.
+ * @returns {function()} Call to logic.account.get().
+ */
 Accounts.prototype.setAccountAndGet = function (data, cb) {
 	var address = data.address || null;
 	var err;
@@ -123,6 +169,15 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 	});
 };
 
+/**
+ * Validates input address and calls logic.account.merge().
+ * @implements module:accounts#Account~merge
+ * @param {Object} data - Contains address and public key.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} for errors wit address and public key.
+ * @returns {function} calls to logic.account.merge().
+ * @todo improve publicKey validation try/catch
+ */
 Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	var address = data.address || null;
 	var err;
@@ -150,11 +205,24 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	return library.logic.account.merge(address, data, cb);
 };
 
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {} args - List of arguments.
+ * @param {function} cb - Callback function.
+ * @todo verified function and arguments.
+ */
 Accounts.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Calls Vote.bind() with scope.
+ * @implements module:accounts#Vote~bind
+ * @param {scope} scope - Loaded modules.
+ */
 Accounts.prototype.onBind = function (scope) {
 	modules = scope;
 
@@ -162,12 +230,19 @@ Accounts.prototype.onBind = function (scope) {
 		modules: modules, library: library
 	});
 };
-
+/**
+ * Checks if modules is loaded.
+ * @return {boolean} true if modules is loaded
+ */
 Accounts.prototype.isLoaded = function () {
 	return !!modules;
 };
 
 // Shared API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
 Accounts.prototype.shared = {
 	open: function (req, cb) {
 		library.schema.validate(req.body, schema.open, function (err) {
@@ -459,6 +534,10 @@ Accounts.prototype.shared = {
 };
 
 // Internal API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
 Accounts.prototype.internal = {
 	count: function (req, cb) {
 		return setImmediate(cb, null, {success: true, count: Object.keys(__private.accounts).length});

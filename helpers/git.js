@@ -1,5 +1,5 @@
 'use strict';
-/**
+/*
 * Helper module for parsing git commit information
 *
 * @class git.js
@@ -9,9 +9,8 @@ var childProcess = require('child_process');
 
 /**
  * Return hash of last git commit if available
- *
- * @method getLastCommit
- * @public
+ * @memberof module:helpers
+ * @function
  * @return {String} Hash of last git commit
  * @throws {Error} Throws error if cannot get last git commit
  */

@@ -9,6 +9,12 @@ var defaults = {
 	windowMs: 60000 // 1 minute window
 };
 
+/**
+ * Returns limits object from input or default values.
+ * @private
+ * @param {Object} [limits]
+ * @returns {Object} max, delayMs, delayAfter, windowMs
+ */
 function applyLimits (limits) {
 	if (typeof limits === 'object') {
 		return {
@@ -22,6 +28,15 @@ function applyLimits (limits) {
 	}
 }
 
+/**
+ * Applies limits config to app.
+ * @memberof module:helpers
+ * @function request-limiter
+ * @implements applyLimits
+ * @param {Object} app - Application instance
+ * @param {Object} config
+ * @return {Object} limits per client and peer
+ */
 module.exports = function (app, config) {
 	if (config.trustProxy) {
 		app.enable('trust proxy');
