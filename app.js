@@ -175,7 +175,7 @@ var d = require('domain').create();
 
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exit(0);
+	process.exitCode = 0;
 });
 
 // runs domain
@@ -628,10 +628,10 @@ d.run(function () {
 						scope.logger.info('Cleaned up successfully');
 					}
 					/**
-					 * process.exit(1) exits with a 'failure' code (node.js method)
+					 * Exits process gracefully with code 1
 					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 					 */
-					process.exit(1);
+					process.exitCode = 1;
 				});
 			});
 

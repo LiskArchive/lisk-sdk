@@ -437,7 +437,7 @@ __private.applyGenesisBlock = function (block, cb) {
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...
-			return process.exit(0);
+			return process.exitCode = 0;
 		} else {
 			// Set genesis block as last block
 			__private.lastBlock = block;
@@ -575,7 +575,11 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 				if (err) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo unconfirmed list', err);
-					return process.exit(0);
+					/**
+					 * Exits process gracefully with code 0
+					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+					 */
+					return process.exitCode = 0;
 				} else {
 					unconfirmedTransactionIds = ids;
 					return setImmediate(seriesCb);
@@ -641,8 +645,14 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 						err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
+
 						// Fatal error, memory tables will be inconsistent
-						process.exit(0);
+
+						/**
+						 * Exits process gracefully with code 0
+						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+						 */
+						return process.exitCode = 0;
 					}
 					// DATABASE: write
 					modules.transactions.apply(transaction, block, sender, function (err) {
@@ -650,8 +660,14 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
+
 							// Fatal error, memory tables will be inconsistent
-							process.exit(0);
+
+							/**
+							 * Exits process gracefully with code 0
+							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+							 */
+							return process.exitCode = 0;
 						}
 						// Transaction applied, removed from the unconfirmed list.
 						modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -672,8 +688,14 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 					if (err) {
 						library.logger.error('Failed to save block...');
 						library.logger.error('Block', block);
+
 						// Fatal error, memory tables will be inconsistent
-						process.exit(0);
+
+						/**
+						 * Exits process gracefully with code 0
+						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+						 */
+						return process.exitCode = 0;
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
@@ -881,7 +903,12 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 				if (err) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo transactions', err);
-					return process.exit(0);
+
+					/**
+					 * Exits process gracefully with code 0
+					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+					 */
+					return process.exitCode = 0;
 				}
 
 				// Perform backward tick on rounds
@@ -890,7 +917,12 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
 						library.logger.error('Failed to perform backwards tick', err);
-						return process.exit(0);
+
+						/**
+						 * Exits process gracefully with code 0
+						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+						 */
+						return process.exitCode = 0;
 					}
 
 					// Delete last block from blockchain
@@ -899,7 +931,12 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 						if (err) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error('Failed to delete block', err);
-							return process.exit(0);
+
+							/**
+							 * Exits process gracefully with code 0
+							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
+							 */
+							return process.exitCode = 0;
 						}
 
 						return setImmediate(cb, null, previousBlock);

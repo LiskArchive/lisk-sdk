@@ -19,10 +19,10 @@ function Config (configPath) {
 	if (!configData.length) {
 		console.log('Failed to read config file');
 		/**
-		 * process.exit(1) exits with a 'failure' code (node.js method)
+		 * Exits process gracefully with code 1
 		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-		 */		
-		process.exit(1);
+		 */
+		process.exitCode = 1;
 	} else {
 		configData = JSON.parse(configData);
 	}
@@ -33,10 +33,10 @@ function Config (configPath) {
 	if (!valid) {
 		console.log('Failed to validate config data', validator.getLastErrors());
 		/**
-		 * process.exit(1) exits with a 'failure' code (node.js method)
+		 * Exits process gracefully with code 1
 		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-		 */		
-		process.exit(1);
+		 */
+		process.exitCode = 1;
 	} else {
 		validateForce(configData);
 		return configData;
