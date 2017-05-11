@@ -716,11 +716,11 @@ Blocks.prototype.count = function (cb) {
 
 Blocks.prototype.getLastBlock = function () {
 	if (__private.lastBlock) {
-		var epoch = constants.epochTime / 1000;
+		var epoch = Math.floor(constants.epochTime / 1000);
 		var lastBlockTime = epoch + __private.lastBlock.timestamp;
-		var currentTime =Date.now() / 1000;
+		var currentTime = Math.floor(Date.now() / 1000);
 
-		__private.lastBlock.secondsAgo = Math.round((currentTime - lastBlockTime) * 1e2) / 1e2;
+		__private.lastBlock.secondsAgo = (currentTime - lastBlockTime);
 		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
 	}
 
@@ -733,10 +733,9 @@ Blocks.prototype.lastReceipt = function (lastReceipt) {
 	}
 
 	if (__private.lastReceipt) {
-		var timeNow = Date.now();
+		var timeNow = Math.floor(Date.now() / 1000);
 		__private.lastReceipt.timestamp = Math.floor( __private.lastReceipt / 1000);
-		__private.lastReceipt.secondsAgo = Math.floor((timeNow - __private.lastReceipt) / 1000);
-		__private.lastReceipt.secondsAgo = Math.round(__private.lastReceipt.secondsAgo * 1e2) / 1e2;
+		__private.lastReceipt.secondsAgo = timeNow - __private.lastReceipt.timestamp;
 		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > constants.blockReceiptTimeOut);
 	}
 
