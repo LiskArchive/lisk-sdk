@@ -93,6 +93,28 @@ function Blocks (cb, scope) {
 	});
 }
 
+/**
+ * Get filtered list of blocks (without transactions)
+ *
+ * @private
+ * @async
+ * @method list
+ * @param  {Object}   filter Conditions to filter with
+ * @param  {string}   filter.generatorPublicKey Public key of delegate who generates the block
+ * @param  {number}   filter.numberOfTransactions Number of transactions
+ * @param  {string}   filter.previousBlock Previous block ID
+ * @param  {number}   filter.height Block height
+ * @param  {number}   filter.totalAmount Total amount of block's transactions
+ * @param  {number}   filter.totalFee Block total fees
+ * @param  {number}   filter.reward Block reward
+ * @param  {number}   filter.limit Limit of blocks to retrieve, default: 100, max: 100
+ * @param  {number}   filter.offset Offset from where to start
+ * @param  {string}   filter.orderBy Sort order, default: height:desc
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.data List of normalized blocks
+ */
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
 
@@ -101,6 +123,7 @@ __private.list = function (filter, cb) {
 		params.generatorPublicKey = filter.generatorPublicKey;
 	}
 
+	// FIXME: Useless condition
 	if (filter.numberOfTransactions) {
 		where.push('"b_numberOfTransactions" = ${numberOfTransactions}');
 		params.numberOfTransactions = filter.numberOfTransactions;
@@ -116,16 +139,19 @@ __private.list = function (filter, cb) {
 		params.height = filter.height;
 	}
 
+	// FIXME: Useless condition
 	if (filter.totalAmount >= 0) {
 		where.push('"b_totalAmount" = ${totalAmount}');
 		params.totalAmount = filter.totalAmount;
 	}
 
+	// FIXME: Useless condition
 	if (filter.totalFee >= 0) {
 		where.push('"b_totalFee" = ${totalFee}');
 		params.totalFee = filter.totalFee;
 	}
 
+	// FIXME: Useless condition
 	if (filter.reward >= 0) {
 		where.push('"b_reward" = ${reward}');
 		params.reward = filter.reward;
@@ -170,7 +196,9 @@ __private.list = function (filter, cb) {
 		}), params).then(function (rows) {
 			var blocks = [];
 
+			// Normalize blocks
 			for (var i = 0; i < rows.length; i++) {
+				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 				blocks.push(library.logic.block.dbRead(rows[i]));
 			}
 
@@ -190,27 +218,45 @@ __private.list = function (filter, cb) {
 	});
 };
 
+/**
+ * Normalize blocks and their transactions
+ * // FIXME: Looks like that function can accepts both blocks and transactions as param, processing here is not clear
+ *
+ * @private
+ * @method readDbRows
+ * @param  {Object} rows List of blocks/transactions?
+ * @return {Object} blocks Normalized list of blocks with transactions
+ */
 __private.readDbRows = function (rows) {
 	var blocks = {};
 	var order = [];
 
 	for (var i = 0, length = rows.length; i < length; i++) {
+		// Normalize block
+		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 		var block = library.logic.block.dbRead(rows[i]);
 
 		if (block) {
+			// If block is not already in the list...
 			if (!blocks[block.id]) {
 				if (block.id === genesisblock.block.id) {
+					// Generate fake signature for genesis block
 					block.generationSignature = (new Array(65)).join('0');
 				}
 
+				// Add block ID to order list
 				order.push(block.id);
+				// Add block to list
 				blocks[block.id] = block;
 			}
 
+			// Normalize transaction
 			var transaction = library.logic.transaction.dbRead(rows[i]);
+			// Set empty object if there are no transactions in block
 			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
 			if (transaction) {
+				// Add transaction to block if not there already
 				if (!blocks[block.id].transactions[transaction.id]) {
 					blocks[block.id].transactions[transaction.id] = transaction;
 				}
@@ -218,6 +264,7 @@ __private.readDbRows = function (rows) {
 		}
 	}
 
+	// Reorganize list
 	blocks = order.map(function (v) {
 		blocks[v].transactions = Object.keys(blocks[v].transactions).map(function (t) {
 			return blocks[v].transactions[t];
@@ -228,12 +275,25 @@ __private.readDbRows = function (rows) {
 	return blocks;
 };
 
+/**
+ * Get block by ID
+ *
+ * @private
+ * @async
+ * @method getById
+ * @param  {string}   id Block ID
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.block Block object
+ */
 __private.getById = function (id, cb) {
 	library.db.query(sql.getById, {id: id}).then(function (rows) {
 		if (!rows.length) {
 			return setImmediate(cb, 'Block not found');
 		}
 
+		// Normalize block
 		var block = library.logic.block.dbRead(rows[0]);
 
 		return setImmediate(cb, null, block);
@@ -243,7 +303,23 @@ __private.getById = function (id, cb) {
 	});
 };
 
+/**
+ * Get blocks IDs sequence - last block ID, IDs of first blocks of last 5 rounds, genesis block ID
+ *
+ * @private
+ * @async
+ * @method getIdSequence
+ * @param  {number}   height Block height
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.res Result
+ * @return {string}   cb.res.firstHeight Height of last block
+ * @return {string}   cb.res.ids Comma separated list of blocks IDs
+ */
 __private.getIdSequence = function (height, cb) {
+	// Get IDs of first blocks of (n) last rounds, descending order
+	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	library.db.query(sql.getIdSequence(), {height: height, limit: 5, delegates: constants.activeDelegates}).then(function (rows) {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Failed to get id sequence for height: ' + height);
@@ -251,6 +327,7 @@ __private.getIdSequence = function (height, cb) {
 
 		var ids = [];
 
+		// Add genesis block at the end if the set doesn't contain it already
 		if (genesisblock && genesisblock.block) {
 			var __genesisblock = {
 				id: genesisblock.block.id,
@@ -262,6 +339,7 @@ __private.getIdSequence = function (height, cb) {
 			}
 		}
 
+		// Add last block at the beginning if the set doesn't contain it already
 		if (__private.lastBlock && !_.includes(rows, __private.lastBlock.id)) {
 			rows.unshift({
 				id: __private.lastBlock.id,
@@ -269,7 +347,9 @@ __private.getIdSequence = function (height, cb) {
 			});
 		}
 
+		// Extract blocks IDs
 		rows.forEach(function (row) {
+			//FIXME: Looks like double check
 			if (!_.includes(ids, row.id)) {
 				ids.push(row.id);
 			}
@@ -282,11 +362,26 @@ __private.getIdSequence = function (height, cb) {
 	});
 };
 
+/**
+ * Save genesis block to database
+ *
+ * @private
+ * @async
+ * @method saveGenesisBlock
+ * @param  {Object}   block Full normalized genesis block
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 __private.saveGenesisBlock = function (cb) {
+	// Check if genesis block ID already exists in the database
+	// FIXME: Duplicated, there is another SQL query that we can use for that
 	library.db.query(sql.getGenesisBlockId, { id: genesisblock.block.id }).then(function (rows) {
 		var blockId = rows.length && rows[0].id;
 
 		if (!blockId) {
+			// If there is no block with genesis ID - save to database
+			// WARNING: DB_WRITE
 			__private.saveBlock(genesisblock.block, function (err) {
 				return setImmediate(cb, err);
 			});
@@ -299,9 +394,19 @@ __private.saveGenesisBlock = function (cb) {
 	});
 };
 
-// Apply the genesis block, provided it has been verified.
-// Shortcuting the unconfirmed/confirmed states.
+/**
+ * Apply genesis block's transactions to blockchain
+ *
+ * @private
+ * @async
+ * @method applyGenesisBlock
+ * @param  {Object}   block Full normalized genesis block
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 __private.applyGenesisBlock = function (block, cb) {
+	// Sort transactions included in block
 	block.transactions = block.transactions.sort(function (a, b) {
 		if (a.type === transactionTypes.VOTE) {
 			return 1;
@@ -309,8 +414,12 @@ __private.applyGenesisBlock = function (block, cb) {
 			return 0;
 		}
 	});
+	// Initialize block progress tracker
 	var tracker = self.getBlockProgressLogger(block.transactions.length, block.transactions.length / 100, 'Genesis block loading');
 	async.eachSeries(block.transactions, function (transaction, cb) {
+		// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
+		// FIXME: Poor performance - every transaction cause SQL query to be executed
+		// WARNING: DB_WRITE
 		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err) {
 				return setImmediate(cb, {
@@ -319,7 +428,10 @@ __private.applyGenesisBlock = function (block, cb) {
 					block: block
 				});
 			}
+			// Apply transaction to confirmed & unconfirmed balances
+			// WARNING: DB_WRITE
 			__private.applyTransaction(block, transaction, sender, cb);
+			// Update block progress tracker
 			tracker.applyNext();
 		});
 	}, function (err) {
@@ -327,24 +439,47 @@ __private.applyGenesisBlock = function (block, cb) {
 			// If genesis block is invalid, kill the node...
 			return process.exit(0);
 		} else {
+			// Set genesis block as last block
 			__private.lastBlock = block;
+			// Tick round
+			// WARNING: DB_WRITE
 			modules.rounds.tick(__private.lastBlock, cb);
 		}
 	});
 };
 
+/**
+ * Save block with transactions to database
+ *
+ * @private
+ * @async
+ * @method saveBlock
+ * @param  {Object}   block Full normalized block
+ * @param  {Function} cb Callback function
+ * @return {Function|afterSave} cb If SQL transaction was OK - returns safterSave execution,
+ *                                 if not returns callback function from params (through setImmediate)
+ * @return {String}   cb.err Error if occurred
+ */
 __private.saveBlock = function (block, cb) {
+	// Prepare and execute SQL transaction
+	// WARNING: DB_WRITE
 	library.db.tx(function (t) {
+		// Create bytea fields (buffers), and returns pseudo-row object promise-like
 		var promise = library.logic.block.dbSave(block);
+		// Initialize insert helper
 		var inserts = new Inserts(promise, promise.values);
 
 		var promises = [
+			// Prepare insert SQL query
 			t.none(inserts.template(), promise.values)
 		];
 
+		// Apply transactions inserts
 		t = __private.promiseTransactions(t, block, promises);
+		// Exec inserts as batch
 		t.batch(promises);
 	}).then(function () {
+		// Execute afterSave for transactions
 		return __private.afterSave(block, cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -352,13 +487,27 @@ __private.saveBlock = function (block, cb) {
 	});
 };
 
+/**
+ * Build a sequence of transaction queries
+ * // FIXME: Processing here is not clean
+ *
+ * @private
+ * @method promiseTransactions
+ * @param  {Object} t SQL connection object
+ * @param  {Object} block Full normalized block
+ * @param  {Object} blockPromises Not used
+ * @return {Object} t SQL connection object filled with inserts
+ * @throws Will throw 'Invalid promise' when no promise, promise.values or promise.table
+ */
 __private.promiseTransactions = function (t, block, blockPromises) {
 	if (_.isEmpty(block.transactions)) {
 		return t;
 	}
 
 	var transactionIterator = function (transaction) {
+		// Apply block ID to transaction
 		transaction.blockId = block.id;
+		// Create bytea fileds (buffers), and returns pseudo-row promise-like object
 		return library.logic.transaction.dbSave(transaction);
 	};
 
@@ -381,7 +530,9 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 			}
 		});
 
+		// Initialize insert helper
 		var inserts = new Inserts(type[0], values, true);
+		// Prepare insert SQL query
 		t.none(inserts.template(), inserts);
 	};
 
@@ -391,7 +542,20 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 	return t;
 };
 
-// Apply the block, provided it has been verified.
+/**
+ * Apply verified block
+ *
+ * @private
+ * @async
+ * @method applyBlock
+ * @emits  SIGTERM
+ * @param  {Object}   block Full normalized block
+ * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
+ * @param  {Function} cb Callback function
+ * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 	// Prevent shutdown during database writes.
 	__private.isActive = true;
@@ -541,6 +705,7 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 		appliedTransactions = unconfirmedTransactionIds = block = null;
 
 		// Finish here if snapshotting.
+		// FIXME: Not the best place to do that
 		if (err === 'Snapshot finished') {
 			library.logger.info(err);
 			process.emit('SIGTERM');
@@ -550,14 +715,30 @@ __private.applyBlock = function (block, broadcast, cb, saveBlock) {
 	});
 };
 
+/**
+ * Check transaction - perform transaction validation when processing block
+ * //FIXME: Some check can be redundant probably, see: logic.transactionPool
+ *
+ * @private
+ * @async
+ * @method checkTransaction
+ * @param  {Object}   block Block object
+ * @param  {Object}   transaction Transaction object
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 __private.checkTransaction = function (block, transaction, cb) {
 	async.waterfall([
 		function (waterCb) {
 			try {
+				// Calculate transaction ID
+				// FIXME: Can have poor performance, because of hash cancluation
 				transaction.id = library.logic.transaction.getId(transaction);
 			} catch (e) {
 				return setImmediate(waterCb, e.toString());
 			}
+			// Apply block ID to transaction
 			transaction.blockId = block.id;
 			return setImmediate(waterCb);
 		},
@@ -594,7 +775,21 @@ __private.checkTransaction = function (block, transaction, cb) {
 	});
 };
 
+/**
+ * Apply transaction to unconfirmed and confirmed
+ *
+ * @private
+ * @async
+ * @method applyTransaction
+ * @param  {Object}   block Block object
+ * @param  {Object}   transaction Transaction object
+ * @param  {Object}   sender Sender account
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 __private.applyTransaction = function (block, transaction, sender, cb) {
+	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'apply' can be ok
 	modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, {
@@ -617,7 +812,20 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
 	});
 };
 
+/**
+ * Execute afterSave callback for transactions depends on transaction type
+ *
+ * @private
+ * @async
+ * @method afterSave
+ * @param  {Object}   block Full normalized block
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 __private.afterSave = function (block, cb) {
+	// Execute afterSave callbacks for each transaction, depends on tx type
+	// see: logic.outTransfer.afterSave, logic.dapp.afterSave
 	async.eachSeries(block.transactions, function (transaction, cb) {
 		return library.logic.transaction.afterSave(transaction, cb);
 	}, function (err) {
@@ -625,31 +833,57 @@ __private.afterSave = function (block, cb) {
 	});
 };
 
+/**
+ * Deletes last block, undo transactions, recalculate round
+ *
+ * @private
+ * @async
+ * @method popLastBlock
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error
+ * @return {Object}   cb.obj New last block
+ */
 __private.popLastBlock = function (oldLastBlock, cb) {
+	// Execute in sequence via balancesSequence
 	library.balancesSequence.add(function (cb) {
+		// Load previous block from full_blocks_list table
+		// TODO: Can be inefficient, need performnce tests
 		self.loadBlocksPart({ id: oldLastBlock.previousBlock }, function (err, previousBlock) {
 			if (err || !previousBlock.length) {
 				return setImmediate(cb, err || 'previousBlock is null');
 			}
 			previousBlock = previousBlock[0];
 
+			// Reverse order of transactions in last blocks...
 			async.eachSeries(oldLastBlock.transactions.reverse(), function (transaction, cb) {
 				async.series([
 					function (cb) {
+						// Retrieve sender by public key
 						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 							if (err) {
 								return setImmediate(cb, err);
 							}
+							// Undoing confirmed tx - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
+							// WARNING: DB_WRITE
 							modules.transactions.undo(transaction, oldLastBlock, sender, cb);
 						});
 					}, function (cb) {
+						// Undoing unconfirmed tx - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
+						// WARNING: DB_WRITE
 						modules.transactions.undoUnconfirmed(transaction, cb);
 					}, function (cb) {
 						return setImmediate(cb);
 					}
 				], cb);
 			}, function (err) {
+				// FIXME: We should check for errors here?
+				
+				// Perform backward tick on rounds
+				// WARNING: DB_WRITE
 				modules.rounds.backwardTick(oldLastBlock, previousBlock, function () {
+					// Delete last block from blockchain
+					// WARNING: Db_WRITE
 					__private.deleteBlock(oldLastBlock.id, function (err) {
 						if (err) {
 							return setImmediate(cb, err);
@@ -663,7 +897,20 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 	}, cb);
 };
 
+/**
+ * Deletes block from blocks table
+ *
+ * @private
+ * @async
+ * @method deleteBlock
+ * @param  {number}   blockId ID of block to delete
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err String if SQL error occurred, null if success
+ */
 __private.deleteBlock = function (blockId, cb) {
+	// Delete block with ID from blocks table
+	// WARNING: DB_WRITE
 	library.db.none(sql.deleteBlock, {id: blockId}).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
@@ -672,6 +919,16 @@ __private.deleteBlock = function (blockId, cb) {
 	});
 };
 
+/**
+ * Recover chain - wrapper for deleteLastBlock
+ *
+ * @private
+ * @async
+ * @method recoverChain
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 __private.recoverChain = function (cb) {
 	library.logger.warn('Chain comparison failed, starting recovery');
 	self.deleteLastBlock(function (err, newLastBlock) {
@@ -684,6 +941,15 @@ __private.recoverChain = function (cb) {
 	});
 };
 
+/**
+ * Receive block - logs info about received block, updates last receipt, fires processing
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block Full normalized block
+ * @param {Function} cb Callback function
+ */
 __private.receiveBlock = function (block, cb) {
 	library.logger.info([
 		'Received new block id:', block.id,
@@ -693,12 +959,29 @@ __private.receiveBlock = function (block, cb) {
 		'reward:', modules.blocks.getLastBlock().reward
 	].join(' '));
 
+	// Update last receipt
 	self.lastReceipt(new Date());
+	// Start block processing - broadcast: true, saveBlock: true
 	self.processBlock(block, true, cb, true);
 };
 
-// Public methods
+/**
+ * PUBLIC METHODS
+ */
+
+/**
+ * Count blocks
+ *
+ * @public
+ * @async
+ * @method count
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.res Blocks count
+ */
 Blocks.prototype.count = function (cb) {
+	//FIXME: Poor performance, we can use other SQL query for that
 	library.db.query(sql.countByRowId).then(function (rows) {
 		var res = rows.length ? rows[0].count : 0;
 
@@ -709,12 +992,21 @@ Blocks.prototype.count = function (cb) {
 	});
 };
 
+/**
+ * Get last block with additional 'secondsAgo' and 'fresh' properties
+ *
+ * @public
+ * @method getLastBlock
+ * @return {Object} lastBlock Modified last block
+ */
 Blocks.prototype.getLastBlock = function () {
 	if (__private.lastBlock) {
 		var epoch = constants.epochTime / 1000;
 		var lastBlockTime = epoch + __private.lastBlock.timestamp;
 		var currentTime = new Date().getTime() / 1000;
 
+		//FIXME: That function modify global last block object - not good, for what we need those properties?
+		// 'fresh' is used in modules.loader.internal.statusPing
 		__private.lastBlock.secondsAgo = Math.round((currentTime - lastBlockTime) * 1e2) / 1e2;
 		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
 	}
@@ -722,26 +1014,52 @@ Blocks.prototype.getLastBlock = function () {
 	return __private.lastBlock;
 };
 
+/**
+ * Returns last receipt - indicator how long ago last block was received
+ *
+ * @public
+ * @method lastReceipt
+ * @param  {Object} [lastReceipt] Last receipt, if supplied - global one will be overwritten
+ * @return {Object} lastReceipt Last receipt
+ */
 Blocks.prototype.lastReceipt = function (lastReceipt) {
+	//TODO: Should public methods modify module's global object directly?
 	if (lastReceipt) {
 		__private.lastReceipt = lastReceipt;
 	}
 
 	if (__private.lastReceipt) {
+		// Recalculate how long ago we received a block
 		var timeNow = new Date();
 		__private.lastReceipt.secondsAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
 		__private.lastReceipt.secondsAgo = Math.round(__private.lastReceipt.secondsAgo * 1e2) / 1e2;
+		// Mark if last receipt is stale - that is used to trigger sync in case we not received a block for long
 		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > constants.blockReceiptTimeOut);
 	}
 
 	return __private.lastReceipt;
 };
 
+/**
+ * Performs chain comparison with remote peer
+ * WARNING: Can trigger chain recovery
+ *
+ * @async
+ * @public
+ * @method getCommonBlock
+ * @param  {Peer}     peer Peer to perform chain comparison with
+ * @param  {number}   height Block height
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.res Result object
+ */
 Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 	var comparisionFailed = false;
 
 	async.waterfall([
 		function (waterCb) {
+			// Get IDs sequence (comma separated list)
 			__private.getIdSequence(height, function (err, res) {
 				return setImmediate(waterCb, err, res);
 			});
@@ -749,6 +1067,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 		function (res, waterCb) {
 			var ids = res.ids;
 
+			// Perform request to supplied remote peer
 			modules.transport.getFromPeer(peer, {
 				api: '/blocks/common?ids=' + ids,
 				method: 'GET'
@@ -756,6 +1075,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 				if (err || res.body.error) {
 					return setImmediate(waterCb, err || res.body.error.toString());
 				} else if (!res.body.common) {
+					// FIXME: Need better checking here, is base on 'common' property enough?
 					comparisionFailed = true;
 					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
 				} else {
@@ -764,6 +1084,7 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		},
 		function (res, waterCb) {
+			// Validate remote peer response via schema
 			library.schema.validate(res.body.common, schema.getCommonBlock, function (err) {
 				if (err) {
 					return setImmediate(waterCb, err[0].message);
@@ -773,23 +1094,28 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 			});
 		},
 		function (res, waterCb) {
+			// Check that block with ID, previousBlock and height exists in database
 			library.db.query(sql.getCommonBlock(res.body.common.previousBlock), {
 				id: res.body.common.id,
 				previousBlock: res.body.common.previousBlock,
 				height: res.body.common.height
 			}).then(function (rows) {
 				if (!rows.length || !rows[0].count) {
+					// Block doesn't exists - comparison failed
 					comparisionFailed = true;
 					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using block:', JSON.stringify(res.body.common)].join(' '));
 				} else {
+					// Block exists - it's common between our node and remote peer
 					return setImmediate(waterCb, null, res.body.common);
 				}
 			}).catch(function (err) {
+				// SQL error occurred
 				library.logger.error(err.stack);
 				return setImmediate(waterCb, 'Blocks#getCommonBlock error');
 			});
 		}
 	], function (err, res) {
+		// If comparison failed and current consensus is low - perform chain recovery
 		if (comparisionFailed && modules.transport.poorConsensus()) {
 			return __private.recoverChain(cb);
 		} else {
@@ -798,13 +1124,28 @@ Blocks.prototype.getCommonBlock = function (peer, height, cb) {
 	});
 };
 
+/**
+ * Ask remote peer for blocks and process them
+ *
+ * @async
+ * @public
+ * @method loadBlocksFromPeer
+ * @param  {Peer}     peer Peer to perform chain comparison with
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.lastValidBlock Normalized new last block
+ */
 Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
+	// Set current last block as last valid block
 	var lastValidBlock = __private.lastBlock;
 
+	// Normalize peer
 	peer = library.logic.peers.create(peer);
 	library.logger.info('Loading blocks from: ' + peer.string);
 
 	function getFromPeer (seriesCb) {
+		// Ask remote peer for blocks
 		modules.transport.getFromPeer(peer, {
 			method: 'GET',
 			api: '/blocks?lastBlockId=' + lastValidBlock.id
@@ -818,6 +1159,7 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 		});
 	}
 
+	// Validate remote peer response via schema
 	function validateBlocks (blocks, seriesCb) {
 		var report = library.schema.validate(blocks, schema.loadBlocksFromPeer);
 
@@ -828,14 +1170,19 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 		}
 	}
 
+	// Process all received blocks
 	function processBlocks (blocks, seriesCb) {
+		// Skip if ther is no blocks
 		if (blocks.length === 0) {
 			return setImmediate(seriesCb);
 		}
+		// Iterate over received blocks, normalize block first...
 		async.eachSeries(__private.readDbRows(blocks), function (block, eachSeriesCb) {
 			if (__private.cleanup) {
+				// Cancel processing if node shutdown was requested
 				return setImmediate(eachSeriesCb);
 			} else {
+				// ...then process block
 				return processBlock(block, eachSeriesCb);
 			}
 		}, function (err) {
@@ -843,9 +1190,12 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 		});
 	}
 
+	// Process single block
 	function processBlock (block, seriesCb) {
+		// Start block processing - broadcast: false, saveBlock: true
 		self.processBlock(block, false, function (err) {
 			if (!err) {
+				// Update last valid block
 				lastValidBlock = block;
 				library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 			} else {
@@ -870,7 +1220,23 @@ Blocks.prototype.loadBlocksFromPeer = function (peer, cb) {
 	});
 };
 
+/**
+ * Generates a list of full blocks for another node upon sync request from that node
+ * see: modules.transport.internal.blocks
+ *
+ * @async
+ * @public
+ * @method loadBlocksData
+ * @param  {Object}   filter Filter options
+ * @param  {Object}   filter.limit Limit blocks to amount
+ * @param  {Object}   filter.lastId ID of block to begin with
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.rows List of blocks
+ */
 Blocks.prototype.loadBlocksData = function (filter, options, cb) {
+	//FIXME: options is not used
 	if (arguments.length < 3) {
 		cb = options;
 		options = {};
@@ -880,6 +1246,7 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 
 	var params = { limit: filter.limit || 1 };
 
+	//FIXME: filter.id is not used
 	if (filter.id && filter.lastId) {
 		return setImmediate(cb, 'Invalid filter: Received both id and lastId');
 	} else if (filter.id) {
@@ -888,17 +1255,23 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 		params.lastId = filter.lastId;
 	}
 
+	//FIXME: fields is not used
 	var fields = __private.blocksDataFields;
 
+	// Execute in sequence via dbSequence
 	library.dbSequence.add(function (cb) {
+		// Get height of block with supplied ID
 		library.db.query(sql.getHeightByLastId, { lastId: filter.lastId || null }).then(function (rows) {
 
 			var height = rows.length ? rows[0].height : 0;
+			// Calculate max block height for database query
 			var realLimit = height + (parseInt(filter.limit) || 1);
 
 			params.limit = realLimit;
 			params.height = height;
 
+			// Retrieve blocks from database
+			// FIXME: That SQL query have mess logic, need to be refactored
 			library.db.query(sql.loadBlocksData(filter), params).then(function (rows) {
 				return setImmediate(cb, null, rows);
 			});
@@ -909,11 +1282,26 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 	}, cb);
 };
 
+/**
+ * Loads full blocks from database and normalize them
+ *
+ * @async
+ * @public
+ * @method loadBlocksPart
+ * @param  {Object}   filter Filter options
+ * @param  {Object}   filter.limit Limit blocks to amount
+ * @param  {Object}   filter.lastId ID of block to begin with
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.rows List of normalized blocks
+ */
 Blocks.prototype.loadBlocksPart = function (filter, cb) {
 	self.loadBlocksData(filter, function (err, rows) {
 		var blocks = [];
 
 		if (!err) {
+			// Normalize list of blocks
 			blocks = __private.readDbRows(rows);
 		}
 
@@ -921,16 +1309,37 @@ Blocks.prototype.loadBlocksPart = function (filter, cb) {
 	});
 };
 
+/**
+ * Loads full blocks from database, used when rebuilding blockchain, snapshotting
+ * see: loader.loadBlockChain (private)
+ * 
+ * @async
+ * @public
+ * @method loadBlocksOffset
+ * @param  {number}   limit Limit amount of blocks
+ * @param  {number}   offset Offset to start at
+ * @param  {boolean}  verify Indicator that block needs to be verified
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.lastBlock Current last block
+ */
 Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
+	// Calculate limit if offset is supplied
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
 
 	library.logger.debug('Loading blocks offset', {limit: limit, offset: offset, verify: verify});
+	// Execute in sequence via dbSequence
 	library.dbSequence.add(function (cb) {
+		// Loads full blocks from database
+		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
 		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
+			// Normalize blocks
 			var blocks = __private.readDbRows(rows);
 
 			async.eachSeries(blocks, function (block, cb) {
+				// Stop processing if node shutdown was requested
 				if (__private.cleanup) {
 					return setImmediate(cb);
 				}
@@ -943,14 +1352,19 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 
 					if (!check.verified) {
 						library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
+						// Return first error from checks
 						return setImmediate(cb, check.errors[0]);
 					}
 				}
 				if (block.id === genesisblock.block.id) {
 					__private.applyGenesisBlock(block, cb);
 				} else {
+					// Apply block - broadcast: false, saveBlock: false
+					// FIXME: Looks like we are missing some validations here, because applyBlock is different than processBlock used elesewhere
+					// - that need to be checked and adjusted to be consistent
 					__private.applyBlock(block, false, cb, false);
 				}
+				// Update last block
 				__private.lastBlock = block;
 			}, function (err) {
 				return setImmediate(cb, err, __private.lastBlock);
@@ -962,6 +1376,17 @@ Blocks.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	}, cb);
 };
 
+/**
+ * Deletes last block
+ *
+ * @public
+ * @async
+ * @method deleteLastBlock
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.obj New last block
+ */
 Blocks.prototype.deleteLastBlock = function (cb) {
 	library.logger.warn('Deleting last block', __private.lastBlock);
 
@@ -970,19 +1395,22 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 	}
 
 	async.series({
+		// Reset current round (fees, rewards, delegates)
 		backwardSwap: function (seriesCb) {
 			modules.rounds.directionSwap('backward', null, seriesCb);
 		},
+		// Delete last block, replace last block with previous block, undo things
 		popLastBlock: function (seriesCb) {
 			__private.popLastBlock(__private.lastBlock, function (err, newLastBlock) {
 				if (err) {
 					library.logger.error('Error deleting last block', __private.lastBlock);
 				}
-
+				// Replace last block with previous
 				__private.lastBlock = newLastBlock;
 				return setImmediate(seriesCb);
 			});
 		},
+		// Reset undo round (fees, rewards, delegates), recalculate current round
 		forwardSwap: function (seriesCb) {
 			modules.rounds.directionSwap('forward', __private.lastBlock, seriesCb);
 		}
@@ -991,11 +1419,27 @@ Blocks.prototype.deleteLastBlock = function (cb) {
 	});
 };
 
+/**
+ * Loads full normalized last block from database
+ * see: loader.loadBlockChain (private)
+ * 
+ * @async
+ * @public
+ * @method loadLastBlock
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error message if error occurred
+ * @return {Object}   cb.block Full normalized last block
+ */
 Blocks.prototype.loadLastBlock = function (cb) {
 	library.dbSequence.add(function (cb) {
+		// Get full last block from database
+		// FIXME: Ordering in that SQL - to rewrite
 		library.db.query(sql.loadLastBlock).then(function (rows) {
+			// Normalize block
 			var block = __private.readDbRows(rows)[0];
 
+			// Sort block's transactions
 			block.transactions = block.transactions.sort(function (a, b) {
 				if (block.id === genesisblock.block.id) {
 					if (a.type === transactionTypes.VOTE) {
@@ -1010,6 +1454,7 @@ Blocks.prototype.loadLastBlock = function (cb) {
 				return 0;
 			});
 
+			// Update last block
 			__private.lastBlock = block;
 			return setImmediate(cb, null, block);
 		}).catch(function (err) {
@@ -1019,7 +1464,21 @@ Blocks.prototype.loadLastBlock = function (cb) {
 	}, cb);
 };
 
+/**
+ * Generate new block
+ * see: loader.loadBlockChain (private)
+ * 
+ * @async
+ * @public
+ * @method generateBlock
+ * @param  {Object}   keypair Pair of private and public keys, see: helpers.ed.makeKeypair
+ * @param  {number}   timestamp Slot time, see: helpers.slots.getSlotTime
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error message if error occurred
+ */
 Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
+	// Get transactions that will be included in block
 	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	var ready = [];
 
@@ -1029,7 +1488,9 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 				return setImmediate(cb, 'Sender not found');
 			}
 
+			// Check transaction depends on type
 			if (library.logic.transaction.ready(transaction, sender)) {
+				// Verify transaction
 				library.logic.transaction.verify(transaction, sender, function (err) {
 					ready.push(transaction);
 					return setImmediate(cb);
@@ -1042,6 +1503,7 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 		var block;
 
 		try {
+			// Create a block
 			block = library.logic.block.create({
 				keypair: keypair,
 				timestamp: timestamp,
@@ -1053,18 +1515,34 @@ Blocks.prototype.generateBlock = function (keypair, timestamp, cb) {
 			return setImmediate(cb, e);
 		}
 
+		// Start block processing - broadcast: true, saveBlock: true
 		self.processBlock(block, true, cb, true);
 	});
 };
 
-// Main function to process a Block.
-// * Verify the block looks ok
-// * Verify the block is compatible with database state (DATABASE readonly)
-// * Apply the block to database if both verifications are ok
+
+/**
+ * Main function to process a block
+ * - Verify the block looks ok
+ * - Verify the block is compatible with database state (DATABASE readonly)
+ * - Apply the block to database if both verifications are ok
+ * 
+ * @async
+ * @public
+ * @method processBlock
+ * @param  {Object}   block Full block
+ * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
+ * @param  {Function} cb Callback function
+ * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ */
 Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	if (__private.cleanup) {
+		// Break processing if node shutdown reqested
 		return setImmediate(cb, 'Cleaning up');
 	} else if (!__private.loaded) {
+		// Break processing if blockchain is not loaded
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
@@ -1136,17 +1614,28 @@ Blocks.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	});
 };
 
-// Will return all possible errors that are intrinsic to the block.
-// NO DATABASE access
+/**
+ * Verify block and return all possible errors related to block
+ * 
+ * @public
+ * @method verifyBlock
+ * @param  {Object}  block Full block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
 Blocks.prototype.verifyBlock = function (block) {
 	var result = { verified: false, errors: [] };
 
 	try {
+		// Get block ID
+		// FIXME: Why we don't have it?
 		block.id = library.logic.block.getId(block);
 	} catch (e) {
 		result.errors.push(e.toString());
 	}
 
+	// Set block height
 	block.height = __private.lastBlock.height + 1;
 
 	if (!block.previousBlock && block.height !== 1) {
@@ -1157,6 +1646,7 @@ Blocks.prototype.verifyBlock = function (block) {
 		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', __private.lastBlock.id].join(' '));
 	}
 
+	// Calculate expected rewards
 	var expectedReward = __private.blockReward.calcReward(block.height);
 
 	if (block.height !== 1 && expectedReward !== block.reward) {
@@ -1179,6 +1669,7 @@ Blocks.prototype.verifyBlock = function (block) {
 		result.errors.push('Invalid block version');
 	}
 
+	// Calculate expected block slot
 	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
 	var lastBlockSlotNumber = slots.getSlotNumber(__private.lastBlock.timestamp);
 
@@ -1240,6 +1731,7 @@ Blocks.prototype.verifyBlock = function (block) {
 	return result;
 };
 
+// FIXME: That function is dead, not used at all
 Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	var blocks = [];
 
@@ -1270,6 +1762,18 @@ Blocks.prototype.deleteBlocksBefore = function (block, cb) {
 	});
 };
 
+/**
+ * Deletes all blocks with height >= supplied block ID
+ *
+ * @public
+ * @async
+ * @method deleteAfterBlock
+ * @param  {number}   blockId ID of block to begin with
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err SQL error
+ * @return {Object}   cb.res SQL response
+ */
 Blocks.prototype.deleteAfterBlock = function (blockId, cb) {
 	library.db.query(sql.deleteAfterBlock, {id: blockId}).then(function (res) {
 		return setImmediate(cb, null, res);
@@ -1279,11 +1783,32 @@ Blocks.prototype.deleteAfterBlock = function (blockId, cb) {
 	});
 };
 
+/**
+ * Sandbox API wrapper
+ *
+ * @public
+ * @async
+ * @method sandboxApi
+ * @param  {string}   call Name of the function to be called 
+ * @param  {Object}   args Arguments
+ * @param  {Function} cb Callback function
+ */
 Blocks.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(Blocks.prototype.shared, call, args, cb);
 };
 
-// Events
+/**
+ * EVENTS
+ */
+
+/**
+ * Handle newly received block
+ *
+ * @public
+ * @method  onReceiveBlock
+ * @listens module:transport~event:receiveBlock
+ * @param   {block}   block New block
+ */
 Blocks.prototype.onReceiveBlock = function (block) {
 	// When client is not loaded, is syncing or round is ticking
 	// Do not receive new blocks as client is not ready
@@ -1292,8 +1817,11 @@ Blocks.prototype.onReceiveBlock = function (block) {
 		return;
 	}
 
+	// Execute in sequence via sequence
 	library.sequence.add(function (cb) {
+		// Initial check if new block looks fine
 		if (block.previousBlock === __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
+			// Process received block
 			return __private.receiveBlock(block, cb);
 		} else if (block.previousBlock !== __private.lastBlock.id && __private.lastBlock.height + 1 === block.height) {
 			// Fork: Consecutive height but different previous block id.
@@ -1306,6 +1834,7 @@ Blocks.prototype.onReceiveBlock = function (block) {
 			} else {
 				// In other cases - we have wrong parent and should rewind.
 				library.logger.info('Last block and parent loses');
+				// Delete last 2 blocks
 				async.series([
 					self.deleteLastBlock,
 					self.deleteLastBlock
@@ -1328,9 +1857,11 @@ Blocks.prototype.onReceiveBlock = function (block) {
 				library.logger.info('Last block loses');
 				async.series([
 					function (seriesCb) {
+						// Delete last block
 						self.deleteLastBlock(seriesCb);
 					},
 					function (seriesCb) {
+						// Process received block
 						return __private.receiveBlock(block, seriesCb);
 					}
 				], cb);
@@ -1341,23 +1872,43 @@ Blocks.prototype.onReceiveBlock = function (block) {
 	});
 };
 
+/**
+ * Handle modules initialization
+ *
+ * @public
+ * @method onBind
+ * @listens module:app~event:bind
+ * @param  {scope}   scope Exposed modules
+ */
 Blocks.prototype.onBind = function (scope) {
 	modules = scope;
 
+	// Set module as loaded
 	__private.loaded = true;
 };
 
+/**
+ * Handle node shutdown request
+ *
+ * @public
+ * @method onBind
+ * @listens module:app~event:cleanup
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ */
 Blocks.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	__private.cleanup = true;
 
 	if (!__private.isActive) {
+		// Module ready for shutdown
 		return setImmediate(cb);
 	} else {
+		// Module is not ready, repeat
 		setImmediate(function nextWatch () {
 			if (__private.isActive) {
 				library.logger.info('Waiting for block processing to finish...');
-				setTimeout(nextWatch, 10000);
+				setTimeout(nextWatch, 10000); // 10 sec
 			} else {
 				return setImmediate(cb);
 			}
@@ -1365,6 +1916,24 @@ Blocks.prototype.cleanup = function (cb) {
 	}
 };
 
+/**
+ * Get block rewards of delegate for time period
+ *
+ * @public
+ * @async
+ * @method aggregateBlocksReward
+ * @param  {Object}   filter ID of block to begin with
+ * @param  {string}   filter.generatorPublicKey Delegate public key
+ * @param  {number}   [filter.start] Start timestamp
+ * @param  {number}   [filter.end] End timestamp
+ * @param  {Function} cb Callback function
+ * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {Object}   cb.err Error if occurred
+ * @return {Object}   cb.data Rewards data
+ * @return {number}   cb.data.fees Round fees
+ * @return {number}   cb.data.rewards Blocks rewards
+ * @return {number}   cb.data.count Blocks count
+ */
 Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 	var params = {};
 
@@ -1379,6 +1948,7 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 		params.end = filter.end - constants.epochTime.getTime () / 1000;
 	}
 
+	// Get calculated rewards
 	library.db.query(sql.aggregateBlocksReward(params), params).then(function (rows) {
 		var data = rows[0];
 		if (data.delegate === null) {
@@ -1395,9 +1965,10 @@ Blocks.prototype.aggregateBlocksReward = function (filter, cb) {
 /**
  * Creates logger for tracking applied transactions of block
  *
- * @param {Number} transactionsCount
- * @param {Number} logsFrequency
- * @param {String} msg
+ * @method getBlockProgressLogger
+ * @param  {number} transactionsCount
+ * @param  {number} logsFrequency
+ * @param  {string} msg
  * @return {BlockProgressLogger}
  */
 Blocks.prototype.getBlockProgressLogger = function (transactionsCount, logsFrequency, msg) {
@@ -1439,11 +2010,24 @@ Blocks.prototype.getBlockProgressLogger = function (transactionsCount, logsFrequ
 	return new BlockProgressLogger(transactionsCount, logsFrequency, msg);
 };
 
+/**
+ * Get module loading status
+ *
+ * @public
+ * @method isLoaded
+ * @return {boolean} status Module loading status
+ */
 Blocks.prototype.isLoaded = function () {
+	// Return 'true' if 'modules' are present
 	return !!modules;
 };
 
-// Shared API
+/**
+ * Shared API
+ *
+ * @public
+ * @method shared
+ */
 Blocks.prototype.shared = {
 	getBlock: function (req, cb) {
 		if (!__private.loaded) {
