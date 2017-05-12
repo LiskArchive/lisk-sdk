@@ -88,7 +88,7 @@ Blocks.prototype.lastReceipt = {
 		return __private.lastReceipt;
 	},
 	update: function () {
-		__private.lastReceipt = Math.floor(Date.now / 1000);
+		__private.lastReceipt = Math.floor(Date.now() / 1000);
 		return __private.lastReceipt;
 	},
 	/**
