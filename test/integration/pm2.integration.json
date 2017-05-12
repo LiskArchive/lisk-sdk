@@ -4,7 +4,7 @@
       "exec_mode": "fork",
       "script": "app.js",
       "name": "lisk-test-node-0",
-      "args": "-p 4000 -x 127.0.0.1:4002 -d lisk_local_0",
+      "args": "-p 4001 -x 127.0.0.1:4002 -d lisk_local_0",
       "env": {
         "NODE_ENV": "test"
       },
@@ -15,7 +15,7 @@
       "exec_mode": "fork",
       "script": "app.js",
       "name": "lisk-test-node-1",
-      "args": "-p 4002 -x 127.0.0.1:4000 -d lisk_local_1",
+      "args": "-p 4002 -x 127.0.0.1:4001 -d lisk_local_1",
       "env": {
         "NODE_ENV": "test"
       },

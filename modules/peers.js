@@ -20,13 +20,6 @@ var modules, library, self, __private = {}, shared = {};
 function Peers (cb, scope) {
 	library = scope;
 	self = this;
-
-	setInterval(function () {
-		this.list({}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers);
-		});
-	}.bind(this), 5000);
-
 	setImmediate(cb, null, self);
 }
 
