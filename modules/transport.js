@@ -603,7 +603,7 @@ Transport.prototype.internal = {
 	},
 
 	height: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.blocks.getLastBlock().height});
+		return setImmediate(cb, null, {success: true, height: modules.blocks.lastBlock.get().height});
 	},
 
 	ping: function (req, cb) {
@@ -796,7 +796,7 @@ Transport.prototype.internal = {
 
 // Shared API
 shared.message = function (msg, cb) {
-	msg.timestamp = (new Date()).getTime();
+	msg.timestamp = Math.floor(Date.now() / 1000);
 	msg.hash = __private.hashsum(msg.body, msg.timestamp);
 
 	__private.broadcaster.enqueue({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
@@ -805,7 +805,7 @@ shared.message = function (msg, cb) {
 };
 
 shared.request = function (msg, cb) {
-	msg.timestamp = (new Date()).getTime();
+	msg.timestamp = Math.floor(Date.now() / 1000);
 	msg.hash = __private.hashsum(msg.body, msg.timestamp);
 
 	if (msg.body.peer) {

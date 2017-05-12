@@ -272,10 +272,12 @@ Rounds.prototype.onBind = function (scope) {
 };
 
 /**
- * Calculates round and calls sumRound.
- * @implements {calc}
- * @implements {modules.blocks.getLastBlock}
- * @implements {__private.sumRound}
+ * Sets private variable loaded to true.
+ *
+ * @public
+ * @method  onBlockchainReady
+ * @listens module:loader~event:blockchainReady
+ * @param   {block}   block New block
  */
 Rounds.prototype.onBlockchainReady = function () {
 	__private.loaded = true;

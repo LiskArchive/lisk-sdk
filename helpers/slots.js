@@ -22,7 +22,7 @@ function beginEpochTime () {
  */
 function getEpochTime (time) {
 	if (time === undefined) {
-		time = (new Date()).getTime();
+		time = Date.now();
 	}
 
 	var d = beginEpochTime();

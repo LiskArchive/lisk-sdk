@@ -61,7 +61,7 @@ __private.initialize = function () {
  * next sync with 1000 milliseconds.
  * @private
  * @implements {library.network.io.sockets.emit}
- * @implements {modules.blocks.getLastBlock}
+ * @implements {modules.blocks.lastBlock.get}
  * @param {boolean} turnOn
  * @emits loader/sync
  */
@@ -77,7 +77,7 @@ __private.syncTrigger = function (turnOn) {
 			library.logger.trace('Sync trigger');
 			library.network.io.sockets.emit('loader/sync', {
 				blocks: __private.blocksToSync,
-				height: modules.blocks.getLastBlock().height
+				height: modules.blocks.lastBlock.get().height
 			});
 			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
 		});
@@ -87,7 +87,8 @@ __private.syncTrigger = function (turnOn) {
 /**
  * Syncs timer trigger.
  * @private
- * @implements {modules.blocks.lastReceipt}
+ * @implements {modules.blocks.lastReceipt.get}
+ * @implements {modules.blocks.lastReceipt.isStale}
  * @implements {Loader.syncing}
  * @implements {library.sequence.add}
  * @implements {async.retry}
@@ -96,10 +97,9 @@ __private.syncTrigger = function (turnOn) {
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
 	setImmediate(function nextSync () {
-		var lastReceipt = modules.blocks.lastReceipt();
-		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: lastReceipt});
+		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
-		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
+		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
 			library.sequence.add(function (cb) {
 				async.retry(__private.retries, __private.sync, cb);
 			}, function (err) {
@@ -484,7 +484,7 @@ __private.loadBlockChain = function () {
  * @private
  * @implements {Loader.getNetwork}
  * @implements {async.whilst}
- * @implements {modules.blocks.getLastBlock}
+ * @implements {modules.blocks.lastBlock.get}
  * @implements {modules.blocks.loadBlocksFromPeer}
  * @implements {modules.blocks.getCommonBlock}
  * @param {function} cb
@@ -504,7 +504,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 				},
 				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
-					var lastBlock = modules.blocks.getLastBlock();
+					var lastBlock = modules.blocks.lastBlock.get();
 
 					function loadBlocks () {
 						__private.blocksToSync = peer.height;
@@ -620,13 +620,13 @@ __private.sync = function (cb) {
 /**
  * Gets the list of good peers. 
  * @private
- * @implements {modules.blocks.getLastBlock}
+ * @implements {modules.blocks.lastBlock.get}
  * @implements {library.logic.peers.create}
  * @param {number} heights
  * @return {Object} {height number, peers array}
  */
 __private.findGoodPeers = function (heights) {
-	var lastBlockHeight = modules.blocks.getLastBlock().height;
+	var lastBlockHeight = modules.blocks.lastBlock.get().height;
 	library.logger.trace('Good peers - received', {count: heights.length});
 
 	heights = heights.filter(function (item) {
@@ -685,14 +685,14 @@ __private.findGoodPeers = function (heights) {
 // - With this list we try to get a peer with sensibly good blockchain height (see __private.findGoodPeers for actual strategy).
 /**
  * Gets good peers.
- * @implements {modules.blocks.getLastBlock}
+ * @implements {modules.blocks.lastBlock.get}
  * @implements {modules.peers.list}
  * @implements {__private.findGoodPeers}
  * @param {function} cb
  * @return {setImmediateCallback} err | __private.network (good peers)
  */
 Loader.prototype.getNetwork = function (cb) {
-	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) === 1) {
+	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.lastBlock.get().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
 
@@ -829,8 +829,7 @@ Loader.prototype.cleanup = function (cb) {
  */
 Loader.prototype.internal = {
 	statusPing: function () {
-		var lastBlock = modules.blocks.getLastBlock();
-		return lastBlock && lastBlock.fresh;
+		return modules.blocks.lastBlock.isFresh();
 	}
 };
 
@@ -852,7 +851,7 @@ Loader.prototype.shared = {
 		return setImmediate(cb, null, {
 			syncing: self.syncing(),
 			blocks: __private.blocksToSync,
-			height: modules.blocks.getLastBlock().height,
+			height: modules.blocks.lastBlock.get().height,
 			broadhash: modules.system.getBroadhash(),
 			consensus: modules.transport.consensus()
 		});
