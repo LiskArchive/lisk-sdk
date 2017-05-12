@@ -30,10 +30,6 @@ function Peers (logger, cb) {
 	__private.peers = {};
 	__private.me = null;
 
-	setInterval(function () {
-		console.log('\x1b[36m%s\x1b[0m', 'PEERS LOGIC --- peers ---- ', __private.peers);
-	}.bind(this), 5000);
-
 	return setImmediate(cb, null, this);
 }
 
