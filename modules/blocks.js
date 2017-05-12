@@ -90,7 +90,7 @@ Blocks.prototype.lastReceipt = {
 	update: function () {
 		__private.lastReceipt = Math.floor(Date.now / 1000);
 		return __private.lastReceipt;
-	}
+	},
 	/**
 	 * Returns status of last receipt - if it stale or not
 	 *
