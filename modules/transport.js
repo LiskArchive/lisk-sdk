@@ -495,7 +495,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
  * @param {Object} broadcast
  */
 Transport.prototype.onMessage = function (msg, broadcast) {
-	throw new Error('Dapps messsages not supported');
+	library.logger.debug('Dapps messsages not supported');
 };
 
 /**

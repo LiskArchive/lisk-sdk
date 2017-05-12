@@ -168,31 +168,15 @@ __private.loadSignatures = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
-			if (library.config.peerProtocol === 'ws') {
-				peer.rpc.getSignatures(function (err, res) {
-					if (err) {
-						return setImmediate(waterCb, err);
-					} else {
-						library.schema.validate(res, schema.loadSignatures, function (err) {
-							return setImmediate(waterCb, err, res.signatures);
-						});
-					}
-				});
-			} else {
-				modules.transport.getFromPeer(peer, {
-					api: '/signatures',
-					method: 'GET'
-				}, function (err, res) {
-					if (err) {
-						return setImmediate(waterCb, err);
-					} else {
-						library.schema.validate(res.body, schema.loadSignatures, function (err) {
-							return setImmediate(waterCb, err, res.body.signatures);
-						});
-					}
-				});
-			}
-
+			peer.rpc.getSignatures(function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					library.schema.validate(res, schema.loadSignatures, function (err) {
+						return setImmediate(waterCb, err, res.signatures);
+					});
+				}
+			});
 		},
 		function (signatures, waterCb) {
 			library.sequence.add(function (cb) {
@@ -244,38 +228,18 @@ __private.loadTransactions = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
-			if (library.config.peerProtocol === 'ws') {
-				peer.rpc.getTransactions(function (err, res) {
+			peer.rpc.getTransactions(function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				}
+				library.schema.validate(res, schema.loadTransactions, function (err) {
 					if (err) {
-						return setImmediate(waterCb, err);
+						return setImmediate(waterCb, err[0].message);
+					} else {
+						return setImmediate(waterCb, null, peer, res.transactions);
 					}
-					library.schema.validate(res, schema.loadTransactions, function (err) {
-						if (err) {
-							return setImmediate(waterCb, err[0].message);
-						} else {
-							return setImmediate(waterCb, null, peer, res.transactions);
-						}
-					});
 				});
-			} else {
-				modules.transport.getFromPeer(peer, {
-					api: '/transactions',
-					method: 'GET'
-				}, function (err, res) {
-					if (err) {
-						return setImmediate(waterCb, err);
-					}
-
-					library.schema.validate(res.body, schema.loadTransactions, function (err) {
-						if (err) {
-							return setImmediate(waterCb, err[0].message);
-						} else {
-							return setImmediate(waterCb, null, peer, res.body.transactions);
-						}
-					});
-				});
-			}
-
+			});
 		},
 		function (peer, transactions, waterCb) {
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {

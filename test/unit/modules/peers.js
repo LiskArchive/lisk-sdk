@@ -8,17 +8,17 @@ var _  = require('lodash');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../config.json');
-var randomPeer = require('../../common/objectStubs').randomPeer;
 var modulesLoader = require('../../common/initModule').modulesLoader;
+var Peer = require('../../../logic/peer');
+var randomPeer = require('../../common/objectStubs').randomPeer;
 var WsRPCServer = require('../../../api/RPC').WsRPCServer;
 
 var currentPeers = [];
 
+
 describe('peers', function () {
 
-	var peers, modules;
-
-	var NONCE;
+	var peers, modules, NONCE;
 
 	function getPeers (cb) {
 		peers.list({broadhash: config.nethash}, function (err, __peers) {
@@ -267,8 +267,7 @@ describe('peers', function () {
 		});
 	});
 
-	describe('onBlockchainReady', function () {
-
+	describe('events', function () {
 		before(function () {
 			modules.transport.onBind(modules);
 
@@ -277,6 +276,7 @@ describe('peers', function () {
 			var usedRPCEndpoints = {
 				status: function () {}
 			};
+
 			sinon.stub(usedRPCEndpoints, 'status').callsArgWith(0, null, {
 				success: true,
 				broadhash: '123456789broadhash',
@@ -285,38 +285,49 @@ describe('peers', function () {
 
 			testWampServer.registerRPCEndpoints(usedRPCEndpoints);
 			WsRPCServer.setServer(testWampServer);
+
+			sinon.stub(Peer.prototype, 'attachRPC', function () {
+				this.rpc = {};
+				this.rpc.status = function () {};
+				sinon.stub(this.rpc, 'status').callsArgWith(0, null, {
+					success: true,
+					broadhash: '123456789broadhash',
+					nethash: '123456789nethash'
+				});
+				return this;
+			});
 		});
 
-		it('should update peers during onBlockchainReady', function (done) {
-			sinon.stub(peers, 'discover').callsArgWith(0, null);
-			var config = require('../../config.json');
-			var initialPeers = _.clone(config.peers.list);
-			if (initialPeers.length === 0) {
-				config.peers.list.push(randomPeer);
-			}
-			peers.onBlockchainReady();
-			setTimeout(function () {
-				expect(peers.discover.calledOnce).to.be.ok;
-				peers.discover.restore();
-				done();
-			}, 100);
-		});
-	});
+		describe('onBlockchainReady', function () {
 
-	describe('onPeersReady', function () {
+			it('should update peers during onBlockchainReady', function (done) {
+				sinon.stub(peers, 'discover').callsArgWith(0, null);
+				var config = require('../../config.json');
+				var initialPeers = _.clone(config.peers.list);
+				if (initialPeers.length === 0) {
+					config.peers.list.push(randomPeer);
+				}
+				peers.onBlockchainReady();
 
-		before(function () {
-			modules.transport.onBind(modules);
+				setTimeout(function () {
+					expect(peers.discover.called).to.be.ok;
+					peers.discover.restore();
+					done();
+				}, 500);
+			});
 		});
 
-		it('should update peers during onBlockchainReady', function (done) {
-			sinon.stub(peers, 'discover').callsArgWith(0, null);
-			peers.onPeersReady();
-			setTimeout(function () {
-				expect(peers.discover.calledOnce).to.be.ok;
-				peers.discover.restore();
-				done();
-			}, 100);
+		describe('onPeersReady', function () {
+
+			it('should update peers during onBlockchainReady', function (done) {
+				sinon.stub(peers, 'discover').callsArgWith(0, null);
+				peers.onPeersReady();
+				setTimeout(function () {
+					expect(peers.discover.called).to.be.ok;
+					peers.discover.restore();
+					done();
+				}, 500);
+			});
 		});
 	});
 });

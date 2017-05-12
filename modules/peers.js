@@ -347,35 +347,18 @@ Peers.prototype.ban = function (pip, port, seconds) {
 
 Peers.prototype.ping = function (peer, cb) {
 	library.logger.trace('Pinging peer: ' + peer.string);
-	if (library.config.peerProtocol === 'ws') {
-		console.log(peer);
-		// console.trace('before ping');
-		peer.rpc.status(function (err, response) {
-			if (err) {
-				library.logger.trace('Ping peer failed: ' + peer.string, err);
-				return setImmediate(cb, err);
-			} else {
-				peer.applyHeaders({
-					height: response.height,
-					broadhash: response.broadhash
-				});
-				return setImmediate(cb);
-			}
-		}.bind(this));
-	} else {
-		modules.transport.getFromPeer(peer, {
-			api: '/height',
-			method: 'GET'
-		}, function (err, res) {
-			if (err) {
-				library.logger.trace('Ping peer failed: ' + peer.string, err);
-				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb);
-			}
-		});
-	}
-
+	peer.rpc.status(function (err, response) {
+		if (err) {
+			library.logger.trace('Ping peer failed: ' + peer.string, err);
+			return setImmediate(cb, err);
+		} else {
+			peer.applyHeaders({
+				height: response.height,
+				broadhash: response.broadhash
+			});
+			return setImmediate(cb);
+		}
+	});
 };
 
 /**
@@ -551,28 +534,17 @@ Peers.prototype.onBlockchainReady = function () {
 	library.logger.trace('PEERS MODULE -- onBlockchainReady');
 	async.series({
 		insertSeeds: function (seriesCb) {
-			library.logger.trace('INSERT SEEDS - START ');
-
 			__private.insertSeeds(function (err) {
-				library.logger.trace('IinsertSeeds -- end', err);
-
 				return setImmediate(seriesCb);
 			});
 		},
 		importFromDatabase: function (seriesCb) {
-			library.logger.trace('importFromDatabase -- start');
-
 			__private.dbLoad (function (err) {
-				library.logger.trace('importFromDatabase -- end', err);
-
 				return setImmediate(seriesCb);
 			});
 		},
 		discoverNew: function (seriesCb) {
-			library.logger.trace('discoverNew -- start');
 			self.discover (function (err) {
-				library.logger.trace('discoverNew -- end', err);
-
 				return setImmediate(seriesCb);
 			});
 		}
