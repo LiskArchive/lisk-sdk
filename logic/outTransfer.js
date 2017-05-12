@@ -215,7 +215,17 @@ OutTransfer.prototype.dbSave = function (trs) {
 };
 
 OutTransfer.prototype.afterSave = function (trs, cb) {
-	return setImmediate(cb, 'OutTransfer afterSave --- not supported');
+	modules.dapps.message(trs.asset.outTransfer.dappId, {
+		topic: 'withdrawal',
+		message: {
+			transactionId: trs.id
+		}
+	}, function (err) {
+		if (err) {
+			library.logger.debug(err);
+		}
+		return setImmediate(cb);
+	});
 };
 
 OutTransfer.prototype.ready = function (trs, sender) {
