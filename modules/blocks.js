@@ -56,6 +56,10 @@ function Blocks (cb, scope) {
 	});
 }
 
+/**
+ * PUBLIC METHODS
+ */
+
 Blocks.prototype.lastBlock = {
 	get: function () {
 		return __private.lastBlock;
@@ -64,11 +68,41 @@ Blocks.prototype.lastBlock = {
 		__private.lastBlock = lastBlock;
 		return __private.lastBlock;
 	},
+	/**
+	 * Returns status of last block - if it fresh or not
+	 *
+	 * @public
+	 * @method lastBlock.isFresh
+	 * @return {Boolean} Fresh status of last block
+	 */
 	isFresh: function () {
 		if (!__private.lastBlock) { return false; }
 		// Current time in seconds - (epoch start in seconds + block timestamp)
 		var secondsAgo = Math.floor(Date.now() / 1000) - (Math.floor(constants.epochTime / 1000) + __private.lastBlock.timestamp);
 		return (secondsAgo < constants.blockReceiptTimeOut);
+	}
+};
+
+Blocks.prototype.lastReceipt = {
+	get: function () {
+		return __private.lastReceipt;
+	},
+	update: function () {
+		__private.lastReceipt = Math.floor(Date.now / 1000);
+		return __private.lastReceipt;
+	}
+	/**
+	 * Returns status of last receipt - if it stale or not
+	 *
+	 * @public
+	 * @method lastReceipt.isStale
+	 * @return {Boolean} Stale status of last receipt
+	 */
+	isStale: function () {
+		if (!__private.lastReceipt) { return true; }
+		// Current time in seconds - lastReceipt (seconds)
+		var secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
+		return (secondsAgo > constants.blockReceiptTimeOut);
 	}
 };
 
@@ -86,35 +120,6 @@ Blocks.prototype.isCleaning = {
 	get: function () {
 		return __private.cleanup;
 	}
-};
-
-/**
- * PUBLIC METHODS
- */
-
-/**
- * Returns last receipt - indicator how long ago last block was received
- *
- * @public
- * @method lastReceipt
- * @param  {Object} [lastReceipt] Last receipt, if supplied - global one will be overwritten
- * @return {Object} lastReceipt Last receipt
- */
-Blocks.prototype.lastReceipt = function (lastReceipt) {
-	//TODO: Should public methods modify module's global object directly?
-	if (lastReceipt) {
-		__private.lastReceipt = {timestamp: Math.floor(lastReceipt / 1000)};
-	}
-
-	if (__private.lastReceipt) {
-		// Recalculate how long ago we received a block
-		var timeNow = Math.floor(Date.now() / 1000);
-		__private.lastReceipt.secondsAgo = timeNow - __private.lastReceipt.timestamp;
-		// Mark if last receipt is stale - that is used to trigger sync in case we not received a block for long
-		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > constants.blockReceiptTimeOut);
-	}
-
-	return __private.lastReceipt;
 };
 
 /**

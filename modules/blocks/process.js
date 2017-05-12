@@ -418,7 +418,7 @@ __private.receiveBlock = function (block, cb) {
 	].join(' '));
 
 	// Update last receipt
-	modules.blocks.lastReceipt(Date.now());
+	modules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true
 	modules.blocks.verify.processBlock(block, true, cb, true);
 };

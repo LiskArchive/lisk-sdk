@@ -163,7 +163,7 @@ __private.forge = function (cb) {
 				library.logger.error('Failed to generate block within delegate slot', err);
 			} else {
 				var forgedBlock = modules.blocks.lastBlock.get();
-				modules.blocks.lastReceipt(Date.now());
+				modules.blocks.lastReceipt.update();
 
 				library.logger.info([
 					'Forged new block id:', forgedBlock.id,

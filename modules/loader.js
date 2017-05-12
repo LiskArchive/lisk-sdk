@@ -87,7 +87,8 @@ __private.syncTrigger = function (turnOn) {
 /**
  * Syncs timer trigger.
  * @private
- * @implements {modules.blocks.lastReceipt}
+ * @implements {modules.blocks.lastReceipt.get}
+ * @implements {modules.blocks.lastReceipt.isStale}
  * @implements {Loader.syncing}
  * @implements {library.sequence.add}
  * @implements {async.retry}
@@ -96,10 +97,9 @@ __private.syncTrigger = function (turnOn) {
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
 	setImmediate(function nextSync () {
-		var lastReceipt = modules.blocks.lastReceipt();
-		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: lastReceipt});
+		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
-		if (__private.loaded && !self.syncing() && (!lastReceipt || lastReceipt.stale)) {
+		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
 			library.sequence.add(function (cb) {
 				async.retry(__private.retries, __private.sync, cb);
 			}, function (err) {
