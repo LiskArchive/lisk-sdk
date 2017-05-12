@@ -77,7 +77,7 @@ var httpCommunication = {
 		}, function (err) {
 			// Wait for peer to be swept to db
 			setTimeout(function () {
-				return cb(err, {});
+				return cb(err, node.generatePeerHeaders(ip, 4000));
 			}, 3000);
 		});
 	}
