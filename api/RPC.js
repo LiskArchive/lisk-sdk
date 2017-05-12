@@ -14,10 +14,17 @@ var WsRPCServer = {
 	scClient: scClient,
 	wsClientsConnectionsMap: {},
 
+	/**
+	 * @param {MasterWAMPServer} wsServer
+	 */
 	setServer: function (wsServer) {
 		this.wsServer = wsServer;
 	},
 
+	/**
+	 * @throws {Error} thrown if wsServer haven't been initialized before
+	 * @returns {MasterWAMPServer} wsServer
+	 */
 	getServer: function () {
 		if (!this.wsServer) {
 			throw new Error('WS server haven\'t been initialized!');
@@ -27,6 +34,12 @@ var WsRPCServer = {
 
 };
 
+/**
+ * @param {string} ip
+ * @param {number} port
+ * @returns {clientStub} {[string]: function} map where keys are all procedures registered
+ * @constructor
+ */
 function WsRPCClient (ip, port) {
 
 	if (!ip || !port) {
@@ -52,6 +65,11 @@ function WsRPCClient (ip, port) {
 	return this.clientStub(this.sendAfterSocketReadyCb(socketDefer));
 }
 
+/**
+ * @param {object} options
+ * @param {string} address
+ * @param {Q.defer} socketReady
+ */
 WsRPCClient.prototype.initializeNewConnection = function (options, address, socketReady) {
 
 	var clientSocket = WsRPCServer.scClient.connect(options);
@@ -84,12 +102,19 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, sock
 
 	clientSocket.on('disconnect', function () {
 		socketReady.reject();
-		clientSocket.disconnect();
 	});
 };
 
+/**
+ * @param {Q.defer} socketReady
+ * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
+ */
 WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
 	return function (procedureName) {
+		/**
+		 * @param {object} data [data={}] argument passed to procedure
+		 * @param {function} cb [cb=function(){}] cb
+		 */
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
 			data = (data && !_.isFunction(data)) ? data : {};
@@ -108,6 +133,21 @@ WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
 	};
 };
 
+/**
+ * The stub of all RPC methods registered on WS server
+ * Example:
+ * methodA registered on WS server can be called by a client by simply:
+ * sampleClientStub.methodA(exampleArg, cb);
+ *
+ * @typedef {Object} clientStub
+ * @property {function} procedure - procedure that will be called with argument and callback
+ */
+
+
+/**
+ * @param {function} handler
+ * @returns {clientStub}
+ */
 WsRPCClient.prototype.clientStub = function (handler) {
 	try {
 		var wsServer = WsRPCServer.getServer();

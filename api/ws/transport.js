@@ -19,9 +19,7 @@ function TransportWSApi (transportModule, app, logger) {
 		status: transportModule.internal.status,
 		postBlock: transportModule.internal.postBlock,
 		postSignatures: transportModule.internal.postSignatures,
-		postTransactions: transportModule.internal.postTransactions,
-		postDappMessage: transportModule.internal.postDappMessage,
-		postDappRequest: transportModule.internal.postDappRequest
+		postTransactions: transportModule.internal.postTransactions
 	};
 
 	this.eventEndpoints = {
