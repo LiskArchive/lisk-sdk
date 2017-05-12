@@ -10,11 +10,12 @@ var expect = require('chai').expect;
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var child_process = require('child_process');
+var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockchainReady;
 
 var testNodeConfigs = [
 	{
 		ip: '127.0.0.1',
-		port: 4000,
+		port: 4001,
 		database: 'lisk_local_0',
 		peers: {list: [
 			{
@@ -31,7 +32,7 @@ var testNodeConfigs = [
 			list: [
 				{
 					ip: '127.0.0.1',
-					port: 4000
+					port: 4001
 				}
 			]}
 	}
@@ -96,8 +97,23 @@ before(function (done) {
 });
 
 before(function (done) {
-	require('../common/globalBefore').waitUntilBlockchainReady(done, 10, 2000, 'http://' + testNodeConfigs[0].ip + ':' + testNodeConfigs[0].port);
+
+	var nodesReadyCnt = 0;
+	var nodeReadyCb = function (err) {
+		if (err) {
+			return done(err);
+		}
+		nodesReadyCnt += 1;
+		if (nodesReadyCnt === testNodeConfigs.length) {
+			done();
+		}
+	};
+
+	testNodeConfigs.forEach(function (testNodeConfig) {
+		waitUntilBlockchainReady(nodeReadyCb, 10, 2000, 'http://' + testNodeConfig.ip + ':' + testNodeConfig.port);
+	});
 });
+
 
 describe('Peers mutual connections', function () {
 
