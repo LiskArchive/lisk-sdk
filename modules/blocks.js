@@ -63,6 +63,12 @@ Blocks.prototype.lastBlock = {
 	set: function (lastBlock) {
 		__private.lastBlock = lastBlock;
 		return __private.lastBlock;
+	},
+	isFresh: function () {
+		if (!__private.lastBlock) { return false; }
+		// Current time in seconds - (epoch start in seconds + block timestamp)
+		var secondsAgo = Math.floor(Date.now() / 1000) - (Math.floor(constants.epochTime / 1000) + __private.lastBlock.timestamp);
+		return (secondsAgo < constants.blockReceiptTimeOut);
 	}
 };
 
@@ -85,28 +91,6 @@ Blocks.prototype.isCleaning = {
 /**
  * PUBLIC METHODS
  */
-
-/**
- * Get last block with additional 'secondsAgo' and 'fresh' properties
- *
- * @public
- * @method getLastBlock
- * @return {Object} lastBlock Modified last block
- */
-Blocks.prototype.getLastBlock = function () {
-	if (__private.lastBlock) {
-		var epoch = Math.floor(constants.epochTime / 1000);
-		var lastBlockTime = epoch + __private.lastBlock.timestamp;
-		var currentTime = Math.floor(Date.now() / 1000);
-
-		//FIXME: That function modify global last block object - not good, for what we need those properties?
-		// 'fresh' is used in modules.loader.internal.statusPing
-		__private.lastBlock.secondsAgo = (currentTime - lastBlockTime);
-		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
-	}
-
-	return __private.lastBlock;
-};
 
 /**
  * Returns last receipt - indicator how long ago last block was received

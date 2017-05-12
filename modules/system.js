@@ -173,7 +173,7 @@ System.prototype.getBroadhash = function (cb) {
  * Updates private broadhash and height values.
  * @implements {async.series}
  * @implements {System.getBroadhash}
- * @implements {modules.blocks.getLastBlock}
+ * @implements {modules.blocks.lastBlock.get}
  * @implements {modules.transport.headers}
  * @param {function} cb Callback function
  * @return {setImmediateCallback} cb, err
@@ -190,7 +190,7 @@ System.prototype.update = function (cb) {
 			});
 		},
 		getHeight: function (seriesCb) {
-			__private.height = modules.blocks.getLastBlock().height;
+			__private.height = modules.blocks.lastBlock.get().height;
 			return setImmediate(seriesCb);
 		}
 	}, function (err) {

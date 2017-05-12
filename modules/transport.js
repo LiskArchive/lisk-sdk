@@ -603,7 +603,7 @@ Transport.prototype.internal = {
 	},
 
 	height: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.blocks.getLastBlock().height});
+		return setImmediate(cb, null, {success: true, height: modules.blocks.lastBlock.get().height});
 	},
 
 	ping: function (req, cb) {
