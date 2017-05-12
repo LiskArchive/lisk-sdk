@@ -50,7 +50,15 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 				return cb('Failed to load blockchain');
 			})
 			.catch(function (err) {
-				return cb(err);
+				retries -= 1;
+				if (retries >= 0) {
+					return setTimeout(function () {
+						fetchBlockchainStatus();
+					}, timeout);
+				} else {
+					return cb('Server is not responding');
+				}
+
 			});
 	})();
 }

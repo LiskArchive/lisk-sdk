@@ -78,7 +78,7 @@ function registerDelegate (account, done) {
 		node.onNewBlock(function (err) {
 			return done(err, res);
 		});
-	});
+	}, true);
 }
 
 describe('postTransactions', function () {

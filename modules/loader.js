@@ -146,7 +146,6 @@ __private.syncTimer = function () {
  * Processes each signature from peer.
  * @private
  * @implements {Loader.getNetwork}
- * @implements {modules.transport.getFromPeer}
  * @implements {library.schema.validate}
  * @implements {library.sequence.add}
  * @implements {async.eachSeries}
@@ -203,7 +202,6 @@ __private.loadSignatures = function (cb) {
  * Calls processUnconfirmedTransaction for each transaction.
  * @private
  * @implements {Loader.getNetwork}
- * @implements {modules.transport.getFromPeer}
  * @implements {library.schema.validate}
  * @implements {async.eachSeries}
  * @implements {library.logic.transaction.objectNormalize}

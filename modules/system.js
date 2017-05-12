@@ -174,6 +174,11 @@ System.prototype.versionCompatible = function (version) {
 	return semver.satisfies(version, this.minVersion);
 };
 
+/**
+ * Checks nonce (unique app id) compatibility- compatible when different than given.
+ * @param nonce
+ * @returns {boolean}
+ */
 System.prototype.nonceCompatible = function (nonce) {
 	return nonce && __private.nonce !== nonce;
 };

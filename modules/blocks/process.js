@@ -70,47 +70,44 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 		},
 		function (res, waterCb) {
 			var ids = res.ids;
-
 			// Perform request to supplied remote peer
-			modules.transport.getFromPeer(peer, {
-				api: '/blocks/common?ids=' + ids,
-				method: 'GET'
-			}, function (err, res) {
-				if (err || res.body.error) {
-					return setImmediate(waterCb, err || res.body.error.toString());
-				} else if (!res.body.common) {
+			peer.attachRPC();
+			peer.rpc.blocksCommon({ids: ids}, function (err, res) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else if (!res.common) {
 					// FIXME: Need better checking here, is base on 'common' property enough?
 					comparisionFailed = true;
 					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using ids:', ids].join(' '));
 				} else {
-					return setImmediate(waterCb, null, res);
+					return setImmediate(waterCb, null, res.common);
 				}
 			});
 		},
-		function (res, waterCb) {
+		function (common, waterCb) {
 			// Validate remote peer response via schema
-			library.schema.validate(res.body.common, schema.getCommonBlock, function (err) {
+			library.schema.validate(common, schema.getCommonBlock, function (err) {
 				if (err) {
 					return setImmediate(waterCb, err[0].message);
 				} else {
-					return setImmediate(waterCb, null, res);
+					return setImmediate(waterCb, null, common);
 				}
 			});
 		},
-		function (res, waterCb) {
+		function (common, waterCb) {
 			// Check that block with ID, previousBlock and height exists in database
-			library.db.query(sql.getCommonBlock(res.body.common.previousBlock), {
-				id: res.body.common.id,
-				previousBlock: res.body.common.previousBlock,
-				height: res.body.common.height
+			library.db.query(sql.getCommonBlock(common.previousBlock), {
+				id: common.id,
+				previousBlock: common.previousBlock,
+				height: common.height
 			}).then(function (rows) {
 				if (!rows.length || !rows[0].count) {
 					// Block doesn't exists - comparison failed
 					comparisionFailed = true;
-					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using block:', JSON.stringify(res.body.common)].join(' '));
+					return setImmediate(waterCb, ['Chain comparison failed with peer:', peer.string, 'using block:', JSON.stringify(common)].join(' '));
 				} else {
 					// Block exists - it's common between our node and remote peer
-					return setImmediate(waterCb, null, res.body.common);
+					return setImmediate(waterCb, null, common);
 				}
 			}).catch(function (err) {
 				// SQL error occurred
@@ -208,30 +205,24 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.lastValidBlock Normalized new last block
  */
-Process.prototype.loadBlocksFromPeer = function (peer, cb) {
-	// Set current last block as last valid block
-	var lastValidBlock = modules.blocks.lastBlock.get();
 
-	// Normalize peer
-	peer = library.logic.peers.create(peer);
-	library.logger.info('Loading blocks from: ' + peer.string);
+Process.prototype.loadBlocksFromPeer = function (peer, cb) {
+	var lastValidBlock = __private.lastBlock;
+
+	peer = library.logic.peers.create(peer).attachRPC();
+	library.logger.info('Loading blocks from: ' + peer.string, peer);
 
 	function getFromPeer (seriesCb) {
-		// Ask remote peer for blocks
-		modules.transport.getFromPeer(peer, {
-			method: 'GET',
-			api: '/blocks?lastBlockId=' + lastValidBlock.id
-		}, function (err, res) {
-			err = err || res.body.error;
+		peer.rpc.blocks({lastBlockId: lastValidBlock.id, peer: library.logic.peers.me()}, function (err, res) {
+			err = err || res.error;
 			if (err) {
 				return setImmediate(seriesCb, err);
 			} else {
-				return setImmediate(seriesCb, null, res.body.blocks);
+				return setImmediate(seriesCb, null, res.blocks);
 			}
 		});
 	}
 
-	// Validate remote peer response via schema
 	function validateBlocks (blocks, seriesCb) {
 		var report = library.schema.validate(blocks, schema.loadBlocksFromPeer);
 
@@ -242,19 +233,14 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 		}
 	}
 
-	// Process all received blocks
 	function processBlocks (blocks, seriesCb) {
-		// Skip if ther is no blocks
 		if (blocks.length === 0) {
 			return setImmediate(seriesCb);
 		}
-		// Iterate over received blocks, normalize block first...
-		async.eachSeries(modules.blocks.utils.readDbRows(blocks), function (block, eachSeriesCb) {
-			if (modules.blocks.isCleaning.get()) {
-				// Cancel processing if node shutdown was requested
+		async.eachSeries(__private.readDbRows(blocks), function (block, eachSeriesCb) {
+			if (__private.cleanup) {
 				return setImmediate(eachSeriesCb);
 			} else {
-				// ...then process block
 				return processBlock(block, eachSeriesCb);
 			}
 		}, function (err) {
@@ -262,12 +248,9 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 		});
 	}
 
-	// Process single block
 	function processBlock (block, seriesCb) {
-		// Start block processing - broadcast: false, saveBlock: true
-		modules.blocks.verify.processBlock(block, false, function (err) {
+		self.processBlock(block, false, function (err) {
 			if (!err) {
-				// Update last valid block
 				lastValidBlock = block;
 				library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 			} else {
@@ -291,6 +274,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 		}
 	});
 };
+
 
 /**
  * Generate new block

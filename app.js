@@ -68,6 +68,10 @@ program
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
+/**
+ * @property {object} - The default list of configuration options. Can be updated by CLI.
+ * @default 'config.json'
+ */
 var appConfig = require('./helpers/config.js')(program);
 
 // Define top endpoint availability
@@ -112,7 +116,7 @@ var config = {
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		transport: { http: './api/http/transport.js', ws: './api/ws/transport.js'}
+		transport: { ws: './api/ws/transport.js' }
 	}
 };
 
@@ -272,21 +276,15 @@ d.run(function () {
 			var webSocketConfig = {
 				workers: 1,
 				port: parseInt(scope.config.port) + 1000,
-				// port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
 				workerController: './api/ws/workersController',
 				perMessageDeflate: false,
-				secretKey: 'dupa',
-				// The interval in milliseconds on which to
-				// send a ping to the client to check that
-				// it is still alive
+				secretKey: 'liskSecretKey',
 				pingInterval: 5000,
-
 				// How many milliseconds to wait without receiving a ping
 				// before closing the socket
 				pingTimeout: 60000,
-
 				// Maximum amount of milliseconds to wait before force-killing
 				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
 				processTermTimeout: 10000
@@ -368,7 +366,6 @@ d.run(function () {
 			var randomString = require('randomstring');
 
 			scope.config.nonce = randomString.generate(16);
-			process.env['NONCE'] = scope.config.nonce;
 			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));

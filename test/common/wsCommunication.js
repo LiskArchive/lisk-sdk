@@ -76,6 +76,19 @@ var wsCommunication = {
 			.catch(function (err) {
 				return cb(err);
 			});
+	},
+
+	// Adds peer to local node
+	addPeer: function (ip, port, cb) {
+
+		var socketDefer = Q.defer();
+		this.connect(ip, port, socketDefer);
+
+		socketDefer.promise.then(function () {
+			return cb();
+		}).catch(function (err) {
+			return cb(err);
+		});
 	}
 };
 
