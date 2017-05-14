@@ -19,7 +19,11 @@ var httpCommunication = {
 			request.send(options.params);
 		}
 
-		node.debug(['> Path:'.grey, options.verb.toUpperCase(), options.path].join(' '));
+		var verb = options.verb.toUpperCase();
+		node.debug(['> Path:'.grey, verb, options.path].join(' '));
+		if (verb === 'POST' || verb === 'PUT') {
+			node.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
+		}
 
 		if (done) {
 			request.end(function (err, res) {
