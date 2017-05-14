@@ -51,7 +51,6 @@ env:
     - TEST=test/api/peer/peer.transactions.main.ws.js TEST_TYPE='FUNC'
     - TEST=test/api/peer/peer.transactions.signatures.ws.js TEST_TYPE='FUNC'
 
-    - TEST=test/unit/api/ws/workersController TEST_TYPE='UNIT'
     - TEST=test/unit/helpers TEST_TYPE='UNIT'
     - TEST=test/unit/logic TEST_TYPE='UNIT'
     - TEST=test/unit/modules TEST_TYPE='UNIT'

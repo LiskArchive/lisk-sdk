@@ -110,7 +110,6 @@ WorkerController.prototype.run = function (worker) {
 
 			});
 		});
-
 };
 
 module.exports = new WorkerController();
