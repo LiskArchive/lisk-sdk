@@ -1,11 +1,21 @@
 'use strict';
 
+/**
+ * Middleware functions to add cors, log errors and conections, send status
+ * and setup router.
+ * @memberof module:helpers
+ * @module helpers/httpApi
+ */
+
 var extend = require('extend');
 var checkIpInList = require('./checkIpInList');
 
+/**
+ * @namespace middleware
+ */
 var middleware = {
 	/**
-	 * Add CORS header to all requests
+	 * Adds CORS header to all requests.
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {Function} next
@@ -17,7 +27,7 @@ var middleware = {
 	},
 
 	/**
-	 * Log all api errors
+	 * Logs all api errors.
 	 * @param {Logger} logger
 	 * @param {Error} err
 	 * @param {Object} req
@@ -32,7 +42,7 @@ var middleware = {
 	},
 
 	/**
-	 * Log api client connections
+	 * Logs api client connections.
 	 * @param {Logger} logger
 	 * @param {Object} req
 	 * @param {Object} res
@@ -46,7 +56,7 @@ var middleware = {
 	},
 
 	/**
-	 * Resend error msg when blockchain is not loaded
+	 * Resends error msg when blockchain is not loaded.
 	 * @param {Function} isLoaded
 	 * @param {Object} req
 	 * @param {Object} res
@@ -58,7 +68,7 @@ var middleware = {
 	},
 
 	/**
-	 * Resend error if API endpoint doesn't exists
+	 * Resends error if API endpoint doesn't exists.
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {Function} next
@@ -68,11 +78,11 @@ var middleware = {
 	},
 
 	/**
-	 * Use req.sanitize for particular endpoint
+	 * Uses req.sanitize for particular endpoint.
 	 * @param {String} property
 	 * @param {Object} schema
 	 * @param {Function} cb
-	 * @return {Function} sanitize middleware
+	 * @return {Function} Sanitize middleware.
 	 */
 	sanitize: function (property, schema, cb) {
 		return function (req, res, next) {
@@ -86,7 +96,7 @@ var middleware = {
 	},
 
 	/**
-	 * Attach header to response
+	 * Attachs header to response.
 	 * @param {string} headerKey
 	 * @param {string} headerValue
 	 * @param {Object} req
@@ -99,7 +109,7 @@ var middleware = {
 	},
 
 	/**
-	 * Apply rules of public / internal API described in config.json
+	 * Applies rules of public / internal API described in config.json.
 	 * @param {Object} config
 	 * @param {Object} req
 	 * @param {Object} res
@@ -122,7 +132,7 @@ var middleware = {
 	},
 
 	/**
-	 * Pass getter for headers and assign then to response
+	 * Passes getter for headers and assign then to response.
 	 * @param {Function} getHeaders
 	 * @param {Object} req
 	 * @param {Object} res
@@ -135,7 +145,7 @@ var middleware = {
 };
 
 /**
- * Add 'success' field to every response and attach error message if needed
+ * Adds 'success' field to every response and attach error message if needed.
  * @param {Object} res
  * @param {String} err
  * @param {Object} response
@@ -149,7 +159,7 @@ function respond (res, err, response) {
 }
 
 /**
- * Register router in express app using default middleware
+ * Register router in express app using default middleware.
  * @param {String} route
  * @param {Object} app
  * @param {Object} router

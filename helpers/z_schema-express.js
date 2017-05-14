@@ -1,7 +1,12 @@
 'use strict';
 
-
-
+/**
+ * Applies z_schema to validate schema.
+ * @memberof module:helpers
+ * @function z_schema-express
+ * @param {function} z_schema
+ * @return {function}
+ */
 module.exports = function (z_schema) {
 	return function (req, res, next) {
 		req.sanitize = sanitize;

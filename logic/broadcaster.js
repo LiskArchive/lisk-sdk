@@ -8,6 +8,15 @@ var _ = require('lodash');
 // Private fields
 var modules, library, self, __private = {};
 
+/**
+ * Main Broadcaster logic.
+ * @memberof module:transport
+ * @class
+ * @classdesc Initializes variables, sets Broadcast routes and timer based on
+ * broadcast interval from config file.
+ * @implements {__private.releaseQueue}
+ * @param {scope} scope - App instance.
+ */
 // Constructor
 function Broadcaster (scope) {
 	library = scope;
@@ -50,10 +59,21 @@ function Broadcaster (scope) {
 }
 
 // Public methods
+/**
+ * Binds scope to private variable modules.
+ * @param {scope} scope - App instance.
+ */
 Broadcaster.prototype.bind = function (scope) {
 	modules = scope;
 };
 
+/**
+ * Calls peers.list function to get peers.
+ * @implements {modules.peers.list}
+ * @param {Object} params
+ * @param {function} cb
+ * @return {setImmediateCallback} err | peers
+ */
 Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
@@ -73,11 +93,26 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 	});
 };
 
+/**
+ * Adds new object {params, options} to queue array .
+ * @param {Object} params
+ * @param {Object} options
+ * @return {Object[]} queue private variable with new data
+ */
 Broadcaster.prototype.enqueue = function (params, options) {
 	options.immediate = false;
 	return self.queue.push({params: params, options: options});
 };
 
+/**
+ * Gets peers and for each peer create it and broadcast. 
+ * @implements {getPeers}
+ * @implements {library.logic.peers.create}
+ * @param {Object} params
+ * @param {Object} options
+ * @param {function} cb
+ * @return {setImmediateCallback} err | peers
+ */
 Broadcaster.prototype.broadcast = function (params, options, cb) {
 	options.data.peer = library.logic.peers.me();
 	params.limit = params.limit || self.config.peerLimit;
@@ -112,6 +147,11 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 	});
 };
 
+/**
+ * Counts relays and valids limit.
+ * @param {Object} object
+ * @return {boolean} True if Broadcast relays exhausted
+ */
 Broadcaster.prototype.maxRelays = function (object) {
 	if (!Number.isInteger(object.relays)) {
 		object.relays = 0; // First broadcast
@@ -127,6 +167,13 @@ Broadcaster.prototype.maxRelays = function (object) {
 };
 
 // Private
+/**
+ * Filters private queue based on broadcasts.
+ * @private
+ * @implements {__private.filterTransaction}
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 __private.filterQueue = function (cb) {
 	library.logger.debug('Broadcasts before filtering: ' + self.queue.length);
 
@@ -147,6 +194,15 @@ __private.filterQueue = function (cb) {
 	});
 };
 
+/**
+ * Checks if transaction is in pool or confirm it.
+ * @private
+ * @implements {modules.transactions.transactionInPool}
+ * @implements {library.logic.transaction.checkConfirmed}
+ * @param {transaction} transaction
+ * @param {function} cb
+ * @return {setImmediateCallback} cb, null, boolean
+ */
 __private.filterTransaction = function (transaction, cb) {
 	if (transaction !== undefined) {
 		if (modules.transactions.transactionInPool(transaction.id)) {
@@ -161,6 +217,12 @@ __private.filterTransaction = function (transaction, cb) {
 	}
 };
 
+/**
+ * Groups broadcasts by api.
+ * @private
+ * @param {Object} broadcasts
+ * @return {Object[]} squashed routes
+ */
 __private.squashQueue = function (broadcasts) {
 	var grouped = _.groupBy(broadcasts, function (broadcast) {
 		return broadcast.options.api;
@@ -186,6 +248,19 @@ __private.squashQueue = function (broadcasts) {
 	return squashed;
 };
 
+/**
+ * Releases enqueued broadcasts:
+ * - filterQueue
+ * - squashQueue
+ * - broadcast
+ * @private
+ * @implements {__private.filterQueue}
+ * @implements {__private.squashQueue}
+ * @implements {getPeers}
+ * @implements {broadcast}
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 __private.releaseQueue = function (cb) {
 	library.logger.debug('Releasing enqueued broadcasts');
 
