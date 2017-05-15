@@ -473,10 +473,10 @@ d.run(function () {
 					});
 				},
 				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', function (scope, cb) {
-					new Account(scope, cb);
+					new Account(scope.db, scope.schema, scope.genesisblock, scope.logger, cb);
 				}],
 				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', function (scope, cb) {
-					new Transaction(scope, cb);
+					new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 					new Block(scope, cb);

@@ -31,13 +31,25 @@ __private.types = {};
  * @memberof module:transactions
  * @class
  * @classdesc Main transaction logic.
- * @param {scope} scope - App instance.
+ * @param {function} db
+ * @param {function} ed
+ * @param {function} schema
+ * @param {function} genesisblock
+ * @param {function} account
+ * @param {function} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
 // Constructor
-function Transaction (scope, cb) {
-	this.scope = scope;
+function Transaction (db, ed, schema, genesisblock, account, logger, cb) {
+	this.scope = {
+		db,
+		ed,
+		schema,
+		genesisblock,
+		account,
+		logger,
+	};
 	genesisblock = this.scope.genesisblock;
 	self = this;
 	if (cb) {

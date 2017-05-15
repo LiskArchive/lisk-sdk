@@ -16,16 +16,25 @@ var self, db, library, __private = {}, genesisBlock = null;
  * @memberof module:accounts
  * @class
  * @classdesc Main account logic.
- * @param {scope} scope - App instance.
+ * @param {function} db
+ * @param {function} schema
+ * @param {function} genesisblock
+ * @param {function} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
-function Account (scope, cb) {
-	this.scope = scope;
+function Account (db, schema, genesisblock, logger, cb) {
+	this.scope = {
+		db,
+		schema,
+		genesisblock,
+	};
 
 	self = this;
 	db = this.scope.db;
-	library = this.scope.library;
+	library = {
+		logger,
+	};
 	genesisBlock = this.scope.genesisblock.block;
 
 	this.table = 'mem_accounts';
