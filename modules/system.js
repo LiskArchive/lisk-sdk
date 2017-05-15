@@ -114,10 +114,21 @@ System.prototype.getNethash = function () {
 	return __private.nethash;
 };
 
+/**
+ * Gets private variable `nonce`
+ * @return {nonce}
+ */
 System.prototype.getNonce = function () {
 	return __private.nonce;
 };
 
+/**
+ * Invokes cb with broadhash
+ * @param {function} cb
+ * @callback broadhashCallback
+ * @param {Error} err
+ * @param {string} broadhash
+ */
 System.prototype.getBroadhash = function (cb) {
 	if (typeof cb !== 'function') {
 		return __private.broadhash;
@@ -138,16 +149,21 @@ System.prototype.getBroadhash = function (cb) {
 	});
 };
 
-System.prototype.networkCompatible = function (nethash) {
-	return __private.nethash === nethash;
-};
-
 /**
  * Gets private variable `minVersion`
  * @return {string}
  */
 System.prototype.getMinVersion = function () {
 	return __private.minVersion;
+};
+
+/**
+ * Checks nethash (network) compatibility.
+ * @param {string} nethash
+ * @returns {boolean}
+ */
+System.prototype.networkCompatible = function (nethash) {
+	return __private.nethash === nethash;
 };
 
 /**

@@ -327,7 +327,7 @@ __private.loadDelegates = function (cb) {
 
 			if (account.isDelegate) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-				// library.logger.info(['Forging enabled on account:', account.address].join(' '));
+				library.logger.info(['Forging enabled on account:', account.address].join(' '));
 			} else {
 				library.logger.warn(['Account with public key:', keypair.publicKey.toString('hex'), 'is not a delegate'].join(' '));
 			}
@@ -613,7 +613,7 @@ Delegates.prototype.internal = {
 				}
 				if (account && account.isDelegate) {
 					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					// library.logger.info('Forging enabled on account: ' + account.address);
+					library.logger.info('Forging enabled on account: ' + account.address);
 					return setImmediate(cb, null, {address: account.address});
 				} else {
 					return setImmediate(cb, 'Delegate not found');

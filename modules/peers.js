@@ -190,20 +190,6 @@ __private.dbLoad = function (cb) {
 	library.db.any(sql.getAll).then(function (rows) {
 		library.logger.info('Imported peers from database', {count: rows.length});
 		async.each (rows, function (peer, eachCb) {
-
-			function updatePeer (peer) {
-
-				peer.rpc.status(function (err, status) {
-					if (!err) {
-						peer.height = status.height;
-						peer.broadhash = status.broadhash;
-						++updated;
-					}
-					return setImmediate(eachCb);
-				});
-
-			}
-
 			peer = library.logic.peers.create(peer).attachRPC();
 			if (library.logic.peers.exists(peer)) {
 				peer = library.logic.peers.get(peer);
@@ -214,6 +200,16 @@ __private.dbLoad = function (cb) {
 				}
 			} else {
 				updatePeer(peer);
+			}
+			function updatePeer (peer) {
+				peer.rpc.status(function (err, status) {
+					if (!err) {
+						peer.height = status.height;
+						peer.broadhash = status.broadhash;
+						++updated;
+					}
+					return setImmediate(eachCb);
+				});
 			}
 		}, function (err) {
 			library.logger.trace('Peers->dbLoad Peers discovered', {updated: updated, total: rows.length});
@@ -422,10 +418,10 @@ Peers.prototype.discover = function (cb) {
  */
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
-		// Removing peers with private or address or with the same nonce
-		// ToDo: It will not work with integration tests
-		// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
-		return peer.nonce !== modules.system.getNonce();
+		if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+			return peer.nonce !== modules.system.getNonce();
+		}
+		return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
@@ -467,7 +463,6 @@ Peers.prototype.list = function (options, cb) {
 					return options.allowedStates.indexOf(peer.state) !== -1;
 				}
 			});
-
 			matched = peersList.length;
 			// Apply limit
 			peersList = peersList.slice(0, options.limit);
@@ -524,7 +519,6 @@ Peers.prototype.onBind = function (scope) {
  */
 Peers.prototype.onBlockchainReady = function () {
 
-	library.logger.trace('PEERS MODULE -- onBlockchainReady');
 	async.series({
 		insertSeeds: function (seriesCb) {
 			__private.insertSeeds(function (err) {
@@ -542,7 +536,6 @@ Peers.prototype.onBlockchainReady = function () {
 			});
 		}
 	}, function (err) {
-		library.logger.trace('INVOKE PEERS READY');
 		library.bus.message('peersReady');
 	});
 };

@@ -205,12 +205,11 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.lastValidBlock Normalized new last block
  */
-
 Process.prototype.loadBlocksFromPeer = function (peer, cb) {
-	var lastValidBlock = __private.lastBlock;
+	var lastValidBlock = modules.blocks.lastBlock.get();
 
 	peer = library.logic.peers.create(peer).attachRPC();
-	library.logger.info('Loading blocks from: ' + peer.string, peer);
+	library.logger.info('Loading blocks from: ' + peer.string);
 
 	function getFromPeer (seriesCb) {
 		peer.rpc.blocks({lastBlockId: lastValidBlock.id, peer: library.logic.peers.me()}, function (err, res) {
@@ -232,25 +231,31 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 			return setImmediate(seriesCb, null, blocks);
 		}
 	}
-
+	// Process all received blocks
 	function processBlocks (blocks, seriesCb) {
+		// Skip if ther is no blocks
 		if (blocks.length === 0) {
 			return setImmediate(seriesCb);
 		}
-		async.eachSeries(__private.readDbRows(blocks), function (block, eachSeriesCb) {
-			if (__private.cleanup) {
+		// Iterate over received blocks, normalize block first...
+		async.eachSeries(modules.blocks.utils.readDbRows(blocks), function (block, eachSeriesCb) {
+			if (modules.blocks.isCleaning.get()) {
+				// Cancel processing if node shutdown was requested
 				return setImmediate(eachSeriesCb);
 			} else {
+				// ...then process block
 				return processBlock(block, eachSeriesCb);
 			}
 		}, function (err) {
 			return setImmediate(seriesCb, err);
 		});
 	}
-
+	// Process single block
 	function processBlock (block, seriesCb) {
-		self.processBlock(block, false, function (err) {
+		// Start block processing - broadcast: false, saveBlock: true
+		modules.blocks.verify.processBlock(block, false, function (err) {
 			if (!err) {
+				// Update last valid block
 				lastValidBlock = block;
 				library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
 			} else {
@@ -274,7 +279,6 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 		}
 	});
 };
-
 
 /**
  * Generate new block

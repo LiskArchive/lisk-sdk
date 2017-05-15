@@ -101,7 +101,6 @@ __private.syncTrigger = function (turnOn) {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.lastBlock.get().height
 			});
-
 			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
 		});
 	}

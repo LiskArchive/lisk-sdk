@@ -211,12 +211,11 @@ describe('peers', function () {
 			expect(peers.acceptable([randomPeer])).that.is.an('array').and.to.deep.equal([randomPeer]);
 		});
 
-		//ToDo: uncomment when acceptance of private addressees will be enabled
-		// it('should not accept peer with private ip', function () {
-		// 	var privatePeer = _.clone(randomPeer);
-		// 	privatePeer.ip = '127.0.0.1';
-		// 	expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
-		// });
+		it('should not accept peer with private ip', function () {
+			var privatePeer = _.clone(randomPeer);
+			privatePeer.ip = '127.0.0.1';
+			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+		});
 
 		it('should not accept peer with lisk-js-api os', function () {
 			var privatePeer = _.clone(randomPeer);
