@@ -38,6 +38,9 @@ module.exports = {
 			topAccounts: {
 				type: 'boolean'
 			},
+			cacheEnabled: {
+				type: 'boolean'
+			},
 			db: {
 				type: 'object',
 				properties: {

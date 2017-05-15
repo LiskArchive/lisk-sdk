@@ -91,6 +91,7 @@ process.env.TOP = appConfig.topAccounts;
 var config = {
 	db: appConfig.db,
 	cache: appConfig.cache,
+	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		server: './modules/server.js',
 		accounts: './modules/accounts.js',
@@ -373,7 +374,7 @@ d.run(function () {
 
 		cache: function (cb) {
 			var cache = require('./helpers/cache.js');
-			cache.connect(config.cache, logger, cb);
+			cache.connect(config.cacheEnabled, config.cache, logger, cb);
 		},
 
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
