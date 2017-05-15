@@ -4,6 +4,36 @@ var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 var schema = require('../../schema/dapps');
 
+/**
+ * Binds api with modules and creates common url.
+ * - End point: `/api/dapps`
+ * - Private API:
+ * 	- get	/categories
+ * 	- get	/installed
+ * 	- get	/installedIds
+ * 	- get	/ismasterpasswordenabled
+ * 	- get	/installing
+ * 	- get	/uninstalling
+ * 	- get	/launched
+ * 	- post	/launch
+ * 	- put	/transaction
+ * 	- put	/withdrawal
+ * 	
+ * - Sanitized
+ * 	- get	/
+ * 	- put	/
+ * 	- get	/get
+ * 	- get	/search
+ * 	- post	/install
+ * 	- post	/uninstall
+ * 	- post	/stop
+ * @memberof module:dapps
+ * @requires helpers/Router
+ * @requires helpers/httpApi
+ * @constructor
+ * @param {Object} dappsModule - Module dapps instance.
+ * @param {scope} app - Network app.
+ */
 // Constructor
 function DappsHttpApi (dappsModule, app) {
 

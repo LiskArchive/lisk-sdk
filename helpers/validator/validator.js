@@ -12,7 +12,8 @@ exports.Field = Field;
 
 /**
  * Create validator. Options could have properties `forceAsync`, `skipMissed` and `rules`.
- * @param {object} options
+ * @memberof module:helpers
+ * @param {Object} options
  * @constructor
  */
 function Validator (options) {
@@ -84,7 +85,11 @@ Validator.prototype.getRule = function (name) {
  * Validate values with specified rules set
  * @param {*} value
  * @param {object} rules Set of rules
- * @param {function (err:Error,report:Array,output:*)=} callback Result callback
+ * @param {function} callback Result callback (err:Error,report:Array,output:*)=
+ * @returns {object} report
+ * @throws {err} If finish err parameter is true
+ * @throws {Error} If callback, async and finished are not valids
+ * @todo debug this function and adjust callback function parameter
  */
 Validator.prototype.validate = function (value, rules, callback) {
 	var self = this;
@@ -232,7 +237,8 @@ Validator.options = {
  * @param {*} value Validated value
  * @param {object} rules Set of rules
  * @param {object} customRules Customized rule set. Optional
- * @param {function (err:Error, report:object[], result:*)} callback Result callback
+ * @param {function} callback assign customRules if it is a function
+ * @returns {instance} instance
  */
 Validator.validate = function (value, rules, customRules, callback) {
 	if (typeof customRules === 'function') {

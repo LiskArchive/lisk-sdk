@@ -85,7 +85,7 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using uppercase username should fail', function (done) {
-				account.username = node.randomDelegateName().toUpperCase();
+				account.username = 'UPPER_DELEGATE';
 				var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 				postTransaction(transaction, function (err, res) {

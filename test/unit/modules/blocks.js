@@ -26,7 +26,7 @@ describe('blocks', function () {
 	describe('getBlockProgressLogger', function () {
 
 		it('should logs correctly', function () {
-			var tracker = blocks.getBlockProgressLogger(5, 2, '');
+			var tracker = blocks.utils.getBlockProgressLogger(5, 2, '');
 			tracker.log = sinon.spy();
 			expect(tracker.applied).to.equals(0);
 			expect(tracker.step).to.equals(2);
