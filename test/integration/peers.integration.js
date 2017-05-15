@@ -63,12 +63,6 @@ function launchTestNodes (cb) {
 	});
 }
 
-function logNodesStatus (cb) {
-	child_process.exec('node_modules/.bin/pm2 status', function (err, stdout) {
-		return cb(err);
-	});
-}
-
 function killTestNodes (cb) {
 	child_process.exec('node_modules/.bin/pm2 delete all', function (err, stdout) {
 		console.log(stdout);
@@ -101,10 +95,6 @@ before(function (done) {
 
 before(function (done) {
 	launchTestNodes(done);
-});
-
-before(function (done) {
-	logNodesStatus(done);
 });
 
 before(function (done) {

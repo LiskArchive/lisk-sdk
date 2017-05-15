@@ -6,7 +6,7 @@ var WsRPCServer = require('../RPC').WsRPCServer;
 
 function TransportWSApi (transportModule, app, logger) {
 
-	this.rpcEndpoints = {
+	WsRPCServer.getServer().registerRPCEndpoints({
 		acceptPeer: transportModule.internal.acceptPeer,
 		removePeer: transportModule.internal.removePeer,
 		ping: transportModule.internal.ping,
@@ -20,15 +20,7 @@ function TransportWSApi (transportModule, app, logger) {
 		postBlock: transportModule.internal.postBlock,
 		postSignatures: transportModule.internal.postSignatures,
 		postTransactions: transportModule.internal.postTransactions
-	};
-
-	this.eventEndpoints = {
-		peerUpdate: transportModule.internal.onPeerUpdate
-	};
-
-	var wsServer = WsRPCServer.getServer();
-	wsServer.registerRPCEndpoints(this.rpcEndpoints);
-	wsServer.registerEventEndpoints(this.eventEndpoints);
+	});
 }
 
 module.exports = TransportWSApi;

@@ -107,7 +107,7 @@ var config = {
 		server: { http: './api/http/server.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		transport: { http: './api/http/transport.js', ws: './api/ws/transport.js'}
+		transport: { ws: './api/ws/transport.js' }
 	}
 };
 
