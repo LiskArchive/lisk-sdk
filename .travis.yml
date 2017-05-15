@@ -55,7 +55,6 @@ env:
     - TEST=test/unit/modules TEST_TYPE='UNIT'
     - TEST=test/unit/sql TEST_TYPE='UNIT'
 
-    - TEST=test/integration/pm2TravisTest.js TEST_TYPE='INTEG'
 script: 'npm run travis'
 after_success:
     - bash .travis/after-success.sh $TRAVIS_BUILD_NUMBER ${TRAVIS_JOB_NUMBER#*.} $TEST_TYPE $TRAVIS_BUILD_DIR $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST_BRANCH;
