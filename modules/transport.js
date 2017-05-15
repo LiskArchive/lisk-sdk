@@ -35,7 +35,13 @@ function Transport (cb, scope) {
 	library = scope;
 	self = this;
 
-	__private.broadcaster = new Broadcaster(library);
+	__private.broadcaster = new Broadcaster(
+		library.config.broadcasts,
+		library.config.forging.force,
+		library.logic.peers,
+		library.logic.transaction,
+		library.logger
+	);
 
 	setImmediate(cb, null, self);
 }

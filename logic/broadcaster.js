@@ -15,11 +15,27 @@ var modules, library, self, __private = {};
  * @classdesc Initializes variables, sets Broadcast routes and timer based on
  * broadcast interval from config file.
  * @implements {__private.releaseQueue}
- * @param {scope} scope - App instance.
+ * @param {Object} broadcasts
+ * @param {boolean} force
+ * @param {Peers} peers - from logic, Peers instance
+ * @param {Transaction} transaction - from logic, Transaction instance
+ * @param {Object} logger
  */
 // Constructor
-function Broadcaster (scope) {
-	library = scope;
+function Broadcaster (broadcasts, force, peers, transaction, logger) {
+	library = {
+		config: {
+			broadcasts,
+			forging: {
+				force,
+			},
+		},
+		logic: {
+			peers,
+			transaction,
+		},
+		logger,
+	};
 	self = this;
 
 	self.queue = [];
