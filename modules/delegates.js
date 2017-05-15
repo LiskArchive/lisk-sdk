@@ -41,7 +41,10 @@ function Delegates (cb, scope) {
 	self = this;
 
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
-		transactionTypes.DELEGATE, new Delegate()
+		transactionTypes.DELEGATE, 
+		new Delegate(
+			scope.schema
+		)
 	);
 
 	setImmediate(cb, null, self);
