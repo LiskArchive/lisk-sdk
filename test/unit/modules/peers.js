@@ -231,23 +231,30 @@ describe('peers', function () {
 
 	describe('acceptable', function () {
 
+		before(function () {
+			process.env['NODE_ENV'] = 'DEV';
+		});
+
 		var ip = require('ip');
 
 		it('should accept peer with public ip', function () {
 			expect(peers.acceptable([randomPeer])).that.is.an('array').and.to.deep.equal([randomPeer]);
 		});
 
-		//ToDo: uncomment when acceptance of private addressees will be enabled
-		// it('should not accept peer with private ip', function () {
-		// 	var privatePeer = _.clone(randomPeer);
-		// 	privatePeer.ip = '127.0.0.1';
-		// 	expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
-		// });
+		it('should not accept peer with private ip', function () {
+			var privatePeer = _.clone(randomPeer);
+			privatePeer.ip = '127.0.0.1';
+			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+		});
 
 		it('should not accept peer with host\'s ip', function () {
 			var meAsPeer = _.clone(randomPeer);
 			meAsPeer.nonce = NONCE;
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
+		});
+
+		after(function () {
+			process.env['NODE_ENV'] = 'TEST';
 		});
 	});
 

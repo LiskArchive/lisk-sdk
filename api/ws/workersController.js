@@ -76,38 +76,32 @@ WorkerController.prototype.run = function (worker) {
 			scServer.on('connection', function (socket) {
 				scope.slaveWAMPServer.upgradeToWAMP(socket);
 
-				socket.on('error', function (err) {
-					//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
-					console.log('\x1b[32m%s\x1b[0m', 'WorkerController:SOCKET-ON --- ERROR' + err.toString());
-				});
-
-				socket.on('disconnect', function (data) {
+				socket.on('disconnect', function () {
 					scope.slaveWAMPServer.onSocketDisconnect(socket);
 					try {
 						var headers = extractHeaders(socket.request);
 					} catch (invalidHeadersException) {
-						console.log('\x1b[32m%s\x1b[0m', 'WorkerController:SOCKET-ON --- UNABLE TO REMOVE PEERS - HEADERS ERROR ', invalidHeadersException);
+						//ToDO: do some unable to disconnect peer logging
 						return;
 					}
-					console.log('\x1b[32m%s\x1b[0m', 'WorkerController:SOCKET-ON --- ATTEMPT TO REMOVE PEER', new Peer(headers));
 					var payload = {
 						peer: new Peer(headers),
 						extraMessage: 'extraMessage'
 					};
 					return scope.slaveWAMPServer.sendToMaster('removePeer', payload, socket.request.headers.host, function (err, peer) {
-						console.log('\x1b[32m%s\x1b[0m', 'WORKER MIDDLEWARE_HANDSHAKE FINISH: invoking cb with err: ', err);
 						if (err) {
-							//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
-							console.log('\x1b[32m%s\x1b[0m', 'WorkerController:UNABLE TO REMOVE PEER AFTER ITS DISCONNECTED --- ERROR' + err.toString());
+							//ToDo: Again logging here- unable to remove peer
 						}
 					});
 				}.bind(this));
 
 				socket.on('connect', function (data) {
 					//ToDo: integrate this socket connection with future peer client connection - one socket will be sufficient
-					console.log('\x1b[32m%s\x1b[0m', 'CLIENT CONNECTED AFTER SUCCESSFUL HANDSHAKE');
 				});
 
+				socket.on('error', function (err) {
+					//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
+				});
 			});
 		});
 };
