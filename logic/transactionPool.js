@@ -16,11 +16,27 @@ var modules, library, self, __private = {};
  * transaction expiry timer.
  * @implements {processBundled}
  * @implements {expireTransactions}
- * @param {scope} scope - App instance.
+ * @param {number} broadcastInterval
+ * @param {number} releaseLimit
+ * @param {Transaction} transaction - Logic instance
+ * @param {bus} bus
+ * @param {Object} logger
  */
 // Constructor
-function TransactionPool (scope) {
-	library = scope;
+function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger) {
+	library = {
+		config: {
+			broadcasts: {
+				broadcastInterval,
+				releaseLimit
+			}
+		},
+		logic: {
+			transaction
+		},
+		bus,
+		logger,
+	};
 	self = this;
 
 	self.unconfirmed = { transactions: [], index: {} };

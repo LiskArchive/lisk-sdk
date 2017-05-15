@@ -3,7 +3,7 @@
 var constants = require('../helpers/constants.js');
 
 // Private fields
-var modules, library;
+var modules;
 
 /**
  * Main transfer logic.
@@ -16,12 +16,11 @@ function Transfer () {}
 
 // Public methods
 /**
- * Binds scope to private variables modules and library.
+ * Binds scope to private variable modules.
  * @param {scope} scope - App instance.
  */
 Transfer.prototype.bind = function (scope) {
 	modules = scope.modules;
-	library = scope.library;
 };
 
 /**

@@ -40,7 +40,13 @@ function Transactions (cb, scope) {
 	genesisblock = library.genesisblock;
 	self = this;
 
-	__private.transactionPool = new TransactionPool(library);
+	__private.transactionPool = new TransactionPool(
+		scope.config.broadcasts.broadcastInterval,
+		scope.config.broadcasts.releaseLimit,
+		scope.logic.transaction,
+		scope.bus,
+		scope.logger
+	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
 		transactionTypes.SEND, new Transfer()
@@ -567,7 +573,7 @@ Transactions.prototype.isLoaded = function () {
 
 // Events
 /**
- * Bounds scope to private transactionPool and modules and library
+ * Bounds scope to private transactionPool and modules
  * to private Transfer instance.
  * @implements module:transactions#Transfer~bind
  * @param {scope} scope - Loaded modules.
@@ -577,7 +583,7 @@ Transactions.prototype.onBind = function (scope) {
 
 	__private.transactionPool.bind(modules);
 	__private.assetTypes[transactionTypes.SEND].bind({
-		modules: modules, library: library
+		modules: modules
 	});
 };
 
