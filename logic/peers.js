@@ -21,8 +21,10 @@ var library;
  * @return {setImmediateCallback} Callback function with `this` as data.
  */
 // Constructor
-function Peers (scope, cb) {
-	library = scope;
+function Peers (logger, cb) {
+	library = {
+		logger,
+	};
 	self = this;
 	__private.peers = {};
 	return setImmediate(cb, null, this);

@@ -479,10 +479,10 @@ d.run(function () {
 					new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
-					new Block(scope, cb);
+					new Block(scope.ed, scope.schema, scope.transaction, cb);
 				}],
 				peers: function (cb) {
-					new Peers(scope, cb);
+					new Peers(scope.logger, cb);
 				}
 			}, cb);
 		}],
