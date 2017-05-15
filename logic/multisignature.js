@@ -12,13 +12,26 @@ var modules, library, __private = {};
 __private.unconfirmedSignatures = {};
 
 /**
- * Main multisignature logic.
+ * Initializes library.
  * @memberof module:multisignatures
  * @class
  * @classdesc Main multisignature logic.
+ * @param {ZSchema} schema
+ * @param {Object} network
+ * @param {Transaction} transaction
+ * @param {Object} logger
  */
 // Constructor
-function Multisignature () {}
+function Multisignature (schema, network, transaction, logger) {
+	library = {
+		logic: {
+			transaction,
+		},
+		schema,
+		network,
+		logger,
+	};
+}
 
 // Public methods
 /**
@@ -26,7 +39,6 @@ function Multisignature () {}
  */
 Multisignature.prototype.bind = function (scope) {
 	modules = scope.modules;
-	library = scope.library;
 };
 
 /**

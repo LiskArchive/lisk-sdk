@@ -32,7 +32,12 @@ function Multisignatures (cb, scope) {
 	self = this;
 
 	__private.assetTypes[transactionTypes.MULTI] = library.logic.transaction.attachAssetType(
-		transactionTypes.MULTI, new Multisignature()
+		transactionTypes.MULTI, new Multisignature(
+			scope.schema,
+			scope.network,
+			scope.logic.transaction,
+			scope.logger
+		)
 	);
 
 	setImmediate(cb, null, self);
@@ -170,7 +175,7 @@ Multisignatures.prototype.onBind = function (scope) {
 	modules = scope;
 
 	__private.assetTypes[transactionTypes.MULTI].bind({
-		modules: modules, library: library
+		modules: modules
 	});
 };
 
