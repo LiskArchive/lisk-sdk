@@ -30,7 +30,6 @@ Cache.prototype.setJsonForKey = function (key, value, cb) {
 
 Cache.prototype.deleteJsonForKey = function (key, value, cb) {
 	if (this.isConnected()) {
-		// redis calls toString on objects, which converts it to object [object] so calling stringify before saving
 		client.del(key, cb);
 	} else {
 		cb(errorMessage);
@@ -43,7 +42,6 @@ Cache.prototype.isConnected = function () {
 
 Cache.prototype.flushDb = function (cb) {
 	if (this.isConnected()) {
-		// redis calls toString on objects, which converts it to object [object] so calling stringify before saving
 		client.flushdb(cb);
 	} else {
 		cb(errorMessage);
