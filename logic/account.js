@@ -18,16 +18,14 @@ var self, library, __private = {};
  * @classdesc Main account logic.
  * @param {function} db
  * @param {function} schema
- * @param {function} genesisblock
  * @param {function} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
-function Account (db, schema, genesisblock, logger, cb) {
+function Account (db, schema, logger, cb) {
 	this.scope = {
 		db,
 		schema,
-		genesisblock,
 	};
 
 	self = this;
