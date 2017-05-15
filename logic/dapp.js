@@ -17,19 +17,27 @@ __private.unconfirmedAscii = {};
  * Main dapp logic.
  * @memberof module:dapps
  * @class
- * @classdesc Main dapp logic.
+ * @classdesc Initializes library.
+ * @param {Database} db
+ * @param {Object} logger
+ * @param {ZSchema} schema
+ * @param {Object} network
  */
 // Constructor
-function DApp () {}
+function DApp (db, logger, schema, network) {
+	library = {
+		db,
+		logger,
+		schema,
+		network,
+	};
+}
 
 // Public methods
 /**
- * Binds scope.library to private variable library.
- * @param {scope} scope - App instance.
+ * Binds scope.modules to private variable modules.
  */
-DApp.prototype.bind = function (scope) {
-	library = scope.library;
-};
+DApp.prototype.bind = function () {};
 
 /**
  * Creates transaction.asset.dapp based on data.

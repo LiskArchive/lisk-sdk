@@ -12,10 +12,19 @@ __private.unconfirmedOutTansfers = {};
  * Main OutTransfer logic.
  * @memberof module:dapps
  * @class
- * @classdesc Main OutTransfer logic.
+ * @classdesc Initializes library.
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
  */
 // Constructor
-function OutTransfer () {}
+function OutTransfer (db, schema, logger) {
+	library = {
+		db,
+		schema,
+		logger,
+	};
+}
 
 // Public methods
 /**
@@ -24,7 +33,6 @@ function OutTransfer () {}
  */
 OutTransfer.prototype.bind = function (scope) {
 	modules = scope.modules;
-	library = scope.library;
 };
 
 /**

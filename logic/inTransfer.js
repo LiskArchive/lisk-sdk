@@ -10,19 +10,25 @@ var modules, library, shared;
  * Main InTransfer logic.
  * @memberof module:dapps
  * @class
- * @classdesc Main InTransfer logic.
+ * @classdesc Initializes library.
+ * @param {Database} db
+ * @param {ZSchema} schema
  */
 // Constructor
-function InTransfer () {}
+function InTransfer (db, schema) {
+	library = {
+		db,
+		schema,
+	};
+}
 
 // Public methods
 /**
- * Binds scope content to private variables modules, library and shared.
+ * Binds scope content to private variables modules and shared.
  * @param {scope} scope - App instance.
  */
 InTransfer.prototype.bind = function (scope) {
 	modules = scope.modules;
-	library = scope.library;
 	shared = scope.shared;
 };
 

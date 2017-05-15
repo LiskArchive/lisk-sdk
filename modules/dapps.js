@@ -60,15 +60,30 @@ function DApps (cb, scope) {
 	self = this;
 
 	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
-		transactionTypes.DAPP, new DApp()
+		transactionTypes.DAPP,
+		new DApp(
+			scope.db, 
+			scope.logger, 
+			scope.schema, 
+			scope.network
+		)
 	);
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.IN_TRANSFER, new InTransfer()
+		transactionTypes.IN_TRANSFER, 
+		new InTransfer(
+			scope.db,
+			scope.schema
+		)
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.OUT_TRANSFER, new OutTransfer()
+		transactionTypes.OUT_TRANSFER, 
+		new OutTransfer(
+			scope.db,
+			scope.schema,
+			scope.logger
+		)
 	);
 	/**
 	 * Receives an 'exit' signal and calls stopDApp for each launched app.
@@ -925,10 +940,6 @@ DApps.prototype.request = function (dappid, method, path, query, cb) {
  */
 DApps.prototype.onBind = function (scope) {
 	modules = scope;
-
-	__private.assetTypes[transactionTypes.DAPP].bind({
-		library: library
-	});
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind({
 		modules: modules, library: library, shared: shared
