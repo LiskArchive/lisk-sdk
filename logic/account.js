@@ -16,9 +16,9 @@ var self, library, __private = {};
  * @memberof module:accounts
  * @class
  * @classdesc Main account logic.
- * @param {function} db
- * @param {function} schema
- * @param {function} logger
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */

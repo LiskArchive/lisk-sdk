@@ -31,12 +31,12 @@ __private.types = {};
  * @memberof module:transactions
  * @class
  * @classdesc Main transaction logic.
- * @param {function} db
- * @param {function} ed
- * @param {function} schema
- * @param {function} genesisblock
- * @param {function} account
- * @param {function} logger
+ * @param {Database} db
+ * @param {Object} ed
+ * @param {ZSchema} schema
+ * @param {Object} genesisblock
+ * @param {Account} account
+ * @param {Object} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */

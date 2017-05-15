@@ -15,9 +15,9 @@ var __private = {};
  * @memberof module:blocks
  * @class
  * @classdesc Main Block logic.
- * @param {function} ed
- * @param {function} schema
- * @param {function} transaction
+ * @param {Object} ed
+ * @param {ZSchema} schema
+ * @param {Transaction} transaction
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */

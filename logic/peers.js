@@ -16,7 +16,7 @@ var library;
  * @memberof module:peers
  * @class
  * @classdesc Main peers logic.
- * @param {scope} scope - App instance.
+ * @param {Object} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `this` as data.
  */
