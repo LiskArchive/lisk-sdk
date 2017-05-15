@@ -51,9 +51,14 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 			})
 			.catch(function (err) {
 				retries -= 1;
-				return setTimeout(function () {
-					fetchBlockchainStatus();
-				}, timeout);
+				if (retries >= 0) {
+					return setTimeout(function () {
+						fetchBlockchainStatus();
+					}, timeout);
+				} else {
+					return cb('Server is not responding');
+				}
+
 			});
 	})();
 }

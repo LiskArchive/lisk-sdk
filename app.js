@@ -24,6 +24,7 @@
  */
 
 var async = require('async');
+var SocketCluster = require('socketcluster').SocketCluster;
 var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
@@ -71,7 +72,7 @@ program
  * @property {object} - The default list of configuration options. Can be updated by CLI.
  * @default 'config.json'
  */
-var appConfig = require('./helpers/config.js')(program.config);
+var appConfig = require('./helpers/config.js')(program);
 
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
@@ -266,21 +267,15 @@ d.run(function () {
 			var webSocketConfig = {
 				workers: 1,
 				port: parseInt(scope.config.port) + 1000,
-				// port: 8000,
 				wsEngine: 'uws',
 				appName: 'lisk',
 				workerController: './api/ws/workersController',
 				perMessageDeflate: false,
-				secretKey: 'dupa',
-				// The interval in milliseconds on which to
-				// send a ping to the client to check that
-				// it is still alive
+				secretKey: 'liskSecretKey',
 				pingInterval: 5000,
-
 				// How many milliseconds to wait without receiving a ping
 				// before closing the socket
 				pingTimeout: 60000,
-
 				// Maximum amount of milliseconds to wait before force-killing
 				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
 				processTermTimeout: 10000
@@ -362,7 +357,6 @@ d.run(function () {
 			var randomString = require('randomstring');
 
 			scope.config.nonce = randomString.generate(16);
-			process.env['NONCE'] = scope.config.nonce;
 			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.set('view engine', 'ejs');
