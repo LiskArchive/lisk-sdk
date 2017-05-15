@@ -7,20 +7,26 @@ var constants = require('../helpers/constants.js');
 var modules, library;
 
 /**
- * Main signature logic.
+ * Initializes library.
  * @memberof module:signatures
  * @class
  * @classdesc Main signature logic.
+ * @param {ZSchema} schema
+ * @param {Object} logger
  */
 // Constructor
-function Signature () {}
+function Signature (schema, logger) {
+	library ={
+		schema,
+		logger,
+	};
+}
 
 /**
  * @param {scope} scope - App instance.
  */
 Signature.prototype.bind = function (scope) {
 	modules = scope.modules;
-	library = scope.library;
 };
 
 /**
