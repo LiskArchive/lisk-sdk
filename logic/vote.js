@@ -10,23 +10,28 @@ var modules, library, self;
 
 // Constructor
 /**
+ * Initializes library
  * @class
  * @classdesc Main vote logic
  * Allows validate and undo transactions, verify votes.
  * @constructor
  */
-function Vote () {
+function Vote (logger, schema) {
 	self = this;
+	library = {
+		logger,
+		schema,
+	};
+
 }
 
 // Public methods
 /**
- * Binds scope content to private variables modules and library.
+ * Binds scope content to private variable module.
  * @param {scope} scope - App instance.
  */
 Vote.prototype.bind = function (scope) {
 	modules = scope.modules;
-	library = scope.library;
 };
 
 /**

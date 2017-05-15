@@ -32,7 +32,11 @@ function Accounts (cb, scope) {
 	self = this;
 
 	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
-		transactionTypes.VOTE, new Vote()
+		transactionTypes.VOTE,
+		new Vote(
+			scope.logger,
+			scope.schema
+		)
 	);
 
 	setImmediate(cb, null, self);
@@ -227,7 +231,7 @@ Accounts.prototype.onBind = function (scope) {
 	modules = scope;
 
 	__private.assetTypes[transactionTypes.VOTE].bind({
-		modules: modules, library: library
+		modules: modules
 	});
 };
 /**
