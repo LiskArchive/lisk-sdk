@@ -176,6 +176,24 @@ var middleware = {
 		} else {
 			next();
 		}
+	},
+	flushCache: function (logger, cache, req, res, next) {
+		if (cache.isConnected()) {
+			logger.info('clearing database cache');
+			/**
+			 * Performing this action asynchronosly, cause docs say this action will never fail.
+			 * { @link https://redis.io/commands/flushdb }
+			 */
+			cache.flushDb(function (err, res) {
+				// shouldn't happend but checking anyway.
+				if (err) {
+					logger.error('Error flushing cache', err);
+				} else {
+					logger.info('Redis cache flushed');
+				}
+			});
+		}
+		next();
 	}
 };
 
