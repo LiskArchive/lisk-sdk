@@ -2,9 +2,8 @@
 
 var chai = require('chai');
 var expect = require('chai').expect;
-
+var async = require('async');
 var sinon = require('sinon');
-
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var Cache = require('../../../modules/cache.js');
 
@@ -53,5 +52,45 @@ describe('cache module', function () {
 			expect(value).to.equal(null);
 			done(err, value);
 		});
+	});
+
+	it('should remove all keys from cache on flushDb', function (done) {
+		var key1 = 'test_key1';
+		var key2 = 'test_key2';
+		var dummyValue = { a: 'dummyValue' };
+		async.series([
+			// save new entries in cache
+			function (callback) {
+				async.map([key1, key2], function (key, cb) {
+					cache.setJsonForKey(key, dummyValue, cb);
+				}, function (err, result) {
+					expect(err).to.not.exist;
+					expect(result).to.be.an('array');
+					callback(err, result);
+				});
+			},
+			// flush cache database
+			function (callback) {
+				cache.flushDb(function (err, status) {
+					expect(err).to.not.exist;
+					expect(status).to.equal('OK');
+					callback(err, status);
+				});
+			},
+			// check if entries exist
+			function (callback) {
+				async.map([key1, key2], function (key, cb) {
+					cache.getJsonForKey(key, cb);
+				}, function (err, result) {
+					expect(err).to.not.exist;
+					expect(result).to.be.an('array');
+					expect(result).to.have.length(2);
+					result.forEach(function (value) {
+						expect(value).to.eql(null);
+					});
+					callback(err, result);
+					done(err, result);
+				});
+			}]);
 	});
 });
