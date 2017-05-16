@@ -8,7 +8,8 @@
     "consoleLogLevel": "info",
     "trustProxy": false,
     "topAccounts": false,
-    "db": {
+		"cacheEnabled": true,
+		"db": {
         "host": "localhost",
         "port": 5432,
         "database": "lisk_main",
@@ -21,6 +22,10 @@
             "error"
         ]
     },
+		"cache": {
+			"host": "127.0.0.1",
+			"port": 6379
+		},
     "api": {
         "enabled": true,
         "access": {
