@@ -5,7 +5,6 @@ var _ = require('lodash');
 var url = require('url');
 
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
-var config = require('../../config.json');
 
 var Peer = require('../../logic/peer');
 var System = require('../../modules/system');
@@ -13,19 +12,12 @@ var Handshake = require('../../helpers/wsApi').middleware.Handshake;
 var extractHeaders = require('../../helpers/wsApi').extractHeaders;
 
 /**
- * @class WorkerController
- */
-function WorkerController () {
-	this.config = null;
-	this.path = __dirname + '/workersController.js';
-}
-
-
-/**
  * Function is invoked by SocketCluster
  * @param {Worker} worker
  */
-WorkerController.prototype.run = function (worker) {
+
+
+module.exports.run = function (worker) {
 
 	var scServer = worker.getSCServer();
 
@@ -105,6 +97,3 @@ WorkerController.prototype.run = function (worker) {
 			});
 		});
 };
-
-module.exports = new WorkerController();
-
