@@ -103,7 +103,7 @@ Peer.prototype.accept = function (peer) {
 };
 
 Peer.prototype.attachRPC = function () {
-	if (this.ip && this.port && !this.rpc) {
+	if (!this.rpc && this.ip && this.port) {
 		this.rpc = new WsRPCClient(this.ip, this.port);
 	}
 	return this;
@@ -193,6 +193,7 @@ Peer.prototype.object = function () {
 		}
 	});
 
+	delete copy.rpc;
 	return copy;
 };
 

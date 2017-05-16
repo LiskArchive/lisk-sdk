@@ -44,13 +44,17 @@ module.exports.run = function (worker) {
 					return next(invalidHeadersException);
 				}
 
+				console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE RECEIVED: ', headers);
+
 				handshake(headers, function (err, peer) {
 					if (err) {
+						console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE FAILED REMOVE PEER: ', err);
 						return sendActionToMaster('removePeer', {
 							peer: peer,
 							extraMessage: 'extraMessage'
 						}, err);
 					}
+					console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE SUCCESS - ACCEPT PEER: ', peer);
 					return sendActionToMaster('acceptPeer', {peer: peer});
 				});
 
@@ -76,6 +80,7 @@ module.exports.run = function (worker) {
 						//ToDO: do some unable to disconnect peer logging
 						return;
 					}
+					console.log('\x1b[32m%s\x1b[0m', 'WorkerController: ON SOCKET DISCONNECTED - REMOVING PEER with headers', headers);
 					var payload = {
 						peer: new Peer(headers),
 						extraMessage: 'extraMessage'
