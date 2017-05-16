@@ -17,9 +17,9 @@ var extractHeaders = require('../../helpers/wsApi').extractHeaders;
  */
 function WorkerController () {
 	this.config = null;
+	this.path = __dirname + '/workersController.js';
 }
 
-WorkerController.path = __dirname + 'workersController.js';
 
 /**
  * Function is invoked by SocketCluster
