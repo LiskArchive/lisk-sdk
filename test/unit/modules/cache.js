@@ -1,5 +1,7 @@
 'use strict';
 
+var node = require('./../../node.js');
+
 var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
@@ -20,6 +22,7 @@ describe('cache module', function () {
 			return done();
 		});
 	});
+
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			expect(err).to.not.exist;
@@ -29,7 +32,12 @@ describe('cache module', function () {
 
 	});
 
-	it('should set the key value correctly', function (done) {
+	function itIfCacheEnabled (name, cb) {
+		var fn = node.config.cacheEnabled ? it : it.skip;
+		fn(name, cb);
+	}
+
+	itIfCacheEnabled('should set the key value correctly', function (done) {
 		var key = 'test_key';
 		var value = {testObject: 'testValue'};
 
@@ -44,7 +52,7 @@ describe('cache module', function () {
 		});
 	});
 
-	it('should return null for non-existent key', function (done) {
+	itIfCacheEnabled('should return null for non-existent key', function (done) {
 		var key = 'test_key';
 
 		cache.getJsonForKey(key, function (err, value) {
@@ -54,7 +62,7 @@ describe('cache module', function () {
 		});
 	});
 
-	it('should remove all keys from cache on flushDb', function (done) {
+	itIfCacheEnabled('should remove all keys from cache on flushDb', function (done) {
 		var key1 = 'test_key1';
 		var key2 = 'test_key2';
 		var dummyValue = { a: 'dummyValue' };
