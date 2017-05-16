@@ -2,6 +2,18 @@
 
 var pgp = require('pg-promise');
 
+/**
+ * Creates and returns an insert instance
+ * @memberof module:helpers
+ * @requires pg-promise
+ * @class
+ * @param {Object} record
+ * @param {Object} values
+ * @param {boolean} [concat]
+ * @return {function} True if ip is in the list, false otherwise.
+ * @throws {string} Error description
+ */
+
 function Inserts (record, values, concat) {
 	if (!(this instanceof Inserts)) {
 		return new Inserts(record, values, concat);
@@ -24,7 +36,11 @@ function Inserts (record, values, concat) {
 	};
 
 	this._template = this.namedTemplate();
-
+	/**
+	 * Creates pg insert sentence.
+	 * @method
+	 * @return {string} Sql sentence
+	 */
 	this.template = function () {
 		var values;
 		var fields = record.fields.map(pgp.as.name).join(',');

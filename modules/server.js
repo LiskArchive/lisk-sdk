@@ -9,6 +9,15 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.loaded = false;
 
+/**
+ * Initializes library with scope content.
+ * @memberof module:server
+ * @class
+ * @classdesc Main server methods.
+ * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Server (cb, scope) {
 	library = scope;
@@ -18,28 +27,55 @@ function Server (cb, scope) {
 }
 
 // Public methods
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements {sandboxHelper.callMethod}
+ * @param {function} call - Method to call.
+ * @param {} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Server.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Loads scope into private variable modules.
+ * @param {scope} scope - Loaded App.
+ */
 Server.prototype.onBind = function (scope) {
 	modules = scope;
 };
 
+/**
+ * Sets private variable loaded to true.
+ */
 Server.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 };
 
+/**
+ * Sets private variable loaded to false.
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 Server.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	return setImmediate(cb);
 };
 
+/**
+ * Returns private loaded value
+ * @return {boolean} loaded
+ */
 Server.prototype.isLoaded = function () {
 	return __private.loaded;
 };
 
+/**
+ * Returns true if modules are loaded.
+ * @return {boolean} modules loaded
+ */
 Server.prototype.areModulesReady = function () {
 	return !!modules;
 };

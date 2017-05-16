@@ -25,6 +25,16 @@ __private.blockReward = new BlockReward();
 __private.keypairs = {};
 __private.tmpKeypairs = {};
 
+/**
+ * Initializes library with scope content and generates a Delegate instance.
+ * Calls logic.transaction.attachAssetType().
+ * @memberof module:delegates
+ * @class
+ * @classdesc Main delegates methods.
+ * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Delegates (cb, scope) {
 	library = scope;
@@ -38,6 +48,12 @@ function Delegates (cb, scope) {
 }
 
 // Private methods
+/**
+ * Gets delegate public keys sorted by vote descending.
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} 
+ */
 __private.getKeysSortByVote = function (cb) {
 	modules.accounts.getAccounts({
 		isDelegate: 1,
@@ -53,6 +69,14 @@ __private.getKeysSortByVote = function (cb) {
 	});
 };
 
+/**
+ * Gets slot time and keypair.
+ * @private
+ * @param {number} slot
+ * @param {number} height
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} error | cb | object {time, keypair}.
+ */
 __private.getBlockSlotData = function (slot, height, cb) {
 	self.generateDelegateList(height, function (err, activeDelegates) {
 		if (err) {
@@ -75,6 +99,13 @@ __private.getBlockSlotData = function (slot, height, cb) {
 	});
 };
 
+/**
+ * Gets peers, checks consensus and generates new block, once delegates 
+ * are enabled, client is ready to forge and is the correct slot.
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} 
+ */
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
 		library.logger.debug('No delegates enabled');
@@ -89,7 +120,7 @@ __private.forge = function (cb) {
 	}
 
 	var currentSlot = slots.getSlotNumber();
-	var lastBlock = modules.blocks.getLastBlock();
+	var lastBlock = modules.blocks.lastBlock.get();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
 		library.logger.debug('Waiting for next delegate slot');
@@ -124,22 +155,22 @@ __private.forge = function (cb) {
 					library.logger.warn(err);
 					return setImmediate(cb, err);
 				} else {
-					return modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
+					return modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
 				}
 			});
 		}, function (err) {
 			if (err) {
 				library.logger.error('Failed to generate block within delegate slot', err);
 			} else {
-				modules.blocks.lastReceipt(new Date());
+				var forgedBlock = modules.blocks.lastBlock.get();
+				modules.blocks.lastReceipt.update();
 
 				library.logger.info([
-					'Forged new block id:',
-					modules.blocks.getLastBlock().id,
-					'height:', modules.blocks.getLastBlock().height,
-					'round:', modules.rounds.calc(modules.blocks.getLastBlock().height),
+					'Forged new block id:', forgedBlock.id,
+					'height:', forgedBlock.height,
+					'round:', modules.rounds.calc(forgedBlock.height),
 					'slot:', slots.getSlotNumber(currentBlockData.time),
-					'reward:' + modules.blocks.getLastBlock().reward
+					'reward:' + forgedBlock.reward
 				].join(' '));
 			}
 
@@ -148,6 +179,17 @@ __private.forge = function (cb) {
 	});
 };
 
+/**
+ * Checks each vote integrity and controls total votes don't exceed active delegates.
+ * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
+ * @private
+ * @implements module:accounts#Account#getAccount
+ * @param {publicKey} publicKey
+ * @param {Array} votes
+ * @param {string} state - 'confirmed' to delegates, otherwise u_delegates.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb | error messages
+ */
 __private.checkDelegates = function (publicKey, votes, state, cb) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');
@@ -180,7 +222,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			var publicKey = action.slice(1);
 
 			try {
-				new Buffer(publicKey, 'hex');
+				Buffer.from(publicKey, 'hex');
 			} catch (e) {
 				library.logger.error(e.stack);
 				return setImmediate(cb, 'Invalid public key');
@@ -223,6 +265,12 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 	});
 };
 
+/**
+ * Loads delegates from config and stores in private `keypairs`.
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} 
+ */
 __private.loadDelegates = function (cb) {
 	var secrets;
 
@@ -267,6 +315,13 @@ __private.loadDelegates = function (cb) {
 };
 
 // Public methods
+/**
+ * Gets delegate list by vote and changes order.
+ * @param {number} height
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} err | truncated delegate list.
+ * @todo explain seed.
+ */
 Delegates.prototype.generateDelegateList = function (height, cb) {
 	__private.getKeysSortByVote(function (err, truncDelegateList) {
 		if (err) {
@@ -290,6 +345,14 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
 	});
 };
 
+/**
+ * Gets delegates and for each one calculates rate, rank, approval, productivity.
+ * Orders delegates as per criteria.
+ * @param {Object} query
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} error| object with delegates ordered, offset, count, limit.
+ * @todo OrderBy does not affects data? What is the impact?.
+ */
 Delegates.prototype.getDelegates = function (query, cb) {
 	if (!query) {
 		throw 'Missing query argument';
@@ -312,7 +375,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		var length = Math.min(limit, count);
 		var realLimit = Math.min(offset + limit, count);
 
-		var lastBlock   = modules.blocks.getLastBlock(),
+		var lastBlock   = modules.blocks.lastBlock.get(),
 		    totalSupply = __private.blockReward.calcSupply(lastBlock.height);
 
 		for (var i = 0; i < delegates.length; i++) {
@@ -346,14 +409,32 @@ Delegates.prototype.getDelegates = function (query, cb) {
 	});
 };
 
+/**
+ * @param {publicKey} publicKey
+ * @param {Array} votes
+ * @param {function} cb
+ * @return {function} Calls checkDelegates() with 'confirmed' state.
+ */
 Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb) {
 	return __private.checkDelegates(publicKey, votes, 'confirmed', cb);
 };
 
+/**
+ * @param {publicKey} publicKey
+ * @param {Array} votes
+ * @param {function} cb
+ * @return {function} Calls checkDelegates() with 'unconfirmed' state.
+ */
 Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) {
 	return __private.checkDelegates(publicKey, votes, 'unconfirmed', cb);
 };
 
+/**
+ * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal
+ * with fork data: cause + block.
+ * @param {block} block
+ * @param {string} cause
+ */
 Delegates.prototype.fork = function (block, cause) {
 	library.logger.info('Fork', {
 		delegate: block.generatorPublicKey,
@@ -375,6 +456,13 @@ Delegates.prototype.fork = function (block, cause) {
 	});
 };
 
+/**
+ * Generates delegate list and checks if block generator public Key
+ * matches delegate id.
+ * @param {block} block
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} error message | cb
+ */
 Delegates.prototype.validateBlockSlot = function (block, cb) {
 	self.generateDelegateList(block.height, function (err, activeDelegates) {
 		if (err) {
@@ -395,11 +483,23 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 	});
 };
 
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Delegates.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Calls Delegate.bind() with scope.
+ * @implements module:delegates#Delegate~bind
+ * @param {scope} scope - Loaded modules.
+ */
 Delegates.prototype.onBind = function (scope) {
 	modules = scope;
 
@@ -408,6 +508,10 @@ Delegates.prototype.onBind = function (scope) {
 	});
 };
 
+/**
+ * Loads delegates.
+ * @implements module:transactions#Transactions~fillPool
+ */
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
@@ -425,15 +529,29 @@ Delegates.prototype.onBlockchainReady = function () {
 	});
 };
 
+/**
+ * Sets loaded to false.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} Returns cb.
+ */
 Delegates.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	return setImmediate(cb);
 };
 
+/**
+ * Checks if `modules` is loaded.
+ * @return {boolean} True if `modules` is loaded.
+ */
 Delegates.prototype.isLoaded = function () {
 	return !!modules;
 };
 
+// Internal API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
 Delegates.prototype.internal = {
 	forgingEnable: function (req, cb) {
 		library.schema.validate(req.body, schema.enableForging, function (err) {
@@ -542,6 +660,10 @@ Delegates.prototype.internal = {
 };
 
 // Shared API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
 Delegates.prototype.shared = {
 	getDelegate: function (req, cb) {
 		library.schema.validate(req.body, schema.getDelegate, function (err) {
@@ -574,7 +696,7 @@ Delegates.prototype.shared = {
 	},
 
 	getNextForgers: function (req, cb) {
-		var currentBlock = modules.blocks.getLastBlock ();
+		var currentBlock = modules.blocks.lastBlock.get();
 		var limit = req.body.limit || 10;
 
 		modules.delegates.generateDelegateList(currentBlock.height, function (err, activeDelegates) {
@@ -722,7 +844,7 @@ Delegates.prototype.shared = {
 			}
 
 			if (req.body.start !== undefined || req.body.end !== undefined) {
-				modules.blocks.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
+				modules.blocks.utils.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
 					if (err) {
 						return setImmediate(cb, err);
 					}

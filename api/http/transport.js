@@ -4,6 +4,30 @@ var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 var schema = require('../../schema/transport');
 
+/**
+ * Binds api with modules and creates common url.
+ * - End point: `/peer`
+ * - Private API:
+ * 	- get	/blocks/common
+ * 	- get	/blocks
+ * 	- get	/list
+ * 	- get	/height
+ * 	- get	/ping
+ * 	- get	/signatures
+ * 	- get	/transactions
+ * 	- post	/dapp/message
+ * 	- post	/dapp/request
+ * 	- post	/blocks
+ * 	- post	/signatures
+ * 	- post	/transactions
+ * @memberof module:transport
+ * @requires helpers/Router
+ * @requires helpers/httpApi
+ * @constructor
+ * @param {Object} transportModule - Module transport instance.
+ * @param {scope} app - Network app.
+ * @param {function} logger
+ */
 // Constructor
 function TransportHttpApi (transportModule, app, logger, cache) {
 
