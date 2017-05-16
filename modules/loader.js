@@ -202,6 +202,7 @@ __private.loadTransactions = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
+			peer.attachRPC();
 			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
