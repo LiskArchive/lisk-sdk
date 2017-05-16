@@ -278,7 +278,7 @@ d.run(function () {
 				port: parseInt(scope.config.port) + 1000,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				workerController: './api/ws/workersController',
+				workerController: workersController.path,
 				perMessageDeflate: false,
 				secretKey: 'liskSecretKey',
 				pingInterval: 5000,
