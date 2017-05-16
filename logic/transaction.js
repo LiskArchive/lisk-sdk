@@ -17,11 +17,11 @@ __private.types = {};
 
 // Private methods
 __private.calculateFee = function (trs, sender) {
-	var fee = 0;
+	var fee = new bignum(__private.types[trs.type].calculateFee.call(this, trs, sender) || 0);
 	if (trs.data) {
-		fee = constants.fees.data;
+		fee = fee.plus(constants.fees.data);
 	}
-	return __private.types[trs.type].calculateFee.call(this, trs, sender) + fee || false;
+	return Number(fee.toString());
 };
 
 // Constructor
