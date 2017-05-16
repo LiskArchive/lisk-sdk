@@ -52,10 +52,17 @@ function WsRPCClient (ip, port) {
 	//first time init || previously rejected
 	if (!socketDefer || socketDefer.promise.inspect().state === 'rejected') {
 		socketDefer = Q.defer();
+		this.initializeNewConnection({
+			hostname: ip,
+			port: +port + 1000,
+			protocol: 'http',
+			autoReconnect: true,
+			query: constants.getConst('headers')
+		}, socketDefer);
 		WsRPCServer.wsClientsConnectionsMap[address] = socketDefer;
 	}
 
-	return this.clientStub(this.sendAfterSocketReadyCb(ip, port, socketDefer));
+	return this.clientStub(this.sendAfterSocketReadyCb(socketDefer));
 }
 
 /**
@@ -109,7 +116,7 @@ WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) 
  * @param {Q.defer} socketDefer
  * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
  */
-WsRPCClient.prototype.sendAfterSocketReadyCb = function (ip, port, socketDefer) {
+WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
 	return function (procedureName) {
 		/**
 		 * @param {object} data [data={}] argument passed to procedure
@@ -118,17 +125,7 @@ WsRPCClient.prototype.sendAfterSocketReadyCb = function (ip, port, socketDefer) 
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
 			data = (data && !_.isFunction(data)) ? data : {};
-			if (!socketDefer.promise.initialized) {
-				WsRPCClient.prototype.initializeNewConnection({
-					hostname: ip,
-					port: +port + 1000,
-					protocol: 'ws',
-					autoReconnect: true,
-					query: constants.getConst('headers')
-				}, socketDefer);
-			}
-
-			socketDefer.promise.then(function (socket) {
+			socketReady.promise.then(function (socket) {
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
