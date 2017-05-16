@@ -28,7 +28,15 @@ __private.blockReward = new BlockReward();
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 function Accounts (cb, scope) {
-	library = scope;
+	library = {
+		logic: {
+			account: scope.logic.account,
+			transaction: scope.logic.transaction,
+		},
+		ed: scope.ed,
+		schema: scope.schema,
+		balancesSequence: scope.balancesSequence,
+	};
 	self = this;
 
 	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
@@ -228,11 +236,16 @@ Accounts.prototype.sandboxApi = function (call, args, cb) {
  * @param {scope} scope - Loaded modules.
  */
 Accounts.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		delegates: scope.delegates,
+		accounts: scope.accounts,
+		transactions: scope.transactions,
+	};
 
-	__private.assetTypes[transactionTypes.VOTE].bind({
-		modules: modules
-	});
+	__private.assetTypes[transactionTypes.VOTE].bind(
+		scope.delegates,
+		scope.rounds
+	);
 };
 /**
  * Checks if modules is loaded.

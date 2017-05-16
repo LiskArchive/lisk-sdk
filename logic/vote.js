@@ -10,11 +10,14 @@ var modules, library, self;
 
 // Constructor
 /**
- * Initializes library
+ * Initializes library.
+ * @memberof module:accounts
  * @class
- * @classdesc Main vote logic
+ * @classdesc Main vote logic.
  * Allows validate and undo transactions, verify votes.
  * @constructor
+ * @param {Object} logger
+ * @param {ZSchema} schema
  */
 function Vote (logger, schema) {
 	self = this;
@@ -27,11 +30,15 @@ function Vote (logger, schema) {
 
 // Public methods
 /**
- * Binds scope content to private variable module.
- * @param {scope} scope - App instance.
+ * Binds module content to private object modules.
+ * @param {Delegates} delegates
+ * @param {Rounds} rounds
  */
-Vote.prototype.bind = function (scope) {
-	modules = scope.modules;
+Vote.prototype.bind = function (delegates, rounds) {
+	modules = {
+		delegates,
+		rounds
+	};
 };
 
 /**
