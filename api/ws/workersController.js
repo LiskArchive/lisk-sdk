@@ -15,8 +15,6 @@ var extractHeaders = require('../../helpers/wsApi').extractHeaders;
  * Function is invoked by SocketCluster
  * @param {Worker} worker
  */
-
-
 module.exports.run = function (worker) {
 
 	var scServer = worker.getSCServer();

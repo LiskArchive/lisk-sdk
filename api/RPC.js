@@ -64,6 +64,7 @@ function WsRPCClient (ip, port) {
  */
 WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) {
 
+	console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
 	var clientSocket = WsRPCServer.scClient.connect(options);
 
 	WsRPCServer.wampClient.upgradeToWAMP(clientSocket);
@@ -71,10 +72,13 @@ WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) 
 	socketDefer.promise.initialized = true;
 
 	clientSocket.on('connect', function () {
+		console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT SUCCESS -- ASKING ABOUT MYSELF', options.hostname, options.port);
 		if (!constants.externalAddress) {
 			clientSocket.wampSend('list', {query: {
 				nonce: options.query.nonce
-			}}).then(function (res) {
+			}})
+			.then(function (res) {
+				console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT SUCCESS -- GET MY REMOTE ADDRESS', res.peers[0].ip);
 				constants.setConst('externalAddress', res.peers[0].ip);
 				return socketDefer.resolve(clientSocket);
 			}).catch(function (err) {

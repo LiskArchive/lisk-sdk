@@ -273,56 +273,53 @@ d.run(function () {
 		}],
 
 		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
-			if (!process.env['MASTER_PROCESS']) {
-				process.env['MASTER_PROCESS'] = process.pid;
-				var webSocketConfig = {
-					workers: 1,
-					port: parseInt(scope.config.port) + 1000,
-					wsEngine: 'uws',
-					appName: 'lisk',
-					workerController: './app.js',
-					perMessageDeflate: false,
-					secretKey: 'liskSecretKey',
-					pingInterval: 5000,
-					// How many milliseconds to wait without receiving a ping
-					// before closing the socket
-					pingTimeout: 60000,
-					// Maximum amount of milliseconds to wait before force-killing
-					// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
-					processTermTimeout: 10000
-				};
+			var webSocketConfig = {
+				workers: 1,
+				port: parseInt(scope.config.port) + 1000,
+				wsEngine: 'uws',
+				appName: 'lisk',
+				workerController: './api/ws/workersController.js',
+				perMessageDeflate: false,
+				secretKey: 'liskSecretKey',
+				pingInterval: 5000,
+				// How many milliseconds to wait without receiving a ping
+				// before closing the socket
+				pingTimeout: 60000,
+				// Maximum amount of milliseconds to wait before force-killing
+				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
+				processTermTimeout: 10000
+			};
 
-				if (scope.config.ssl.enabled) {
-					extend(webSocketConfig, {
-						protocol: 'https',
-						// This is the same as the object provided to Node.js's https server
-						protocolOptions: {
-							key: fs.readFileSync(scope.config.ssl.options.key),
-							cert: fs.readFileSync(scope.config.ssl.options.cert),
-							ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
-						}
-					});
-				}
-
-				var childProcessOptions = {
-					version: scope.config.version,
-					minVersion: scope.config.minVersion,
-					nethash: scope.config.nethash,
-					port: scope.config.port,
-					nonce: scope.config.nonce
-				};
-
-				var socketCluster = new SocketCluster(webSocketConfig);
-
-				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-
-				scope.network.app.rpc = WsRPCServer.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
-
-				socketCluster.on('ready', function (err, result) {
-					scope.logger.info('Socket Cluster ready for incoming connections');
-					cb();
+			if (scope.config.ssl.enabled) {
+				extend(webSocketConfig, {
+					protocol: 'https',
+					// This is the same as the object provided to Node.js's https server
+					protocolOptions: {
+						key: fs.readFileSync(scope.config.ssl.options.key),
+						cert: fs.readFileSync(scope.config.ssl.options.cert),
+						ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
+					}
 				});
 			}
+
+			var childProcessOptions = {
+				version: scope.config.version,
+				minVersion: scope.config.minVersion,
+				nethash: scope.config.nethash,
+				port: scope.config.port,
+				nonce: scope.config.nonce
+			};
+
+			var socketCluster = new SocketCluster(webSocketConfig);
+
+			var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+			scope.network.app.rpc = WsRPCServer.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
+
+			socketCluster.on('ready', function (err, result) {
+				scope.logger.info('Socket Cluster ready for incoming connections');
+				cb();
+			});
 
 		}],
 

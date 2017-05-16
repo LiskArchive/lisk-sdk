@@ -16,7 +16,7 @@ var sql = require('../sql/peers.js');
 var util = require('util');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, library, self, __private = {};
 
 /**
  * Initializes library with scope content.
@@ -46,6 +46,13 @@ function Peers (cb, scope) {
 		},
 	};
 	self = this;
+
+	setInterval(function () {
+		this.list({}, function (err, peers) {
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers);
+		});
+	}.bind(this), 5000);
+
 	setImmediate(cb, null, self);
 }
 
