@@ -37,7 +37,26 @@ __private.tmpKeypairs = {};
  */
 // Constructor
 function Delegates (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		sequence: scope.sequence,
+		ed: scope.ed,
+		db: scope.db,
+		network: scope.network,
+		schema: scope.schema,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+		config: {
+			forging: {
+				secret: scope.config.forging.secret,
+				access: {
+					whiteList: scope.config.forging.access.whiteList,
+				},
+			},
+		},
+	};
 	self = this;
 
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
@@ -504,11 +523,19 @@ Delegates.prototype.sandboxApi = function (call, args, cb) {
  * @param {scope} scope - Loaded modules.
  */
 Delegates.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		loader: scope.loader,
+		rounds: scope.rounds,
+		accounts: scope.accounts,
+		blocks: scope.blocks,
+		transport: scope.transport,
+		transactions: scope.transactions,
+		delegates: scope.delegates,
+	};
 
-	__private.assetTypes[transactionTypes.DELEGATE].bind({
-		modules: modules, library: library
-	});
+	__private.assetTypes[transactionTypes.DELEGATE].bind(
+		scope.accounts
+	);
 };
 
 /**

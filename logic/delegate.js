@@ -20,10 +20,13 @@ function Delegate (schema) {
 
 // Public methods
 /**
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variables modules.
+ * @param {Accounts} accounts
  */
-Delegate.prototype.bind = function (scope) {
-	modules = scope.modules;
+Delegate.prototype.bind = function (accounts) {
+	modules = {
+		accounts,
+	};
 };
 
 /**
