@@ -56,7 +56,21 @@ __private.routes = {};
  */
 // Constructor
 function DApps (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		public: scope.public,
+		network: scope.network,
+		schema: scope.schema,
+		ed: scope.ed,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+		config: {
+			dapp: scope.config.dapp,
+		},
+	};
 	self = this;
 
 	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
@@ -933,21 +947,30 @@ DApps.prototype.request = function (dappid, method, path, query, cb) {
 
 // Events
 /**
- * Bounds scope to private modules variable and modules and library
+ * Bounds used scope modules to private modules variable and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
  * @implements module:transactions#Transfer~bind
  * @param {scope} scope - Loaded modules.
  */
 DApps.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transactions: scope.transactions,
+		accounts: scope.accounts,
+		peers: scope.peers,
+		sql: scope.sql,
+	};
 
-	__private.assetTypes[transactionTypes.IN_TRANSFER].bind({
-		modules: modules, library: library, shared: shared
-	});
+	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
+		scope.accounts,
+		scope.rounds,
+		shared
+	);
 
-	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind({
-		modules: modules, library: library
-	});
+	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
+		scope.accounts,
+		scope.rounds,
+		scope.dapps
+	);
 };
 
 /**

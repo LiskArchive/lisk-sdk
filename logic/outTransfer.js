@@ -28,11 +28,17 @@ function OutTransfer (db, schema, logger) {
 
 // Public methods
 /**
- * Binds scope content to private variables modules and library.
- * @param {scope} scope - App instance.
+ * Binds input modules to private variable module.
+ * @param {Accounts} accounts
+ * @param {Rounds} rounds
+ * @param {Dapps} dapps
  */
-OutTransfer.prototype.bind = function (scope) {
-	modules = scope.modules;
+OutTransfer.prototype.bind = function (accounts, rounds, dapps) {
+	modules = {
+		accounts,
+		rounds,
+		dapps,
+	};
 };
 
 /**

@@ -24,12 +24,17 @@ function InTransfer (db, schema) {
 
 // Public methods
 /**
- * Binds scope content to private variables modules and shared.
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variables modules and shared.
+ * @param {Accounts} accounts
+ * @param {Rounds} rounds
+ * @param {Object} shared
  */
-InTransfer.prototype.bind = function (scope) {
-	modules = scope.modules;
-	shared = scope.shared;
+InTransfer.prototype.bind = function (accounts, rounds, shared) {
+	modules = {
+		accounts,
+		rounds,
+	};
+	shared = shared;
 };
 
 /**
