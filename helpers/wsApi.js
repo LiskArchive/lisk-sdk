@@ -75,7 +75,6 @@ var extractHeaders = function (request) {
 	if (!headers) {
 		throw new Error('No headers specified');
 	}
-	console.log('request.headers ', request.remoteAddress, headers, request.headers['x-forwarded-for']);
 	headers.ip = request.remoteAddress.split(':').pop();
 	headers.port = parseInt(headers.port);
 	console.log('IP', headers.ip);

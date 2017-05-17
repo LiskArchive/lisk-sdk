@@ -343,6 +343,7 @@ Peers.prototype.ban = function (pip, port, seconds) {
 
 Peers.prototype.ping = function (peer, cb) {
 	library.logger.trace('Pinging peer: ' + peer.string);
+	peer.attachRPC();
 	peer.rpc.status(function (err, response) {
 		if (err) {
 			library.logger.trace('Ping peer failed: ' + peer.string, err);
@@ -367,6 +368,7 @@ Peers.prototype.discover = function (cb) {
 	function getFromRandomPeer (waterCb) {
 		modules.peers.list({limit: 1}, function (err, peers) {
 			if (!err && peers.length) {
+				peers[0].attachRPC();
 				peers[0].rpc.list(waterCb);
 			} else {
 				return setImmediate(waterCb, err || 'No acceptable peers found');

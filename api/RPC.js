@@ -72,16 +72,20 @@ WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) 
 	socketDefer.promise.initialized = true;
 
 	clientSocket.on('connect', function () {
-		console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT SUCCESS -- ASKING ABOUT MYSELF', options.hostname, options.port);
-
-		clientSocket.emit('handshake');
-
-		clientSocket.on('handshakeSuccess', function (meAsPeer) {
-			console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- HANDSHAKE SUCCESS - ME AS PEER ', meAsPeer);
-			if (!constants.externalAddress) {
-				constants.setConst('externalAddress', meAsPeer.ip);
-			}
-		});
+		if (!constants.externalAddress) {
+			clientSocket.wampSend('list', {query: {
+				nonce: options.query.nonce
+			}}).then(function (res) {
+				console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ME AS PEER: ', res.peers[0]);
+				constants.setConst('externalAddress', res.peers[0].ip);
+				return socketDefer.resolve(clientSocket);
+			}).catch(function (err) {
+				clientSocket.disconnect();
+				return socketDefer.reject(err);
+			});
+		} else {
+			return socketDefer.resolve(clientSocket);
+		}
 	});
 
 	clientSocket.on('error', function () {
