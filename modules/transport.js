@@ -664,8 +664,8 @@ Transport.prototype.internal = {
 	 * @param {string} query.extraMessage
 	 * @param {function} cb
 	 */
-	removePeer: function (query, cb) {
-		return setImmediate(cb, __private.removePeer({peer: query.peer, code: query.code}, query.extraMessage) ? null : 'Failed to remove peer');
+	removePeer: function (peer, cb) {
+		return setImmediate(cb, __private.removePeer({peer: peer, code: 0}, '') ? null : 'Failed to remove peer');
 	},
 
 	/**
@@ -673,8 +673,8 @@ Transport.prototype.internal = {
 	 * @param {Peer} query.peer
 	 * @param {function} cb
 	 */
-	acceptPeer: function (query, cb) {
-		return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
+	acceptPeer: function (peer, cb) {
+		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };
 

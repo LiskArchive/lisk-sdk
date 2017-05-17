@@ -64,7 +64,7 @@ function WsRPCClient (ip, port) {
  */
 WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) {
 
-	console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
+	console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
 	var clientSocket = WsRPCServer.scClient.connect(options);
 
 	WsRPCServer.wampClient.upgradeToWAMP(clientSocket);
@@ -73,22 +73,15 @@ WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) 
 
 	clientSocket.on('connect', function () {
 		console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT SUCCESS -- ASKING ABOUT MYSELF', options.hostname, options.port);
-		if (!constants.externalAddress) {
-			clientSocket.wampSend('list', {query: {
-				nonce: options.query.nonce
-			}})
-			.then(function (res) {
-				console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT SUCCESS -- GET MY REMOTE ADDRESS', res.peers[0].ip);
-				constants.setConst('externalAddress', res.peers[0].ip);
-				return socketDefer.resolve(clientSocket);
-			})
-			.catch(function (err) {
-				clientSocket.disconnect();
-				return socketDefer.reject(err);
-			});
-		} else {
-			return socketDefer.resolve(clientSocket);
-		}
+
+		clientSocket.emit('handshake');
+
+		clientSocket.on('handshakeSuccess', function (meAsPeer) {
+			console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- HANDSHAKE SUCCESS - ME AS PEER ', meAsPeer);
+			if (!constants.externalAddress) {
+				constants.setConst('externalAddress', meAsPeer.ip);
+			}
+		});
 	});
 
 	clientSocket.on('error', function () {
@@ -121,8 +114,9 @@ WsRPCClient.prototype.sendAfterSocketReadyCb = function (ip, port, socketDefer) 
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
 			data = (data && !_.isFunction(data)) ? data : {};
-
-			if (!socketDefer.initialized) {
+			console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ASK ABOUT PROCEDURE: ', procedureName, socketDefer.promise.initialized);
+			if (!socketDefer.promise.initialized) {
+				console.log(socketDefer.promise.initialized);
 				WsRPCClient.prototype.initializeNewConnection({
 					hostname: ip,
 					port: +port + 1000,
