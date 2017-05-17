@@ -18,6 +18,14 @@ describe('peer', function () {
 		peer = new Peer({});
 	});
 
+	describe('constructor', function () {
+
+		it('should create Peer with all properties implemented', function () {
+			var __peer = new Peer({ip: '127.0.0.1', port: 4000});
+			expect(__peer).to.have.property('rpc');
+		});
+	});
+
 	describe('accept', function () {
 
 		it('should accept valid peer', function () {
@@ -201,5 +209,6 @@ describe('peer', function () {
 			expect(peerCopy.state).to.equal(1);
 			peer.state = initialState;
 		});
+
 	});
 });
