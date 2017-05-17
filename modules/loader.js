@@ -564,6 +564,7 @@ __private.loadBlocksFromNetwork = function (cb) {
  * @todo check err actions
  */
 __private.sync = function (cb) {
+	console.trace('SYNC INVOKED');
 	library.logger.info('Starting sync');
 
 	__private.isActive = true;
