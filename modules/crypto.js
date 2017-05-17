@@ -9,6 +9,13 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.loaded = false;
 
+/**
+ * Initializes library with scope content.
+ * @class
+ * @classdesc Main Crypto methods.
+ * @param {setImmediateCallback} cb - Callback function.
+ * @param {scope} scope - App instance.
+ */
 // Constructor
 function Crypto (cb, scope) {
 	library = scope;
@@ -18,15 +25,29 @@ function Crypto (cb, scope) {
 }
 
 // Public methods
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {*} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Crypto.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Assigns scope to modules variable.
+ * @param {scope} scope - Loaded modules.
+ */
 Crypto.prototype.onBind = function (scope) {
 	modules = scope;
 };
 
+/**
+ * Sets to true private variable loaded.
+ */
 Crypto.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 };

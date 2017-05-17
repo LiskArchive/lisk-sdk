@@ -19,6 +19,16 @@ __private.loaded = false;
 __private.cleanup = false;
 __private.isActive = false;
 
+/**
+ * Initializes library with scope content.
+ * Calls __private.saveGenesisBlock.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main Blocks methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Blocks (cb, scope) {
 	library = scope;
@@ -46,6 +56,10 @@ function Blocks (cb, scope) {
 	});
 }
 
+/**
+ * PUBLIC METHODS
+ */
+
 Blocks.prototype.lastBlock = {
 	get: function () {
 		return __private.lastBlock;
@@ -53,6 +67,42 @@ Blocks.prototype.lastBlock = {
 	set: function (lastBlock) {
 		__private.lastBlock = lastBlock;
 		return __private.lastBlock;
+	},
+	/**
+	 * Returns status of last block - if it fresh or not
+	 *
+	 * @public
+	 * @method lastBlock.isFresh
+	 * @return {Boolean} Fresh status of last block
+	 */
+	isFresh: function () {
+		if (!__private.lastBlock) { return false; }
+		// Current time in seconds - (epoch start in seconds + block timestamp)
+		var secondsAgo = Math.floor(Date.now() / 1000) - (Math.floor(constants.epochTime / 1000) + __private.lastBlock.timestamp);
+		return (secondsAgo < constants.blockReceiptTimeOut);
+	}
+};
+
+Blocks.prototype.lastReceipt = {
+	get: function () {
+		return __private.lastReceipt;
+	},
+	update: function () {
+		__private.lastReceipt = Math.floor(Date.now() / 1000);
+		return __private.lastReceipt;
+	},
+	/**
+	 * Returns status of last receipt - if it stale or not
+	 *
+	 * @public
+	 * @method lastReceipt.isStale
+	 * @return {Boolean} Stale status of last receipt
+	 */
+	isStale: function () {
+		if (!__private.lastReceipt) { return true; }
+		// Current time in seconds - lastReceipt (seconds)
+		var secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
+		return (secondsAgo > constants.blockReceiptTimeOut);
 	}
 };
 
@@ -70,58 +120,6 @@ Blocks.prototype.isCleaning = {
 	get: function () {
 		return __private.cleanup;
 	}
-};
-
-/**
- * PUBLIC METHODS
- */
-
-/**
- * Get last block with additional 'secondsAgo' and 'fresh' properties
- *
- * @public
- * @method getLastBlock
- * @return {Object} lastBlock Modified last block
- */
-Blocks.prototype.getLastBlock = function () {
-	if (__private.lastBlock) {
-		var epoch = constants.epochTime / 1000;
-		var lastBlockTime = epoch + __private.lastBlock.timestamp;
-		var currentTime = new Date().getTime() / 1000;
-
-		//FIXME: That function modify global last block object - not good, for what we need those properties?
-		// 'fresh' is used in modules.loader.internal.statusPing
-		__private.lastBlock.secondsAgo = Math.round((currentTime - lastBlockTime) * 1e2) / 1e2;
-		__private.lastBlock.fresh = (__private.lastBlock.secondsAgo < constants.blockReceiptTimeOut);
-	}
-
-	return __private.lastBlock;
-};
-
-/**
- * Returns last receipt - indicator how long ago last block was received
- *
- * @public
- * @method lastReceipt
- * @param  {Object} [lastReceipt] Last receipt, if supplied - global one will be overwritten
- * @return {Object} lastReceipt Last receipt
- */
-Blocks.prototype.lastReceipt = function (lastReceipt) {
-	//TODO: Should public methods modify module's global object directly?
-	if (lastReceipt) {
-		__private.lastReceipt = lastReceipt;
-	}
-
-	if (__private.lastReceipt) {
-		// Recalculate how long ago we received a block
-		var timeNow = new Date();
-		__private.lastReceipt.secondsAgo = Math.floor((timeNow.getTime() - __private.lastReceipt.getTime()) / 1000);
-		__private.lastReceipt.secondsAgo = Math.round(__private.lastReceipt.secondsAgo * 1e2) / 1e2;
-		// Mark if last receipt is stale - that is used to trigger sync in case we not received a block for long
-		__private.lastReceipt.stale = (__private.lastReceipt.secondsAgo > constants.blockReceiptTimeOut);
-	}
-
-	return __private.lastReceipt;
 };
 
 /**

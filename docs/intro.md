@@ -5,8 +5,15 @@
 This is an ongoing process
 ## Best Practices
 * To indicate the data type for a `@param` or `@return` tag, put the data type in `{}` brackets: `@param {TheType} paramName` or `@return {TheType}`. 
-For non-object data, use `number`, `string`, `bool`, `null`, `undefined`, `object`, `function`, `Array`. 
+For non-object data, use `number`, `string`, `boolean`, `null`, `undefined`, `Object`, `function`, `Array`. 
 For particular objects, use the constructor name; this could be a built-in JavaScript class (`Date`, `RegExp`) or custom classes.
+* This can be a number or a boolean. `{(number|boolean)}`
+* A number or null: `{?number}`
+* A number, but never null: `{!number}`
+* Variable number of that type `@param {...number} num`
+* Optional parameter `@param {number} [foo]` or `@param {number=} foo`
+* An optional parameter foo with default value 1. `@param {number} [foo=1]`
+* [multiple types and repeatable parameters](http://usejsdoc.org/tags-param.html#multiple-types-and-repeatable-parameters)
 
 * when documenting an object that is not being used as a `namespace` or `class`, use `@prop {type} name` tags to document its properties (these work like `@param` for function parameters).
 
@@ -197,3 +204,7 @@ Example: Account module is composed by:
 - [ ] Patterns examples
 - [ ] More Lisk examples: callback, throws, class, nested objects
 - [ ] JSDoc tutorials for best practices
+- [ ] Callback patterns
+    * node style: cb(err, data); - `app.js`
+    * setImmediate style: return setImmediate(cb, null, data); - `modules/blocks.js`
+    * next style: cb(); - `app.js`
