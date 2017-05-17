@@ -34,7 +34,27 @@ __private.retries = 5;
  */
 // Constructor
 function Loader (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		network: scope.network,
+		schema: scope.schema,
+		sequence: scope.sequence,
+		bus: scope.bus,
+		genesisblock: scope.genesisblock,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+			account: scope.logic.account,
+			peers: scope.logic.peers,
+		},
+		config: {
+			loading: {
+				verifyOnLoading: scope.config.loading.verifyOnLoading,
+				snapshot: scope.config.loading.snapshot,
+			},
+		},
+	};
 	self = this;
 
 	__private.initialize();
@@ -795,12 +815,20 @@ Loader.prototype.onPeersReady = function () {
 };
 
 /**
- * Assigns scope to modules variable.
+ * Assigns needed modules from scope to private modules variable.
  * Calls __private.loadBlockChain
- * @param {scope} scope
+ * @param {modules} scope
  */
 Loader.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transactions: scope.transactions,
+		blocks: scope.blocks,
+		peers: scope.peers,
+		rounds: scope.rounds,
+		transport: scope.transport,
+		multisignatures: scope.multisignatures,
+		system: scope.system,
+	};
 
 	__private.loadBlockChain();
 };
