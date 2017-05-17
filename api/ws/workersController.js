@@ -15,6 +15,8 @@ var extractHeaders = require('../../helpers/wsApi').extractHeaders;
  * Function is invoked by SocketCluster
  * @param {Worker} worker
  */
+
+
 module.exports.run = function (worker) {
 
 	var scServer = worker.getSCServer();
@@ -33,36 +35,30 @@ module.exports.run = function (worker) {
 		}],
 
 		handshake: ['system', function (scope, cb) {
-			return cb(null, Handshake(scope.system));
+			var handshake = Handshake(scope.system);
+
+			scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, function (req, next) {
+				try {
+					var headers = extractHeaders(req);
+				} catch (invalidHeadersException) {
+					return next(invalidHeadersException);
+				}
+
+				console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE RECEIVED: ', headers);
+
+				handshake(headers, function (err, peer) {
+					console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE COMPLISHED ', err, peer);
+					return scope.slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', peer, req.remoteAddress, function (onMasterError) {
+						return next(err || onMasterError);
+					});
+				});
+			});
+			return cb(null, handshake);
 		}]
 	},
 		function (err, scope) {
 			scServer.on('connection', function (socket) {
-
-				socket.on('handshake', function () {
-					console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE RECEIVED: ', socket.request.url);
-					try {
-						var senderHeaders = extractHeaders(socket.request);
-					} catch (invalidHeadersException) {
-						console.log('\x1b[32m%s\x1b[0m', 'WorkerController: WRONG HEADERS - DISCONNECTING ', invalidHeadersException);
-						return socket.disconnect(1005, invalidHeadersException);
-					}
-
-					scope.handshake(senderHeaders, function (err, peer) {
-						console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE RESULT ', err, peer);
-						return scope.slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', peer, socket.request.remoteAddress, function (onMasterError) {
-							console.log('\x1b[32m%s\x1b[0m', 'WorkerController: SENT ACTION TO MASTER RESULT: ', onMasterError, peer);
-
-							if (err || onMasterError) {
-								console.log('\x1b[32m%s\x1b[0m', 'WorkerController: ON MASTER / HANDSHAKE ERROR - DISCONNECTING', onMasterError, err);
-								return socket.disconnect(1004, err || onMasterError);
-							}
-							console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE SUCCESS - SENDING EMIT EVENT ', peer);
-
-							return socket.emit('handshakeSuccess', peer);
-						});
-					});
-				});
+				scope.slaveWAMPServer.upgradeToWAMP(socket);
 
 				socket.on('disconnect', function () {
 					scope.slaveWAMPServer.onSocketDisconnect(socket);
@@ -73,15 +69,14 @@ module.exports.run = function (worker) {
 						return;
 					}
 					console.log('\x1b[32m%s\x1b[0m', 'WorkerController: ON SOCKET DISCONNECTED - REMOVING PEER with headers', headers);
-					return scope.slaveWAMPServer.sendToMaster('removePeer', new Peer(headers), socket.request.headers.host, function (err, peer) {
+					return scope.slaveWAMPServer.sendToMaster('removePeer',  new Peer(headers), socket.request.remoteAddress, function (err, peer) {
 						if (err) {
 							//ToDo: Again logging here- unable to remove peer
 						}
 					});
-				});
+				}.bind(this));
 
 				socket.on('connect', function (data) {
-					scope.slaveWAMPServer.upgradeToWAMP(socket);
 					//ToDo: integrate this socket connection with future peer client connection - one socket will be sufficient
 				});
 
