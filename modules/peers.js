@@ -170,12 +170,17 @@ __private.insertSeeds = function (cb) {
 		peer = library.logic.peers.create(peer).attachRPC();
 		library.logger.trace('Processing seed peer: ' + peer.string);
 		peer.rpc.status(function (err, status) {
-			if (!err) {
-				peer.height = status.height;
-				peer.broadhash = status.broadhash;
-				++updated;
+			console.log('\x1b[34m%s\x1b[0m', 'PEERS MODULE - INITIAL PEER STATUS ASKING RESPONSE ', err, status, peer.string);
+			if (err) {
+				library.logger.trace('Ping peer failed: ' + peer.string, err);
+			} else {
+				peer.applyHeaders({
+					height: status.height,
+					broadhash: status.broadhash
+				});
+				updated += 1;
 			}
-			return setImmediate(eachCb);
+			return setImmediate(cb, err);
 		});
 	}, function (err) {
 		library.logger.trace('Peers->insertSeeds - Peers discovered', {updated: updated, total: library.config.peers.list.length});
@@ -210,10 +215,14 @@ __private.dbLoad = function (cb) {
 			}
 			function updatePeer (peer) {
 				peer.rpc.status(function (err, status) {
-					if (!err) {
-						peer.height = status.height;
-						peer.broadhash = status.broadhash;
-						++updated;
+					if (err) {
+						library.logger.trace('Ping peer from db failed: ' + peer.string, err);
+					} else {
+						peer.applyHeaders({
+							height: status.height,
+							broadhash: status.broadhash
+						});
+						updated += 1;
 					}
 					return setImmediate(eachCb);
 				});
@@ -339,23 +348,6 @@ Peers.prototype.ban = function (pip, port, seconds) {
 	} else {
 		return library.logic.peers.ban (pip, port, seconds);
 	}
-};
-
-Peers.prototype.ping = function (peer, cb) {
-	library.logger.trace('Pinging peer: ' + peer.string);
-	peer.attachRPC();
-	peer.rpc.status(function (err, response) {
-		if (err) {
-			library.logger.trace('Ping peer failed: ' + peer.string, err);
-			return setImmediate(cb, err);
-		} else {
-			peer.applyHeaders({
-				height: response.height,
-				broadhash: response.broadhash
-			});
-			return setImmediate(cb);
-		}
-	});
 };
 
 /**
@@ -575,8 +567,16 @@ Peers.prototype.onPeersReady = function () {
 					// If peer is not banned and not been updated during last 3 sec - ping
 					if (peer && peer.state > 0 && (!peer.updated || Date.now() - peer.updated > 3000)) {
 						library.logger.trace('Updating peer', peer);
-						self.ping(peer, function (err) {
-							++updated;
+						peer.rpc.status(function (err, status) {
+							if (err) {
+								library.logger.trace('Every 10sec peers check ping peer failed ' + peer.string, err);
+							} else {
+								peer.applyHeaders({
+									height: status.height,
+									broadhash: status.broadhash
+								});
+								updated += 1;
+							}
 							return setImmediate(eachCb);
 						});
 					} else {
