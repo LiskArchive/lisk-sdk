@@ -76,7 +76,7 @@ var extractHeaders = function (request) {
 		throw new Error('No headers specified');
 	}
 
-	headers.ip = request.headers.host.split(':')[0];
+	headers.ip = request.remoteAddress.split(':').pop();
 	headers.port = parseInt(headers.port);
 
 	return headers;
