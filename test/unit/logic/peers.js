@@ -69,32 +69,49 @@ describe('peers', function () {
 	});
 
 	describe('list', function () {
-		it('should list peers as Peer instances', function () {
+
+		beforeEach(function () {
 			removeAll();
+		});
+
+		it('should list peers as Peer instances', function () {
 			peers.upsert(randomPeer);
 			peers.list().forEach(function (peer) {
 				expect(peer).to.be.an.instanceof(Peer);
 			});
-			removeAll();
+		});
+
+		it('should list peers with rpc', function () {
+			peers.upsert(randomPeer);
+			peers.list().forEach(function (peer) {
+				expect(peer).have.property('rpc');
+			});
 		});
 
 		it('should list peers as objects when normalized', function () {
-			removeAll();
 			peers.upsert(randomPeer);
 			peers.list(true).forEach(function (peer) {
 				expect(peer).to.be.an('object');
 			});
-			removeAll();
+		});
+
+		it('should should not contain rpc when normalized', function () {
+			peers.upsert(randomPeer);
+			peers.list(true).forEach(function (peer) {
+				expect(peer).not.to.have.property('rpc');
+			});
 		});
 	});
 
 	describe('upsert', function () {
 
-		it('should insert new peers', function () {
+		beforeEach(function () {
 			removeAll();
+		});
+
+		it('should insert new peers', function () {
 			peers.upsert(randomPeer);
 			expect(peers.list().length).equal(1);
-			removeAll();
 		});
 
 		it('should not insert new peer with lisk-js-api os', function () {
@@ -107,8 +124,6 @@ describe('peers', function () {
 		});
 
 		it('should update height of existing peer', function () {
-			removeAll();
-
 			peers.upsert(randomPeer);
 			var list = peers.list();
 			var inserted = list[0];
@@ -124,12 +139,9 @@ describe('peers', function () {
 			expect(arePeersEqual(updated, modifiedPeer)).to.be.ok;
 			expect(arePeersEqual(updated, randomPeer)).to.be.not.ok;
 
-			removeAll();
 		});
 
 		it('should not update height with insertOnly param', function () {
-			removeAll();
-
 			peers.upsert(randomPeer);
 			var list = peers.list();
 			var inserted = list[0];
@@ -144,13 +156,9 @@ describe('peers', function () {
 			expect(list.length).equal(1);
 			expect(arePeersEqual(updated, modifiedPeer)).to.be.not.ok;
 			expect(arePeersEqual(updated, randomPeer)).to.be.ok;
-
-			removeAll();
 		});
 
 		it('should insert peer with different ports', function () {
-			removeAll();
-
 			peers.upsert(randomPeer);
 			expect(peers.list().length).equal(1);
 
@@ -164,13 +172,9 @@ describe('peers', function () {
 			var listPorts = _.map(list, 'port');
 
 			expect(_.isEqual(demandedPorts.sort(), listPorts.sort())).to.be.ok;
-
-			removeAll();
 		});
 
 		it('should insert peer with different ips', function () {
-			removeAll();
-
 			peers.upsert(randomPeer);
 			expect(peers.list().length).equal(1);
 
@@ -185,16 +189,16 @@ describe('peers', function () {
 			var listIps = _.map(list, 'ip');
 
 			expect(_.isEqual(demandedIps.sort(), listIps.sort())).to.be.ok;
-
-			removeAll();
 		});
 	});
 
 	describe('exists', function () {
 
-		it('should return true if peer is on the list', function () {
+		beforeEach(function () {
 			removeAll();
+		});
 
+		it('should return true if peer is on the list', function () {
 			peers.upsert(randomPeer);
 			var list = peers.list(true);
 			expect(list.length).equal(1);
@@ -208,15 +212,17 @@ describe('peers', function () {
 
 	describe('get', function () {
 
-		it('should return inserted peer', function () {
+		beforeEach(function () {
 			removeAll();
+		});
+
+		it('should return inserted peer', function () {
 			peers.upsert(randomPeer);
 			var insertedPeer = peers.get(randomPeer);
 			expect(arePeersEqual(insertedPeer, randomPeer)).to.be.ok;
 		});
 
 		it('should return inserted peer by address', function () {
-			removeAll();
 			peers.upsert(randomPeer);
 			var insertedPeer = peers.get(randomPeer.ip + ':' + randomPeer.port);
 			expect(arePeersEqual(insertedPeer, randomPeer)).to.be.ok;
@@ -224,15 +230,72 @@ describe('peers', function () {
 		});
 
 		it('should return undefined if peer is not inserted', function () {
-			removeAll();
 			expect(peers.get(randomPeer)).to.be.undefined;
 		});
 	});
 
+	describe('ban', function () {
+
+		beforeEach(function () {
+			removeAll();
+		});
+
+		it('should change the peer state to banned', function () {
+			peers.upsert(randomPeer);
+			expect(peers.list().length).equal(1);
+			expect(peers.list()[0].state).equal(2);
+
+			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
+			expect(result).to.be.ok;
+			expect(peers.list().length).equal(1);
+			expect(peers.list()[0].state).equal(0);
+		});
+
+	});
+
+	describe('unban', function () {
+
+		beforeEach(function () {
+			removeAll();
+		});
+
+		it('should change the peer state to unbanned', function () {
+			peers.upsert(randomPeer);
+			expect(peers.list().length).equal(1);
+			expect(peers.list()[0].state).equal(2);
+
+			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
+			expect(result).to.be.ok;
+			expect(peers.list().length).equal(1);
+			expect(peers.list()[0].state).equal(0);
+
+			peers.unban(randomPeer);
+			expect(peers.list().length).equal(1);
+			expect(peers.list()[0].state).equal(1);
+		});
+
+		it('should do nothing when unbanning non inserted peer', function () {
+			peers.upsert(randomPeer);
+			expect(peers.list().length).equal(1);
+			expect(peers.list()[0].state).equal(2);
+
+			var differentPeer = _.clone(randomPeer);
+			differentPeer.port += 1;
+
+			peers.unban(differentPeer);
+			expect(peers.list().length).equal(1);
+			expect(arePeersEqual(peers.list()[0], randomPeer)).to.be.ok;
+		});
+
+	});
+
 	describe('remove', function () {
 
-		it('should remove added peer', function () {
+		beforeEach(function () {
 			removeAll();
+		});
+
+		it('should remove added peer', function () {
 			peers.upsert(randomPeer);
 			expect(peers.list().length).equal(1);
 			var result = peers.remove(randomPeer);
@@ -241,7 +304,6 @@ describe('peers', function () {
 		});
 
 		it('should return false when trying to remove non inserted peer', function () {
-			removeAll();
 			var result = peers.remove(randomPeer);
 			expect(result).to.be.not.ok;
 			expect(peers.list().length).equal(0);
