@@ -9,8 +9,32 @@ var transactionTypes = require('../../helpers/transactionTypes.js');
 
 var modules, library, self, __private = {};
 
-function Chain (scope) {
-	library = scope;
+/**
+ * Initializes library.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main Chain logic.
+ * Allows set information.
+ * @param {Object} logger
+ * @param {Block} block
+ * @param {Transaction} transaction
+ * @param {Database} db
+ * @param {Object} genesisblock
+ * @param {bus} bus
+ * @param {Sequence} balancesSequence
+ */
+function Chain (logger, block, transaction, db, genesisblock, bus, balancesSequence) {
+	library = {
+		logger,
+		db,
+		genesisblock,
+		bus,
+		balancesSequence,
+		logic: {
+			block,
+			transaction,
+		},
+	};
 	self = this;
 
 	library.logger.trace('Blocks->Chain: Submodule initialized.');
@@ -20,10 +44,7 @@ function Chain (scope) {
 /**
  * Save genesis block to database
  *
- * @private
  * @async
- * @method saveGenesisBlock
- * @param  {Object}   block Full normalized genesis block
  * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
@@ -52,9 +73,7 @@ Chain.prototype.saveGenesisBlock = function (cb) {
 /**
  * Save block with transactions to database
  *
- * @private
  * @async
- * @method saveBlock
  * @param  {Object}   block Full normalized block
  * @param  {Function} cb Callback function
  * @return {Function|afterSave} cb If SQL transaction was OK - returns safterSave execution,
@@ -639,16 +658,21 @@ Chain.prototype.recoverChain = function (cb) {
 };
 
 /**
- * Handle modules initialization
- *
- * @public
- * @method onBind
- * @listens module:app~event:bind
- * @param  {scope}   scope Exposed modules
+ * Handle modules initialization:
+ * - accounts
+ * - blocks
+ * - rounds
+ * - transactions
+ * @param {modules} scope Exposed modules
  */
 Chain.prototype.onBind = function (scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
-	modules = scope;
+	modules = {
+		accounts: scope.accounts,
+		blocks: scope.blocks,
+		rounds: scope.rounds,
+		transactions: scope.transactions,
+	};
 
 	// Set module as loaded
 	__private.loaded = true;
