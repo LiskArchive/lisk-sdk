@@ -8,6 +8,7 @@
     "consoleLogLevel": "debug",
     "trustProxy": false,
     "topAccounts": false,
+    "cacheEnabled": true,
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -34,6 +35,10 @@
                 "delayAfter": 0,
                 "windowMs": 60000
             }
+        },
+        "cache": {
+            "host": "127.0.0.1",
+            "port": 6379
         }
     },
     "peers": {
