@@ -25,17 +25,17 @@ var modules, library, self, __private = {};
 // Constructor
 function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger) {
 	library = {
+		logger,
+		bus,
+		logic: {
+			transaction
+		},
 		config: {
 			broadcasts: {
 				broadcastInterval,
 				releaseLimit
 			}
 		},
-		logic: {
-			transaction
-		},
-		bus,
-		logger,
 	};
 	self = this;
 
@@ -77,11 +77,17 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 
 // Public methods
 /**
- * Bounds scope to private modules variable
- * @param {scope} scope - App instance.
+ * Bounds input parameters to private variable modules.
+ * @param {Accounts} accounts
+ * @param {Transactions} transactions
+ * @param {Loader} loader
  */
-TransactionPool.prototype.bind = function (scope) {
-	modules = scope;
+TransactionPool.prototype.bind = function (accounts, transactions, loader) {
+	modules = {
+		accounts,
+		transactions,
+		loader,
+	};
 };
 
 /**

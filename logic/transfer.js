@@ -16,11 +16,15 @@ function Transfer () {}
 
 // Public methods
 /**
- * Binds scope to private variable modules.
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variable modules.
+ * @param {Accounts} accounts
+ * @param {Rounds} rounds
  */
-Transfer.prototype.bind = function (scope) {
-	modules = scope.modules;
+Transfer.prototype.bind = function (accounts, rounds) {
+	modules = {
+		accounts,
+		rounds,
+	};
 };
 
 /**

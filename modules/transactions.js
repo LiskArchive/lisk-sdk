@@ -36,7 +36,16 @@ __private.assetTypes = {};
  */
 // Constructor
 function Transactions (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		schema: scope.schema,
+		ed: scope.ed,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+	};
 	genesisblock = library.genesisblock;
 	self = this;
 
@@ -579,12 +588,20 @@ Transactions.prototype.isLoaded = function () {
  * @param {scope} scope - Loaded modules.
  */
 Transactions.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		accounts: scope.accounts,
+		transactions: scope.transactions,
+	};
 
-	__private.transactionPool.bind(modules);
-	__private.assetTypes[transactionTypes.SEND].bind({
-		modules: modules
-	});
+	__private.transactionPool.bind(
+		scope.accounts,
+		scope.transactions,
+		scope.loader
+	);
+	__private.assetTypes[transactionTypes.SEND].bind(
+		scope.accounts,
+		scope.rounds
+	);
 };
 
 // Shared API
