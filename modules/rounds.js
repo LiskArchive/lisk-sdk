@@ -274,8 +274,8 @@ Rounds.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 /**
- * Assigns scope app to private variable `modules`.
- * @param {scope} scope - Loaded App.
+ * Assigns modules to private variable `modules`.
+ * @param {modules} scope - Loaded modules.
  */
 Rounds.prototype.onBind = function (scope) {
 	modules = {

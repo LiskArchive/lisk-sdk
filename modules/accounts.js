@@ -233,7 +233,7 @@ Accounts.prototype.sandboxApi = function (call, args, cb) {
 /**
  * Calls Vote.bind() with scope.
  * @implements module:accounts#Vote~bind
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 Accounts.prototype.onBind = function (scope) {
 	modules = {

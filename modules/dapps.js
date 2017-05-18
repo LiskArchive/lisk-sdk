@@ -950,7 +950,7 @@ DApps.prototype.request = function (dappid, method, path, query, cb) {
  * Bounds used scope modules to private modules variable and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
  * @implements module:transactions#Transfer~bind
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 DApps.prototype.onBind = function (scope) {
 	modules = {

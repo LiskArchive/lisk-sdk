@@ -520,7 +520,7 @@ Delegates.prototype.sandboxApi = function (call, args, cb) {
 /**
  * Calls Delegate.bind() with scope.
  * @implements module:delegates#Delegate~bind
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 Delegates.prototype.onBind = function (scope) {
 	modules = {

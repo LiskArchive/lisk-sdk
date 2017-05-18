@@ -24,6 +24,7 @@ var modules, library, self, __private = {};
 // Constructor
 function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	library = {
+		logger,
 		config: {
 			broadcasts,
 			forging: {
@@ -34,7 +35,6 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 			peers,
 			transaction,
 		},
-		logger,
 	};
 	self = this;
 

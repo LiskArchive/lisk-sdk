@@ -519,8 +519,8 @@ Peers.prototype.list = function (options, cb) {
 
 // Events
 /**
- * assign scope to modules variable
- * @param {scope} scope
+ * assigns scope to modules variable
+ * @param {modules} scope
  */
 Peers.prototype.onBind = function (scope) {
 	modules = {
