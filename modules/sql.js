@@ -7,7 +7,7 @@ jsonSql.setDialect('postgresql');
 var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var library, self, __private = {}, shared = {};
 
 __private.loaded = false;
 __private.SINGLE_QUOTES = /'/g;
@@ -24,7 +24,10 @@ __private.DOUBLE_QUOTES_DOUBLED = '""';
  */
 // Constructor
 function Sql (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+	};
 	self = this;
 
 	setImmediate(cb, null, self);
@@ -284,11 +287,10 @@ Sql.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 /**
- * Assigns scope to modules variable.
- * @param {scope} scope - Loaded modules.
+ * Modules are not required in this file.
+ * @param {modules} scope - Loaded modules.
  */
 Sql.prototype.onBind = function (scope) {
-	modules = scope;
 };
 
 /**
