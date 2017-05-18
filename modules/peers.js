@@ -178,6 +178,7 @@ __private.insertSeeds = function (cb) {
 					height: status.height,
 					broadhash: status.broadhash
 				});
+				library.logic.peers.upsert(peer);
 				updated += 1;
 			}
 			return setImmediate(cb, err);
@@ -222,6 +223,7 @@ __private.dbLoad = function (cb) {
 							height: status.height,
 							broadhash: status.broadhash
 						});
+						library.logic.peers.upsert(peer);
 						updated += 1;
 					}
 					return setImmediate(eachCb);
@@ -575,6 +577,7 @@ Peers.prototype.onPeersReady = function () {
 									height: status.height,
 									broadhash: status.broadhash
 								});
+								library.logic.peers.upsert(peer);
 								updated += 1;
 							}
 							return setImmediate(eachCb);
