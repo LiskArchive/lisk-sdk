@@ -29,13 +29,13 @@ __private.blockReward = new BlockReward();
  */
 function Accounts (cb, scope) {
 	library = {
+		ed: scope.ed,
+		schema: scope.schema,
+		balancesSequence: scope.balancesSequence,
 		logic: {
 			account: scope.logic.account,
 			transaction: scope.logic.transaction,
 		},
-		ed: scope.ed,
-		schema: scope.schema,
-		balancesSequence: scope.balancesSequence,
 	};
 	self = this;
 

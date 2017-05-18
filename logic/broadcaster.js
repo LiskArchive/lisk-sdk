@@ -25,15 +25,15 @@ var modules, library, self, __private = {};
 function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	library = {
 		logger,
+		logic: {
+			peers,
+			transaction,
+		},
 		config: {
 			broadcasts,
 			forging: {
 				force,
 			},
-		},
-		logic: {
-			peers,
-			transaction,
 		},
 	};
 	self = this;
