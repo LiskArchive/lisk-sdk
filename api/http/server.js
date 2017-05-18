@@ -3,6 +3,17 @@
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 
+/**
+ * Renders main page wallet from public folder.
+ * - Public API:
+ * 	- get	/
+ * @memberof module:server
+ * @requires helpers/Router
+ * @requires helpers/httpApi
+ * @constructor
+ * @param {Object} serverModule - Module server instance.
+ * @param {scope} app - Main app.
+ */
 // Constructor
 function ServerHttpApi (serverModule, app) {
 

@@ -12,6 +12,22 @@ var modules, library, self, __private = {}, shared = {};
 
 var rcRegExp = /[a-z]+$/;
 
+/**
+ * Initializes library with scope content and private variables:
+ * - os
+ * - version
+ * - port
+ * - height
+ * - nethash
+ * - broadhash
+ * - minVersion
+ * - nonce
+ * @class
+ * @classdesc Main System methods.
+ * @implements {os}
+ * @param {setImmediateCallback} cb - Callback function.
+ * @param {scope} scope - App instance.
+ */
 // Constructor
 function System (cb, scope) {
 	library = scope;
@@ -37,38 +53,77 @@ function System (cb, scope) {
 }
 
 // Public methods
+/**
+ * Returns private variables object content.
+ * @return {Object}
+ */
 System.prototype.headers = function () {
 	return __private;
 };
 
+/**
+ * Gets private variable `os`
+ * @return {string}
+ */
 System.prototype.getOS = function () {
 	return __private.os;
 };
 
+/**
+ * Gets private variable `version`
+ * @return {string}
+ */
 System.prototype.getVersion = function () {
 	return __private.version;
 };
 
+/**
+ * Gets private variable `port`
+ * @return {number}
+ */
 System.prototype.getPort = function () {
 	return __private.port;
 };
 
+/**
+ * Gets private variable `height`
+ * @return {number}
+ */
 System.prototype.getHeight = function () {
 	return __private.height;
 };
 
+/**
+ * Gets private variable `nethash`
+ * @return {hash}
+ */
 System.prototype.getNethash = function () {
 	return __private.nethash;
 };
 
+/**
+ * Gets private variable `nethash` and compares with input param.
+ * @param {hash}
+ * @return {boolean} True if input param is equal to private value.
+ */
 System.prototype.networkCompatible = function (nethash) {
 	return __private.nethash === nethash;
 };
 
+/**
+ * Gets private variable `minVersion`
+ * @return {string}
+ */
 System.prototype.getMinVersion = function () {
 	return __private.minVersion;
 };
 
+/**
+ * Checks version compatibility from input param against private values.
+ * @implements {semver}
+ * @param {string} version
+ * @return {boolean}
+ */
 System.prototype.versionCompatible = function (version) {
 	var versionChar;
 
@@ -87,6 +142,13 @@ System.prototype.versionCompatible = function (version) {
 	return semver.satisfies(version, this.minVersion);
 };
 
+/**
+ * Gets private nethash or creates a new one, based on input param and data.
+ * @implements {library.db.query}
+ * @implements {crypto.createHash}
+ * @param {*} cb
+ * @return {hash|setImmediateCallback} err | private nethash or new hash.
+ */
 System.prototype.getBroadhash = function (cb) {
 	if (typeof cb !== 'function') {
 		return __private.broadhash;
@@ -107,6 +169,15 @@ System.prototype.getBroadhash = function (cb) {
 	});
 };
 
+/**
+ * Updates private broadhash and height values.
+ * @implements {async.series}
+ * @implements {System.getBroadhash}
+ * @implements {modules.blocks.lastBlock.get}
+ * @implements {modules.transport.headers}
+ * @param {function} cb Callback function
+ * @return {setImmediateCallback} cb, err
+ */
 System.prototype.update = function (cb) {
 	async.series({
 		getBroadhash: function (seriesCb) {
@@ -119,7 +190,7 @@ System.prototype.update = function (cb) {
 			});
 		},
 		getHeight: function (seriesCb) {
-			__private.height = modules.blocks.getLastBlock().height;
+			__private.height = modules.blocks.lastBlock.get().height;
 			return setImmediate(seriesCb);
 		}
 	}, function (err) {
@@ -129,11 +200,22 @@ System.prototype.update = function (cb) {
 	});
 };
 
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {*} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 System.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Assigns scope to modules variable.
+ * @param {scope} scope - Loaded modules.
+ */
 System.prototype.onBind = function (scope) {
 	modules = scope;
 };
