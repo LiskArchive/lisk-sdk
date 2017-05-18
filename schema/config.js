@@ -117,6 +117,20 @@ module.exports = {
 							}
 						},
 						required: ['limits']
+					},
+					cache: {
+						type: 'object',
+						properties: {
+							ip: {
+								type: 'string',
+								format: 'ip',
+							},
+							port: {
+								type: 'integer',
+								minimum: 1,
+								maximum: 65535
+							}
+						},
 					}
 				},
 				required: ['enabled', 'access', 'options']

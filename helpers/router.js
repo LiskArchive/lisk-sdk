@@ -61,6 +61,18 @@ var Router = function () {
 		});
 	};
 
+	router.attachMiddlwareForUrls = function (middleware, routes) {
+
+		routes.forEach(function (entry) {
+			var route = entry.split(' ');
+
+			if (route.length !== 2 || ['post', 'get', 'put'].indexOf(route[0]) === -1) {
+				throw Error('Invalid map config');
+			}
+			router[route[0]](route[1], middleware);
+		});
+	};
+
 	return router;
 };
 

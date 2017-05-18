@@ -8,8 +8,8 @@
     "consoleLogLevel": "info",
     "trustProxy": false,
     "topAccounts": false,
-		"cacheEnabled": true,
-		"db": {
+    "cacheEnabled": true,
+    "db": {
         "host": "localhost",
         "port": 5432,
         "database": "lisk_main",
@@ -22,10 +22,6 @@
             "error"
         ]
     },
-		"cache": {
-			"host": "127.0.0.1",
-			"port": 6379
-		},
     "api": {
         "enabled": true,
         "access": {
@@ -39,6 +35,10 @@
                 "delayAfter": 0,
                 "windowMs": 60000
             }
+        },
+        "cache": {
+            "host": "127.0.0.1",
+            "port": 6379
         }
     },
     "peers": {

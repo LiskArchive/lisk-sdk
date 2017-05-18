@@ -120,7 +120,7 @@ process.env.TOP = appConfig.topAccounts;
  */
 var config = {
 	db: appConfig.db,
-	cache: appConfig.cache,
+	cache: appConfig.api.cache,
 	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		server: './modules/server.js',

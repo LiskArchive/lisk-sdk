@@ -31,10 +31,15 @@ function BlocksHttpApi (blocksModule, app, logger, cache) {
 
 	var router = new Router();
 
+	// attach a middlware to endpoints
+	router.attachMiddlwareForUrls(httpApi.middleware.useCache.bind(null, logger, cache), [
+		'get /'
+	]);
+
 	router.map(blocksModule.shared, {
 		'get /get': 'getBlock',
 		'get /': 'getBlocks',
-		'get /getBroadhash': [httpApi.middleware.useCache.bind(null, logger, cache), 'getBroadhash'],
+		'get /getBroadhash': 'getBroadhash',
 		'get /getEpoch': 'getEpoch',
 		'get /getHeight': 'getHeight',
 		'get /getNethash': 'getNethash',
