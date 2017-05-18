@@ -78,11 +78,17 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 
 // Public methods
 /**
- * Binds scope to private variable modules.
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variables modules.
+ * @param {Peers} peers
+ * @param {Transport} transport
+ * @param {Transactions} transactions
  */
-Broadcaster.prototype.bind = function (scope) {
-	modules = scope;
+Broadcaster.prototype.bind = function (peers, transport, transactions) {
+	modules = {
+		peers,
+		transport,
+		transactions,
+	};
 };
 
 /**
