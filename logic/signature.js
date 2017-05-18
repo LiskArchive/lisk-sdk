@@ -23,10 +23,13 @@ function Signature (schema, logger) {
 }
 
 /**
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variable modules
+ * @param {Accounts} accounts
  */
-Signature.prototype.bind = function (scope) {
-	modules = scope.modules;
+Signature.prototype.bind = function (accounts) {
+	modules = {
+		accounts,
+	};
 };
 
 /**
