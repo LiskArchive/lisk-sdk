@@ -24,21 +24,26 @@ __private.unconfirmedSignatures = {};
 // Constructor
 function Multisignature (schema, network, transaction, logger) {
 	library = {
-		logic: {
-			transaction,
-		},
 		schema,
 		network,
 		logger,
+		logic: {
+			transaction,
+		},
 	};
 }
 
 // Public methods
 /**
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variable modules
+ * @param {Rounds} rounds
+ * @param {Accounts} accounts
  */
-Multisignature.prototype.bind = function (scope) {
-	modules = scope.modules;
+Multisignature.prototype.bind = function (rounds, accounts) {
+	modules = {
+		rounds,
+		accounts,
+	};
 };
 
 /**
