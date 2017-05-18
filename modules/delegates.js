@@ -148,6 +148,13 @@ __private.forge = function (cb) {
 	});
 };
 
+__private.decryptForgingSecret = function (encryptedSecret, key) {
+	var decipher = crypto.createDecipher('des', key);
+	var decryptedSecret =	decipher.update(encryptedSecret, 'utf8', 'utf8');
+	decryptedSecret += decipher.final('utf8');
+	return decryptedSecret;
+};
+
 __private.checkDelegates = function (publicKey, votes, state, cb) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');
@@ -234,13 +241,14 @@ __private.loadDelegates = function (cb) {
 		}
 	}
 
-	if (!secrets || !secrets.length) {
+	if (!secrets || !secrets.length || !library.config.forging.force) {
 		return setImmediate(cb);
 	} else {
 		library.logger.info(['Loading', secrets.length, 'delegates from config'].join(' '));
 	}
 
 	async.eachSeries(secrets, function (secret, cb) {
+
 		var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 
 		modules.accounts.getAccount({
@@ -437,11 +445,26 @@ Delegates.prototype.isLoaded = function () {
 Delegates.prototype.internal = {
 	forgingEnable: function (req, cb) {
 		library.schema.validate(req.body, schema.enableForging, function (err) {
+
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
 
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+			var keypair;
+			if (library.config.forging.force) {
+				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+			} else {
+				var encryptedSecret, decryptedSecret;
+				if (Array.isArray(library.config.forging.secret)) {
+					encryptedSecret = library.config.forging.secret[0];
+				} else {
+					encryptedSecret = library.config.forging.secret;
+				}
+
+				// change it to req.body.secret to req.body.key
+				decryptedSecret = __private.decryptForgingSecret(encryptedSecret, req.body.secret);
+				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+			}
 
 			if (req.body.publicKey) {
 				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
@@ -474,7 +497,21 @@ Delegates.prototype.internal = {
 				return setImmediate(cb, err[0].message);
 			}
 
-			var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+			var keypair;
+			if (library.config.forging.force) {
+				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+			} else {
+				var encryptedSecret, decryptedSecret;
+				if (Array.isArray(library.config.forging.secret)) {
+					encryptedSecret = library.config.forging.secret[0];
+				} else {
+					encryptedSecret = library.config.forging.secret;
+				}
+
+				// change it to req.body.secret to req.body.key
+				decryptedSecret = __private.decryptForgingSecret(encryptedSecret, req.body.secret);
+				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+			}
 
 			if (req.body.publicKey) {
 				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
