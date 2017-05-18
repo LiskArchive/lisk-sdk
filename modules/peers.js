@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
@@ -551,7 +552,7 @@ Peers.prototype.onBlockchainReady = function () {
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
-	setImmediate(function nextSeries () {
+	function peersDiscoveryAndUpdate () {
 		async.series({
 			discoverPeers: function (seriesCb) {
 				library.logger.trace('Discovering new peers...');
@@ -600,11 +601,10 @@ Peers.prototype.onPeersReady = function () {
 					return setImmediate(seriesCb);
 				});
 			}
-		}, function () {
-			// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-			return setTimeout(nextSeries, 5000);
 		});
-	});
+	}
+	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
 };
 
 /**
