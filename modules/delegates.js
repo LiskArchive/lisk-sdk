@@ -148,7 +148,7 @@ __private.forge = function (cb) {
 	});
 };
 
-__private.decryptForgingSecret = function (encryptedSecret, key) {
+__private.decryptSecret = function (encryptedSecret, key) {
 	var decipher = crypto.createDecipher('des', key);
 	var decryptedSecret =	decipher.update(encryptedSecret, 'utf8', 'utf8');
 	decryptedSecret += decipher.final('utf8');
@@ -462,7 +462,7 @@ Delegates.prototype.internal = {
 				}
 
 				// change it to req.body.secret to req.body.key
-				decryptedSecret = __private.decryptForgingSecret(encryptedSecret, req.body.secret);
+				decryptedSecret = __private.decryptSecret(encryptedSecret, req.body.secret);
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
 			}
 
@@ -509,7 +509,7 @@ Delegates.prototype.internal = {
 				}
 
 				// change it to req.body.secret to req.body.key
-				decryptedSecret = __private.decryptForgingSecret(encryptedSecret, req.body.secret);
+				decryptedSecret = __private.decryptSecret(encryptedSecret, req.body.secret);
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
 			}
 
