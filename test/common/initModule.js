@@ -189,7 +189,7 @@ var modulesLoader = new function () {
 	this.initCache = function (cb) {
 		var cacheEnabled, cacheConfig;
 		cacheEnabled = this.scope.config.cacheEnabled;
-		cacheConfig = this.scope.config.cache;
+		cacheConfig = this.scope.config.api.cache;
 		cacheHelper.connect(cacheEnabled, cacheConfig, this.logger, function (err, __cache) {
 			this.initModule(Cache, _.merge(this.scope, {cache: __cache}), cb);
 		}.bind(this));
