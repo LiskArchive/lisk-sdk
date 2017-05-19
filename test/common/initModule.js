@@ -41,7 +41,22 @@ var modulesLoader = new function () {
 	 * @param {Function} cb
 	 */
 	this.initLogic = function (Logic, scope, cb) {
-		new Logic(scope, cb);
+		switch (Logic.name) {
+		 case 'Account':
+			new Logic(scope.db, scope.schema, scope.logger, cb);
+			break;
+		 case 'Transaction':
+			new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
+			break;
+		 case 'Block':
+			new Logic(scope.ed, scope.schema, scope.transaction, cb);
+			break;
+		 case 'Peers':
+			new Logic(scope.logger, cb);
+			break;
+		 default:
+		 	console.log('no Logic case initLogic');
+		}
 	};
 
 	/**
