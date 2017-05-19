@@ -244,28 +244,6 @@ describe('peers', function () {
 		});
 	});
 
-	describe('ping', function () {
-
-		before(function () {
-			randomPeer.rpc.status = function () {};
-			sinon.stub(randomPeer.rpc, 'status').callsArgWith(0, null, {
-				success: true,
-				broadhash: '123456789broadhash',
-				nethash: '123456789nethash'
-			});
-
-			randomPeer.applyHeaders = function () {};
-			sinon.spy(randomPeer, 'applyHeaders');
-		});
-
-		it('should accept peer with public ip', function (done) {
-			peers.ping(randomPeer, function (err, res) {
-				expect(randomPeer.applyHeaders.calledOnce).to.be.ok;
-				done();
-			});
-		});
-	});
-
 	describe('events', function () {
 		before(function () {
 			modules.transport.onBind(modules);

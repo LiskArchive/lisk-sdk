@@ -47,12 +47,6 @@ function Peers (cb, scope) {
 	};
 	self = this;
 
-	setInterval(function () {
-		this.list({}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers);
-		});
-	}.bind(this), 5000);
-
 	setImmediate(cb, null, self);
 }
 
@@ -170,7 +164,6 @@ __private.insertSeeds = function (cb) {
 		peer = library.logic.peers.create(peer).attachRPC();
 		library.logger.trace('Processing seed peer: ' + peer.string);
 		peer.rpc.status(function (err, status) {
-			console.log('\x1b[34m%s\x1b[0m', 'PEERS MODULE - INITIAL PEER STATUS ASKING RESPONSE ', err, status, peer.string);
 			if (err) {
 				library.logger.trace('Ping peer failed: ' + peer.string, err);
 			} else {
@@ -421,10 +414,10 @@ Peers.prototype.discover = function (cb) {
  */
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
-		// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-		return peer.nonce !== modules.system.getNonce();
-		// }
-		// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+		if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+			return peer.nonce !== modules.system.getNonce();
+		}
+		return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
