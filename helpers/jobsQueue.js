@@ -2,15 +2,20 @@
 
 var jobsQueue = {
 
-	jobsSet: {},
+	jobs: {},
 
 	register: function (name, job, time) {
-		if (this.jobsSet[name]) {
+		if (this.jobs[name]) {
 			throw new Error('Synchronous job ' + name  + ' already registered');
 		}
 
-		this.jobsSet[name] = setInterval(job, time);
-		return this.jobsSet[name];
+		var nextJob = function () {
+			setImmediate(job);
+			jobsQueue.jobs[name] = setTimeout(nextJob, time);
+		};
+
+		nextJob();
+		return this.jobs[name];
 	}
 
 };

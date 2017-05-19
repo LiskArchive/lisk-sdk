@@ -113,11 +113,7 @@ __private.syncTimer = function () {
 		}
 	}
 
-	try {
-		jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
-	} catch (ex) {
-		library.logger.error(ex);
-	}
+	jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
 };
 
 /**
@@ -792,8 +788,6 @@ Loader.prototype.onPeersReady = function () {
 			if (err) {
 				__private.initialize();
 			}
-
-			return __private.syncTimer();
 		});
 	});
 };
