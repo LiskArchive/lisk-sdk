@@ -70,6 +70,14 @@ function killTestNodes (cb) {
 	});
 }
 
+function runFunctionalTests (cb) {
+	child_process.exec('npm run test-functional', {maxBuffer: require('buffer').kMaxLength - 1}, function (err, stdout) {
+		console.log(stdout);
+		return cb(err);
+	});
+}
+
+
 function recreateDatabases (done) {
 	var recreatedCnt = 0;
 	testNodeConfigs.forEach(function (nodeConfig) {
@@ -115,10 +123,9 @@ before(function (done) {
 	});
 });
 
+var sockets = [];
 
 describe('Peers mutual connections', function () {
-
-	var sockets = [];
 
 	before(function (done) {
 		var connectedTo = 0;
@@ -149,7 +156,6 @@ describe('Peers mutual connections', function () {
 		Q.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
-			console.log('ALL LISTS RESULTS', JSON.stringify(results, null, 2));
 			var resultsFrom = 0;
 			results.forEach(function (result) {
 				resultsFrom += 1;
@@ -172,6 +178,52 @@ describe('Peers mutual connections', function () {
 
 		}).catch(function (err) {
 			done(err);
+		});
+	});
+});
+
+describe('propagation', function () {
+
+	before(function (done) {
+		runFunctionalTests(done);
+	});
+
+	describe('blocks', function () {
+
+		var nodesBlocks;
+
+		before(function (done) {
+			Q.all(sockets.map(function (socket) {
+				return socket.wampSend('blocks');
+			})).then(function (results) {
+				nodesBlocks = results.map(function (res) {
+					return res.blocks;
+				});
+				expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
+				done();
+			}).catch(function (err) {
+				done(err);
+			});
+		});
+
+		it('should contain non empty blocks after running functional tests', function () {
+			nodesBlocks.forEach(function (blocks) {
+				expect(blocks).to.be.an('array').and.not.empty;
+			});
+		});
+
+		it('should have all peers at the same height', function () {
+			var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
+			expect(uniquePeersHeights).to.have.lengthOf(1);
+		});
+
+		it('should have all blocks the same at all peers', function () {
+			var patternBlocks = nodesBlocks[0];
+			for (var i = 0; i < patternBlocks.length; i += 1) {
+				for (var j = 1; j < nodesBlocks.length; j += 1) {
+					expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
+				}
+			}
 		});
 	});
 });
