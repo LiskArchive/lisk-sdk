@@ -10,9 +10,8 @@ var jobsQueue = {
 		}
 
 		var nextJob = function () {
-			return job(function () {
-				jobsQueue.jobs[name] = setTimeout(nextJob, time);
-			});
+			setImmediate(job);
+			jobsQueue.jobs[name] = setTimeout(nextJob, time);
 		};
 
 		nextJob();
