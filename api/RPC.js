@@ -52,29 +52,23 @@ function WsRPCClient (ip, port) {
 	//first time init || previously rejected
 	if (!socketDefer || socketDefer.promise.inspect().state === 'rejected') {
 		socketDefer = Q.defer();
-		this.initializeNewConnection({
-			hostname: ip,
-			port: +port + 1000,
-			protocol: 'http',
-			autoReconnect: true,
-			query: constants.getConst('headers')
-		}, address, socketDefer);
 		WsRPCServer.wsClientsConnectionsMap[address] = socketDefer;
 	}
 
-	return this.clientStub(this.sendAfterSocketReadyCb(socketDefer));
+	return this.clientStub(this.sendAfterSocketReadyCb(ip, port, socketDefer));
 }
 
 /**
  * @param {object} options
- * @param {string} address
- * @param {Q.defer} socketReady
+ * @param {Q.defer} socketDefer
  */
-WsRPCClient.prototype.initializeNewConnection = function (options, address, socketReady) {
+WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) {
 
 	var clientSocket = WsRPCServer.scClient.connect(options);
 
 	WsRPCServer.wampClient.upgradeToWAMP(clientSocket);
+
+	socketDefer.promise.initialized = true;
 
 	clientSocket.on('connect', function () {
 		if (!constants.externalAddress) {
@@ -82,13 +76,13 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, sock
 				nonce: options.query.nonce
 			}}).then(function (res) {
 				constants.setConst('externalAddress', res.peers[0].ip);
-				return socketReady.resolve(clientSocket);
+				return socketDefer.resolve(clientSocket);
 			}).catch(function (err) {
 				clientSocket.disconnect();
-				return socketReady.reject(err);
+				return socketDefer.reject(err);
 			});
 		} else {
-			return socketReady.resolve(clientSocket);
+			return socketDefer.resolve(clientSocket);
 		}
 	});
 
@@ -97,19 +91,21 @@ WsRPCClient.prototype.initializeNewConnection = function (options, address, sock
 	});
 
 	clientSocket.on('connectAbort', function (err, data) {
-		socketReady.reject(err);
+		socketDefer.reject(err);
 	});
 
 	clientSocket.on('disconnect', function () {
-		socketReady.reject();
+		socketDefer.reject();
 	});
 };
 
 /**
- * @param {Q.defer} socketReady
+ * @param {string} ip
+ * @param {number|string} port
+ * @param {Q.defer} socketDefer
  * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
  */
-WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
+WsRPCClient.prototype.sendAfterSocketReadyCb = function (ip, port, socketDefer) {
 	return function (procedureName) {
 		/**
 		 * @param {object} data [data={}] argument passed to procedure
@@ -118,7 +114,17 @@ WsRPCClient.prototype.sendAfterSocketReadyCb = function (socketReady) {
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
 			data = (data && !_.isFunction(data)) ? data : {};
-			socketReady.promise.then(function (socket) {
+			if (!socketDefer.promise.initialized) {
+				WsRPCClient.prototype.initializeNewConnection({
+					hostname: ip,
+					port: +port + 1000,
+					protocol: 'ws',
+					autoReconnect: true,
+					query: constants.getConst('headers')
+				}, socketDefer);
+			}
+
+			socketDefer.promise.then(function (socket) {
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);

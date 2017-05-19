@@ -2,6 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var ip = require('ip');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
@@ -97,7 +98,8 @@ __private.syncTrigger = function (turnOn) {
  */
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
-	setImmediate(function nextSync () {
+
+	function nextSync () {
 		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
@@ -108,13 +110,11 @@ __private.syncTimer = function () {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
 				}
-
-				return setTimeout(nextSync, __private.syncInterval);
 			});
-		} else {
-			return setTimeout(nextSync, __private.syncInterval);
 		}
-	});
+	}
+
+	jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
 };
 
 /**
@@ -143,6 +143,7 @@ __private.loadSignatures = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
+			peer.attachRPC();
 			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
@@ -202,6 +203,7 @@ __private.loadTransactions = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
+			peer.attachRPC();
 			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
@@ -778,8 +780,6 @@ Loader.prototype.onPeersReady = function () {
 			if (err) {
 				__private.initialize();
 			}
-
-			return __private.syncTimer();
 		});
 	});
 };
