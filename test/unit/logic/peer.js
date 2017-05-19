@@ -22,7 +22,10 @@ describe('peer', function () {
 
 		it('should create Peer with all properties implemented', function () {
 			var __peer = new Peer({ip: '127.0.0.1', port: 4000});
-			expect(__peer).to.have.property('rpc');
+			expect(__peer).to.have.property('ip').equal('127.0.0.1');
+			expect(__peer).to.have.property('port').equal(4000);
+			expect(__peer).to.have.property('state').equal(1);
+			expect(__peer).to.have.property('string').equal('127.0.0.1:4000');
 		});
 	});
 
@@ -194,7 +197,9 @@ describe('peer', function () {
 			var peerCopy = __peer.object();
 			_.keys(randomPeer).forEach(function (property) {
 				if (__peer.properties.indexOf(property) !== -1) {
-					expect(peerCopy[property]).to.equal(randomPeer[property]);
+					if (typeof randomPeer[property] !== 'object') {
+						expect(peerCopy[property]).to.equal(randomPeer[property]);
+					}
 					if (__peer.nullable.indexOf(property) !== -1 && !randomPeer[property]) {
 						expect(peerCopy[property]).to.be.null;
 					}

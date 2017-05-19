@@ -57,10 +57,10 @@ describe('WsRPCClient', function () {
 			WsRPCServer.setServer(null);
 		});
 
-		it('should initialize new connection', function () {
+		it('should not initialize new connection just after creating object', function () {
 			WsRPCClient.prototype.initializeNewConnection = sinon.spy();
 			new WsRPCClient(validIp, validPort);
-			expect(WsRPCClient.prototype.initializeNewConnection.calledOnce).to.be.ok;
+			expect(WsRPCClient.prototype.initializeNewConnection.called).not.to.be.ok;
 		});
 
 		it('should throw error when no port specified', function (done) {

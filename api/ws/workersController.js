@@ -44,10 +44,7 @@ module.exports.run = function (worker) {
 					return next(invalidHeadersException);
 				}
 
-				console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE RECEIVED: ', headers);
-
 				handshake(headers, function (err, peer) {
-					console.log('\x1b[32m%s\x1b[0m', 'WorkerController:HANDSHAKE COMPLISHED ', err, peer);
 					return scope.slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', peer, req.remoteAddress, function (onMasterError) {
 						return next(err || onMasterError);
 					});
@@ -68,7 +65,6 @@ module.exports.run = function (worker) {
 						//ToDO: do some unable to disconnect peer logging
 						return;
 					}
-					console.log('\x1b[32m%s\x1b[0m', 'WorkerController: ON SOCKET DISCONNECTED - REMOVING PEER with headers', headers);
 					return scope.slaveWAMPServer.sendToMaster('removePeer',  new Peer(headers), socket.request.remoteAddress, function (err, peer) {
 						if (err) {
 							//ToDo: Again logging here- unable to remove peer
