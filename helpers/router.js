@@ -34,27 +34,6 @@ var Router = function () {
 					};
 					root[config[params]](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), httpApi.respond.bind(null, res));
 				});
-			} else if (Array.isArray(config[params])) {
-				// For handling the cases where we have a bunch of middleware (as functions) which we want to call 
-				// alongwith the handler specified with root.
-				var middlewaresAndHandler = config[params].map(function (entity) {
-					if ( 'string' == typeof entity || entity instanceof String ) {
-						return  function (req, res, next) {
-							var reqRelevantInfo = {
-								ip: req.ip,
-								method: req.method,
-								path: req.path
-							};
-							root[entity](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), httpApi.respond.bind(null, res));
-						};
-					} else if ('function' === typeof entity) {
-						return entity;
-					} else {
-						throw Error('Invalid map config');
-					};
-				});
-				// Attach middlewares and handler (middlewareAndHandelr) to req method (route[0]) and url (route[1])
-				router[route[0]].apply(router, [route[1]].concat(middlewaresAndHandler));
 			} else {
 				throw Error('Invalid map config');
 			}

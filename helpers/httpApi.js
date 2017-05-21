@@ -151,8 +151,8 @@ var middleware = {
 	 */
 	useCache: function (logger, cache, req, res, next) {
 		if (cache.isConnected()) {
-			logger.info('Req parameters', req.url, JSON.stringify(req.params));
-			var key = req.url + JSON.stringify(req.params);
+			var key = req.originalUrl;
+			logger.info('Req parameters', key);
 
 			cache.getJsonForKey(key, function (err, cachedValue) {
 				//there was an error or value doesn't exist for key
@@ -161,7 +161,7 @@ var middleware = {
 					var expressSendJson = res.json;
 					res.json = function (response) {
 						if (response.success) {
-							cache.setJsonForKey(key,response);
+							cache.setJsonForKey(key, response);
 							expressSendJson.call(res, response);
 						} else {
 							logger.info('serving response for url: ', req.url, ' from cache');
