@@ -36,11 +36,11 @@ function Broadcaster (scope) {
 
 	// Broadcast routes
 	self.routes = [{
-		path: 'transactions',
+		path: 'postTransactions',
 		collection: 'transactions',
 		object: 'transaction'
 	}, {
-		path: 'signatures',
+		path: 'postSignatures',
 		collection: 'signatures',
 		object: 'signature'
 	}];
