@@ -50,14 +50,15 @@ module.exports = function getCommand(vorpal) {
 
 	vorpal
 		.command('get <type> <input>')
-		.description('Get information from <type> with parameter <input>')
+		.autocomplete(['account', 'block', 'delegate', 'transaction'])
 		.action(function(userInput, callback) {
 
+			//console.log(this.commandWrapper.command);
+			//console.log(this.commandWrapper.args);
 			var bigNumberWorkaround = this.commandWrapper.command.split(" ")[2];
 
 			let getType = {
 				'account': isAccountQuery(userInput.input),
-				//'allDelegates': isAllDelegateQuery,
 				'block': isBlockQuery(bigNumberWorkaround),
 				'delegate': isDelegateQuery(userInput.input),
 				'transaction': isTransactionQuery(bigNumberWorkaround)

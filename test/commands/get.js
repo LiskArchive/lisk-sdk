@@ -1,8 +1,24 @@
-const vorpal = require('vorpal')();
+const Vorpal = require('vorpal');
 const lisky = require('../../index');
 const get = require('../../commands/get');
+var BigNumber = require('big-number');
+
+const vorpal = Vorpal();
 
 vorpal.use(get);
+
+vorpal
+	.delimiter('>')
+	.show();
+
+vorpal
+	.command('set <type> <input>')
+	.action(function (args, cb) {
+		console.log(args);
+		return args;
+	});
+
+
 
 function executeCommand (command, callback) {
 
@@ -20,7 +36,7 @@ describe('lisky get command palette', () => {
 
 	it('should test command get account', (done) => {
 
-		let command = 'get account "1813095620424213569L"';
+		let command = 'get account 1813095620424213569L';
 
 		executeCommand(command, function (result) {
 			(result._command.command).should.be.equal(command);
@@ -77,4 +93,24 @@ describe('lisky get command palette', () => {
 
 	});
 
+});
+
+describe('lisky get execution', () => {
+
+	it('should get account information', (done) => {
+		vorpal.execSync('get block 261210776798678785', function(res) {
+			this.log(res);
+			done();
+		});
+	});
+
+});
+
+describe('number problem with vorpal', (done) => {
+	var fixture = BigNumber(261210776798678785);
+	vorpal.execSync('get block 261210776798678785', function(res) {
+		console.log(res);
+		(res.input).should.be.equal(fixture);
+		done();
+	});
 });
