@@ -9,11 +9,11 @@ var transactionTypes = require('../helpers/transactionTypes.js');
 var modules, library, self, __private = {};
 
 /**
- * Main transactionPool logic.
+ * Initializes variables, sets bundled transaction timer and
+ * transaction expiry timer.
  * @memberof module:transactions
  * @class
- * @classdesc Initializes variables, sets bundled transaction timer and
- * transaction expiry timer.
+ * @classdesc Main transactionPool logic.
  * @implements {processBundled}
  * @implements {expireTransactions}
  * @param {number} broadcastInterval

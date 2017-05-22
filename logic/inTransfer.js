@@ -7,10 +7,10 @@ var sql = require('../sql/dapps.js');
 var modules, library, shared;
 
 /**
- * Main InTransfer logic.
+ * Initializes library.
  * @memberof module:dapps
  * @class
- * @classdesc Initializes library.
+ * @classdesc Main InTransfer logic.
  * @param {Database} db
  * @param {ZSchema} schema
  */

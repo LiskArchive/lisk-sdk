@@ -9,10 +9,10 @@ var modules, library, __private = {};
 __private.unconfirmedOutTansfers = {};
 
 /**
- * Main OutTransfer logic.
+ * Initializes library.
  * @memberof module:dapps
  * @class
- * @classdesc Initializes library.
+ * @classdesc Main OutTransfer logic.
  * @param {Database} db
  * @param {ZSchema} schema
  * @param {Object} logger

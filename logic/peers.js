@@ -8,11 +8,10 @@ var schema = require('../schema/peers.js');
 // Private fields
 var __private = {};
 var self;
-var modules;
 var library;
 
 /**
- * Main peers logic.
+ * Initializes library.
  * @memberof module:peers
  * @class
  * @classdesc Main peers logic.
@@ -217,11 +216,10 @@ Peers.prototype.list = function (normalize) {
 
 // Public methods
 /**
- * @param {scope} scope - App instance.
+ * Modules are not required in this file.
+ * @param {modules} scope - Loaded modules.
  */
 Peers.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library.logger.trace('Logic/Peers->bind');
 };
 
 // Export

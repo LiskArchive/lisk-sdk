@@ -9,11 +9,11 @@ var _ = require('lodash');
 var modules, library, self, __private = {};
 
 /**
- * Main Broadcaster logic.
+ * Initializes variables, sets Broadcast routes and timer based on
+ * broadcast interval from config file.
  * @memberof module:transport
  * @class
- * @classdesc Initializes variables, sets Broadcast routes and timer based on
- * broadcast interval from config file.
+ * @classdesc Main Broadcaster logic.
  * @implements {__private.releaseQueue}
  * @param {Object} broadcasts
  * @param {boolean} force

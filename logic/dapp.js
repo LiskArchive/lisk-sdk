@@ -14,10 +14,10 @@ __private.unconfirmedLinks = {};
 __private.unconfirmedAscii = {};
 
 /**
- * Main dapp logic.
+ * Initializes library.
  * @memberof module:dapps
  * @class
- * @classdesc Initializes library.
+ * @classdesc Main dapp logic.
  * @param {Database} db
  * @param {Object} logger
  * @param {ZSchema} schema
