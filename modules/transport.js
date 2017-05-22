@@ -547,7 +547,7 @@ Transport.prototype.internal = {
 		});
 	},
 
-	getTransactions: function (req, cb) {
+	getTransactions: function (query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
 
 		return setImmediate(cb, null, {success: true, transactions: transactions});

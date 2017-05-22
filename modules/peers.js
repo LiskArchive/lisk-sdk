@@ -174,7 +174,7 @@ __private.insertSeeds = function (cb) {
 				library.logic.peers.upsert(peer);
 				updated += 1;
 			}
-			return setImmediate(cb, err);
+			return setImmediate(eachCb, err);
 		});
 	}, function (err) {
 		library.logger.trace('Peers->insertSeeds - Peers discovered', {updated: updated, total: library.config.peers.list.length});
@@ -200,14 +200,14 @@ __private.dbLoad = function (cb) {
 			if (library.logic.peers.exists(peer)) {
 				peer = library.logic.peers.get(peer);
 				if (peer && peer.state > 0 && Date.now() - peer.updated > 3000) {
-					updatePeer(peer);
-				} else {
-					return setImmediate(eachCb);
+					return updatePeer(peer, eachCb);
 				}
-			} else {
-				updatePeer(peer);
+				return setImmediate(eachCb);
 			}
-			function updatePeer (peer) {
+
+			return updatePeer(peer, eachCb);
+
+			function updatePeer (peer, cb) {
 				peer.rpc.status(function (err, status) {
 					if (err) {
 						library.logger.trace('Ping peer from db failed: ' + peer.string, err);
@@ -219,7 +219,7 @@ __private.dbLoad = function (cb) {
 						library.logic.peers.upsert(peer);
 						updated += 1;
 					}
-					return setImmediate(eachCb);
+					return setImmediate(cb);
 				});
 			}
 		}, function (err) {
