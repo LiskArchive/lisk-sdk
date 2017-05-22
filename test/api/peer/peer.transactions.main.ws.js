@@ -26,6 +26,24 @@ describe('getTransactions', function () {
 			done();
 		});
 	});
+
+	before(function (done) {
+		var randomAccount = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password);
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			done(err);
+		});
+	});
+
+	it('should return non empty transaction list after post', function (done) {
+		ws.call('getTransactions', function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactions').to.be.an('array').and.to.be.not.empty;
+			done();
+		});
+	});
 });
 
 describe('postTransactions', function () {

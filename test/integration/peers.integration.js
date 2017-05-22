@@ -15,24 +15,24 @@ var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockc
 var testNodeConfigs = [
 	{
 		ip: '127.0.0.1',
-		port: 4001,
+		port: 4000,
 		database: 'lisk_local_0',
 		peers: {list: [
 			{
 				ip: '127.0.0.1',
-				port: 4002
+				port: 4001
 			}
 		]}
 	},
 	{
 		ip: '127.0.0.1',
-		port: 4002,
+		port: 4001,
 		database: 'lisk_local_1',
 		peers: {
 			list: [
 				{
 					ip: '127.0.0.1',
-					port: 4001
+					port: 4000
 				}
 			]}
 	}
@@ -222,6 +222,45 @@ describe('propagation', function () {
 			for (var i = 0; i < patternBlocks.length; i += 1) {
 				for (var j = 1; j < nodesBlocks.length; j += 1) {
 					expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
+				}
+			}
+		});
+	});
+
+	describe('transactions', function () {
+
+		var nodesTransactions;
+
+		before(function (done) {
+			Q.all(sockets.map(function (socket) {
+				return socket.wampSend('getTransactions');
+			})).then(function (results) {
+				nodesTransactions = results.map(function (res) {
+					return res.transactions;
+				});
+				expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
+				done();
+			}).catch(function (err) {
+				done(err);
+			});
+		});
+
+		it('should contain non empty transactions after running functional tests', function () {
+			nodesTransactions.forEach(function (blocks) {
+				expect(blocks).to.be.an('array').and.not.empty;
+			});
+		});
+
+		it('should have all peers having same amount of confirmed transactions', function () {
+			var uniquePeersTransactionsNumber = _(nodesTransactions).map('length').uniq().value();
+			expect(uniquePeersTransactionsNumber).to.have.lengthOf(1);
+		});
+
+		it('should have all transactions the same at all peers', function () {
+			var patternTransactions = nodesTransactions[0];
+			for (var i = 0; i < patternTransactions.length; i += 1) {
+				for (var j = 1; j < nodesTransactions.length; j += 1) {
+					expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
 				}
 			}
 		});
