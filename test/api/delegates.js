@@ -375,26 +375,29 @@ describe('PUT /api/delegates with funds', function () {
 	});
 });
 
-describe('GET /api/delegates', function () {
-
+describe('GET /api/delegates (cache)', function () {
 	var cache;
 
-	function initalizeCache (done) {
+	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			node.expect(err).to.not.exist;
 			node.expect(__cache).to.be.an('object');
 			return done(err, __cache);
 		});
-	}
+	});
 
-	function flushCache (done) {
+	after(function () {
+		cache.quit();
+	});
+
+	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			node.expect(err).to.not.exist;
 			node.expect(status).to.equal('OK');
 			done(err, status);
 		});
-	}
+	});
 
 	function itIfCacheEnabled (name, cb) {
 		var fn = node.config.cacheEnabled ? it: it.skip;
@@ -402,21 +405,16 @@ describe('GET /api/delegates', function () {
 	}
 
 	itIfCacheEnabled('cache delegates when response is a success', function (done) {
-		initalizeCache(function (err) {
-			node.expect(err).to.not.exist;
+		var url, params;
+		url = '/api/delegates';
 
-			var url, params;
-			url = '/api/delegates';
-
-			node.get(url, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('delegates').that.is.an('array');
-				var response = res.body;
-				cache.getJsonForKey(url, function (err, res) {
-					node.expect(err).to.not.exist;
-					node.expect(res).to.eql(response);
-					flushCache(done);
-				});
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
 			});
 		});
 	});
@@ -433,10 +431,13 @@ describe('GET /api/delegates', function () {
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(null);
-				flushCache(done);
 			});
 		});
 	});
+
+});
+
+describe('GET /api/delegates', function () {
 
 	it('using no params should be ok', function (done) {
 		node.get('/api/delegates', function (err, res) {

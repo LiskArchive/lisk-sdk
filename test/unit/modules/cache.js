@@ -23,13 +23,16 @@ describe('cache module', function () {
 		});
 	});
 
+	after(function (done) {
+		cache.quit();
+	});
+
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			expect(err).to.not.exist;
 			expect(status).to.equal('OK');
 			done(err, status);
 		});
-
 	});
 
 	function itIfCacheEnabled (name, cb) {

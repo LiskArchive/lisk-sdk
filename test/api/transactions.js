@@ -77,29 +77,28 @@ before(function (done) {
 });
 
 describe('GET /api/transactions', function () {
-
-	before(function (done) {
-		node.onNewBlock(done);
-	});
-
 	var cache;
 
-	function initalizeCache (done) {
+	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			node.expect(err).to.not.exist;
 			node.expect(__cache).to.be.an('object');
 			return done(err, __cache);
 		});
-	}
+	});
 
-	function flushCache (done) {
+	after(function () {
+		cache.quit();
+	});
+
+	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			node.expect(err).to.not.exist;
 			node.expect(status).to.equal('OK');
 			done(err, status);
 		});
-	}
+	});
 
 	function itIfCacheEnabled (name, cb) {
 		var fn = node.config.cacheEnabled ? it: it.skip;
@@ -107,27 +106,22 @@ describe('GET /api/transactions', function () {
 	}
 
 	itIfCacheEnabled('cache transactions by the url and parameters when response is a success', function (done) {
-		initalizeCache(function (err) {
-			node.expect(err).to.not.exist;
+		var url, params;
 
-			var url, params;
+		url = '/api/transactions?';
+		params = [
+			'blockId=' + '1',
+			'senderId=' + node.gAccount.address,
+			'recipientId=' + account.address,
+		];
 
-			url = '/api/transactions?';
-			params = [
-				'blockId=' + '1',
-				'senderId=' + node.gAccount.address,
-				'recipientId=' + account.address,
-			];
-
-			node.get(url + params.join('&'), function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-				var response = res.body;
-				cache.getJsonForKey(url + params.join('&'), function (err, res) {
-					node.expect(err).to.not.exist;
-					node.expect(res).to.eql(response);
-					flushCache(done);
-				});
+		node.get(url + params.join('&'), function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url + params.join('&'), function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
 			});
 		});
 	});
@@ -145,11 +139,16 @@ describe('GET /api/transactions', function () {
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(null);
-				flushCache(done);
 			});
 		});
 	});
+});
 
+describe('GET /api/transactions', function () {
+
+	before(function (done) {
+		node.onNewBlock(done);
+	});
 
 	it('using valid parameters should be ok', function (done) {
 		var limit = 10;
