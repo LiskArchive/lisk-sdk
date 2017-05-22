@@ -50,7 +50,9 @@ var wsCommunication = {
 		if (!this.defaultSocketDefer) {
 			this.defaultSocketDefer = Q.defer();
 			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 4000);
-			this.connect('127.0.0.1', 4000, this.defaultSocketDefer);
+			constants.setConst('headers', this.defaultSocketPeerHeaders);
+			constants.setConst('externalAddress', '127.0.0.1');
+
 			this.caller = WsRPCClient.prototype.sendAfterSocketReadyCb('127.0.0.1', 4000, this.defaultSocketDefer);
 		}
 		if (includePeer && typeof data == 'object') {
