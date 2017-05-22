@@ -171,9 +171,9 @@ __private.insertSeeds = function (cb) {
 					height: status.height,
 					broadhash: status.broadhash
 				});
-				library.logic.peers.upsert(peer);
 				updated += 1;
 			}
+			library.logic.peers.upsert(peer);
 			return setImmediate(eachCb, err);
 		});
 	}, function (err) {
