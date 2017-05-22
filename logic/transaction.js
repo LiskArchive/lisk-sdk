@@ -1132,12 +1132,14 @@ Transaction.prototype.dbRead = function (raw) {
 
 // Events
 /**
- * Binds scope to modules.
- * @param {scope} scope - App instance
+ * Binds input parameters to private variables modules.
+ * @param {Rounds} rounds
  */
-Transaction.prototype.bindModules = function (scope) {
+Transaction.prototype.bindModules = function (rounds) {
 	this.scope.logger.trace('Logic/Transaction->bindModules');
-	modules = scope;
+	modules = {
+		rounds,
+	};
 };
 
 // Export
