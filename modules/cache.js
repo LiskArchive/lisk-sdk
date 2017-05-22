@@ -1,11 +1,36 @@
-var client, self, cacheEnabled, errorMessage = 'Cache Unavailable';
+var client, logger, cacheEnabled, errorMessage = 'Cache Unavailable';
 
 // Constructor
 function Cache (cb, scope) {
 	client = scope.cache.client;
+	logger = scope.logger;
 	cacheEnabled = scope.cache.cacheEnabled;
 	setImmediate(cb, null, this);
 }
+
+Cache.prototype.onNewBlock = function (key, cb) {
+	if (this.isConnected()) {
+		this.flushDb(function (err) {
+			if (err) {
+				logger.error('Error clearing cache on new block');
+			} else {
+				logger.info('Cache cleared on new block');
+			}
+		});
+	}
+};
+
+Cache.prototype.onFinishRound = function (key, cb) {
+	if (this.isConnected()) {
+		this.flushDb(function (err) {
+			if (err) {
+				logger.error('Error clearing cache on round finish');
+			} else {
+				logger.info('Cache cleared on new Round');
+			}
+		});
+	}
+};
 
 Cache.prototype.getJsonForKey = function (key, cb) {
 	// we can use config var to check if caching is activated

@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('./../node.js');
+var modulesLoader = require('./../common/initModule.js').modulesLoader;
 var genesisDelegates = require('../genesisDelegates.json');
 
 function openAccount (params, done) {
@@ -375,6 +376,68 @@ describe('PUT /api/delegates with funds', function () {
 });
 
 describe('GET /api/delegates', function () {
+
+	var cache;
+
+	function initalizeCache (done) {
+		modulesLoader.initCache(function (err, __cache) {
+			cache = __cache;
+			node.expect(err).to.not.exist;
+			node.expect(__cache).to.be.an('object');
+			return done(err, __cache);
+		});
+	}
+
+	function flushCache (done) {
+		cache.flushDb(function (err, status) {
+			node.expect(err).to.not.exist;
+			node.expect(status).to.equal('OK');
+			done(err, status);
+		});
+	}
+
+	function itIfCacheEnabled (name, cb) {
+		var fn = node.config.cacheEnabled ? it: it.skip;
+		fn(name, cb);
+	}
+
+	itIfCacheEnabled('cache delegates when response is a success', function (done) {
+		initalizeCache(function (err) {
+			node.expect(err).to.not.exist;
+
+			var url, params;
+			url = '/api/delegates';
+
+			node.get(url, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('delegates').that.is.an('array');
+				var response = res.body;
+				cache.getJsonForKey(url, function (err, res) {
+					node.expect(err).to.not.exist;
+					node.expect(res).to.eql(response);
+					flushCache(done);
+				});
+			});
+		});
+	});
+
+	itIfCacheEnabled('should not cache if response is not a success', function (done) {
+		var url, orderBy, params;
+		url = '/api/delegates?';
+		orderBy = 'unknown:asc';
+		params = 'orderBy=' + orderBy;
+
+		node.get(url+ params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid sort field');
+			cache.getJsonForKey(url + params, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(null);
+				flushCache(done);
+			});
+		});
+	});
+
 	it('using no params should be ok', function (done) {
 		node.get('/api/delegates', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
