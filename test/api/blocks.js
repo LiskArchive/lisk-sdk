@@ -182,6 +182,7 @@ describe('GET /blocks (cache)', function () {
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(response);
+				done();
 			});
 		});
 	});
@@ -195,6 +196,31 @@ describe('GET /blocks (cache)', function () {
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(null);
+				done();
+			});
+		});
+	});
+
+	itIfCacheEnabled('should remove entry from cache on new block', function (done) {
+		var url, params;
+		url = '/api/blocks?';
+		params = 'height=' + block.blockHeight;
+		node.get(url + params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('blocks').that.is.an('array');
+			node.expect(res.body).to.have.property('count').to.equal(1);
+			var response = res.body;
+			cache.getJsonForKey(url + params, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				node.onNewBlock(function (err) {
+					node.expect(err).to.not.exist;
+					cache.getJsonForKey(url + params, function (err, res) {
+						node.expect(err).to.not.exist;
+						node.expect(res).to.eql(null);
+						done();
+					});
+				});
 			});
 		});
 	});

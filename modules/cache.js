@@ -1,17 +1,18 @@
 var transactionTypes = require('../helpers/transactionTypes.js');
-var client, logger, cacheEnabled, errorMessage = 'Cache Unavailable';
+var client, self, logger, cacheEnabled, errorMessage = 'Cache Unavailable';
 
 // Constructor
 function Cache (cb, scope) {
+	self = this;
 	client = scope.cache.client;
 	logger = scope.logger;
 	cacheEnabled = scope.cache.cacheEnabled;
-	setImmediate(cb, null, this);
+	setImmediate(cb, null, self);
 }
 
 Cache.prototype.onNewBlock = function () {
-	if (this.isConnected()) {
-		this.flushDb(function (err) {
+	if (self.isConnected()) {
+		self.flushDb(function (err) {
 			if (err) {
 				logger.error('Error clearing cache on new block');
 			} else {
@@ -22,8 +23,8 @@ Cache.prototype.onNewBlock = function () {
 };
 
 Cache.prototype.onFinishRound = function () {
-	if (this.isConnected()) {
-		this.flushDb(function (err) {
+	if (self.isConnected()) {
+		self.flushDb(function (err) {
 			if (err) {
 				logger.error('Error clearing cache on round finish');
 			} else {
@@ -38,7 +39,7 @@ Cache.prototype.onUnconfirmedTransaction = function (transactions) {
 		return trs.type === transactionTypes.DELEGATE;
 	});
 	if (delgateTransactions.length > 0) {
-		this.flushDb(function (err) {
+		self.flushDb(function (err) {
 			if (err) {
 				logger.error('Error clearing cache on delegate trs');
 			} else {
@@ -50,7 +51,7 @@ Cache.prototype.onUnconfirmedTransaction = function (transactions) {
 
 Cache.prototype.getJsonForKey = function (key, cb) {
 	// we can use config var to check if caching is activated
-	if (this.isConnected()) {
+	if (self.isConnected()) {
 		client.get(key, function (err, value) {
 			// parsing string to json
 			cb(err, JSON.parse(value));
@@ -61,7 +62,7 @@ Cache.prototype.getJsonForKey = function (key, cb) {
 };
 
 Cache.prototype.setJsonForKey = function (key, value, cb) {
-	if (this.isConnected()) {
+	if (self.isConnected()) {
 		// redis calls toString on objects, which converts it to object [object] so calling stringify before saving
 		client.set(key, JSON.stringify(value), cb);
 	} else {
@@ -70,7 +71,7 @@ Cache.prototype.setJsonForKey = function (key, value, cb) {
 };
 
 Cache.prototype.deleteJsonForKey = function (key, value, cb) {
-	if (this.isConnected()) {
+	if (self.isConnected()) {
 		client.del(key, cb);
 	} else {
 		cb(errorMessage);
@@ -82,7 +83,7 @@ Cache.prototype.isConnected = function () {
 };
 
 Cache.prototype.flushDb = function (cb) {
-	if (this.isConnected()) {
+	if (self.isConnected()) {
 		client.flushdb(cb);
 	} else {
 		cb(errorMessage);
@@ -90,7 +91,7 @@ Cache.prototype.flushDb = function (cb) {
 };
 
 Cache.prototype.quit = function () {
-	if (this.isConnected()) {
+	if (self.isConnected()) {
 		client.quit();
 	}
 };
