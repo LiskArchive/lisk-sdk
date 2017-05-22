@@ -1,3 +1,4 @@
+var transactionTypes = require('../helpers/transactionTypes.js');
 var client, logger, cacheEnabled, errorMessage = 'Cache Unavailable';
 
 // Constructor
@@ -8,7 +9,7 @@ function Cache (cb, scope) {
 	setImmediate(cb, null, this);
 }
 
-Cache.prototype.onNewBlock = function (key, cb) {
+Cache.prototype.onNewBlock = function () {
 	if (this.isConnected()) {
 		this.flushDb(function (err) {
 			if (err) {
@@ -20,13 +21,28 @@ Cache.prototype.onNewBlock = function (key, cb) {
 	}
 };
 
-Cache.prototype.onFinishRound = function (key, cb) {
+Cache.prototype.onFinishRound = function () {
 	if (this.isConnected()) {
 		this.flushDb(function (err) {
 			if (err) {
 				logger.error('Error clearing cache on round finish');
 			} else {
 				logger.info('Cache cleared on new Round');
+			}
+		});
+	}
+};
+
+Cache.prototype.onUnconfirmedTransaction = function (transactions) {
+	var delgateTransactions = transactions.filter(transactions, function (trs) {
+		return trs.type === transactionTypes.DELEGATE;
+	});
+	if (delgateTransactions.length > 0) {
+		this.flushDb(function (err) {
+			if (err) {
+				logger.error('Error clearing cache on delegate trs');
+			} else {
+				logger.info('Cache flushed on delegate trs');
 			}
 		});
 	}
@@ -70,6 +86,12 @@ Cache.prototype.flushDb = function (cb) {
 		client.flushdb(cb);
 	} else {
 		cb(errorMessage);
+	}
+};
+
+Cache.prototype.quit = function () {
+	if (this.isConnected()) {
+		client.quit();
 	}
 };
 
