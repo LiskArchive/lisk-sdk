@@ -149,7 +149,7 @@ __private.forge = function (cb) {
 };
 
 __private.decryptSecret = function (encryptedSecret, key) {
-	var decipher = crypto.createDecipher('des', key);
+	var decipher = crypto.createDecipher('aes-256-cbc', key);
 	var decryptedSecret =	decipher.update(encryptedSecret, 'utf8', 'utf8');
 	decryptedSecret += decipher.final('utf8');
 	return decryptedSecret;
@@ -454,22 +454,27 @@ Delegates.prototype.internal = {
 			if (library.config.forging.force) {
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
 			} else {
-				var encryptedSecret, decryptedSecret;
+				var encryptedList, decryptedSecret, encryptedItem;
 				if (Array.isArray(library.config.forging.secret)) {
-					encryptedSecret = library.config.forging.secret[0];
+					encryptedList = library.config.forging.secret;
 				} else {
-					encryptedSecret = library.config.forging.secret;
+					encryptedList = [library.config.forging.secret];
 				}
 
-				// change it to req.body.secret to req.body.key
-				decryptedSecret = __private.decryptSecret(encryptedSecret, req.body.secret);
-				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+				encryptedItem = _.find(encryptedList, function (item) {
+					return item.publicKey === req.body.publicKey;
+				});
+
+				if (!!encryptedItem) {
+					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
+					keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+				} else {
+					return setImmediate(cb, 'Invalid publicKey');
+				}
 			}
 
-			if (req.body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-					return setImmediate(cb, 'Invalid passphrase');
-				}
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+				return setImmediate(cb, 'Invalid passphrase');
 			}
 
 			if (__private.keypairs[keypair.publicKey.toString('hex')]) {
@@ -501,22 +506,27 @@ Delegates.prototype.internal = {
 			if (library.config.forging.force) {
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
 			} else {
-				var encryptedSecret, decryptedSecret;
+				var encryptedList, decryptedSecret, encryptedItem;
 				if (Array.isArray(library.config.forging.secret)) {
-					encryptedSecret = library.config.forging.secret[0];
+					encryptedList = library.config.forging.secret;
 				} else {
-					encryptedSecret = library.config.forging.secret;
+					encryptedList = [library.config.forging.secret];
 				}
 
-				// change it to req.body.secret to req.body.key
-				decryptedSecret = __private.decryptSecret(encryptedSecret, req.body.secret);
-				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+				encryptedItem = _.find(encryptedList, function (item) {
+					return item.publicKey === req.body.publicKey;
+				});
+
+				if (!!encryptedItem) {
+					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
+					keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+				} else {
+					return setImmediate(cb, 'Invalid publicKey');
+				}
 			}
 
-			if (req.body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-					return setImmediate(cb, 'Invalid passphrase');
-				}
+			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+				return setImmediate(cb, 'Invalid passphrase');
 			}
 
 			if (!__private.keypairs[keypair.publicKey.toString('hex')]) {

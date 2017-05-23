@@ -17,7 +17,7 @@ module.exports = {
 				format: 'publicKey'
 			}
 		},
-		required: ['secret']
+		required: ['secret', 'publicKey']
 	},
 	disableForging: {
 		id: 'delegates.disableForging',
@@ -33,7 +33,7 @@ module.exports = {
 				format: 'publicKey'
 			}
 		},
-		required: ['secret']
+		required: ['secret', 'publicKey']
 	},
 	forgingStatus: {
 		id: 'delegates.forgingStatus',
