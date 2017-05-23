@@ -20,6 +20,8 @@ function Round (scope, t) {
 		round: scope.round,
 		roundOutsiders: scope.roundOutsiders,
 		roundDelegates: scope.roundDelegates,
+		roundFees: scope.roundFees,
+		roundRewards: scope.roundRewards,
 		library: {
 			logger: scope.library.logger,
 		},

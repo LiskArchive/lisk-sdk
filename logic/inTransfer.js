@@ -27,14 +27,14 @@ function InTransfer (db, schema) {
  * Binds input parameters to private variables modules and shared.
  * @param {Accounts} accounts
  * @param {Rounds} rounds
- * @param {Object} shared
+ * @param {Object} sharedApi
  */
-InTransfer.prototype.bind = function (accounts, rounds, shared) {
+InTransfer.prototype.bind = function (accounts, rounds, sharedApi) {
 	modules = {
 		accounts,
 		rounds,
 	};
-	shared = shared;
+	shared = sharedApi;
 };
 
 /**
