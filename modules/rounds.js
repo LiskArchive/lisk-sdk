@@ -13,6 +13,16 @@ var modules, library, self, __private = {}, shared = {};
 __private.loaded = false;
 __private.ticking = false;
 
+/**
+ * Initializes library with scope.
+ * @memberof module:rounds
+ * @class
+ * @classdesc Main rounds methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ * @todo apply node pattern for callbacks: callback always at the end.
+ */
 // Constructor
 function Rounds (cb, scope) {
 	library = scope;
@@ -22,18 +32,37 @@ function Rounds (cb, scope) {
 }
 
 // Public methods
+/**
+ * @return {boolean} __private.loaded
+ */
 Rounds.prototype.loaded = function () {
 	return __private.loaded;
 };
 
+/**
+ * @return {boolean} __private.ticking
+ */
 Rounds.prototype.ticking = function () {
 	return __private.ticking;
 };
 
+/**
+ * Returns average for each delegate based on height.
+ * @param {number} height
+ * @return {number} height / delegates
+ */
 Rounds.prototype.calc = function (height) {
 	return Math.ceil(height / slots.delegates);
 };
 
+/**
+ * Deletes from `mem_round` table records based on round.
+ * @implements {library.db.none}
+ * @param {number} round
+ * @param {function} cb
+ * @return {setImmediateCallback} error message | cb
+ * 
+ */
 Rounds.prototype.flush = function (round, cb) {
 	library.db.none(sql.flush, {round: round}).then(function () {
 		return setImmediate(cb);
@@ -43,6 +72,19 @@ Rounds.prototype.flush = function (round, cb) {
 	});
 };
 
+/**
+ * Performs backward tick on round
+ * @implements {calc}
+ * @implements {__private.getOutsiders}
+ * @implements {Round.mergeBlockGenerator}
+ * @implements {Round.markBlockId}
+ * @implements {Round.land}
+ * @implements {library.db.tx}
+ * @param {block} block
+ * @param {block} previousBlock
+ * @param {function} done - Callback function
+ * @return {function} done with error if any
+ */
 Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	var round = self.calc(block.height);
 	var prevRound = self.calc(previousBlock.height);
@@ -114,6 +156,18 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 	});
 };
 
+/**
+ * Generates snapshot round
+ * @implements {calc}
+ * @implements {Round.mergeBlockGenerator}
+ * @implements {Round.land}
+ * @implements {library.bus.message}
+ * @implements {Round.truncateBlocks}
+ * @implements {__private.getOutsiders}
+ * @param {block} block
+ * @param {function} done
+ * @return {function} done message | err
+ */
 Rounds.prototype.tick = function (block, done) {
 	var round = self.calc(block.height);
 	var nextRound = self.calc(block.height + 1);
@@ -197,29 +251,69 @@ Rounds.prototype.tick = function (block, done) {
 	});
 };
 
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {*} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Rounds.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Assigns scope app to private variable `modules`.
+ * @param {scope} scope - Loaded App.
+ */
 Rounds.prototype.onBind = function (scope) {
 	modules = scope;
 };
 
+/**
+ * Sets private variable loaded to true.
+ *
+ * @public
+ * @method  onBlockchainReady
+ * @listens module:loader~event:blockchainReady
+ * @param   {block}   block New block
+ */
 Rounds.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 };
 
+/**
+ * Emits a 'rounds/change' socket message.
+ * @implements {library.network.io.sockets.emit}
+ * @param {number} round
+ * @emits rounds/change
+ */
 Rounds.prototype.onFinishRound = function (round) {
 	library.network.io.sockets.emit('rounds/change', {number: round});
 };
 
+/**
+ * Sets private variable `loaded` to false.
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 Rounds.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	return setImmediate(cb);
 };
 
 // Private methods
+/**
+ * Generates outsiders array and pushes to param scope variable.
+ * Obtains delegate list and for each delegate generate address.
+ * @private
+ * @implements {modules.delegates.generateDelegateList}
+ * @implements {modules.accounts.generateAddressByPublicKey}
+ * @param {scope} scope
+ * @param {function} cb
+ * @return {setImmediateCallback} cb if block height 1 | error
+ */
 __private.getOutsiders = function (scope, cb) {
 	scope.roundOutsiders = [];
 
@@ -242,6 +336,15 @@ __private.getOutsiders = function (scope, cb) {
 	});
 };
 
+/**
+ * Gets rows from `round_blocks` and calculates rewards. Loads into scope
+ * variable fees, rewards and delegates.
+ * @private
+ * @implements {library.db.query}
+ * @param {number} round
+ * @param {function} cb
+ * @return {setImmediateCallback} err When failed to sum round | cb
+ */
 __private.sumRound = function (scope, cb) {
 	library.logger.debug('Summing round', scope.round);
 
