@@ -47,6 +47,12 @@ function Peers (cb, scope) {
 	};
 	self = this;
 
+	setInterval(function () {
+		this.list({}, function (err, peers) {
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(p => p.string));
+		});
+	}.bind(this), 5000);
+
 	setImmediate(cb, null, self);
 }
 
@@ -169,7 +175,8 @@ __private.insertSeeds = function (cb) {
 			} else {
 				peer.applyHeaders({
 					height: status.height,
-					broadhash: status.broadhash
+					broadhash: status.broadhash,
+					state: 2 //connected
 				});
 				updated += 1;
 			}
@@ -354,6 +361,7 @@ Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
 		modules.peers.list({limit: 1}, function (err, peers) {
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', peers[0].string);
 			if (!err && peers.length) {
 				peers[0].attachRPC();
 				peers[0].rpc.list(waterCb);
@@ -365,6 +373,7 @@ Peers.prototype.discover = function (cb) {
 
 	function validatePeersList (result, waterCb) {
 		library.schema.validate(result, schema.discover.peers, function (err) {
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovered peers: ', result.peers(p => p.ip + ':' + p.port));
 			return setImmediate(waterCb, err, result.peers);
 		});
 	}
@@ -372,6 +381,8 @@ Peers.prototype.discover = function (cb) {
 	function pickPeers (peers, waterCb) {
 		var picked = self.acceptable(peers);
 		library.logger.debug(['Picked', picked.length, 'of', peers.length, 'peers'].join(' '));
+		library.logger.debug(picked.map(p => p.ip + ':' + p.port));
+
 		return setImmediate(waterCb, null, picked);
 	}
 
@@ -413,11 +424,12 @@ Peers.prototype.discover = function (cb) {
  * @return {peer[]} Filtered list of peers
  */
 Peers.prototype.acceptable = function (peers) {
+	var me = library.logic.peers.me() || {ip: '127.0.0.1', port: 4000};
 	return _.chain(peers).filter(function (peer) {
-		if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-			return peer.nonce !== modules.system.getNonce();
-		}
-		return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+		// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+			return peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
+		// }
+		// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
