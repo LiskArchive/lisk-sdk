@@ -28,8 +28,8 @@ describe('WsRPCServer', function () {
 
 	describe('constructor', function () {
 
-		it('should have empty wsClientsConnectionsMap field', function () {
-			expect(WsRPCServer).to.have.property('wsClientsConnectionsMap').to.be.a('object').and.to.be.empty;
+		it('should have empty clientsConnectionsMap field', function () {
+			expect(WsRPCServer).to.have.property('clientsConnectionsMap').to.be.a('object').and.to.be.empty;
 		});
 
 		it('should have wampClient field of instance WAMPClient', function () {

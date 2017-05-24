@@ -228,7 +228,7 @@ Peers.prototype.list = function (normalize) {
 	if (normalize) {
 		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].object(); });
 	} else {
-		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].attachRPC(); });
+		return Object.keys(__private.peers).map(function (key) { return __private.peers[key]; });
 	}
 };
 

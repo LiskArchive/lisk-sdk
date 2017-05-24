@@ -167,7 +167,7 @@ __private.insertSeeds = function (cb) {
 	var updated = 0;
 	library.logger.trace('Peers->insertSeeds');
 	async.each(library.config.peers.list, function (peer, eachCb) {
-		peer = library.logic.peers.create(peer).attachRPC();
+		peer = library.logic.peers.create(peer);
 		library.logger.trace('Processing seed peer: ' + peer.string);
 		peer.rpc.status(function (err, status) {
 			if (err) {
@@ -203,7 +203,7 @@ __private.dbLoad = function (cb) {
 	library.db.any(sql.getAll).then(function (rows) {
 		library.logger.info('Imported peers from database', {count: rows.length});
 		async.each (rows, function (peer, eachCb) {
-			peer = library.logic.peers.create(peer).attachRPC();
+			peer = library.logic.peers.create(peer);
 			if (library.logic.peers.exists(peer)) {
 				peer = library.logic.peers.get(peer);
 				if (peer && peer.state > 0 && Date.now() - peer.updated > 3000) {
@@ -369,10 +369,10 @@ Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
 		modules.peers.list({limit: 1}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', peers[0].string);
+			var randomPeer = library.logic.peers.create(peers[0]);
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', randomPeer.string);
 			if (!err && peers.length) {
-				peers[0].attachRPC();
-				peers[0].rpc.list(waterCb);
+				randomPeer.rpc.list(waterCb);
 			} else {
 				return setImmediate(waterCb, err || 'No acceptable peers found');
 			}
@@ -397,7 +397,7 @@ Peers.prototype.discover = function (cb) {
 	function updatePeers (peers, waterCb) {
 		var updated = 0;
 		async.each(peers, function (peer, eachCb) {
-			peer = library.logic.peers.create(peer).attachRPC();
+			peer = library.logic.peers.create(peer);
 			library.schema.validate(peer, schema.discover.peer, function (err) {
 				if (err) {
 					library.logger.warn(['Rejecting invalid peer:', peer.string].join(' '), {err: err});
