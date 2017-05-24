@@ -1,24 +1,19 @@
 const Vorpal = require('vorpal');
 const lisky = require('../../index');
 const get = require('../../commands/get');
-var BigNumber = require('big-number');
+const should = require('should');
+const sinon = require('sinon');
 
-const vorpal = Vorpal();
+const fs = require('fs');
+const util = require('util');
+
+let vorpal = new Vorpal();
 
 vorpal.use(get);
 
 vorpal
-	.delimiter('>')
+	.delimiter('lisky>')
 	.show();
-
-vorpal
-	.command('set <type> <input>')
-	.action(function (args, cb) {
-		console.log(args);
-		return args;
-	});
-
-
 
 function executeCommand (command, callback) {
 
@@ -39,6 +34,7 @@ describe('lisky get command palette', () => {
 		let command = 'get account 1813095620424213569L';
 
 		executeCommand(command, function (result) {
+
 			(result._command.command).should.be.equal(command);
 			done();
 		});
@@ -93,24 +89,74 @@ describe('lisky get command palette', () => {
 
 	});
 
-});
 
-describe('lisky get execution', () => {
+	it('should have the right output with account', (done) => {
 
-	it('should get account information', (done) => {
-		vorpal.execSync('get block 261210776798678785', function(res) {
-			this.log(res);
+		//passphrase: tell pull explain month bulb kite girl use deer area winter purchase
+		let command = 'get account 7018558261153309828L';
+
+		let expectedOutput = {
+				success: true,
+				account:  {
+				address: '7018558261153309828L',
+					unconfirmedBalance: '1',
+					balance: '1',
+					publicKey: null,
+					unconfirmedSignature: 0,
+					secondSignature: 0,
+					secondPublicKey: null,
+					multisignatures: [],
+					u_multisignatures: []
+			}
+		};
+
+		let result = vorpal.exec(command);
+
+		result.then((output) => {
+			(output).should.be.eql(expectedOutput);
+			done();
+		});
+
+	});
+
+	it('should have the right output with block', (done) => {
+
+		let command = 'get block 1924405132194419123';
+
+		let result = vorpal.exec(command);
+
+		result.then((output) => {
+			(output.block.id).should.be.eql('1924405132194419123');
+			done();
+		});
+
+	});
+
+	it('it should work in normal env', (done) =>  {
+		process.env.NODE_ENV === 'main';
+
+		let command = 'get block 1924405132194419123';
+
+		let result = vorpal.exec(command);
+
+		result.then((output) => {
+			(output.block.id).should.be.eql('1924405132194419123');
 			done();
 		});
 	});
 
-});
+	it('it should work in normal env and wrong data', (done) =>  {
+		process.env.NODE_ENV === 'main';
 
-describe('number problem with vorpal', (done) => {
-	var fixture = BigNumber(261210776798678785);
-	vorpal.execSync('get block 261210776798678785', function(res) {
-		console.log(res);
-		(res.input).should.be.equal(fixture);
-		done();
+		let command = 'get block 123';
+
+		let result = vorpal.exec(command);
+
+		result.then((output) => {
+			(output.success).should.be.eql(false);
+			done();
+		});
 	});
+
+
 });

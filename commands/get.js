@@ -1,71 +1,90 @@
-module.exports = function getCommand(vorpal) {
+module.exports = function getCommand (vorpal) {
 	'use strict';
 
 	const lisk = require('lisk-js').api();
 	const tablify = require('../src/utils/tablify');
+	var util = require('util');
 
-	function isAccountQuery (command) {
+	function isAccountQuery (input) {
 
-		lisk.sendRequest('accounts', {  address: command }, function (response) {
-
-			let account = response.account;
-
-			vorpal.log(tablify(account).toString());
-		});
+		return lisk.sendRequest('accounts', {  address: input });
 
 	}
 
-	function isBlockQuery (command) {
+	function isBlockQuery (input) {
 
-		lisk.sendRequest('blocks/get', {  id: command }, function (response) {
-
-			let block = response.block;
-
-			vorpal.log(tablify(block).toString());
-		});
+		return lisk.sendRequest('blocks/get', {  id: input });
 
 	}
 
-	function isTransactionQuery (command) {
+	function isTransactionQuery (input) {
 
-		lisk.sendRequest('transactions/get', {  id: command }, function (response) {
-
-			let transaction = response.transaction;
-
-			vorpal.log(tablify(transaction).toString());
-		});
+		return lisk.sendRequest('transactions/get', {  id: input });
 
 	}
 
-	function isDelegateQuery (command) {
+	function isDelegateQuery (input) {
 
-		lisk.sendRequest('delegates/get', {  username: command }, function (response) {
+		return lisk.sendRequest('delegates/get', {  username: input });
 
-			let delegate = response.delegate;
+	}
 
-			vorpal.log(tablify(delegate).toString());
-		});
-
+	function switchType (type) {
+		let returnType;
+		switch (type) {
+			case 'account':
+			case 'address':
+				returnType = 'account';
+				break;
+			case 'block':
+				returnType = 'block';
+				break;
+			case 'delegate':
+				returnType = 'delegate';
+				break;
+			case 'transaction':
+				returnType = 'transaction';
+				break;
+		}
+		return returnType;
 	}
 
 	vorpal
 		.command('get <type> <input>')
 		.autocomplete(['account', 'block', 'delegate', 'transaction'])
-		.action(function(userInput, callback) {
-
-			//console.log(this.commandWrapper.command);
-			//console.log(this.commandWrapper.args);
-			var bigNumberWorkaround = this.commandWrapper.command.split(" ")[2];
+		.action(function(userInput) {
 
 			let getType = {
-				'account': isAccountQuery(userInput.input),
-				'block': isBlockQuery(bigNumberWorkaround),
-				'delegate': isDelegateQuery(userInput.input),
-				'transaction': isTransactionQuery(bigNumberWorkaround)
+				'account': isAccountQuery,
+				'address': isAccountQuery,
+				'block': isBlockQuery,
+				'delegate': isDelegateQuery,
+				'transaction': isTransactionQuery
 			};
 
-			getType[userInput.type];
-			callback();
+			let bigNumberWorkaround = this.commandWrapper.command.split(" ")[2];
+
+			let output = getType[userInput.type](bigNumberWorkaround);
+
+			if(process.env.NODE_ENV === 'test') {
+
+				return output;
+
+			} else {
+
+				//output = tablify(output).toString();
+
+				return output.then((result) => {
+					if(result.error) {
+						vorpal.log(util.inspect(result));
+					} else {
+						vorpal.log(util.inspect(result[switchType(userInput.type)]));
+					}
+
+				});
+
+			}
+
 		});
 
 };

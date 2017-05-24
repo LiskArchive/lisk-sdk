@@ -4,7 +4,7 @@
   "description": "A command line interface for Lisk",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha",
+    "test": "NODE_ENV=test nyc mocha",
     "cover": "istanbul cover --dir ./coverage _mocha"
   },
   "repository": {
@@ -33,13 +33,12 @@
     "gruntify-eslint": "^3.1.0",
     "mocha": "^3.3.0",
     "nyc": "^10.3.2",
-    "should": "^11.2.1"
+    "should": "^11.2.1",
+    "sinon": "^2.3.1"
   },
   "dependencies": {
     "big-number": "^0.4.0",
     "cli-table2": "^0.2.0",
-    "colors": "^1.1.2",
-    "commander": "^2.9.0",
     "file-system": "^2.2.2",
     "lisk-js": "^0.4.1",
     "vorpal": "^1.12.0"
