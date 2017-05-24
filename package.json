@@ -37,7 +37,6 @@
     "sinon": "^2.3.1"
   },
   "dependencies": {
-    "big-number": "^0.4.0",
     "cli-table2": "^0.2.0",
     "file-system": "^2.2.2",
     "lisk-js": "^0.4.1",
