@@ -163,7 +163,7 @@ __private.loadSignatures = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
-			peer.attachRPC();
+			peer =
 			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
@@ -223,7 +223,7 @@ __private.loadTransactions = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
-			peer.attachRPC();
+			console.log('\x1b[36m%s\x1b[0m', 'LOAD TRANSACTIONS FROM  --- PEER BEFORE ASKING', peer);
 			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);

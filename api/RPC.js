@@ -7,12 +7,43 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var constants = require('../helpers/constants');
 
+var CONNECTION_STATUS = {
+	NEW: 1,
+	PENDING: 2,
+	ESTABLISHED: 3,
+	DISCONNECTED: 4
+};
+
+function ConnectionState (ip, port) {
+	console.log('CONNECTION STAATE CONSRTRUCTOR FIRED');
+	this.ip = ip;
+	this.port = +port;
+	this.status = CONNECTION_STATUS.NEW;
+	this.socketDefer = Q.defer();
+	this.stub = new ClientRPCStub(this);
+}
+
+ConnectionState.prototype.reconnect = function () {
+	this.status = CONNECTION_STATUS.PENDING;
+	this.socketDefer = Q.defer();
+};
+
+ConnectionState.prototype.reject = function (reason) {
+	this.status = CONNECTION_STATUS.DISCONNECTED;
+	this.socketDefer.reject(reason);
+};
+
+ConnectionState.prototype.resolve = function (socket) {
+	this.status = CONNECTION_STATUS.ESTABLISHED;
+	this.socketDefer.resolve(socket);
+};
+
 var WsRPCServer = {
 
 	wsServer: null,
 	wampClient: new WAMPClient(),
 	scClient: scClient,
-	wsClientsConnectionsMap: {},
+	clientsConnectionsMap: {},
 
 	/**
 	 * @param {MasterWAMPServer} wsServer
@@ -30,119 +61,30 @@ var WsRPCServer = {
 			throw new Error('WS server haven\'t been initialized!');
 		}
 		return this.wsServer;
-	}
-
-};
-
-/**
- * @param {string} ip
- * @param {number} port
- * @returns {clientStub} {[string]: function} map where keys are all procedures registered
- * @constructor
- */
-function WsRPCClient (ip, port) {
-
-	if (!ip || !port) {
-		throw new Error('WsRPCClient needs ip and port to establish WS connection.');
-	}
-
-	var address = ip + ':' + port;
-	var socketDefer = WsRPCServer.wsClientsConnectionsMap[address];
-
-	//first time init || previously rejected
-	if (!socketDefer || socketDefer.promise.inspect().state === 'rejected') {
-		socketDefer = Q.defer();
-		WsRPCServer.wsClientsConnectionsMap[address] = socketDefer;
-	}
-
-	return this.clientStub(this.sendAfterSocketReadyCb(ip, port, socketDefer));
-}
-
-/**
- * @param {object} options
- * @param {Q.defer} socketDefer
- */
-WsRPCClient.prototype.initializeNewConnection = function (options, socketDefer) {
-
-	console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
-	var clientSocket = WsRPCServer.scClient.connect(options);
-
-	WsRPCServer.wampClient.upgradeToWAMP(clientSocket);
-
-	socketDefer.promise.initialized = true;
-
-	clientSocket.on('connect', function () {
-		if (!constants.externalAddress) {
-			clientSocket.wampSend('list', {query: {
-				nonce: options.query.nonce
-			}}).then(function (res) {
-				console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ME AS PEER: ', res.peers[0]);
-				constants.setConst('externalAddress', res.peers[0].ip);
-				return socketDefer.resolve(clientSocket);
-			}).catch(function (err) {
-				clientSocket.disconnect();
-				return socketDefer.reject(err);
-			});
-		} else {
-			return socketDefer.resolve(clientSocket);
+	},
+	/**
+	 * @param {string} ip
+	 * @param {number} port
+	 * @returns {ClientRPCStub} {[string]: function} map where keys are all procedures registered
+	 */
+	getClientRPCStub: function (ip, port) {
+		console.trace('New client RPC created: ', ip, port);
+		if (!ip || !port) {
+			throw new Error('WsRPCClient needs ip and port to establish WS connection.');
 		}
-	});
 
-	clientSocket.on('error', function () {
-		clientSocket.disconnect();
-	});
+		var address = ip + ':' + port;
+		var connectionState = WsRPCServer.clientsConnectionsMap[address];
 
-	clientSocket.on('connectAbort', function (err, data) {
-		socketDefer.reject(err);
-	});
+		//first time init || previously rejected
+		if (!connectionState || connectionState.status === CONNECTION_STATUS.DISCONNECTED) {
+			connectionState = new ConnectionState(ip, port);
+			WsRPCServer.clientsConnectionsMap[address] = connectionState;
+		}
 
-	clientSocket.on('disconnect', function () {
-		socketDefer.reject();
-	});
+		return connectionState.stub;
+	}
 
-	return socketDefer.promise;
-};
-
-/**
- * @param {string} ip
- * @param {number|string} port
- * @param {Q.defer} socketDefer
- * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
- */
-WsRPCClient.prototype.sendAfterSocketReadyCb = function (ip, port, socketDefer) {
-	return function (procedureName) {
-		/**
-		 * @param {object} data [data={}] argument passed to procedure
-		 * @param {function} cb [cb=function(){}] cb
-		 */
-		return function (data, cb) {
-			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
-			data = (data && !_.isFunction(data)) ? data : {};
-			console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ASK ABOUT PROCEDURE: ', procedureName, socketDefer.promise.initialized);
-			if (!socketDefer.promise.initialized) {
-				console.log(socketDefer.promise.initialized);
-				WsRPCClient.prototype.initializeNewConnection({
-					hostname: ip,
-					port: +port + 1000,
-					protocol: 'http',
-					autoReconnect: true,
-					query: constants.getConst('headers')
-				}, socketDefer);
-			}
-
-			socketDefer.promise.then(function (socket) {
-				return socket.wampSend(procedureName, data)
-					.then(function (res) {
-						return setImmediate(cb, null, res);
-					})
-					.catch(function (err) {
-						return setImmediate(cb, err);
-					});
-			}).catch(function (err) {
-				return setImmediate(cb, 'RPC CLIENT - Connection rejected by failed handshake procedure');
-			});
-		};
-	};
 };
 
 /**
@@ -157,10 +99,10 @@ WsRPCClient.prototype.sendAfterSocketReadyCb = function (ip, port, socketDefer) 
 
 
 /**
- * @param {function} handler
+ * @param {ConnectionState} connectionState
  * @returns {clientStub}
  */
-WsRPCClient.prototype.clientStub = function (handler) {
+var ClientRPCStub = function (connectionState) {
 	try {
 		var wsServer = WsRPCServer.getServer();
 	} catch (wsServerNotInitializedException) {
@@ -169,12 +111,97 @@ WsRPCClient.prototype.clientStub = function (handler) {
 
 	return _.reduce(Object.assign({}, wsServer.endpoints.rpc, wsServer.endpoints.event),
 		function (availableCalls, procedureHandler, procedureName) {
-			availableCalls[procedureName] = handler(procedureName);
+			availableCalls[procedureName] = this.sendAfterSocketReadyCb(connectionState)(procedureName);
 			return availableCalls;
-		}, {});
+		}.bind(this), {});
+};
+
+
+/**
+ * @param {ConnectionState} connectionState
+ */
+ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
+
+	var options = {
+		hostname: connectionState.ip,
+		port: connectionState.port + 1000,
+		protocol: 'http',
+		autoReconnect: true,
+		query: constants.getConst('headers')
+	};
+
+	console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
+	var clientSocket = WsRPCServer.scClient.connect(options);
+	WsRPCServer.wampClient.upgradeToWAMP(clientSocket);
+
+
+	clientSocket.on('connect', function () {
+		if (!constants.externalAddress) {
+			clientSocket.wampSend('list', {query: {
+				nonce: options.query.nonce
+			}}).then(function (res) {
+				console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ME AS PEER: ', res.peers[0]);
+				constants.setConst('externalAddress', res.peers[0].ip);
+				connectionState.resolve(clientSocket);
+			}).catch(function (err) {
+				clientSocket.disconnect();
+				connectionState.reject('Connection rejected when asking of peers list');
+			});
+		} else {
+			return connectionState.resolve(clientSocket);
+		}
+	});
+
+	clientSocket.on('error', function () {
+		clientSocket.disconnect();
+	});
+
+	clientSocket.on('connectAbort', function (err, data) {
+		connectionState.reject('Connection rejected by failed handshake procedure');
+	});
+
+	clientSocket.on('disconnect', function () {
+		connectionState.reject('Connection disconnected');
+	});
+};
+
+/**
+ * @param {ConnectionState} connectionState
+ * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
+ */
+ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
+	return function (procedureName) {
+		/**
+		 * @param {object} data [data={}] argument passed to procedure
+		 * @param {function} cb [cb=function(){}] cb
+		 */
+		return function (data, cb) {
+			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
+			data = (data && !_.isFunction(data)) ? data : {};
+			console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ASK ABOUT PROCEDURE: ', procedureName, connectionState);
+
+			if (connectionState.status === CONNECTION_STATUS.NEW || connectionState.status === CONNECTION_STATUS.DISCONNECTED) {
+				connectionState.reconnect();
+				ClientRPCStub.prototype.initializeNewConnection(connectionState);
+			}
+
+			connectionState.socketDefer.promise.then(function (socket) {
+				console.log('\x1b[33m%s\x1b[0m', 'CONNECTION STATE RESOLVED FOR PEER: ASKING FOR PROCEDURE ', procedureName, connectionState.ip + ':' + connectionState.port);
+				return socket.wampSend(procedureName, data)
+					.then(function (res) {
+						return setImmediate(cb, null, res);
+					})
+					.catch(function (err) {
+						return setImmediate(cb, err);
+					});
+			}).catch(function (err) {
+				console.log('\x1b[33m%s\x1b[0m', 'CONNECTION STATE RESOLVED REJECTED', err);
+				return setImmediate(cb, err);
+			});
+		};
+	};
 };
 
 module.exports = {
-	WsRPCClient: WsRPCClient,
 	WsRPCServer: WsRPCServer
 };

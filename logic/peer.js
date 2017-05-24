@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var ip = require('ip');
-var WsRPCClient = require('../api/RPC').WsRPCClient;
+var WsRPCServer = require('../api/RPC').WsRPCServer;
 
 // Constructor
 function Peer (peer) {
@@ -36,8 +36,7 @@ Peer.prototype.properties = [
 	'height',
 	'clock',
 	'updated',
-	'nonce',
-	'rpc'
+	'nonce'
 ];
 
 Peer.prototype.immutable = [
@@ -68,7 +67,7 @@ Peer.prototype.nullable = [
 Peer.STATE = {
 	BANNED: 0,
 	DISCONNECTED: 1,
-	CONNECTED: 2
+	ACTIVE: 2
 };
 
 // Public methods
@@ -97,16 +96,24 @@ Peer.prototype.accept = function (peer) {
 		this.string = this.ip + ':' + this.port;
 	}
 
+	Object.defineProperties(this, {
+		rpc: {
+			get: function () {
+				return WsRPCServer.getClientRPCStub(this.ip, this.port)
+			}.bind(this)
+		}
+	});
+
 	return this;
 };
 
-Peer.prototype.attachRPC = function () {
-	if (this.ip && this.port && !this.rpc) {
-		this.rpc = new WsRPCClient(this.ip, this.port);
-	}
-	return this;
-};
 
+
+/**
+ * Normalizes peer data.
+ * @param {peer} peer
+ * @return {peer}
+ */
 Peer.prototype.normalize = function (peer) {
 	if (peer.dappid && !Array.isArray(peer.dappid)) {
 		var dappid = peer.dappid;
@@ -119,7 +126,10 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.port = this.parseInt(peer.port, 0);
-	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
+
+	if (!/^[0-2]{1}$/.test(peer.state)) {
+		peer.state = Peer.STATE.DISCONNECTED;
+	}
 
 	return peer;
 };
@@ -158,8 +168,8 @@ Peer.prototype.update = function (peer) {
 
 	// Accept only supported properties
 	_.each(this.properties, function (key) {
-		// Change value only when is defined
-		if (peer[key] !== null && peer[key] !== undefined && !_.includes(this.immutable, key)) {
+		// Change value only when is defined, also prevent release ban when banned peer connect to our node
+		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === Peer.STATE.BANNED && peer.state === Peer.STATE.ACTIVE) && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));

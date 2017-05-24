@@ -7,6 +7,7 @@ var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
+var Peer = require('../logic/peer.js');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
 var sandboxHelper = require('../helpers/sandbox.js');
@@ -167,10 +168,11 @@ __private.insertSeeds = function (cb) {
 	var updated = 0;
 	library.logger.trace('Peers->insertSeeds');
 	async.each(library.config.peers.list, function (peer, eachCb) {
-		peer = library.logic.peers.create(peer).attachRPC();
+		peer = library.logic.peers.create(peer);
 		library.logger.trace('Processing seed peer: ' + peer.string);
 		peer.rpc.status(function (err, status) {
 			if (err) {
+				peer.applyHeaders({state: 1});
 				library.logger.trace('Ping peer failed: ' + peer.string, err);
 			} else {
 				peer.applyHeaders({
@@ -180,6 +182,7 @@ __private.insertSeeds = function (cb) {
 				});
 				updated += 1;
 			}
+
 			library.logic.peers.upsert(peer);
 			return setImmediate(eachCb, err);
 		});
@@ -203,7 +206,7 @@ __private.dbLoad = function (cb) {
 	library.db.any(sql.getAll).then(function (rows) {
 		library.logger.info('Imported peers from database', {count: rows.length});
 		async.each (rows, function (peer, eachCb) {
-			peer = library.logic.peers.create(peer).attachRPC();
+			peer = library.logic.peers.create(peer);
 			if (library.logic.peers.exists(peer)) {
 				peer = library.logic.peers.get(peer);
 				if (peer && peer.state > 0 && Date.now() - peer.updated > 3000) {
@@ -317,7 +320,7 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
  * @todo rename this function to activePeer or similar
  */
 Peers.prototype.update = function (peer) {
-	peer.state = Peer.STATE.CONNECTED;
+	peer.state = Peer.STATE.ACTIVE;
 	return library.logic.peers.upsert(peer);
 };
 
@@ -361,10 +364,21 @@ Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
 		modules.peers.list({limit: 1}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', peers[0].string);
-			if (!err && peers.length) {
-				peers[0].attachRPC();
-				peers[0].rpc.list(waterCb);
+			var randomPeer = peers.length ? library.logic.peers.create(peers[0]) : null;
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', randomPeer ? randomPeer.string : 'no peers found');
+			if (!err && randomPeer) {
+				randomPeer.rpc.status(function (err, status) {
+					if (err) {
+						return setImmediate(waterCb, err);
+					}
+					randomPeer.applyHeaders({
+						height: status.height,
+						broadhash: status.broadhash
+					});
+					library.logic.peers.upsert(randomPeer);
+
+					randomPeer.rpc.list(waterCb);
+				});
 			} else {
 				return setImmediate(waterCb, err || 'No acceptable peers found');
 			}
@@ -373,7 +387,7 @@ Peers.prototype.discover = function (cb) {
 
 	function validatePeersList (result, waterCb) {
 		library.schema.validate(result, schema.discover.peers, function (err) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovered peers: ', result.peers(p => p.ip + ':' + p.port));
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovered peers: ', result.peers.map(p => p.ip + ':' + p.port));
 			return setImmediate(waterCb, err, result.peers);
 		});
 	}
@@ -389,7 +403,7 @@ Peers.prototype.discover = function (cb) {
 	function updatePeers (peers, waterCb) {
 		var updated = 0;
 		async.each(peers, function (peer, eachCb) {
-			peer = library.logic.peers.create(peer).attachRPC();
+			peer = library.logic.peers.create(peer);
 			library.schema.validate(peer, schema.discover.peer, function (err) {
 				if (err) {
 					library.logger.warn(['Rejecting invalid peer:', peer.string].join(' '), {err: err});
@@ -424,7 +438,7 @@ Peers.prototype.discover = function (cb) {
  * @return {peer[]} Filtered list of peers
  */
 Peers.prototype.acceptable = function (peers) {
-	var me = library.logic.peers.me() || {ip: '127.0.0.1', port: 4000};
+	var me = library.logic.peers.me() || {ip: '127.0.0.1', port: library.config.port};
 	return _.chain(peers).filter(function (peer) {
 		// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
 			return peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
@@ -566,7 +580,7 @@ Peers.prototype.onPeersReady = function () {
 			},
 			updatePeers: function (seriesCb) {
 				var updated = 0;
-				var peers = library.logic.peers.list();
+				var peers = library.modules.peers.acceptable(library.logic.peers.list());
 
 				library.logger.trace('Updating peers', {peers: peers});
 
@@ -600,7 +614,7 @@ Peers.prototype.onPeersReady = function () {
 		});
 	}
 	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 10000);
 };
 
 /**

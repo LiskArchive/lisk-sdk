@@ -505,10 +505,6 @@ Transport.prototype.internal = {
 		req = req || {};
 		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
-			peers = peers.map(function (peer) {
-				delete peer.rpc;
-				return peer;
-			});
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
 	},
@@ -526,6 +522,7 @@ Transport.prototype.internal = {
 	},
 
 	postSignatures: function (query, cb) {
+		console.log('\x1b[34m%s\x1b[0m', 'POST SIGNATURES INVOKED', query);
 		if (query.signatures) {
 			__private.receiveSignatures(query, function (err) {
 				if (err) {

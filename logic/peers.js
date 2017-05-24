@@ -5,7 +5,6 @@ var async = require('async');
 var Peer = require('../logic/peer.js');
 var schema = require('../schema/peers.js');
 var constants = require('../helpers/constants.js');
-var WsRPCClient = require('../api/RPC').WsRPCClient;
 
 // Private fields
 var __private = {};
@@ -145,7 +144,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 
 	_.each(__private.peers, function (peer, index) {
 		++cnt_total;
-		if (peer.state === 2) {
+		if (peer.state === Peer.STATE.ACTIVE) {
 			++cnt_active;
 		}
 		if (!peer.height) {
@@ -159,6 +158,42 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	library.logger.trace('Peer stats', {total: cnt_total, alive: cnt_active, empty_height: cnt_empty_height, empty_broadhash: cnt_empty_broadhash});
 
 	return true;
+};
+
+/**
+ * Upserts peer with banned state `0` and clock with current time + seconds.
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @param {number} seconds
+ * @return {function} Calls upsert
+ */
+Peers.prototype.ban = function (ip, port, seconds) {
+	return self.upsert({
+		ip: ip,
+		port: port,
+		// State 0 for banned peer
+		state: 0,
+		clock: Date.now() + (seconds || 1) * 1000
+	});
+};
+
+/**
+ * Upserts peer with unbanned state `1` and deletes clock.
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @param {number} seconds
+ * @return {peer}
+ */
+Peers.prototype.unban = function (peer) {
+	peer = self.get(peer);
+	if (peer) {
+		delete peer.clock;
+		peer.state = Peers.STATE.DISCONNECTED;
+		library.logger.debug('Released ban for peer', peer.string);
+	} else {
+		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});
+	}
+	return peer;
 };
 
 /**
@@ -190,7 +225,7 @@ Peers.prototype.list = function (normalize) {
 	if (normalize) {
 		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].object(); });
 	} else {
-		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].attachRPC(); });
+		return Object.keys(__private.peers).map(function (key) { return __private.peers[key]; });
 	}
 };
 

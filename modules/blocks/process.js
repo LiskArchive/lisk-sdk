@@ -71,7 +71,9 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 		function (res, waterCb) {
 			var ids = res.ids;
 			// Perform request to supplied remote peer
-			peer.attachRPC();
+			// peer.attachRPC();
+			console.log('\x1b[36m%s\x1b[0m', 'GET COMMON BLOCK  --- PEER BEFORE ASKING', peer);
+			peer = library.logic.peers.create(peer);
 			peer.rpc.blocksCommon({ids: ids}, function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
@@ -208,7 +210,7 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = modules.blocks.lastBlock.get();
 
-	peer = library.logic.peers.create(peer).attachRPC();
+	peer = library.logic.peers.create(peer);
 	library.logger.info('Loading blocks from: ' + peer.string);
 
 	function getFromPeer (seriesCb) {
