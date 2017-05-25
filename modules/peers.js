@@ -7,6 +7,7 @@ var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
+var Peer = require('../logic/peer.js');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
 var sandboxHelper = require('../helpers/sandbox.js');
@@ -171,6 +172,7 @@ __private.insertSeeds = function (cb) {
 		library.logger.trace('Processing seed peer: ' + peer.string);
 		peer.rpc.status(function (err, status) {
 			if (err) {
+				peer.applyHeaders({state: 1});
 				library.logger.trace('Ping peer failed: ' + peer.string, err);
 			} else {
 				peer.applyHeaders({
@@ -180,6 +182,7 @@ __private.insertSeeds = function (cb) {
 				});
 				updated += 1;
 			}
+
 			library.logic.peers.upsert(peer);
 			return setImmediate(eachCb, err);
 		});
@@ -317,7 +320,7 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
  * @todo rename this function to activePeer or similar
  */
 Peers.prototype.update = function (peer) {
-	peer.state = 2;
+	peer.state = Peer.STATE.ACTIVE;
 	return library.logic.peers.upsert(peer);
 };
 
@@ -369,10 +372,21 @@ Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
 		modules.peers.list({limit: 1}, function (err, peers) {
-			var randomPeer = library.logic.peers.create(peers[0]);
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', randomPeer.string);
-			if (!err && peers.length) {
-				randomPeer.rpc.list(waterCb);
+			var randomPeer = peers.length ? library.logic.peers.create(peers[0]) : null;
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', randomPeer ? randomPeer.string : 'no peers found');
+			if (!err && randomPeer) {
+				randomPeer.rpc.status(function (err, status) {
+					if (err) {
+						return setImmediate(waterCb, err);
+					}
+					randomPeer.applyHeaders({
+						height: status.height,
+						broadhash: status.broadhash
+					});
+					library.logic.peers.upsert(randomPeer);
+
+					randomPeer.rpc.list(waterCb);
+				});
 			} else {
 				return setImmediate(waterCb, err || 'No acceptable peers found');
 			}
@@ -381,7 +395,7 @@ Peers.prototype.discover = function (cb) {
 
 	function validatePeersList (result, waterCb) {
 		library.schema.validate(result, schema.discover.peers, function (err) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovered peers: ', result.peers(p => p.ip + ':' + p.port));
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovered peers: ', result.peers.map(p => p.ip + ':' + p.port));
 			return setImmediate(waterCb, err, result.peers);
 		});
 	}
@@ -405,7 +419,7 @@ Peers.prototype.discover = function (cb) {
 				}
 
 				// Set peer state to disconnected
-				peer.state = 1;
+				peer.state = Peer.STATE.DISCONNECTED;
 				// We rely on data from other peers only when new peer is discovered for the first time
 				library.logic.peers.upsert(peer, true);
 				return setImmediate(eachCb);
@@ -432,7 +446,7 @@ Peers.prototype.discover = function (cb) {
  * @return {peer[]} Filtered list of peers
  */
 Peers.prototype.acceptable = function (peers) {
-	var me = library.logic.peers.me() || {ip: '127.0.0.1', port: 4000};
+	var me = library.logic.peers.me() || {ip: '127.0.0.1', port: library.config.port};
 	return _.chain(peers).filter(function (peer) {
 		// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
 			return peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
@@ -570,7 +584,7 @@ Peers.prototype.onPeersReady = function () {
 			},
 			updatePeers: function (seriesCb) {
 				var updated = 0;
-				var peers = library.logic.peers.list();
+				var peers = library.modules.peers.acceptable(library.logic.peers.list());
 
 				library.logger.trace('Updating peers', {peers: peers});
 
@@ -609,7 +623,7 @@ Peers.prototype.onPeersReady = function () {
 		});
 	}
 	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 10000);
 };
 
 /**

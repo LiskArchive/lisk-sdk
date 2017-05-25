@@ -5,7 +5,6 @@ var async = require('async');
 var Peer = require('../logic/peer.js');
 var schema = require('../schema/peers.js');
 var constants = require('../helpers/constants.js');
-var WsRPCClient = require('../api/RPC').WsRPCClient;
 
 // Private fields
 var __private = {};
@@ -147,7 +146,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 
 	_.each(__private.peers, function (peer, index) {
 		++cnt_total;
-		if (peer.state === 2) {
+		if (peer.state === Peer.STATE.ACTIVE) {
 			++cnt_active;
 		}
 		if (!peer.height) {
@@ -191,7 +190,7 @@ Peers.prototype.unban = function (peer) {
 	peer = self.get(peer);
 	if (peer) {
 		delete peer.clock;
-		peer.state = 1;
+		peer.state = Peers.STATE.DISCONNECTED;
 		library.logger.debug('Released ban for peer', peer.string);
 	} else {
 		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});

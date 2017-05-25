@@ -15,9 +15,11 @@ var CONNECTION_STATUS = {
 };
 
 function ConnectionState (ip, port) {
+	console.log('CONNECTION STAATE CONSRTRUCTOR FIRED');
 	this.ip = ip;
 	this.port = +port;
-	this.reconnect();
+	this.status = CONNECTION_STATUS.NEW;
+	this.socketDefer = Q.defer();
 	this.stub = new ClientRPCStub(this);
 }
 
@@ -66,7 +68,7 @@ var WsRPCServer = {
 	 * @returns {ClientRPCStub} {[string]: function} map where keys are all procedures registered
 	 */
 	getClientRPCStub: function (ip, port) {
-		console.log('New client RPC created: ', ip, port);
+		console.trace('New client RPC created: ', ip, port);
 		if (!ip || !port) {
 			throw new Error('WsRPCClient needs ip and port to establish WS connection.');
 		}
@@ -119,7 +121,6 @@ var ClientRPCStub = function (connectionState) {
  * @param {ConnectionState} connectionState
  */
 ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
-	console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
 
 	var options = {
 		hostname: connectionState.ip,
@@ -129,6 +130,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 		query: constants.getConst('headers')
 	};
 
+	console.trace('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
 	var clientSocket = WsRPCServer.scClient.connect(options);
 	WsRPCServer.wampClient.upgradeToWAMP(clientSocket);
 
@@ -184,7 +186,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 			}
 
 			connectionState.socketDefer.promise.then(function (socket) {
-				console.log('\x1b[33m%s\x1b[0m', 'CONNECTION STATE RESOLVED FOR PEER: ASKING FOR PROCEDURE ', connectionState.ip + ':' + connectionState.port);
+				console.log('\x1b[33m%s\x1b[0m', 'CONNECTION STATE RESOLVED FOR PEER: ASKING FOR PROCEDURE ', procedureName, connectionState.ip + ':' + connectionState.port);
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);

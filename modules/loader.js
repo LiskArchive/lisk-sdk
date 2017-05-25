@@ -789,8 +789,6 @@ Loader.prototype.onPeersReady = function () {
 			if (err) {
 				__private.initialize();
 			}
-
-			return __private.syncTimer();
 		});
 	});
 };
