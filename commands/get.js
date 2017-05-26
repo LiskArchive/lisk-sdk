@@ -3,7 +3,7 @@ module.exports = function getCommand (vorpal) {
 
 	const lisk = require('lisk-js').api();
 	const tablify = require('../src/utils/tablify');
-	var util = require('util');
+	const util = require('util');
 
 	function isAccountQuery (input) {
 
@@ -51,7 +51,8 @@ module.exports = function getCommand (vorpal) {
 
 	vorpal
 		.command('get <type> <input>')
-		.autocomplete(['account', 'block', 'delegate', 'transaction'])
+		.description('Get information from <type> with parameter <input>')
+		.autocomplete(['account', 'address', 'block', 'delegate', 'transaction'])
 		.action(function(userInput) {
 
 			let getType = {

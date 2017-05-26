@@ -1,22 +1,21 @@
 const Vorpal = require('vorpal');
-const lisky = require('../../index');
+const common = require('../common');
+const lisky = common.lisky;
+const sinon = common.sinon;
+const util = common.util;
 const get = require('../../commands/get');
-const should = require('should');
-const sinon = require('sinon');
+const list = require('../../commands/list');
 
-const fs = require('fs');
-const util = require('util');
-
-let vorpal = new Vorpal();
+const vorpal = new Vorpal();
 
 vorpal.use(get);
+vorpal.use(list);
 
 vorpal
 	.delimiter('lisky>')
 	.show();
 
 function executeCommand (command, callback) {
-
 	vorpal.exec(command, function(err, data){
 		if (!err) {
 			return callback(this);
@@ -34,7 +33,6 @@ describe('lisky get command palette', () => {
 		let command = 'get account 1813095620424213569L';
 
 		executeCommand(command, function (result) {
-
 			(result._command.command).should.be.equal(command);
 			done();
 		});
@@ -157,6 +155,5 @@ describe('lisky get command palette', () => {
 			done();
 		});
 	});
-
 
 });
