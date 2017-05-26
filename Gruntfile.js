@@ -6,6 +6,7 @@ var util = require('util');
 module.exports = function (grunt) {
 	var files = [
 		'logger.js',
+		'workersController.js',
 		'api/**/*.js',
 		'helpers/**/*.js',
 		'modules/*.js',
@@ -157,7 +158,7 @@ function obfuscateWorkersController () {
 		'logic/peer.js',
 		'modules/system.js',
 		'helpers/wsApi.js'
-	], __dirname, 'api/ws/workersController.js', true);
+	], __dirname, 'workersController.js', true);
 
 	var done = this.async();
 

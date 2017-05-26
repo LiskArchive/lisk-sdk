@@ -40,7 +40,7 @@ var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
-var workersController = require('./api/ws/workersController');
+var workersController = require('./workersController');
 var WsRPCServer = require('./api/RPC').WsRPCServer;
 process.stdin.resume();
 
