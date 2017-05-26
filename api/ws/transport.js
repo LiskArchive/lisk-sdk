@@ -1,12 +1,11 @@
 'use strict';
 
 var wsApi = require('../../helpers/wsApi');
-var workersController = require('./workersController');
-var WsRPCServer = require('../RPC').WsRPCServer;
+var wsRPC = require('./rpc/wsRPC');
 
 function TransportWSApi (transportModule, app, logger) {
 
-	WsRPCServer.getServer().registerRPCEndpoints({
+	wsRPC.getServer().registerRPCEndpoints({
 		acceptPeer: transportModule.internal.acceptPeer,
 		removePeer: transportModule.internal.removePeer,
 		ping: transportModule.internal.ping,

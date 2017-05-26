@@ -5,10 +5,10 @@ var url = require('url');
 
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 
-var Peer = require('../../logic/peer');
-var System = require('../../modules/system');
-var Handshake = require('../../helpers/wsApi').middleware.Handshake;
-var extractHeaders = require('../../helpers/wsApi').extractHeaders;
+var Peer = require('./logic/peer');
+var System = require('./modules/system');
+var Handshake = require('./helpers/wsApi').middleware.Handshake;
+var extractHeaders = require('./helpers/wsApi').extractHeaders;
 
 /**
  * Function is invoked by SocketCluster
