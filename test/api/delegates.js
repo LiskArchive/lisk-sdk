@@ -405,7 +405,7 @@ describe('GET /api/delegates (cache)', function () {
 	}
 
 	itIfCacheEnabled('cache delegates when response is a success', function (done) {
-		var url, params;
+		var url;
 		url = '/api/delegates';
 
 		node.get(url, function (err, res) {
@@ -415,6 +415,7 @@ describe('GET /api/delegates (cache)', function () {
 			cache.getJsonForKey(url, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(response);
+				done(err, res);
 			});
 		});
 	});
@@ -431,10 +432,33 @@ describe('GET /api/delegates (cache)', function () {
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(null);
+				done(err, res);
 			});
 		});
 	});
 
+	itIfCacheEnabled('should flush cache on the next round', function (done) {
+		var url;
+		url = '/api/delegates';
+
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				node.onNewRound(function (err) {
+					node.expect(err).to.not.exist;
+					cache.getJsonForKey(url, function (err, res) {
+						node.expect(err).to.not.exist;
+						node.expect(res).to.eql(null);
+						done(err, res);
+					});
+				});
+			});
+		});
+	});
 });
 
 describe('GET /api/delegates', function () {
