@@ -10,6 +10,10 @@ function Cache (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+/**
+ * This function will be triggered on new block, it will clear all cache entires.
+ */
+
 Cache.prototype.onNewBlock = function () {
 	if (self.isConnected()) {
 		self.flushDb(function (err) {
@@ -21,6 +25,10 @@ Cache.prototype.onNewBlock = function () {
 		});
 	}
 };
+
+/**
+ * This function will be triggered when a round finishes, it will clear all cache entires.
+ */
 
 Cache.prototype.onFinishRound = function () {
 	if (self.isConnected()) {
@@ -34,8 +42,18 @@ Cache.prototype.onFinishRound = function () {
 	}
 };
 
+
+/**
+ * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
+ * @param {transactions} transactions
+ */
 Cache.prototype.onUnconfirmedTransaction = function (transactions) {
-	var delgateTransactions = transactions.filter(transactions, function (trs) {
+	if(Array.isArray(transactions)) {
+		transactions = transactions;
+	} else {
+		transactions = [transactions];
+	}
+	var delgateTransactions = transactions.filter(function (trs) {
 		return trs.type === transactionTypes.DELEGATE;
 	});
 	if (delgateTransactions.length > 0) {
@@ -47,6 +65,10 @@ Cache.prototype.onUnconfirmedTransaction = function (transactions) {
 			}
 		});
 	}
+};
+
+Cache.prototype.cleanup = function () {
+	self.quit();
 };
 
 Cache.prototype.getJsonForKey = function (key, cb) {
