@@ -11,8 +11,8 @@ var sinon = require('sinon');
 var constants = require('../../../helpers/constants');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
-var WsRPCServer = require('../../../api/RPC').WsRPCServer;
-var WsRPCClient = require('../../../api/RPC').WsRPCClient;
+var wsRPC = require('../../../api/ws/rpc/wsRPC');
+var WsRPCClient = require('../../../api/ws/rpc/RPC').WsRPCClient;
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var socketClusterMock = {
@@ -20,26 +20,26 @@ var socketClusterMock = {
 };
 
 before(function () {
-	WsRPCServer.setServer(socketClusterMock);
+	wsRPC.setServer(socketClusterMock);
 	constants.setConst('headers', {});
 });
 
-describe('WsRPCServer', function () {
+describe('wsRPC', function () {
 
 	describe('constructor', function () {
 
 		it('should have empty clientsConnectionsMap field', function () {
-			expect(WsRPCServer).to.have.property('clientsConnectionsMap').to.be.a('object').and.to.be.empty;
+			expect(wsRPC).to.have.property('clientsConnectionsMap').to.be.a('object').and.to.be.empty;
 		});
 
 		it('should have wampClient field of instance WAMPClient', function () {
-			expect(WsRPCServer).to.have.property('wampClient').and.to.be.a('object');
-			expect(WsRPCServer.wampClient.constructor.name).equal('WAMPClient');
+			expect(wsRPC).to.have.property('wampClient').and.to.be.a('object');
+			expect(wsRPC.wampClient.constructor.name).equal('WAMPClient');
 		});
 
 		it('should have scClient field without connections', function () {
-			expect(WsRPCServer).to.have.property('scClient').and.to.be.a('object');
-			expect(WsRPCServer).to.have.deep.property('scClient.connections').to.be.a('object').and.to.be.empty;
+			expect(wsRPC).to.have.property('scClient').and.to.be.a('object');
+			expect(wsRPC).to.have.deep.property('scClient.connections').to.be.a('object').and.to.be.empty;
 		});
 
 	});
@@ -54,7 +54,7 @@ describe('WsRPCClient', function () {
 	describe('constructor', function () {
 
 		before(function () {
-			WsRPCServer.setServer(null);
+			wsRPC.setServer(null);
 		});
 
 		it('should not initialize new connection just after creating object', function () {
@@ -109,11 +109,11 @@ describe('WsRPCClient', function () {
 		var masterWAMPServer, masterWAMPServerConfig = {};
 		before(function () {
 			masterWAMPServer = new MasterWAMPServer(socketClusterMock, masterWAMPServerConfig);
-			WsRPCServer.setServer(masterWAMPServer);
+			wsRPC.setServer(masterWAMPServer);
 		});
 
 		it('should return client stub with rpc methods registered on MasterWAMPServer', function () {
-			WsRPCServer.wsServer.reassignRPCEndpoints(validRPCEndpoint);
+			wsRPC.wsServer.reassignRPCEndpoints(validRPCEndpoint);
 			var rpcStub = new WsRPCClient(validIp, validPort);
 			expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 		});
@@ -127,14 +127,14 @@ describe('WsRPCClient', function () {
 		};
 
 		it('should return client stub with event methods registered on MasterWAMPServer', function () {
-			WsRPCServer.wsServer.reassignEventEndpoints(validEventEndpoint);
+			wsRPC.wsServer.reassignEventEndpoints(validEventEndpoint);
 			var rpcStub = new WsRPCClient(validIp, validPort);
 			expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 		});
 
 		it('should return client stub with event and rpc methods registered on MasterWAMPServer', function () {
-			WsRPCServer.wsServer.reassignRPCEndpoints(validRPCEndpoint);
-			WsRPCServer.wsServer.reassignEventEndpoints(validEventEndpoint);
+			wsRPC.wsServer.reassignRPCEndpoints(validRPCEndpoint);
+			wsRPC.wsServer.reassignEventEndpoints(validEventEndpoint);
 			var rpcStub = new WsRPCClient(validIp, validPort);
 			expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 			expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');

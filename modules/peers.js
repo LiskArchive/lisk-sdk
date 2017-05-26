@@ -50,7 +50,9 @@ function Peers (cb, scope) {
 
 	setInterval(function () {
 		this.list({}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(p => p.string));
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(function (p) {
+				return p.ip + ':' + p.port;
+			}));
 		});
 	}.bind(this), 5000);
 
@@ -387,7 +389,6 @@ Peers.prototype.discover = function (cb) {
 
 	function validatePeersList (result, waterCb) {
 		library.schema.validate(result, schema.discover.peers, function (err) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovered peers: ', result.peers.map(p => p.ip + ':' + p.port));
 			return setImmediate(waterCb, err, result.peers);
 		});
 	}
@@ -395,7 +396,6 @@ Peers.prototype.discover = function (cb) {
 	function pickPeers (peers, waterCb) {
 		var picked = self.acceptable(peers);
 		library.logger.debug(['Picked', picked.length, 'of', peers.length, 'peers'].join(' '));
-		library.logger.debug(picked.map(p => p.ip + ':' + p.port));
 
 		return setImmediate(waterCb, null, picked);
 	}
@@ -441,11 +441,11 @@ Peers.prototype.acceptable = function (peers) {
 	var me = library.logic.peers.me() || {ip: '127.0.0.1', port: library.config.port};
 	return _.chain(peers).filter(function (peer) {
 		// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-			return peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
+		return peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
 		// }
 		// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 	}).uniqWith(function (a, b) {
-		// Removing non-unique peers
+		// Removig non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
 	}).value();
 };

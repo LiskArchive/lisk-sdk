@@ -7,7 +7,7 @@ var sandboxHelper = require('../helpers/sandbox.js');
 var constants = require('../helpers/constants.js');
 var semver = require('semver');
 var sql = require('../sql/system.js');
-var WsRPCClient = require('../api/RPC').WsRPCClient;
+
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 

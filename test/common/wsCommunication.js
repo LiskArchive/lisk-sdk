@@ -3,7 +3,7 @@
 var _ = require('lodash');
 var Q = require('q');
 var constants = require('../../helpers/constants');
-var WsRPCClient = require('../../api/RPC').WsRPCClient;
+var ClientRPCStub = require('../../api/ws/rpc/clientRPCStub');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var wampClient = new WAMPClient();
@@ -50,10 +50,8 @@ var wsCommunication = {
 		if (!this.defaultSocketDefer) {
 			this.defaultSocketDefer = Q.defer();
 			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 4000);
-			constants.setConst('headers', this.defaultSocketPeerHeaders);
-			constants.setConst('externalAddress', '127.0.0.1');
-
-			this.caller = WsRPCClient.prototype.sendAfterSocketReadyCb('127.0.0.1', 4000, this.defaultSocketDefer);
+			this.connect('127.0.0.1', 4000, this.defaultSocketDefer);
+			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb('127.0.0.1', 4000, this.defaultSocketDefer);
 		}
 		if (includePeer && typeof data == 'object') {
 			data.peer =  _.assign({

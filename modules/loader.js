@@ -7,7 +7,6 @@ var ip = require('ip');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
 var sql = require('../sql/loader.js');
-var WsRPCClient = require('../api/RPC').WsRPCClient;
 
 require('colors');
 

@@ -11,7 +11,7 @@ var config = require('../../config.json');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var Peer = require('../../../logic/peer');
 var randomPeer = require('../../common/objectStubs').randomPeer;
-var WsRPCServer = require('../../../api/RPC').WsRPCServer;
+var wsRPC = require('../../../api/ws/rpc/wsRPC');
 
 var currentPeers = [];
 
@@ -261,7 +261,7 @@ describe('peers', function () {
 			});
 
 			testWampServer.registerRPCEndpoints(usedRPCEndpoints);
-			WsRPCServer.setServer(testWampServer);
+			wsRPC.setServer(testWampServer);
 
 			sinon.stub(Peer.prototype, 'attachRPC', function () {
 				this.rpc = {};

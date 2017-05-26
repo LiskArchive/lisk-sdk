@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var ip = require('ip');
-var WsRPCServer = require('../api/RPC').WsRPCServer;
+var wsRPC = require('../api/ws/rpc/wsRPC');
 
 // Constructor
 function Peer (peer) {
@@ -99,7 +99,7 @@ Peer.prototype.accept = function (peer) {
 	Object.defineProperties(this, {
 		rpc: {
 			get: function () {
-				return WsRPCServer.getClientRPCStub(this.ip, this.port)
+				return wsRPC.getClientRPCStub(this.ip, this.port);
 			}.bind(this)
 		}
 	});
