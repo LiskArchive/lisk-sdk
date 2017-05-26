@@ -76,7 +76,7 @@ before(function (done) {
 	});
 });
 
-describe('GET /api/transactions', function () {
+describe('GET /api/transactions (cache)', function () {
 	var cache;
 
 	before(function (done) {
@@ -122,6 +122,7 @@ describe('GET /api/transactions', function () {
 			cache.getJsonForKey(url + params.join('&'), function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(response);
+				done(err, res);
 			});
 		});
 	});
@@ -139,6 +140,7 @@ describe('GET /api/transactions', function () {
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(null);
+				done(err, res);
 			});
 		});
 	});
