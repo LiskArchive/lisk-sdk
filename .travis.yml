@@ -8,6 +8,7 @@ cache:
     - node_modules
 services:
   - postgresql
+  - redis-server
 addons:
   postgresql: '9.6'
 install:
