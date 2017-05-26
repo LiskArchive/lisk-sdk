@@ -1,7 +1,6 @@
 'use strict';
 
 var async = require('async');
-var _ = require('lodash');
 var url = require('url');
 
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
@@ -15,8 +14,6 @@ var extractHeaders = require('../../helpers/wsApi').extractHeaders;
  * Function is invoked by SocketCluster
  * @param {Worker} worker
  */
-
-
 module.exports.run = function (worker) {
 
 	var scServer = worker.getSCServer();
@@ -57,32 +54,34 @@ module.exports.run = function (worker) {
 			return cb(null, handshake);
 		}]
 	},
-		function (err, scope) {
-			scServer.on('connection', function (socket) {
-				scope.slaveWAMPServer.upgradeToWAMP(socket);
+	function (err, scope) {
+		scServer.on('connection', function (socket) {
+			scope.slaveWAMPServer.upgradeToWAMP(socket);
 
-				socket.on('disconnect', function () {
-					scope.slaveWAMPServer.onSocketDisconnect(socket);
-					try {
-						var headers = extractHeaders(socket.request);
-					} catch (invalidHeadersException) {
-						//ToDO: do some unable to disconnect peer logging
-						return;
+			socket.on('disconnect', function () {
+				scope.slaveWAMPServer.onSocketDisconnect(socket);
+				try {
+					var headers = extractHeaders(socket.request);
+				} catch (invalidHeadersException) {
+					//ToDO: do some unable to disconnect peer logging
+					return;
+				}
+				return scope.slaveWAMPServer.sendToMaster('removePeer',  new Peer(headers), socket.request.remoteAddress, function (err, peer) {
+					if (err) {
+						//ToDo: Again logging here- unable to remove peer
 					}
-					return scope.slaveWAMPServer.sendToMaster('removePeer',  new Peer(headers), socket.request.remoteAddress, function (err, peer) {
-						if (err) {
-							//ToDo: Again logging here- unable to remove peer
-						}
-					});
-				}.bind(this));
-
-				socket.on('connect', function (data) {
-					//ToDo: integrate this socket connection with future peer client connection - one socket will be sufficient
 				});
+			}.bind(this));
 
-				socket.on('error', function (err) {
-					//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
-				});
+			socket.on('connect', function (data) {
+				//ToDo: integrate this socket connection with future peer client connection - one socket will be sufficient
+			});
+
+			socket.on('error', function (err) {
+				//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
 			});
 		});
+	});
 };
+
+module.exports.path = __dirname + '/workersController.js';
