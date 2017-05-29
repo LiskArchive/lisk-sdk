@@ -9,7 +9,7 @@ module.exports = function (grunt) {
 		'workersController.js',
 		'api/**/*.js',
 		'helpers/**/*.js',
-		'modules/*.js',
+		'modules/**/*.js',
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',

@@ -6,7 +6,8 @@ module.exports = {
 	entry: './workersController.js',
 	output: {
 		path: __dirname + '/release',
-		filename: 'workersController.js'
+		filename: 'workersController.js',
+		libraryTarget: 'commonjs2'
 	},
 	target: 'node',
 	externals: [nodeExternals()]
