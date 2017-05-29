@@ -1,9 +1,11 @@
+const fse = require('fs-extra');
 const vorpal = require('vorpal')();
-const get = require('./commands/get');
-const list = require('./commands/list');
 
-  vorpal.use(get);
-vorpal.use(list);
+//import commands from ./commands/ folder
+fse.readdirSync('./commands').map(function (command) {
+	vorpal.use(require('./commands/'+command));
+
+});
 
   vorpal 
 	  .delimiter('lisky>')
