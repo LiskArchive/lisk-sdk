@@ -20,6 +20,16 @@ describe('#tablify', () => {
 		};
 
 		expect(() => { tablify(data) }).to.throw();
-	})
+	});
+
+	it('should create a table from object', () => {
+
+		let data = {
+			data: 'data',
+			moreData: 'data'
+		};
+
+		expect( tablify(data) ).to.have.property('0');
+	});
 
 });

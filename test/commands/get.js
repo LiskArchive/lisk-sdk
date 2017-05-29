@@ -218,6 +218,30 @@ describe('get command palette without test mode', () => {
 		});
 	});
 
+	it('it should work in normal env and delegate data --json', (done) =>  {
+
+		let command = 'get delegate tosch -j';
+
+		let result = vorpal.exec(command);
+
+		result.then((output) => {
+			(output.username).should.be.eql('tosch');
+			done();
+		});
+	});
+
+	it('it should work in normal env and account data --json', (done) =>  {
+
+		let command = 'get account 7018558261153309828L -j';
+
+		let result = vorpal.exec(command);
+
+		result.then((output) => {
+			(output.address).should.be.eql('7018558261153309828L');
+			done();
+		});
+	});
+
 	afterEach(() => {
 		process.env.NODE_ENV = 'test'
 	});

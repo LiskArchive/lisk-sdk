@@ -31,23 +31,17 @@ module.exports = function listCommand(vorpal) {
 	}
 
 	function switchType (type) {
-		let returnType;
 		switch (type) {
 			case 'accounts':
 			case 'addresses':
-				returnType = 'account';
-				break;
+				return 'account';
 			case 'blocks':
-				returnType = 'block';
-				break;
+				return 'block';
 			case 'delegates':
-				returnType = 'delegate';
-				break;
+				return'delegate';
 			case 'transactions':
-				returnType = 'transaction';
-				break;
+				return 'transaction';
 		}
-		return returnType;
 	}
 
 	function filterCommandForFlags (commands, input) {

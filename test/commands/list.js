@@ -103,7 +103,6 @@ describe('list command palette without test mode', () => {
 
 	it('should detect wrong input, without test mode', (done) => {
 
-
 		let command = 'list transactions 36410491 412323 -j';
 
 		let promiseExec = vorpal.exec(command);
@@ -118,7 +117,6 @@ describe('list command palette without test mode', () => {
 
 	it('should detect wrong input, without test mode', (done) => {
 
-
 		let command = 'list transactions 36410491 412323 --no-json';
 
 		let promiseExec = vorpal.exec(command);
@@ -126,6 +124,48 @@ describe('list command palette without test mode', () => {
 		promiseExec.then(result => {
 			(result).should.be.length(2);
 			(result[0].success).should.be.false;
+			done();
+		});
+
+	});
+
+	it('should detect wrong input, without test mode', (done) => {
+
+		let command = 'list delegates tosch joel oliver -j';
+
+		let promiseExec = vorpal.exec(command);
+
+		promiseExec.then(result => {
+			(result).should.be.length(3);
+			(result[0].success).should.be.true;
+			done();
+		});
+
+	});
+
+	it('should detect wrong input, without test mode', (done) => {
+
+		let command = 'list accounts 1813095620424213569L 4034636149257692063L -j';
+
+		let promiseExec = vorpal.exec(command);
+
+		promiseExec.then(result => {
+			(result).should.be.length(2);
+			(result[0].success).should.be.true;
+			done();
+		});
+
+	});
+
+	it('should detect wrong input, without test mode', (done) => {
+
+		let command = 'list blocks 261210776798678785 15451307652923255487 -j';
+
+		let promiseExec = vorpal.exec(command);
+
+		promiseExec.then(result => {
+			(result).should.be.length(2);
+			(result[0].success).should.be.true;
 			done();
 		});
 

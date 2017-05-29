@@ -31,23 +31,17 @@ module.exports = function getCommand (vorpal) {
 	}
 
 	function switchType (type) {
-		let returnType;
 		switch (type) {
 			case 'account':
 			case 'address':
-				returnType = 'account';
-				break;
+				return 'account';
 			case 'block':
-				returnType = 'block';
-				break;
+				return 'block';
 			case 'delegate':
-				returnType = 'delegate';
-				break;
+				return 'delegate';
 			case 'transaction':
-				returnType = 'transaction';
-				break;
+				return 'transaction';
 		}
-		return returnType;
 	}
 
 	vorpal
