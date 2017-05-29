@@ -80,6 +80,11 @@ describe('GET /api/transactions (cache)', function () {
 	var cache;
 
 	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			node.expect(err).to.not.exist;
@@ -100,12 +105,7 @@ describe('GET /api/transactions (cache)', function () {
 		});
 	});
 
-	function itIfCacheEnabled (name, cb) {
-		var fn = node.config.cacheEnabled ? it: it.skip;
-		fn(name, cb);
-	}
-
-	itIfCacheEnabled('cache transactions by the url and parameters when response is a success', function (done) {
+	it('cache transactions by the url and parameters when response is a success', function (done) {
 		var url, params;
 
 		url = '/api/transactions?';
@@ -127,7 +127,7 @@ describe('GET /api/transactions (cache)', function () {
 		});
 	});
 
-	itIfCacheEnabled('should not cache if response is not a success', function (done) {
+	it('should not cache if response is not a success', function (done) {
 		var url, params;
 		url = '/api/transactions?';
 		params = [
@@ -149,7 +149,8 @@ describe('GET /api/transactions (cache)', function () {
 describe('GET /api/transactions', function () {
 
 	before(function (done) {
-		node.onNewBlock(done);
+//		node.onNewBlock(done);
+		done();
 	});
 
 	it('using valid parameters should be ok', function (done) {

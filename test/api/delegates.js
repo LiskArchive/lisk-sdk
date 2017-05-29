@@ -379,6 +379,11 @@ describe('GET /api/delegates (cache)', function () {
 	var cache;
 
 	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			node.expect(err).to.not.exist;
@@ -399,12 +404,7 @@ describe('GET /api/delegates (cache)', function () {
 		});
 	});
 
-	function itIfCacheEnabled (name, cb) {
-		var fn = node.config.cacheEnabled ? it: it.skip;
-		fn(name, cb);
-	}
-
-	itIfCacheEnabled('cache delegates when response is a success', function (done) {
+	it('cache delegates when response is a success', function (done) {
 		var url;
 		url = '/api/delegates';
 
@@ -420,7 +420,7 @@ describe('GET /api/delegates (cache)', function () {
 		});
 	});
 
-	itIfCacheEnabled('should not cache if response is not a success', function (done) {
+	it('should not cache if response is not a success', function (done) {
 		var url, orderBy, params;
 		url = '/api/delegates?';
 		orderBy = 'unknown:asc';
@@ -437,7 +437,7 @@ describe('GET /api/delegates (cache)', function () {
 		});
 	});
 
-	itIfCacheEnabled('should flush cache on the next round', function (done) {
+	it('should flush cache on the next round', function (done) {
 		var url;
 		url = '/api/delegates';
 

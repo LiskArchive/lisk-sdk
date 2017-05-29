@@ -145,6 +145,11 @@ describe('GET /blocks (cache)', function () {
 	var cache;
 
 	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			node.expect(err).to.not.exist;
@@ -165,12 +170,7 @@ describe('GET /blocks (cache)', function () {
 		});
 	});
 
-	function itIfCacheEnabled (name, cb) {
-		var fn = node.config.cacheEnabled ? it: it.skip;
-		fn(name, cb);
-	}
-
-	itIfCacheEnabled('cache blocks by the url and parameters when response is a success', function (done) {
+	it('cache blocks by the url and parameters when response is a success', function (done) {
 		var url, params;
 		url = '/api/blocks?';
 		params = 'height=' + block.blockHeight;
@@ -187,7 +187,7 @@ describe('GET /blocks (cache)', function () {
 		});
 	});
 
-	itIfCacheEnabled('should not cache if response is not a success', function (done) {
+	it('should not cache if response is not a success', function (done) {
 		var url, params;
 		url = '/api/blocks?';
 		params = 'height=' + -1000;
@@ -201,7 +201,7 @@ describe('GET /blocks (cache)', function () {
 		});
 	});
 
-	itIfCacheEnabled('should remove entry from cache on new block', function (done) {
+	it('should remove entry from cache on new block', function (done) {
 		var url, params;
 		url = '/api/blocks?';
 		params = 'height=' + block.blockHeight;

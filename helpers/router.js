@@ -4,9 +4,11 @@ var httpApi = require('./httpApi');
 var extend = require('extend');
 
 /**
- * Express.js router wrapper
- * @return {Router}
- * @constructor
+ * Express.js router wrapper.
+ * @memberof module:helpers
+ * @function
+ * @returns {Object} router express
+ * @throws {Error} If config is invalid
  */
 var Router = function () {
 	var router = require('express').Router();

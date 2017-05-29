@@ -14,6 +14,11 @@ describe('cache module', function () {
 	var cache;
 
 	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;
@@ -35,12 +40,7 @@ describe('cache module', function () {
 		});
 	});
 
-	function itIfCacheEnabled (name, cb) {
-		var fn = node.config.cacheEnabled ? it : it.skip;
-		fn(name, cb);
-	}
-
-	itIfCacheEnabled('should set the key value correctly', function (done) {
+	it('should set the key value correctly', function (done) {
 		var key = 'test_key';
 		var value = {testObject: 'testValue'};
 
@@ -55,7 +55,7 @@ describe('cache module', function () {
 		});
 	});
 
-	itIfCacheEnabled('should return null for non-existent key', function (done) {
+	it('should return null for non-existent key', function (done) {
 		var key = 'test_key';
 
 		cache.getJsonForKey(key, function (err, value) {
@@ -65,7 +65,7 @@ describe('cache module', function () {
 		});
 	});
 
-	itIfCacheEnabled('should remove all keys from cache on flushDb', function (done) {
+	it('should remove all keys from cache on flushDb', function (done) {
 		var key1 = 'test_key1';
 		var key2 = 'test_key2';
 		var dummyValue = { a: 'dummyValue' };
