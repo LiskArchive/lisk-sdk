@@ -14,14 +14,6 @@ describe('#tablify', () => {
 
 	});
 
-	it('should fail on hasOwnProperty', () => {
-		let data = {
-			hasOwnProperty: '123'
-		};
-
-		expect(() => { tablify(data) }).to.throw();
-	});
-
 	it('should create a table from object', () => {
 
 		let data = {
