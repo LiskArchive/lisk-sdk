@@ -1,7 +1,8 @@
 module.exports = function listCommand(vorpal) {
 	'use strict';
 
-	const lisk = require('lisk-js').api();
+	const config = require('../config');
+	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
 	const util = require('util');
 
@@ -51,6 +52,8 @@ module.exports = function listCommand(vorpal) {
 
 	vorpal
 		.command('list <type> [variadic...]')
+		.option('-j, --json', 'Sets output to json')
+		.option('-t, --no-json', 'Sets output to text')
 		.description('Get information from <type> with parameters [input, input, ...]')
 		.autocomplete(['accounts', 'addresses', 'blocks', 'delegates', 'transactions'])
 		.action(function(userInput) {

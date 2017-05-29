@@ -1,7 +1,8 @@
 module.exports = function getCommand (vorpal) {
 	'use strict';
 
-	const lisk = require('lisk-js').api();
+	const config = require('../config');
+	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
 	const util = require('util');
 
@@ -51,6 +52,8 @@ module.exports = function getCommand (vorpal) {
 
 	vorpal
 		.command('get <type> <input>')
+		.option('-j, --json', 'Sets output to json')
+		.option('--no-json', 'Default: sets output to text. You can change this in the config.js')
 		.description('Get information from <type> with parameter <input>')
 		.autocomplete(['account', 'address', 'block', 'delegate', 'transaction'])
 		.action(function(userInput) {
@@ -73,16 +76,23 @@ module.exports = function getCommand (vorpal) {
 
 			} else {
 
-				//output = tablify(output).toString();
-
-				return output.then((result) => {
-					if(result.error) {
-						vorpal.log(util.inspect(result));
-					} else {
-						vorpal.log(util.inspect(result[switchType(userInput.type)]));
-					}
-
-				});
+				if(userInput.options.json) {
+					return output.then((result) => {
+						if(result.error) {
+							vorpal.log(util.inspect(result));
+						} else {
+							vorpal.log(util.inspect(result[switchType(userInput.type)]));
+						}
+					});
+				} else {
+					return output.then((result) => {
+						if(result.error) {
+							vorpal.log(tablify(result).toString());
+						} else {
+							vorpal.log(tablify(result[switchType(userInput.type)]).toString());
+						}
+					});
+				}
 
 			}
 
