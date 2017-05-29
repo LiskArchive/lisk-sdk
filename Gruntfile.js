@@ -86,6 +86,11 @@ module.exports = function (grunt) {
 			fetchCoverage: {
 				command: 'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
 				maxBuffer: maxBufferSize
+			},
+
+			createBundles: {
+				command: 'npm run create-bundles',
+				maxBuffer: maxBufferSize
 			}
 		},
 
@@ -128,8 +133,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('default', ['release']);
-	grunt.registerTask('obfuscateWorkersController', obfuscateWorkersController);
-	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'obfuscateWorkersController', 'exec:package', 'exec:build', 'compress']);
+	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
@@ -140,40 +144,3 @@ module.exports = function (grunt) {
 		grunt.task.run('eslint');
 	});
 };
-
-function obfuscateWorkersController () {
-	var Options = require('obfuscator').Options;
-	var obfuscator = require('obfuscator').obfuscator;
-	var fs = require('fs');
-	var options = new Options([
-		'logic/peer.js',
-		'modules/system.js',
-		'helpers/wsApi.js'
-	], __dirname, 'workersController.js', true);
-
-	var done = this.async();
-
-	// custom compression options
-	// see https://github.com/mishoo/UglifyJS2/#compressor-options
-	options.compressor = {
-		conditionals: true,
-		evaluate: true,
-		booleans: true,
-		loops: true,
-		unused: false,
-		hoist_funs: false
-	};
-
-	obfuscator(options, function (err, obfuscated) {
-		if (err) {
-			throw err;
-		}
-		fs.writeFile('./release/workersController.js', obfuscated, function (err) {
-			if (err) {
-				throw err;
-			}
-			console.log('workersController.js obfuscated');
-			done();
-		});
-	});
-}

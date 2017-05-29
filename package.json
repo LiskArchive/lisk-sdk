@@ -4,11 +4,14 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "test": "./node_modules/.bin/grunt test --verbose",
-    "test-unit": "./node_modules/.bin/grunt test-unit --verbose",
-    "test-integration": "export TEST=test/integration/peers.integration.js && export NODE_ENV=TEST && ./node_modules/.bin/grunt travis",
-    "travis": "./node_modules/.bin/grunt travis --verbose",
-    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose"
+    "test": "grunt test --verbose",
+    "test-unit": "grunt test-unit --verbose",
+    "test-integration": "export TEST=test/integration/peers.integration.js && export NODE_ENV=TEST && grunt travis",
+    "travis": "grunt travis --verbose",
+    "fetchCoverage": "grunt exec:fetchCoverage --verbose",
+    "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
+    "create-bundles": "webpack",
+    "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
@@ -76,9 +79,10 @@
     "jsdox": "=0.4.10",
     "mocha": "=3.2.0",
     "moment": "=2.17.1",
-    "obfuscator": "=0.5.4",
     "pm2": "=2.4.6",
     "sinon": "=2.0.0",
-    "supertest": "=3.0.0"
+    "supertest": "=3.0.0",
+    "webpack": "=2.6.1",
+    "webpack-node-externals": "=1.6.0"
   }
 }
