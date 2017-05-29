@@ -99,20 +99,33 @@ module.exports = function listCommand(vorpal) {
 
 			 } else {
 
-				 //output = tablify(output).toString();
+				 if(userInput.options.json === true) {
+					 return Promise.all(calls).then(result => {
+						 result.map(executed => {
+							 if(executed.error) {
+								 vorpal.log(util.inspect(executed));
+							 } else {
+								 vorpal.log(util.inspect(executed[switchType(userInput.type)]));
+							 }
+						 });
 
-				 return Promise.all(calls).then(result => {
-				 	result.map(executed => {
-					    if(executed.error) {
-						    vorpal.log(util.inspect(executed));
-					    } else {
-						    vorpal.log(util.inspect(executed[switchType(userInput.type)]));
-					    }
-				    });
+						 return result;
 
-				 	return result;
+					 });
+				 } else {
+					 return Promise.all(calls).then(result => {
+						 result.map(executed => {
+							 if(executed.error) {
+								 vorpal.log(tablify(executed).toString());
+							 } else {
+								 vorpal.log(tablify(executed[switchType(userInput.type)]).toString());
+							 }
+						 });
 
-				 });
+						 return result;
+
+					 });
+				 }
 
 			 }
 

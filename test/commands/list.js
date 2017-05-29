@@ -116,6 +116,21 @@ describe('list command palette without test mode', () => {
 
 	});
 
+	it('should detect wrong input, without test mode', (done) => {
+
+
+		let command = 'list transactions 36410491 412323 --no-json';
+
+		let promiseExec = vorpal.exec(command);
+
+		promiseExec.then(result => {
+			(result).should.be.length(2);
+			(result[0].success).should.be.false;
+			done();
+		});
+
+	});
+
 	afterEach(() => {
 		process.env.NODE_ENV = 'test'
 	});
