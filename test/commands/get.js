@@ -130,8 +130,30 @@ describe('lisky get command palette', () => {
 
 	});
 
+
+
+});
+
+describe('get command palette without test mode', () => {
+
+	beforeEach(() => {
+		process.env.NODE_ENV === 'main'
+	});
+
+	it('should have the right parameters with transactions, no test mode', (done) => {
+
+		let command = 'get transaction 3641049113933914102';
+
+		let promiseExec = vorpal.exec(command);
+
+		promiseExec.then(result => {
+			(result.success).should.be.true;
+			done();
+		});
+
+	});
+
 	it('it should work in normal env', (done) =>  {
-		process.env.NODE_ENV === 'main';
 
 		let command = 'get block 1924405132194419123';
 
@@ -143,8 +165,19 @@ describe('lisky get command palette', () => {
 		});
 	});
 
+	it('it should work in normal env', (done) =>  {
+
+		let command = 'get block 19244051321919123';
+
+		let result = vorpal.exec(command);
+
+		result.then((output) => {
+			(output.success).should.be.false;
+			done();
+		});
+	});
+
 	it('it should work in normal env and wrong data', (done) =>  {
-		process.env.NODE_ENV === 'main';
 
 		let command = 'get block 123';
 
@@ -156,4 +189,7 @@ describe('lisky get command palette', () => {
 		});
 	});
 
+	afterEach(() => {
+		process.env.NODE_ENV === 'test'
+	});
 });
