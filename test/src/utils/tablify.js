@@ -32,4 +32,22 @@ describe('#tablify', () => {
 		expect( tablify(data) ).to.have.property('0');
 	});
 
+	it('should create a table from object', () => {
+
+		let data = {
+
+		};
+
+		expect( tablify(data) ).to.not.have.property('0');
+	});
+
+	it('should create a table from object', () => {
+
+		let data = {
+			data: 'data'
+		};
+
+		(tablify(data)[0]).should.have.keys('data');
+	});
+
 });
