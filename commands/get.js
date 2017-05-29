@@ -76,20 +76,24 @@ module.exports = function getCommand (vorpal) {
 
 			} else {
 
-				if(userInput.options.json) {
+				if(userInput.options.json === true) {
 					return output.then((result) => {
 						if(result.error) {
 							vorpal.log(util.inspect(result));
+							return result;
 						} else {
 							vorpal.log(util.inspect(result[switchType(userInput.type)]));
+							return result[switchType(userInput.type)];
 						}
 					});
 				} else {
 					return output.then((result) => {
 						if(result.error) {
 							vorpal.log(tablify(result).toString());
+							return result;
 						} else {
 							vorpal.log(tablify(result[switchType(userInput.type)]).toString());
+							return result[switchType(userInput.type)];
 						}
 					});
 				}

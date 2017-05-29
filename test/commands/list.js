@@ -83,16 +83,18 @@ describe('lisky list command palette', () => {
 
 describe('list command palette without test mode', () => {
 
+	beforeEach(() => {
+		process.env.NODE_ENV = 'main'
+	});
+
 	it('should have the right parameters with transactions, no test mode', (done) => {
 
-		beforeEach(() => {
-			process.env.NODE_ENV === 'main'
-		});
 		let command = 'list transactions 3641049113933914102 10995782995100491988';
 
 		let promiseExec = vorpal.exec(command);
 
 		promiseExec.then(result => {
+			console.log('result', result);
 			(result).should.be.length(2);
 			done();
 		});
@@ -102,12 +104,12 @@ describe('list command palette without test mode', () => {
 	it('should detect wrong input, without test mode', (done) => {
 
 
-		let command = 'list transactions 36410491';
+		let command = 'list transactions 36410491 412323 -j';
 
 		let promiseExec = vorpal.exec(command);
 
 		promiseExec.then(result => {
-			(result).should.be.length(1);
+			(result).should.be.length(2);
 			(result[0].success).should.be.false;
 			done();
 		});
@@ -115,6 +117,6 @@ describe('list command palette without test mode', () => {
 	});
 
 	afterEach(() => {
-		process.env.NODE_ENV === 'test'
+		process.env.NODE_ENV = 'test'
 	});
 });
