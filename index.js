@@ -7,6 +7,7 @@ fse.readdirSync('./commands').map(function (command) {
 
 });
 
+//Define vorpal
   vorpal 
 	  .delimiter('lisky>')
 	  .history('lisky')
