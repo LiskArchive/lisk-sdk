@@ -26,10 +26,10 @@ __private.unconfirmedAscii = {};
 // Constructor
 function DApp (db, logger, schema, network) {
 	library = {
-		db,
-		logger,
-		schema,
-		network,
+		db: db,
+		logger: logger,
+		schema: schema,
+		network: network,
 	};
 }
 

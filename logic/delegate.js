@@ -14,7 +14,7 @@ var modules, library;
  */
 function Delegate (schema) {
 	library = {
-		schema,
+		schema: schema,
 	};
 }
 
@@ -25,7 +25,7 @@ function Delegate (schema) {
  */
 Delegate.prototype.bind = function (accounts) {
 	modules = {
-		accounts,
+		accounts: accounts,
 	};
 };
 

@@ -22,13 +22,13 @@ var modules, library, self, __private = {};
  */
 function Utils (logger, block, transaction, db, dbSequence, genesisblock) {
 	library = {
-		logger,
-		db,
-		dbSequence,
-		genesisblock,
+		logger: logger,
+		db: db,
+		dbSequence: dbSequence,
+		genesisblock: genesisblock,
 		logic: {
-			block,
-			transaction,
+			block: block,
+			transaction: transaction,
 		},
 	};
 	self = this;

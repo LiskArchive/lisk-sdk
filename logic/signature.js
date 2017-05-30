@@ -17,8 +17,8 @@ var modules, library;
 // Constructor
 function Signature (schema, logger) {
 	library ={
-		schema,
-		logger,
+		schema: schema,
+		logger: logger,
 	};
 }
 
@@ -28,7 +28,7 @@ function Signature (schema, logger) {
  */
 Signature.prototype.bind = function (accounts) {
 	modules = {
-		accounts,
+		accounts: accounts,
 	};
 };
 

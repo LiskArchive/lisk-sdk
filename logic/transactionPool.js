@@ -25,16 +25,16 @@ var modules, library, self, __private = {};
 // Constructor
 function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger) {
 	library = {
-		logger,
-		bus,
+		logger: logger,
+		bus: bus,
 		logic: {
-			transaction
+			transaction: transaction,
 		},
 		config: {
 			broadcasts: {
-				broadcastInterval,
-				releaseLimit
-			}
+				broadcastInterval: broadcastInterval,
+				releaseLimit: releaseLimit,
+			},
 		},
 	};
 	self = this;
@@ -84,9 +84,9 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
  */
 TransactionPool.prototype.bind = function (accounts, transactions, loader) {
 	modules = {
-		accounts,
-		transactions,
-		loader,
+		accounts: accounts,
+		transactions: transactions,
+		loader: loader,
 	};
 };
 

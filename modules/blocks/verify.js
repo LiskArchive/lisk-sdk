@@ -13,11 +13,11 @@ __private.blockReward = new BlockReward();
 
 function Verify (logger, block, transaction, db) {
 	library = {
-		logger,
-		db,
+		logger: logger,
+		db: db,
 		logic: {
-			block,
-			transaction,
+			block: block,
+			transaction: transaction,
 		},
 	};
 	self = this;

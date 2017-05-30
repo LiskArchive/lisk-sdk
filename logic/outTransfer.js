@@ -20,9 +20,9 @@ __private.unconfirmedOutTansfers = {};
 // Constructor
 function OutTransfer (db, schema, logger) {
 	library = {
-		db,
-		schema,
-		logger,
+		db: db,
+		schema: schema,
+		logger: logger,
 	};
 }
 
@@ -35,9 +35,9 @@ function OutTransfer (db, schema, logger) {
  */
 OutTransfer.prototype.bind = function (accounts, rounds, dapps) {
 	modules = {
-		accounts,
-		rounds,
-		dapps,
+		accounts: accounts,
+		rounds: rounds,
+		dapps: dapps,
 	};
 };
 

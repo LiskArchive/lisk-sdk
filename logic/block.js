@@ -24,9 +24,9 @@ var __private = {};
 // Constructor
 function Block (ed, schema, transaction, cb) {
 	this.scope = {
-		ed,
-		schema,
-		transaction,
+		ed: ed,
+		schema: schema,
+		transaction: transaction,
 	};
 	if (cb) {
 		return setImmediate(cb, null, this);

@@ -24,11 +24,11 @@ __private.unconfirmedSignatures = {};
 // Constructor
 function Multisignature (schema, network, transaction, logger) {
 	library = {
-		schema,
-		network,
-		logger,
+		schema: schema,
+		network: network,
+		logger: logger,
 		logic: {
-			transaction,
+			transaction: transaction,
 		},
 	};
 }
@@ -41,8 +41,8 @@ function Multisignature (schema, network, transaction, logger) {
  */
 Multisignature.prototype.bind = function (rounds, accounts) {
 	modules = {
-		rounds,
-		accounts,
+		rounds: rounds,
+		accounts: accounts,
 	};
 };
 

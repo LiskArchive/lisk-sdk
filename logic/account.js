@@ -24,13 +24,13 @@ var self, library, __private = {};
  */
 function Account (db, schema, logger, cb) {
 	this.scope = {
-		db,
-		schema,
+		db: db,
+		schema: schema,
 	};
 
 	self = this;
 	library = {
-		logger,
+		logger: logger,
 	};
 
 	this.table = 'mem_accounts';

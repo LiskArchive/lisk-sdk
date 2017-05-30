@@ -26,16 +26,16 @@ var modules, library, self, __private = {};
  */
 function Process (logger, block, peers, transaction, schema, db, dbSequence, sequence, genesisblock) {
 	library = {
-		logger,
-		schema,
-		db,
-		dbSequence,
-		sequence,
-		genesisblock,
+		logger: logger,
+		schema: schema,
+		db: db,
+		dbSequence: dbSequence,
+		sequence: sequence,
+		genesisblock: genesisblock,
 		logic: {
-			block,
-			peers,
-			transaction,
+			block: block,
+			peers: peers,
+			transaction: transaction,
 		},
 	};
 	self = this;

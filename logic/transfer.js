@@ -22,8 +22,8 @@ function Transfer () {}
  */
 Transfer.prototype.bind = function (accounts, rounds) {
 	modules = {
-		accounts,
-		rounds,
+		accounts: accounts,
+		rounds: rounds,
 	};
 };
 

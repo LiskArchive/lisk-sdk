@@ -17,8 +17,8 @@ var modules, library, shared;
 // Constructor
 function InTransfer (db, schema) {
 	library = {
-		db,
-		schema,
+		db: db,
+		schem: schema,
 	};
 }
 
@@ -31,8 +31,8 @@ function InTransfer (db, schema) {
  */
 InTransfer.prototype.bind = function (accounts, rounds, sharedApi) {
 	modules = {
-		accounts,
-		rounds,
+		accounts: accounts,
+		rounds: rounds,
 	};
 	shared = sharedApi;
 };

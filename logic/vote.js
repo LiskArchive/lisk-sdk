@@ -22,8 +22,8 @@ var modules, library, self;
 function Vote (logger, schema) {
 	self = this;
 	library = {
-		logger,
-		schema,
+		logger: logger,
+		schema: schema,
 	};
 
 }
@@ -36,8 +36,8 @@ function Vote (logger, schema) {
  */
 Vote.prototype.bind = function (delegates, rounds) {
 	modules = {
-		delegates,
-		rounds
+		delegates: delegates,
+		rounds: rounds,
 	};
 };
 

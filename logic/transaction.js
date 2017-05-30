@@ -43,12 +43,12 @@ __private.types = {};
 // Constructor
 function Transaction (db, ed, schema, genesisblock, account, logger, cb) {
 	this.scope = {
-		db,
-		ed,
-		schema,
-		genesisblock,
-		account,
-		logger,
+		db: db,
+		ed: ed,
+		schema: schema,
+		genesisblock: genesisblock,
+		account: account,
+		logger: logger,
 	};
 	self = this;
 	if (cb) {
@@ -1138,7 +1138,7 @@ Transaction.prototype.dbRead = function (raw) {
 Transaction.prototype.bindModules = function (rounds) {
 	this.scope.logger.trace('Logic/Transaction->bindModules');
 	modules = {
-		rounds,
+		rounds: rounds,
 	};
 };
 

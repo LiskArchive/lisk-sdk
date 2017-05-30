@@ -25,14 +25,14 @@ var modules, library, self, __private = {};
  */
 function Chain (logger, block, transaction, db, genesisblock, bus, balancesSequence) {
 	library = {
-		logger,
-		db,
-		genesisblock,
-		bus,
-		balancesSequence,
+		logger: logger,
+		db: db,
+		genesisblock: genesisblock,
+		bus: bus,
+		balancesSequence: balancesSequence,
 		logic: {
-			block,
-			transaction,
+			block: block,
+			transaction: transaction,
 		},
 	};
 	self = this;

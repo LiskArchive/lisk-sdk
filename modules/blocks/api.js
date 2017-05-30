@@ -25,12 +25,12 @@ __private.blockReward = new BlockReward();
  */
 function API (logger, db, block, schema, dbSequence) {
 	library = {
-		logger,
-		db,
-		schema,
-		dbSequence,
+		logger: logger,
+		db: db,
+		schema: schema,
+		dbSequence: dbSequence,
 		logic: {
-			block,
+			block: block,
 		},
 	};
 	self = this;

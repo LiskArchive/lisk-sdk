@@ -22,7 +22,7 @@ var library;
 // Constructor
 function Peers (logger, cb) {
 	library = {
-		logger,
+		logger: logger,
 	};
 	self = this;
 	__private.peers = {};

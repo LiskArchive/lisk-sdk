@@ -24,15 +24,15 @@ var modules, library, self, __private = {};
 // Constructor
 function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	library = {
-		logger,
+		logger: logger,
 		logic: {
-			peers,
-			transaction,
+			peers: peers,
+			transaction: transaction,
 		},
 		config: {
-			broadcasts,
+			broadcasts: broadcasts,
 			forging: {
-				force,
+				force: force,
 			},
 		},
 	};
@@ -85,9 +85,9 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
  */
 Broadcaster.prototype.bind = function (peers, transport, transactions) {
 	modules = {
-		peers,
-		transport,
-		transactions,
+		peers: peers,
+		transport: transport,
+		transactions: transactions,
 	};
 };
 
