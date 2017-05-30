@@ -489,10 +489,6 @@ Transport.prototype.internal = {
 		req = req || {};
 		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
-			peers = peers.map(function (peer) {
-				delete peer.rpc;
-				return peer;
-			});
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
 	},
@@ -510,6 +506,7 @@ Transport.prototype.internal = {
 	},
 
 	postSignatures: function (query, cb) {
+		console.log('\x1b[34m%s\x1b[0m', 'POST SIGNATURES INVOKED', query);
 		if (query.signatures) {
 			__private.receiveSignatures(query, function (err) {
 				if (err) {
@@ -540,7 +537,6 @@ Transport.prototype.internal = {
 					signatures: trs.signatures
 				});
 			}
-
 			return setImmediate(__cb);
 		}, function () {
 			return setImmediate(cb, null, {success: true, signatures: signatures});
@@ -550,10 +546,13 @@ Transport.prototype.internal = {
 	getTransactions: function (query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
 
+		console.log('\x1b[34m%s\x1b[0m', 'TRANSPORT MODULE ----- GET TRANSACTIONS   --- ', transactions);
 		return setImmediate(cb, null, {success: true, transactions: transactions});
 	},
 
 	postTransactions: function (query, cb) {
+		console.log('\x1b[34m%s\x1b[0m', 'TRANSPORT MODULE ----- POST TRANSACTIONS   --- ', query);
+
 		if (query.transactions) {
 			__private.receiveTransactions(query, query.peer, query.extraLogMessage, function (err) {
 				if (err) {
@@ -649,6 +648,7 @@ Transport.prototype.internal = {
 	 * @param {function} cb
 	 */
 	removePeer: function (peer, cb) {
+		console.log('\x1b[34m%s\x1b[0m', 'TRANSPORT MODULE ----- removePeer   --- ', peer);
 		return setImmediate(cb, __private.removePeer({peer: peer, code: 0}, '') ? null : 'Failed to remove peer');
 	},
 
@@ -658,6 +658,7 @@ Transport.prototype.internal = {
 	 * @param {function} cb
 	 */
 	acceptPeer: function (peer, cb) {
+		console.log('\x1b[34m%s\x1b[0m', 'TRANSPORT MODULE ----- acceptPeer   --- ', peer);
 		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };

@@ -6,9 +6,10 @@ var util = require('util');
 module.exports = function (grunt) {
 	var files = [
 		'logger.js',
+		'workersController.js',
 		'api/**/*.js',
 		'helpers/**/*.js',
-		'modules/*.js',
+		'modules/**/*.js',
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',
@@ -42,6 +43,7 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s/pids', version_dir),
 						util.format('mkdir -p %s/public', version_dir),
 						util.format('cp %s/app.js %s', release_dir, version_dir),
+						util.format('cp %s/workersController.js %s', release_dir, version_dir),
 						util.format('cp %s/config.json %s', __dirname, version_dir),
 						util.format('cp %s/package.json %s', __dirname, version_dir),
 						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
@@ -99,6 +101,11 @@ module.exports = function (grunt) {
 			fetchCoverage: {
 				command: 'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
 				maxBuffer: maxBufferSize
+			},
+
+			createBundles: {
+				command: 'npm run create-bundles',
+				maxBuffer: maxBufferSize
 			}
 		},
 
@@ -141,7 +148,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('default', ['release']);
-	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
+	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);

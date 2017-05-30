@@ -15,7 +15,7 @@
       "exec_mode": "fork",
       "script": "app.js",
       "name": "lisk-test-node-1",
-      "args": "-p 4001 -x 127.0.0.1:4000 -d lisk_local_1",
+      "args": "-p 4001 -x 127.0.0.1:4000 -d lisk_local_1 -c ./test/integration/config.non-forge.json",
       "env": {
         "NODE_ENV": "test"
       },

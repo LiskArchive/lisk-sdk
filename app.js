@@ -40,8 +40,8 @@ var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
-var workersController = require('./api/ws/workersController');
-var WsRPCServer = require('./api/RPC').WsRPCServer;
+var workersController = require('./workersController');
+var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
@@ -269,7 +269,7 @@ d.run(function () {
 				port: parseInt(scope.config.port) + 1000,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				workerController: './api/ws/workersController.js',
+				workerController: workersController.path,
 				perMessageDeflate: false,
 				secretKey: 'liskSecretKey',
 				pingInterval: 5000,
@@ -305,7 +305,7 @@ d.run(function () {
 
 			var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-			scope.network.app.rpc = WsRPCServer.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
+			scope.network.app.rpc = wsRPC.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
 
 			socketCluster.on('ready', function (err, result) {
 				scope.logger.info('Socket Cluster ready for incoming connections');
