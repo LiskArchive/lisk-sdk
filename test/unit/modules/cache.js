@@ -30,6 +30,7 @@ describe('cache module', function () {
 
 	after(function (done) {
 		cache.quit();
+		done();
 	});
 
 	afterEach(function (done) {
