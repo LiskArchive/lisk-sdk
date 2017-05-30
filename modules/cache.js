@@ -16,19 +16,14 @@ function Cache (cb, scope) {
  */
 
 Cache.prototype.onNewBlock = function () {
-	self.removeByPattern('/api/blocks*', function (err) {
-		if (err) {
-			logger.error('Error clearing cache on new block');
-		} else {
-			logger.info('blocks api cache cleared on new block');
-		}
-	});
-	self.removeByPattern('/api/transactions*', function (err) {
-		if (err) {
-			logger.error('Error clearing cache on new block');
-		} else {
-			logger.info('blocks api cache cleared on new block');
-		}
+	async.map(['/api/blocks*', '/api/transactions*'], function (pattern) {
+		self.removeByPattern(pattern, function (err) {
+			if (err) {
+				logger.error('Error clearing keys with pattern: ', pattern, ' on new block');
+			} else {
+				logger.info('keys with pattern: ', pattern, 'cleared from on new block');
+			}
+		});
 	});
 };
 
@@ -37,11 +32,12 @@ Cache.prototype.onNewBlock = function () {
  */
 
 Cache.prototype.onFinishRound = function () {
-	self.removeByPattern('/api/delegates*', function (err) {
+	var pattern = '/api/delegates*';
+	self.removeByPattern(pattern, function (err) {
 		if (err) {
-			logger.error('Error clearing cache on round finish');
+			logger.error('Error clearing keys with pattern: ', pattern, ' round finish');
 		} else {
-			logger.info('Cache cleared on new Round');
+			logger.info('keys with pattern: ', pattern, 'cleared from new Round');
 		}
 	});
 };
@@ -52,6 +48,7 @@ Cache.prototype.onFinishRound = function () {
  * @param {transactions} transactions
  */
 Cache.prototype.onUnconfirmedTransaction = function (transactions) {
+	var pattern = '/api/delegates*';
 	if(Array.isArray(transactions)) {
 		transactions = transactions;
 	} else {
@@ -61,11 +58,11 @@ Cache.prototype.onUnconfirmedTransaction = function (transactions) {
 		return trs.type === transactionTypes.DELEGATE;
 	});
 	if (delgateTransactions.length > 0) {
-		self.removeByPattern('/api/delegates*', function (err) {
+		self.removeByPattern(pattern, function (err) {
 			if (err) {
-				logger.error('Error clearing cache on delegate trs');
+				logger.error('Error clearing keys with pattern: ', pattern, ' on delegate trs');
 			} else {
-				logger.info('Cache flushed on delegate trs');
+				logger.info('keys with pattern: ', pattern, 'cleared from on delegate trs');
 			}
 		});
 	}
