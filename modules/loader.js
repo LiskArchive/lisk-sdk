@@ -573,6 +573,7 @@ __private.loadBlocksFromNetwork = function (cb) {
  */
 __private.sync = function (cb) {
 	library.logger.info('Starting sync');
+	library.bus.message('syncStarted');
 
 	__private.isActive = true;
 	__private.syncTrigger(true);
@@ -606,6 +607,7 @@ __private.sync = function (cb) {
 		__private.blocksToSync = 0;
 
 		library.logger.info('Finished sync');
+		library.bus.message('syncFinish');
 		return setImmediate(cb, err);
 	});
 };

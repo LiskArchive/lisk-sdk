@@ -1,6 +1,6 @@
 var async = require('async');
 var transactionTypes = require('../helpers/transactionTypes.js');
-var client, self, logger, cacheEnabled, errorCacheDisabled = 'Cache Unavailable';
+var client, self, logger, cacheEnabled, cacheReady = true, errorCacheDisabled = 'Cache Unavailable';
 
 // Constructor
 function Cache (cb, scope) {
@@ -11,68 +11,12 @@ function Cache (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
-/**
- * This function will be triggered on new block, it will clear all cache entires.
- */
-
-Cache.prototype.onNewBlock = function () {
-	self.removeByPattern('/api/blocks*', function (err) {
-		if (err) {
-			logger.error('Error clearing cache on new block');
-		} else {
-			logger.info('blocks api cache cleared on new block');
-		}
-	});
-	self.removeByPattern('/api/transactions*', function (err) {
-		if (err) {
-			logger.error('Error clearing cache on new block');
-		} else {
-			logger.info('blocks api cache cleared on new block');
-		}
-	});
+Cache.prototype.isConnected = function () {
+	return cacheEnabled && client.connected;
 };
 
-/**
- * This function will be triggered when a round finishes, it will clear all cache entires.
- */
-
-Cache.prototype.onFinishRound = function () {
-	self.removeByPattern('/api/delegates*', function (err) {
-		if (err) {
-			logger.error('Error clearing cache on round finish');
-		} else {
-			logger.info('Cache cleared on new Round');
-		}
-	});
-};
-
-
-/**
- * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
- * @param {transactions} transactions
- */
-Cache.prototype.onUnconfirmedTransaction = function (transactions) {
-	if(Array.isArray(transactions)) {
-		transactions = transactions;
-	} else {
-		transactions = [transactions];
-	}
-	var delgateTransactions = transactions.filter(function (trs) {
-		return trs.type === transactionTypes.DELEGATE;
-	});
-	if (delgateTransactions.length > 0) {
-		self.removeByPattern('/api/delegates*', function (err) {
-			if (err) {
-				logger.error('Error clearing cache on delegate trs');
-			} else {
-				logger.info('Cache flushed on delegate trs');
-			}
-		});
-	}
-};
-
-Cache.prototype.cleanup = function () {
-	self.quit();
+Cache.prototype.isReady = function () {
+	return cacheReady && self.isConnected();
 };
 
 Cache.prototype.getJsonForKey = function (key, cb) {
@@ -104,17 +48,13 @@ Cache.prototype.deleteJsonForKey = function (key, cb) {
 	}
 };
 
-Cache.prototype.isConnected = function () {
-	return cacheEnabled && client.connected;
-};
-
 Cache.prototype.removeByPattern = function (pattern, cb) {
 	if (self.isConnected()) {
 		var keys, cursor = 0;
 		async.doWhilst(function iteratee (callback) {
 			client.scan(cursor, 'MATCH', pattern, function (err, res) {
 				if (err) {
-					cb(err);
+					callback(err);
 				} else {
 					cursor = Number(res.shift());
 					keys = res.shift();
@@ -141,10 +81,85 @@ Cache.prototype.flushDb = function (cb) {
 	}
 };
 
+Cache.prototype.cleanup = function () {
+	self.quit();
+};
+
 Cache.prototype.quit = function () {
 	if (self.isConnected()) {
 		client.quit();
 	}
+};
+
+/**
+ * This function will be triggered on new block, it will clear all cache entires.
+ */
+
+Cache.prototype.onNewBlock = function () {
+	async.map(['/api/blocks*', '/api/transactions*'], function (pattern) {
+		self.removeByPattern(pattern, function (err) {
+			if (err) {
+				logger.error('Error clearing keys with pattern: ', pattern, ' on new block');
+			} else {
+				logger.info('keys with pattern: ', pattern, 'cleared from on new block');
+			}
+		});
+	});
+};
+
+/**
+ * This function will be triggered when a round finishes, it will clear all cache entires.
+ */
+
+Cache.prototype.onFinishRound = function () {
+	var pattern = '/api/delegates*';
+	self.removeByPattern(pattern, function (err) {
+		if (err) {
+			logger.error('Error clearing keys with pattern: ', pattern, ' round finish');
+		} else {
+			logger.info('keys with pattern: ', pattern, 'cleared from new Round');
+		}
+	});
+};
+
+
+/**
+ * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
+ * @param {transactions|transactions[]} transactions
+ */
+Cache.prototype.onUnconfirmedTransaction = function (transactions) {
+	var pattern = '/api/delegates*';
+	if(Array.isArray(transactions)) {
+		transactions = transactions;
+	} else {
+		transactions = [transactions];
+	}
+	var delgateTransactions = transactions.filter(function (trs) {
+		return !!trs && trs.type === transactionTypes.DELEGATE;
+	});
+	if (delgateTransactions.length > 0) {
+		self.removeByPattern(pattern, function (err) {
+			if (err) {
+				logger.error('Error clearing keys with pattern: ', pattern, ' on delegate trs');
+			} else {
+				logger.info('keys with pattern: ', pattern, 'cleared from on delegate trs');
+			}
+		});
+	}
+};
+
+/**
+ * Disable any changes in cache while syncing
+ */
+Cache.prototype.onSyncStarted = function () {
+	cacheReady = false;
+};
+
+/**
+ * Enable any changes in cache after syncing finished
+ */
+Cache.prototype.onSyncFinish = function () {
+	cacheReady = true;
 };
 
 module.exports = Cache;

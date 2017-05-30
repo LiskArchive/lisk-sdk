@@ -150,7 +150,7 @@ var middleware = {
 	 * @param {Function} next
 	 */
 	useCache: function (logger, cache, req, res, next) {
-		if (cache.isConnected()) {
+		if (cache.isReady()) {
 			var key = req.originalUrl;
 			logger.info('Req parameters', key);
 
