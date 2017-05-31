@@ -76,6 +76,31 @@ module.exports = {
 				},
 				required: ['host', 'port', 'database', 'user', 'password', 'poolSize', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
 			},
+			redis: {
+				type: 'object',
+				properties: {
+					host: {
+						type: 'string',
+						format: 'ip',
+					},
+					port: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 65535
+					},
+					db: {
+						type: 'integer',
+						minimum: 0,
+						maximum: 15
+					},
+					user: {
+						type: 'string'
+					},
+					password: {
+						type: 'string'
+					}
+				}
+			},
 			api: {
 				type: 'object',
 				properties: {
@@ -117,20 +142,6 @@ module.exports = {
 							}
 						},
 						required: ['limits']
-					},
-					cache: {
-						type: 'object',
-						properties: {
-							ip: {
-								type: 'string',
-								format: 'ip',
-							},
-							port: {
-								type: 'integer',
-								minimum: 1,
-								maximum: 65535
-							}
-						},
 					}
 				},
 				required: ['enabled', 'access', 'options']
