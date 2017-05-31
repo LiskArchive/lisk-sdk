@@ -181,7 +181,7 @@ __private.forge = function (cb) {
 
 __private.decryptSecret = function (encryptedSecret, key) {
 	var decipher = crypto.createDecipher('aes-256-cbc', key);
-	var decryptedSecret =	decipher.update(encryptedSecret, 'utf8', 'utf8');
+	var decryptedSecret =	decipher.update(encryptedSecret, 'hex', 'utf8');
 	decryptedSecret += decipher.final('utf8');
 	return decryptedSecret;
 };
@@ -281,25 +281,29 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
  * @returns {setImmediateCallback} 
  */
 __private.loadDelegates = function (cb) {
-	var secrets;
+	var secretsList;
 
 	if (library.config.forging.secret) {
 		if (Array.isArray(library.config.forging.secret)) {
-			secrets = library.config.forging.secret;
+			secretsList = library.config.forging.secret;
 		} else {
-			secrets = [library.config.forging.secret];
+			secretsList = [library.config.forging.secret];
 		}
 	}
 
-	if (!secrets || !secrets.length || !library.config.forging.force) {
+	if (!secretsList || !secretsList.length || !library.config.forging.force) {
 		return setImmediate(cb);
 	} else {
-		library.logger.info(['Loading', secrets.length, 'delegates from config'].join(' '));
+		library.logger.info(['Loading', secretsList.length, 'delegates from config'].join(' '));
 	}
 
-	async.eachSeries(secrets, function (secret, cb) {
-
+	async.eachSeries(secretsList, function (encryptedItem, cb) {
+		var secret = __private.decryptSecret(encryptedItem.encryptedSecret, library.config.forging.defaultKey);
 		var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+
+		if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
+			return setImmediate(cb, 'Public keys do not match');
+		}
 
 		modules.accounts.getAccount({
 			publicKey: keypair.publicKey.toString('hex')
@@ -571,26 +575,22 @@ Delegates.prototype.internal = {
 			}
 
 			var keypair;
-			if (library.config.forging.force) {
-				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+			var encryptedList, decryptedSecret, encryptedItem;
+			if (Array.isArray(library.config.forging.secret)) {
+				encryptedList = library.config.forging.secret;
 			} else {
-				var encryptedList, decryptedSecret, encryptedItem;
-				if (Array.isArray(library.config.forging.secret)) {
-					encryptedList = library.config.forging.secret;
-				} else {
-					encryptedList = [library.config.forging.secret];
-				}
+				encryptedList = [library.config.forging.secret];
+			}
 
-				encryptedItem = _.find(encryptedList, function (item) {
-					return item.publicKey === req.body.publicKey;
-				});
+			encryptedItem = _.find(encryptedList, function (item) {
+				return item.publicKey === req.body.publicKey;
+			});
 
-				if (!!encryptedItem) {
-					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
-					keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
-				} else {
-					return setImmediate(cb, 'Invalid publicKey');
-				}
+			if (!!encryptedItem) {
+				decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
+				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+			} else {
+				return setImmediate(cb, 'Invalid publicKey');
 			}
 
 			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
@@ -623,26 +623,22 @@ Delegates.prototype.internal = {
 			}
 
 			var keypair;
-			if (library.config.forging.force) {
-				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(req.body.secret, 'utf8').digest());
+			var encryptedList, decryptedSecret, encryptedItem;
+			if (Array.isArray(library.config.forging.secret)) {
+				encryptedList = library.config.forging.secret;
 			} else {
-				var encryptedList, decryptedSecret, encryptedItem;
-				if (Array.isArray(library.config.forging.secret)) {
-					encryptedList = library.config.forging.secret;
-				} else {
-					encryptedList = [library.config.forging.secret];
-				}
+				encryptedList = [library.config.forging.secret];
+			}
 
-				encryptedItem = _.find(encryptedList, function (item) {
-					return item.publicKey === req.body.publicKey;
-				});
+			encryptedItem = _.find(encryptedList, function (item) {
+				return item.publicKey === req.body.publicKey;
+			});
 
-				if (!!encryptedItem) {
-					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
-					keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
-				} else {
-					return setImmediate(cb, 'Invalid publicKey');
-				}
+			if (!!encryptedItem) {
+				decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
+				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+			} else {
+				return setImmediate(cb, 'Invalid publicKey');
 			}
 
 			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
