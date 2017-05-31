@@ -211,6 +211,9 @@ module.exports = {
 					force: {
 						type: 'boolean'
 					},
+					defaultKey: {
+						type: 'string'
+					},
 					secret: {
 						type: 'array'
 					},
