@@ -72,7 +72,6 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 			var ids = res.ids;
 			// Perform request to supplied remote peer
 			// peer.attachRPC();
-			console.log('\x1b[36m%s\x1b[0m', 'GET COMMON BLOCK  --- PEER BEFORE ASKING', peer);
 			peer = library.logic.peers.create(peer);
 			peer.rpc.blocksCommon({ids: ids}, function (err, res) {
 				if (err) {

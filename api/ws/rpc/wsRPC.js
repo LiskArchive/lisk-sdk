@@ -38,7 +38,6 @@ var wsRPC = {
 	 * @returns {ClientRPCStub} {[string]: function} map where keys are all procedures registered
 	 */
 	getClientRPCStub: function (ip, port) {
-		console.log('New client RPC created: ', ip, port);
 		if (!ip || !port) {
 			throw new Error('RPC client needs ip and port to establish WS connection.');
 		}
@@ -64,7 +63,6 @@ ConnectionState.STATUS = {
 };
 
 function ConnectionState (ip, port) {
-	console.log('CONNECTION STAATE CONSRTRUCTOR FIRED');
 	this.ip = ip;
 	this.port = +port;
 	this.status = ConnectionState.STATUS.NEW;
@@ -130,7 +128,6 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 		query: constants.getConst('headers')
 	};
 
-	console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- CONNECT ATTEMPT TO', options.hostname, options.port);
 	var clientSocket = wsRPC.scClient.connect(options);
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
@@ -140,7 +137,6 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 			clientSocket.wampSend('list', {query: {
 				nonce: options.query.nonce
 			}}).then(function (res) {
-				console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ME AS PEER: ', res.peers[0]);
 				constants.setConst('externalAddress', res.peers[0].ip);
 				connectionState.resolve(clientSocket);
 			}).catch(function (err) {
@@ -178,7 +174,6 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
 			data = (data && !_.isFunction(data)) ? data : {};
-			console.log('\x1b[33m%s\x1b[0m', 'RPC CLIENT -- ASK ABOUT PROCEDURE: ', procedureName, connectionState);
 
 			if (connectionState.status === ConnectionState.STATUS.NEW || connectionState.status === ConnectionState.STATUS.DISCONNECTED) {
 				connectionState.reconnect();
@@ -186,7 +181,6 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 			}
 
 			connectionState.socketDefer.promise.then(function (socket) {
-				console.log('\x1b[33m%s\x1b[0m', 'CONNECTION STATE RESOLVED FOR PEER: ASKING FOR PROCEDURE ', procedureName, connectionState.ip + ':' + connectionState.port);
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
@@ -195,7 +189,6 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 						return setImmediate(cb, err);
 					});
 			}).catch(function (err) {
-				console.log('\x1b[33m%s\x1b[0m', 'CONNECTION STATE RESOLVED REJECTED', err);
 				return setImmediate(cb, err);
 			});
 		};

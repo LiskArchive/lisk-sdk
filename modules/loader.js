@@ -222,7 +222,6 @@ __private.loadTransactions = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
-			console.log('\x1b[36m%s\x1b[0m', 'LOAD TRANSACTIONS FROM  --- PEER BEFORE ASKING', peer);
 			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
@@ -517,7 +516,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 
 
 	self.getNetwork(function (err, network) {
-		console.log('\x1b[36m%s\x1b[0m', 'LOADER loadBlocksFromNetwork ----- getNetwork result', network);
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
@@ -533,7 +531,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 						__private.blocksToSync = peer.height;
 
 						modules.blocks.process.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
-							console.log('\x1b[36m%s\x1b[0m', 'LOADER loadBlocksFromNetwork ----- loaded blocks from peer / err / lastValidBlock', peer, err, lastValidBlock);
 							if (err) {
 								library.logger.error(err.toString());
 								library.logger.error('Failed to load blocks from: ' + peer.string);
@@ -548,7 +545,6 @@ __private.loadBlocksFromNetwork = function (cb) {
 					function getCommonBlock (cb) {
 						library.logger.info('Looking for common block with: ' + peer.string);
 						modules.blocks.process.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
-							console.log('\x1b[36m%s\x1b[0m', 'LOADER loadBlocksFromNetwork ----- getCommonBlock with peer / err / lastValidBlock', peer, err, commonBlock);
 							if (!commonBlock) {
 								if (err) { library.logger.error(err.toString()); }
 								library.logger.error('Failed to find common block with: ' + peer.string);

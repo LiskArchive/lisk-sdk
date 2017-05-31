@@ -41,12 +41,9 @@ module.exports.run = function (worker) {
 				} catch (invalidHeadersException) {
 					return next(invalidHeadersException);
 				}
-				console.log('\x1b[31m%s\x1b[0m', 'WORKERS CTRL ----- HANDSHAKE STARTED WITH --- ', headers);
 
 				handshake(headers, function (err, peer) {
-					console.log('\x1b[31m%s\x1b[0m', 'WORKERS CTRL ----- HANDSHAKE RESULT --- ', err, peer);
 					scope.slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', peer, req.remoteAddress, function (onMasterError) {
-						console.log('\x1b[31m%s\x1b[0m', 'WORKERS CTRL ----- ON MASTER MSG --- ', err, peer);
 						next(err || onMasterError);
 					});
 				});

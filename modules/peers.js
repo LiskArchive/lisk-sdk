@@ -440,10 +440,10 @@ Peers.prototype.discover = function (cb) {
 Peers.prototype.acceptable = function (peers) {
 	var me = library.logic.peers.me() || {ip: '127.0.0.1', port: library.config.port};
 	return _.chain(peers).filter(function (peer) {
-		// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-		return peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
-		// }
-		// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+		if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+			return peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
+		}
+		return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce() && !(peer.ip === me.ip && peer.port === me.port);
 	}).uniqWith(function (a, b) {
 		// Removig non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
