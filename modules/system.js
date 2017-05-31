@@ -3,6 +3,7 @@
 var async = require('async');
 var crypto = require('crypto');
 var os = require('os');
+var _ = require('lodash');
 var sandboxHelper = require('../helpers/sandbox.js');
 var constants = require('../helpers/constants.js');
 var semver = require('semver');
@@ -221,6 +222,13 @@ System.prototype.update = function (cb) {
 		},
 		getHeight: function (seriesCb) {
 			__private.height = modules.blocks.lastBlock.get().height;
+			return setImmediate(seriesCb);
+		},
+		setHeaders: function (seriesCb) {
+			constants.setConst('headers', _.assign(constants.headers || {}, {
+				height: __private.height,
+				broadhash: __private.broadhash
+			}));
 			return setImmediate(seriesCb);
 		}
 	}, function (err) {

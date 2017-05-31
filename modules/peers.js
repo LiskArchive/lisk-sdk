@@ -174,7 +174,7 @@ __private.insertSeeds = function (cb) {
 		library.logger.trace('Processing seed peer: ' + peer.string);
 		peer.rpc.status(function (err, status) {
 			if (err) {
-				peer.applyHeaders({state: 1});
+				peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 				library.logger.trace('Ping peer failed: ' + peer.string, err);
 			} else {
 				peer.applyHeaders({
@@ -222,6 +222,7 @@ __private.dbLoad = function (cb) {
 			function updatePeer (peer, cb) {
 				peer.rpc.status(function (err, status) {
 					if (err) {
+						peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 						library.logger.trace('Ping peer from db failed: ' + peer.string, err);
 					} else {
 						peer.applyHeaders({
@@ -371,6 +372,7 @@ Peers.prototype.discover = function (cb) {
 			if (!err && randomPeer) {
 				randomPeer.rpc.status(function (err, status) {
 					if (err) {
+						peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 						return setImmediate(waterCb, err);
 					}
 					randomPeer.applyHeaders({
@@ -475,11 +477,11 @@ Peers.prototype.list = function (options, cb) {
 				if (options.broadhash) {
 					// Skip banned peers (state 0)
 					return peer.state > 0 && (
-						// Matched broadhash when attempt 0
-						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
-						// Unmatched broadhash when attempt 1
-						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
-					);
+							// Matched broadhash when attempt 0
+							options.attempt === 0 ? (peer.broadhash === options.broadhash) :
+							// Unmatched broadhash when attempt 1
+							options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
+						);
 				} else {
 					// Skip banned and disconnected peers (state 0 and 1)
 					return options.allowedStates.indexOf(peer.state) !== -1;
@@ -590,6 +592,7 @@ Peers.prototype.onPeersReady = function () {
 						library.logger.trace('Updating peer', peer);
 						peer.rpc.status(function (err, status) {
 							if (err) {
+								peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 								library.logger.trace('Every 10sec peers check ping peer failed ' + peer.string, err);
 							} else {
 								peer.applyHeaders({
@@ -645,7 +648,7 @@ Peers.prototype.shared = {
 	count: function (req, cb) {
 		async.series({
 			connected: function (cb) {
-				__private.countByFilter({state: Peer.STATE.CONNECTED}, cb);
+				__private.countByFilter({state: Peer.STATE.ACTIVE}, cb);
 			},
 			disconnected: function (cb) {
 				__private.countByFilter({state: Peer.STATE.DISCONNECTED}, cb);
