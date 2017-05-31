@@ -4,7 +4,6 @@ var client, self, logger, cacheEnabled, cacheReady = true, errorCacheDisabled = 
 
 // Constructor
 function Cache (cb, scope) {
-	
 	self = this;
 	client = scope.cache.client;
 	logger = scope.logger;
@@ -97,15 +96,17 @@ Cache.prototype.quit = function () {
  */
 
 Cache.prototype.onNewBlock = function () {
-	async.map(['/api/blocks*', '/api/transactions*'], function (pattern) {
-		self.removeByPattern(pattern, function (err) {
-			if (err) {
-				logger.error(['Error clearing keys with pattern:', pattern, ' on new block'].join(' '));
-			} else {
-				logger.info(['keys with pattern:', pattern, 'cleared from cache on new block'].join(' '));
-			}
+	if(self.isReady()) {
+		async.map(['/api/blocks*', '/api/transactions*'], function (pattern) {
+			self.removeByPattern(pattern, function (err) {
+				if (err) {
+					logger.error(['Error clearing keys with pattern:', pattern, ' on new block'].join(' '));
+				} else {
+					logger.info(['keys with pattern:', pattern, 'cleared from cache on new block'].join(' '));
+				}
+			});
 		});
-	});
+	}
 };
 
 /**
@@ -113,14 +114,16 @@ Cache.prototype.onNewBlock = function () {
  */
 
 Cache.prototype.onFinishRound = function () {
-	var pattern = '/api/delegates*';
-	self.removeByPattern(pattern, function (err) {
-		if (err) {
-			logger.error(['Error clearing keys with pattern:', pattern, ' round finish'].join(' '));
-		} else {
-			logger.info(['keys with pattern: ', pattern, 'cleared from cache new Round'].join(' '));
-		}
-	});
+	if(self.isReady()) {
+		var pattern = '/api/delegates*';
+		self.removeByPattern(pattern, function (err) {
+			if (err) {
+				logger.error(['Error clearing keys with pattern:', pattern, ' round finish'].join(' '));
+			} else {
+				logger.info(['keys with pattern: ', pattern, 'cleared from cache new Round'].join(' '));
+			}
+		});
+	}
 };
 
 
@@ -129,23 +132,25 @@ Cache.prototype.onFinishRound = function () {
  * @param {transactions|transactions[]} transactions
  */
 Cache.prototype.onUnconfirmedTransaction = function (transactions) {
-	var pattern = '/api/delegates*';
-	if(Array.isArray(transactions)) {
-		transactions = transactions;
-	} else {
-		transactions = [transactions];
-	}
-	var delegateTransactions = transactions.filter(function (trs) {
-		return !!trs && trs.type === transactionTypes.DELEGATE;
-	});
-	if (delegateTransactions.length > 0) {
-		self.removeByPattern(pattern, function (err) {
-			if (err) {
-				logger.error(['Error clearing keys with pattern:', pattern, ' on delegate trs'].join(' '));
-			} else {
-				logger.info(['keys with pattern:', pattern, 'cleared from cache on delegate trs'].join(' '));
-			}
+	if(self.isReady()) {
+		var pattern = '/api/delegates*';
+		if(Array.isArray(transactions)) {
+			transactions = transactions;
+		} else {
+			transactions = [transactions];
+		}
+		var delegateTransactions = transactions.filter(function (trs) {
+			return !!trs && trs.type === transactionTypes.DELEGATE;
 		});
+		if (delegateTransactions.length > 0) {
+			self.removeByPattern(pattern, function (err) {
+				if (err) {
+					logger.error(['Error clearing keys with pattern:', pattern, ' on delegate trs'].join(' '));
+				} else {
+					logger.info(['keys with pattern:', pattern, 'cleared from cache on delegate trs'].join(' '));
+				}
+			});
+		}
 	}
 };
 
