@@ -6,37 +6,120 @@ var Q = require('q');
 
 var chai = require('chai');
 var expect = require('chai').expect;
-
+var popsicle = require('popsicle');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var child_process = require('child_process');
 var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockchainReady;
 
-var testNodeConfigs = [
-	{
-		ip: '127.0.0.1',
-		port: 4000,
-		database: 'lisk_local_0',
-		peers: {list: [
-			{
-				ip: '127.0.0.1',
-				port: 4001
-			}
-		]}
+var SYNC_MODE = {
+	RANDOM: 0,
+	ALL_TO_FIRST: 1,
+	ALL_TO_GROUP: 2
+};
+
+var SYNC_MODE_DEFAULT_ARGS = {
+	RANDOM: {
+		PROBABILITY: 0.5 //range 0 - 1
 	},
-	{
-		ip: '127.0.0.1',
-		port: 4001,
-		database: 'lisk_local_1',
-		peers: {
-			list: [
-				{
-					ip: '127.0.0.1',
-					port: 4000
-				}
-			]}
+	ALL_TO_GROUP: {
+		INDICES: []
 	}
-];
+};
+
+var testNodeConfigs = generateNodesConfig(2, SYNC_MODE.ALL_TO_FIRST, [0]);
+
+function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
+	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
+	switch (syncMode) {
+	case SYNC_MODE.RANDOM:
+		var peersList = [];
+
+		if (typeof syncModeArgs.PROBABILITY !== 'number') {
+			throw new Error('Probability parameter not specified to random sync mode');
+		}
+		var isPickedWithProbability = function (n) {
+			return !!n && Math.random() <= n;
+		};
+
+		return Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
+			if (isPickedWithProbability(syncModeArgs.PROBABILITY)) {
+				peersList.push({
+					ip: '127.0.0.1',
+					port: 4000 + index
+				});
+			}
+		});
+		break;
+
+	case SYNC_MODE.ALL_TO_FIRST:
+		return [{
+			ip: '127.0.0.1',
+			port: 4000
+		}];
+		break;
+
+	case SYNC_MODE.ALL_TO_GROUP:
+		throw new Error('To implement');
+		break;
+	}
+}
+
+function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
+	return Array.apply(null, new Array(numOfPeers)).map(function (val, index) {
+		return {
+			ip: '127.0.0.1',
+			port: 4000 + index,
+			database: 'lisk_local_' + index,
+			peers: {
+				list: generateNodePeers(numOfPeers, syncMode)
+			},
+			forging: forgingNodesIndices.indexOf(index) !== -1
+		};
+	});
+}
+
+function generatePM2NodesConfig (testNodeConfigs) {
+
+	var pm2Config = {
+		apps: []
+	};
+
+	function insertNewNode (index, nodeConfig) {
+
+		function peersAsString (peersList) {
+			return peersList.reduce(function (acc, peer) {
+				acc += peer.ip + ':' + peer.port + ',';
+				return acc;
+			}, '').slice(0, -1);
+		}
+
+		var nodePM2Config = {
+			'exec_mode': 'fork',
+			'script': 'app.js',
+			'name': 'node_' + index,
+			'args': ' -p ' + nodeConfig.port +
+					' -x ' + peersAsString(nodeConfig.peers.list) +
+					' -d ' + nodeConfig.database,
+			'env': {
+				'NODE_ENV': 'test'
+			},
+			'error_file': './test/integration/logs/lisk-test-node-' + index + '.err.log',
+			'out_file': './test/integration/logs/lisk-test-node-' + index + '.out.log'
+		};
+
+		if (!nodeConfig.forging) {
+			nodePM2Config.args += ' -c ./test/integration/config.non-forge.json';
+		}
+		pm2Config.apps.push(nodePM2Config);
+	}
+
+	testNodeConfigs.forEach(function (testNodeConfig, index) {
+		insertNewNode(index, testNodeConfig);
+	});
+
+	fs.writeFileSync(__dirname + '/pm2.integration.json', JSON.stringify(pm2Config, null, 4));
+}
 
 var monitorWSClient = {
 	protocol: 'http',
@@ -92,6 +175,10 @@ function recreateDatabases (done) {
 		});
 	});
 }
+
+before(function () {
+	generatePM2NodesConfig(testNodeConfigs);
+});
 
 before(function (done) {
 	clearLogs(done);
@@ -152,7 +239,6 @@ describe('Peers mutual connections', function () {
 	});
 
 	it('should return a list of peer mutually interconnected', function (done) {
-
 		Q.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
@@ -164,13 +250,12 @@ describe('Peers mutual connections', function () {
 				var peerPorts = result.peers.map(function (p) {
 					return p.port;
 				});
-				var everyPeerPorts = _.flatten(testNodeConfigs.map(function (testNodeConfig) {
-					return testNodeConfig.peers.list.map(function (p) {
-						return p.port;
-					});
-				}));
 
-				expect(_.intersection(everyPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
+				var allPeerPorts = testNodeConfigs.map(function (testNodeConfig) {
+					return testNodeConfig.port;
+				});
+
+				expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
 				if (resultsFrom === testNodeConfigs.length) {
 					done();
 				}
@@ -179,6 +264,7 @@ describe('Peers mutual connections', function () {
 		}).catch(function (err) {
 			done(err);
 		});
+
 	});
 });
 
@@ -193,11 +279,20 @@ describe('propagation', function () {
 		var nodesBlocks;
 
 		before(function (done) {
-			Q.all(sockets.map(function (socket) {
-				return socket.wampSend('blocks');
+			Q.all(testNodeConfigs.map(function (testNodeConfig) {
+				return popsicle.get({
+					url: 'http://' + testNodeConfig.ip + ':' + testNodeConfig.port + '/api/blocks',
+					headers: {
+						'Accept': 'application/json',
+						'ip': '0.0.0.0',
+						'port': 9999,
+						'nethash': '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+						'version': '0.0.0a'
+					}
+				});
 			})).then(function (results) {
 				nodesBlocks = results.map(function (res) {
-					return res.blocks;
+					return JSON.parse(res.body).blocks;
 				});
 				expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
 				done();
@@ -229,14 +324,14 @@ describe('propagation', function () {
 
 	describe('transactions', function () {
 
-		var nodesTransactions;
+		var nodesTransactions = [];
 
 		before(function (done) {
 			Q.all(sockets.map(function (socket) {
-				return socket.wampSend('getTransactions');
+				return socket.wampSend('blocks');
 			})).then(function (results) {
 				nodesTransactions = results.map(function (res) {
-					return res.transactions;
+					return res.blocks;
 				});
 				expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
 				done();
@@ -246,8 +341,8 @@ describe('propagation', function () {
 		});
 
 		it('should contain non empty transactions after running functional tests', function () {
-			nodesTransactions.forEach(function (blocks) {
-				expect(blocks).to.be.an('array').and.not.empty;
+			nodesTransactions.forEach(function (transactions) {
+				expect(transactions).to.be.an('array').and.not.empty;
 			});
 		});
 
@@ -265,6 +360,7 @@ describe('propagation', function () {
 			}
 		});
 	});
+
 });
 
 
