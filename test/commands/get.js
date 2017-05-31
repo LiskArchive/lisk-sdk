@@ -57,7 +57,7 @@ describe('lisky get command palette', () => {
 
 		executeCommand(command, function (result) {
 			(result._command.args.type).should.be.equal('block');
-			(result._command.args.input).should.be.equal(261210776798678785);
+			(result._command.args.input).should.be.equal('261210776798678785');
 			done();
 		});
 
@@ -81,7 +81,7 @@ describe('lisky get command palette', () => {
 
 		executeCommand(command, function (result) {
 			(result._command.args.type).should.be.equal('transaction');
-			(result._command.args.input).should.be.equal(3641049113933914102);
+			(result._command.args.input).should.be.equal('3641049113933914102');
 			done();
 		});
 
