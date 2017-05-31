@@ -11,6 +11,28 @@
 <script src="dist/lisk-js.js"></script>
 <script>
     "use strict";
+
+
+    var LSK = lisk.api({testnet: true});
+
+    console.log(LSK);
+
+    var amount      = 100 * Math.pow(10, 8);
+    var transaction = lisk.transaction.createTransaction('15725299599194604786L', amount, 'secretpassphrase');
+
+    console.log(transaction);
+
+    var request = {
+	    requestMethod: 'POST',
+	    requestUrl: LSK.getFullUrl() + '/peer/' + 'transactions',
+	    nethash: LSK.nethash,
+	    requestParams: { transaction }
+    };
+
+    LSK.doPopsicleRequest(request).then(function (result) {
+    	console.log(result);
+    });
+
 </script>
 
 </body>

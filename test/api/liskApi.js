@@ -779,4 +779,22 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
+
+	describe('#broadcastSignedTransaction', function () {
+
+		it('should be able to broadcast a finished and signed transaction', function (done) {
+
+			var LSKAPI = lisk.api({testnet: true});
+			var amount      = 0.001 * Math.pow(10, 8);
+			var transaction = lisk.transaction.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
+
+			LSKAPI.broadcastSignedTransaction(transaction, function (result) {
+				(result.success).should.be.true;
+				done();
+			});
+
+		});
+
+	});
+
 });
