@@ -134,10 +134,10 @@ Cache.prototype.onUnconfirmedTransaction = function (transactions) {
 	} else {
 		transactions = [transactions];
 	}
-	var delgateTransactions = transactions.filter(function (trs) {
+	var delegateTransactions = transactions.filter(function (trs) {
 		return !!trs && trs.type === transactionTypes.DELEGATE;
 	});
-	if (delgateTransactions.length > 0) {
+	if (delegateTransactions.length > 0) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
 				logger.error('Error clearing keys with pattern: ', pattern, ' on delegate trs');
