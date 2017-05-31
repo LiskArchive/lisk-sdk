@@ -44,20 +44,6 @@ module.exports = function listCommand(vorpal) {
 		}
 	}
 
-	function filterCommandForFlags (commands, input) {
-
-		return input.filter(function (commandInput) {
-			return commands.indexOf(commandInput) === -1
-		});
-
-	}
-
-	function getFlags (commands) {
-		return commands.map(function (command) {
-			return command.flags;
-		});
-	}
-
 	vorpal
 		.command('list <type> [variadic...]')
 		.option('-j, --json', 'Sets output to json')
@@ -65,13 +51,6 @@ module.exports = function listCommand(vorpal) {
 		.description('Get information from <type> with parameters [input, input, ...]')
 		.autocomplete(['accounts', 'addresses', 'blocks', 'delegates', 'transactions'])
 		.action(function(userInput) {
-
-			let bigNumberWorkaround = this.commandWrapper.command.split(" ");
-			bigNumberWorkaround.shift();
-			bigNumberWorkaround.shift();
-
-			let flags = getFlags(this.commandObject.options).toString();
-			let fixedCommands = filterCommandForFlags(flags, bigNumberWorkaround);
 
 			let getType = {
 				'addresses': isAccountQuery,
@@ -81,9 +60,8 @@ module.exports = function listCommand(vorpal) {
 				'transactions': isTransactionQuery
 			};
 
-			let calls = fixedCommands.map(function (input) {
-				let output = getType[userInput.type](input);
-				return output;
+			let calls = userInput.variadic.map(function (input) {
+				return getType[userInput.type](input);
 			});
 
 
