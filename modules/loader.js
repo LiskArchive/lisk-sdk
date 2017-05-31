@@ -162,7 +162,7 @@ __private.loadSignatures = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
-			peer =
+			peer = library.logic.peers.create(peer);
 			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
