@@ -4,6 +4,7 @@ var client, self, logger, cacheEnabled, cacheReady = true, errorCacheDisabled = 
 
 // Constructor
 function Cache (cb, scope) {
+	
 	self = this;
 	client = scope.cache.client;
 	logger = scope.logger;
@@ -99,9 +100,9 @@ Cache.prototype.onNewBlock = function () {
 	async.map(['/api/blocks*', '/api/transactions*'], function (pattern) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
-				logger.error('Error clearing keys with pattern: ', pattern, ' on new block');
+				logger.error(['Error clearing keys with pattern:', pattern, ' on new block'].join(' '));
 			} else {
-				logger.info('keys with pattern: ', pattern, 'cleared from on new block');
+				logger.info(['keys with pattern:', pattern, 'cleared from cache on new block'].join(' '));
 			}
 		});
 	});
@@ -115,9 +116,9 @@ Cache.prototype.onFinishRound = function () {
 	var pattern = '/api/delegates*';
 	self.removeByPattern(pattern, function (err) {
 		if (err) {
-			logger.error('Error clearing keys with pattern: ', pattern, ' round finish');
+			logger.error(['Error clearing keys with pattern:', pattern, ' round finish'].join(' '));
 		} else {
-			logger.info('keys with pattern: ', pattern, 'cleared from new Round');
+			logger.info(['keys with pattern: ', pattern, 'cleared from cache new Round'].join(' '));
 		}
 	});
 };
@@ -140,9 +141,9 @@ Cache.prototype.onUnconfirmedTransaction = function (transactions) {
 	if (delegateTransactions.length > 0) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
-				logger.error('Error clearing keys with pattern: ', pattern, ' on delegate trs');
+				logger.error(['Error clearing keys with pattern:', pattern, ' on delegate trs'].join(' '));
 			} else {
-				logger.info('keys with pattern: ', pattern, 'cleared from on delegate trs');
+				logger.info(['keys with pattern:', pattern, 'cleared from cache on delegate trs'].join(' '));
 			}
 		});
 	}
