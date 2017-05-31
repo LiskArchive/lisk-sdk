@@ -1523,7 +1523,6 @@ DApps.prototype.internal = {
 						} catch (e) {
 							return setImmediate(cb, e.toString());
 						}
-						console.log('received transaction');
 						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				}
