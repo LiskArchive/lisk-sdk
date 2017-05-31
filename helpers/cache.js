@@ -24,13 +24,6 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 			}
 		});
 
-		client.monitor(function () {
-			logger.info('Entering monitoring mode');
-		});
-
-		client.on('monitor', function (time, args, raw_reply) {
-			logger.info('Redis:', time, args, raw_reply);
-		});
 	} else {
 		cb(null, { cacheEnabled: cacheEnabled, client: null });
 	}
