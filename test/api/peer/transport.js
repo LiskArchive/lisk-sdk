@@ -209,4 +209,17 @@ describe('RPC', function () {
 			}
 		});
 	});
+
+	describe('blocks', function () {
+
+		it('should return height and broadhash', function (done) {
+			clientSocket.wampSend('blocks')
+				.then(function (result) {
+					node.expect(result).to.have.property('blocks').to.be.an('array');
+					done();
+				}).catch(function (err) {
+					done(err);
+				});
+		});
+	});
 });
