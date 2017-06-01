@@ -91,9 +91,9 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
 			peer.updated = Date.now();
 			__private.peers[peer.string] = peer;
+
 			library.logger.debug('Inserted new peer', peer.string);
-		} else {
-			library.logger.debug('Rejecting unacceptable peer', peer.string);
+			library.logger.trace('Inserted new peer', {peer: peer});
 		}
 	};
 
