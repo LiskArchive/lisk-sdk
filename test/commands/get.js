@@ -57,7 +57,7 @@ describe('lisky get command palette', () => {
 
 		executeCommand(command, function (result) {
 			(result._command.args.type).should.be.equal('block');
-			(result._command.args.input).should.be.equal(261210776798678785);
+			(result._command.args.input).should.be.equal('261210776798678785');
 			done();
 		});
 
@@ -81,7 +81,7 @@ describe('lisky get command palette', () => {
 
 		executeCommand(command, function (result) {
 			(result._command.args.type).should.be.equal('transaction');
-			(result._command.args.input).should.be.equal(3641049113933914102);
+			(result._command.args.input).should.be.equal('3641049113933914102');
 			done();
 		});
 
@@ -153,7 +153,7 @@ describe('get command palette without test mode', () => {
 
 	});
 
-	it('it should work in normal env', (done) =>  {
+	it('should work in normal env', (done) =>  {
 
 		let command = 'get block 1924405132194419123';
 
@@ -165,7 +165,7 @@ describe('get command palette without test mode', () => {
 		});
 	});
 
-	it('it should work in normal env', (done) =>  {
+	it('should work in normal env', (done) =>  {
 
 		let command = 'get block 19244051321919123';
 
@@ -177,7 +177,7 @@ describe('get command palette without test mode', () => {
 		});
 	});
 
-	it('it should work in normal env and wrong data', (done) =>  {
+	it('should work in normal env and wrong data', (done) =>  {
 
 		let command = 'get block 123';
 

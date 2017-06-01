@@ -30,23 +30,13 @@ module.exports = function listCommand(vorpal) {
 	}
 
 	function switchType (type) {
-		let returnType;
-		switch (type) {
-			case 'accounts':
-			case 'addresses':
-				returnType = 'account';
-				break;
-			case 'blocks':
-				returnType = 'block';
-				break;
-			case 'delegates':
-				returnType = 'delegate';
-				break;
-			case 'transactions':
-				returnType = 'transaction';
-				break;
-		}
-		return returnType;
+		return {
+			'accounts': 'account',
+			'addresses': 'address',
+			'blocks': 'block',
+			'delegates': 'delegate',
+			'transactions': 'transaction'
+		}[type];
 	}
 
 	vorpal
