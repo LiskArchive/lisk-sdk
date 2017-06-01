@@ -372,7 +372,7 @@ Peers.prototype.discover = function (cb) {
 			if (!err && randomPeer) {
 				randomPeer.rpc.status(function (err, status) {
 					if (err) {
-						peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+						randomPeer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 						return setImmediate(waterCb, err);
 					}
 					randomPeer.applyHeaders({
