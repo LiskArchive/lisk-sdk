@@ -1,7 +1,16 @@
-function up (number) {
-	return +number+1;
-}
+const fse = require('fs-extra');
+const vorpal = require('vorpal')();
 
-module.exports = {
-	up
-}
+//import commands from ./commands/ folder
+fse.readdirSync('./commands').map(function (command) {
+	vorpal.use(require('./commands/'+command));
+
+});
+
+//Define vorpal
+  vorpal 
+	  .delimiter('lisky>')
+	  .history('lisky')
+	  .show();
+
+module.exports = vorpal;

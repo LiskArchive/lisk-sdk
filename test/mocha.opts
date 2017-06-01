@@ -1,0 +1,5 @@
+--require should
+--reporter spec
+--recursive test/**/*.js
+-R spec
+--ui bdd
