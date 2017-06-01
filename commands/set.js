@@ -3,8 +3,6 @@ module.exports = function setCommand (vorpal) {
 
 	let config = require('../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
-	const tablify = require('../src/utils/tablify');
-	const util = require('util');
 	const fse = require('fs-extra');
 
 	function setJSON (value) {

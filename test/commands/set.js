@@ -1,18 +1,10 @@
 const Vorpal = require('vorpal');
 const common = require('../common');
 const lisky = common.lisky;
-const sinon = common.sinon;
-const util = common.util;
-const get = require('../../commands/get');
-const list = require('../../commands/list');
 const set = require('../../commands/set');
-const fse = require('fs-extra');
-const config = require('../../config.json');
 
 const vorpal = new Vorpal();
 
-vorpal.use(get);
-vorpal.use(list);
 vorpal.use(set);
 
 vorpal
