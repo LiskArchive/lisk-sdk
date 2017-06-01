@@ -149,8 +149,7 @@ describe('GET /api/transactions (cache)', function () {
 describe('GET /api/transactions', function () {
 
 	before(function (done) {
-//		node.onNewBlock(done);
-		done();
+		node.onNewBlock(done);
 	});
 
 	it('using valid parameters should be ok', function (done) {
