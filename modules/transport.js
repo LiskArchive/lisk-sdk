@@ -469,6 +469,7 @@ Transport.prototype.internal = {
 
 	postBlock: function (query, cb) {
 		query = query || {};
+		modules.peers.update(query.peer);
 		try {
 			var block = library.logic.block.objectNormalize(query.block);
 		} catch (e) {
@@ -506,6 +507,7 @@ Transport.prototype.internal = {
 	},
 
 	postSignatures: function (query, cb) {
+		modules.peers.update(query.peer);
 		if (query.signatures) {
 			__private.receiveSignatures(query, function (err) {
 				if (err) {
@@ -548,6 +550,7 @@ Transport.prototype.internal = {
 	},
 
 	postTransactions: function (query, cb) {
+		modules.peers.update(query.peer);
 		if (query.transactions) {
 			__private.receiveTransactions(query, query.peer, query.extraLogMessage, function (err) {
 				if (err) {
@@ -636,10 +639,7 @@ Transport.prototype.internal = {
 	},
 
 	/**
-	 * @param {object} query
-	 * @param {Peer} query.peer
-	 * @param {string} query.code
-	 * @param {string} query.extraMessage
+	 * @param {Peer} peer
 	 * @param {function} cb
 	 */
 	removePeer: function (peer, cb) {
@@ -647,8 +647,7 @@ Transport.prototype.internal = {
 	},
 
 	/**
-	 * @param {object} query
-	 * @param {Peer} query.peer
+	 * @param {Peer} peer
 	 * @param {function} cb
 	 */
 	acceptPeer: function (peer, cb) {
