@@ -28,8 +28,7 @@ describe('cache', function () {
 	});
 
 	after(function (done) {
-		cache.quit();
-		done();
+		cache.quit(done);
 	});
 
 	afterEach(function (done) {
@@ -101,7 +100,7 @@ describe('cache', function () {
 					}, function (err, result) {
 						expect(err).to.not.exist;
 						expect(result).to.be.an('array');
-						callback(err, result);
+						return callback(err, result);
 					});
 				},
 				// flush cache database
@@ -109,7 +108,7 @@ describe('cache', function () {
 					cache.flushDb(function (err, status) {
 						expect(err).to.not.exist;
 						expect(status).to.equal('OK');
-						callback(err, status);
+						return callback(err, status);
 					});
 				},
 				// check if entries exist
@@ -123,10 +122,12 @@ describe('cache', function () {
 						result.forEach(function (value) {
 							expect(value).to.eql(null);
 						});
-						callback(err, result);
-						done(err, result);
+						return callback(err, result);
 					});
-				}]
+				}],
+				function (err) {
+					done(err);
+				}
 			);
 		});
 	});

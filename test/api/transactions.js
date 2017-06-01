@@ -93,8 +93,8 @@ describe('GET /api/transactions (cache)', function () {
 		});
 	});
 
-	after(function () {
-		cache.quit();
+	after(function (done) {
+		cache.quit(done);
 	});
 
 	afterEach(function (done) {
