@@ -1,7 +1,6 @@
 'use strict';
 
-var node = require('./../../node.js');
-
+var node = require('./../../node.js'); 
 var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
@@ -171,6 +170,7 @@ describe('cache', function () {
 				});
 			});
 		});
+
 	});
 	
 	describe('onNewBlock', function () {
@@ -234,6 +234,27 @@ describe('cache', function () {
 				}, 1000);
 			});
 		});
+
+		it('should not remove keys when cacheReady = false', function (done) {
+			var key = '/api/transactions';
+			var value = {testObject: 'testValue'};
+
+			cache.setJsonForKey(key, value, function (err, status) {
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				cache.onSyncStarted();
+				cache.onNewBlock();
+				setTimeout(function () {
+					cache.onSyncFinish();
+					cache.getJsonForKey(key, function (err, res) {
+						expect(err).to.not.exist;
+						expect(res).to.eql(value);
+						done();
+					});
+				}, 1000);
+			});
+		});
 	});
 
 	describe('onFinishRound', function (done) {
@@ -276,6 +297,29 @@ describe('cache', function () {
 				}, 1000);
 			});
 		});
+
+		it('should not remove keys when cacheReady = false', function (done) {
+			var key = '/api/delegates';
+			var value = {testObject: 'testValue'};
+
+			cache.setJsonForKey(key, value, function (err, status) {
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				cache.onSyncStarted();
+				cache.onFinishRound();
+				setTimeout(function () {
+					cache.onSyncFinish();
+					expect(err).to.not.exist;
+					cache.getJsonForKey(key, function (err, res) {
+						expect(err).to.not.exist;
+						expect(res).to.eql(value);
+						done();
+					});
+				}, 1000);
+			});
+		});
+
 	});
 
 	describe('onUnconfirmedTransaction', function (done) {
@@ -316,6 +360,30 @@ describe('cache', function () {
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.equal(null);
+						done();
+					});
+				}, 1000);
+			});
+		});
+
+		it('should not remove keys when cacheReady = false', function (done) {
+			var key = '/api/delegates?123';
+			var value = {testObject: 'testValue'};
+
+			cache.setJsonForKey(key, value, function (err, status) {
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+
+
+				cache.onSyncStarted();
+				cache.onUnconfirmedTransaction(transaction);
+				setTimeout(function () {
+					cache.onSyncFinish();
+					cache.getJsonForKey(key, function (err, res) {
+						expect(err).to.not.exist;
+						expect(res).to.eql(value);
 						done();
 					});
 				}, 1000);
