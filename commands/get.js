@@ -1,7 +1,7 @@
 module.exports = function getCommand (vorpal) {
 	'use strict';
 
-	const config = require('../config');
+	const config = require('../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
 	const util = require('util');
