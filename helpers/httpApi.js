@@ -150,32 +150,29 @@ var middleware = {
 	 * @param {Function} next
 	 */
 	useCache: function (logger, cache, req, res, next) {
-		if (cache.isReady()) {
-			var key = req.originalUrl;
-			logger.info('Req parameters', key);
-
-			cache.getJsonForKey(key, function (err, cachedValue) {
-				//there was an error or value doesn't exist for key
-				if (err || !cachedValue) {
-					// Monkey patching res.json function only if we expect to cache response
-					var expressSendJson = res.json;
-					res.json = function (response) {
-						if (response.success) {
-							cache.setJsonForKey(key, response);
-							expressSendJson.call(res, response);
-						} else {
-							logger.info('serving response for url: ', req.url, ' from cache');
-							expressSendJson.call(res, response);
-						}
-					};
-					next();
-				} else {
-					res.json(cachedValue);
-				}
-			});
-		} else {
-			next();
+		if (!cache.isReady()) {
+			return next();
 		}
+
+		var key = req.originalUrl;
+		cache.getJsonForKey(key, function (err, cachedValue) {
+			//there was an error or value doesn't exist for key
+			if (err || !cachedValue) {
+				// Monkey patching res.json function only if we expect to cache response
+				var expressSendJson = res.json;
+				res.json = function (response) {
+					if (response.success) {
+						logger.info('cached response for key: ', req.url);
+						cache.setJsonForKey(key, response);
+					}
+					expressSendJson.call(res, response);
+				};
+				next();
+			} else {
+				logger.info(['serving response for url:', req.url, 'from cache'].join(' '));
+				res.json(cachedValue);
+			}
+		});
 	}
 };
 
