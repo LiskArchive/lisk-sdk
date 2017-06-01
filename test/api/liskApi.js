@@ -8,13 +8,6 @@ if (typeof module !== 'undefined' && module.exports) {
 describe('Lisk.api()', function () {
 
 	var LSK = lisk.api();
-	var fakeResolved = function(responseData) {
-		return {
-			then: function(callback) {
-				callback(responseData);
-			}
-		};
-	};
 
 	describe('lisk.api()', function () {
 
@@ -467,7 +460,7 @@ describe('Lisk.api()', function () {
 		};
 
 		it('should receive Height from a random public peer', function (done) {
-			sinon.stub(LSK, 'sendRequestPromise').returns(fakeResolved(expectedResponse));
+			sinon.stub(LSK, 'sendRequestPromise').resolves(expectedResponse);
 
 			LSK.sendRequest('blocks/getHeight', function (data) {
 				(data).should.be.ok;
@@ -484,20 +477,18 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				delegates: [
-					{
-						username: 'thepool',
-						address: '10839494368003872009L',
-						publicKey: 'b002f58531c074c7190714523eec08c48db8c7cfc0c943097db1a2e82ed87f84',
-						vote: '2315391211431974',
-						producedblocks: 13340,
-						missedblocks: 373,
-						rate: 1,
-						rank: 1,
-						approval: 21.64,
-						productivity: 97.28,
-					},
-				],
+				delegates: [{
+					username: 'thepool',
+					address: '10839494368003872009L',
+					publicKey: 'b002f58531c074c7190714523eec08c48db8c7cfc0c943097db1a2e82ed87f84',
+					vote: '2315391211431974',
+					producedblocks: 13340,
+					missedblocks: 373,
+					rate: 1,
+					rank: 1,
+					approval: 21.64,
+					productivity: 97.28,
+				}],
 			},
 		};
 
@@ -519,20 +510,18 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				delegates: [
-					{
-						username: 'bangomatic',
-						address: '15360265865206254368L',
-						publicKey: 'f54ce2a222ab3513c49e586464d89a2a7d9959ecce60729289ec0bb6106bd4ce',
-						vote: '1036631485530636',
-						producedblocks: 12218,
-						missedblocks: 139,
-						rate: 102,
-						rank: 102,
-						approval: 9.69,
-						productivity: 0,
-					},
-				],
+				delegates: [{
+					username: 'bangomatic',
+					address: '15360265865206254368L',
+					publicKey: 'f54ce2a222ab3513c49e586464d89a2a7d9959ecce60729289ec0bb6106bd4ce',
+					vote: '1036631485530636',
+					producedblocks: 12218,
+					missedblocks: 139,
+					rate: 102,
+					rank: 102,
+					approval: 9.69,
+					productivity: 0,
+				}],
 			},
 		};
 
@@ -554,16 +543,14 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				delegates: [
-					{
-						username: 'oliver',
-						address: '10872755118372042973L',
-						publicKey: 'ac2e6931e5df386f3b8d278f9c14b6396ea6f2d8c6aab6e3bc9b857b3e136877',
-						vote: '22499233987816',
-						producedblocks: 0,
-						missedblocks: 0,
-					},
-				],
+				delegates: [{
+					username: 'oliver',
+					address: '10872755118372042973L',
+					publicKey: 'ac2e6931e5df386f3b8d278f9c14b6396ea6f2d8c6aab6e3bc9b857b3e136877',
+					vote: '22499233987816',
+					producedblocks: 0,
+					missedblocks: 0,
+				}],
 			},
 		};
 
@@ -585,26 +572,24 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				blocks: [
-					{
-						id: '7650813318077105965',
-						version: 0,
-						timestamp: 30745470,
-						height: 2852547,
-						previousBlock: '15871436233132203555',
-						numberOfTransactions: 0,
-						totalAmount: 0,
-						totalFee: 0,
-						reward: 500000000,
-						payloadLength: 0,
-						payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-						generatorPublicKey: 'b3953cb16e2457b9be78ad8c8a2985435dedaed5f0dd63443bdfbccc92d09f2d',
-						generatorId: '6356913781456505636L',
-						blockSignature: '2156b5b20bd338fd1d575ddd8550fd5675e80eec70086c31e60e797e30efdeede8075f7ac35db3f0c45fed787d1ffd7368a28a2642ace7ae529eb538a0a90705',
-						confirmations: 1,
-						totalForged: '500000000',
-					},
-				],
+				blocks: [{
+					id: '7650813318077105965',
+					version: 0,
+					timestamp: 30745470,
+					height: 2852547,
+					previousBlock: '15871436233132203555',
+					numberOfTransactions: 0,
+					totalAmount: 0,
+					totalFee: 0,
+					reward: 500000000,
+					payloadLength: 0,
+					payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+					generatorPublicKey: 'b3953cb16e2457b9be78ad8c8a2985435dedaed5f0dd63443bdfbccc92d09f2d',
+					generatorId: '6356913781456505636L',
+					blockSignature: '2156b5b20bd338fd1d575ddd8550fd5675e80eec70086c31e60e797e30efdeede8075f7ac35db3f0c45fed787d1ffd7368a28a2642ace7ae529eb538a0a90705',
+					confirmations: 1,
+					totalForged: '500000000',
+				}],
 			},
 		};
 
@@ -648,26 +633,24 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				blocks: [
-					{
-						id: '5834892157785484325',
-						version: 0,
-						timestamp: 25656190,
-						height: 2346638,
-						previousBlock: '10341689082372310738',
-						numberOfTransactions: 0,
-						totalAmount: 0,
-						totalFee: 0,
-						reward: 500000000,
-						payloadLength: 0,
-						payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-						generatorPublicKey: '2cb967f6c73d9b6b8604d7b199271fed3183ff18ae0bd9cde6d6ef6072f83c05',
-						generatorId: '9540619224043865035L',
-						blockSignature: '0c0554e28adeeed7f1071cc5cba76b77340e0f406757e7a9e7ab80b1711856089ec743dd4954c2db10ca6e5e2dab79d48d15f7b5a08e59c29d622a1a20e1fd0d',
-						confirmations: 506049,
-						totalForged: '500000000',
-					},
-				],
+				blocks: [{
+					id: '5834892157785484325',
+					version: 0,
+					timestamp: 25656190,
+					height: 2346638,
+					previousBlock: '10341689082372310738',
+					numberOfTransactions: 0,
+					totalAmount: 0,
+					totalFee: 0,
+					reward: 500000000,
+					payloadLength: 0,
+					payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+					generatorPublicKey: '2cb967f6c73d9b6b8604d7b199271fed3183ff18ae0bd9cde6d6ef6072f83c05',
+					generatorId: '9540619224043865035L',
+					blockSignature: '0c0554e28adeeed7f1071cc5cba76b77340e0f406757e7a9e7ab80b1711856089ec743dd4954c2db10ca6e5e2dab79d48d15f7b5a08e59c29d622a1a20e1fd0d',
+					confirmations: 506049,
+					totalForged: '500000000',
+				}],
 				count: 1,
 			},
 		};
@@ -691,25 +674,23 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				transactions: [
-					{
-						id: '16951900355716521650',
-						height: 2845738,
-						blockId: '10920144534340154099',
-						type: 0,
-						timestamp: 30676572,
-						senderPublicKey: '2cb967f6c73d9b6b8604d7b199271fed3183ff18ae0bd9cde6d6ef6072f83c05',
-						senderId: '9540619224043865035L',
-						recipientId: '12731041415715717263L',
-						recipientPublicKey: 'a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4',
-						amount: 146537207,
-						fee: 10000000,
-						signature: 'b5b6aa065db4c47d2fa5b0d8568138460640216732e3926fdd7eff79f3f183e93ffe38f0e33a1b70c97d4dc9efbe61da55e94ab24ca34e134e71e94fa1b6f108',
-						signatures: [],
-						confirmations: 7406,
-						asset: {},
-					},
-				],
+				transactions: [{
+					id: '16951900355716521650',
+					height: 2845738,
+					blockId: '10920144534340154099',
+					type: 0,
+					timestamp: 30676572,
+					senderPublicKey: '2cb967f6c73d9b6b8604d7b199271fed3183ff18ae0bd9cde6d6ef6072f83c05',
+					senderId: '9540619224043865035L',
+					recipientId: '12731041415715717263L',
+					recipientPublicKey: 'a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4',
+					amount: 146537207,
+					fee: 10000000,
+					signature: 'b5b6aa065db4c47d2fa5b0d8568138460640216732e3926fdd7eff79f3f183e93ffe38f0e33a1b70c97d4dc9efbe61da55e94ab24ca34e134e71e94fa1b6f108',
+					signatures: [],
+					confirmations: 7406,
+					asset: {},
+				}],
 				count: '120',
 			},
 		};
@@ -781,20 +762,18 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				delegates: [
-					{
-						username: 'thepool',
-						address: '10839494368003872009L',
-						publicKey: 'b002f58531c074c7190714523eec08c48db8c7cfc0c943097db1a2e82ed87f84',
-						vote: '2317408239538758',
-						producedblocks: 13357,
-						missedblocks: 373,
-						rate: 1,
-						rank: 1,
-						approval: 21.66,
-						productivity: 97.28,
-					},
-				],
+				delegates: [{
+					username: 'thepool',
+					address: '10839494368003872009L',
+					publicKey: 'b002f58531c074c7190714523eec08c48db8c7cfc0c943097db1a2e82ed87f84',
+					vote: '2317408239538758',
+					producedblocks: 13357,
+					missedblocks: 373,
+					rate: 1,
+					rank: 1,
+					approval: 21.66,
+					productivity: 97.28,
+				}],
 			},
 		};
 
@@ -819,14 +798,12 @@ describe('Lisk.api()', function () {
 		var expectedResponse = {
 			body: {
 				success: true,
-				accounts: [
-					{
-						username: null,
-						address: '7288548278191946381L',
-						publicKey: '8c325dc9cabb3a81e40d7291a023a1574629600931fa21cc4fcd87b2d923214f',
-						balance: '0',
-					},
-				],
+				accounts: [{
+					username: null,
+					address: '7288548278191946381L',
+					publicKey: '8c325dc9cabb3a81e40d7291a023a1574629600931fa21cc4fcd87b2d923214f',
+					balance: '0',
+				}],
 			},
 		};
 
