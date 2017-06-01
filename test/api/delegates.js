@@ -1055,7 +1055,7 @@ describe('POST /api/delegates/forging/disable', function () {
 			if (!res.body.enabled) {
 				node.post('/api/delegates/forging/enable', {
 					publicKey: testDelegate.publicKey,
-					secret: testDelegate.secret
+					key: testDelegate.secret
 				}, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('address').equal(testDelegate.address);
@@ -1069,7 +1069,7 @@ describe('POST /api/delegates/forging/disable', function () {
 	it('using no params should fail', function (done) {
 		node.post('/api/delegates/forging/disable', {}, function (err, res) {
 			node.expect(res.body).to.have.property('success').not.to.be.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Missing required property: secret');
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Missing required property: ');
 			done();
 		});
 	});
@@ -1077,7 +1077,7 @@ describe('POST /api/delegates/forging/disable', function () {
 	it('using invalid secret should fail', function (done) {
 		node.post('/api/delegates/forging/disable', {
 			publicKey: testDelegate.publicKey,
-			secret: 'invalid secret'
+			key: 'invalid key'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').not.to.be.ok;
 			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase');

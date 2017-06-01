@@ -587,7 +587,12 @@ Delegates.prototype.internal = {
 			});
 
 			if (!!encryptedItem) {
-				decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
+				try {
+					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.key);
+				} catch (e) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
+	
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
 			} else {
 				return setImmediate(cb, 'Invalid publicKey');
@@ -618,6 +623,8 @@ Delegates.prototype.internal = {
 
 	forgingDisable: function (req, cb) {
 		library.schema.validate(req.body, schema.disableForging, function (err) {
+			console.log('req.body');;
+			console.log(req.body);
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
@@ -635,7 +642,11 @@ Delegates.prototype.internal = {
 			});
 
 			if (!!encryptedItem) {
-				decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.secret);
+				try {
+					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.key);
+				} catch (e) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
 			} else {
 				return setImmediate(cb, 'Invalid publicKey');
@@ -916,7 +927,7 @@ Delegates.prototype.shared = {
 				return setImmediate(cb, err[0].message);
 			}
 
-			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
+			var hash = crypto.createHash('sha256').update(req.body.key, 'utf8').digest();
 			var keypair = library.ed.makeKeypair(hash);
 
 			if (req.body.publicKey) {
