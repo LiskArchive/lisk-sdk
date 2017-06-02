@@ -264,9 +264,7 @@ describe('transaction.js', function () {
 		describe('returned transaction', function () {
 			it('should contain data field with string value', function () {
 				(trs.data).should.be.type('string');
-
 			});
-
 		});
 
 	});
