@@ -56,9 +56,7 @@ module.exports = function getCommand (vorpal) {
 				'transaction': isTransactionQuery
 			};
 
-			let bigNumberWorkaround = this.commandWrapper.command.split(" ")[2];
-
-			let output = getType[userInput.type](bigNumberWorkaround);
+			let output = getType[userInput.type](userInput.input);
 
 			if(process.env.NODE_ENV === 'test') {
 
