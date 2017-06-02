@@ -1,6 +1,7 @@
 if (typeof module !== 'undefined' && module.exports) {
 	var common = require('../common');
 	var lisk = common.lisk;
+	var sinon = common.sinon;
 	process.env.NODE_ENV = 'test';
 }
 
@@ -367,7 +368,7 @@ describe('Lisk.api()', function () {
 				done();
 			}
 		});
-		
+
 	});
 
 	describe('#changeRequest', function () {
@@ -454,157 +455,415 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#sendRequest', function () {
+		var expectedResponse = {
+			body: { success: true, height: 2850466 },
+		};
 
 		it('should receive Height from a random public peer', function (done) {
-			lisk.api().sendRequest('blocks/getHeight', function (data) {
+			sinon.stub(LSK, 'sendRequestPromise').resolves(expectedResponse);
+
+			LSK.sendRequest('blocks/getHeight', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
-				(data.success).should.be.true;
+				(data.success).should.be.true();
+
+				LSK.sendRequestPromise.restore();
 				done();
 			});
 		});
 	});
 
 	describe('#listActiveDelegates', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				delegates: [{
+					username: 'thepool',
+					address: '10839494368003872009L',
+					publicKey: 'b002f58531c074c7190714523eec08c48db8c7cfc0c943097db1a2e82ed87f84',
+					vote: '2315391211431974',
+					producedblocks: 13340,
+					missedblocks: 373,
+					rate: 1,
+					rank: 1,
+					approval: 21.64,
+					productivity: 97.28,
+				}],
+			},
+		};
 
-		it('should list active delegates', function (done) {
-			lisk.api().listActiveDelegates('5', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				(data.delegates).should.have.length(5);
-				done();
-			});
+		it('should list active delegates', function () {
+			var callback = sinon.spy();
+			var options = { limit: '1' };
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.listActiveDelegates('1', callback);
+
+			(LSK.sendRequest.calledWith('delegates/', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#listStandbyDelegates', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				delegates: [{
+					username: 'bangomatic',
+					address: '15360265865206254368L',
+					publicKey: 'f54ce2a222ab3513c49e586464d89a2a7d9959ecce60729289ec0bb6106bd4ce',
+					vote: '1036631485530636',
+					producedblocks: 12218,
+					missedblocks: 139,
+					rate: 102,
+					rank: 102,
+					approval: 9.69,
+					productivity: 0,
+				}],
+			},
+		};
 
-		it('should list standby delegates', function (done) {
-			lisk.api().listStandbyDelegates('5', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				(data.delegates).should.have.length(5);
-				done();
-			});
+		it('should list standby delegates', function () {
+			var callback = sinon.spy();
+			var options =  { limit: '1', orderBy: 'rate:asc', offset: 101 };
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.listStandbyDelegates('1', callback);
+
+			(LSK.sendRequest.calledWith('delegates/', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#searchDelegateByUsername', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				delegates: [{
+					username: 'oliver',
+					address: '10872755118372042973L',
+					publicKey: 'ac2e6931e5df386f3b8d278f9c14b6396ea6f2d8c6aab6e3bc9b857b3e136877',
+					vote: '22499233987816',
+					producedblocks: 0,
+					missedblocks: 0,
+				}],
+			},
+		};
 
-		it('should find a delegate by name', function (done) {
-			lisk.api().searchDelegateByUsername('oliver', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				(data.delegates[0].username).should.be.equal('oliver');
-				done();
-			});
+		it('should find a delegate by name', function () {
+			var callback = sinon.spy();
+			var options = { q: 'oliver' };
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.searchDelegateByUsername('oliver', callback);
+
+			(LSK.sendRequest.calledWith('delegates/search/', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#listBlocks', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				blocks: [{
+					id: '7650813318077105965',
+					version: 0,
+					timestamp: 30745470,
+					height: 2852547,
+					previousBlock: '15871436233132203555',
+					numberOfTransactions: 0,
+					totalAmount: 0,
+					totalFee: 0,
+					reward: 500000000,
+					payloadLength: 0,
+					payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+					generatorPublicKey: 'b3953cb16e2457b9be78ad8c8a2985435dedaed5f0dd63443bdfbccc92d09f2d',
+					generatorId: '6356913781456505636L',
+					blockSignature: '2156b5b20bd338fd1d575ddd8550fd5675e80eec70086c31e60e797e30efdeede8075f7ac35db3f0c45fed787d1ffd7368a28a2642ace7ae529eb538a0a90705',
+					confirmations: 1,
+					totalForged: '500000000',
+				}],
+			},
+		};
 
-		it('should list amount of blocks defined', function (done) {
-			lisk.api().listBlocks('3', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				(data.blocks).should.have.length(3);
-				done();
-			});
+		it('should list amount of blocks defined', function () {
+			var callback = sinon.spy();
+			var options = { limit: '1'};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.listBlocks('1', callback);
+
+			(LSK.sendRequest.calledWith('blocks', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#listForgedBlocks', function () {
+		var expectedResponse = {
+			body: {
+				success: true
+			}
+		};
 
-		it('should list amount of ForgedBlocks', function (done) {
-			lisk.api().listForgedBlocks('130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				done();
-			});
+		it('should list amount of ForgedBlocks', function () {
+			var callback = sinon.spy();
+			var key = '130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0';
+			var options = { generatorPublicKey: key};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.listForgedBlocks(key, callback);
+
+			(LSK.sendRequest.calledWith('blocks', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#getBlock', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				blocks: [{
+					id: '5834892157785484325',
+					version: 0,
+					timestamp: 25656190,
+					height: 2346638,
+					previousBlock: '10341689082372310738',
+					numberOfTransactions: 0,
+					totalAmount: 0,
+					totalFee: 0,
+					reward: 500000000,
+					payloadLength: 0,
+					payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+					generatorPublicKey: '2cb967f6c73d9b6b8604d7b199271fed3183ff18ae0bd9cde6d6ef6072f83c05',
+					generatorId: '9540619224043865035L',
+					blockSignature: '0c0554e28adeeed7f1071cc5cba76b77340e0f406757e7a9e7ab80b1711856089ec743dd4954c2db10ca6e5e2dab79d48d15f7b5a08e59c29d622a1a20e1fd0d',
+					confirmations: 506049,
+					totalForged: '500000000',
+				}],
+				count: 1,
+			},
+		};
 
-		it('should get a block of certain height', function (done) {
-			lisk.api().getBlock('2346638', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				done();
-			});
+		it('should get a block of certain height', function () {
+			var callback = sinon.spy();
+			var blockId = '2346638';
+			var options = { height: blockId};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.getBlock(blockId, callback);
+
+			(LSK.sendRequest.calledWith('blocks', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#listTransactions', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				transactions: [{
+					id: '16951900355716521650',
+					height: 2845738,
+					blockId: '10920144534340154099',
+					type: 0,
+					timestamp: 30676572,
+					senderPublicKey: '2cb967f6c73d9b6b8604d7b199271fed3183ff18ae0bd9cde6d6ef6072f83c05',
+					senderId: '9540619224043865035L',
+					recipientId: '12731041415715717263L',
+					recipientPublicKey: 'a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4',
+					amount: 146537207,
+					fee: 10000000,
+					signature: 'b5b6aa065db4c47d2fa5b0d8568138460640216732e3926fdd7eff79f3f183e93ffe38f0e33a1b70c97d4dc9efbe61da55e94ab24ca34e134e71e94fa1b6f108',
+					signatures: [],
+					confirmations: 7406,
+					asset: {},
+				}],
+				count: '120',
+			},
+		};
 
-		it('should list transactions of a defined account', function (done) {
-			lisk.api().listTransactions('12731041415715717263L', '1', '2', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				(data.transactions.length).should.be.equal(1);
-				done();
-			});
+
+		it('should list transactions of a defined account', function () {
+			var callback = sinon.spy();
+			var address = '12731041415715717263L';
+			var options = {
+				senderId: address,
+				recipientId: address,
+				limit: '1',
+				offset: '2',
+				orderBy: 'timestamp:desc'
+			};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.listTransactions(address, '1', '2', callback);
+
+			(LSK.sendRequest.calledWith('transactions', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#getTransaction', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				transaction: {
+					id: '7520138931049441691',
+					height: 2346486,
+					blockId: '11556561638256817055',
+					type: 0,
+					timestamp: 25654653,
+					senderPublicKey: '632763673e5b3a0b704cd723d8c5bdf0be47e08210fe56a0c530f27ced6c228e',
+					senderId: '1891806528760779417L',
+					recipientId: '1813095620424213569L',
+					recipientPublicKey: 'e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589',
+					amount: 56340416586,
+					fee: 10000000,
+					signature: 'd04dc857e718af56ae3cff738ba22dce7da0118565675527ddf61d154cfea70afd11db1e51d6d9cce87e0780685396daab6f47cae74c22fa20638c9b71883d07',
+					signatures: [],
+					confirmations: 506685,
+					asset: {},
+				},
+			},
+		};
 
-		it('should list a defined transaction', function (done) {
-			lisk.api().getTransaction('7520138931049441691', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				done();
-			});
+		it('should list a defined transaction', function () {
+			var callback = sinon.spy();
+			var transactionId= '7520138931049441691';
+			var options = {
+				id: transactionId
+			};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.getTransaction(transactionId, callback);
+
+			(LSK.sendRequest.calledWith('transactions/get', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#listVotes', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				delegates: [{
+					username: 'thepool',
+					address: '10839494368003872009L',
+					publicKey: 'b002f58531c074c7190714523eec08c48db8c7cfc0c943097db1a2e82ed87f84',
+					vote: '2317408239538758',
+					producedblocks: 13357,
+					missedblocks: 373,
+					rate: 1,
+					rank: 1,
+					approval: 21.66,
+					productivity: 97.28,
+				}],
+			},
+		};
 
-		it('should list votes of an account', function (done) {
-			lisk.api().listVotes('16010222169256538112L', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				done();
-			});
+		it('should list votes of an account', function () {
+			var callback = sinon.spy();
+			var address= '16010222169256538112L';
+			var options = {
+				address: address
+			};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.listVotes(address, callback);
+
+			(LSK.sendRequest.calledWith('accounts/delegates', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#listVoters', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				accounts: [{
+					username: null,
+					address: '7288548278191946381L',
+					publicKey: '8c325dc9cabb3a81e40d7291a023a1574629600931fa21cc4fcd87b2d923214f',
+					balance: '0',
+				}],
+			},
+		};
 
-		it('should list voters of an account', function (done) {
-			lisk.api().listVoters('6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a', function (data) {
-				(data).should.be.ok;
-				(data).should.be.type('object');
-				(data.success).should.be.true;
-				done();
-			});
+		it('should list voters of an account', function () {
+			var callback = sinon.spy();
+			var publicKey= '6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a';
+			var options = {
+				publicKey: publicKey
+			};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.listVoters(publicKey, callback);
+
+			(LSK.sendRequest.calledWith('delegates/voters', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#getAccount', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				account: {
+					address: '12731041415715717263L',
+					unconfirmedBalance: '7139704369275',
+					balance: '7139704369275',
+					publicKey: 'a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4',
+					unconfirmedSignature: 1,
+					secondSignature: 1,
+					secondPublicKey: 'b823d706cec22383f9f10bb5095a66ed909d9224da0707168dad9d1c9cdef29c',
+					multisignatures: [],
+					'u_multisignatures': [],
+				},
+			},
+		};
 
-		it('should get account information', function (done) {
-			lisk.api().getAccount('12731041415715717263L', function (data) {
-				(data).should.be.ok;
-				(data.account.publicKey).should.be.equal('a81d59b68ba8942d60c74d10bc6488adec2ae1fa9b564a22447289076fe7b1e4');
-				(data.account.address).should.be.equal('12731041415715717263L');
-				done();
-			});
+		it('should get account information', function () {
+			var callback = sinon.spy();
+			var address= '12731041415715717263L';
+			var options = {
+				address: address
+			};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.getAccount(address, callback);
+
+			(LSK.sendRequest.calledWith('accounts', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
 		});
 	});
 
 	describe('#sendLSK', function () {
-
-		it('should send testnet LSK', function (done) {
+		var expectedResponse = {
+			body: { success: true, transactionId: '8921031602435581844' }
+		};
+		it('should send testnet LSK', function () {
 			var options = {
 				ssl: false,
 				node: '',
@@ -613,16 +872,26 @@ describe('Lisk.api()', function () {
 				port: '7000',
 				bannedPeers: []
 			};
-
+			var callback = sinon.spy();
 			var LSKnode = lisk.api(options);
 			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
 			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
 			var recipient = '10279923186189318946L';
 			var amount = 100000000;
-			LSKnode.sendLSK(recipient, amount, secret, secondSecret, function (result) {
-				(result).should.be.ok;
-				done();
-			});
+			sinon.stub(LSKnode, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSKnode.sendLSK(recipient, amount, secret, secondSecret, callback);
+
+			(LSKnode.sendRequest.calledWith('transactions', {
+				recipientId: recipient,
+				amount: amount,
+				secret: secret,
+				secondSecret: secondSecret
+			})).should.be.true();
+
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSKnode.sendRequest.restore();
 		});
 	});
 
