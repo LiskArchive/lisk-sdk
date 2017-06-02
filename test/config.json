@@ -22,13 +22,13 @@
             "error"
         ]
     },
-		"redis": {
-			"host": "127.0.0.1",
-			"port": 6380,
-			"db": 0,
-			"user": "",
-			"password": ""
-		},
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6380,
+        "db": 0,
+        "user": "",
+        "password": ""
+    },
     "api": {
         "enabled": true,
         "access": {
@@ -43,7 +43,7 @@
                 "windowMs": 60000
             }
         }
-		},
+    },
     "peers": {
         "enabled": true,
         "list": [],
