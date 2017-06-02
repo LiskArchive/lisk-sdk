@@ -5,7 +5,6 @@ const config = require('./config');
 //import commands from ./commands/ folder
 fse.readdirSync('./commands').map(function (command) {
 	vorpal.use(require('./commands/'+command));
-
 });
 
 //Define vorpal

@@ -1,7 +1,7 @@
 module.exports = function getCommand (vorpal) {
 	'use strict';
-
-	const config = require('../config');
+  
+	const config = require('../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
 	const util = require('util');
@@ -63,7 +63,7 @@ module.exports = function getCommand (vorpal) {
 				return output;
 
 			} else {
-
+        
 				if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
 					return output.then((result) => {
 						if(result.error) {

@@ -206,6 +206,7 @@ describe('get command palette without test mode', () => {
 		});
 	});
 
+
 	it('it should work in normal env and wrong data --json', (done) =>  {
 
 		let command = 'get block 123';
