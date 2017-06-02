@@ -225,13 +225,9 @@ describe('transaction.js', function () {
 		});
 
 		describe('returned transaction', function () {
-
 			it('should conatain data field with string value', function () {
-
 				(trs.data).should.be.type('string');
-
 			});
-
 		});
 
 	});
