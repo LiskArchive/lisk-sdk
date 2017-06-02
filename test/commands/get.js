@@ -182,7 +182,7 @@ describe('get command palette without test mode', () => {
 
 	});
 
-	it('it should work in normal env', (done) =>  {
+	it('should work in normal env', (done) =>  {
 
 		let command = 'get block 1924405132194419123 --json';
 
@@ -194,7 +194,7 @@ describe('get command palette without test mode', () => {
 		});
 	});
 
-	it('it should work in normal env', (done) =>  {
+	it('should work in normal env', (done) =>  {
 
 		let command = 'get block 19244051321919123 --json';
 

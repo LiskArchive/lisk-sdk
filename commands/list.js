@@ -31,17 +31,13 @@ module.exports = function listCommand(vorpal) {
 	}
 
 	function switchType (type) {
-		switch (type) {
-			case 'accounts':
-			case 'addresses':
-				return 'account';
-			case 'blocks':
-				return 'block';
-			case 'delegates':
-				return'delegate';
-			case 'transactions':
-				return 'transaction';
-		}
+		return {
+			'accounts': 'account',
+			'addresses': 'address',
+			'blocks': 'block',
+			'delegates': 'delegate',
+			'transactions': 'transaction'
+		}[type];
 	}
 
 	vorpal
