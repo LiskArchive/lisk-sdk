@@ -1,7 +1,8 @@
 module.exports = function getCommand (vorpal) {
 	'use strict';
 
-	const lisk = require('lisk-js').api();
+	const config = require('../config');
+	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
 	const util = require('util');
 
@@ -41,7 +42,9 @@ module.exports = function getCommand (vorpal) {
 
 	vorpal
 		.command('get <type> <input>')
-		.description('Get information from <type> with parameter <input>')
+		.option('-j, --json', 'Sets output to json')
+		.option('--no-json', 'Default: sets output to text. You can change this in the config.js')
+		.description('Get information from <type> with parameter <input>. \n Types available: account, adddress, block, delegate, transaction \n E.g. get delegate lightcurve \n e.g. get block 5510510593472232540')
 		.autocomplete(['account', 'address', 'block', 'delegate', 'transaction'])
 		.action(function(userInput) {
 
@@ -63,16 +66,27 @@ module.exports = function getCommand (vorpal) {
 
 			} else {
 
-				//output = tablify(output).toString();
-
-				return output.then((result) => {
-					if(result.error) {
-						vorpal.log(util.inspect(result));
-					} else {
-						vorpal.log(util.inspect(result[switchType(userInput.type)]));
-					}
-
-				});
+				if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
+					return output.then((result) => {
+						if(result.error) {
+							vorpal.log(util.inspect(result));
+							return result;
+						} else {
+							vorpal.log(util.inspect(result[switchType(userInput.type)]));
+							return result[switchType(userInput.type)];
+						}
+					});
+				} else {
+					return output.then((result) => {
+						if(result.error) {
+							vorpal.log(tablify(result).toString());
+							return result;
+						} else {
+							vorpal.log(tablify(result[switchType(userInput.type)]).toString());
+							return result[switchType(userInput.type)];
+						}
+					});
+				}
 
 			}
 

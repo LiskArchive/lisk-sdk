@@ -1,7 +1,8 @@
 module.exports = function listCommand(vorpal) {
 	'use strict';
 
-	const lisk = require('lisk-js').api();
+	const config = require('../config');
+	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
 	const util = require('util');
 
@@ -41,15 +42,18 @@ module.exports = function listCommand(vorpal) {
 
 	vorpal
 		.command('list <type> [variadic...]')
-		.description('Get information from <type> with parameters [input, input, ...]')
+		.option('-j, --json', 'Sets output to json')
+		.option('-t, --no-json', 'Sets output to text')
+		.description('Get information from <type> with parameters [input, input, ...].  \n Types available: accounts, addresses, blocks, delegates, transactions \n E.g. list delegates lightcurve tosch \n E.g. list blocks 5510510593472232540 16450842638530591789')
 		.autocomplete(['accounts', 'addresses', 'blocks', 'delegates', 'transactions'])
 		.action(function(userInput) {
 
-
-
-			var bigNumberWorkaround = this.commandWrapper.command.split(" ");
+			let bigNumberWorkaround = this.commandWrapper.command.split(" ");
 			bigNumberWorkaround.shift();
 			bigNumberWorkaround.shift();
+
+			let flags = getFlags(this.commandObject.options).toString();
+			let fixedCommands = filterCommandForFlags(flags, bigNumberWorkaround);
 
 			let getType = {
 				'addresses': isAccountQuery,
@@ -59,7 +63,7 @@ module.exports = function listCommand(vorpal) {
 				'transactions': isTransactionQuery
 			};
 
-			let calls = bigNumberWorkaround.map(function (input) {
+			let calls = fixedCommands.map(function (input) {
 				let output = getType[userInput.type](input);
 				return output;
 			});
@@ -71,18 +75,33 @@ module.exports = function listCommand(vorpal) {
 
 			 } else {
 
-				 //output = tablify(output).toString();
+				 if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
+					 return Promise.all(calls).then(result => {
+						 result.map(executed => {
+							 if(executed.error) {
+								 vorpal.log(util.inspect(executed));
+							 } else {
+								 vorpal.log(util.inspect(executed[switchType(userInput.type)]));
+							 }
+						 });
 
-				 return Promise.all(calls).then(result => {
-				 	result.map(executed => {
-					    if(executed.error) {
-						    vorpal.log(util.inspect(executed));
-					    } else {
-						    vorpal.log(util.inspect(executed[switchType(userInput.type)]));
-					    }
-				    });
+						 return result;
 
-				 });
+					 });
+				 } else {
+					 return Promise.all(calls).then(result => {
+						 result.map(executed => {
+							 if(executed.error) {
+								 vorpal.log(tablify(executed).toString());
+							 } else {
+								 vorpal.log(tablify(executed[switchType(userInput.type)]).toString());
+							 }
+						 });
+
+						 return result;
+
+					 });
+				 }
 
 			 }
 

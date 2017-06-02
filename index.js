@@ -1,5 +1,6 @@
 const fse = require('fs-extra');
 const vorpal = require('vorpal')();
+const config = require('./config');
 
 //import commands from ./commands/ folder
 fse.readdirSync('./commands').map(function (command) {
@@ -8,7 +9,7 @@ fse.readdirSync('./commands').map(function (command) {
 });
 
 //Define vorpal
-  vorpal 
+  vorpal
 	  .delimiter('lisky>')
 	  .history('lisky')
 	  .show();
