@@ -31,31 +31,13 @@ module.exports = function listCommand(vorpal) {
 	}
 
 	function switchType (type) {
-		switch (type) {
-			case 'accounts':
-			case 'addresses':
-				return 'account';
-			case 'blocks':
-				return 'block';
-			case 'delegates':
-				return'delegate';
-			case 'transactions':
-				return 'transaction';
-		}
-	}
-
-	function filterCommandForFlags (commands, input) {
-
-		return input.filter(function (commandInput) {
-			return commands.indexOf(commandInput) === -1
-		});
-
-	}
-
-	function getFlags (commands) {
-		return commands.map(function (command) {
-			return command.flags;
-		});
+		return {
+			'accounts': 'account',
+			'addresses': 'address',
+			'blocks': 'block',
+			'delegates': 'delegate',
+			'transactions': 'transaction'
+		}[type];
 	}
 
 	vorpal
