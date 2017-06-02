@@ -1,6 +1,6 @@
 module.exports = function getCommand (vorpal) {
 	'use strict';
-
+  
 	const config = require('../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
@@ -44,7 +44,7 @@ module.exports = function getCommand (vorpal) {
 		.command('get <type> <input>')
 		.option('-j, --json', 'Sets output to json')
 		.option('--no-json', 'Default: sets output to text. You can change this in the config.js')
-		.description('Get information from <type> with parameter <input>')
+		.description('Get information from <type> with parameter <input>. \n Types available: account, adddress, block, delegate, transaction \n E.g. get delegate lightcurve \n e.g. get block 5510510593472232540')
 		.autocomplete(['account', 'address', 'block', 'delegate', 'transaction'])
 		.action(function(userInput) {
 
@@ -63,8 +63,8 @@ module.exports = function getCommand (vorpal) {
 				return output;
 
 			} else {
-
-				if(userInput.options.json === true) {
+        
+				if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
 					return output.then((result) => {
 						if(result.error) {
 							vorpal.log(util.inspect(result));
