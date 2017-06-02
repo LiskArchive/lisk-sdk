@@ -323,7 +323,7 @@ describe('cache', function () {
 
 	});
 
-	describe('onUnconfirmedTransaction', function (done) {
+	describe('onTransactionsSaved', function (done) {
 
 		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 trs', function (done) {
 			var key = '/api/delegates?123';
@@ -335,7 +335,7 @@ describe('cache', function () {
 				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, node.gAccount.secondPassword);
 
-				cache.onUnconfirmedTransaction(transaction);
+				cache.onTransactionsSaved([transaction]);
 				setTimeout(function () {
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -356,7 +356,7 @@ describe('cache', function () {
 				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 
-				cache.onUnconfirmedTransaction(transaction);
+				cache.onTransactionsSaved([transaction]);
 				setTimeout(function () {
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -379,7 +379,7 @@ describe('cache', function () {
 
 
 				cache.onSyncStarted();
-				cache.onUnconfirmedTransaction(transaction);
+				cache.onTransactionsSaved([transaction]);
 				setTimeout(function () {
 					cache.onSyncFinish();
 					cache.getJsonForKey(key, function (err, res) {

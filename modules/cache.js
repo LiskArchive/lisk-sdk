@@ -125,20 +125,16 @@ Cache.prototype.onFinishRound = function () {
 
 /**
  * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
- * @param {transactions|transactions[]} transactions
+ * @param {transactions[]} transactions
  */
-Cache.prototype.onUnconfirmedTransaction = function (transactions) {
+Cache.prototype.onTransactionsSaved = function (transactions) {
 	if(!self.isReady()) { return; }
 	var pattern = '/api/delegates*';
-	if(Array.isArray(transactions)) {
-		transactions = transactions;
-	} else {
-		transactions = [transactions];
-	}
-	var delegateTransactions = transactions.filter(function (trs) {
+
+	var delegateTransaction = transactions.find(function (trs) {
 		return !!trs && trs.type === transactionTypes.DELEGATE;
 	});
-	if (delegateTransactions.length > 0) {
+	if (!!delegateTransaction) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
 				logger.error(['Error clearing keys with pattern:', pattern, ' on delegate trs'].join(' '));
