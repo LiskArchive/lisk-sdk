@@ -247,7 +247,7 @@ describe('cache', function () {
 				cache.onSyncStarted();
 				cache.onNewBlock();
 				setTimeout(function () {
-					cache.onSyncFinish();
+					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);
@@ -310,7 +310,7 @@ describe('cache', function () {
 				cache.onSyncStarted();
 				cache.onFinishRound();
 				setTimeout(function () {
-					cache.onSyncFinish();
+					cache.onSyncFinished();
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -381,7 +381,7 @@ describe('cache', function () {
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction]);
 				setTimeout(function () {
-					cache.onSyncFinish();
+					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);

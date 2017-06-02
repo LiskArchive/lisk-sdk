@@ -607,7 +607,7 @@ __private.sync = function (cb) {
 		__private.blocksToSync = 0;
 
 		library.logger.info('Finished sync');
-		library.bus.message('syncFinish');
+		library.bus.message('syncFinished');
 		return setImmediate(cb, err);
 	});
 };

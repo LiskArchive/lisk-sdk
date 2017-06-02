@@ -25,6 +25,9 @@ Cache.prototype.getJsonForKey = function (key, cb) {
 		return cb(errorCacheDisabled); 
 	}
 	client.get(key, function (err, value) {
+		if (err) {
+			return cb(err, value);
+		}
 		// parsing string to json
 		return cb(err, JSON.parse(value));
 	});
@@ -155,7 +158,7 @@ Cache.prototype.onSyncStarted = function () {
 /**
  * Enable changes in cache after syncing finished
  */
-Cache.prototype.onSyncFinish = function () {
+Cache.prototype.onSyncFinished = function () {
 	cacheReady = true;
 };
 
