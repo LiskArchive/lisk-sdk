@@ -927,7 +927,7 @@ Delegates.prototype.shared = {
 				return setImmediate(cb, err[0].message);
 			}
 
-			var hash = crypto.createHash('sha256').update(req.body.key, 'utf8').digest();
+			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 			var keypair = library.ed.makeKeypair(hash);
 
 			if (req.body.publicKey) {
