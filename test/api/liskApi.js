@@ -6,7 +6,7 @@ if (typeof module !== 'undefined' && module.exports) {
 	process.env.NODE_ENV = 'test';
 }
 
-describe.only('Lisk.api()', function () {
+describe('Lisk.api()', function () {
 
 	var LSK = lisk.api();
 
