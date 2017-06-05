@@ -29,7 +29,7 @@ Cache.prototype.getJsonForKey = function (key, cb) {
 			return cb(err, value);
 		}
 		// parsing string to json
-		return cb(err, JSON.parse(value));
+		return cb(null, JSON.parse(value));
 	});
 };
  
