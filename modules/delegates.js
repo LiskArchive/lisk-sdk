@@ -623,8 +623,6 @@ Delegates.prototype.internal = {
 
 	forgingDisable: function (req, cb) {
 		library.schema.validate(req.body, schema.disableForging, function (err) {
-			console.log('req.body');;
-			console.log(req.body);
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
