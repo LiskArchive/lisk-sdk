@@ -54,8 +54,8 @@ var modulesLoader = new function () {
 				account: function (cb) {
 					new Account(scope.db, scope.schema, scope.logger, cb);
 				}
-			 }, function(err, result){
-					new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
+			 }, function (err, result) {
+				 new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
 			 });
 			break;
 		 case 'Block':
@@ -65,9 +65,9 @@ var modulesLoader = new function () {
 				},
 				function (account, waterCb) {
 					return new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, account, scope.logger, waterCb);
-				}		
-			 ], function(err, transaction) {
-					new Logic(scope.ed, scope.schema, transaction, cb);
+				}
+			 ], function (err, transaction) {
+				 new Logic(scope.ed, scope.schema, transaction, cb);
 			});
 			break;
 		 case 'Peers':
