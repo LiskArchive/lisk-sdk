@@ -13,6 +13,9 @@ var database = require(path.join(dirname, '/helpers', 'database.js'));
 var genesisblock = require(path.join(dirname, '/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
 var z_schema = require('../../helpers/z_schema.js');
+var ed = require('../../helpers/ed');
+var Transaction = require('../../logic/transaction.js');
+var Account = require('../../logic/account.js');
 
 var modulesLoader = new function () {
 
@@ -27,6 +30,7 @@ var modulesLoader = new function () {
 		},
 		public: '../../public',
 		schema: new z_schema(),
+		ed: ed,
 		bus: {
 			message: function () {}
 		},
@@ -46,10 +50,25 @@ var modulesLoader = new function () {
 			new Logic(scope.db, scope.schema, scope.logger, cb);
 			break;
 		 case 'Transaction':
-			new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
+		 	async.series({
+				account: function (cb) {
+					new Account(scope.db, scope.schema, scope.logger, cb);
+				}
+			 }, function(err, result){
+					new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
+			 });
 			break;
 		 case 'Block':
-			new Logic(scope.ed, scope.schema, scope.transaction, cb);
+		 	async.waterfall([
+				function (waterCb) {	
+					return new Account(scope.db, scope.schema, scope.logger, waterCb);
+				},
+				function (account, waterCb) {
+					return new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, account, scope.logger, waterCb);
+				}		
+			 ], function(err, transaction) {
+					new Logic(scope.ed, scope.schema, transaction, cb);
+			});
 			break;
 		 case 'Peers':
 			new Logic(scope.logger, cb);
