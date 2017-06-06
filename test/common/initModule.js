@@ -182,8 +182,7 @@ var modulesLoader = new function () {
 	};
 
 	/**
-	 * Initializes Cache class
-	 *
+	 * Initializes Cache module
 	 * @param {Function} cb
 	 */
 	this.initCache = function (cb) {

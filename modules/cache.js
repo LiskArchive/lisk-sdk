@@ -7,7 +7,12 @@ var self;
 var logger;
 var cacheEnabled;
 
-// Constructor
+/**
+ * Cache module
+ * @constructor
+ * @param {Function} cb
+ * @param {Object} scope
+ */
 function Cache (cb, scope) {
 	self = this;
 	client = scope.cache.client;
@@ -16,14 +21,28 @@ function Cache (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+/*
+ * It gets the status of the redis connection
+ * @returns {Boolean} status
+ */
 Cache.prototype.isConnected = function () {
 	return cacheEnabled && client.connected;
 };
 
+/*
+ * It gets the caching readiness and the connection of redis
+ * @returns {Boolean} status
+ */
 Cache.prototype.isReady = function () {
 	return cacheReady && self.isConnected();
 };
 
+/*
+ * It gets the json value for a key from redis
+ * @param {String} key
+ * @param {Function} cb
+ * @returns {Function} cb
+ */
 Cache.prototype.getJsonForKey = function (key, cb) {
 	if (!self.isConnected()) { 
 		return cb(errorCacheDisabled); 
@@ -37,7 +56,12 @@ Cache.prototype.getJsonForKey = function (key, cb) {
 	});
 };
  
-
+/*
+ * It sets json value for a key in redis
+ * @param {String} key
+ * @param {Object} value
+ * @param {Function} cb
+ */
 Cache.prototype.setJsonForKey = function (key, value, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
@@ -46,6 +70,10 @@ Cache.prototype.setJsonForKey = function (key, value, cb) {
 	client.set(key, JSON.stringify(value), cb);
 };
 
+/*
+ * It deletes json value for a key in redis
+ * @param {String} key
+ */
 Cache.prototype.deleteJsonForKey = function (key, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
@@ -53,6 +81,11 @@ Cache.prototype.deleteJsonForKey = function (key, cb) {
 	client.del(key, cb);
 };
 
+/*
+ * It scans keys with provided pattern in redis db and deletes the entries that match
+ * @param {String} pattern
+ * @param {Function} cb
+ */
 Cache.prototype.removeByPattern = function (pattern, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
@@ -77,6 +110,10 @@ Cache.prototype.removeByPattern = function (pattern, cb) {
 	}, cb);
 };
 
+/*
+ * It removes all entries from redis db
+ * @param {Function} cb
+ */
 Cache.prototype.flushDb = function (cb) {
 	if (!self.isConnected()) { 
 		return cb(errorCacheDisabled); 
@@ -84,10 +121,18 @@ Cache.prototype.flushDb = function (cb) {
 	client.flushdb(cb);
 };
 
+/*
+ * On application clean event, it quits the redis connection
+ * @param {Function} cb
+ */
 Cache.prototype.cleanup = function (cb) {
 	self.quit(cb);
 };
 
+/*
+ * it quits the redis connection
+ * @param {Function} cb
+ */
 Cache.prototype.quit = function (cb) {
 	if (!self.isConnected()) {
 		// because connection isn't established in the first place.
@@ -98,8 +143,10 @@ Cache.prototype.quit = function (cb) {
 
 /**
  * This function will be triggered on new block, it will clear all cache entires.
+ * @param {Block} block
+ * @param {Broadcast} broadcast
+ * @param {Function} cb
  */
-
 Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 	cb = cb || function () {};
 
@@ -118,8 +165,9 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 
 /**
  * This function will be triggered when a round finishes, it will clear all cache entires.
+ * @param {Round} round
+ * @param {Function} cb
  */
-
 Cache.prototype.onFinishRound = function (round, cb) {
 	cb = cb || function () {};
 
@@ -138,7 +186,8 @@ Cache.prototype.onFinishRound = function (round, cb) {
 
 /**
  * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
- * @param {transactions[]} transactions
+ * @param {Transactions[]} transactions
+ * @param {Function} cb
  */
 Cache.prototype.onTransactionsSaved = function (transactions, cb) {
 	cb = cb || function () {};

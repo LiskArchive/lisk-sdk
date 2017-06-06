@@ -438,6 +438,10 @@ d.run(function () {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
+		/*
+		 * It tries to connect with redis server based on config. provided in config.json file
+		 * @param {function} cb
+		 */
 		cache: function (cb) {
 			var cache = require('./helpers/cache.js');
 			cache.connect(config.cacheEnabled, config.cache, logger, cb);
@@ -500,7 +504,7 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
-    modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
 
 			var tasks = {};
 
