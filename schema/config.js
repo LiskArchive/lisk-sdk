@@ -99,7 +99,8 @@ module.exports = {
 					password: {
 						type: 'string'
 					}
-				}
+				},
+				required: ['host', 'port', 'db', 'user', 'password']
 			},
 			api: {
 				type: 'object',
@@ -316,6 +317,6 @@ module.exports = {
 				format: 'hex'
 			}
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash']
+		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash', 'cacheEnabled', 'redis']
 	}
 };
