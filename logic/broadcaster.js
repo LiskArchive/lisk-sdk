@@ -2,6 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var _ = require('lodash');
 
@@ -47,17 +48,16 @@ function Broadcaster (scope) {
 	}];
 
 	// Broadcaster timer
-	setImmediate(function nextRelease () {
-		async.series([
-			__private.releaseQueue
-		], function (err) {
+	function nextRelease () {
+		__private.releaseQueue(function (err) {
 			if (err) {
 				library.logger.log('Broadcaster timer', err);
 			}
-
-			return setTimeout(nextRelease, self.config.broadcastInterval);
 		});
-	});
+	}
+
+	jobsQueue.register('broadcasterNextRelease', nextRelease, self.config.broadcastInterval);
+
 }
 
 // Public methods
