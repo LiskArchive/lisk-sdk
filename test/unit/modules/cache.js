@@ -343,7 +343,6 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 
 				cache.onTransactionsSaved([transaction], function (err) {
