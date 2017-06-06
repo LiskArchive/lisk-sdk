@@ -1,7 +1,11 @@
 var async = require('async');
 var transactionTypes = require('../helpers/transactionTypes.js');
-var client, self, logger, cacheEnabled,
-	cacheReady = true, errorCacheDisabled = 'Cache Unavailable';
+var cacheReady = true;
+var errorCacheDisabled = 'Cache Unavailable';
+var client;
+var self;
+var logger;
+var cacheEnabled;
 
 // Constructor
 function Cache (cb, scope) {
@@ -96,25 +100,30 @@ Cache.prototype.quit = function (cb) {
  * This function will be triggered on new block, it will clear all cache entires.
  */
 
-Cache.prototype.onNewBlock = function () {
-	if(!self.isReady()) { return; }
-	async.map(['/api/blocks*', '/api/transactions*'], function (pattern) {
+Cache.prototype.onNewBlock = function (block, broadcast, cb) {
+	cb = cb ? cb: function () {};
+
+	if(!self.isReady()) { return cb(errorCacheDisabled); }
+	async.map(['/api/blocks*', '/api/transactions*'], function (pattern, mapCb) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
 				logger.error(['Error clearing keys with pattern:', pattern, ' on new block'].join(' '));
 			} else {
 				logger.debug(['keys with pattern:', pattern, 'cleared from cache on new block'].join(' '));
 			}
+			mapCb(err);
 		});
-	});
+	}, cb);
 };
 
 /**
  * This function will be triggered when a round finishes, it will clear all cache entires.
  */
 
-Cache.prototype.onFinishRound = function () {
-	if(!self.isReady()) { return; }
+Cache.prototype.onFinishRound = function (round, cb) {
+	cb = cb ? cb: function () {};
+
+	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 	self.removeByPattern(pattern, function (err) {
 		if (err) {
@@ -122,6 +131,7 @@ Cache.prototype.onFinishRound = function () {
 		} else {
 			logger.debug(['keys with pattern: ', pattern, 'cleared from cache new Round'].join(' '));
 		}
+		return cb(err);
 	});
 };
 
@@ -130,13 +140,16 @@ Cache.prototype.onFinishRound = function () {
  * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
  * @param {transactions[]} transactions
  */
-Cache.prototype.onTransactionsSaved = function (transactions) {
-	if(!self.isReady()) { return; }
+Cache.prototype.onTransactionsSaved = function (transactions, cb) {
+	cb = cb ? cb: function () {};
+
+	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 
 	var delegateTransaction = transactions.find(function (trs) {
 		return !!trs && trs.type === transactionTypes.DELEGATE;
 	});
+
 	if (!!delegateTransaction) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
@@ -144,7 +157,10 @@ Cache.prototype.onTransactionsSaved = function (transactions) {
 			} else {
 				logger.debug(['keys with pattern:', pattern, 'cleared from cache on delegate trs'].join(' '));
 			}
+			return cb(err);
 		});
+	} else {
+		cb();
 	}
 };
 

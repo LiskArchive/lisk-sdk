@@ -179,19 +179,23 @@ describe('cache', function () {
 		it('should remove all keys matching pattern /api/transactions', function (done) {
 			var key = '/api/transactions?123';
 			var value = {testObject: 'testValue'};
+
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onNewBlock(null, null, function (err) {
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				cache.onNewBlock();
+				setTimeout(function () {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
+
 
 		it('should remove all keys matching pattern /api/blocks', function (done) {
 			var key = '/api/blocks';
@@ -200,15 +204,16 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-
-				cache.onNewBlock(null, null, function (err) {
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				cache.onNewBlock();
+				setTimeout(function () {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 
@@ -219,15 +224,15 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-
-				cache.onNewBlock(null, null, function (err) {
-					expect(err).to.not.exist;
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				cache.onNewBlock();
+				setTimeout(function () {
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 
@@ -238,17 +243,17 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				cache.onSyncStarted();
-				cache.onNewBlock(null, null, function (err) {
-					expect(err).to.equal('Cache Unavailable');
+				cache.onNewBlock();
+				setTimeout(function () {
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 	});
@@ -262,14 +267,15 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onFinishRound(null, function (err) {
-					expect(err).to.not.exist;
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				cache.onFinishRound();
+				setTimeout(function () {
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 
@@ -280,15 +286,16 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-
-				cache.onFinishRound(null, function (err) {
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
+				cache.onFinishRound();
+				setTimeout(function () {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 
@@ -299,17 +306,18 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				cache.onSyncStarted();
-				cache.onFinishRound(null, function (err) {
-					expect(err).to.equal('Cache Unavailable');
+				cache.onFinishRound();
+				setTimeout(function () {
 					cache.onSyncFinished();
+					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 
@@ -324,15 +332,17 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, node.gAccount.secondPassword);
 
-				cache.onTransactionsSaved([transaction], function (err) {
+				cache.onTransactionsSaved([transaction]);
+				setTimeout(function () {
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 
@@ -346,13 +356,14 @@ describe('cache', function () {
 				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 
-				cache.onTransactionsSaved([transaction], function (err) {
+				cache.onTransactionsSaved([transaction]);
+				setTimeout(function () {
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 
@@ -363,18 +374,20 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
+				//this function doesn't accept a callback, so waiting 2 seconds before checking if the actions were completed
 				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 
+
 				cache.onSyncStarted();
-				cache.onTransactionsSaved([transaction], function (err) {
-					expect(err).to.equal('Cache Unavailable');
+				cache.onTransactionsSaved([transaction]);
+				setTimeout(function () {
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
-				});
+				}, 1000);
 			});
 		});
 	});
