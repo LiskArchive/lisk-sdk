@@ -24,24 +24,25 @@
  */
 
 var async = require('async');
-var SocketCluster = require('socketcluster').SocketCluster;
-var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
+var https = require('https');
+var path = require('path');
+var SocketCluster = require('socketcluster').SocketCluster;
+var util = require('util');
 
 var genesisblock = require('./genesisBlock.json');
-var git = require('./helpers/git.js');
-var https = require('https');
 var Logger = require('./logger.js');
-var packageJson = require('./package.json');
-var path = require('path');
-var program = require('commander');
+var workersController = require('./workersController');
+var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
+
+var AppConfig = require('./helpers/config.js');
+var checkIpInList = require('./helpers/checkIpInList.js');
+var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
-var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
-var workersController = require('./workersController');
-var wsRPC = require('./api/ws/rpc/wsRPC');
+
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
@@ -57,22 +58,11 @@ if (typeof gc !== 'undefined') {
 	}, 60000);
 }
 
-program
-	.version(packageJson.version)
-	.option('-c, --config <path>', 'config file path')
-	.option('-p, --port <port>', 'listening port number')
-	.option('-d, --database <database>', 'database name')
-	.option('-a, --address <ip>', 'listening host name or ip')
-	.option('-x, --peers [peers...]', 'peers list')
-	.option('-l, --log <level>', 'log level')
-	.option('-s, --snapshot <round>', 'verify snapshot')
-	.parse(process.argv);
-
 /**
  * @property {object} - The default list of configuration options. Can be updated by CLI.
  * @default 'config.json'
  */
-var appConfig = require('./helpers/config.js')(program);
+var appConfig = AppConfig(require('./package.json'));
 
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
@@ -275,7 +265,7 @@ d.run(function () {
 		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: 1,
-				port: parseInt(scope.config.port) + 1000,
+				port: scope.config.port,
 				wsEngine: 'uws',
 				appName: 'lisk',
 				workerController: workersController.path,
@@ -577,8 +567,8 @@ d.run(function () {
 		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
 		 */
 		listen: ['ready', function (scope, cb) {
-			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
-				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
+			scope.network.server.listen(scope.config.httpPort, scope.config.address, function (err) {
+				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.httpPort);
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {

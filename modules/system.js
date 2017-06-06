@@ -48,6 +48,7 @@ function System (cb, scope) {
 	__private.os = os.platform() + os.release();
 	__private.version = library.config.version;
 	__private.port = library.config.port;
+	__private.httpPort = library.config.httpPort;
 	__private.height = 1;
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;

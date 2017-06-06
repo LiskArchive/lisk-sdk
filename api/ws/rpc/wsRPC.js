@@ -39,7 +39,7 @@ var wsRPC = {
 	 */
 	getClientRPCStub: function (ip, port) {
 		if (!ip || !port) {
-			throw new Error('RPC client needs ip and port to establish WS connection.');
+			throw new Error('RPC client needs ip and port to establish WS connection with: ' + ip + ':' + port);
 		}
 
 		var address = ip + ':' + port;
@@ -122,7 +122,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 
 	var options = {
 		hostname: connectionState.ip,
-		port: connectionState.port + 1000,
+		port: connectionState.port,
 		protocol: 'http',
 		autoReconnect: true,
 		query: constants.getConst('headers')

@@ -19,7 +19,7 @@ var wsCommunication = {
 		var wsOptions = {
 			protocol: 'http',
 			hostname: ip || '127.0.0.1',
-			port: +port + 1000 || 5000,
+			port: +port || 4000,
 			autoReconnect: true,
 			query: headers !== undefined ? headers : node.generatePeerHeaders(ip, port)
 		};
@@ -68,7 +68,7 @@ var wsCommunication = {
 
 		var peersConnectionsDefers = Array.apply(null, new Array(numOfPeers)).map(function () {
 			var socketDefer = Q.defer();
-			this.connect(ip, node.randomizeSelection(1000) + 4001, socketDefer, this.defaultSocketPeerHeaders);
+			this.connect(ip, node.randomizeSelection(1000) + 3001, socketDefer, this.defaultSocketPeerHeaders);
 			return socketDefer;
 		}.bind(this));
 

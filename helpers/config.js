@@ -2,11 +2,32 @@
 
 var fs = require('fs');
 var path = require('path');
+var program = require('commander');
 var z_schema = require('./z_schema.js');
 var configSchema = require('../schema/config.js');
 var constants = require('../helpers/constants.js');
 
-function Config (program) {
+/**
+ * Loads config.json file
+ * @memberof module:helpers
+ * @implements {validateForce}
+ * @param {Object} packageJson
+ * @returns {Object} configData
+ */
+function Config (packageJson) {
+
+	program
+		.version(packageJson.version)
+		.option('-c, --config <path>', 'config file path')
+		.option('-p, --port <port>', 'listening port number')
+		.option('-h, --HTTP port <httpPort>', 'listening HTTP port number')
+		.option('-d, --database <database>', 'database name')
+		.option('-a, --address <ip>', 'listening host name or ip')
+		.option('-x, --peers [peers...]', 'peers list')
+		.option('-l, --log <level>', 'log level')
+		.option('-s, --snapshot <round>', 'verify snapshot')
+		.parse(process.argv);
+
 	var configPath = program.config;
 	var appConfig = fs.readFileSync(path.resolve(process.cwd(), (configPath || 'config.json')), 'utf8');
 
@@ -28,6 +49,10 @@ function Config (program) {
 
 		if (program.port) {
 			appConfig.port = program.port;
+		}
+
+		if (program.httpPort) {
+			appConfig.httpPort = program.httpPort;
 		}
 
 		if (program.address) {
