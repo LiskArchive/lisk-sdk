@@ -162,14 +162,14 @@ var middleware = {
 				var expressSendJson = res.json;
 				res.json = function (response) {
 					if (response.success) {
-						logger.info('cached response for key: ', req.url);
+						logger.debug('cached response for key: ', req.url);
 						cache.setJsonForKey(key, response);
 					}
 					expressSendJson.call(res, response);
 				};
 				next();
 			} else {
-				logger.info(['serving response for url:', req.url, 'from cache'].join(' '));
+				logger.debug(['serving response for url:', req.url, 'from cache'].join(' '));
 				res.json(cachedValue);
 			}
 		});
