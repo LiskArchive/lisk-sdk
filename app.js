@@ -438,7 +438,7 @@ d.run(function () {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
-		/*
+		/**
 		 * It tries to connect with redis server based on config. provided in config.json file
 		 * @param {function} cb
 		 */

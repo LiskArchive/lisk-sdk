@@ -21,7 +21,7 @@ function Cache (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
-/*
+/**
  * It gets the status of the redis connection
  * @returns {Boolean} status
  */
@@ -29,7 +29,7 @@ Cache.prototype.isConnected = function () {
 	return cacheEnabled && client.connected;
 };
 
-/*
+/**
  * It gets the caching readiness and the connection of redis
  * @returns {Boolean} status
  */
@@ -37,7 +37,7 @@ Cache.prototype.isReady = function () {
 	return cacheReady && self.isConnected();
 };
 
-/*
+/**
  * It gets the json value for a key from redis
  * @param {String} key
  * @param {Function} cb
@@ -56,7 +56,7 @@ Cache.prototype.getJsonForKey = function (key, cb) {
 	});
 };
  
-/*
+/**
  * It sets json value for a key in redis
  * @param {String} key
  * @param {Object} value
@@ -70,7 +70,7 @@ Cache.prototype.setJsonForKey = function (key, value, cb) {
 	client.set(key, JSON.stringify(value), cb);
 };
 
-/*
+/**
  * It deletes json value for a key in redis
  * @param {String} key
  */
@@ -81,7 +81,7 @@ Cache.prototype.deleteJsonForKey = function (key, cb) {
 	client.del(key, cb);
 };
 
-/*
+/**
  * It scans keys with provided pattern in redis db and deletes the entries that match
  * @param {String} pattern
  * @param {Function} cb
@@ -110,7 +110,7 @@ Cache.prototype.removeByPattern = function (pattern, cb) {
 	}, cb);
 };
 
-/*
+/**
  * It removes all entries from redis db
  * @param {Function} cb
  */
@@ -121,7 +121,7 @@ Cache.prototype.flushDb = function (cb) {
 	client.flushdb(cb);
 };
 
-/*
+/**
  * On application clean event, it quits the redis connection
  * @param {Function} cb
  */
@@ -129,7 +129,7 @@ Cache.prototype.cleanup = function (cb) {
 	self.quit(cb);
 };
 
-/*
+/**
  * it quits the redis connection
  * @param {Function} cb
  */
