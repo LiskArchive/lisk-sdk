@@ -18,7 +18,7 @@ var modules, library, shared;
 function InTransfer (db, schema) {
 	library = {
 		db: db,
-		schem: schema,
+		schema: schema,
 	};
 }
 
