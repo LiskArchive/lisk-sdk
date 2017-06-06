@@ -138,6 +138,10 @@ Broadcaster.prototype.enqueue = function (params, options) {
  */
 Broadcaster.prototype.broadcast = function (params, options, cb) {
 	options.data.peer = library.logic.peers.me();
+	if (!options.data.peer) {
+		library.logger.debug('Broadcast stopped- cannot broadcast without data about itself');
+		return setImmediate(cb || function () {}, 'Cannot broadcast without data about itself');
+	}
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 

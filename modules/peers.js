@@ -172,6 +172,9 @@ __private.insertSeeds = function (cb) {
 	async.each(library.config.peers.list, function (peer, eachCb) {
 		peer = library.logic.peers.create(peer);
 		library.logger.trace('Processing seed peer: ' + peer.string);
+		if (_.isEmpty(modules.peers.acceptable([peer]))) {
+			return setImmediate(eachCb, 'Peer not accepted: ' + peer.string);
+		}
 		peer.rpc.status(function (err, status) {
 			if (err) {
 				peer.applyHeaders({state: Peer.STATE.DISCONNECTED});

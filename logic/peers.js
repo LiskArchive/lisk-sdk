@@ -34,6 +34,7 @@ function Peers (logger, cb) {
 
 Peers.prototype.me = function () {
 	if (__private.me) {
+		__private.me.applyHeaders(constants.getConst('headers'));
 		return __private.me;
 	}
 	if (!constants.externalAddress) {
