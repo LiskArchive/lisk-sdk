@@ -101,7 +101,7 @@ Cache.prototype.quit = function (cb) {
  */
 
 Cache.prototype.onNewBlock = function (block, broadcast, cb) {
-	cb = cb ? cb: function () {};
+	cb = cb || function () {};
 
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	async.map(['/api/blocks*', '/api/transactions*'], function (pattern, mapCb) {
@@ -121,7 +121,7 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
  */
 
 Cache.prototype.onFinishRound = function (round, cb) {
-	cb = cb ? cb: function () {};
+	cb = cb || function () {};
 
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
@@ -141,7 +141,7 @@ Cache.prototype.onFinishRound = function (round, cb) {
  * @param {transactions[]} transactions
  */
 Cache.prototype.onTransactionsSaved = function (transactions, cb) {
-	cb = cb ? cb: function () {};
+	cb = cb || function () {};
 
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
