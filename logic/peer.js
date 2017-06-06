@@ -44,12 +44,14 @@ Peer.prototype.properties = [
 	'height',
 	'clock',
 	'updated',
-	'nonce'
+	'nonce',
+	'httpPort'
 ];
 
 Peer.prototype.immutable = [
 	'ip',
 	'port',
+	'httpPort',
 	'string'
 ];
 
@@ -59,7 +61,8 @@ Peer.prototype.headers = [
 	'dappid',
 	'broadhash',
 	'height',
-	'nonce'
+	'nonce',
+	'httpPort'
 ];
 
 Peer.prototype.nullable = [

@@ -27,7 +27,7 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
-var testNodeConfigs = generateNodesConfig(2, SYNC_MODE.ALL_TO_FIRST, [0]);
+var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0]);
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
@@ -220,7 +220,7 @@ describe('Peers mutual connections', function () {
 		//ToDo: more clever way for waiting until all test node being able to receive connections
 		setTimeout(function () {
 			testNodeConfigs.forEach(function (testNodeConfig) {
-				monitorWSClient.port = testNodeConfig.port + 1000;
+				monitorWSClient.port = testNodeConfig.port;
 				var socket = scClient.connect(monitorWSClient);
 				wampClient.upgradeToWAMP(socket);
 				socket.on('connect', function () {
