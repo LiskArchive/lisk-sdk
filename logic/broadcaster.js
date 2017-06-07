@@ -131,7 +131,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			if (params.limit === self.config.peerLimit) { peers.slice(0, self.config.broadcastLimit); }
+			if (params.limit === self.config.peerLimit) { 
+				peers = peers.slice(0, self.config.broadcastLimit);
+			}
 
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = library.logic.peers.create(peer);
@@ -281,7 +283,7 @@ __private.releaseQueue = function (cb) {
 			return __private.filterQueue(waterCb);
 		},
 		function squashQueue (waterCb) {
-			var broadcasts = self.queue.splice(0, self.config.releaseLimit);
+			var broadcasts = self.queue.slice(0, self.config.releaseLimit);
 			return setImmediate(waterCb, null, __private.squashQueue(broadcasts));
 		},
 		function getPeers (broadcasts, waterCb) {
