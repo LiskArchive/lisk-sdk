@@ -283,7 +283,7 @@ __private.releaseQueue = function (cb) {
 			return __private.filterQueue(waterCb);
 		},
 		function squashQueue (waterCb) {
-			var broadcasts = self.queue.slice(0, self.config.releaseLimit);
+			var broadcasts = self.queue.splice(0, self.config.releaseLimit);
 			return setImmediate(waterCb, null, __private.squashQueue(broadcasts));
 		},
 		function getPeers (broadcasts, waterCb) {
