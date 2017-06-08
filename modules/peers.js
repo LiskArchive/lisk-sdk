@@ -171,7 +171,7 @@ __private.insertSeeds = function (cb) {
 	library.logger.trace('Peers->insertSeeds');
 	async.each(library.config.peers.list, function (peer, eachCb) {
 		peer = library.logic.peers.create(peer);
-		library.logger.trace('Processing seed peer: ' + peer.string);
+		library.logger.debug('Processing seed peer: ' + peer.string);
 		if (_.isEmpty(modules.peers.acceptable([peer]))) {
 			return setImmediate(eachCb, 'Peer not accepted: ' + peer.string);
 		}
@@ -524,7 +524,7 @@ Peers.prototype.list = function (options, cb) {
 		// Calculate consensus
 		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
 		consensus = isNaN(consensus) ? 0 : consensus;
-
+		constants.setConst('consensus', consensus);
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
 		return setImmediate(cb, err, peers, consensus);
 	});

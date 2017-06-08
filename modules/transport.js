@@ -265,7 +265,7 @@ Transport.prototype.headers = function (headers) {
  * @return {number} broadcaster consensus
  */
 Transport.prototype.consensus = function () {
-	return __private.broadcaster.consensus;
+	return constants.consensus;
 };
 
 /**
@@ -274,10 +274,10 @@ Transport.prototype.consensus = function () {
  * @return {boolean}
  */
 Transport.prototype.poorConsensus = function () {
-	if (__private.broadcaster.consensus === undefined) {
+	if (constants.consensus === undefined) {
 		return false;
 	} else {
-		return (__private.broadcaster.consensus < constants.minBroadhashConsensus);
+		return (constants.consensus < constants.minBroadhashConsensus);
 	}
 };
 

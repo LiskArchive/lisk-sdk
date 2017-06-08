@@ -44,11 +44,7 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	self.config.peerLimit = constants.maxPeers;
 
 	// Optionally ignore broadhash consensus
-	if (library.config.forging.force) {
-		self.consensus = undefined;
-	} else {
-		self.consensus = 100;
-	}
+	constants.setConst('consensus', library.config.forging.force ? 100 : undefined);
 
 	// Broadcast routes
 	self.routes = [{
@@ -107,9 +103,9 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 			return setImmediate(cb, err);
 		}
 
-		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
+		if (constants.consensus !== undefined && originalLimit === constants.maxPeers) {
 			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
-			self.consensus = consensus;
+			constants.setConst('consensus', consensus);
 		}
 
 		return setImmediate(cb, null, peers);
@@ -155,6 +151,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		},
 		function sendToPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
+			if (params.limit === self.config.peerLimit) { peers = peers.slice(0, self.config.broadcastLimit); }
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer.rpc[options.api](options.data, function (err, result) {
 					if (err) {
