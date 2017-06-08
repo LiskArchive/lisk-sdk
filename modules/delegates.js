@@ -583,11 +583,11 @@ Delegates.prototype.internal = {
 	
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
 			} else {
-				return setImmediate(cb, 'Invalid publicKey');
+				return setImmediate(cb, ['Delegate with publicKey:', req.body.publicKey, 'not found'].join(' '));
 			}
 
 			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-				return setImmediate(cb, 'Invalid passphrase');
+				return setImmediate(cb, 'Invalid key and public key combination');
 			}
 
 			if (__private.keypairs[keypair.publicKey.toString('hex')]) {
@@ -631,11 +631,11 @@ Delegates.prototype.internal = {
 				}
 				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
 			} else {
-				return setImmediate(cb, 'Invalid publicKey');
+				return setImmediate(cb, ['Delegate with publicKey:', req.body.publicKey, 'not found'].join(' '));
 			}
 
 			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-				return setImmediate(cb, 'Invalid passphrase');
+				return setImmediate(cb, 'Invalid key and public key combination');
 			}
 
 			if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
