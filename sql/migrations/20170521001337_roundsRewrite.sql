@@ -147,7 +147,7 @@ END $$;
 -- Execute 'delegates_voters_balance_update'
 SELECT delegates_voters_balance_update();
 
--- Update delegates rank
+-- Create function 'delegates_rank_update' for updating delegates ranks
 CREATE FUNCTION delegates_rank_update() RETURNS TABLE(updated INT) LANGUAGE PLPGSQL AS $$
 	BEGIN
 		RETURN QUERY
@@ -156,6 +156,7 @@ CREATE FUNCTION delegates_rank_update() RETURNS TABLE(updated INT) LANGUAGE PLPG
 			SELECT COUNT(1)::INT FROM updated;
 END $$;
 
+-- Execute 'delegates_rank_update'
 SELECT delegates_rank_update();
 
 -- Consistency checks - new 'delegates' table against 'mem_accounts'
@@ -268,7 +269,7 @@ CREATE CONSTRAINT TRIGGER block_insert
 	EXECUTE PROCEDURE delegates_update_on_block();
 
 -- Create trigger that will execute 'delegates_update_on_block' after deletion of last block of round
--- Trigger is deferred - will be executed after transaction in which block is inserted - block's transactions are already deleted here
+-- Trigger is deferred - will be executed after transaction in which block is deleted - block's transactions are already deleted here
 CREATE CONSTRAINT TRIGGER block_delete
 	AFTER DELETE ON blocks
 	DEFERRABLE INITIALLY DEFERRED
@@ -279,12 +280,15 @@ CREATE CONSTRAINT TRIGGER block_delete
 -- Replace function for deleting round rewards when last block of round is deleted
 CREATE OR REPLACE FUNCTION round_rewards_delete() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
+		-- Update 'delagate' table with round rewards
 		WITH r AS (SELECT pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = (CEIL(OLD.height / 101::float)::int) GROUP BY pk)
 		UPDATE delegates SET rewards = delegates.rewards-r.rewards, fees = delegates.fees-r.fees FROM r WHERE delegates.pk = r.pk;
 
+		-- Update 'mem_accounts' table with round rewards
 		WITH r AS (SELECT pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = (CEIL(OLD.height / 101::float)::int) GROUP BY pk)
 		UPDATE mem_accounts SET balance = mem_accounts.balance-r.rewards-r.fees, u_balance = mem_accounts.u_balance-r.rewards-r.fees FROM r WHERE mem_accounts."publicKey" = r.pk;
 
+		-- Delete round from 'rounds_rewards'
 		DELETE FROM rounds_rewards WHERE round = (CEIL(OLD.height / 101::float)::int);
 	RETURN NULL;
 END $$;
@@ -325,9 +329,11 @@ CREATE OR REPLACE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGS
 			-- Sort fees by block height
 			ORDER BY round.height ASC;
 
+		-- Update 'delagate' table with round rewards
 		WITH r AS (SELECT pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = (CEIL(NEW.height / 101::float)::int) GROUP BY pk)
 		UPDATE delegates SET rewards = delegates.rewards+r.rewards, fees = delegates.fees+r.fees FROM r WHERE delegates.pk = r.pk;
 
+		-- Update 'mem_accounts' table with round rewards
 		WITH r AS (SELECT pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = (CEIL(NEW.height / 101::float)::int) GROUP BY pk)
 		UPDATE mem_accounts SET balance = mem_accounts.balance+r.rewards+r.fees, u_balance = mem_accounts.u_balance+r.rewards+r.fees FROM r WHERE mem_accounts."publicKey" = r.pk;
 
