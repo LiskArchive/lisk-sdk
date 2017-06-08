@@ -2,6 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var ip = require('ip');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
@@ -116,7 +117,8 @@ __private.syncTrigger = function (turnOn) {
  */
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
-	setImmediate(function nextSync () {
+
+	function nextSync () {
 		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
@@ -127,13 +129,11 @@ __private.syncTimer = function () {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
 				}
-
-				return setTimeout(nextSync, __private.syncInterval);
 			});
-		} else {
-			return setTimeout(nextSync, __private.syncInterval);
 		}
-	});
+	}
+
+	jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
 };
 
 /**
@@ -593,6 +593,7 @@ __private.loadBlocksFromNetwork = function (cb) {
  */
 __private.sync = function (cb) {
 	library.logger.info('Starting sync');
+	library.bus.message('syncStarted');
 
 	__private.isActive = true;
 	__private.syncTrigger(true);
@@ -626,6 +627,7 @@ __private.sync = function (cb) {
 		__private.blocksToSync = 0;
 
 		library.logger.info('Finished sync');
+		library.bus.message('syncFinished');
 		return setImmediate(cb, err);
 	});
 };
@@ -808,8 +810,6 @@ Loader.prototype.onPeersReady = function () {
 			if (err) {
 				__private.initialize();
 			}
-
-			return __private.syncTimer();
 		});
 	});
 };

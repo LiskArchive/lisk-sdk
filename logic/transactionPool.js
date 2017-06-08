@@ -3,6 +3,7 @@
 var async = require('async');
 var config = require('../config.json');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
@@ -49,30 +50,26 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 	self.processed = 0;
 
 	// Bundled transaction timer
-	setImmediate(function nextBundle () {
-		async.series([
-			self.processBundled
-		], function (err) {
+	function nextBundle () {
+		self.processBundled(function (err) {
 			if (err) {
 				library.logger.log('Bundled transaction timer', err);
 			}
-
-			return setTimeout(nextBundle, self.bundledInterval);
 		});
-	});
+	}
+
+	jobsQueue.register('transactionPoolNextBundle', nextBundle, self.bundledInterval);
 
 	// Transaction expiry timer
-	setImmediate(function nextExpiry () {
-		async.series([
-			self.expireTransactions
-		], function (err) {
+	function nextExpiry () {
+		self.expireTransactions(function (err) {
 			if (err) {
 				library.logger.log('Transaction expiry timer', err);
 			}
-
-			return setTimeout(nextExpiry, self.expiryInterval);
 		});
-	});
+	}
+
+	jobsQueue.register('transactionPoolNextExpiry', nextExpiry, self.expiryInterval);
 }
 
 // Public methods

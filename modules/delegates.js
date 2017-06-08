@@ -6,6 +6,7 @@ var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
 var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
@@ -545,17 +546,20 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadDelegates(function nextForge (err) {
-		if (err) {
-			library.logger.error('Failed to load delegates', err);
+	__private.loadDelegates(function (err) {
+
+		function nextForge () {
+			if (err) {
+				library.logger.error('Failed to load delegates', err);
+			}
+
+			async.series([
+				__private.forge,
+				modules.transactions.fillPool
+			]);
 		}
 
-		async.series([
-			__private.forge,
-			modules.transactions.fillPool
-		], function (err) {
-			return setTimeout(nextForge, 1000);
-		});
+		jobsQueue.register('delegatesNextForge', nextForge, 1000);
 	});
 };
 
