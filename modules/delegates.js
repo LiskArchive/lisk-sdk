@@ -186,7 +186,6 @@ __private.decryptSecret = function (encryptedSecret, key) {
 	return decryptedSecret;
 };
 
-
 /**
  * Checks each vote integrity and controls total votes don't exceed active delegates.
  * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
@@ -281,15 +280,8 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
  * @returns {setImmediateCallback} 
  */
 __private.loadDelegates = function (cb) {
-	var secretsList;
 
-	if (library.config.forging.secret) {
-		if (Array.isArray(library.config.forging.secret)) {
-			secretsList = library.config.forging.secret;
-		} else {
-			secretsList = [library.config.forging.secret];
-		}
-	}
+	var secretsList = library.config.forging.secret;
 
 	if (!secretsList || !secretsList.length || !library.config.forging.force) {
 		return setImmediate(cb);
@@ -576,11 +568,7 @@ Delegates.prototype.internal = {
 
 			var keypair;
 			var encryptedList, decryptedSecret, encryptedItem;
-			if (Array.isArray(library.config.forging.secret)) {
-				encryptedList = library.config.forging.secret;
-			} else {
-				encryptedList = [library.config.forging.secret];
-			}
+			encryptedList = library.config.forging.secret;
 
 			encryptedItem = _.find(encryptedList, function (item) {
 				return item.publicKey === req.body.publicKey;
@@ -629,11 +617,7 @@ Delegates.prototype.internal = {
 
 			var keypair;
 			var encryptedList, decryptedSecret, encryptedItem;
-			if (Array.isArray(library.config.forging.secret)) {
-				encryptedList = library.config.forging.secret;
-			} else {
-				encryptedList = [library.config.forging.secret];
-			}
+			encryptedList = library.config.forging.secret;
 
 			encryptedItem = _.find(encryptedList, function (item) {
 				return item.publicKey === req.body.publicKey;
