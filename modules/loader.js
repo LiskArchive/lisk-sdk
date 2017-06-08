@@ -270,7 +270,6 @@ __private.loadTransactions = function (cb) {
  * - count blocks from `blocks` table
  * - get genesis block from `blocks` table
  * - count accounts from `mem_accounts` table by block id
- * - get rounds from `mem_round`
  * Matchs genesis block with database.
  * Verifies Snapshot mode.
  * Recreates memory tables when neccesary:
@@ -372,7 +371,6 @@ __private.loadBlockChain = function () {
 			t.one(sql.countBlocks),
 			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
-			t.query(sql.getMemRounds),
 			t.query(sql.validateMemBalances),
 			t.query(sql.getRoundsExceptions)
 		];
@@ -414,7 +412,7 @@ __private.loadBlockChain = function () {
 		}
 	}
 
-	library.db.task(checkMemTables).then(function ([countBlocks, getGenesisBlock, countMemAccounts, getMemRounds, validateMemBalances, dbRoundsExceptions]) {
+	library.db.task(checkMemTables).then(function ([countBlocks, getGenesisBlock, countMemAccounts, validateMemBalances, dbRoundsExceptions]) {
 		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
 
@@ -436,14 +434,6 @@ __private.loadBlockChain = function () {
 
 		if (missed) {
 			return reload(count, 'Detected missed blocks in mem_accounts');
-		}
-
-		var unapplied = getMemRounds.filter(function (row) {
-			return (row.round !== String(round));
-		});
-
-		if (unapplied.length > 0) {
-			return reload(count, 'Detected unapplied rounds in mem_round');
 		}
 
 		if (validateMemBalances.length) {

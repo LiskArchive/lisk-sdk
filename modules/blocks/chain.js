@@ -255,9 +255,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 		} else {
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
-			// Tick round
-			// WARNING: DB_WRITE
-			modules.rounds.tick(block, cb);
+			return cb();
 		}
 	});
 };
@@ -456,14 +454,11 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
 					library.bus.message('newBlock', block, broadcast);
 
-					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(block, seriesCb);
+					return seriesCb();
 				});
 			} else {
 				library.bus.message('newBlock', block, broadcast);
-
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(block, seriesCb);
+				return seriesCb();
 			}
 		},
 		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
@@ -549,12 +544,12 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					return process.exitCode = 0;
 				}
 
-				// Perform backward tick on rounds
-				// WARNING: DB_WRITE
-				modules.rounds.backwardTick(oldLastBlock, previousBlock, function (err) {
+				// Delete last block from blockchain
+				// WARNING: Db_WRITE
+				self.deleteBlock(oldLastBlock.id, function (err) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
-						library.logger.error('Failed to perform backwards tick', err);
+						library.logger.error('Failed to delete block', err);
 
 						/**
 						 * Exits process gracefully with code 0
@@ -563,22 +558,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 						return process.exitCode = 0;
 					}
 
-					// Delete last block from blockchain
-					// WARNING: Db_WRITE
-					self.deleteBlock(oldLastBlock.id, function (err) {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to delete block', err);
-
-							/**
-							 * Exits process gracefully with code 0
-							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-							 */
-							return process.exitCode = 0;
-						}
-
-						return setImmediate(cb, null, previousBlock);
-					});
+					return setImmediate(cb, null, previousBlock);
 				});
 			});
 		});

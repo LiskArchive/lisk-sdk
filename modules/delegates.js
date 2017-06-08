@@ -55,17 +55,12 @@ function Delegates (cb, scope) {
  * @returns {setImmediateCallback} 
  */
 __private.getKeysSortByVote = function (cb) {
-	modules.accounts.getAccounts({
-		isDelegate: 1,
-		sort: {'vote': -1, 'publicKey': 1},
-		limit: slots.delegates
-	}, ['publicKey'], function (err, rows) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
+	library.db.query(sql.delegateList).then(function (rows) {
 		return setImmediate(cb, null, rows.map(function (el) {
-			return el.publicKey;
+			return el.pk;
 		}));
+	}).catch(function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
@@ -114,7 +109,7 @@ __private.forge = function (cb) {
 
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
-	if (!__private.loaded || modules.loader.syncing() || !modules.rounds.loaded() || modules.rounds.ticking()) {
+	if (!__private.loaded || modules.loader.syncing()) {
 		library.logger.debug('Client not ready to forge');
 		return setImmediate(cb);
 	}
