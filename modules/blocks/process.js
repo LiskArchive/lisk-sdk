@@ -170,10 +170,10 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 					// No access to database.
 					var check = modules.blocks.verify.verifyBlock(block);
 
-					if (!check.verified) {
-						library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
-						// Return first error from checks
-						return setImmediate(cb, check.errors[0]);
+					if (check !== 'verified') {
+						library.logger.error(['Block', block.id, 'verification failed'].join(' '), check);
+						// Return error from checks
+						return setImmediate(cb, check);
 					}
 				}
 				if (block.id === library.genesisblock.block.id) {

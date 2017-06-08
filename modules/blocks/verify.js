@@ -92,54 +92,13 @@ __private.checkTransaction = function (block, transaction, cb) {
  * @public
  * @method verifyBlock
  * @param  {Object}  block Full block
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @return {String}  error string | verified
  */
 Verify.prototype.verifyBlock = function (block) {
 	var lastBlock = modules.blocks.lastBlock.get();
-	var result = { verified: false, errors: [] };
-
-	try {
-		// Get block ID
-		// FIXME: Why we don't have it?
-		block.id = library.logic.block.getId(block);
-	} catch (e) {
-		result.errors.push(e.toString());
-	}
-
-	// Set block height
-	block.height = lastBlock.height + 1;
-
-	if (!block.previousBlock && block.height !== 1) {
-		result.errors.push('Invalid previous block');
-	} else if (block.previousBlock !== lastBlock.id) {
-		// Fork: Same height but different previous block id.
-		modules.delegates.fork(block, 1);
-		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
-	}
-
-	// Calculate expected rewards
-	var expectedReward = __private.blockReward.calcReward(block.height);
-
-	if (block.height !== 1 && expectedReward !== block.reward) {
-		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
-	}
-
-	var valid;
-
-	try {
-		valid = library.logic.block.verifySignature(block);
-	} catch (e) {
-		result.errors.push(e.toString());
-	}
-
-	if (!valid) {
-		result.errors.push('Failed to verify block signature');
-	}
 
 	if (block.version > 0) {
-		result.errors.push('Invalid block version');
+		return 'Invalid block version';
 	}
 
 	// Calculate expected block slot
@@ -147,19 +106,30 @@ Verify.prototype.verifyBlock = function (block) {
 	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
 	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-		result.errors.push('Invalid block timestamp');
+		return 'Invalid block timestamp';
+	}
+
+	// Set block height
+	block.height = lastBlock.height + 1;
+
+	if (!block.previousBlock && block.height !== 1) {
+		return 'Invalid previous block';
+	} else if (block.previousBlock !== lastBlock.id) {
+		// Fork: Same height but different previous block id.
+		modules.delegates.fork(block, 1);
+		return ['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' ');
 	}
 
 	if (block.payloadLength > constants.maxPayloadLength) {
-		result.errors.push('Payload length is too high');
+		return 'Payload length is too high';
 	}
 
 	if (block.transactions.length !== block.numberOfTransactions) {
-		result.errors.push('Invalid number of transactions');
+		return 'Invalid number of transactions';
 	}
 
 	if (block.transactions.length > constants.maxTxsPerBlock) {
-		result.errors.push('Transactions length is too high');
+		return 'Transactions length is too high';
 	}
 
 	// Checking if transactions of the block adds up to block values.
@@ -175,11 +145,11 @@ Verify.prototype.verifyBlock = function (block) {
 		try {
 			bytes = library.logic.transaction.getBytes(transaction);
 		} catch (e) {
-			result.errors.push(e.toString());
+			return e.toString();
 		}
 
 		if (appliedTransactions[transaction.id]) {
-			result.errors.push('Encountered duplicate transaction: ' + transaction.id);
+			return 'Encountered duplicate transaction: ' + transaction.id;
 		}
 
 		appliedTransactions[transaction.id] = transaction;
@@ -189,19 +159,43 @@ Verify.prototype.verifyBlock = function (block) {
 	}
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-		result.errors.push('Invalid payload hash');
+		return 'Invalid payload hash';
 	}
 
 	if (totalAmount !== block.totalAmount) {
-		result.errors.push('Invalid total amount');
+		return 'Invalid total amount';
 	}
 
 	if (totalFee !== block.totalFee) {
-		result.errors.push('Invalid total fee');
+		return 'Invalid total fee';
+	}
+	
+	// Calculate expected rewards
+	var expectedReward = __private.blockReward.calcReward(block.height);
+
+	if (block.height !== 1 && expectedReward !== block.reward) {
+		return ['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' ');
 	}
 
-	result.verified = result.errors.length === 0;
-	return result;
+	var valid;
+	try {
+		valid = library.logic.block.verifySignature(block);
+	} catch (e) {
+		return e.toString();
+	}
+	if (!valid) {
+		return 'Failed to verify block signature';
+	}
+
+	try {
+		// Get block ID
+		// FIXME: Why we don't have it?
+		block.id = library.logic.block.getId(block);
+	} catch (e) {
+		return e.toString();
+	}
+
+	return 'verified';
 };
 
 /**
@@ -244,9 +238,9 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			// No access to database
 			var check = self.verifyBlock(block);
 
-			if (!check.verified) {
-				library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
-				return setImmediate(seriesCb, check.errors[0]);
+			if (check !== 'verified') {
+				library.logger.error(['Block', block.id, 'verification failed'].join(' '), check);
+				return setImmediate(seriesCb, check);
 			}
 
 			return setImmediate(seriesCb);
