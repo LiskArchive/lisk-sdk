@@ -46,17 +46,17 @@ var validSender = {
 };
 
 var validTransaction = {
-	'type': 0,
-	'amount': 232420792390,
-	'senderPublicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	'requesterPublicKey': null,
-	'timestamp': 24177404,
-	'asset': {},
-	'recipientId': '11483172656590824880L',
-	'signature': 'faf3081850b92de3fcd46346b883ca0a0096ae5366a5dafce9ace6ddf7970338501ae51ef138ca63aad571c399144d713e5be34a61e6885c8074740c66e3d90b',
-	'id': '4669815655990175999',
-	'fee': 10000000,
-	'senderId': '16313739661670634666L',
+	type: 0,
+	amount: 232420792390,
+	senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+	requesterPublicKey: null,
+	timestamp: 24177404,
+	asset: {},
+	recipientId: '11483172656590824880L',
+	signature: 'faf3081850b92de3fcd46346b883ca0a0096ae5366a5dafce9ace6ddf7970338501ae51ef138ca63aad571c399144d713e5be34a61e6885c8074740c66e3d90b',
+	id: '4669815655990175999',
+	fee: 10000000,
+	senderId: '16313739661670634666L'
 };
 
 var rawTransaction = {
@@ -70,7 +70,7 @@ var rawTransaction = {
 	t_recipientId: '11483172656590824880L',
 	t_amount: 232420792390,
 	t_fee: 10000000,
-	t_signature:  'faf3081850b92de3fcd46346b883ca0a0096ae5366a5dafce9ace6ddf7970338501ae51ef138ca63aad571c399144d713e5be34a61e6885c8074740c66e3d90b',
+	t_signature:  'faf3081850b92de3fcd46346b883ca0a0096ae5366a5dafce9ace6ddf7970338501ae51ef138ca63aad571c399144d713e5be34a61e6885c8074740c66e3d90b'
 };
 
 function getValidTransactionData () {
@@ -184,14 +184,12 @@ describe('transaction', function () {
 			attachAllAssets(transaction);
 		});
 
-
 		it('should throw an error with no param', function () {
 			expect(transaction.attachAssetType).to.throw();
 		});
 	});
 
 	describe('sign', function () {
-
 		it('should throw an error with no param', function () {
 			expect(transaction.sign).to.throw();
 		});
@@ -209,7 +207,6 @@ describe('transaction', function () {
 			createdTransaction.data = 'different data';
 			var updatedTrsSignature = transaction.sign(trsData.keypair, createdTransaction);
 			expect(trsSignature).to.not.equal(updatedTrsSignature);;
-
 		});
 	});
 
@@ -218,6 +215,11 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.multisign).to.throw();
 		});
+
+		it('should multisign the transaction', function () {
+			var trs = getValidTransactionData();
+			expect(transaction.mutlisign(trs.keypair, trs)).to.equal('');
+		});
 	});
 
 	describe('getId', function () {
@@ -225,12 +227,22 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.getId).to.throw();
 		});
+
+		it('should generate the id of the trs', function () {
+			var trs = getValidTransactionData();
+			expect(transaction.getId(trs)).to.equal('');
+		});
 	});
 
 	describe('getHash', function () {
 
 		it('should throw an error with no param', function () {
 			expect(transaction.getHash).to.throw();
+		});
+
+		it('should return has for trs', function () {
+			var trs = getValidTransactionData();
+			expect(transaction.getId(trs)).to.equal('');
 		});
 	});
 
@@ -272,6 +284,11 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.ready).to.throw();
 		});
+
+		it('should transaion and assets are ready', function () {
+			var trs = getValidTransactionData();
+			expect(transaction.ready(trs)).to.equal('');
+		})
 	});
 
 	describe('countById', function () {
@@ -339,7 +356,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should verify proper SIGNATURE transaction with proper sender', function (done) {
+		it('should verify proper SIGNATURE transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.SIGNATURE;
 			validTransaction.asset = {
 				signature: {
@@ -353,7 +370,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should verify proper DELEGATE transaction with proper sender', function (done) {
+		it('should verify proper DELEGATE transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.DELEGATE;
 			validTransaction.asset = {
 				delegate: {
@@ -370,7 +387,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should verify proper VOTE transaction with proper sender', function (done) {
+		it('should verify proper VOTE transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.SIGNATURE;
 			validTransaction.asset = {
 				signature: {
@@ -384,7 +401,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should verify proper MULTI transaction with proper sender', function (done) {
+		it('should verify proper MULTI transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.MULTI;
 			validTransaction.asset = {
 				signature: {
@@ -398,7 +415,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should verify proper DAPP transaction with proper sender', function (done) {
+		it('should verify proper DAPP transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.DAPP;
 			validTransaction.asset = {
 				signature: {
@@ -412,7 +429,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should verify proper IN_TRANSFER transaction with proper sender', function (done) {
+		it('should verify proper IN_TRANSFER transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.IN_TRANSFER;
 			validTransaction.asset = {
 				signature: {
@@ -426,7 +443,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should verify proper OUT_TRANSFER transaction with proper sender', function (done) {
+		it('should verify proper OUT_TRANSFER transaction with proper sender', function (done) {
 			validTransaction.type = transactionTypes.OUT_TRANSFER;
 			validTransaction.asset = {
 				signature: {
