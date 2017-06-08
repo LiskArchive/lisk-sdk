@@ -2,6 +2,8 @@
 
 // Root object
 var node = {};
+var Rounds = require('../modules/rounds.js');
+var slots = require('../helpers/slots.js');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -119,6 +121,22 @@ node.getHeight = function (cb) {
 
 	request.catch(function (err) {
 		return setImmediate(cb, err);
+	});
+};
+
+// Run callback on new round
+node.onNewRound = function (cb) {
+	node.getHeight(function (err, height) {
+		if (err) {
+			return cb(err);
+		} else {
+			new Rounds(function (err, rounds) {
+				var nextRound = rounds.calc(height);
+				var blocksToWait = nextRound * slots.delegates - height;
+				node.debug('blocks to wait: '.grey, blocksToWait);
+				node.waitForNewBlock(height, blocksToWait, cb);
+			});
+		}
 	});
 };
 

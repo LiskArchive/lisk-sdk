@@ -38,6 +38,9 @@ module.exports = {
 			topAccounts: {
 				type: 'boolean'
 			},
+			cacheEnabled: {
+				type: 'boolean'
+			},
 			db: {
 				type: 'object',
 				properties: {
@@ -72,6 +75,32 @@ module.exports = {
 					}
 				},
 				required: ['host', 'port', 'database', 'user', 'password', 'poolSize', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
+			},
+			redis: {
+				type: 'object',
+				properties: {
+					host: {
+						type: 'string',
+						format: 'ip',
+					},
+					port: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 65535
+					},
+					db: {
+						type: 'integer',
+						minimum: 0,
+						maximum: 15
+					},
+					user: {
+						type: 'string'
+					},
+					password: {
+						type: 'string'
+					}
+				},
+				required: ['host', 'port', 'db', 'user', 'password']
 			},
 			api: {
 				type: 'object',
@@ -288,6 +317,6 @@ module.exports = {
 				format: 'hex'
 			}
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash']
+		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash', 'cacheEnabled', 'redis']
 	}
 };

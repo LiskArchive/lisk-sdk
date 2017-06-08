@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('./../node.js');
+var modulesLoader = require('./../common/initModule.js').modulesLoader;
 var genesisDelegates = require('../genesisDelegates.json');
 
 function openAccount (params, done) {
@@ -374,7 +375,94 @@ describe('PUT /api/delegates with funds', function () {
 	});
 });
 
+describe('GET /api/delegates (cache)', function () {
+	var cache;
+
+	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
+		modulesLoader.initCache(function (err, __cache) {
+			cache = __cache;
+			node.expect(err).to.not.exist;
+			node.expect(__cache).to.be.an('object');
+			return done(err, __cache);
+		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
+	});
+
+	afterEach(function (done) {
+		cache.flushDb(function (err, status) {
+			node.expect(err).to.not.exist;
+			node.expect(status).to.equal('OK');
+			done(err, status);
+		});
+	});
+
+	it('cache delegates when response is a success', function (done) {
+		var url;
+		url = '/api/delegates';
+
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				done(err, res);
+			});
+		});
+	});
+
+	it('should not cache if response is not a success', function (done) {
+		var url, orderBy, params;
+		url = '/api/delegates?';
+		orderBy = 'unknown:asc';
+		params = 'orderBy=' + orderBy;
+
+		node.get(url+ params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid sort field');
+			cache.getJsonForKey(url + params, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(null);
+				done(err, res);
+			});
+		});
+	});
+
+	it('should flush cache on the next round', function (done) {
+		var url;
+		url = '/api/delegates';
+
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				node.onNewRound(function (err) {
+					node.expect(err).to.not.exist;
+					cache.getJsonForKey(url, function (err, res) {
+						node.expect(err).to.not.exist;
+						node.expect(res).to.eql(null);
+						done(err, res);
+					});
+				});
+			});
+		});
+	});
+});
+
 describe('GET /api/delegates', function () {
+
 	it('using no params should be ok', function (done) {
 		node.get('/api/delegates', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;

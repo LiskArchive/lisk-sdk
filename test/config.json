@@ -8,6 +8,7 @@
     "consoleLogLevel": "debug",
     "trustProxy": false,
     "topAccounts": false,
+    "cacheEnabled": true,
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -20,6 +21,13 @@
         "logEvents": [
             "error"
         ]
+    },
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6380,
+        "db": 0,
+        "user": "",
+        "password": ""
     },
     "api": {
         "enabled": true,

@@ -2,6 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var _ = require('lodash');
 
@@ -63,17 +64,16 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	}];
 
 	// Broadcaster timer
-	setImmediate(function nextRelease () {
-		async.series([
-			__private.releaseQueue
-		], function (err) {
+	function nextRelease () {
+		__private.releaseQueue(function (err) {
 			if (err) {
 				library.logger.log('Broadcaster timer', err);
 			}
-
-			return setTimeout(nextRelease, self.config.broadcastInterval);
 		});
-	});
+	}
+
+	jobsQueue.register('broadcasterNextRelease', nextRelease, self.config.broadcastInterval);
+
 }
 
 // Public methods
@@ -153,7 +153,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			if (params.limit === self.config.peerLimit) { peers.splice(0, self.config.broadcastLimit); }
+			if (params.limit === self.config.peerLimit) { 
+				peers = peers.slice(0, self.config.broadcastLimit);
+			}
 
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = library.logic.peers.create(peer);

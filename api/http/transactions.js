@@ -25,9 +25,14 @@ var httpApi = require('../../helpers/httpApi');
  * @param {scope} app - Network app.
  */
 // Constructor
-function TransactionsHttpApi (transactionsModule, app) {
+function TransactionsHttpApi (transactionsModule, app, logger, cache) {
 
 	var router = new Router();
+
+	// attach a middlware to endpoints
+	router.attachMiddlwareForUrls(httpApi.middleware.useCache.bind(null, logger, cache), [
+		'get /'
+	]);
 
 	router.map(transactionsModule.shared, {
 		'get /': 'getTransactions',
