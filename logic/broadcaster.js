@@ -131,7 +131,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			if (params.limit === self.config.peerLimit) { peers.splice(0, self.config.broadcastLimit); }
+			if (params.limit === self.config.peerLimit) { 
+				peers = peers.slice(0, self.config.broadcastLimit);
+			}
 
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = library.logic.peers.create(peer);
