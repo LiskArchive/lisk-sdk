@@ -32,10 +32,35 @@ __private.messages = {};
  */
 // Constructor
 function Transport (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		bus: scope.bus,
+		schema: scope.schema,
+		network: scope.network,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			block: scope.logic.block,
+			transaction: scope.logic.transaction,
+			peers: scope.logic.peers,
+		},
+		config: {
+			peers: {
+				options: {
+					timeout: scope.config.peers.options.timeout,
+				},
+			},
+		},
+	};
 	self = this;
 
-	__private.broadcaster = new Broadcaster(library);
+	__private.broadcaster = new Broadcaster(
+		scope.config.broadcasts,
+		scope.config.forging.force,
+		scope.logic.peers,
+		scope.logic.transaction,
+		scope.logger
+	);
 
 	setImmediate(cb, null, self);
 }
@@ -425,13 +450,24 @@ Transport.prototype.sandboxApi = function (call, args, cb) {
  * Bounds scope to private broadcaster amd initialize headers.
  * @implements {modules.system.headers}
  * @implements {broadcaster.bind}
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 Transport.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		blocks: scope.blocks,
+		dapps: scope.dapps,
+		peers: scope.peers,
+		multisignatures: scope.multisignatures,
+		transactions: scope.transactions,
+		system: scope.system,
+	};
 
 	__private.headers = modules.system.headers();
-	__private.broadcaster.bind(modules);
+	__private.broadcaster.bind(
+		scope.peers,
+		scope.transport,
+		scope.transactions
+	);
 };
 
 /**

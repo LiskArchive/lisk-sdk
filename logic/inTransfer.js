@@ -7,23 +7,34 @@ var sql = require('../sql/dapps.js');
 var modules, library, shared;
 
 /**
- * Main InTransfer logic.
+ * Initializes library.
  * @memberof module:dapps
  * @class
  * @classdesc Main InTransfer logic.
+ * @param {Database} db
+ * @param {ZSchema} schema
  */
 // Constructor
-function InTransfer () {}
+function InTransfer (db, schema) {
+	library = {
+		db: db,
+		schema: schema,
+	};
+}
 
 // Public methods
 /**
- * Binds scope content to private variables modules, library and shared.
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variables modules and shared.
+ * @param {Accounts} accounts
+ * @param {Rounds} rounds
+ * @param {Object} sharedApi
  */
-InTransfer.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library = scope.library;
-	shared = scope.shared;
+InTransfer.prototype.bind = function (accounts, rounds, sharedApi) {
+	modules = {
+		accounts: accounts,
+		rounds: rounds,
+	};
+	shared = sharedApi;
 };
 
 /**

@@ -11,7 +11,7 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
 // Private fields
-var self, modules, __private = {}, genesisblock = null;
+var self, modules, __private = {};
 
 /**
  * @typedef {Object} privateTypes
@@ -31,14 +31,25 @@ __private.types = {};
  * @memberof module:transactions
  * @class
  * @classdesc Main transaction logic.
- * @param {scope} scope - App instance.
+ * @param {Database} db
+ * @param {Object} ed
+ * @param {ZSchema} schema
+ * @param {Object} genesisblock
+ * @param {Account} account
+ * @param {Object} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
 // Constructor
-function Transaction (scope, cb) {
-	this.scope = scope;
-	genesisblock = this.scope.genesisblock;
+function Transaction (db, ed, schema, genesisblock, account, logger, cb) {
+	this.scope = {
+		db: db,
+		ed: ed,
+		schema: schema,
+		genesisblock: genesisblock,
+		account: account,
+		logger: logger,
+	};
 	self = this;
 	if (cb) {
 		return setImmediate(cb, null, this);
@@ -317,7 +328,7 @@ Transaction.prototype.checkConfirmed = function (trs, cb) {
  */
 Transaction.prototype.checkBalance = function (amount, balance, trs, sender) {
 	var exceededBalance = new bignum(sender[balance].toString()).lessThan(amount);
-	var exceeded = (trs.blockId !== genesisblock.block.id && exceededBalance);
+	var exceeded = (trs.blockId !== this.scope.genesisblock.block.id && exceededBalance);
 
 	return {
 		exceeded: exceeded,
@@ -418,7 +429,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check for missing sender second signature
-	if (!trs.requesterPublicKey && sender.secondSignature && !trs.signSignature && trs.blockId !== genesisblock.block.id) {
+	if (!trs.requesterPublicKey && sender.secondSignature && !trs.signSignature && trs.blockId !== this.scope.genesisblock.block.id) {
 		return setImmediate(cb, 'Missing sender second signature');
 	}
 
@@ -450,7 +461,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check sender is not genesis account unless block id equals genesis
-	if ([exceptions.genesisPublicKey.mainnet, exceptions.genesisPublicKey.testnet].indexOf(sender.publicKey) !== -1 && trs.blockId !== genesisblock.block.id) {
+	if ([exceptions.genesisPublicKey.mainnet, exceptions.genesisPublicKey.testnet].indexOf(sender.publicKey) !== -1 && trs.blockId !== this.scope.genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid sender. Can not send from genesis account');
 	}
 
@@ -1121,12 +1132,14 @@ Transaction.prototype.dbRead = function (raw) {
 
 // Events
 /**
- * Binds scope to modules.
- * @param {scope} scope - App instance
+ * Binds input parameters to private variables modules.
+ * @param {Rounds} rounds
  */
-Transaction.prototype.bindModules = function (scope) {
+Transaction.prototype.bindModules = function (rounds) {
 	this.scope.logger.trace('Logic/Transaction->bindModules');
-	modules = scope;
+	modules = {
+		rounds: rounds,
+	};
 };
 
 // Export

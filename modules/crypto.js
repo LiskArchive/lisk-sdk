@@ -5,12 +5,11 @@ var fs = require('fs');
 var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var self, __private = {}, shared = {};
 
 __private.loaded = false;
 
 /**
- * Initializes library with scope content.
  * @class
  * @classdesc Main Crypto methods.
  * @param {setImmediateCallback} cb - Callback function.
@@ -18,7 +17,6 @@ __private.loaded = false;
  */
 // Constructor
 function Crypto (cb, scope) {
-	library = scope;
 	self = this;
 
 	setImmediate(cb, null, self);
@@ -38,11 +36,10 @@ Crypto.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 /**
- * Assigns scope to modules variable.
- * @param {scope} scope - Loaded modules.
+ * Modules are not required in this file.
+ * @param {modules} scope - Loaded modules.
  */
 Crypto.prototype.onBind = function (scope) {
-	modules = scope;
 };
 
 /**

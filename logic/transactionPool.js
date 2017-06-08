@@ -9,18 +9,34 @@ var transactionTypes = require('../helpers/transactionTypes.js');
 var modules, library, self, __private = {};
 
 /**
- * Main transactionPool logic.
+ * Initializes variables, sets bundled transaction timer and
+ * transaction expiry timer.
  * @memberof module:transactions
  * @class
- * @classdesc Initializes variables, sets bundled transaction timer and
- * transaction expiry timer.
+ * @classdesc Main transactionPool logic.
  * @implements {processBundled}
  * @implements {expireTransactions}
- * @param {scope} scope - App instance.
+ * @param {number} broadcastInterval
+ * @param {number} releaseLimit
+ * @param {Transaction} transaction - Logic instance
+ * @param {bus} bus
+ * @param {Object} logger
  */
 // Constructor
-function TransactionPool (scope) {
-	library = scope;
+function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger) {
+	library = {
+		logger: logger,
+		bus: bus,
+		logic: {
+			transaction: transaction,
+		},
+		config: {
+			broadcasts: {
+				broadcastInterval: broadcastInterval,
+				releaseLimit: releaseLimit,
+			},
+		},
+	};
 	self = this;
 
 	self.unconfirmed = { transactions: [], index: {} };
@@ -61,11 +77,17 @@ function TransactionPool (scope) {
 
 // Public methods
 /**
- * Bounds scope to private modules variable
- * @param {scope} scope - App instance.
+ * Bounds input parameters to private variable modules.
+ * @param {Accounts} accounts
+ * @param {Transactions} transactions
+ * @param {Loader} loader
  */
-TransactionPool.prototype.bind = function (scope) {
-	modules = scope;
+TransactionPool.prototype.bind = function (accounts, transactions, loader) {
+	modules = {
+		accounts: accounts,
+		transactions: transactions,
+		loader: loader,
+	};
 };
 
 /**
