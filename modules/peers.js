@@ -443,19 +443,21 @@ Peers.prototype.discover = function (cb) {
  * @return {peer[]} Filtered list of peers
  */
 Peers.prototype.acceptable = function (peers) {
-	return _.chain(peers).filter(function (peer) {
-		if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-			return !isMe(peer);
-		}
-		return !ip.isPrivate(peer.ip) && !isMe(peer);
-	}).uniqWith(function (a, b) {
-		// Removig non-unique peers
-		return (a.ip + a.port) === (b.ip + b.port);
-	}).value();
+	return _(peers)
+		.uniqWith(function (a, b) {
+			// Removing non-unique peers
+			return (a.ip + a.port) === (b.ip + b.port);
+		})
+		.filter(function (peer) {
+			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+				return !isMe(peer);
+			}
+			return !ip.isPrivate(peer.ip) && !isMe(peer);
+		}).value();
 
 	function isMe (peer) {
 		var me = library.logic.peers.me() || {ip: '127.0.0.1', port: library.config.port};
-		return peer.nonce === modules.system.getNonce() || (peer.ip === me.ip && peer.port === me.port);
+		return peer.nonce === modules.system.getNonce() || peer.ip + peer.port === me.ip + me.port;
 	}
 };
 
