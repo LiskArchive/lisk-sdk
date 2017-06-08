@@ -13,6 +13,8 @@ var database = require(path.join(dirname, '/helpers', 'database.js'));
 var genesisblock = require(path.join(dirname, '/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
 var z_schema = require('../../helpers/z_schema.js');
+var cacheHelper = require('../../helpers/cache.js');
+var Cache = require('../../modules/cache.js');
 
 var modulesLoader = new function () {
 
@@ -176,6 +178,23 @@ var modulesLoader = new function () {
 			}
 			this.db = db;
 			cb(null, this.db);
+		}.bind(this));
+	};
+
+	/**
+	 * Initializes Cache module
+	 * @param {Function} cb
+	 */
+	this.initCache = function (cb) {
+		var cacheEnabled, cacheConfig;
+		cacheEnabled = this.scope.config.cacheEnabled;
+		cacheConfig = this.scope.config.redis;
+		cacheHelper.connect(cacheEnabled, cacheConfig, this.logger, function (err, __cache) {
+			if (err) {
+				cb(err, __cache);
+			} else {
+				this.initModule(Cache, _.merge(this.scope, {cache: __cache}), cb);
+			}
 		}.bind(this));
 	};
 };

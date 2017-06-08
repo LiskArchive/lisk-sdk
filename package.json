@@ -41,6 +41,7 @@
     "pg-promise": "=5.5.6",
     "popsicle": "=9.0.0",
     "randomstring": "=1.1.5",
+    "redis": "=2.7.1",
     "rimraf": "=2.5.4",
     "semver": "=5.3.0",
     "socket.io": "=1.7.2",

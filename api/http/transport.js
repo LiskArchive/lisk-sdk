@@ -29,7 +29,7 @@ var schema = require('../../schema/transport');
  * @param {function} logger
  */
 // Constructor
-function TransportHttpApi (transportModule, app, logger) {
+function TransportHttpApi (transportModule, app, logger, cache) {
 
 	var router = new Router();
 

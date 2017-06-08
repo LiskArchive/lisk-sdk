@@ -120,6 +120,8 @@ process.env.TOP = appConfig.topAccounts;
  */
 var config = {
 	db: appConfig.db,
+	cache: appConfig.redis,
+	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		server: './modules/server.js',
 		accounts: './modules/accounts.js',
@@ -135,7 +137,8 @@ var config = {
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js'
+		sql: './modules/sql.js',
+		cache: './modules/cache.js'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -431,12 +434,18 @@ d.run(function () {
 			};
 			cb(null, new bus());
 		}],
-
 		db: function (cb) {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
-
+		/**
+		 * It tries to connect with redis server based on config. provided in config.json file
+		 * @param {function} cb
+		 */
+		cache: function (cb) {
+			var cache = require('./helpers/cache.js');
+			cache.connect(config.cacheEnabled, config.cache, logger, cb);
+		},
 		/**
 		 * Once db, bus, schema and genesisblock are completed,
 		 * loads transaction, block, account and peers from logic folder.
@@ -486,7 +495,6 @@ d.run(function () {
 				}
 			}, cb);
 		}],
-
 		/**
 		 * Once network, connect, config, logger, bus, sequence,
 		 * dbSequence, balancesSequence, db and logic are completed,
@@ -496,7 +504,8 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
+
 			var tasks = {};
 
 			Object.keys(config.modules).forEach(function (name) {
@@ -535,7 +544,7 @@ d.run(function () {
 					var apiEndpointPath = config.api[moduleName][protocol];
 					try {
 						var ApiEndpoint = require(apiEndpointPath);
-						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger);
+						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
 					} catch (e) {
 						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
 					}
