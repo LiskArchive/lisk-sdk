@@ -5,16 +5,20 @@ var express = require('express');
 var _  = require('lodash');
 var node = require('../../node.js');
 var Rounds = require('../../../modules/rounds.js');
+var modulesLoader = require('../../common/initModule').modulesLoader;
 
 describe('rounds', function () {
 
 	var rounds;
 
 	before(function (done) {
-		new Rounds(function (err, __rounds) {
+		modulesLoader.initModuleWithDb(Rounds, function (err, __rounds) {
+			if (err) {
+				return done(err);
+			}
 			rounds = __rounds;
 			done();
-		}, {});
+		});
 	});
 
 	describe('calc', function () {

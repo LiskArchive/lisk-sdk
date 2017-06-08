@@ -11,8 +11,15 @@ var modules, library, self, __private = {};
 
 __private.blockReward = new BlockReward();
 
-function Verify (scope) {
-	library = scope;
+function Verify (logger, block, transaction, db) {
+	library = {
+		logger: logger,
+		db: db,
+		logic: {
+			block: block,
+			transaction: transaction,
+		},
+	};
 	self = this;
 
 	library.logger.trace('Blocks->Verify: Submodule initialized.');
@@ -292,15 +299,21 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 
 /**
  * Handle modules initialization
- *
- * @public
- * @method onBind
- * @listens module:app~event:bind
- * @param  {scope}   scope Exposed modules
+ * - accounts
+ * - blocks
+ * - delegates
+ * - transactions
+ * @param {modules} scope Exposed modules
  */
 Verify.prototype.onBind = function (scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
-	modules = scope;
+	modules = {
+		accounts: scope.accounts,
+		blocks: scope.blocks,
+		delegates: scope.delegates,
+		transactions: scope.transactions,
+	};
+
 
 	// Set module as loaded
 	__private.loaded = true;

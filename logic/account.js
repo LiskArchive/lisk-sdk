@@ -9,24 +9,29 @@ var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var self, db, library, __private = {}, genesisBlock = null;
+var self, library, __private = {};
 
 /**
  * Main account logic.
  * @memberof module:accounts
  * @class
  * @classdesc Main account logic.
- * @param {scope} scope - App instance.
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
-function Account (scope, cb) {
-	this.scope = scope;
+function Account (db, schema, logger, cb) {
+	this.scope = {
+		db: db,
+		schema: schema,
+	};
 
 	self = this;
-	db = this.scope.db;
-	library = this.scope.library;
-	genesisBlock = this.scope.genesisblock.block;
+	library = {
+		logger: logger,
+	};
 
 	this.table = 'mem_accounts';
 	/**
@@ -415,7 +420,7 @@ function Account (scope, cb) {
 Account.prototype.createTables = function (cb) {
 	var sql = new pgp.QueryFile(path.join(process.cwd(), 'sql', 'memoryTables.sql'), {minify: true});
 
-	db.query(sql).then(function () {
+	this.scope.db.query(sql).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -449,7 +454,7 @@ Account.prototype.removeTables = function (cb) {
 			sqles.push(sql.query);
 		});
 
-	db.query(sqles.join('')).then(function () {
+	this.scope.db.query(sqles.join('')).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -601,7 +606,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		fields: realFields
 	});
 
-	db.query(sql.query, sql.values).then(function (rows) {
+	this.scope.db.query(sql.query, sql.values).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -632,7 +637,7 @@ Account.prototype.set = function (address, fields, cb) {
 		modifier: this.toDB(fields)
 	});
 
-	db.none(sql.query, sql.values).then(function () {
+	this.scope.db.none(sql.query, sql.values).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -874,7 +879,7 @@ Account.prototype.merge = function (address, diff, cb) {
 		return done();
 	}
 
-	db.none(queries).then(function () {
+	this.scope.db.none(queries).then(function () {
 		return done();
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -896,7 +901,7 @@ Account.prototype.remove = function (address, cb) {
 			address: address
 		}
 	});
-	db.none(sql.query, sql.values).then(function () {
+	this.scope.db.none(sql.query, sql.values).then(function () {
 		return setImmediate(cb, null, address);
 	}).catch(function (err) {
 		library.logger.error(err.stack);

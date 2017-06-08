@@ -481,18 +481,18 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', function (scope, cb) {
-					new Account(scope, cb);
+				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'logger', function (scope, cb) {
+					new Account(scope.db, scope.schema, scope.logger, cb);
 				}],
-				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', function (scope, cb) {
-					new Transaction(scope, cb);
+				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
+					new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
-					new Block(scope, cb);
+					new Block(scope.ed, scope.schema, scope.transaction, cb);
 				}],
-				peers: function (cb) {
-					new Peers(scope, cb);
-				}
+				peers: ['logger', function (scope, cb) {
+					new Peers(scope.logger, cb);
+				}]
 			}, cb);
 		}],
 		/**
@@ -557,7 +557,7 @@ d.run(function () {
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules);
+			scope.logic.transaction.bindModules(scope.modules.rounds);
 			scope.logic.peers.bind(scope);
 			cb();
 		}],

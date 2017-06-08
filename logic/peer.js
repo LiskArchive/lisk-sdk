@@ -4,10 +4,11 @@ var _ = require('lodash');
 var ip = require('ip');
 
 /**
- * Main peer logic.
+ * Creates a peer.
  * @memberof module:peers
  * @class
  * @classdesc Main peer logic.
+ * @implements {Peer.accept}
  * @param {peer} peer
  * @return calls accept method
  */

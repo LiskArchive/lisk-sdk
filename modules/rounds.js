@@ -25,7 +25,17 @@ __private.ticking = false;
  */
 // Constructor
 function Rounds (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		bus: scope.bus,
+		network: scope.network,
+		config: {
+			loading: {
+				snapshot: scope.config.loading.snapshot,
+			},
+		},
+	};
 	self = this;
 
 	setImmediate(cb, null, self);
@@ -264,11 +274,15 @@ Rounds.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 /**
- * Assigns scope app to private variable `modules`.
- * @param {scope} scope - Loaded App.
+ * Assigns modules to private variable `modules`.
+ * @param {modules} scope - Loaded modules.
  */
 Rounds.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		blocks: scope.blocks,
+		accounts: scope.accounts,
+		delegates: scope.delegates,
+	};
 };
 
 /**

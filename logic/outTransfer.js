@@ -9,22 +9,36 @@ var modules, library, __private = {};
 __private.unconfirmedOutTansfers = {};
 
 /**
- * Main OutTransfer logic.
+ * Initializes library.
  * @memberof module:dapps
  * @class
  * @classdesc Main OutTransfer logic.
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
  */
 // Constructor
-function OutTransfer () {}
+function OutTransfer (db, schema, logger) {
+	library = {
+		db: db,
+		schema: schema,
+		logger: logger,
+	};
+}
 
 // Public methods
 /**
- * Binds scope content to private variables modules and library.
- * @param {scope} scope - App instance.
+ * Binds input modules to private variable module.
+ * @param {Accounts} accounts
+ * @param {Rounds} rounds
+ * @param {Dapps} dapps
  */
-OutTransfer.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library = scope.library;
+OutTransfer.prototype.bind = function (accounts, rounds, dapps) {
+	modules = {
+		accounts: accounts,
+		rounds: rounds,
+		dapps: dapps,
+	};
 };
 
 /**
