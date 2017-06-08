@@ -2,6 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var exceptions = require('../helpers/exceptions');
 var ip = require('ip');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
@@ -411,6 +412,31 @@ __private.loadBlockChain = function () {
 			return false;
 		}
 	}
+
+	// Port rounds exceptions to database layer
+	library.db.tx(function (t) {
+		var queries = [];
+
+		Object.keys(exceptions.rounds).forEach(function (round) {
+			var ex = exceptions.rounds[round];
+			queries.push(
+				t.none(sql.insertRoundException, {
+					round: round,
+					rewards_factor: ex.rewards_factor,
+					fees_factor: ex.fees_factor,
+					fees_bonus: ex.fees_bonus
+				})
+			);
+		}
+
+		return t.batch(queries);
+	}).then(function (data) {
+		library.logger.info('Exceptions for round ported to database layer');
+		return setImmediate(cb);
+	}).catch(function (err) {
+		library.logger.error('Port exceptions to database layer failed', {error: err.message || err});
+		return process.emit('exit');
+	});
 
 	library.db.task(checkMemTables).then(function (results) {
 		var count = results[0].count;

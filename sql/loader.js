@@ -15,7 +15,9 @@ var LoaderSql = {
 
 	getDelegates: 'SELECT ENCODE("publicKey", \'hex\') FROM mem_accounts WHERE "isDelegate" = 1',
 
-	validateMemBalances: 'SELECT * FROM validateMemBalances()'
+	validateMemBalances: 'SELECT * FROM validateMemBalances()',
+
+	insertRoundException: 'INSERT INTO rounds_exceptions (round, rewards_factor, fees_factor, fees_bonus) VALUES (${round}, ${rewards_factor}, ${fees_factor}, ${fees_bonus}) ON CONFLICT (round) DO NOTHING;'
 };
 
 module.exports = LoaderSql;
