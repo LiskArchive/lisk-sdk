@@ -2,6 +2,7 @@
 
 var node = require('./../node.js');
 var genesisDelegates = require('../genesisDelegates.json');
+var testDelegate = genesisDelegates.delegates[0];
 
 function openAccount (params, done) {
 	node.post('/api/accounts/open', params, function (err, res) {
@@ -1055,14 +1056,15 @@ describe('POST /api/delegates/forging/disable', function () {
 			if (!res.body.enabled) {
 				node.post('/api/delegates/forging/enable', {
 					publicKey: testDelegate.publicKey,
-					key: testDelegate.secret
+					key: testDelegate.key
 				}, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('address').equal(testDelegate.address);
 					done();
 				});
+			} else {
+				done();
 			}
-			done();
 		});
 	});
 
@@ -1074,7 +1076,19 @@ describe('POST /api/delegates/forging/disable', function () {
 		});
 	});
 
-	it('using invalid secret should fail', function (done) {
+	it('using invalid publicKey should fail', function (done) {
+		var invalidPublicKey= '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
+		node.post('/api/delegates/forging/disable', {
+			publicKey: invalidPublicKey,
+			key: testDelegate.key
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').not.to.be.ok;
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain(['Delegate with publicKey:', invalidPublicKey, 'not found'].join(' '));
+			done();
+		});
+	});
+
+	it('using invalid key should fail', function (done) {
 		node.post('/api/delegates/forging/disable', {
 			publicKey: testDelegate.publicKey,
 			key: 'invalid key'
@@ -1137,6 +1151,19 @@ describe('POST /api/delegates/forging/enable', function () {
 			done();
 		});
 	});
+
+	it('using invalid publicKey should fail', function (done) {
+		var invalidPublicKey= '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
+		node.post('/api/delegates/forging/enable', {
+			publicKey: invalidPublicKey,
+			key: testDelegate.key
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').not.to.be.ok;
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain(['Delegate with publicKey:', invalidPublicKey, 'not found'].join(' '));
+			done();
+		});
+	});
+
 
 	it('using valid params should be ok', function (done) {
 		node.post('/api/delegates/forging/enable', {
