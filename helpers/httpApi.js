@@ -140,6 +140,39 @@ var middleware = {
 	attachResponseHeaders: function (getHeaders, req, res, next) {
 		res.set(getHeaders());
 		return next();
+	},
+
+	/**
+	 * Lookup cache, and reply with cached response if it's a hit.
+	 * If it's a miss, forward the request but cache the response if it's a success.
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {Function} next
+	 */
+	useCache: function (logger, cache, req, res, next) {
+		if (!cache.isReady()) {
+			return next();
+		}
+
+		var key = req.originalUrl;
+		cache.getJsonForKey(key, function (err, cachedValue) {
+			//there was an error or value doesn't exist for key
+			if (err || !cachedValue) {
+				// Monkey patching res.json function only if we expect to cache response
+				var expressSendJson = res.json;
+				res.json = function (response) {
+					if (response.success) {
+						logger.debug('cached response for key: ', req.url);
+						cache.setJsonForKey(key, response);
+					}
+					expressSendJson.call(res, response);
+				};
+				next();
+			} else {
+				logger.debug(['serving response for url:', req.url, 'from cache'].join(' '));
+				res.json(cachedValue);
+			}
+		});
 	}
 };
 

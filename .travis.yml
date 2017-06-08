@@ -8,6 +8,7 @@ cache:
     - node_modules
 services:
   - postgresql
+  - redis-server
 addons:
   postgresql: '9.6'
 install:
@@ -19,6 +20,7 @@ before_script:
   - tar -zxvf lisk-node-Linux-x86_64.tar.gz
   - cd test/lisk-js/; npm install; cd ../..
   - cp test/config.json test/genesisBlock.json .
+  - redis-server --port 6380 &
   - node app.js &> .app.log &
 notifications:
   webhooks: https://coveralls.io/webhook?repo_token=l6rLvPBYHIwA92FQQmCUUTLI4zPuS4r5C
