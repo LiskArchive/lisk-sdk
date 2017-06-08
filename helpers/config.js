@@ -20,7 +20,7 @@ function Config (packageJson) {
 		.version(packageJson.version)
 		.option('-c, --config <path>', 'config file path')
 		.option('-p, --port <port>', 'listening port number')
-		.option('-h, --HTTP port <httpPort>', 'listening HTTP port number')
+		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
 		.option('-d, --database <database>', 'database name')
 		.option('-a, --address <ip>', 'listening host name or ip')
 		.option('-x, --peers [peers...]', 'peers list')
