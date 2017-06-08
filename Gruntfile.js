@@ -8,7 +8,7 @@ module.exports = function (grunt) {
 		'logger.js',
 		'api/**/*.js',
 		'helpers/**/*.js',
-		'modules/*.js',
+		'modules/**/*.js',
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',
