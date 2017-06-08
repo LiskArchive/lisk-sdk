@@ -289,7 +289,7 @@ __private.loadDelegates = function (cb) {
 		library.logger.info(['Loading', secretsList.length, 'delegates from config'].join(' '));
 	}
 
-	async.eachSeries(secretsList, function (encryptedItem, cb) {
+	async.each(secretsList, function (encryptedItem, cb) {
 		var secret = __private.decryptSecret(encryptedItem.encryptedSecret, library.config.forging.defaultKey);
 		var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 
