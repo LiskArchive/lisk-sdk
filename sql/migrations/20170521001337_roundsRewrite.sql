@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "delegates" (
 	"fees" BIGINT NOT NULL DEFAULT 0,
 	"rewards" BIGINT NOT NULL DEFAULT 0,
 	"voters_balance" BIGINT NOT NULL DEFAULT 0,
-	"voters_cnt" BIGINT NOT NULL DEFAULT 0,
+	"voters_cnt" INT NOT NULL DEFAULT 0,
 	"blocks_forged_cnt" INT NOT NULL DEFAULT 0,
 	"blocks_missed_cnt" INT NOT NULL DEFAULT 0
 );
@@ -158,6 +158,19 @@ END $$;
 
 -- Execute 'delegates_rank_update'
 SELECT delegates_rank_update();
+
+-- Create function 'delegate_change_ranks_update' for updating delegates ranks
+CREATE FUNCTION delegate_change_ranks_update() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+	BEGIN
+		PERFORM delegates_rank_update();
+	RETURN NULL;
+END $$;
+
+-- Create function 'delegate_insert_delete' for updating delegates ranks when delegate is inserted or deleted
+CREATE TRIGGER delegate_insert_delete
+	AFTER INSERT OR DELETE ON delegates
+	FOR EACH ROW
+	EXECUTE PROCEDURE delegate_change_ranks_update();
 
 -- Consistency checks - new 'delegates' table against 'mem_accounts'
 DO $$
