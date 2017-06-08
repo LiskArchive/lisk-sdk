@@ -8,15 +8,46 @@ var modules, library, __private = {};
 
 __private.unconfirmedOutTansfers = {};
 
+/**
+ * Initializes library.
+ * @memberof module:dapps
+ * @class
+ * @classdesc Main OutTransfer logic.
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
+ */
 // Constructor
-function OutTransfer () {}
+function OutTransfer (db, schema, logger) {
+	library = {
+		db: db,
+		schema: schema,
+		logger: logger,
+	};
+}
 
 // Public methods
-OutTransfer.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library = scope.library;
+/**
+ * Binds input modules to private variable module.
+ * @param {Accounts} accounts
+ * @param {Rounds} rounds
+ * @param {Dapps} dapps
+ */
+OutTransfer.prototype.bind = function (accounts, rounds, dapps) {
+	modules = {
+		accounts: accounts,
+		rounds: rounds,
+		dapps: dapps,
+	};
 };
 
+/**
+ * Assigns data to transaction recipientId and amount.
+ * Generates outTransfer data into transaction asset.
+ * @param {Object} data
+ * @param {transaction} trs
+ * @return {transaction} trs with assigned data
+ */
 OutTransfer.prototype.create = function (data, trs) {
 	trs.recipientId = data.recipientId;
 	trs.amount = data.amount;
@@ -29,10 +60,23 @@ OutTransfer.prototype.create = function (data, trs) {
 	return trs;
 };
 
+/**
+ * Returns send fee from constants.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @return {number} fee
+ */
 OutTransfer.prototype.calculateFee = function (trs, sender) {
 	return constants.fees.send;
 };
 
+/**
+ * Verifies recipientId, amount and outTransfer object content.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} errors messages | trs
+ */
 OutTransfer.prototype.verify = function (trs, sender, cb) {
 	if (!trs.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
@@ -57,6 +101,15 @@ OutTransfer.prototype.verify = function (trs, sender, cb) {
 	return setImmediate(cb, null, trs);
 };
 
+/**
+ * Finds application into `dapps` table. Checks if transaction is already 
+ * processed. Checks if transaction is already confirmed.
+ * @implements {library.db.one}
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} errors messages | trs
+ */
 OutTransfer.prototype.process = function (trs, sender, cb) {
 	library.db.one(sql.countByTransactionId, {
 		id: trs.asset.outTransfer.dappId
@@ -85,13 +138,21 @@ OutTransfer.prototype.process = function (trs, sender, cb) {
 	});
 };
 
+/**
+ * Creates buffer with outTransfer content:
+ * - dappId
+ * - transactionId
+ * @param {transaction} trs
+ * @return {Array} Buffer
+ * @throws {e} Error
+ */
 OutTransfer.prototype.getBytes = function (trs) {
 	var buf;
 
 	try {
-		buf = new Buffer([]);
-		var dappIdBuf = new Buffer(trs.asset.outTransfer.dappId, 'utf8');
-		var transactionIdBuff = new Buffer(trs.asset.outTransfer.transactionId, 'utf8');
+		buf = Buffer.from([]);
+		var dappIdBuf = Buffer.from(trs.asset.outTransfer.dappId, 'utf8');
+		var transactionIdBuff = Buffer.from(trs.asset.outTransfer.transactionId, 'utf8');
 		buf = Buffer.concat([buf, dappIdBuf, transactionIdBuff]);
 	} catch (e) {
 		throw e;
@@ -100,6 +161,19 @@ OutTransfer.prototype.getBytes = function (trs) {
 	return buf;
 };
 
+/**
+ * Sets unconfirmed out transfers to false.
+ * Calls setAccountAndGet based on transaction recipientId and
+ * mergeAccountAndGet with unconfirmed trs amount.
+ * @implements {modules.accounts.setAccountAndGet}
+ * @implements {modules.accounts.mergeAccountAndGet}
+ * @implements {modules.rounds.calc}
+ * @param {transaction} trs
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function
+ * @return {setImmediateCallback} error, cb
+ */
 OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 	__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = false;
 
@@ -120,6 +194,19 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 	});
 };
 
+/**
+ * Sets unconfirmed out transfers to true.
+ * Calls setAccountAndGet based on transaction recipientId and
+ * mergeAccountAndGet with unconfirmed trs amount and balance both negatives.
+ * @implements {modules.accounts.setAccountAndGet}
+ * @implements {modules.accounts.mergeAccountAndGet}
+ * @implements {modules.rounds.calc}
+ * @param {transaction} trs
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function
+ * @return {setImmediateCallback} error, cb
+ */
 OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 	__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = true;
 
@@ -139,11 +226,25 @@ OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 	});
 };
 
+/**
+ * Sets unconfirmed OutTansfers to true.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 OutTransfer.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = true;
 	return setImmediate(cb);
 };
 
+/**
+ * Sets unconfirmed OutTansfers to false.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 OutTransfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = false;
 	return setImmediate(cb);
@@ -169,6 +270,13 @@ OutTransfer.prototype.schema = {
 	required: ['dappId', 'transactionId']
 };
 
+/**
+ * Calls `objectNormalize` with asset outTransfer.
+ * @implements {library.schema.validate}
+ * @param {transaction} trs
+ * @return {error|transaction} error string | trs normalized
+ * @throws {string} error message
+ */
 OutTransfer.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.outTransfer, OutTransfer.prototype.schema);
 
@@ -181,6 +289,11 @@ OutTransfer.prototype.objectNormalize = function (trs) {
 	return trs;
 };
 
+/**
+ * Creates outTransfer object based on raw data.
+ * @param {Object} raw
+ * @return {Object} outTransfer with dappId and transactionId
+ */
 OutTransfer.prototype.dbRead = function (raw) {
 	if (!raw.ot_dappId) {
 		return null;
@@ -202,6 +315,12 @@ OutTransfer.prototype.dbFields = [
 	'transactionId'
 ];
 
+/**
+ * Creates db operation object to 'outtransfer' table based on 
+ * outTransfer data.
+ * @param {transaction} trs
+ * @return {Object[]} table, fields, values.
+ */
 OutTransfer.prototype.dbSave = function (trs) {
 	return {
 		table: this.dbTable,
@@ -214,6 +333,13 @@ OutTransfer.prototype.dbSave = function (trs) {
 	};
 };
 
+/**
+ * Sends a 'withdrawal' message with dapp id and transaction id.
+ * @implements {modules.dapps.message}
+ * @param {transaction} trs
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 OutTransfer.prototype.afterSave = function (trs, cb) {
 	modules.dapps.message(trs.asset.outTransfer.dappId, {
 		topic: 'withdrawal',
@@ -228,6 +354,13 @@ OutTransfer.prototype.afterSave = function (trs, cb) {
 	});
 };
 
+/**
+ * Checks sender multisignatures and transaction signatures.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @return {boolean} True if transaction signatures greather than 
+ * sender multimin or there are not sender multisignatures.
+ */
 OutTransfer.prototype.ready = function (trs, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 		if (!Array.isArray(trs.signatures)) {

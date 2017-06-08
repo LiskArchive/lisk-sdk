@@ -4,9 +4,36 @@ var pgp = require('pg-promise');
 var RoundChanges = require('../helpers/RoundChanges.js');
 var sql = require('../sql/rounds.js');
 
+/**
+ * Validates required scope properties.
+ * @memberof module:rounds
+ * @class
+ * @classdesc Main Round logic.
+ * @param {Object} scope
+ * @param {Task} t
+ * @constructor
+ */
 // Constructor
 function Round (scope, t) {
-	this.scope = scope;
+	this.scope = {
+		backwards: scope.backwards,
+		round: scope.round,
+		roundOutsiders: scope.roundOutsiders,
+		roundDelegates: scope.roundDelegates,
+		roundFees: scope.roundFees,
+		roundRewards: scope.roundRewards,
+		library: {
+			logger: scope.library.logger,
+		},
+		modules: {
+			accounts: scope.modules.accounts,
+		},
+		block: {
+			generatorPublicKey: scope.block.generatorPublicKey,
+			id: scope.block.id,
+			height: scope.block.height,
+		},
+	};
 	this.t = t;
 
 	// List of required scope properties
@@ -26,6 +53,11 @@ function Round (scope, t) {
 }
 
 // Public methods
+/**
+ * Returns result from call to mergeAccountAndGet
+ * @implements {modules.accounts.mergeAccountAndGet}
+ * @return {function} Promise
+ */
 Round.prototype.mergeBlockGenerator = function () {
 	return this.t.none(
 		this.scope.modules.accounts.mergeAccountAndGet({
@@ -37,6 +69,10 @@ Round.prototype.mergeBlockGenerator = function () {
 	);
 };
 
+/**
+ * If outsiders content, calls sql updateMissedBlocks.
+ * @return {}
+ */
 Round.prototype.updateMissedBlocks = function () {
 	if (this.scope.roundOutsiders.length === 0) {
 		return this.t;
@@ -45,10 +81,21 @@ Round.prototype.updateMissedBlocks = function () {
 	return this.t.none(sql.updateMissedBlocks(this.scope.backwards), [this.scope.roundOutsiders]);
 };
 
+/**
+ * Calls sql getVotes from `mem_round` table.
+ * @return {}
+ * @todo round must be a param option.
+ */
 Round.prototype.getVotes = function () {
 	return this.t.query(sql.getVotes, { round: this.scope.round });
 };
 
+/**
+ * Calls getVotes with round
+ * @implements {getVotes}
+ * @implements {modules.accounts.generateAddressByPublicKey}
+ * @return {function} Promise
+ */
 Round.prototype.updateVotes = function () {
 	var self = this;
 
@@ -68,6 +115,10 @@ Round.prototype.updateVotes = function () {
 	});
 };
 
+/**
+ * For backwards option calls sql updateBlockId with newID: 0.
+ * @return {function} Promise
+ */
 Round.prototype.markBlockId = function () {
 	if (this.scope.backwards) {
 		return this.t.none(sql.updateBlockId, { oldId: this.scope.block.id, newId: '0' });
@@ -76,14 +127,29 @@ Round.prototype.markBlockId = function () {
 	}
 };
 
+/**
+ * Calls sql flush: deletes round from `mem_round` table.
+ * @return {function} Promise
+ */
 Round.prototype.flushRound = function () {
 	return this.t.none(sql.flush, { round: this.scope.round });
 };
 
+/**
+ * Calls sql truncateBlocks: deletes blocks greather than height from 
+ * `blocks` table.
+ * @return {function} Promise
+ */
 Round.prototype.truncateBlocks = function () {
 	return this.t.none(sql.truncateBlocks, { height: this.scope.block.height });
 };
 
+/**
+ * For each delegate calls mergeAccountAndGet and creates an address array
+ * @implements {helpers.RoundChanges}
+ * @implements {modules.accounts.mergeAccountAndGet}
+ * @return {function} Promise with address array
+ */
 Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
 	var queries = [];
@@ -141,6 +207,20 @@ Round.prototype.applyRound = function () {
 	}
 };
 
+/**
+ * Calls:
+ * - updateVotes
+ * - updateMissedBlocks
+ * - flushRound
+ * - applyRound
+ * - updateVotes
+ * - flushRound
+ * @implements {updateVotes}
+ * @implements {updateMissedBlocks}
+ * @implements {flushRound}
+ * @implements {applyRound}
+ * @return {function} call result
+ */
 Round.prototype.land = function () {
 	return this.updateVotes()
 		.then(this.updateMissedBlocks.bind(this))

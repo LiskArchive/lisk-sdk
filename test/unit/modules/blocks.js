@@ -7,18 +7,23 @@ var express = require('express');
 var sinon = require('sinon');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var Blocks = require('../../../modules/blocks');
 
 describe('blocks', function () {
 
 	var blocks;
 
 	before(function (done) {
-		modulesLoader.initModuleWithDb(Blocks, function (err, __blocks) {
+		modulesLoader.initModules([
+			{blocks: require('../../../modules/blocks')}
+		], [
+			{'transaction': require('../../../logic/transaction')},
+			{'block': require('../../../logic/block')},
+			{'peers': require('../../../logic/peers.js')}
+		], {}, function (err, __blocks) {
 			if (err) {
 				return done(err);
 			}
-			blocks = __blocks;
+			blocks = __blocks.blocks;
 			done();
 		});
 	});
@@ -26,7 +31,7 @@ describe('blocks', function () {
 	describe('getBlockProgressLogger', function () {
 
 		it('should logs correctly', function () {
-			var tracker = blocks.getBlockProgressLogger(5, 2, '');
+			var tracker = blocks.utils.getBlockProgressLogger(5, 2, '');
 			tracker.log = sinon.spy();
 			expect(tracker.applied).to.equals(0);
 			expect(tracker.step).to.equals(2);

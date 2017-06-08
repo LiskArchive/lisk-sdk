@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('./../node.js');
+var modulesLoader = require('./../common/initModule.js').modulesLoader;
 var genesisDelegates = require('../genesisDelegates.json');
 
 function openAccount (params, done) {
@@ -374,7 +375,94 @@ describe('PUT /api/delegates with funds', function () {
 	});
 });
 
+describe('GET /api/delegates (cache)', function () {
+	var cache;
+
+	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
+		modulesLoader.initCache(function (err, __cache) {
+			cache = __cache;
+			node.expect(err).to.not.exist;
+			node.expect(__cache).to.be.an('object');
+			return done(err, __cache);
+		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
+	});
+
+	afterEach(function (done) {
+		cache.flushDb(function (err, status) {
+			node.expect(err).to.not.exist;
+			node.expect(status).to.equal('OK');
+			done(err, status);
+		});
+	});
+
+	it('cache delegates when response is a success', function (done) {
+		var url;
+		url = '/api/delegates';
+
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				done(err, res);
+			});
+		});
+	});
+
+	it('should not cache if response is not a success', function (done) {
+		var url, orderBy, params;
+		url = '/api/delegates?';
+		orderBy = 'unknown:asc';
+		params = 'orderBy=' + orderBy;
+
+		node.get(url+ params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid sort field');
+			cache.getJsonForKey(url + params, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(null);
+				done(err, res);
+			});
+		});
+	});
+
+	it('should flush cache on the next round', function (done) {
+		var url;
+		url = '/api/delegates';
+
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				node.onNewRound(function (err) {
+					node.expect(err).to.not.exist;
+					cache.getJsonForKey(url, function (err, res) {
+						node.expect(err).to.not.exist;
+						node.expect(res).to.eql(null);
+						done(err, res);
+					});
+				});
+			});
+		});
+	});
+});
+
 describe('GET /api/delegates', function () {
+
 	it('using no params should be ok', function (done) {
 		node.get('/api/delegates', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -760,6 +848,16 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
+	it('using wildcard criteria should be ok', function (done) {
+		var q = '%'; // 1 character
+
+		node.get('/api/delegates/search?q=' + q, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			done();
+		});
+	});
+
 	it('using criteria with length == 1 should be ok', function (done) {
 		var q = 'g'; // 1 character
 
@@ -830,12 +928,17 @@ describe('GET /api/delegates/search', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
 			node.expect(res.body.delegates).to.have.length(1);
+			node.expect(res.body.delegates[0]).to.have.property('rank').that.is.an('number');
 			node.expect(res.body.delegates[0]).to.have.property('username').that.is.an('string');
 			node.expect(res.body.delegates[0]).to.have.property('address').that.is.an('string');
 			node.expect(res.body.delegates[0]).to.have.property('publicKey').that.is.an('string');
 			node.expect(res.body.delegates[0]).to.have.property('vote').that.is.an('string');
 			node.expect(res.body.delegates[0]).to.have.property('producedblocks').that.is.an('number');
 			node.expect(res.body.delegates[0]).to.have.property('missedblocks').that.is.an('number');
+			node.expect(res.body.delegates[0]).to.have.property('approval').that.is.an('number');
+			node.expect(res.body.delegates[0]).to.have.property('productivity').that.is.an('number');
+			node.expect(res.body.delegates[0]).to.have.property('voters_cnt').that.is.an('number');
+			node.expect(res.body.delegates[0]).to.have.property('register_timestamp').that.is.an('number');
 			done();
 		});
 	});
@@ -846,12 +949,12 @@ describe('GET /api/delegates/search', function () {
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates).to.have.length(101);
 			done();
 		});
 	});
 
-	it('using string limit should be ok', function (done) {
+	it('using string limit should fail', function (done) {
 		var q = 'genesis_';
 		var limit = 'one';
 
@@ -907,21 +1010,21 @@ describe('GET /api/delegates/search', function () {
 		});
 	});
 
-	it('using limit == 100 should be ok', function (done) {
+	it('using limit == 1000 should be ok', function (done) {
 		var q = 'genesis_';
-		var limit = 100;
+		var limit = 1000;
 
 		node.get('/api/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates).to.have.length(101);
 			done();
 		});
 	});
 
-	it('using limit > 100 should fail', function (done) {
+	it('using limit > 1000 should fail', function (done) {
 		var q = 'genesis_';
-		var limit = 101;
+		var limit = 1001;
 
 		node.get('/api/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -946,7 +1049,7 @@ describe('GET /api/delegates/search', function () {
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates).to.have.length(101);
 			node.expect(res.body.delegates[0]).to.have.property('username');
 			node.expect(res.body.delegates[0].username).to.equal('genesis_1');
 			node.expect(res.body.delegates[24]).to.have.property('username');
@@ -961,7 +1064,7 @@ describe('GET /api/delegates/search', function () {
 		node.get('/api/delegates/search?q=' + q + '&orderBy=username:asc', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates).to.have.length(101);
 			node.expect(res.body.delegates[0]).to.have.property('username');
 			node.expect(res.body.delegates[0].username).to.equal('genesis_1');
 			node.expect(res.body.delegates[24]).to.have.property('username');
@@ -976,7 +1079,7 @@ describe('GET /api/delegates/search', function () {
 		node.get('/api/delegates/search?q=' + q + '&orderBy=username:desc', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(100);
+			node.expect(res.body.delegates).to.have.length(101);
 			node.expect(res.body.delegates[0]).to.have.property('username');
 			node.expect(res.body.delegates[0].username).to.equal('genesis_99');
 			node.expect(res.body.delegates[24]).to.have.property('username');

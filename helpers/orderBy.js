@@ -1,5 +1,13 @@
 'use strict';
 
+/**
+ * Validates sort options, methods and fields.
+ * @memberof module:helpers
+ * @function
+ * @param {array} orderBy
+ * @param {string} options
+ * @return {Object} error | {sortField, sortMethod}.
+ */
 function OrderBy (orderBy, options) {
 	options = (typeof options === 'object') ? options : {};
 	options.sortField  = options.sortField  || null;

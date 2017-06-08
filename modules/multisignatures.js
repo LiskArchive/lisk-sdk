@@ -15,20 +15,54 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
 
+/**
+ * Initializes library with scope content and generates a Multisignature instance.
+ * Calls logic.transaction.attachAssetType().
+ * @memberof module:multisignatures
+ * @class
+ * @classdesc Main multisignatures methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Multisignatures (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		network: scope.network,
+		schema: scope.schema,
+		ed: scope.ed,
+		bus: scope.bus,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+	};
 	genesisblock = library.genesisblock;
 	self = this;
 
 	__private.assetTypes[transactionTypes.MULTI] = library.logic.transaction.attachAssetType(
-		transactionTypes.MULTI, new Multisignature()
+		transactionTypes.MULTI,
+		new Multisignature(
+			scope.schema,
+			scope.network,
+			scope.logic.transaction,
+			scope.logger
+		)
 	);
 
 	setImmediate(cb, null, self);
 }
 
 // Public methods
+/**
+ * Gets transaction from transaction id and add it to sequence and bus.
+ * @param {Object} tx - Contains transaction and signature.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} err messages| cb
+ * @todo test function!.
+ */
 Multisignatures.prototype.processSignature = function (tx, cb) {
 	var transaction = modules.transactions.getMultisignatureTransaction(tx.transaction);
 
@@ -132,24 +166,48 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 	}
 };
 
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Multisignatures.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
+/**
+ * Calls Multisignature.bind() with modules params.
+ * @implements module:multisignatures#Multisignature~bind
+ * @param {modules} scope - Loaded modules.
+ */
 Multisignatures.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transactions: scope.transactions,
+		accounts: scope.accounts,
+	};
 
-	__private.assetTypes[transactionTypes.MULTI].bind({
-		modules: modules, library: library
-	});
+	__private.assetTypes[transactionTypes.MULTI].bind(
+		scope.rounds,
+		scope.accounts
+	);
 };
 
+/**
+ * Checks if `modules` is loaded.
+ * @return {boolean} True if `modules` is loaded.
+ */
 Multisignatures.prototype.isLoaded = function () {
 	return !!modules;
 };
 
 // Shared API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
 Multisignatures.prototype.shared = {
 	getAccounts: function (req, cb) {
 		var scope = {};

@@ -1,5 +1,15 @@
 'use strict';
-
+/**
+ * @namespace exceptions
+ * @memberof module:helpers
+ * @property {object} genesisPublicKey
+ * @property {string} genesisPublicKey.mainnet
+ * @property {string} genesisPublicKey.testnet
+ * @property {Strin[]} senderPublicKey
+ * @property {Strin[]} signatures
+ * @property {Strin[]} multisignatures
+ * @property {Strin[]} votes
+ */	
 module.exports = {
 	blockRewards: [
 		'11807740622680299921', // 2161

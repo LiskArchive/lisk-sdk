@@ -32,7 +32,7 @@ describe('POST /peer/transactions', function () {
 		it('using undefined transaction', function (done) {
 			postTransaction(undefined, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.equal('Invalid transaction body');
+				node.expect(res.body).to.have.property('message').to.contain('Invalid transaction body');
 				done();
 			});
 		});
@@ -45,7 +45,7 @@ describe('POST /peer/transactions', function () {
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.equal('Invalid transaction body');
+				node.expect(res.body).to.have.property('message').to.contain('Invalid transaction body');
 				done();
 			});
 		});
@@ -85,7 +85,7 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using uppercase username should fail', function (done) {
-				account.username = node.randomDelegateName().toUpperCase();
+				account.username = 'UPPER_DELEGATE';
 				var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 				postTransaction(transaction, function (err, res) {

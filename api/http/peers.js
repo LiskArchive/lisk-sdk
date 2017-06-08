@@ -3,6 +3,21 @@
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
 
+/**
+ * Binds api with modules and creates common url.
+ * - End point: `/api/peers`
+ * - Public API:
+ * 	- get	/
+ * 	- get	/version
+ * 	- get	/get
+ * 	- get	/count
+ * @memberof module:peers
+ * @requires helpers/Router
+ * @requires helpers/httpApi
+ * @constructor
+ * @param {Object} peersModule - Module peers instance.
+ * @param {scope} app - Network app.
+ */
 // Constructor
 function PeersHttpApi (peersModule, app) {
 
