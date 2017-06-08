@@ -1029,25 +1029,17 @@ describe('GET /api/delegates/forging/status', function () {
 		});
 	});
 
-	it('using disabled publicKey should be ok', function (done) {
-		node.get('/api/delegates/forging/status?publicKey=' + 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f', function (err, res) {
+	it('using publicKey should be ok', function (done) {
+		node.get('/api/delegates/forging/status?publicKey=' + testDelegate.publicKey, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('enabled').to.be.false;
+			node.expect(res.body).to.have.property('enabled').that.is.a('boolean');
 			done();
 		});
 	});
 
-	it('using enabled publicKey should be ok', function (done) {
-		node.get('/api/delegates/forging/status?publicKey=' + '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('enabled').to.be.true;
-			done();
-		});
-	});
 });
 
 describe('POST /api/delegates/forging/disable', function () {
-	var testDelegate = genesisDelegates.delegates[0];
 
 	before(function (done) {
 		node.get('/api/delegates/forging/status?publicKey=' + testDelegate.publicKey, function (err, res) {
