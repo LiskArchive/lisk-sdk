@@ -289,7 +289,7 @@ __private.loadTransactions = function (cb) {
  * @implements {modules.blocks.deleteAfterBlock}
  * @implements {modules.blocks.loadLastBlock}
  * @emits exit
- * @throws {string} When fails to match genesis block with database
+ * @throws {string} When fails to match genesis block with database or rounds exceptions doesn't match database
  */
 __private.loadBlockChain = function () {
 	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
@@ -373,7 +373,8 @@ __private.loadBlockChain = function () {
 			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
 			t.query(sql.getMemRounds),
-			t.query(sql.validateMemBalances)
+			t.query(sql.validateMemBalances),
+			t.query(sql.getRoundsExceptions)
 		];
 
 		return t.batch(promises);
@@ -413,34 +414,8 @@ __private.loadBlockChain = function () {
 		}
 	}
 
-	// Port rounds exceptions to database layer
-	library.db.tx(function (t) {
-		var queries = [];
-
-		Object.keys(exceptions.rounds).forEach(function (round) {
-			var ex = exceptions.rounds[round];
-			queries.push(
-				t.none(sql.insertRoundException, {
-					round: round,
-					rewards_factor: ex.rewards_factor,
-					fees_factor: ex.fees_factor,
-					fees_bonus: ex.fees_bonus
-				})
-			);
-		}
-
-		return t.batch(queries);
-	}).then(function (data) {
-		library.logger.info('Exceptions for round ported to database layer');
-		return setImmediate(cb);
-	}).catch(function (err) {
-		library.logger.error('Port exceptions to database layer failed', {error: err.message || err});
-		return process.emit('exit');
-	});
-
-	library.db.task(checkMemTables).then(function (results) {
-		var count = results[0].count;
-
+	library.db.task(checkMemTables).then(function ([countBlocks, getGenesisBlock, countMemAccounts, getMemRounds, validateMemBalances, dbRoundsExceptions]) {
+		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
 
 		var round = modules.rounds.calc(count);
@@ -449,7 +424,7 @@ __private.loadBlockChain = function () {
 			return reload(count);
 		}
 
-		matchGenesisBlock(results[1][0]);
+		matchGenesisBlock(getGenesisBlock[0]);
 
 		verify = verifySnapshot(count, round);
 
@@ -457,13 +432,13 @@ __private.loadBlockChain = function () {
 			return reload(count, 'Blocks verification enabled');
 		}
 
-		var missed = !(results[2].count);
+		var missed = !(countMemAccounts.count);
 
 		if (missed) {
 			return reload(count, 'Detected missed blocks in mem_accounts');
 		}
 
-		var unapplied = results[3].filter(function (row) {
+		var unapplied = getMemRounds.filter(function (row) {
 			return (row.round !== String(round));
 		});
 
@@ -471,8 +446,21 @@ __private.loadBlockChain = function () {
 			return reload(count, 'Detected unapplied rounds in mem_round');
 		}
 
-		if (results[4].length) {
+		if (validateMemBalances.length) {
 			return reload(count, 'Memory balances doesn\'t match blockchain balances');
+		}
+
+		// Compare rounds exceptions with database layer
+		var roundsExceptions = Object.keys(exceptions.rounds);
+		if (roundsExceptions.length !== dbRoundsExceptions.length) {
+			throw 'Rounds exceptions count doesn\'t match database layer';
+		} else {
+			dbRoundsExceptions.forEach(function (row) {
+				var ex = exceptions.rounds[row.round];
+				if (!ex || ex.rewards_factor !== row.rewards_factor || ex.fees_factor !== row.fees_factor || ex.fees_bonus !== Number(row.fees_bonus)) {
+					throw 'Rounds exceptions values doesn\'t match database layer';
+				}
+			});
 		}
 
 		function updateMemAccounts (t) {
@@ -485,12 +473,12 @@ __private.loadBlockChain = function () {
 			return t.batch(promises);
 		}
 
-		library.db.task(updateMemAccounts).then(function (results) {
-			if (results[1].length > 0) {
+		library.db.task(updateMemAccounts).then(function ([updateMemAccounts, getOrphanedMemAccounts, getDelegates]) {
+			if (getOrphanedMemAccounts.length > 0) {
 				return reload(count, 'Detected orphaned blocks in mem_accounts');
 			}
 
-			if (results[2].length === 0) {
+			if (getDelegates.length === 0) {
 				return reload(count, 'No delegates found');
 			}
 

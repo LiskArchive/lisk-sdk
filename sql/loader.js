@@ -17,7 +17,7 @@ var LoaderSql = {
 
 	validateMemBalances: 'SELECT * FROM validateMemBalances()',
 
-	insertRoundException: 'INSERT INTO rounds_exceptions (round, rewards_factor, fees_factor, fees_bonus) VALUES (${round}, ${rewards_factor}, ${fees_factor}, ${fees_bonus}) ON CONFLICT (round) DO NOTHING;'
+	getRoundsExceptions: 'SELECT * FROM rounds_exceptions;'
 };
 
 module.exports = LoaderSql;
