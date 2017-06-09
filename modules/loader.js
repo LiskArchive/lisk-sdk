@@ -883,7 +883,7 @@ Loader.prototype.shared = {
 			blocks: __private.blocksToSync,
 			height: modules.blocks.lastBlock.get().height,
 			broadhash: modules.system.getBroadhash(),
-			consensus: modules.transport.consensus()
+			consensus: modules.peers.getConsensus()
 		});
 	}
 };

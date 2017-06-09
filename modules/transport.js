@@ -260,24 +260,19 @@ Transport.prototype.headers = function (headers) {
 	return __private.headers;
 };
 
-/**
- * Gets consensus
- * @return {number} broadcaster consensus
- */
-Transport.prototype.consensus = function () {
-	return constants.consensus;
-};
 
 /**
  * Returns true if broadcaster consensus is less than minBroadhashConsensus.
  * Returns false if consensus is undefined.
+ * @param {number} [modules.peers.getConsensus()]
  * @return {boolean}
  */
-Transport.prototype.poorConsensus = function () {
-	if (constants.consensus === undefined) {
+Transport.prototype.poorConsensus = function (consensus) {
+	var consensus = consensus || modules.peers.getConsensus();
+	if (consensus === undefined) {
 		return false;
 	} else {
-		return (constants.consensus < constants.minBroadhashConsensus);
+		return (consensus < constants.minBroadhashConsensus);
 	}
 };
 

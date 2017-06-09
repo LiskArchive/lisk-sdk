@@ -119,6 +119,8 @@ __private.getByFilter = function (filter, cb) {
 	// Apply filters (by AND)
 	var peers = library.logic.peers.list();
 
+	peers = self.acceptable(peers);
+
 	peers = peers.filter(function (peer) {
 		// var peer = __private.peers[index];
 		var passed = true;
@@ -160,6 +162,17 @@ __private.getByFilter = function (filter, cb) {
 	return setImmediate(cb, null, peers);
 };
 
+__private.getMatched = function (test, peers) {
+	peers = peers || library.logic.peers.list();
+
+	var key = Object.keys(test)[0];
+	var value = test[key];
+
+	return peers.filter(function (peer) {
+		return peer[key] === value;
+	});
+};
+
 /**
  * Pings to every member of peers list.
  * @private
@@ -183,7 +196,7 @@ __private.insertSeeds = function (cb) {
 				peer.applyHeaders({
 					height: status.height,
 					broadhash: status.broadhash,
-					state: 2 //connected
+					state: Peer.STATE.ACTIVE //connected
 				});
 				updated += 1;
 			}
@@ -230,7 +243,8 @@ __private.dbLoad = function (cb) {
 					} else {
 						peer.applyHeaders({
 							height: status.height,
-							broadhash: status.broadhash
+							broadhash: status.broadhash,
+							state: Peer.STATE.ACTIVE
 						});
 						library.logic.peers.upsert(peer);
 						updated += 1;
@@ -307,6 +321,25 @@ __private.dbSave = function (cb) {
 	});
 };
 
+
+Peers.prototype.getConsensus = function (matched, active) {
+
+	active = active || __private.getMatched({state: Peer.STATE.ACTIVE});
+	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash});
+
+	if (matched === 0) {
+		return undefined;
+	}
+
+	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 1e2;
+
+	if (isNaN(consensus)) {
+		return 0;
+	}
+
+	return consensus;
+};
+
 // Public methods
 /**
  * Calls helpers.sandbox.callMethod().
@@ -380,7 +413,8 @@ Peers.prototype.discover = function (cb) {
 					}
 					randomPeer.applyHeaders({
 						height: status.height,
-						broadhash: status.broadhash
+						broadhash: status.broadhash,
+						state: Peer.STATE.ACTIVE
 					});
 					library.logic.peers.upsert(randomPeer);
 
@@ -449,10 +483,10 @@ Peers.prototype.acceptable = function (peers) {
 			return (a.ip + a.port) === (b.ip + b.port);
 		})
 		.filter(function (peer) {
-			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-				return !isMe(peer);
-			}
-			return !ip.isPrivate(peer.ip) && !isMe(peer);
+			// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+			return !isMe(peer);
+			// }
+			// return !ip.isPrivate(peer.ip) && !isMe(peer);
 		}).value();
 
 	function isMe (peer) {
@@ -481,21 +515,16 @@ Peers.prototype.list = function (options, cb) {
 			var accepted, found, matched, picked;
 
 			found = peersList.length;
-			// Apply filters
-			peersList = peersList.filter(function (peer) {
-				if (options.broadhash) {
-					// Skip banned peers (state 0)
-					return peer.state > 0 && (
-							// Matched broadhash when attempt 0
-							options.attempt === 0 ? (peer.broadhash === options.broadhash) :
-							// Unmatched broadhash when attempt 1
-							options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
-						);
-				} else {
-					// Skip banned and disconnected peers (state 0 and 1)
-					return options.allowedStates.indexOf(peer.state) !== -1;
-				}
-			});
+
+			peersList = __private.getMatched({state: Peer.STATE.ACTIVE}, peersList);
+
+			if (options.broadhash) {
+				peersList = options.attempt === 0 ?
+					__private.getMatched({broadhash: constants.headers.broadhash}, peersList) : peersList.filter(function (peer) {
+						return peer.broadhash !== constants.headers.broadhash;
+					});
+			}
+
 			matched = peersList.length;
 			// Apply limit
 			peersList = peersList.slice(0, options.limit);
@@ -524,11 +553,8 @@ Peers.prototype.list = function (options, cb) {
 		}
 	], function (err, peers) {
 		// Calculate consensus
-		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-		consensus = isNaN(consensus) ? 0 : consensus;
-		constants.setConst('consensus', consensus);
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers, consensus);
+		return setImmediate(cb, err, peers, self.getConsensus(peers));
 	});
 };
 
@@ -606,7 +632,8 @@ Peers.prototype.onPeersReady = function () {
 							} else {
 								peer.applyHeaders({
 									height: status.height,
-									broadhash: status.broadhash
+									broadhash: status.broadhash,
+									state: Peer.STATE.ACTIVE
 								});
 								library.logic.peers.upsert(peer);
 								updated += 1;

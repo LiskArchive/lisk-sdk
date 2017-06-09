@@ -167,8 +167,9 @@ __private.forge = function (cb) {
 					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 				},
 				checkBroadhash: function (seriesCb) {
-					if (modules.transport.poorConsensus()) {
-						return setImmediate(seriesCb, ['Inadequate broadhash consensus', modules.transport.consensus(), '%'].join(' '));
+					var consensus = modules.peers.getConsensus();
+					if (modules.transport.poorConsensus(consensus)) {
+						return setImmediate(seriesCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
 					} else {
 						return setImmediate(seriesCb);
 					}
