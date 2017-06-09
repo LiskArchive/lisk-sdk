@@ -374,15 +374,31 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
  */
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
-		var broadhash = modules.system.getBroadhash();
-
 		modules.system.update(function () {
-			if (!__private.broadcaster.maxRelays(block)) {
-				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: 'postBlock', data: {block: block}, immediate: true});
+			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
+				modules.peers.list({}, function (err, peers) {
+					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.ACTIVE; }), function (peer, cb) {
+						peer.rpc.acceptPeer(library.logic.peers.me(), function (err) {
+							if (err) {
+								library.logger.debug('Failed to update peer after new block applied', peer.string);
+								cb({errorMsg: err, peer: peer});
+								__private.banPeer({peer: peer, code: 'ECOMMON', clock: 600});
+							} else {
+								library.logger.debug('Peer notified correctly after update', peer.string);
+								cb();
+							}
+						});
+					}, function (err) {
+						if (err) {
+							library.logger.debug('Broadcasting block aborted - cannot update info at peer: ', err.peer.ip + ':' + err.peer.port);
+						} else {
+							__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}, {api: 'postBlock', data: {block: block}, immediate: true});
+						}
+					});
+				});
 			}
-			library.network.io.sockets.emit('blocks/change', block);
-			//ToDo: broadcasting block to peers should take place here
 		});
+		library.network.io.sockets.emit('blocks/change', block);
 	}
 };
 
@@ -480,7 +496,6 @@ Transport.prototype.internal = {
 
 	postBlock: function (query, cb) {
 		query = query || {};
-		modules.peers.update(query.peer);
 		try {
 			var block = library.logic.block.objectNormalize(query.block);
 		} catch (e) {
@@ -518,7 +533,6 @@ Transport.prototype.internal = {
 	},
 
 	postSignatures: function (query, cb) {
-		modules.peers.update(query.peer);
 		if (query.signatures) {
 			__private.receiveSignatures(query, function (err) {
 				if (err) {
@@ -561,7 +575,6 @@ Transport.prototype.internal = {
 	},
 
 	postTransactions: function (query, cb) {
-		modules.peers.update(query.peer);
 		if (query.transactions) {
 			__private.receiveTransactions(query, query.peer, query.extraLogMessage, function (err) {
 				if (err) {
@@ -662,6 +675,10 @@ Transport.prototype.internal = {
 	 * @param {function} cb
 	 */
 	acceptPeer: function (peer, cb) {
+		if (['height', 'nonce', 'broadhash'].some(function(header) { return peer[header] === undefined; })) {
+			return setImmediate(cb, 'No headers information');
+		}
+		peer.state = Peer.STATE.ACTIVE;
 		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };

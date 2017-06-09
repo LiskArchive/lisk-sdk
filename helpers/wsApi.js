@@ -16,11 +16,7 @@ var middleware = {
 
 			headers = headers || {};
 
-			var peer = new Peer({
-				ip: headers.ip,
-				port: headers.port,
-				nonce: headers.nonce
-			});
+			var peer = new Peer(headers);
 
 			headers = peer.applyHeaders(headers);
 

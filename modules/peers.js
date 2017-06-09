@@ -321,13 +321,12 @@ __private.dbSave = function (cb) {
 	});
 };
 
-
 Peers.prototype.getConsensus = function (matched, active) {
 
 	active = active || __private.getMatched({state: Peer.STATE.ACTIVE});
-	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash});
+	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash}, active);
 
-	if (matched === 0) {
+	if (active.length === 0) {
 		return undefined;
 	}
 
@@ -359,7 +358,6 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
  * @todo rename this function to activePeer or similar
  */
 Peers.prototype.update = function (peer) {
-	peer.state = Peer.STATE.ACTIVE;
 	return library.logic.peers.upsert(peer);
 };
 
@@ -483,10 +481,10 @@ Peers.prototype.acceptable = function (peers) {
 			return (a.ip + a.port) === (b.ip + b.port);
 		})
 		.filter(function (peer) {
-			// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-			return !isMe(peer);
-			// }
-			// return !ip.isPrivate(peer.ip) && !isMe(peer);
+			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+				return !isMe(peer);
+			}
+			return !ip.isPrivate(peer.ip) && !isMe(peer);
 		}).value();
 
 	function isMe (peer) {
@@ -509,27 +507,33 @@ Peers.prototype.list = function (options, cb) {
 	options.attempt = 0;
 	options.matched = 0;
 
+	var consensus;
+
 	function randomList (options, peers, cb) {
 		// Get full peers list (random)
 		__private.getByFilter({}, function (err, peersList) {
-			var accepted, found, matched, picked;
+			var accepted, found, matched, picked, matchedPeers;
 
 			found = peersList.length;
 
 			peersList = __private.getMatched({state: Peer.STATE.ACTIVE}, peersList);
 
 			if (options.broadhash) {
-				peersList = options.attempt === 0 ?
+				matchedPeers = options.attempt === 0 ?
 					__private.getMatched({broadhash: constants.headers.broadhash}, peersList) : peersList.filter(function (peer) {
 						return peer.broadhash !== constants.headers.broadhash;
 					});
+			} else {
+				matchedPeers = peersList;
 			}
 
-			matched = peersList.length;
+			consensus = self.getConsensus(peersList, matchedPeers);
+
+			matched = matchedPeers.length;
 			// Apply limit
-			peersList = peersList.slice(0, options.limit);
-			picked = peersList.length;
-			accepted = self.acceptable(peers.concat(peersList));
+			matchedPeers = matchedPeers.slice(0, options.limit);
+			picked = matchedPeers.length;
+			accepted = self.acceptable(peers.concat(matchedPeers));
 			library.logger.debug('Listing peers', {attempt: options.attempts[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
 			return setImmediate(cb, null, accepted);
 		});
@@ -554,7 +558,7 @@ Peers.prototype.list = function (options, cb) {
 	], function (err, peers) {
 		// Calculate consensus
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers, self.getConsensus(peers));
+		return setImmediate(cb, err, peers, consensus);
 	});
 };
 
