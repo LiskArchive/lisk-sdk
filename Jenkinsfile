@@ -1,6 +1,7 @@
 def initBuild() {
   sh '''#!/bin/bash
   pkill -f app.js || true
+  sudo service postgresql restart
   dropdb lisk_test || true
   createdb lisk_test
   '''
