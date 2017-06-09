@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node app.js",
     "test": "./node_modules/.bin/grunt test --verbose",
-    "travis": "./node_modules/.bin/grunt travis --verbose",
+    "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
