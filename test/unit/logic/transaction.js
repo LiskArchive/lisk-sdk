@@ -80,8 +80,8 @@ function getValidTransactionData () {
 	var trsData = {
 		type: 0,
 		amount: 232420792390,
-		sender: node.gAccount,
-		senderId: node.gAccount.address,
+		sender: validSender,
+		senderId: '16313739661670634666L',
 		timestamp: 24177404,
 		recipientId: '11483172656590824880L',
 		data: '50b92d',
@@ -288,7 +288,7 @@ describe('transaction', function () {
 		it('should transaion and assets are ready', function () {
 			var trs = getValidTransactionData();
 			expect(transaction.ready(trs)).to.equal('');
-		})
+		});
 	});
 
 	describe('countById', function () {
@@ -337,9 +337,10 @@ describe('transaction', function () {
 		});
 
 		it('should verify proper SEND transaction with proper sender', function (done) {
-			validTransaction.type = transactionTypes.SEND;
+			var trs = _.clone(validTransaction);
+			trs.type = transactionTypes.SEND;
 
-			transaction.verify(validTransaction, validSender, {}, function (err, res) {
+			transaction.verify(trs, validSender, {}, function (err, res) {
 				expect(err).to.not.be.ok;
 				expect(res).to.be.empty;
 				done();
@@ -347,7 +348,8 @@ describe('transaction', function () {
 		});
 
 		it('should be impossible to send the money from genesis account', function (done) {
-			validTransaction.type = transactionTypes.SEND;
+			var trs = _.clone(validTransaction);
+			trs.type = transactionTypes.SEND;
 
 			transaction.verify(validTransaction, validSender, {}, function (err, res) {
 				expect(err).to.be.empty;
@@ -357,13 +359,16 @@ describe('transaction', function () {
 		});
 
 		it('should verify proper SIGNATURE transaction with proper sender', function (done) {
-			validTransaction.type = transactionTypes.SIGNATURE;
-			validTransaction.asset = {
+			var trsData = getValidTransactionData();
+			trsData.type = transactionTypes.SIGNATURE;
+			trsData.asset = {
 				signature: {
 					publicKey: validSender.publicKey
 				}
 			};
-			transaction.verify(validTransaction, validSender, {}, function (err, res) {
+			var trs = transaction.create(trs);
+
+			transaction.verify(trs, validSender, {}, function (err, res) {
 				expect(err).to.be.empty;
 				expect(res).to.be.empty;
 				done();
@@ -371,47 +376,52 @@ describe('transaction', function () {
 		});
 
 		it('should verify proper DELEGATE transaction with proper sender', function (done) {
-			validTransaction.type = transactionTypes.DELEGATE;
-			validTransaction.asset = {
-				delegate: {
-					username: 'proper-delegate-name'
-				},
-				signature: {
-					publicKey: validTransaction.senderPublicKey
-				}
-			};
-			transaction.verify(validTransaction, validSender, {}, function (err, res) {
-				expect(err).to.be.empty;
-				expect(res).to.be.empty;
-				done();
+			var trsData = getValidTransactionData();
+
+			trsData.type = transactionTypes.DELEGATE;
+			trsData.username = 'adelegatename';
+			trs.sender.publicKey = validTransaction.senderPublicKey;
+
+			var trs = transaction.create(trsData);
+			transaction.process(trs, validSender, {}, function (err, tx) {
+				expect(err).to.be.a('null');
+				transaction.verify(tx, validSender, {}, function (err, res) {
+					expect(err).to.be.empty;
+					expect(res).to.be.empty;
+					done();
+				});
 			});
 		});
 
 		it('should verify proper VOTE transaction with proper sender', function (done) {
-			validTransaction.type = transactionTypes.SIGNATURE;
-			validTransaction.asset = {
-				signature: {
-					publicKey: validSender.publicKey
-				}
-			};
-			transaction.verify(validTransaction, validSender, {}, function (err, res) {
-				expect(err).to.be.empty;
-				expect(res).to.be.empty;
-				done();
+
+			var trsData = getValidTransactionData();
+			trsData.type = transactionTypes.VOTE;
+			trsData.sender.publicKey = validSender.publicKey;
+
+			var trs = transaction.create(trsData);
+			transaction.process(trs, validSender, {}, function (err, tx) {
+				transaction.verify(tx, validSender, {}, function (err, res) {
+					expect(err).to.be.empty;
+					expect(res).to.be.empty;
+					done();
+				});
 			});
 		});
 
 		it('should verify proper MULTI transaction with proper sender', function (done) {
-			validTransaction.type = transactionTypes.MULTI;
-			validTransaction.asset = {
-				signature: {
-					publicKey: validSender.publicKey
-				}
-			};
-			transaction.verify(validTransaction, validSender, {}, function (err, res) {
-				expect(err).to.be.empty;
-				expect(res).to.be.empty;
-				done();
+
+			var trsData = getValidTransactionData();
+			trsData.type = transactionTypes.MULTI;
+			trsData.sender.publicKey = validSender.publicKey;
+
+			var trs = transaction.create(trsData);
+			transaction.process(trs, validSender, {}, function (err, tx) {
+				transaction.verify(tx, validSender, {}, function (err, res) {
+					expect(err).to.be.empty;
+					expect(res).to.be.empty;
+					done();
+				});
 			});
 		});
 
@@ -619,13 +629,22 @@ describe('transaction', function () {
 		});
 
 		it('should return transaction object with data field', function () {
-			var trs = transaction.dbRead(rawTransaction);
+			var rawTrs = _.clone(rawTransaction);
+			var trs = transaction.dbRead(rawTrs);
 			expect(trs).to.be.an('object');
 			expect(_.keys(trs)).to.be.contain('data');
 		});
 
+		it('should null if id field is not present', function () {
+			var rawTrs = _.clone(rawTransaction);
+			delete rawTrs.id;
+			var trs = transaction.dbRead(rawTrs);
+			expect(trs).to.be.a('null');
+		});
+
 		it('should return transaction object', function () {
-			expect(transaction.dbRead(rawTransaction)).to.be.an('object');
+			var rawTrs = _.clone(rawTransaction);
+			expect(transaction.dbRead(rawTrs)).to.be.an('object');
 		});
 	});
 });
