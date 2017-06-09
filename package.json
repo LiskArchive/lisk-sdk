@@ -6,6 +6,7 @@
     "start": "node app.js",
     "test": "./node_modules/.bin/grunt test --verbose",
     "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
+    "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
