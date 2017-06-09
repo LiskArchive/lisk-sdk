@@ -98,7 +98,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 			__private.peers[peer.string] = peer;
 
 			library.logger.debug('Inserted new peer', peer.string);
-			library.logger.trace('Inserted new peer', {peer: peer});
+			library.logger.trace('Inserted new peer', {peer: peer}, 'myself: ', self.me(), 'external address: ', constants.externalAddress);
 		}
 	};
 
