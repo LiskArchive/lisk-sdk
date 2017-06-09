@@ -1,27 +1,114 @@
 {
-  "apps": [
-    {
-      "exec_mode": "fork",
-      "script": "app.js",
-      "name": "lisk-test-node-0",
-      "args": "-p 4000 -x 127.0.0.1:4001 -d lisk_local_0",
-      "env": {
-        "NODE_ENV": "test"
-      },
-      "error_file": "./test/integration/logs/lisk-test-node-0.err.log",
-      "out_file": "./test/integration/logs/lisk-test-node-0.out.log"
-    },
-    {
-      "exec_mode": "fork",
-      "script": "app.js",
-      "name": "lisk-test-node-1",
-      "args": "-p 4001 -x 127.0.0.1:4000 -d lisk_local_1",
-      "env": {
-        "NODE_ENV": "test"
-      },
-      "error_file": "./test/integration/logs/lisk-test-node-1.err.log",
-      "out_file": "./test/integration/logs/lisk-test-node-1.out.log"
-    }
-  ]
+    "apps": [
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_0",
+            "args": " -p 4000 -h 5000 -x 127.0.0.1:4001 -d lisk_local_0",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-0.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-0.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_1",
+            "args": " -p 4001 -h 5001 -x 127.0.0.1:4001 -d lisk_local_1 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-1.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-1.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_2",
+            "args": " -p 4002 -h 5002 -x 127.0.0.1:4001 -d lisk_local_2 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-2.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-2.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_3",
+            "args": " -p 4003 -h 5003 -x 127.0.0.1:4001 -d lisk_local_3 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-3.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-3.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_4",
+            "args": " -p 4004 -h 5004 -x 127.0.0.1:4001 -d lisk_local_4 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-4.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-4.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_5",
+            "args": " -p 4005 -h 5005 -x 127.0.0.1:4001 -d lisk_local_5 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-5.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-5.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_6",
+            "args": " -p 4006 -h 5006 -x 127.0.0.1:4001 -d lisk_local_6 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-6.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-6.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_7",
+            "args": " -p 4007 -h 5007 -x 127.0.0.1:4001 -d lisk_local_7 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-7.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-7.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_8",
+            "args": " -p 4008 -h 5008 -x 127.0.0.1:4001 -d lisk_local_8 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-8.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-8.out.log"
+        },
+        {
+            "exec_mode": "fork",
+            "script": "app.js",
+            "name": "node_9",
+            "args": " -p 4009 -h 5009 -x 127.0.0.1:4001 -d lisk_local_9 -c ./test/integration/config.non-forge.json",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "error_file": "./test/integration/logs/lisk-test-node-9.err.log",
+            "out_file": "./test/integration/logs/lisk-test-node-9.out.log"
+        }
+    ]
 }
-

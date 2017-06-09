@@ -26,7 +26,7 @@ var randomString = require('randomstring');
 require('colors');
 
 // Node configuration
-node.baseUrl = 'http://' + node.config.address + ':' + node.config.port;
+node.baseUrl = 'http://' + node.config.address + ':' + node.config.httpPort;
 node.api = node.supertest(node.baseUrl);
 
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value

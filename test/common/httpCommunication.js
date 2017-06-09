@@ -7,11 +7,6 @@ var httpCommunication = {
 		var request = node.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
-		request.set('version', node.version);
-		request.set('nethash', node.config.nethash);
-		request.set('ip', '0.0.0.0');
-		request.set('port', node.config.port);
-
 		request.expect('Content-Type', /json/);
 		request.expect(200);
 

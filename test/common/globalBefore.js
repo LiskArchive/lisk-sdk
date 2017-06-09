@@ -33,7 +33,7 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 		timeout = 1000;
 	}
 
-	baseUrl = baseUrl ||  'http://' + config.address + ':' + config.port;
+	baseUrl = baseUrl || 'http://' + config.address + ':' + config.httpPort;
 	(function fetchBlockchainStatus () {
 		popsicle.get(baseUrl + '/api/loader/status')
 			.then(function (res) {
