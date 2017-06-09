@@ -130,9 +130,10 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-eslint');
 
-	grunt.registerTask('default', ['release']);
+  grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
+	grunt.registerTask('jenkins', ['exec:coverageSingle']);
+	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
