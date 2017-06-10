@@ -4,7 +4,6 @@
 var node = {};
 var Rounds = require('../modules/rounds.js');
 var slots = require('../helpers/slots.js');
-var modulesLoader = require('./common/initModule').modulesLoader;
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -131,15 +130,10 @@ node.onNewRound = function (cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			modulesLoader.initModuleWithDb(Rounds, function (err, rounds) {
-				if (err) {
-					return cb(err);
-				}
-				var nextRound = rounds.calc(height);
-				var blocksToWait = nextRound * slots.delegates - height;
-				node.debug('blocks to wait: '.grey, blocksToWait);
-				node.waitForNewBlock(height, blocksToWait, cb);
-			});
+			var nextRound = Math.ceil(height / slots.delegates);
+			var blocksToWait = nextRound * slots.delegates - height;
+			node.debug('blocks to wait: '.grey, blocksToWait);
+			node.waitForNewBlock(height, blocksToWait, cb);
 		}
 	});
 };
@@ -168,6 +162,10 @@ node.waitForBlocks = function (blocksToWait, cb) {
 
 // Waits for a new block to be created
 node.waitForNewBlock = function (height, blocksToWait, cb) {
+	if (blocksToWait === 0) {
+		return setImmediate(cb, null, height);
+	}
+
 	var actualHeight = height;
 	var counter = 1;
 	var target = height + blocksToWait;
