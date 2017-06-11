@@ -175,13 +175,16 @@ describe('transaction', function () {
 			delete trsData.fee;
 			expect(transaction.create(trsData).fee).to.equal(10000000);
 		});
-
 	});
 
 	describe('attachAssetType', function () {
 
 		it('should attach all transaction types', function () {
 			attachAllAssets(transaction);
+		});
+
+		it('should throw an error on invalid asset', function () {
+			expect(transaction.attachAssetType.bind(-1, {}).to.throw());
 		});
 
 		it('should throw an error with no param', function () {
@@ -195,9 +198,11 @@ describe('transaction', function () {
 		});
 
 		it('should sign transaction', function () {
-			var trsData = getValidTransactionData();
-			var createdTransaction = transaction.create(trsData);
-			expect(transaction.sign(trsData.keypair, createdTransaction)).to.be.ok;
+			var trs = _.clone(validTransaction);
+			var password = 'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
+			var hash = crypto.createHash('sha256').update(password, 'utf8').digest();
+			var keypair = ed.makeKeypair(hash);
+			expect(transaction.sign(keypair, trs)).to.equal(trs.signature);
 		});
 
 		it('should update signature when data is changed', function () {
@@ -332,13 +337,191 @@ describe('transaction', function () {
 
 	describe('verify', function () {
 
+		var trs;
+
 		before(function () {
 			attachAllAssets(transaction);
 		});
 
-		it('should verify proper SEND transaction with proper sender', function (done) {
+
+		it('should throw error when sender is missing', function (done) {
 			var trs = _.clone(validTransaction);
-			trs.type = transactionTypes.SEND;
+
+			transaction.verify(trs, null, {}, function (err, res) {
+				expect(err).to.equal('Missing sender');
+				expect(res).to.not.exist;
+				done();
+			});
+		});
+
+		it('should throw error with invalid trs type', function (done) {
+			var trs = _.clone(validTransaction);
+			trs.type = -1;
+
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include('Unknown transaction type');
+				expect(res).to.not.exist;
+				done();
+			});
+		});
+
+		it('should throw error when missing sender second signature', function (done) {
+			var trs = _.clone(validTransaction);
+			var vs = _.clone(validSender);
+			vs.secondSignature = '839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
+
+			transaction.verify(trs, vs, {}, function (err, res) {
+				expect(err).to.include('Missing sender second signature');
+				expect(res).to.not.exist;
+				done();
+			});
+		});
+
+		it('should throw error when sender does not have a second signature', function (done) {
+			var trs = _.clone(validTransaction);
+			trs.secondSignature = '839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
+			trs.signSignature = ['ebedfe9832b82d6211b6fda7c53ef0d3b857e2cec73fade305def8deb75d28e9a1ea0db45cc3b90361528dc0b27c0faa48fb53592416753bb9f69103727e1200'];
+
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include('Sender does not have a second signature');
+				expect(res).to.not.exist;
+				done();
+			});
+		});
+
+		it('should throw error when sender does not have a second signature', function (done) {
+			var trs = _.clone(validTransaction);
+			var requester = {
+				secondSignature : 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f'
+			};
+			trs.requesterPublicKey = '839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
+
+			transaction.verify(trs, validSender, requester, function (err, res) {
+				expect(err).to.include('Missing requester second signature');
+				expect(res).to.not.exist;
+				done();
+			});
+		});
+
+		it('should throw error when publicKey is invalid', function (done) {
+			var trs = _.clone(validTransaction);
+			var invalidPublicKey =  '01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746';
+			trs.senderPublicKey = invalidPublicKey;
+
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include(['Invalid sender public key:', invalidPublicKey, 'expected:', validSender.publicKey].join(' '));
+				expect(res).to.not.exist;
+				done();
+			});
+		});
+
+		it.only('should be impossible to send the money from genesis account', function (done) {
+
+			var trs = _.clone(validTransaction);
+
+			//genesis account info
+			trs.senderPublicKey = node.gAccount.publicKey;
+			trs.senderId = node.gAccount.address;
+			trs.id = '6377354815333756139';
+			var vs = _.clone(validSender);
+			vs.publicKey = 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
+
+			transaction.verify(trs, vs, {}, function (err, res) {
+				expect(err).to.include('Invalid sender. Can not send from genesis account');
+				expect(res).to.be.empty;
+				done();
+			});
+		});
+
+		it('should throw on different sender address in trs and sender', function (done) {
+			var trs = _.clone(validTransaction);
+			trs.senderId = '2581762640681118072L';
+
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include('Invalid sender address');
+				expect(res).to.be.empty;
+				done();
+			});
+		});
+
+		it.skip('should throw when Account does not belong to multisignature group', function (done) {
+		});
+
+		it.skip('should throw when failed to verify signature', function (done) {
+		});
+
+		it.skip('should throw when failed to verify second signature', function (done) {
+		});
+
+		it.skip('should throw when encountered duplicate signature in transaction', function (done) {
+		});
+
+		it.skip('should throw when failed to verify multisignature', function (done) {
+
+		});
+
+		it('should throw when transaction fee is incorrect', function (done) {
+			var trs = _.clone(validTransaction);
+			trs.fee = -100;
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include('Invalid transaction fee');
+				done();
+			});
+		});
+
+		it('should verify transaction with correct fee (with data field)', function (done) {
+			var trsData = getValidTransactionData();
+			var trsSignature = transaction.sign(trsData.keypair, trsData);
+			trsData.signature = trsSignature;
+			transaction.verify(trsData, trsData.sender, {}, function (err, res) {
+				expect(err).to.be.empty;
+				done();
+			});
+		});
+
+		it('should verify transaction with correct fee (without data field)', function (done) {
+			var trsData = getValidTransactionData();
+			// remove trs data field and set fee to correct value
+			delete trsData.data;
+			trsData.fee = 10000000;
+			var trsSignature = transaction.sign(trsData.keypair, trsData);
+			trsData.signature = trsSignature;
+			transaction.verify(trsData, trsData.sender, {}, function (err, res) {
+				expect(err).to.be.empty;
+				done();
+			});
+		});
+
+		it('should throw when transaction amount is invalid', function (done) {
+			var trs = _.clone(validTransaction);
+			trs.amount = node.constants.totalAmount + 10;
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include('Invalid transaction amount');
+				done();
+			});
+		});
+
+		it('should throw when account balance is less than transaction amount', function (done) {
+			var trs = _.clone(validTransaction);
+			trs.amount = node.constants.totalAmount;
+			transaction.sign(trs);
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include('Account does not have enough LSK:');
+				done();
+			});
+		});
+
+		it('should throw on invalid timestamp', function (done) {
+			var trs = _.clone(validTransaction);
+			trs.timestamp = 24364800;
+			transaction.verify(trs, validSender, {}, function (err, res) {
+				expect(err).to.include('Invalid transaction timestamp');
+				done();
+			});
+		});
+
+		it('should verify proper transaction with proper sender', function (done) {
+			var trs = _.clone(validTransaction);
 
 			transaction.verify(trs, validSender, {}, function (err, res) {
 				expect(err).to.not.be.ok;
@@ -346,32 +529,23 @@ describe('transaction', function () {
 				done();
 			});
 		});
-
-		it('should be impossible to send the money from genesis account', function (done) {
-			var trs = _.clone(validTransaction);
-			trs.type = transactionTypes.SEND;
-
-			transaction.verify(validTransaction, validSender, {}, function (err, res) {
-				expect(err).to.be.empty;
-				expect(res).to.be.empty;
-				done();
-			});
-		});
-
+		
 		it('should verify proper SIGNATURE transaction with proper sender', function (done) {
+			attachAllAssets(transaction);
 			var trsData = getValidTransactionData();
 			trsData.type = transactionTypes.SIGNATURE;
-			trsData.asset = {
-				signature: {
-					publicKey: validSender.publicKey
-				}
+			trsData.secondKeypair = {
+				publicKey: validSender.publicKey
 			};
-			var trs = transaction.create(trs);
+			var trs = transaction.create(trsData);
 
-			transaction.verify(trs, validSender, {}, function (err, res) {
-				expect(err).to.be.empty;
-				expect(res).to.be.empty;
-				done();
+			transaction.process(trs, validSender, {}, function (err, tx) {
+				expect(err).to.be.a('null');
+				transaction.verify(tx, validSender, {}, function (err, res) {
+					expect(err).to.be.empty;
+					expect(res).to.be.empty;
+					done();
+				});
 			});
 		});
 
@@ -380,7 +554,9 @@ describe('transaction', function () {
 
 			trsData.type = transactionTypes.DELEGATE;
 			trsData.username = 'adelegatename';
-			trs.sender.publicKey = validTransaction.senderPublicKey;
+			trsData.sender= {
+				publicKey: validTransaction.senderPublicKey
+			};
 
 			var trs = transaction.create(trsData);
 			transaction.process(trs, validSender, {}, function (err, tx) {
@@ -400,6 +576,7 @@ describe('transaction', function () {
 			trsData.sender.publicKey = validSender.publicKey;
 
 			var trs = transaction.create(trsData);
+			console.log(trs);
 			transaction.process(trs, validSender, {}, function (err, tx) {
 				transaction.verify(tx, validSender, {}, function (err, res) {
 					expect(err).to.be.empty;
@@ -468,29 +645,6 @@ describe('transaction', function () {
 		});
 
 	
-		it('should verify transaction with correct fee (with data field)', function (done) {
-			var trsData = getValidTransactionData();
-			var trsSignature = transaction.sign(trsData.keypair, trsData);
-			trsData.signature = trsSignature;
-			transaction.verify(trsData, trsData.sender, {}, function (err, res) {
-				expect(err).to.be.empty;
-				done();
-			});
-		});
-
-		it('should verify transaction with correct fee (without data field)', function (done) {
-			var trsData = getValidTransactionData();
-			// remove trs data field and set fee to correct value
-			delete trsData.data;
-			trsData.fee = 10000000;
-			var trsSignature = transaction.sign(trsData.keypair, trsData);
-			trsData.signature = trsSignature;
-			transaction.verify(trsData, trsData.sender, {}, function (err, res) {
-				expect(err).to.be.empty;
-				done();
-			});
-		});
-
 		it('should throw an error with no param', function () {
 			expect(transaction.verify).to.throw();
 		});
@@ -632,19 +786,41 @@ describe('transaction', function () {
 			var rawTrs = _.clone(rawTransaction);
 			var trs = transaction.dbRead(rawTrs);
 			expect(trs).to.be.an('object');
-			expect(_.keys(trs)).to.be.contain('data');
+			expect(trs).to.have.keys('data');
 		});
 
-		it('should null if id field is not present', function () {
+		it('should return null if id field is not present', function () {
 			var rawTrs = _.clone(rawTransaction);
 			delete rawTrs.id;
 			var trs = transaction.dbRead(rawTrs);
 			expect(trs).to.be.a('null');
 		});
 
-		it('should return transaction object', function () {
+		it('should return transaction object with correct fields', function () {
 			var rawTrs = _.clone(rawTransaction);
-			expect(transaction.dbRead(rawTrs)).to.be.an('object');
+			var trs = transaction.dbRead(rawTrs);
+			var expectedKeys = [
+				'id',
+				'height',
+				'blockId',
+				'type',
+				'timestamp',
+				'senderPublicKey',
+				'requesterPublicKey',
+				'senderId',
+				'recipientId',
+				'recipientPublicKey',
+				'amount',
+				'fee',
+				'signature',
+				'signSignature',
+				'signatures',
+				'confirmations',
+				'asset',
+				'data'
+			];
+			expect(trs).to.be.an('object');
+			expect((trs)).to.have.keys(expectedKeys);
 		});
 	});
 });
