@@ -26,7 +26,7 @@ function getVotes (address, done) {
 
 function postVotes (params, done) {
 	var count = 0;
-	var blocksToWait = Math.ceil(params.delegates.length / 25);
+	var blocksToWait = Math.ceil(params.delegates.length / node.constants.maxTxsPerBlock);
 
 	node.async.eachSeries(params.delegates, function (delegate, eachCb) {
 		var transaction = node.lisk.vote.createVote(params.passphrase, [params.action + delegate]);
