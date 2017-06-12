@@ -144,7 +144,7 @@ node.onNewBlock = function (cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			node.waitForNewBlock(height, 1, cb);
+			node.waitForNewBlock(height, 2, cb);
 		}
 	});
 };
