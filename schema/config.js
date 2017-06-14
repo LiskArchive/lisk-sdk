@@ -94,10 +94,10 @@ module.exports = {
 						maximum: 15
 					},
 					password: {
-						type: 'string'
+						type: ['string', 'null']
 					}
 				},
-				required: ['host', 'port', 'db']
+				required: ['host', 'port', 'db', 'password']
 			},
 			api: {
 				type: 'object',
