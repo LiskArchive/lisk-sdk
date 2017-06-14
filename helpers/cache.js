@@ -1,7 +1,6 @@
 'use strict';
 
 var redis = require('redis');
-var _ = require('lodash');
 
 /**
  * Connects with redis server using the config provided via parameters
@@ -17,8 +16,12 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 		return cb(null, { cacheEnabled: cacheEnabled, client: null });
 	}
 
-	var sanitizedConfig = _.omitBy(config, _.isNull);
-	var client = redis.createClient(sanitizedConfig);
+	Object.keys(config).forEach(function (key){
+		if (config[key] === null) {
+			delete config[key];
+		}
+	});
+	var client = redis.createClient(config);
 
 	client.on('ready', function () {
 		logger.info('App connected with redis server');
