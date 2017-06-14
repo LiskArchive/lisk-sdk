@@ -20,7 +20,7 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 	var sanitizedConfig = _.omitBy(config, _.isNull);
 	var client = redis.createClient(sanitizedConfig);
 
-	client.on('connect', function () {
+	client.on('ready', function () {
 		logger.info('App connected with redis server');
 
 		if (!isRedisLoaded) {

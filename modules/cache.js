@@ -26,7 +26,8 @@ function Cache (cb, scope) {
  * @returns {Boolean} status
  */
 Cache.prototype.isConnected = function () {
-	return cacheEnabled && client.connected;
+	//using client.ready because this variable is updated on client connected
+	return cacheEnabled && client.ready;
 };
 
 /**
