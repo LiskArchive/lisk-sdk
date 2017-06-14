@@ -327,13 +327,12 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
  * @method applyBlock
  * @emits  SIGTERM
  * @param  {Object}   block Full normalized block
- * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
- * @param  {Function} cb Callback function
  * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
+ * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
+Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 	// Prevent shutdown during database writes.
 	modules.blocks.isActive.set(true);
 
@@ -474,13 +473,11 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
-					library.bus.message('newBlock', block, broadcast);
 
 					// DATABASE write. Update delegates accounts
 					modules.rounds.tick(block, seriesCb);
 				});
 			} else {
-				library.bus.message('newBlock', block, broadcast);
 
 				// DATABASE write. Update delegates accounts
 				modules.rounds.tick(block, seriesCb);
@@ -513,6 +510,20 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 	});
 };
 
+/**
+ * Broadcast reduced block to increase network performance.
+ * @param {Object} reducedBlock reduced block
+ * @param {boolean} broadcast Indicator that block needs to be broadcasted
+ * @throws {string} Error description
+ */
+Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
+	try {
+		library.bus.message('newBlock', reducedBlock, broadcast);
+	} catch (e) {
+		throw 'reduced newBlock broadcast message error: ' + e;
+	}
+	library.logger.debug('reducedBlock ' + reducedBlock.id + ' broadcasted correctly');
+}
 
 /**
  * Deletes last block, undo transactions, recalculate round

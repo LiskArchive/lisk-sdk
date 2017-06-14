@@ -179,10 +179,10 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 				if (block.id === library.genesisblock.block.id) {
 					modules.blocks.chain.applyGenesisBlock(block, cb);
 				} else {
-					// Apply block - broadcast: false, saveBlock: false
+					// Apply block - saveBlock: false
 					// FIXME: Looks like we are missing some validations here, because applyBlock is different than processBlock used elesewhere
 					// - that need to be checked and adjusted to be consistent
-					modules.blocks.chain.applyBlock(block, false, cb, false);
+					modules.blocks.chain.applyBlock(block, false, cb);
 				}
 				// Update last block
 				modules.blocks.lastBlock.set(block);
