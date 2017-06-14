@@ -12,6 +12,6 @@ FROM trs t
 LEFT JOIN mem_accounts m ON t."senderPublicKey" = m."publicKey"
 WHERE t.type = 2;
 
-CREATE UNIQUE INDEX "unique_delegates" ON "delegates"("username", "transactionId");
+ALTER TABLE "delegates" ADD CONSTRAINT "delegates_unique" UNIQUE ("username", "transactionId");
 
 COMMIT;
