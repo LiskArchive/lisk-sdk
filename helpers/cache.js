@@ -34,7 +34,7 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 		// Only throw an error if cache was enabled in config but were unable to load it properly
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb('Unable to connect to redis server', { cacheEnabled: cacheEnabled, client: null });
+			return cb(null, { cacheEnabled: cacheEnabled, client: null });
 		}
 	});
 };
