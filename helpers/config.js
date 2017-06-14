@@ -22,7 +22,7 @@ function Config (configPath) {
 		 * Exits process gracefully with code 1
 		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 		 */
-		process.exitCode = 1;
+		process.exit(1);
 	} else {
 		configData = JSON.parse(configData);
 	}
@@ -36,7 +36,7 @@ function Config (configPath) {
 		 * Exits process gracefully with code 1
 		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 		 */
-		process.exitCode = 1;
+		process.exit(1);
 	} else {
 		validateForce(configData);
 		return configData;

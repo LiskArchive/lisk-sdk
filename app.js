@@ -178,7 +178,7 @@ var d = require('domain').create();
 
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exitCode = 0;
+	process.exit(0);
 });
 
 // runs domain
@@ -648,7 +648,7 @@ d.run(function () {
 					 * Exits process gracefully with code 1
 					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 					 */
-					process.exitCode = 1;
+					process.exit(1);
 				});
 			});
 

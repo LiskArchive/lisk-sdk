@@ -271,7 +271,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...
-			return process.exitCode = 0;
+			return process.exit(0);
 		} else {
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
@@ -357,7 +357,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 					 * Exits process gracefully with code 0
 					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 					 */
-					return process.exitCode = 0;
+					return process.exit(0);
 				} else {
 					unconfirmedTransactionIds = ids;
 					return setImmediate(seriesCb);
@@ -429,7 +429,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 						 * Exits process gracefully with code 0
 						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 						 */
-						return process.exitCode = 0;
+						return process.exit(0);
 					}
 					// DATABASE: write
 					modules.transactions.apply(transaction, block, sender, function (err) {
@@ -443,7 +443,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 							 * Exits process gracefully with code 0
 							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 							 */
-							return process.exitCode = 0;
+							return process.exit(0);
 						}
 						// Transaction applied, removed from the unconfirmed list.
 						modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -470,7 +470,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 						 * Exits process gracefully with code 0
 						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 						 */
-						return process.exitCode = 0;
+						return process.exit(0);
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
@@ -566,7 +566,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					 * Exits process gracefully with code 0
 					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 					 */
-					return process.exitCode = 0;
+					return process.exit(0);
 				}
 
 				// Perform backward tick on rounds
@@ -580,7 +580,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 						 * Exits process gracefully with code 0
 						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 						 */
-						return process.exitCode = 0;
+						return process.exit(0);
 					}
 
 					// Delete last block from blockchain
@@ -594,7 +594,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 							 * Exits process gracefully with code 0
 							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
 							 */
-							return process.exitCode = 0;
+							return process.exit(0);
 						}
 
 						return setImmediate(cb, null, previousBlock);
