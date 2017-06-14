@@ -6,7 +6,6 @@ var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
-var _ = require('lodash');
 var exceptions = require('../../helpers/exceptions.js');
 
 var modules, library, self, __private = {};
@@ -124,7 +123,7 @@ Verify.prototype.verifyBlock = function (block) {
 	// Calculate expected rewards
 	var expectedReward = __private.blockReward.calcReward(block.height);
 
-	if (block.height !== 1 && expectedReward !== block.reward && !_.includes(exceptions.blockRewards, block.id)) {
+	if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
 		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
 	}
 

@@ -18,10 +18,7 @@ module.exports = {
 	rounds: {
 		'27040': {rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000}
 	},
-	blockRewards: [
-		'11807740622680299921', // 2161
-		'5714016151987080352'   // 2162
-	],
+	blockRewards: [],
 	senderPublicKey: [
 		'6140297682817553271',  // 12526
 		'17693199811026162972', // 12532
