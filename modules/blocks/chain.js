@@ -353,10 +353,6 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo unconfirmed list', err);
 
-					/**
-					 * Exits process gracefully with code 0
-					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-					 */
 					return process.exit(0);
 				} else {
 					unconfirmedTransactionIds = ids;
@@ -425,10 +421,6 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
 
-						/**
-						 * Exits process gracefully with code 0
-						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-						 */
 						return process.exit(0);
 					}
 					// DATABASE: write
@@ -439,10 +431,6 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 
-							/**
-							 * Exits process gracefully with code 0
-							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-							 */
 							return process.exit(0);
 						}
 						// Transaction applied, removed from the unconfirmed list.
@@ -466,10 +454,6 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 						library.logger.error('Failed to save block...');
 						library.logger.error('Block', block);
 
-						/**
-						 * Exits process gracefully with code 0
-						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-						 */
 						return process.exit(0);
 					}
 
@@ -562,10 +546,6 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo transactions', err);
 
-					/**
-					 * Exits process gracefully with code 0
-					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-					 */
 					return process.exit(0);
 				}
 
@@ -576,10 +556,6 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 						// Fatal error, memory tables will be inconsistent
 						library.logger.error('Failed to perform backwards tick', err);
 
-						/**
-						 * Exits process gracefully with code 0
-						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-						 */
 						return process.exit(0);
 					}
 
@@ -590,10 +566,6 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error('Failed to delete block', err);
 
-							/**
-							 * Exits process gracefully with code 0
-							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-							 */
 							return process.exit(0);
 						}
 

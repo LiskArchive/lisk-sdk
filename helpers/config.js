@@ -18,10 +18,6 @@ function Config (configPath) {
 
 	if (!configData.length) {
 		console.log('Failed to read config file');
-		/**
-		 * Exits process gracefully with code 1
-		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-		 */
 		process.exit(1);
 	} else {
 		configData = JSON.parse(configData);
@@ -32,10 +28,6 @@ function Config (configPath) {
 
 	if (!valid) {
 		console.log('Failed to validate config data', validator.getLastErrors());
-		/**
-		 * Exits process gracefully with code 1
-		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-		 */
 		process.exit(1);
 	} else {
 		validateForce(configData);

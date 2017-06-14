@@ -644,10 +644,6 @@ d.run(function () {
 					} else {
 						scope.logger.info('Cleaned up successfully');
 					}
-					/**
-					 * Exits process gracefully with code 1
-					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-					 */
 					process.exit(1);
 				});
 			});
