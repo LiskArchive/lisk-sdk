@@ -41,7 +41,8 @@ Peers.prototype.me = function () {
 	}
 
 	__private.me = new Peer(_.assign({}, {
-		ip: constants.externalAddress
+		ip: constants.externalAddress,
+		state: Peer.STATE.ACTIVE
 	}, constants.getConst('headers')));
 
 	return __private.me;
@@ -96,7 +97,6 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
 			peer.updated = Date.now();
 			__private.peers[peer.string] = peer;
-
 			library.logger.debug('Inserted new peer', peer.string);
 			library.logger.trace('Inserted new peer', {peer: peer}, 'myself: ', self.me(), 'external address: ', constants.externalAddress);
 		}
