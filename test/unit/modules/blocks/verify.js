@@ -8,6 +8,8 @@ var sinon = require('sinon');
 
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var BlockLogic = require('../../../../logic/block.js');
+var exceptions = require('../../../../helpers/exceptions.js');
+
 var previousBlock = {
 	blockSignature:'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
 	generatorPublicKey:'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
@@ -70,6 +72,54 @@ var validBlock = {
 		}
 	],
 	version: 0,
+	id: '884740302254229983'
+};
+
+var validBlockReward = {
+	blockSignature: 'd06c1a17c701e55aef78cefb8ce17340411d9a1a7b3bd9b6c66f815dfd7546e2ca81b3371646fcead908db57a6492e1d6910eafa0a96060760a2796aff637401',
+	generatorPublicKey: '904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37',
+	numberOfTransactions: 2,
+	payloadHash: 'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
+	payloadLength: 494,
+	previousBlock: '11850828211026019525',
+	reward: 35,
+	timestamp: 32578370,
+	totalAmount: 10000000000000000,
+	totalFee: 0,
+	transactions: [
+		{
+			'type': 0,
+			'amount': 10000000000000000,
+			'fee': 0,
+			'timestamp': 0,
+			'recipientId': '16313739661670634666L',
+			'senderId': '1085993630748340485L',
+			'senderPublicKey': 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+			'signature': 'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
+			'id': '1465651642158264047'
+		},
+		{
+			'type': 3,
+			'amount': 0,
+			'fee': 0,
+			'timestamp': 0,
+			'recipientId': '16313739661670634666L',
+			'senderId': '16313739661670634666L',
+			'senderPublicKey': 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+			'asset': {
+				'votes': [
+					'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					'+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+					'-3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+					'-5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819'
+				]
+			},
+			'signature': '9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
+			'id': '9314232245035524467'
+		}
+	],
+	version: 0,
+	id: '15635779876149546284'
 };
 
 describe('blocks/verify', function () {
@@ -89,10 +139,10 @@ describe('blocks/verify', function () {
 				{blocks: require('../../../../modules/blocks')},
 				{accounts: require('../../../../modules/accounts')},
 				{delegates: require('../../../../modules/delegates')},
-				{transactions: require('../../../../modules/transactions')}
+				{transactions: require('../../../../modules/transactions')},
 			], [
 				{'block': require('../../../../logic/block')},
-				{'transaction': require('../../../../logic/transaction')}
+				{'transaction': require('../../../../logic/transaction')},
 			], {}, function (err, __blocks) {
 				if (err) {
 					return done(err);
@@ -115,6 +165,14 @@ describe('blocks/verify', function () {
 			expect(check).to.equal('verified');
 			done();
 		});
+		
+		it('rewards should be ok for blockRewards exception', function (done) {
+			exceptions.blockRewards.push(validBlockReward.id);
+			
+			var check = blocksVerify.verifyBlock(validBlockReward);
+			expect(check).to.equal('verified');
+			done();
+		});
 	});
 
 	describe('verifyBlock() for invalid block', function () {
@@ -122,13 +180,21 @@ describe('blocks/verify', function () {
 		var invalidBlock = JSON.parse(JSON.stringify(validBlock));
 		var invalidPreviousBlock = JSON.parse(JSON.stringify(previousBlock));
 
+		it('verify block id should fail (invalid block id)', function (done) {
+			invalidBlock.id = 'invalid-block-id';
+
+			var check = blocksVerify.verifyBlock(invalidBlock);
+			expect(check).to.equal('Invalid block id');
+			done();
+		});
+
 		it('verify block signature should fail (invalid blockSignature: no hex)', function (done) {
 			invalidBlock.blockSignature = 'invalidblocksignature';
 
 			var check = blocksVerify.verifyBlock(invalidBlock);
 			expect(check).to.equal('TypeError: Invalid hex string');
 			done();
-		});		
+		});
 
 		it('verify block signature should fail (invalid blockSignature: hex)', function (done) {
 			invalidBlock.blockSignature = 'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
@@ -162,7 +228,7 @@ describe('blocks/verify', function () {
 			expect(check).to.equal(['Invalid block reward:', invalidBlock.reward, 'expected:', validBlock.reward].join(' '));
 			done();
 		});
-
+		
 		it('total fee should fail (invalid total fee)', function (done) {
 			invalidBlock.totalFee = 555;
 

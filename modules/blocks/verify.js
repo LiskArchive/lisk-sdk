@@ -6,6 +6,7 @@ var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
+var exceptions = require('../../helpers/exceptions.js');
 
 var modules, library, self, __private = {};
 
@@ -206,7 +207,7 @@ Verify.prototype.verifyBlock = function (block) {
 	// Calculate expected rewards
 	var expectedReward = __private.blockReward.calcReward(block.height);
 
-	if (block.height !== 1 && expectedReward !== block.reward) {
+	if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
 		return ['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' ');
 	}
 
@@ -219,15 +220,17 @@ Verify.prototype.verifyBlock = function (block) {
 	if (!valid) {
 		return 'Failed to verify block signature';
 	}
-
+	
+	var getBlockId;
 	try {
-		// Get block ID
-		// FIXME: Why we don't have it?
-		block.id = library.logic.block.getId(block);
+		getBlockId = library.logic.block.getId(block);
 	} catch (e) {
 		return e.toString();
 	}
 
+	if (getBlockId !== block.id) {
+		return 'Invalid block id';
+	}
 	return 'verified';
 };
 
