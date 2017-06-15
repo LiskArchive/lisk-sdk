@@ -523,17 +523,16 @@ Peers.prototype.list = function (options, cb) {
 					__private.getMatched({broadhash: constants.headers.broadhash}, peersList) : peersList.filter(function (peer) {
 						return peer.broadhash !== constants.headers.broadhash;
 					});
-			} else {
-				matchedPeers = peersList;
 			}
 
+			matchedPeers = matchedPeers || peersList;
 			consensus = self.getConsensus(peersList, matchedPeers);
-
 			matched = matchedPeers.length;
 			// Apply limit
 			matchedPeers = matchedPeers.slice(0, options.limit);
 			picked = matchedPeers.length;
 			accepted = self.acceptable(peers.concat(matchedPeers));
+
 			library.logger.debug('Listing peers', {attempt: options.attempts[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
 			return setImmediate(cb, null, accepted);
 		});
