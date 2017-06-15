@@ -16,7 +16,7 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 		return cb(null, { cacheEnabled: cacheEnabled, client: null });
 	}
 
-	Object.keys(config).forEach(function (key){
+	Object.keys(config).forEach(function (key) {
 		if (config[key] === null) {
 			delete config[key];
 		}
