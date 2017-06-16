@@ -236,7 +236,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	}
 
 	library.balancesSequence.add(function (cb) {
-		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + peer.string);
+		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + peer.ip + ':' + peer.port);
 		modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
 			if (err) {
 				library.logger.debug(['Transaction', id].join(' '), err.toString());
