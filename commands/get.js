@@ -58,8 +58,6 @@ module.exports = function getCommand (vorpal) {
 
 			let output = getType[userInput.type](userInput.input);
 
-			console.log(userInput);
-
 			if(process.env.NODE_ENV === 'test') {
 
 				return output;
