@@ -137,6 +137,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 			clientSocket.wampSend('list', {query: {
 				nonce: options.query.nonce
 			}}).then(function (res) {
+				console.log('WSRPC -- my external address is: ', res.peers[0].ip);
 				constants.setConst('externalAddress', res.peers[0].ip);
 				connectionState.resolve(clientSocket);
 			}).catch(function (err) {

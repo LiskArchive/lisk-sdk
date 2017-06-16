@@ -226,6 +226,8 @@ System.prototype.update = function (cb) {
 			return setImmediate(seriesCb);
 		},
 		setHeaders: function (seriesCb) {
+			console.log('\x1b[35m%s\x1b[0m', 'SYSTEM - HEADERS UPDATE ',  __private.height + ' # ' + __private.broadhash);
+
 			constants.setConst('headers', _.assign(constants.headers || {}, {
 				height: __private.height,
 				broadhash: __private.broadhash

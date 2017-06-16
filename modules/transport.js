@@ -679,6 +679,7 @@ Transport.prototype.internal = {
 			return setImmediate(cb, 'No headers information');
 		}
 		peer.state = Peer.STATE.ACTIVE;
+		console.log('transport --- accept peer: ', peer.ip + ':' + peer.port + '#' + peer.nonce + '#' + peer.height + '#' + peer.broadhash);
 		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };
