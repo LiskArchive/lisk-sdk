@@ -6,6 +6,7 @@ var checkIpInList = require('./checkIpInList');
 var Z_schema = require('../helpers/z_schema.js');
 var schema = require('../schema/transport.js');
 var Peer = require('../logic/peer.js');
+var constants = require('./constants');
 
 var z_schema = new Z_schema();
 
@@ -32,7 +33,7 @@ var middleware = {
 				if (!system.nonceCompatible(headers.nonce)) {
 					return setImmediate(cb, {
 						success: false,
-						message: 'Request is made by itself',
+						message: 'Request is made by itself ##' + JSON.stringify(headers) + '## MY EXT ADDRESS: ' + constants.externalAddress,
 						expected: 'different than ' + system.getNonce(),
 						received: headers.nonce,
 						code: 'ENONCE'
