@@ -52,8 +52,6 @@ var wsCommunication = {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 4000);
 			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 4000);
 			constants.setConst('headers', this.defaultSocketPeerHeaders);
-			constants.setConst('externalAddress', '127.0.0.1');
-
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
 		if (includePeer && typeof data === 'object') {
