@@ -16,9 +16,13 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 		return cb(null, { cacheEnabled: cacheEnabled, client: null });
 	}
 
+	// delete password key if it's value is null
+	if (config.password === null) {
+		delete config.password;
+	}
 	var client = redis.createClient(config);
 
-	client.on('connect', function () {
+	client.on('ready', function () {
 		logger.info('App connected with redis server');
 
 		if (!isRedisLoaded) {
@@ -32,7 +36,7 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 		// Only throw an error if cache was enabled in config but were unable to load it properly
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb('Unable to connect to redis server', { cacheEnabled: cacheEnabled, client: null });
+			return cb(null, { cacheEnabled: cacheEnabled, client: null });
 		}
 	});
 };
