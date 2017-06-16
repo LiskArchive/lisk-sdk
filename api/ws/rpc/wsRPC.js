@@ -133,20 +133,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 
 
 	clientSocket.on('connect', function () {
-		if (!constants.externalAddress) {
-			clientSocket.wampSend('list', {query: {
-				nonce: options.query.nonce
-			}}).then(function (res) {
-				console.log('WSRPC -- my external address is: ', res.peers[0].ip);
-				constants.setConst('externalAddress', res.peers[0].ip);
-				connectionState.resolve(clientSocket);
-			}).catch(function (err) {
-				clientSocket.disconnect();
-				connectionState.reject('Connection rejected when asking of peers list');
-			});
-		} else {
-			return connectionState.resolve(clientSocket);
-		}
+		return connectionState.resolve(clientSocket);
 	});
 
 	clientSocket.on('error', function () {

@@ -482,15 +482,10 @@ Peers.prototype.acceptable = function (peers) {
 		})
 		.filter(function (peer) {
 			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-				return !isMe(peer);
+				return peer.nonce !== modules.system.getNonce();
 			}
-			return !ip.isPrivate(peer.ip) && !isMe(peer);
+			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 		}).value();
-
-	function isMe (peer) {
-		var me = library.logic.peers.me() || {ip: '127.0.0.1', port: library.config.port};
-		return peer.nonce === modules.system.getNonce() || peer.ip + peer.port === me.ip + me.port;
-	}
 };
 
 /**

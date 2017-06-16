@@ -50,8 +50,8 @@ var wsCommunication = {
 		if (!this.defaultSocketDefer) {
 			this.defaultSocketDefer = Q.defer();
 			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 4000);
-			this.connect('127.0.0.1', 4000, this.defaultSocketDefer);
-			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb('127.0.0.1', 4000, this.defaultSocketDefer);
+			constants.setConst('headers', this.defaultSocketPeerHeaders);
+			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
 		if (includePeer && typeof data == 'object') {
 			data.peer =  _.assign({

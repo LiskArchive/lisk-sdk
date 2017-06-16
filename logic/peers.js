@@ -29,6 +29,28 @@ function Peers (logger, cb) {
 	__private.peers = {};
 	__private.me = null;
 
+	this.nonceToAddressMapper = {
+		addressToNonceMap: {},
+		nonceToAddressMap: {},
+
+		addSafely: function (nonce, address) {
+			if (address) {
+				this.addressToNonceMap[address] = nonce;
+			}
+			if (nonce) {
+				this.nonceToAddressMap[nonce] = address;
+			}
+		},
+
+		getAddress: function (nonce) {
+			return this.nonceToAddressMap[nonce];
+		},
+
+		getNonce: function (address) {
+			return this.addressToNonceMap[address];
+		}
+	};
+
 	return setImmediate(cb, null, this);
 }
 
@@ -37,12 +59,8 @@ Peers.prototype.me = function () {
 		__private.me.applyHeaders(constants.getConst('headers'));
 		return __private.me;
 	}
-	if (!constants.externalAddress) {
-		return null;
-	}
 
 	__private.me = new Peer(_.assign({}, {
-		ip: constants.externalAddress,
 		state: Peer.STATE.ACTIVE
 	}, constants.getConst('headers')));
 
@@ -64,7 +82,13 @@ Peers.prototype.create = function (peer) {
  */
 Peers.prototype.exists = function (peer) {
 	peer = self.create(peer);
-	return !!__private.peers[peer.string];
+
+	var preferablyFromNonceAddress =
+		self.nonceToAddressMapper.getAddress(peer.nonce) ||
+		self.nonceToAddressMapper.getAddress(self.nonceToAddressMapper.getNonce(peer.string)) ||
+		peer.string;
+
+	return !!__private.peers[preferablyFromNonceAddress];
 };
 
 /**
@@ -94,7 +118,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 			peer.updated = Date.now();
 			__private.peers[peer.string] = peer;
 			library.logger.debug('Inserted new peer', peer.string);
-			library.logger.trace('Inserted new peer', {peer: peer}, 'myself: ', self.me(), 'external address: ', constants.externalAddress);
+			library.logger.trace('Inserted new peer', {peer: peer}, 'myself: ', self.me());
 		}
 	};
 
@@ -119,11 +143,13 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	};
 
 	peer = self.create(peer);
-	
+	peer.string = peer.string || self.nonceToAddressMapper.getAddress(peer.nonce);
 	if (!peer.string) {
 		library.logger.warn('Upsert invalid peer rejected', {peer: peer});
 		return false;
 	}
+
+	self.nonceToAddressMapper.addSafely(peer.nonce, peer.string);
 
 	// Performing insert or update
 	if (self.exists(peer)) {
