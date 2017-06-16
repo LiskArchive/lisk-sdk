@@ -1,16 +1,20 @@
 const fse = require('fs-extra');
-const vorpal = require('vorpal')();
-const config = require('./config');
+const lisky = require('vorpal')();
+const config = require('./config.json');
 
 //import commands from ./commands/ folder
 fse.readdirSync('./commands').map(function (command) {
-	vorpal.use(require('./commands/'+command));
+	lisky.use(require('./commands/'+command));
 });
 
 //Define vorpal
-  vorpal
+lisky
 	  .delimiter('lisky>')
 	  .history('lisky')
 	  .show();
 
-module.exports = vorpal;
+
+lisky.find('help').alias('?')
+lisky.find('exit').description(`Exits ${config.name}.`)
+
+module.exports = lisky;
