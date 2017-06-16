@@ -4,8 +4,6 @@ var async = require('async');
 var bignum = require('./bignum');
 var fs = require('fs');
 var path = require('path');
-var _ = require('lodash');
-var Q = require('q');
 
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
@@ -161,33 +159,6 @@ function Migrator (pgp, db) {
 			return waterCb(err);
 		});
 	};
-
-	/**
-	 * Test if db is not corrupted by checking if some anomalies occurs
-	 * @method
-	 * @param {function} waterCb - Callback function
-	 * @return {function} waterCb with error
-	 */
-	this.checkIfNotCorrupted = function (waterCb) {
-		var anomaliesQueries = [{
-			query: 'SELECT * FROM delegates',
-			isCorruptedTest: function (delegates) {
-				var uniqueDelegates = _.uniqBy(delegates, 'username');
-				return uniqueDelegates.length !== delegates.length;
-			}}
-		];
-
-		Q.all(anomaliesQueries.map(function (anomaliesQuery) { return db.query(anomaliesQuery.query); }))
-			.then(function (results) {
-				if (results.some(function (result, index) { return anomaliesQueries[index].isCorruptedTest(result); })) {
-					return waterCb('Database is corrupted. Please rebuild it from scratch.');
-				}
-				waterCb();
-			})
-			.catch(function (err) {
-				waterCb(err);
-			});
-	};
 }
 
 /**
@@ -235,8 +206,7 @@ module.exports.connect = function (config, logger, cb) {
 		migrator.readPendingMigrations,
 		migrator.applyPendingMigrations,
 		migrator.insertAppliedMigrations,
-		migrator.applyRuntimeQueryFile,
-		migrator.checkIfNotCorrupted
+		migrator.applyRuntimeQueryFile
 	], function (err) {
 		return cb(err, db);
 	});
