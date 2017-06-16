@@ -675,7 +675,7 @@ Transport.prototype.internal = {
 	 * @param {function} cb
 	 */
 	acceptPeer: function (peer, cb) {
-		if (['height', 'nonce', 'broadhash'].some(function(header) { return peer[header] === undefined; })) {
+		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
 			return setImmediate(cb, 'No headers information');
 		}
 		peer.state = Peer.STATE.ACTIVE;

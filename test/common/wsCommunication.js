@@ -68,7 +68,7 @@ var wsCommunication = {
 
 		var peersConnectionsDefers = Array.apply(null, new Array(numOfPeers)).map(function () {
 			var socketDefer = Q.defer();
-			this.connect(ip, node.randomizeSelection(1000) + 3001, socketDefer, this.defaultSocketPeerHeaders);
+			this.connect(ip, 4000, socketDefer, node.generatePeerHeaders(ip, node.randomizeSelection(1000) + 3001));
 			return socketDefer;
 		}.bind(this));
 
