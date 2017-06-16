@@ -580,7 +580,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Check timestamp
 	if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
-		return setImmediate(cb, 'Invalid transaction timestamp');
+		return setImmediate(cb, 'Transaction timestamp in future. Your system time is ahead of the time on the server.');
 	}
 
 	// Call verify on transaction type
