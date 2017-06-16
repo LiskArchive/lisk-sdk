@@ -1,5 +1,5 @@
 /*
- * Recreate 'delegates' table to get rid of duplicated entries
+ * Setting unique constraints on delegates table
  */
 
 BEGIN;
