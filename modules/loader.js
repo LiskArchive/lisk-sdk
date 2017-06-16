@@ -468,7 +468,8 @@ __private.loadBlockChain = function () {
 		var duplicatedDelegates = +results[4][0].count;
 
 		if (duplicatedDelegates > 0) {
-			return reload(count, 'Delegates table corrupted with duplicated entries');
+			library.logger.error('Delegates table corrupted with duplicated entries');
+			return process.emit('exit');
 		}
 
 		function updateMemAccounts (t) {
