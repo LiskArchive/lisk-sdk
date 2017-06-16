@@ -153,7 +153,6 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 			}
 		}
 
-
 		bb.writeLong(trs.amount);
 
 		if (trs.data) {
