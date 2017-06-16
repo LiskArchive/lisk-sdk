@@ -16,11 +16,10 @@ module.exports.connect = function (cacheEnabled, config, logger, cb) {
 		return cb(null, { cacheEnabled: cacheEnabled, client: null });
 	}
 
-	Object.keys(config).forEach(function (key) {
-		if (config[key] === null) {
-			delete config[key];
-		}
-	});
+	// delete password key if it's value is null
+	if (config.password === null) {
+		delete config.password;
+	}
 	var client = redis.createClient(config);
 
 	client.on('ready', function () {
