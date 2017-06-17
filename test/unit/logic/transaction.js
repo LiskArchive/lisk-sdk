@@ -83,6 +83,7 @@ function getValidTransactionData () {
 	var trsData = {
 		type: 0,
 		amount: 232420792390,
+
 		sender: validSender,
 		senderId: '16313739661670634666L',
 		timestamp: 24177404,
@@ -430,7 +431,7 @@ describe('transaction', function () {
 			expect(transaction.process).to.throw();
 		});
 
-		it.only('should process the transaction', function (done) {
+		it('should process the transaction', function (done) {
 			var trs = _.clone(validTransaction);
 			transaction.process(trs, validSender, function (err, res) {
 				expect(err).to.not.be.ok;
@@ -443,10 +444,6 @@ describe('transaction', function () {
 	describe('verify', function () {
 
 		var trs;
-
-		before(function () {
-			attachAllAssets(transaction);
-		});
 
 		it('should throw error when sender is missing', function (done) {
 			var trs = _.clone(validTransaction);
@@ -680,7 +677,6 @@ describe('transaction', function () {
 			trsData.sender.publicKey = validSender.publicKey;
 
 			var trs = transaction.create(trsData);
-			console.log(trs);
 			transaction.process(trs, validSender, {}, function (err, tx) {
 				transaction.verify(tx, validSender, {}, function (err, res) {
 					expect(err).to.be.empty;
@@ -785,6 +781,14 @@ describe('transaction', function () {
 		it('should throw an error with no param', function () {
 			expect(transaction.verifySecondSignature).to.throw();
 		});
+
+		it('should verify the second signature correctly', function () {
+			var hash = crypto.createHash('sha256').update(node.eAccount.password, 'utf8').digest();
+			var keypair = ed.makeKeypair(hash);
+			var signature = transaction.sign(keypair, validTransaction);
+
+			expect(transaction.verifySecondSignature(validTransaction, keypair.publicKey, signature)).to.equal(true);
+		});
 	});
 
 	describe('verifyBytes', function () {
@@ -820,10 +824,22 @@ describe('transaction', function () {
 		};
 
 		it('should throw an error with no param', function () {
+			expect(function () { transaction.apply(); }).to.throw();
+		});
+
+		it('should be okay with valid params', function () {
 			var trsData = getValidTransactionData();
 			var trs = transaction.create(trsData);
 			transaction.apply(trs, validBlock, node.gAccount, function (err) {
 				expect(err).to.not.exist;
+			});
+		});
+
+		it('should throw on an invalid public key', function () {
+			var trsData = getValidTransactionData();
+			var trs = transaction.create(trsData);
+			transaction.apply(trs, validBlock, node.eAccount, function (err) {
+				expect(err).to.exist();
 			});
 		});
 
