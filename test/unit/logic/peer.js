@@ -142,6 +142,16 @@ describe('peer', function () {
 			peer.state = initialState;
 		});
 
+		it('should not change state of banned peer', function () {
+			var initialState = peer.state;
+			// Ban peer
+			peer.state = 0;
+			// Try to unban peer
+			peer.update({state: 2});
+			expect(peer.state).to.equal(0);
+			peer.state = initialState;
+		});
+
 		it('should update defined values', function () {
 			var updateData = {
 				os: 'test os',
@@ -151,7 +161,7 @@ describe('peer', function () {
 				height: 3,
 				nonce: 'ABCD123'
 			};
-			expect(_.isEqual(_.keys(updateData), peer.headers)).to.be.ok;
+			expect(_.difference(_.keys(updateData), peer.headers)).to.have.lengthOf(0);
 			peer.update(updateData);
 			peer.headers.forEach(function (header) {
 				expect(peer[header]).to.exist.and.equals(updateData[header]);
@@ -163,6 +173,7 @@ describe('peer', function () {
 			var updateImmutableData = {
 				ip: randomPeer.ip,
 				port: randomPeer.port,
+				httpPort: randomPeer.port,
 				string: randomPeer.ip + ':' + randomPeer.port
 			};
 

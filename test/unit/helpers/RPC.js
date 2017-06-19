@@ -84,14 +84,14 @@ describe('wsRPC', function () {
 		var validPort = 4000, validIp = '127.0.0.1';
 
 		it('should throw error when no arguments specified', function () {
-			expect(wsRPC.getClientRPCStub).to.throw('RPC client needs ip and port to establish WS connection.');
+			expect(wsRPC.getClientRPCStub).to.throw('RPC client needs ip and port to establish WS connection with: undefined:undefined');
 		});
 
 		it('should throw error when no port specified', function (done) {
 			try {
-				wsRPC.getClientRPCStub(validIp, null);
+				wsRPC.getClientRPCStub(validIp, undefined);
 			} catch (er) {
-				expect(er.message).equal('RPC client needs ip and port to establish WS connection.');
+				expect(er.message).equal('RPC client needs ip and port to establish WS connection with: 127.0.0.1:undefined');
 				return done();
 			}
 			done('Should not be here');
@@ -99,9 +99,9 @@ describe('wsRPC', function () {
 
 		it('should throw error when no ip specified', function (done) {
 			try {
-				wsRPC.getClientRPCStub(null, validPort);
+				wsRPC.getClientRPCStub(undefined, validPort);
 			} catch (er) {
-				expect(er.message).equal('RPC client needs ip and port to establish WS connection.');
+				expect(er.message).equal('RPC client needs ip and port to establish WS connection with: undefined:4000');
 				return done();
 			}
 			done('Should not be here');
@@ -132,7 +132,7 @@ describe('wsRPC', function () {
 
 			var masterWAMPServer, masterWAMPServerConfig = {};
 
-			before(function () {
+			beforeEach(function () {
 				wsRPC.clientsConnectionsMap = {};
 				masterWAMPServer = new MasterWAMPServer(socketClusterMock, masterWAMPServerConfig);
 				wsRPC.setServer(masterWAMPServer);
