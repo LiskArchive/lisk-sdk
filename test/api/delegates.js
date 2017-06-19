@@ -557,7 +557,7 @@ describe('GET /api/delegates', function () {
 			node.expect(res.body.delegates).to.have.lengthOf(101);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
-					node.expect(res.body.delegates[i].vote).to.be.at.most(res.body.delegates[i + 1].vote);
+					node.expect(parseInt(res.body.delegates[i].vote)).to.be.at.most(parseInt(res.body.delegates[i + 1].vote));
 				}
 			}
 			done();
@@ -574,7 +574,7 @@ describe('GET /api/delegates', function () {
 			node.expect(res.body.delegates).to.have.lengthOf(101);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
-					node.expect(res.body.delegates[i].vote).to.be.at.least(res.body.delegates[i + 1].vote);
+					node.expect(parseInt(res.body.delegates[i].vote)).to.be.at.least(parseInt(res.body.delegates[i + 1].vote));
 				}
 			}
 			done();
