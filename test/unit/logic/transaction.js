@@ -17,7 +17,7 @@ var transactionTypes = require('../../../helpers/transactionTypes');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var Transaction = require('../../../logic/transaction.js');
 var Rounds = require('../../../modules/rounds.js');
-var Account = require('../../../logic/account.js');
+var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 
 var Vote = require('../../../logic/vote.js');
@@ -62,7 +62,7 @@ var validTransactionData = {
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
 	fee: 10000000,
-	keypair: senderKeypair, 
+	keypair: senderKeypair,
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 };
 
@@ -118,10 +118,10 @@ var validUnconfirmedTrs = {
 var attachTransferAsset = function (transaction, accountLogic, rounds) {
 	async.auto({
 		rounds: function (cb) {
-			modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
+			modulesLoader.initModule(Rounds, {}, cb);
 		},
 		accountLogic: function (cb) {
-			modulesLoader.initLogicWithDb(Account, cb);
+			modulesLoader.initLogicWithDb(AccountLogic, cb, {});
 		}, 
 		accountModule: ['accountLogic', function (results, cb) {
 			modulesLoader.initModuleWithDb(AccountModule, cb, {
@@ -143,27 +143,6 @@ var attachTransferAsset = function (transaction, accountLogic, rounds) {
 	});
 };
 
-var attachAllAssets = function (transaction) {
-	var appliedLogic;
-	appliedLogic = transaction.attachAssetType(transactionTypes.VOTE, new Vote());
-	expect(appliedLogic).to.be.an.instanceof(Vote);
-	appliedLogic = transaction.attachAssetType(transactionTypes.SEND, new Transfer());
-	expect(appliedLogic).to.be.an.instanceof(Transfer);
-	appliedLogic = transaction.attachAssetType(transactionTypes.DELEGATE, new Delegate());
-	expect(appliedLogic).to.be.an.instanceof(Delegate);
-	appliedLogic = transaction.attachAssetType(transactionTypes.SIGNATURE, new Signature());
-	expect(appliedLogic).to.be.an.instanceof(Signature);
-	appliedLogic = transaction.attachAssetType(transactionTypes.MULTI, new Multisignature());
-	expect(appliedLogic).to.be.an.instanceof(Multisignature);
-	appliedLogic = transaction.attachAssetType(transactionTypes.DAPP, new Dapp());
-	expect(appliedLogic).to.be.an.instanceof(Dapp);
-	appliedLogic = transaction.attachAssetType(transactionTypes.IN_TRANSFER, new InTransfer());
-	expect(appliedLogic).to.be.an.instanceof(InTransfer);
-	appliedLogic = transaction.attachAssetType(transactionTypes.OUT_TRANSFER, new OutTransfer());
-	expect(appliedLogic).to.be.an.instanceof(OutTransfer);
-	return transaction;
-};
-
 describe('transaction', function () {
 
 	var transaction;
@@ -173,21 +152,18 @@ describe('transaction', function () {
 			rounds: function (cb) {
 				modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
 			},
-			account: function (cb) {
-				modulesLoader.initLogicWithDb(Account, cb);
+			accountLogic: function (cb) {
+				modulesLoader.initLogicWithDb(AccountLogic, cb);
 			},
-			transaction: ['account', function (scope, cb) {
-				modulesLoader.initLogicWithDb(Transaction, function (err, __transaction) {
-					cb(err, __transaction);
-				}, _.merge({
+			transaction: ['accountLogic', function (result, cb) {
+				modulesLoader.initLogicWithDb(Transaction, cb, {
 					ed: require('../../../helpers/ed'),
-					account: scope.account
-				}, modulesLoader.scope));
+					account: result.accountLogic
+				});
 			}]
 		}, function (err, result) {
 			transaction = result.transaction;
-			attachAllAssets(transaction);
-			attachTransferAsset(transaction, result.account, result.rounds);
+			attachTransferAsset(transaction, result.accountLogic, result.rounds);
 			transaction.bindModules({
 				rounds: result.rounds
 			});
@@ -249,7 +225,24 @@ describe('transaction', function () {
 	describe('attachAssetType', function () {
 
 		it('should attach all transaction types', function () {
-			attachAllAssets(transaction);
+			var appliedLogic;
+			appliedLogic = transaction.attachAssetType(transactionTypes.VOTE, new Vote());
+			expect(appliedLogic).to.be.an.instanceof(Vote);
+			appliedLogic = transaction.attachAssetType(transactionTypes.SEND, new Transfer());
+			expect(appliedLogic).to.be.an.instanceof(Transfer);
+			appliedLogic = transaction.attachAssetType(transactionTypes.DELEGATE, new Delegate());
+			expect(appliedLogic).to.be.an.instanceof(Delegate);
+			appliedLogic = transaction.attachAssetType(transactionTypes.SIGNATURE, new Signature());
+			expect(appliedLogic).to.be.an.instanceof(Signature);
+			appliedLogic = transaction.attachAssetType(transactionTypes.MULTI, new Multisignature());
+			expect(appliedLogic).to.be.an.instanceof(Multisignature);
+			appliedLogic = transaction.attachAssetType(transactionTypes.DAPP, new Dapp());
+			expect(appliedLogic).to.be.an.instanceof(Dapp);
+			appliedLogic = transaction.attachAssetType(transactionTypes.IN_TRANSFER, new InTransfer());
+			expect(appliedLogic).to.be.an.instanceof(InTransfer);
+			appliedLogic = transaction.attachAssetType(transactionTypes.OUT_TRANSFER, new OutTransfer());
+			expect(appliedLogic).to.be.an.instanceof(OutTransfer);
+			return transaction;
 		});
 
 		it('should throw an error on invalid asset', function () {
