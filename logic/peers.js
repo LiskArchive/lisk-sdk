@@ -215,7 +215,7 @@ Peers.prototype.unban = function (peer) {
 	peer = self.get(peer);
 	if (peer) {
 		delete peer.clock;
-		peer.state = Peers.STATE.DISCONNECTED;
+		peer.state = Peer.STATE.DISCONNECTED;
 		library.logger.debug('Released ban for peer', peer.string);
 	} else {
 		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});

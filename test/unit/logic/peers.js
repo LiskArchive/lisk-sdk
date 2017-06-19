@@ -14,16 +14,25 @@ var constants = require('../../../helpers/constants');
 
 describe('peers', function () {
 
-	var peers;
+	var peers, APP_NONCE = 'TEST_APP_NONCE';
 
 	before(function () {
 		constants.setConst('headers', {});
 	});
 
-	before(function () {
-		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
-			peers = __peers;
-		});
+	before(function (done) {
+		modulesLoader.initAllModules(function (err, __modules) {
+			if (err) {
+				return done(err);
+			}
+			__modules.peers.onBind(__modules);
+
+			modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
+				peers = __peers;
+				peers.bind(__modules);
+				done();
+			});
+		}, {});
 	});
 
 	function removeAll () {
@@ -198,16 +207,36 @@ describe('peers', function () {
 			removeAll();
 		});
 
+		it('should return false if peer is not on the list', function () {
+			expect(peers.exists({
+				ip: '41.41.41.41',
+				port: '4444',
+				nonce: 'another_nonce'
+			})).not.to.be.ok;
+		});
+
 		it('should return true if peer is on the list', function () {
 			peers.upsert(randomPeer);
 			var list = peers.list(true);
 			expect(list.length).equal(1);
 			expect(peers.exists(randomPeer)).to.be.ok;
-
-			var differentPortPeer = _.clone(randomPeer);
-			differentPortPeer.port += 1;
-			expect(peers.exists(differentPortPeer)).to.be.not.ok;
 		});
+
+		it('should return true if peer with same nonce is on the list', function () {
+			peers.upsert(randomPeer);
+			var list = peers.list(true);
+			expect(list.length).equal(1);
+			expect(peers.exists({nonce: randomPeer.nonce})).to.be.ok;
+		});
+
+		it('should return true if peer with same address is on the list', function () {
+			peers.upsert(randomPeer);
+			var list = peers.list(true);
+			expect(list.length).equal(1);
+			expect(peers.exists({ip: randomPeer.ip, port: randomPeer.port})).to.be.ok;
+		});
+
+
 	});
 
 	describe('get', function () {

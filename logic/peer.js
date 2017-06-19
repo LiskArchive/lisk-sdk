@@ -6,6 +6,15 @@ var wsRPC = require('../api/ws/rpc/wsRPC');
 
 // Constructor
 function Peer (peer) {
+
+	Object.defineProperties(this, {
+		rpc: {
+			get: function () {
+				return wsRPC.getClientRPCStub(this.ip, this.port);
+			}.bind(this)
+		}
+	});
+
 	return this.accept(peer || {});
 }
 
@@ -53,8 +62,7 @@ Peer.prototype.headers = [
 	'dappid',
 	'broadhash',
 	'height',
-	'nonce',
-	'httpPort'
+	'nonce'
 ];
 
 Peer.prototype.nullable = [
@@ -98,14 +106,6 @@ Peer.prototype.accept = function (peer) {
 	if (this.ip && this.port) {
 		this.string = this.ip + ':' + this.port;
 	}
-
-	Object.defineProperties(this, {
-		rpc: {
-			get: function () {
-				return wsRPC.getClientRPCStub(this.ip, this.port);
-			}.bind(this)
-		}
-	});
 
 	return this;
 };
@@ -172,7 +172,7 @@ Peer.prototype.update = function (peer) {
 	// Accept only supported properties
 	_.each(this.properties, function (key) {
 		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === Peer.STATE.BANNED && peer.state === Peer.STATE.ACTIVE) && !_.includes(this.immutable, key)) {
+		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && peer.state !== Peer.STATE.BANNED) && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));
