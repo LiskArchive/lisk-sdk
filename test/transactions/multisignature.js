@@ -131,6 +131,17 @@ describe('multisignature.js', function () {
 
 		});
 
+		it('should create a multisignature transaction without requesterPublicKey and secondSecret', function () {
+
+			var msigTransaction2 = lisk.multisignature.createTransaction(recipientId, amount, secret);
+			var pubKey = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+
+			(msigTransaction2.requesterPublicKey).should.be.equal(pubKey);
+
+			console.log(msigTransaction2);
+
+		});
+
 
 	});
 
