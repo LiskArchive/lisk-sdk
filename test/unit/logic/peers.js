@@ -14,7 +14,7 @@ var constants = require('../../../helpers/constants');
 
 describe('peers', function () {
 
-	var peers, APP_NONCE = 'TEST_APP_NONCE';
+	var peers;
 
 	before(function () {
 		constants.setConst('headers', {});
@@ -29,7 +29,7 @@ describe('peers', function () {
 
 			modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
 				peers = __peers;
-				peers.bind(__modules);
+				peers.bind({modules: __modules});
 				done();
 			});
 		}, {});

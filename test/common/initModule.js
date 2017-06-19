@@ -110,6 +110,12 @@ var modulesLoader = new function () {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
 						memo[name] = initializedLogic;
+						if (typeof initializedLogic.bind === 'function') {
+							initializedLogic.bind({modules: modules});
+						}
+						if (typeof initializedLogic.bindModules === 'function') {
+							initializedLogic.bindModules(modules);
+						}
 						return mapCb(err, memo);
 					});
 				}.bind(this), waterCb);
@@ -120,6 +126,7 @@ var modulesLoader = new function () {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
 						memo[name] = module;
+						modules[name] = module;
 						return mapCb(err, memo);
 					}.bind(this));
 				}.bind(this), waterCb);

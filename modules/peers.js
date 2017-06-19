@@ -615,7 +615,7 @@ Peers.prototype.onPeersReady = function () {
 			},
 			updatePeers: function (seriesCb) {
 				var updated = 0;
-				var peers = library.modules.peers.acceptable(library.logic.peers.list());
+				var peers = self.acceptable(library.logic.peers.list());
 
 				library.logger.trace('Updating peers', {peers: peers});
 

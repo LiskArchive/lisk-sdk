@@ -18,14 +18,26 @@ var currentPeers = [];
 
 describe('peers', function () {
 
+	before(function () {
+		process.env['NODE_ENV'] = 'TEST';
+	});
+
 	var peers, modules, NONCE;
 
 	function getPeers (cb) {
-		peers.list({broadhash: config.nethash}, function (err, __peers) {
+		peers.list({}, function (err, __peers) {
 			expect(err).to.not.exist;
 			expect(__peers).to.be.an('array');
 			return cb(err, __peers);
 		});
+	}
+
+	function removeAll () {
+		peers.list().forEach(function (peer) {
+			peers.remove(peer);
+		});
+
+		expect(peers.list()).that.is.an('array').and.to.be.empty;
 	}
 
 	before(function (done) {
@@ -60,6 +72,13 @@ describe('peers', function () {
 	});
 
 	describe('update', function () {
+		
+		beforeEach(function (done) {
+			getPeers(function (err, __peers) {
+				currentPeers = __peers;
+				done();
+			})
+		});
 
 		it('should insert new peer', function (done) {
 			peers.update(randomPeer);
@@ -127,9 +146,9 @@ describe('peers', function () {
 		});
 
 		var ipAndPortPeer = {
-			ip: '40.41.40.41',
+			ip: '40.40.40.43',
 			port: 4000,
-			nonce: 'randomnonce'
+			nonce: 'newrandomnonce'
 		};
 
 		it('should insert new peer with only ip and port defined', function (done) {
@@ -148,7 +167,7 @@ describe('peers', function () {
 			});
 		});
 
-		it('should update peer with only one property defined', function (done) {
+		it('should update peer with only one header defined', function (done) {
 			peers.update(ipAndPortPeer);
 
 			getPeers(function (err, __peers) {
@@ -223,25 +242,6 @@ describe('peers', function () {
 			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
 		});
 
-		it('should not accept peer with host\'s address', function () {
-			process.env['NODE_ENV'] = 'TEST';
-			var meAsPeer = {
-				ip: '127.0.0.1',
-				port: 4000
-			};
-			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
-		});
-
-		it('should not accept peer with host\'s address but different nonce', function () {
-			process.env['NODE_ENV'] = 'TEST';
-			var meAsPeer = {
-				ip: '127.0.0.1',
-				port: 4000,
-				nonce: 'differentNonce'
-			};
-			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
-		});
-
 		it('should not accept peer with different ip but the same nonce', function () {
 			process.env['NODE_ENV'] = 'TEST';
 			var meAsPeer = {
@@ -276,17 +276,6 @@ describe('peers', function () {
 
 			testWampServer.registerRPCEndpoints(usedRPCEndpoints);
 			wsRPC.setServer(testWampServer);
-
-			sinon.stub(Peer.prototype, 'attachRPC', function () {
-				this.rpc = {};
-				this.rpc.status = function () {};
-				sinon.stub(this.rpc, 'status').callsArgWith(0, null, {
-					success: true,
-					broadhash: '123456789broadhash',
-					nethash: '123456789nethash'
-				});
-				return this;
-			});
 		});
 
 		describe('onBlockchainReady', function () {
