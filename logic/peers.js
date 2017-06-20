@@ -8,17 +8,32 @@ var schema = require('../schema/peers.js');
 // Private fields
 var __private = {};
 var self;
-var modules;
 var library;
 
+/**
+ * Initializes library.
+ * @memberof module:peers
+ * @class
+ * @classdesc Main peers logic.
+ * @param {Object} logger
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} Callback function with `this` as data.
+ */
 // Constructor
-function Peers (scope, cb) {
-	library = scope;
+function Peers (logger, cb) {
+	library = {
+		logger: logger,
+	};
 	self = this;
 	__private.peers = {};
 	return setImmediate(cb, null, this);
 }
 
+/**
+ * Returns a peer instance.
+ * @param {peer} peer
+ * @return {peer} peer instance
+ */
 Peers.prototype.create = function (peer) {
 	if (!(peer instanceof Peer)) {
 		return new Peer(peer);
@@ -27,11 +42,21 @@ Peers.prototype.create = function (peer) {
 	}
 };
 
+/**
+ * Checks if peer is in peers list.
+ * @param {peer} peer
+ * @return {boolean} True if peer is in peers list
+ */
 Peers.prototype.exists = function (peer) {
 	peer = self.create(peer);
 	return !!__private.peers[peer.string];
 };
 
+/**
+ * Gets a peer from peers or creates a new one and returns it.
+ * @param {peer} peer
+ * @return {peer} peer new or peer from peers
+ */
 Peers.prototype.get = function (peer) {
 	if (typeof peer === 'string') {
 		return __private.peers[peer];
@@ -41,6 +66,12 @@ Peers.prototype.get = function (peer) {
 	}
 };
 
+/**
+ * Inserts or updates a peer
+ * @param {peer} peer
+ * @param {boolean} insertOnly - true to only insert.
+ * @return {boolean} True if operation is success.
+ */
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
@@ -114,6 +145,13 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	return true;
 };
 
+/**
+ * Upserts peer with banned state `0` and clock with current time + seconds.
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @param {number} seconds
+ * @return {function} Calls upsert
+ */
 Peers.prototype.ban = function (ip, port, seconds) {
 	return self.upsert({
 		ip: ip,
@@ -124,6 +162,13 @@ Peers.prototype.ban = function (ip, port, seconds) {
 	});
 };
 
+/**
+ * Upserts peer with unbanned state `1` and deletes clock.
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @param {number} seconds
+ * @return {peer}
+ */
 Peers.prototype.unban = function (peer) {
 	peer = self.get(peer);
 	if (peer) {
@@ -136,6 +181,11 @@ Peers.prototype.unban = function (peer) {
 	return peer;
 };
 
+/**
+ * Deletes peer from peers list.
+ * @param {peer} peer
+ * @return {boolean} True if peer exists
+ */
 Peers.prototype.remove = function (peer) {
 	peer = self.create(peer);
 	// Remove peer if exists
@@ -151,6 +201,11 @@ Peers.prototype.remove = function (peer) {
 	}
 };
 
+/**
+ * Returns private list of peers
+ * @param {boolean} [normalize] - If true transform list to object
+ * @return {peer[]} list of peers
+ */
 Peers.prototype.list = function (normalize) {
 	if (normalize) {
 		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].object(); });
@@ -160,9 +215,11 @@ Peers.prototype.list = function (normalize) {
 };
 
 // Public methods
+/**
+ * Modules are not required in this file.
+ * @param {modules} scope - Loaded modules.
+ */
 Peers.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library.logger.trace('Logic/Peers->bind');
 };
 
 // Export

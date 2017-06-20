@@ -13,14 +13,38 @@ __private.unconfirmedNames = {};
 __private.unconfirmedLinks = {};
 __private.unconfirmedAscii = {};
 
+/**
+ * Initializes library.
+ * @memberof module:dapps
+ * @class
+ * @classdesc Main dapp logic.
+ * @param {Database} db
+ * @param {Object} logger
+ * @param {ZSchema} schema
+ * @param {Object} network
+ */
 // Constructor
-function DApp () {}
+function DApp (db, logger, schema, network) {
+	library = {
+		db: db,
+		logger: logger,
+		schema: schema,
+		network: network,
+	};
+}
 
 // Public methods
-DApp.prototype.bind = function (scope) {
-	library = scope.library;
-};
+/**
+ * Binds scope.modules to private variable modules.
+ */
+DApp.prototype.bind = function () {};
 
+/**
+ * Creates transaction.asset.dapp based on data.
+ * @param {dapp} data
+ * @param {transaction} trs
+ * @return {transaction} trs with new data
+ */
 DApp.prototype.create = function (data, trs) {
 	trs.recipientId = null;
 	trs.amount = 0;
@@ -38,10 +62,25 @@ DApp.prototype.create = function (data, trs) {
 	return trs;
 };
 
+/**
+ * Returns dapp fee from constants.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @return {number} fee
+ */
 DApp.prototype.calculateFee = function (trs, sender) {
 	return constants.fees.dapp;
 };
 
+/**
+ * Verifies transaction and dapp fields. Checks dapp name and link in 
+ * `dapps` table.
+ * @implements {library.db.query}
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} errors | trs
+ */
 DApp.prototype.verify = function (trs, sender, cb) {
 	var i;
 
@@ -155,34 +194,53 @@ DApp.prototype.verify = function (trs, sender, cb) {
 	});
 };
 
+/**
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} cb, null, trs
+ */
 DApp.prototype.process = function (trs, sender, cb) {
 	return setImmediate(cb, null, trs);
 };
 
+/**
+ * Creates a buffer with dapp information:
+ * - name
+ * - description
+ * - tags
+ * - link
+ * - icon
+ * - type
+ * - category
+ * @param {transaction} trs
+ * @return {Array} Buffer
+ * @throws {e} error
+ */
 DApp.prototype.getBytes = function (trs) {
 	var buf;
 
 	try {
-		buf = new Buffer([]);
-		var nameBuf = new Buffer(trs.asset.dapp.name, 'utf8');
+		buf = Buffer.from([]);
+		var nameBuf = Buffer.from(trs.asset.dapp.name, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 
 		if (trs.asset.dapp.description) {
-			var descriptionBuf = new Buffer(trs.asset.dapp.description, 'utf8');
+			var descriptionBuf = Buffer.from(trs.asset.dapp.description, 'utf8');
 			buf = Buffer.concat([buf, descriptionBuf]);
 		}
 
 		if (trs.asset.dapp.tags) {
-			var tagsBuf = new Buffer(trs.asset.dapp.tags, 'utf8');
+			var tagsBuf = Buffer.from(trs.asset.dapp.tags, 'utf8');
 			buf = Buffer.concat([buf, tagsBuf]);
 		}
 
 		if (trs.asset.dapp.link) {
-			buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.link, 'utf8')]);
+			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.link, 'utf8')]);
 		}
 
 		if (trs.asset.dapp.icon) {
-			buf = Buffer.concat([buf, new Buffer(trs.asset.dapp.icon, 'utf8')]);
+			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.icon, 'utf8')]);
 		}
 
 		var bb = new ByteBuffer(4 + 4, true);
@@ -198,14 +256,36 @@ DApp.prototype.getBytes = function (trs) {
 	return buf;
 };
 
+/**
+ * @param {transaction} trs
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 DApp.prototype.apply = function (trs, block, sender, cb) {
 	return setImmediate(cb);
 };
 
+/**
+ * @param {transaction} trs
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 DApp.prototype.undo = function (trs, block, sender, cb) {
 	return setImmediate(cb);
 };
 
+/**
+ * Checks if dapp name and link exists, if not adds them to private 
+ * unconfirmed variables.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} cb|errors
+ */
 DApp.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	if (__private.unconfirmedNames[trs.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
@@ -221,6 +301,13 @@ DApp.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	return setImmediate(cb);
 };
 
+/**
+ * Deletes dapp name and link from private unconfirmed variables.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	delete __private.unconfirmedNames[trs.asset.dapp.name];
 	delete __private.unconfirmedLinks[trs.asset.dapp.link];
@@ -228,6 +315,17 @@ DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	return setImmediate(cb);
 };
 
+/**
+ * @typedef {Object} dapp
+ * @property {dappCategory} category - Number between 0 and 8
+ * @property {string} name - Between 1 and 32 chars
+ * @property {string} description - Between 0 and 160 chars
+ * @property {string} tags - Between 0 and 160 chars
+ * @property {dappType} type - Number, minimum 0
+ * @property {string} link - Between 0 and 2000 chars
+ * @property {string} icon - Between 0 and 2000 chars
+ * @property {string} transactionId - transaction id
+ */
 DApp.prototype.schema = {
 	id: 'DApp',
 	type: 'object',
@@ -270,6 +368,13 @@ DApp.prototype.schema = {
 	required: ['type', 'name', 'category']
 };
 
+/**
+ * Deletes null or undefined dapp from transaction and validate dapp schema.
+ * @implements {library.schema.validate}
+ * @param {transaction} trs
+ * @return {transaction}
+ * @throws {string} Failed to validate dapp schema.
+ */
 DApp.prototype.objectNormalize = function (trs) {
 	for (var i in trs.asset.dapp) {
 		if (trs.asset.dapp[i] === null || typeof trs.asset.dapp[i] === 'undefined') {
@@ -288,6 +393,11 @@ DApp.prototype.objectNormalize = function (trs) {
 	return trs;
 };
 
+/**
+ * Creates dapp object based on raw data.
+ * @param {Object} raw
+ * @return {null|dapp} dapp object
+ */
 DApp.prototype.dbRead = function (raw) {
 	if (!raw.dapp_name) {
 		return null;
@@ -319,6 +429,12 @@ DApp.prototype.dbFields = [
 	'transactionId'
 ];
 
+/**
+ * Creates db operation object based on dapp data.
+ * @see privateTypes
+ * @param {transaction} trs
+ * @return {Object[]} table, fields, values.
+ */
 DApp.prototype.dbSave = function (trs) {
 	return {
 		table: this.dbTable,
@@ -336,6 +452,13 @@ DApp.prototype.dbSave = function (trs) {
 	};
 };
 
+/**
+ * Emits 'dapps/change' signal.
+ * @implements {library.network.io.sockets}
+ * @param {transaction} trs
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 DApp.prototype.afterSave = function (trs, cb) {
 	if (library) {
 		library.network.io.sockets.emit('dapps/change', {});
@@ -343,6 +466,13 @@ DApp.prototype.afterSave = function (trs, cb) {
 	return setImmediate(cb);
 };
 
+/**
+ * Checks sender multisignatures and transaction signatures.
+ * @param {transaction} trs
+ * @param {account} sender
+ * @return {boolean} True if transaction signatures greather than 
+ * sender multimin or there are not sender multisignatures.
+ */
 DApp.prototype.ready = function (trs, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 		if (!Array.isArray(trs.signatures)) {

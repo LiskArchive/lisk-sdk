@@ -20,7 +20,6 @@ var Router = require('../helpers/router.js');
 var Sandbox = require('lisk-sandbox');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/dapps.js');
-var slots = require('../helpers/slots.js');
 var sql = require('../sql/dapps.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
@@ -37,25 +36,73 @@ __private.sandboxes = {};
 __private.dappready = {};
 __private.routes = {};
 
+/**
+ * Initializes library with scope content and generates instances for:
+ * - DApp
+ * - InTransfer
+ * - OutTransfer
+ * Calls logic.transaction.attachAssetType().
+ *
+ * Listens `exit` signal.
+ * Checks 'public/dapp' folder and created it if doesn't exists.
+ * @memberof module:dapps
+ * @class
+ * @classdesc Main dapps methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ * @todo apply node pattern for callbacks: callback always at the end.
+ * @todo add 'use strict';
+ */
 // Constructor
 function DApps (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		public: scope.public,
+		network: scope.network,
+		schema: scope.schema,
+		ed: scope.ed,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+		config: {
+			dapp: scope.config.dapp,
+		},
+	};
 	self = this;
 
-	__private.attachApi();
-
 	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
-		transactionTypes.DAPP, new DApp()
+		transactionTypes.DAPP,
+		new DApp(
+			scope.db, 
+			scope.logger, 
+			scope.schema, 
+			scope.network
+		)
 	);
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.IN_TRANSFER, new InTransfer()
+		transactionTypes.IN_TRANSFER, 
+		new InTransfer(
+			scope.db,
+			scope.schema
+		)
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.OUT_TRANSFER, new OutTransfer()
+		transactionTypes.OUT_TRANSFER, 
+		new OutTransfer(
+			scope.db,
+			scope.schema,
+			scope.logger
+		)
 	);
-
+	/**
+	 * Receives an 'exit' signal and calls stopDApp for each launched app.
+	 * @listens exit
+	 */
 	process.on('exit', function () {
 		var keys = Object.keys(__private.launched);
 
@@ -93,443 +140,15 @@ function DApps (cb, scope) {
 	});
 }
 
-__private.attachApi = function () {
-	var router = new Router();
-
-	router.use(function (req, res, next) {
-		if (modules) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
-
-	router.put('/', function (req, res, next) {
-		req.sanitize(req.body, schema.put, function (err, report, body) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-
-			var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-			var keypair = library.ed.makeKeypair(hash);
-
-			if (body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== body.publicKey) {
-					return res.json({success: false, error: 'Invalid passphrase'});
-				}
-			}
-
-			library.balancesSequence.add(function (cb) {
-				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					if (!account || !account.publicKey) {
-						return setImmediate(cb, 'Account not found');
-					}
-
-					if (account.secondSignature && !body.secondSecret) {
-						return setImmediate(cb, 'Invalid second passphrase');
-					}
-
-					var secondKeypair = null;
-
-					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(body.secondSecret, 'utf8').digest();
-						secondKeypair = library.ed.makeKeypair(secondHash);
-					}
-
-					var transaction;
-
-					try {
-						transaction = library.logic.transaction.create({
-							type: transactionTypes.DAPP,
-							sender: account,
-							keypair: keypair,
-							secondKeypair: secondKeypair,
-							category: body.category,
-							name: body.name,
-							description: body.description,
-							tags: body.tags,
-							dapp_type: body.type,
-							link: body.link,
-							icon: body.icon
-						});
-					} catch (e) {
-						return setImmediate(cb, e.toString());
-					}
-
-					modules.transactions.receiveTransactions([transaction], true, cb);
-				});
-			}, function (err, transaction) {
-				if (err) {
-					return res.json({success: false, error: err});
-				}
-				res.json({success: true, transaction: transaction[0]});
-			});
-		});
-	});
-
-	router.get('/', function (req, res, next) {
-		req.sanitize(req.query, schema.list, function (err, report, query) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-
-			__private.list(query, function (err, dapps) {
-				if (err) {
-					return res.json({success: false, error: 'Application not found'});
-				}
-
-				res.json({success: true, dapps: dapps});
-			});
-		});
-	});
-
-	router.get('/get', function (req, res, next) {
-		req.sanitize(req.query, schema.get, function (err, report, query) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-
-			__private.get(query.id, function (err, dapp) {
-				if (err) {
-					return res.json({success: false, error: err});
-				}
-
-				return res.json({success: true, dapp: dapp});
-			});
-		});
-	});
-
-	router.get('/search', function (req, res, next) {
-		req.sanitize(req.query, schema.search, function (err, report, query) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-
-			var params = { q: '%' + query.q + '%', limit: 50 };
-
-			if (query.category) {
-				if (query.category === 0 || query.category > 0) {
-					params.category = query.category;
-				}
-			}
-
-			library.db.query(sql.search(params), params).then(function (rows) {
-				if (rows.length === 0) {
-					return res.json({success: true, dapps: rows});
-				}
-
-				if (query.installed === null || typeof query.installed === 'undefined') {
-					return res.json({success: true, dapps: rows});
-				} else if (query.installed === 1) {
-					__private.getInstalledIds(function (err, installed) {
-						if (err) {
-							return res.json({
-								success: false,
-								error: 'Failed to get installed ids'
-							});
-						}
-
-						var dapps = [];
-
-						rows.forEach(function (dapp) {
-							if (installed.indexOf(dapp.transactionId) >= 0) {
-								dapps.push(dapp);
-							}
-						});
-
-						return res.json({success: true, dapps: dapps});
-					});
-				} else {
-					__private.getInstalledIds(function (err, installed) {
-						if (err) {
-							return res.json({
-								success: false,
-								error: 'Failed to get installed ids'
-							});
-						}
-
-						var dapps = [];
-						rows.forEach(function (dapp) {
-							if (installed.indexOf(dapp.transactionId) < 0) {
-								dapps.push(dapp);
-							}
-						});
-
-						return res.json({success: true, dapps: dapps});
-					});
-				}
-			}).catch(function (err) {
-				library.logger.error(err.stack);
-				return res.json({success: false, error: 'Database search failed'});
-			});
-		});
-	});
-
-	router.post('/install', function (req, res, next) {
-		req.sanitize(req.body, schema.install, function (err, report, body) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-
-			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: 'Invalid master passphrase'});
-			}
-
-			__private.get(body.id, function (err, dapp) {
-				if (err) {
-					library.logger.error(err);
-					return res.json({success: false, error: err});
-				}
-
-				__private.getInstalledIds(function (err, ids) {
-					if (err) {
-						library.logger.error(err);
-						return res.json({success: false, error: err});
-					}
-
-					if (ids.indexOf(body.id) >= 0) {
-						return res.json({success: false, error: 'Application is already installed'});
-					}
-
-					if (__private.loading[body.id] || __private.uninstalling[body.id]) {
-						return res.json({success: false, error: 'Application is loading or being uninstalled'});
-					}
-
-					__private.loading[body.id] = true;
-
-					__private.installDApp(dapp, function (err, dappPath) {
-						if (err) {
-							__private.loading[body.id] = false;
-							return res.json({success: false, error: err});
-						} else {
-							if (dapp.type === 0) {
-								__private.installDependencies(dapp, function (err) {
-									if (err) {
-										library.logger.error(err);
-										__private.uninstalling[body.id] = true;
-										__private.removeDApp(dapp, function (err) {
-											__private.uninstalling[body.id] = false;
-
-											if (err) {
-												library.logger.error(err);
-											}
-
-											__private.loading[body.id] = false;
-											return res.json({
-												success: false,
-												error: 'Failed to install application dependencies'
-											});
-										});
-									} else {
-										library.network.io.sockets.emit('dapps/change', dapp);
-
-										__private.loading[body.id] = false;
-										return res.json({success: true, path: dappPath});
-									}
-								});
-							} else {
-								library.network.io.sockets.emit('dapps/change', dapp);
-
-								__private.loading[body.id] = false;
-								return res.json({success: true, path: dappPath});
-							}
-						}
-					});
-				});
-			});
-		});
-	});
-
-	router.get('/installed', function (req, res, next) {
-		__private.getInstalledIds(function (err, ids) {
-			if (err) {
-				library.logger.error(err);
-				return res.json({success: false, error: 'Failed to get installed application ids'});
-			}
-
-			if (ids.length === 0) {
-				return res.json({success: true, dapps: []});
-			}
-
-			__private.getByIds(ids, function (err, dapps) {
-				if (err) {
-					library.logger.error(err);
-					return res.json({success: false, error: 'Failed to get applications by id'});
-				}
-
-				return res.json({success: true, dapps: dapps});
-			});
-		});
-	});
-
-	router.get('/installedIds', function (req, res, next) {
-		__private.getInstalledIds(function (err, ids) {
-			if (err) {
-				library.logger.error(err);
-				return res.json({success: false, error: 'Failed to get installed application ids'});
-			}
-
-			return res.json({success: true, ids: ids});
-		});
-	});
-
-	router.get('/ismasterpasswordenabled', function (req, res, next) {
-		return res.json({success: true, enabled: !!library.config.dapp.masterpassword});
-	});
-
-	router.post('/uninstall', function (req, res, next) {
-		req.sanitize(req.body, schema.uninstall, function (err, report, body) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-
-			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: 'Invalid master passphrase'});
-			}
-
-			__private.get(body.id, function (err, dapp) {
-				if (err) {
-					library.logger.error(err);
-					return res.json({success: false, error: err});
-				}
-
-				if (__private.loading[body.id] || __private.uninstalling[body.id]) {
-					return res.json({success: true, error: 'Application is loading or being uninstalled'});
-				}
-
-				__private.uninstalling[body.id] = true;
-
-				if (__private.launched[body.id]) {
-					__private.stopDApp(dapp, function (err) {
-						if (err) {
-							library.logger.error(err);
-							return res.json({success: false, error: 'Failed to stop application'});
-						} else {
-							__private.launched[body.id] = false;
-							__private.removeDApp(dapp, function (err) {
-								__private.uninstalling[body.id] = false;
-
-								if (err) {
-									return res.json({success: false, error: err});
-								} else {
-									library.network.io.sockets.emit('dapps/change', dapp);
-
-									return res.json({success: true});
-								}
-							});
-						}
-					});
-				} else {
-					__private.removeDApp(dapp, function (err) {
-						__private.uninstalling[body.id] = false;
-
-						if (err) {
-							return res.json({success: false, error: err});
-						} else {
-							library.network.io.sockets.emit('dapps/change', dapp);
-
-							return res.json({success: true});
-						}
-					});
-				}
-			});
-		});
-	});
-
-	router.post('/launch', function (req, res, next) {
-		if (library.config.dapp.masterpassword && req.body.master !== library.config.dapp.masterpassword) {
-			return res.json({success: false, error: 'Invalid master passphrase'});
-		}
-
-		__private.launchDApp(req.body, function (err) {
-			if (err) {
-				return res.json({'success': false, 'error': err});
-			} else {
-				library.network.io.sockets.emit('dapps/change', {});
-				return res.json({'success': true});
-			}
-		});
-	});
-
-	router.get('/installing', function (req, res, next) {
-		var ids = [];
-		for (var i in __private.loading) {
-			if (__private.loading[i]) {
-				ids.push(i);
-			}
-		}
-
-		return res.json({success: true, installing: ids});
-	});
-
-	router.get('/uninstalling', function (req, res, next) {
-		var ids = [];
-		for (var i in __private.uninstalling) {
-			if (__private.uninstalling[i]) {
-				ids.push(i);
-			}
-		}
-
-		return res.json({success: true, uninstalling: ids});
-	});
-
-	router.get('/launched', function (req, res, next) {
-		var ids = [];
-		for (var i in __private.launched) {
-			if (__private.launched[i]) {
-				ids.push(i);
-			}
-		}
-
-		return res.json({success: true, launched: ids});
-	});
-
-	router.get('/categories', function (req, res, next) {
-		return res.json({success: true, categories: dappCategories});
-	});
-
-	router.post('/stop', function (req, res, next) {
-		req.sanitize(req.body, schema.stop, function (err, report, body) {
-			if (err) { return next(err); }
-			if (!report.isValid) { return res.json({success: false, error: report.issues}); }
-
-			if (!__private.launched[body.id]) {
-				return res.json({success: false, error: 'Application not launched'});
-			}
-
-			if (library.config.dapp.masterpassword && body.master !== library.config.dapp.masterpassword) {
-				return res.json({success: false, error: 'Invalid master passphrase'});
-			}
-
-			__private.get(body.id, function (err, dapp) {
-				if (err) {
-					library.logger.error(err);
-					return res.json({success: false, error: 'Application not found'});
-				} else {
-					__private.stopDApp(dapp, function (err) {
-						if (err) {
-							library.logger.error(err);
-							return res.json({success: false, error: 'Failed to stop application'});
-						} else {
-							library.network.io.sockets.emit('dapps/change', dapp);
-							__private.launched[body.id] = false;
-							return res.json({success: true});
-						}
-					});
-				}
-			});
-		});
-	});
-
-	router.map(__private, {
-		'put /transaction': 'addTransactions',
-		'put /withdrawal': 'sendWithdrawal'
-	});
-
-	library.network.app.use('/api/dapps', router);
-	library.network.app.use(function (err, req, res, next) {
-		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err.message);
-		res.status(500).send({success: false, error: 'API error: ' + err.message});
-	});
-};
-
 // Private methods
+/**
+ * Gets record from `dapps` table based on id
+ * @private
+ * @implements {library.db.query}
+ * @param {string} id
+ * @param {function} cb
+ * @return {setImmediateCallback} error description | row data
+ */
 __private.get = function (id, cb) {
 	library.db.query(sql.get, {id: id}).then(function (rows) {
 		if (rows.length === 0) {
@@ -543,6 +162,14 @@ __private.get = function (id, cb) {
 	});
 };
 
+/**
+ * Gets records from `dapps` table based on id list
+ * @private
+ * @implements {library.db.query}
+ * @param {string[]} ids
+ * @param {function} cb
+ * @return {setImmediateCallback} error description | rows data
+ */
 __private.getByIds = function (ids, cb) {
 	library.db.query(sql.getByIds, [ids]).then(function (rows) {
 		return setImmediate(cb, null, rows);
@@ -552,6 +179,15 @@ __private.getByIds = function (ids, cb) {
 	});
 };
 
+/**
+ * Gets records from `dapps` table based on filter
+ * @private
+ * @implements {library.db.query}
+ * @param {Object} filter - Could contains type, name, category, link, limit,
+ * offset, orderBy
+ * @param {function} cb
+ * @return {setImmediateCallback} error description | rows data
+ */
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
 
@@ -618,6 +254,15 @@ __private.list = function (filter, cb) {
 	});
 };
 
+/**
+ * Creates base paths with mkdir if they don't exists for:
+ * - /dapps
+ * - /public/dapps
+ * - /public/images/dapps
+ * @private
+ * @param {function} cb
+ * @return {setImmediateCallback} if error
+ */
 __private.createBasePaths = function (cb) {
 	var basePaths = [
 		__private.dappsPath,                             // -> /dapps
@@ -638,6 +283,16 @@ __private.createBasePaths = function (cb) {
 	});
 };
 
+/**
+ * Creates base paths with mkdir if they don't exists for:
+ * - /dapps
+ * - /public/dapps
+ * - /public/images/dapps
+ * @private
+ * @param {dapp} dapp
+ * @param {function} cb
+ * @return {setImmediateCallback} if error
+ */
 __private.installDependencies = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 
@@ -664,6 +319,12 @@ __private.installDependencies = function (dapp, cb) {
 	});
 };
 
+/**
+ * Gets ids from installed dapps, based in folder content
+ * @private
+ * @param {function} cb
+ * @return {setImmediateCallback} error | ids
+ */
 __private.getInstalledIds = function (cb) {
 	fs.readdir(__private.dappsPath, function (err, ids) {
 		if (err) {
@@ -680,6 +341,16 @@ __private.getInstalledIds = function (cb) {
 	});
 };
 
+/**
+ * Removes application folder and drops application tables.
+ * @private
+ * @implements {modules.sql.dropTables}
+ * @param {dapp} dapp
+ * @param {function} cb
+ * @return {setImmediateCallback} error message | cb
+ * @todo Fix this logic,triggers remove with err always.
+ * @todo Implement dropTables
+ */
 __private.removeDApp = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 
@@ -719,6 +390,16 @@ __private.removeDApp = function (dapp, cb) {
 	});
 };
 
+/**
+ * Creates a temp dir, downloads the dapp as stream and decompress it.
+ * @private
+ * @implements {popsicle}
+ * @implements {DecompressZip}
+ * @param {dapp} dapp
+ * @param {string} dappPath
+ * @param {function} cb
+ * @return {setImmediateCallback} error message | cb
+ */
 __private.downloadLink = function (dapp, dappPath, cb) {
 	var tmpDir = 'tmp';
 	var tmpPath = path.join(__private.appPath, tmpDir, dapp.transactionId + '.zip');
@@ -811,6 +492,17 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 	});
 };
 
+/**
+ * Implements a series process:
+ * - checks if the dapp is already installed
+ * - makes an application directory
+ * - performs install by calling downloadLink function
+ * @private
+ * @implements {__private.downloadLink}
+ * @param {dapp} dapp
+ * @param {function} cb
+ * @return {setImmediateCallback} error message | cb
+ */
 __private.installDApp = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 
@@ -846,6 +538,14 @@ __private.installDApp = function (dapp, cb) {
 	});
 };
 
+/**
+ * Creates a public link (symbolic link) between public path and 
+ * public dapps with transaction id.
+ * @private
+ * @param {dapp} dapp
+ * @param {function} cb
+ * @return {setImmediateCallback} cb
+ */
 __private.createSymlink = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 	var dappPublicPath = path.join(dappPath, 'public');
@@ -866,6 +566,14 @@ __private.createSymlink = function (dapp, cb) {
 	});
 };
 
+/**
+ * Gets module in parameter and calls `sandboxApi` with message args and dappid.
+ * @private
+ * @implements {sandboxApi} based on module
+ * @param {Object} message
+ * @param {function} callback
+ * @return {setImmediateCallback} error messages
+ */
 __private.apiHandler = function (message, callback) {
 	try {
 		var strs = message.call.split('#');
@@ -885,6 +593,15 @@ __private.apiHandler = function (message, callback) {
 	}
 };
 
+/**
+ * Gets `routes.json` file and creates the router
+ * @private
+ * @implements {Router}
+ * @implements {library.network.app.use}
+ * @param {dapp} dapp
+ * @param {function} cb
+ * @return {setImmediateCallback} error messages | cb
+ */
 __private.createRoutes = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 	var dappRoutesPath = path.join(dappPath, 'routes.json');
@@ -899,7 +616,7 @@ __private.createRoutes = function (dapp, cb) {
 				return setImmediate(cb, 'Failed to open routes.json file');
 			}
 
-			__private.routes[dapp.transactionId] = new Router();
+			__private.routes[dapp.transactionId] = new Router({});
 
 			routes.forEach(function (router) {
 				if (router.method === 'get' || router.method === 'post' || router.method === 'put') {
@@ -933,6 +650,27 @@ __private.createRoutes = function (dapp, cb) {
 	});
 };
 
+/**
+ * Launchs daap steps:
+ * - validate schema parameter
+ * - check if application is already launched
+ * - get the application
+ * - get installed applications
+ * - create public link
+ * - create sandbox
+ * - create application routes
+ * @private
+ * @implements {library.schema.validate}
+ * @implements {__private.get}
+ * @implements {__private.getInstalledIds}
+ * @implements {__private.createSymlink}
+ * @implements {__private.createSandbox}
+ * @implements {__private.createRoutes}
+ * @implements {__private.stopDApp}
+ * @param {Object} body
+ * @param {function} cb
+ * @return {setImmediateCallback} cb, err
+ */
 __private.launchDApp = function (body, cb) {
 	async.waterfall([
 		function (waterCb) {
@@ -1028,6 +766,21 @@ __private.launchDApp = function (body, cb) {
 	});
 };
 
+/**
+ * Opens dapp `config.json` file and for each peer calls update.
+ * Once all peers are updated, opens `blockchain.json` file, calls
+ * createTables and creates sandbox.
+ * Listens sanbox events 'exit' and 'error' to stop dapp.
+ * @private
+ * @implements {modules.peers.update}
+ * @implements {modules.sql.createTables}
+ * @implements {Sandbox}
+ * @implements {__private.stopDApp}
+ * @param {dapp} dapp
+ * @param {Object} params
+ * @param {function} cb
+ * @return {setImmediateCallback} cb, error
+ */
 __private.createSandbox = function (dapp, params, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
 	var dappPublicPath = path.join(dappPath, 'public');
@@ -1104,6 +857,17 @@ __private.createSandbox = function (dapp, params, cb) {
 	});
 };
 
+/**
+ * Stops dapp:
+ * - check public/dapps id is installed
+ * - delete sandbox after exit() from sanbox
+ * - delete routes
+ * @private
+ * @implements {sandboxes.exit}
+ * @param {dapp} dapp
+ * @param {function} cb
+ * @return {setImmediateCallback} cb, error
+ */
 __private.stopDApp = function (dapp, cb) {
 	var dappPublicLink = path.join(__private.appPath, 'public', 'dapps', dapp.transactionId);
 
@@ -1134,268 +898,39 @@ __private.stopDApp = function (dapp, cb) {
 	});
 };
 
-__private.addTransactions = function (req, cb) {
-	library.schema.validate(req.body, schema.addTransactions, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
-		var keypair = library.ed.makeKeypair(hash);
-
-		if (req.body.publicKey) {
-			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-				return setImmediate(cb, 'Invalid passphrase');
-			}
-		}
-
-		var query = {};
-
-		library.balancesSequence.add(function (cb) {
-			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					if (!account || !account.publicKey) {
-						return setImmediate(cb, 'Multisignature account not found');
-					}
-
-					if (!account.multisignatures || !account.multisignatures) {
-						return setImmediate(cb, 'Account does not have multisignatures enabled');
-					}
-
-					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return setImmediate(cb, 'Account does not belong to multisignature group');
-					}
-
-					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						if (!requester || !requester.publicKey) {
-							return setImmediate(cb, 'Requester not found');
-						}
-
-						if (requester.secondSignature && !req.body.secondSecret) {
-							return setImmediate(cb, 'Missing requester second passphrase');
-						}
-
-						if (requester.publicKey === account.publicKey) {
-							return setImmediate(cb, 'Invalid requester public key');
-						}
-
-						var secondKeypair = null;
-
-						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-							secondKeypair = library.ed.makeKeypair(secondHash);
-						}
-
-						var transaction;
-
-						try {
-							transaction = library.logic.transaction.create({
-								type: transactionTypes.IN_TRANSFER,
-								amount: req.body.amount,
-								sender: account,
-								keypair: keypair,
-								requester: keypair,
-								secondKeypair: secondKeypair,
-								dappId: req.body.dappId
-							});
-						} catch (e) {
-							return setImmediate(cb, e.toString());
-						}
-
-						modules.transactions.receiveTransactions([transaction], true, cb);
-					});
-				});
-			} else {
-				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					if (!account || !account.publicKey) {
-						return setImmediate(cb, 'Account not found');
-					}
-
-					if (account.secondSignature && !req.body.secondSecret) {
-						return setImmediate(cb, 'Invalid second passphrase');
-					}
-
-					var secondKeypair = null;
-
-					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-						secondKeypair = library.ed.makeKeypair(secondHash);
-					}
-
-					var transaction;
-
-					try {
-						transaction = library.logic.transaction.create({
-							type: transactionTypes.IN_TRANSFER,
-							amount: req.body.amount,
-							sender: account,
-							keypair: keypair,
-							secondKeypair: secondKeypair,
-							dappId: req.body.dappId
-						});
-					} catch (e) {
-						return setImmediate(cb, e.toString());
-					}
-
-					modules.transactions.receiveTransactions([transaction], true, cb);
-				});
-			}
-		}, function (err, transaction) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			return setImmediate(cb, null, {transactionId: transaction[0].id});
-		});
-	});
-};
-
-__private.sendWithdrawal = function (req, cb) {
-	library.schema.validate(req.body, schema.sendWithdrawal, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
-		var keypair = library.ed.makeKeypair(hash);
-		var query = {};
-
-		library.balancesSequence.add(function (cb) {
-			if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-				modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					if (!account || !account.publicKey) {
-						return setImmediate(cb, 'Multisignature account not found');
-					}
-
-					if (!account.multisignatures || !account.multisignatures) {
-						return setImmediate(cb, 'Account does not have multisignatures enabled');
-					}
-
-					if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-						return setImmediate(cb, 'Account does not belong to multisignature group');
-					}
-
-					modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						if (!requester || !requester.publicKey) {
-							return setImmediate(cb, 'Requester not found');
-						}
-
-						if (requester.secondSignature && !req.body.secondSecret) {
-							return setImmediate(cb, 'Missing requester second passphrase');
-						}
-
-						if (requester.publicKey === account.publicKey) {
-							return setImmediate(cb, 'Invalid requester public key');
-						}
-
-						var secondKeypair = null;
-
-						if (requester.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-							secondKeypair = library.ed.makeKeypair(secondHash);
-						}
-
-						var transaction;
-
-						try {
-							transaction = library.logic.transaction.create({
-								type: transactionTypes.OUT_TRANSFER,
-								amount: req.body.amount,
-								sender: account,
-								recipientId: req.body.recipientId,
-								keypair: keypair,
-								secondKeypair: secondKeypair,
-								requester: keypair,
-								dappId: req.body.dappId,
-								transactionId: req.body.transactionId
-							});
-						} catch (e) {
-							return setImmediate(cb, e.toString());
-						}
-
-						modules.transactions.receiveTransactions([transaction], true, cb);
-					});
-				});
-			} else {
-				modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					if (!account || !account.publicKey) {
-						return setImmediate(cb, 'Account not found');
-					}
-
-					if (account.secondSignature && !req.body.secondSecret) {
-						return setImmediate(cb, 'Missing second passphrase');
-					}
-
-					var secondKeypair = null;
-
-					if (account.secondSignature) {
-						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-						secondKeypair = library.ed.makeKeypair(secondHash);
-					}
-
-					var transaction;
-
-					try {
-						transaction = library.logic.transaction.create({
-							type: transactionTypes.OUT_TRANSFER,
-							amount: req.body.amount,
-							sender: account,
-							recipientId: req.body.recipientId,
-							keypair: keypair,
-							secondKeypair: secondKeypair,
-							dappId: req.body.dappId,
-							transactionId: req.body.transactionId
-						});
-					} catch (e) {
-						return setImmediate(cb, e.toString());
-					}
-
-					modules.transactions.receiveTransactions([transaction], true, cb);
-				});
-			}
-		}, function (err, transaction) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			return setImmediate(cb, null, {transactionId: transaction[0].id});
-		});
-	});
-};
-
 // Public methods
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {*} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 DApps.prototype.sandboxApi = function (call, args, cb) {
 	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
+/**
+ * Calls request with 'post' method and '/message' path.
+ * @implements {request}
+ * @param {string} dappid
+ * @param {Object} body
+ * @param {function} cb
+ */
 DApps.prototype.message = function (dappid, body, cb) {
 	self.request(dappid, 'post', '/message', body, cb);
 };
 
+/**
+ * Calls sendMessage for sandboxes dapp.
+ * @implements {request}
+ * @param {string} dappid
+ * @param {string} method
+ * @param {string} path
+ * @param {Object} query
+ * @param {function} cb
+ * @return {setImmediateCallback} for errors
+ */
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!__private.sandboxes[dappid]) {
 		return setImmediate(cb, 'Application sandbox not found');
@@ -1411,22 +946,37 @@ DApps.prototype.request = function (dappid, method, path, query, cb) {
 };
 
 // Events
+/**
+ * Bounds used scope modules to private modules variable and sets params
+ * to private Dapp, InTransfer and OutTransfer instances.
+ * @implements module:transactions#Transfer~bind
+ * @param {modules} scope - Loaded modules.
+ */
 DApps.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transactions: scope.transactions,
+		accounts: scope.accounts,
+		peers: scope.peers,
+		sql: scope.sql,
+	};
 
-	__private.assetTypes[transactionTypes.DAPP].bind({
-		library: library
-	});
+	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
+		scope.accounts,
+		scope.rounds,
+		shared
+	);
 
-	__private.assetTypes[transactionTypes.IN_TRANSFER].bind({
-		modules: modules, library: library, shared: shared
-	});
-
-	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind({
-		modules: modules, library: library
-	});
+	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
+		scope.accounts,
+		scope.rounds,
+		scope.dapps
+	);
 };
 
+/**
+ * Waits a second and for each library.config.dapp.autoexec calls launchDApp.
+ * @implements {__private.launchDApp}
+ */
 DApps.prototype.onBlockchainReady = function () {
 	setTimeout(function () {
 		if (!library.config.dapp) { return; }
@@ -1449,6 +999,11 @@ DApps.prototype.onBlockchainReady = function () {
 	}, 1000);
 };
 
+/**
+ * For each sandbox sends a post message with rollback and block information.
+ * @implements {request}
+ * @param {block} block
+ */
 DApps.prototype.onDeleteBlocksBefore = function (block) {
 	Object.keys(__private.sandboxes).forEach(function (dappId) {
 		self.request(dappId, 'post', '/message', {
@@ -1462,6 +1017,12 @@ DApps.prototype.onDeleteBlocksBefore = function (block) {
 	});
 };
 
+/**
+ * For each sandbox sends a post message with point and block information.
+ * @implements {request}
+ * @param {block} block
+ * @param {Object} broadcast
+ */
 DApps.prototype.onNewBlock = function (block, broadcast) {
 	Object.keys(__private.sandboxes).forEach(function (dappId) {
 		if (broadcast) {
@@ -1477,7 +1038,667 @@ DApps.prototype.onNewBlock = function (block, broadcast) {
 	});
 };
 
-// Shared
+/**
+ * Checks if `modules` is loaded.
+ * @return {boolean} True if `modules` is loaded.
+ */
+DApps.prototype.isLoaded = function () {
+	return !!modules;
+};
+
+/**
+ * Internal & Shared
+ * - DApps.prototype.internal
+ * - shared.
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
+DApps.prototype.internal = {
+	put: function (dapp, cb) {
+		var hash = crypto.createHash('sha256').update(dapp.secret, 'utf8').digest();
+		var keypair = library.ed.makeKeypair(hash);
+
+		if (dapp.publicKey) {
+			if (keypair.publicKey.toString('hex') !== dapp.publicKey) {
+				return setImmediate(cb, 'Invalid passphrase');
+			}
+		}
+
+		library.balancesSequence.add(function (cb) {
+			modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				if (!account || !account.publicKey) {
+					return setImmediate(cb, 'Account not found');
+				}
+
+				if (account.secondSignature && !dapp.secondSecret) {
+					return setImmediate(cb, 'Invalid second passphrase');
+				}
+
+				var secondKeypair = null;
+
+				if (account.secondSignature) {
+					var secondHash = crypto.createHash('sha256').update(dapp.secondSecret, 'utf8').digest();
+					secondKeypair = library.ed.makeKeypair(secondHash);
+				}
+
+				var transaction;
+
+				try {
+					transaction = library.logic.transaction.create({
+						type: transactionTypes.DAPP,
+						sender: account,
+						keypair: keypair,
+						secondKeypair: secondKeypair,
+						category: dapp.category,
+						name: dapp.name,
+						description: dapp.description,
+						tags: dapp.tags,
+						dapp_type: dapp.type,
+						link: dapp.link,
+						icon: dapp.icon
+					});
+				} catch (e) {
+					return setImmediate(cb, e.toString());
+				}
+
+				modules.transactions.receiveTransactions([transaction], true, cb);
+			});
+		}, function (err, transaction) {
+			if (err) {
+				return setImmediate(cb, null, {success: false, error: err});
+			} else {
+				return setImmediate(cb, null, {success: true, transaction: transaction[0]});
+			}
+		});
+	},
+
+	get: function (query, cb) {
+		__private.get(query.id, function (err, dapp) {
+			if (err) {
+				return setImmediate(cb, null, {success: false, error: err});
+			} else {
+				return setImmediate(cb, null, {success: true, dapp: dapp});
+			}
+		});
+	},
+
+	list: function (query, cb) {
+		__private.list(query, function (err, dapps) {
+			if (err) {
+				return setImmediate(cb, 'Application not found');
+			} else {
+				return setImmediate(cb, null, {success: true, dapps: dapps});
+			}
+		});
+	},
+
+	installed: function (req, cb) {
+		__private.getInstalledIds(function (err, ids) {
+			if (err) {
+				library.logger.error(err);
+				return setImmediate(cb, 'Failed to get installed application ids');
+			}
+
+			if (ids.length === 0) {
+				return setImmediate(cb, null, {success: true, dapps: []});
+			}
+
+			__private.getByIds(ids, function (err, dapps) {
+				if (err) {
+					library.logger.error(err);
+					return setImmediate(cb, 'Failed to get applications by id');
+				} else {
+					return setImmediate(cb, null, {success: true, dapps: dapps});
+				}
+			});
+		});
+	},
+
+	search: function (query, cb) {
+		__private.getInstalledIds(function (err, ids) {
+			if (err) {
+				library.logger.error(err);
+				return setImmediate(cb, 'Failed to get installed application ids');
+			}
+
+			var params = { q: '%' + query.q + '%', limit: 50 };
+
+			if (query.category) {
+				if (query.category === 0 || query.category > 0) {
+					params.category = query.category;
+				}
+			}
+
+			library.db.query(sql.search(params), params).then(function (rows) {
+				if (rows.length === 0) {
+					return setImmediate(cb, null, {success: true, dapps: rows});
+				}
+
+				if (query.installed === null || typeof query.installed === 'undefined') {
+					return setImmediate(cb, null, {success: true, dapps: rows});
+				} else if (query.installed === 1) {
+					__private.getInstalledIds(function (err, installed) {
+						if (err) {
+							return setImmediate(cb, null, {
+								success: false,
+								error: 'Failed to get installed ids'
+							});
+						}
+
+						var dapps = [];
+
+						rows.forEach(function (dapp) {
+							if (installed.indexOf(dapp.transactionId) >= 0) {
+								dapps.push(dapp);
+							}
+						});
+
+						return setImmediate(cb, null, {success: true, dapps: dapps});
+					});
+				} else {
+					__private.getInstalledIds(function (err, installed) {
+						if (err) {
+							return setImmediate(cb, null, {
+								success: false,
+								error: 'Failed to get installed ids'
+							});
+						}
+
+						var dapps = [];
+						rows.forEach(function (dapp) {
+							if (installed.indexOf(dapp.transactionId) < 0) {
+								dapps.push(dapp);
+							}
+						});
+
+						return setImmediate(cb, null, {success: true, dapps: dapps});
+					});
+				}
+			}).catch(function (err) {
+				library.logger.error(err.stack);
+				return setImmediate(cb, 'Database search failed');
+			});
+		});
+	},
+
+	installedIds: function (req, cb) {
+		__private.getInstalledIds(function (err, ids) {
+			if (err) {
+				library.logger.error(err);
+				return setImmediate(cb, 'Failed to get installed application ids');
+			} else {
+				return setImmediate(cb, null, {success: true, ids: ids});
+			}
+		});
+	},
+
+	isMasterPasswordEnabled: function (req, cb) {
+		return setImmediate(cb, null, {success: true, enabled: !!library.config.dapp.masterpassword});
+	},
+
+	install: function (params, cb) {
+		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
+			return setImmediate(cb, 'Invalid master passphrase');
+		}
+
+		__private.get(params.id, function (err, dapp) {
+			if (err) {
+				library.logger.error(err);
+				return setImmediate(cb, null, {success: false, error: err});
+			}
+
+			__private.getInstalledIds(function (err, ids) {
+				if (err) {
+					library.logger.error(err);
+					return setImmediate(cb, null, {success: false, error: err});
+				}
+
+				if (ids.indexOf(params.id) >= 0) {
+					return setImmediate(cb, 'Application is already installed');
+				}
+
+				if (__private.loading[params.id] || __private.uninstalling[params.id]) {
+					return setImmediate(cb, 'Application is loading or being uninstalled');
+				}
+
+				__private.loading[params.id] = true;
+
+				__private.installDApp(dapp, function (err, dappPath) {
+					if (err) {
+						__private.loading[params.id] = false;
+						return setImmediate(cb, null, {success: false, error: err});
+					} else {
+						if (dapp.type === 0) {
+							__private.installDependencies(dapp, function (err) {
+								if (err) {
+									library.logger.error(err);
+									__private.uninstalling[params.id] = true;
+									__private.removeDApp(dapp, function (err) {
+										__private.uninstalling[params.id] = false;
+
+										if (err) {
+											library.logger.error(err);
+										}
+
+										__private.loading[params.id] = false;
+										return setImmediate(cb, null, {
+											success: false,
+											error: 'Failed to install application dependencies'
+										});
+									});
+								} else {
+									library.network.io.sockets.emit('dapps/change', dapp);
+
+									__private.loading[params.id] = false;
+									return setImmediate(cb, null, {success: true, path: dappPath});
+								}
+							});
+						} else {
+							library.network.io.sockets.emit('dapps/change', dapp);
+
+							__private.loading[params.id] = false;
+							return setImmediate(cb, null, {success: true, path: dappPath});
+						}
+					}
+				});
+			});
+		});
+	},
+
+	uninstall: function (params, cb) {
+		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
+			return setImmediate(cb, 'Invalid master passphrase');
+		}
+
+		__private.get(params.id, function (err, dapp) {
+			if (err) {
+				library.logger.error(err);
+				return setImmediate(cb, null, {success: false, error: err});
+			}
+
+			if (__private.loading[params.id] || __private.uninstalling[params.id]) {
+				return setImmediate(cb, null, {success: true, error: 'Application is loading or being uninstalled'});
+			}
+
+			__private.uninstalling[params.id] = true;
+
+			if (__private.launched[params.id]) {
+				__private.stopDApp(dapp, function (err) {
+					if (err) {
+						library.logger.error(err);
+						return setImmediate(cb, 'Failed to stop application');
+					} else {
+						__private.launched[params.id] = false;
+						__private.removeDApp(dapp, function (err) {
+							__private.uninstalling[params.id] = false;
+
+							if (err) {
+								return setImmediate(cb, null, {success: false, error: err});
+							} else {
+								library.network.io.sockets.emit('dapps/change', dapp);
+
+								return setImmediate(cb, null, {success: true});
+							}
+						});
+					}
+				});
+			} else {
+				__private.removeDApp(dapp, function (err) {
+					__private.uninstalling[params.id] = false;
+
+					if (err) {
+						return setImmediate(cb, null, {success: false, error: err});
+					} else {
+						library.network.io.sockets.emit('dapps/change', dapp);
+
+						return setImmediate(cb, null, {success: true});
+					}
+				});
+			}
+		});
+	},
+
+	launch: function (req, cb) {
+		if (library.config.dapp.masterpassword && req.body.master !== library.config.dapp.masterpassword) {
+			return setImmediate(cb, 'Invalid master passphrase');
+		}
+
+		__private.launchDApp(req.body, function (err) {
+			if (err) {
+				return setImmediate(cb, null, {'success': false, 'error': err});
+			} else {
+				library.network.io.sockets.emit('dapps/change', {});
+				return setImmediate(cb, null, {'success': true});
+			}
+		});
+	},
+
+	installing: function (req, cb) {
+		var ids = [];
+		for (var i in __private.loading) {
+			if (__private.loading[i]) {
+				ids.push(i);
+			}
+		}
+
+		return setImmediate(cb, null, {success: true, installing: ids});
+	},
+
+	uninstalling: function (req, cb) {
+		var ids = [];
+		for (var i in __private.uninstalling) {
+			if (__private.uninstalling[i]) {
+				ids.push(i);
+			}
+		}
+
+		return setImmediate(cb, null, {success: true, uninstalling: ids});
+	},
+
+	launched: function (req, cb) {
+		var ids = [];
+		for (var i in __private.launched) {
+			if (__private.launched[i]) {
+				ids.push(i);
+			}
+		}
+
+		return setImmediate(cb, null, {success: true, launched: ids});
+	},
+
+	categories: function (req, cb) {
+		return setImmediate(cb, null, {success: true, categories: dappCategories});
+	},
+
+	stop: function (params, cb) {
+
+		if (!__private.launched[params.id]) {
+			return setImmediate(cb, 'Application not launched');
+		}
+
+		if (library.config.dapp.masterpassword && params.master !== library.config.dapp.masterpassword) {
+			return setImmediate(cb, 'Invalid master passphrase');
+		}
+
+		__private.get(params.id, function (err, dapp) {
+			if (err) {
+				library.logger.error(err);
+				return setImmediate(cb, 'Application not found');
+			} else {
+				__private.stopDApp(dapp, function (err) {
+					if (err) {
+						library.logger.error(err);
+						return setImmediate(cb, 'Failed to stop application');
+					} else {
+						library.network.io.sockets.emit('dapps/change', dapp);
+						__private.launched[params.id] = false;
+						return setImmediate(cb, null, {success: true});
+					}
+				});
+			}
+		});
+	},
+
+	addTransactions: function (req, cb) {
+		library.schema.validate(req.body, schema.addTransactions, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
+			var keypair = library.ed.makeKeypair(hash);
+
+			if (req.body.publicKey) {
+				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
+					return setImmediate(cb, 'Invalid passphrase');
+				}
+			}
+
+			var query = {};
+
+			library.balancesSequence.add(function (cb) {
+				if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+					modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
+						if (err) {
+							return setImmediate(cb, err);
+						}
+
+						if (!account || !account.publicKey) {
+							return setImmediate(cb, 'Multisignature account not found');
+						}
+
+						if (!account.multisignatures || !account.multisignatures) {
+							return setImmediate(cb, 'Account does not have multisignatures enabled');
+						}
+
+						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
+							return setImmediate(cb, 'Account does not belong to multisignature group');
+						}
+
+						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
+
+							if (!requester || !requester.publicKey) {
+								return setImmediate(cb, 'Requester not found');
+							}
+
+							if (requester.secondSignature && !req.body.secondSecret) {
+								return setImmediate(cb, 'Missing requester second passphrase');
+							}
+
+							if (requester.publicKey === account.publicKey) {
+								return setImmediate(cb, 'Invalid requester public key');
+							}
+
+							var secondKeypair = null;
+
+							if (requester.secondSignature) {
+								var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
+								secondKeypair = library.ed.makeKeypair(secondHash);
+							}
+
+							var transaction;
+
+							try {
+								transaction = library.logic.transaction.create({
+									type: transactionTypes.IN_TRANSFER,
+									amount: req.body.amount,
+									sender: account,
+									keypair: keypair,
+									requester: keypair,
+									secondKeypair: secondKeypair,
+									dappId: req.body.dappId
+								});
+							} catch (e) {
+								return setImmediate(cb, e.toString());
+							}
+
+							modules.transactions.receiveTransactions([transaction], true, cb);
+						});
+					});
+				} else {
+					modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+						if (err) {
+							return setImmediate(cb, err);
+						}
+
+						if (!account || !account.publicKey) {
+							return setImmediate(cb, 'Account not found');
+						}
+
+						if (account.secondSignature && !req.body.secondSecret) {
+							return setImmediate(cb, 'Invalid second passphrase');
+						}
+
+						var secondKeypair = null;
+
+						if (account.secondSignature) {
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
+							secondKeypair = library.ed.makeKeypair(secondHash);
+						}
+
+						var transaction;
+
+						try {
+							transaction = library.logic.transaction.create({
+								type: transactionTypes.IN_TRANSFER,
+								amount: req.body.amount,
+								sender: account,
+								keypair: keypair,
+								secondKeypair: secondKeypair,
+								dappId: req.body.dappId
+							});
+						} catch (e) {
+							return setImmediate(cb, e.toString());
+						}
+
+						modules.transactions.receiveTransactions([transaction], true, cb);
+					});
+				}
+			}, function (err, transaction) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				return setImmediate(cb, null, {transactionId: transaction[0].id});
+			});
+		});
+	},
+
+
+	sendWithdrawal: function (req, cb) {
+		library.schema.validate(req.body, schema.sendWithdrawal, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
+			var keypair = library.ed.makeKeypair(hash);
+			var query = {};
+
+			library.balancesSequence.add(function (cb) {
+				if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
+					modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
+						if (err) {
+							return setImmediate(cb, err);
+						}
+
+						if (!account || !account.publicKey) {
+							return setImmediate(cb, 'Multisignature account not found');
+						}
+
+						if (!account.multisignatures || !account.multisignatures) {
+							return setImmediate(cb, 'Account does not have multisignatures enabled');
+						}
+
+						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
+							return setImmediate(cb, 'Account does not belong to multisignature group');
+						}
+
+						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
+
+							if (!requester || !requester.publicKey) {
+								return setImmediate(cb, 'Requester not found');
+							}
+
+							if (requester.secondSignature && !req.body.secondSecret) {
+								return setImmediate(cb, 'Missing requester second passphrase');
+							}
+
+							if (requester.publicKey === account.publicKey) {
+								return setImmediate(cb, 'Invalid requester public key');
+							}
+
+							var secondKeypair = null;
+
+							if (requester.secondSignature) {
+								var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
+								secondKeypair = library.ed.makeKeypair(secondHash);
+							}
+
+							var transaction;
+
+							try {
+								transaction = library.logic.transaction.create({
+									type: transactionTypes.OUT_TRANSFER,
+									amount: req.body.amount,
+									sender: account,
+									recipientId: req.body.recipientId,
+									keypair: keypair,
+									secondKeypair: secondKeypair,
+									requester: keypair,
+									dappId: req.body.dappId,
+									transactionId: req.body.transactionId
+								});
+							} catch (e) {
+								return setImmediate(cb, e.toString());
+							}
+
+							modules.transactions.receiveTransactions([transaction], true, cb);
+						});
+					});
+				} else {
+					modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+						if (err) {
+							return setImmediate(cb, err);
+						}
+
+						if (!account || !account.publicKey) {
+							return setImmediate(cb, 'Account not found');
+						}
+
+						if (account.secondSignature && !req.body.secondSecret) {
+							return setImmediate(cb, 'Missing second passphrase');
+						}
+
+						var secondKeypair = null;
+
+						if (account.secondSignature) {
+							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
+							secondKeypair = library.ed.makeKeypair(secondHash);
+						}
+
+						var transaction;
+
+						try {
+							transaction = library.logic.transaction.create({
+								type: transactionTypes.OUT_TRANSFER,
+								amount: req.body.amount,
+								sender: account,
+								recipientId: req.body.recipientId,
+								keypair: keypair,
+								secondKeypair: secondKeypair,
+								dappId: req.body.dappId,
+								transactionId: req.body.transactionId
+							});
+						} catch (e) {
+							return setImmediate(cb, e.toString());
+						}
+
+						modules.transactions.receiveTransactions([transaction], true, cb);
+					});
+				}
+			}, function (err, transaction) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				return setImmediate(cb, null, {transactionId: transaction[0].id});
+			});
+		});
+	}
+};
+
+// Shared API
 shared.getGenesis = function (req, cb) {
 	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
 		if (rows.length === 0) {

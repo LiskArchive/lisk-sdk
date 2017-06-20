@@ -1,9 +1,33 @@
 'use strict';
+/**
+ * A node-style callback as used by {@link logic} and {@link modules}.
+ * @see {@link https://nodejs.org/api/errors.html#errors_node_js_style_callbacks}
+ * @callback nodeStyleCallback
+ * @param {?Error} error - Error, if any, otherwise `null`.
+ * @param {Data} data - Data, if there hasn't been an error.
+ */
+/**
+ * A triggered by setImmediate callback as used by {@link logic}, {@link modules} and {@link helpers}.
+ * Parameters formats: (cb, error, data), (cb, error), (cb).
+ * @see {@link https://nodejs.org/api/timers.html#timers_setimmediate_callback_args}
+ * @callback setImmediateCallback
+ * @param {function} cb - Callback function.
+ * @param {?Error} [error] - Error, if any, otherwise `null`.
+ * @param {Data} [data] - Data, if there hasn't been an error and the function should return data.
+ */
+
+/**
+ * Main entry point.
+ * Loads the lisk modules, the lisk api and run the express server as Domain master.
+ * CLI options available.
+ * @module app
+ */
 
 var async = require('async');
 var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
+
 var genesisblock = require('./genesisBlock.json');
 var git = require('./helpers/git.js');
 var https = require('https');
@@ -11,6 +35,7 @@ var Logger = require('./logger.js');
 var packageJson = require('./package.json');
 var path = require('path');
 var program = require('commander');
+var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
@@ -18,13 +43,9 @@ var z_schema = require('./helpers/z_schema.js');
 process.stdin.resume();
 
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
+
 /**
- * Hash of last git commit
- *
- * @private
- * @property lastCommit
- * @type {String}
- * @default ''
+ * @property {string} - Hash of last git commit.
  */
 var lastCommit = '';
 
@@ -44,6 +65,10 @@ program
 	.option('-s, --snapshot <round>', 'verify snapshot')
 	.parse(process.argv);
 
+/**
+ * @property {object} - The default list of configuration options. Can be updated by CLI.
+ * @default 'config.json'
+ */
 var appConfig = require('./helpers/config.js')(program.config);
 
 if (program.port) {
@@ -85,8 +110,18 @@ if (process.env.NODE_ENV === 'test') {
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
 
+/**
+ * The config object to handle lisk modules and lisk api.
+ * It loads `modules` and `api` folders content.
+ * Also contains db configuration from config.json.
+ * @property {object} db - Config values for database.
+ * @property {object} modules - `modules` folder content.
+ * @property {object} api - `api/http` folder content.
+ */
 var config = {
 	db: appConfig.db,
+	cache: appConfig.redis,
+	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		server: './modules/server.js',
 		accounts: './modules/accounts.js',
@@ -102,11 +137,31 @@ var config = {
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js'
+		sql: './modules/sql.js',
+		cache: './modules/cache.js'
+	},
+	api: {
+		accounts: { http: './api/http/accounts.js' },
+		blocks: { http: './api/http/blocks.js' },
+		dapps: { http: './api/http/dapps.js' },
+		delegates: { http: './api/http/delegates.js' },
+		loader: { http: './api/http/loader.js' },
+		multisignatures: { http: './api/http/multisignatures.js' },
+		peers: { http: './api/http/peers.js' },
+		server: { http: './api/http/server.js' },
+		signatures: { http: './api/http/signatures.js' },
+		transactions: { http: './api/http/transactions.js' },
+		transport: { http: './api/http/transport.js' }
 	}
 };
 
-var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, filename: appConfig.logFileName });
+/**
+ * Logger holder so we can log with custom functionality.
+ * The Object is initialized here and pass to others as parameter.
+ * @property {object} - Logger instance.
+ */
+var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, 
+	filename: appConfig.logFileName });
 
 // Trying to get last git commit
 try {
@@ -115,6 +170,10 @@ try {
 	logger.debug('Cannot get last git commit', err.message);
 }
 
+/**
+ * Creates the express server and loads all the Modules and logic.
+ * @property {object} - Domain instance.
+ */
 var d = require('domain').create();
 
 d.on('error', function (err) {
@@ -122,12 +181,20 @@ d.on('error', function (err) {
 	process.exit(0);
 });
 
+// runs domain
 d.run(function () {
 	var modules = [];
 	async.auto({
+		/**
+		 * Loads `payloadHash` and generate dapp password if it is empty and required.
+		 * Then updates config.json with new random  password.
+		 * @method config
+		 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`.
+		 * @throws {Error} If failed to assign nethash from genesis block.
+		 */
 		config: function (cb) {
 			try {
-				appConfig.nethash = new Buffer(genesisblock.payloadHash, 'hex').toString('hex');
+				appConfig.nethash = Buffer.from(genesisblock.payloadHash, 'hex').toString('hex');
 			} catch (e) {
 				logger.error('Failed to assign nethash from genesis block');
 				throw Error(e);
@@ -146,9 +213,9 @@ d.run(function () {
 					delete appConfig.loading.snapshot;
 				}
 
-				fs.writeFile('./config.json', JSON.stringify(appConfig, null, 4), 'utf8', function (err) {
-					cb(err, appConfig);
-				});
+				fs.writeFileSync('./config.json', JSON.stringify(appConfig, null, 4));
+
+				cb(null, appConfig);
 			} else {
 				cb(null, appConfig);
 			}
@@ -161,16 +228,11 @@ d.run(function () {
 		build: function (cb) {
 			cb(null, versionBuild);
 		},
+
 		/**
-		 * Returns hash of last git commit
-		 *
-		 * @property lastCommit
-		 * @type {Function}
-		 * @async
-		 * @param  {Function} cb Callback function
-		 * @return {Function} cb Callback function from params
-		 * @return {Object}   cb.err Always return `null` here
-		 * @return {String}   cb.lastCommit Hash of last git commit
+		 * Returns hash of last git commit.
+		 * @method lastCommit
+		 * @param {nodeStyleCallback} cb - Callback function with Hash of last git commit.
 		 */
 		lastCommit: function (cb) {
 			cb(null, lastCommit);
@@ -190,6 +252,14 @@ d.run(function () {
 			cb(null, new z_schema());
 		},
 
+		/**
+		 * Once config is completed, creates app, http & https servers & sockets with express.
+		 * @method network
+		 * @param {object} scope - The results from current execution,
+		 * at leats will contain the required elements.
+		 * @param {nodeStyleCallback} cb - Callback function with created Object: 
+		 * `{express, app, server, io, https, https_io}`.
+		 */
 		network: ['config', function (scope, cb) {
 			var express = require('express');
 			var compression = require('compression');
@@ -264,12 +334,22 @@ d.run(function () {
 			cb(null, sequence);
 		}],
 
+		/**
+		 * Once config, public, genesisblock, logger, build and network are completed,
+		 * adds configuration to `network.app`.
+		 * @method connect
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {function} cb - Callback function.
+		 */
 		connect: ['config', 'public', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
 			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
+			var randomString = require('randomstring');
 
+			scope.nonce = randomString.generate(16);
 			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.set('view engine', 'ejs');
@@ -304,66 +384,24 @@ d.run(function () {
 
 			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.schema));
 
-			scope.network.app.use(function (req, res, next) {
-				var parts = req.url.split('/');
-				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+			scope.network.app.use(httpApi.middleware.logClientConnections.bind(null, scope.logger));
 
-				// Log client connections
-				logger.log(req.method + ' ' + req.url + ' from ' + ip);
+			/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
+			 *
+			 * RFC -> https://tools.ietf.org/html/rfc7034
+			 */
+			scope.network.app.use(httpApi.middleware.attachResponseHeader.bind(null, 'X-Frame-Options', 'DENY'));
+			/* Set Content-Security-Policy headers.
+			 *
+			 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
+			 *
+			 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
+			 */
+			scope.network.app.use(httpApi.middleware.attachResponseHeader.bind(null, 'Content-Security-Policy', 'frame-ancestors \'none\''));
 
-				/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
-				 *
-				 * RFC -> https://tools.ietf.org/html/rfc7034
-				 */
-				res.setHeader('X-Frame-Options', 'DENY');
+			scope.network.app.use(httpApi.middleware.applyAPIAccessRules.bind(null, scope.config));
 
-				/* Set Content-Security-Policy headers.
-				 *
-				 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
-				 *
-				 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
-				 */
-				res.setHeader('Content-Security-Policy', 'frame-ancestors \'none\'');
-
-				if (parts.length > 1) {
-					if (parts[1] === 'api') {
-						if (!checkIpInList(scope.config.api.access.whiteList, ip, true)) {
-							res.sendStatus(403);
-						} else {
-							next();
-						}
-					} else if (parts[1] === 'peer') {
-						if (checkIpInList(scope.config.peers.blackList, ip, false)) {
-							res.sendStatus(403);
-						} else {
-							next();
-						}
-					} else {
-						next();
-					}
-				} else {
-					next();
-				}
-			});
-
-			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
-				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
-
-				if (!err) {
-					if (scope.config.ssl.enabled) {
-						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
-							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
-
-							cb(err, scope.network);
-						});
-					} else {
-						cb(null, scope.network);
-					}
-				} else {
-					cb(err, scope.network);
-				}
-			});
-
+			cb();
 		}],
 
 		ed: function (cb) {
@@ -377,22 +415,45 @@ d.run(function () {
 					var args = [];
 					Array.prototype.push.apply(args, arguments);
 					var topic = args.shift();
+					var eventName = 'on' + changeCase.pascalCase(topic);
+
+					// executes the each module onBind function
 					modules.forEach(function (module) {
-						var eventName = 'on' + changeCase.pascalCase(topic);
 						if (typeof(module[eventName]) === 'function') {
 							module[eventName].apply(module[eventName], args);
+						}
+						if (module.submodules) {
+							async.each(module.submodules, function (submodule) {
+								if (submodule && typeof(submodule[eventName]) === 'function') {
+									submodule[eventName].apply(submodule[eventName], args);
+								}
+							});
 						}
 					});
 				};
 			};
 			cb(null, new bus());
 		}],
-
 		db: function (cb) {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
-
+		/**
+		 * It tries to connect with redis server based on config. provided in config.json file
+		 * @param {function} cb
+		 */
+		cache: function (cb) {
+			var cache = require('./helpers/cache.js');
+			cache.connect(config.cacheEnabled, config.cache, logger, cb);
+		},
+		/**
+		 * Once db, bus, schema and genesisblock are completed,
+		 * loads transaction, block, account and peers from logic folder.
+		 * @method logic
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {function} cb - Callback function.
+		 */	
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
@@ -420,22 +481,31 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', function (scope, cb) {
-					new Account(scope, cb);
+				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'logger', function (scope, cb) {
+					new Account(scope.db, scope.schema, scope.logger, cb);
 				}],
-				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', function (scope, cb) {
-					new Transaction(scope, cb);
+				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
+					new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
-					new Block(scope, cb);
+					new Block(scope.ed, scope.schema, scope.transaction, cb);
 				}],
-				peers: function (cb) {
-					new Peers(scope, cb);
-				}
+				peers: ['logger', function (scope, cb) {
+					new Peers(scope.logger, cb);
+				}]
 			}, cb);
 		}],
+		/**
+		 * Once network, connect, config, logger, bus, sequence,
+		 * dbSequence, balancesSequence, db and logic are completed,
+		 * loads modules from `modules` folder using `config.modules`.
+		 * @method modules
+		 * @param {object} scope - The results from current execution,
+		 * at leats will contain the required elements.
+		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
+		 */
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
 
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
 			var tasks = {};
 
 			Object.keys(config.modules).forEach(function (name) {
@@ -460,18 +530,106 @@ d.run(function () {
 			});
 		}],
 
+		/**
+		 * Loads api from `api` folder using `config.api`, once modules, logger and
+		 * network are completed.
+		 * @method api
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {function} cb - Callback function.
+		 */	
+		api: ['modules', 'logger', 'network', function (scope, cb) {
+			Object.keys(config.api).forEach(function (moduleName) {
+				Object.keys(config.api[moduleName]).forEach(function (protocol) {
+					var apiEndpointPath = config.api[moduleName][protocol];
+					try {
+						var ApiEndpoint = require(apiEndpointPath);
+						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
+					} catch (e) {
+						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
+					}
+				});
+			});
+
+			scope.network.app.use(httpApi.middleware.errorLogger.bind(null, scope.logger));
+			cb();
+		}],
+
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules);
+			scope.logic.transaction.bindModules(scope.modules.rounds);
 			scope.logic.peers.bind(scope);
 			cb();
+		}],
+
+		/**
+		 * Once 'ready' is completed, binds and listens for connections on the
+		 * specified host and port for `scope.network.server`.
+		 * @method listen
+		 * @param {object} scope - The results from current execution, 
+		 * at leats will contain the required elements.
+		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
+		 */
+		listen: ['ready', function (scope, cb) {
+			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
+				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
+
+				if (!err) {
+					if (scope.config.ssl.enabled) {
+						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
+							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
+
+							cb(err, scope.network);
+						});
+					} else {
+						cb(null, scope.network);
+					}
+				} else {
+					cb(err, scope.network);
+				}
+			});
 		}]
 	}, function (err, scope) {
 		if (err) {
 			logger.fatal(err);
 		} else {
+			/**
+			 * Handles app instance (acts as global variable, passed as parameter).
+			 * @global
+			 * @typedef {Object} scope
+			 * @property {Object} api - Undefined.
+			 * @property {undefined} balancesSequence - Sequence function, sequence Array.
+			 * @property {string} build - Empty.
+			 * @property {Object} bus - Message function, bus constructor.
+			 * @property {Object} config - Configuration.
+			 * @property {undefined} connect - Undefined.
+			 * @property {Object} db - Database constructor, database functions.
+			 * @property {function} dbSequence - Database function.
+			 * @property {Object} ed - Crypto functions from lisk node-sodium.
+			 * @property {Object} genesisblock - Block information.
+			 * @property {string} lastCommit - Hash transaction.
+			 * @property {Object} listen - Network information.
+			 * @property {Object} logger - Log functions.
+			 * @property {Object} logic - several logic functions and objects.
+			 * @property {Object} modules - Several modules functions.
+			 * @property {Object} network - Several network functions.
+			 * @property {string} nonce
+			 * @property {string} public - Path to lisk public folder.
+			 * @property {undefined} ready
+			 * @property {Object} schema - ZSchema with objects.
+			 * @property {Object} sequence - Sequence function, sequence Array.
+			 * @todo logic repeats: bus, ed, genesisblock, logger, schema.
+			 * @todo description for nonce and ready
+			 */
 			scope.logger.info('Modules ready and launched');
-
+			/**
+			 * Event reporting a cleanup.
+			 * @event cleanup
+			 */
+			/**
+			 * Receives a 'cleanup' signal and cleans all modules.
+			 * @listens cleanup
+			 */
 			process.once('cleanup', function () {
 				scope.logger.info('Cleaning up...');
 				async.eachSeries(modules, function (module, cb) {
@@ -490,23 +648,71 @@ d.run(function () {
 				});
 			});
 
+			/**
+			 * Event reporting a SIGTERM.
+			 * @event SIGTERM
+			 */
+			/**
+			 * Receives a 'SIGTERM' signal and emits a cleanup.
+			 * @listens SIGTERM
+			 */
 			process.once('SIGTERM', function () {
+				/**
+				 * emits cleanup once 'SIGTERM'.
+				 * @emits cleanup
+				 */
 				process.emit('cleanup');
 			});
 
+			/**
+			 * Event reporting an exit.
+			 * @event exit
+			 */
+			/**
+			 * Receives an 'exit' signal and emits a cleanup.
+			 * @listens exit
+			 */
 			process.once('exit', function () {
+				/**
+				 * emits cleanup once 'exit'.
+				 * @emits cleanup
+				 */
 				process.emit('cleanup');
 			});
 
+			/**
+			 * Event reporting a SIGINT.
+			 * @event SIGINT
+			 */
+			/**
+			 * Receives a 'SIGINT' signal and emits a cleanup.
+			 * @listens SIGINT
+			 */
 			process.once('SIGINT', function () {
+				/**
+				 * emits cleanup once 'SIGINT'.
+				 * @emits cleanup
+				 */
 				process.emit('cleanup');
 			});
 		}
 	});
 });
 
+/**
+ * Event reporting an uncaughtException.
+ * @event uncaughtException
+ */
+/**
+ * Receives a 'uncaughtException' signal and emits a cleanup.
+ * @listens uncaughtException
+ */
 process.on('uncaughtException', function (err) {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
+	/**
+	 * emits cleanup once 'uncaughtException'.
+	 * @emits cleanup
+	 */
 	process.emit('cleanup');
 });

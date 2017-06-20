@@ -9,19 +9,63 @@ var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var self, db, library, __private = {}, genesisBlock = null;
+var self, library, __private = {};
 
-// Constructor
-function Account (scope, cb) {
-	this.scope = scope;
+/**
+ * Main account logic.
+ * @memberof module:accounts
+ * @class
+ * @classdesc Main account logic.
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} With `this` as data.
+ */
+function Account (db, schema, logger, cb) {
+	this.scope = {
+		db: db,
+		schema: schema,
+	};
 
 	self = this;
-	db = this.scope.db;
-	library = this.scope.library;
-	genesisBlock = this.scope.genesisblock.block;
+	library = {
+		logger: logger,
+	};
 
 	this.table = 'mem_accounts';
-
+	/**
+	 * @typedef {Object} account
+	 * @property {string} username - Lowercase, between 1 and 20 chars.
+	 * @property {boolean} isDelegate
+	 * @property {boolean} u_isDelegate
+	 * @property {boolean} secondSignature
+	 * @property {boolean} u_secondSignature
+	 * @property {string} u_username
+	 * @property {address} address - Uppercase, between 1 and 22 chars.
+	 * @property {publicKey} publicKey
+	 * @property {publicKey} secondPublicKey
+	 * @property {number} balance - Between 0 and totalAmount from constants.
+	 * @property {number} u_balance - Between 0 and totalAmount from constants.
+	 * @property {number} vote
+	 * @property {number} rate
+	 * @property {String[]} delegates - From mem_account2delegates table, filtered by address.
+	 * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address.
+	 * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address.
+	 * @property {String[]} u_multisignatures - From mem_account2u_multisignatures table, filtered by address.
+	 * @property {number} multimin - Between 0 and 17.
+	 * @property {number} u_multimin - Between 0 and 17.
+	 * @property {number} multilifetime - Between 1 and 72.
+	 * @property {number} u_multilifetime - Between 1 and 72.
+	 * @property {string} blockId
+	 * @property {boolean} nameexist
+	 * @property {boolean} u_nameexist
+	 * @property {number} producedblocks - Between -1 and 1.
+	 * @property {number} missedblocks - Between -1 and 1.
+	 * @property {number} fees
+	 * @property {number} rewards
+	 * @property {boolean} virgin
+	 */
 	this.model = [
 		{
 			name: 'username',
@@ -311,7 +355,8 @@ function Account (scope, cb) {
 			immutable: true
 		}
 	];
-
+	
+	// Obtains fields from model
 	this.fields = this.model.map(function (field) {
 		var _tmp = {};
 
@@ -329,24 +374,28 @@ function Account (scope, cb) {
 
 		return _tmp;
 	});
-
+	
+	// Obtains bynary fields from model
 	this.binary = [];
 	this.model.forEach(function (field) {
 		if (field.type === 'Binary') {
 			this.binary.push(field.name);
 		}
 	}.bind(this));
-
+	
+	// Obtains filters from model
 	this.filter = {};
 	this.model.forEach(function (field) {
 		this.filter[field.name] = field.filter;
 	}.bind(this));
 
+	// Obtains conv from model
 	this.conv = {};
 	this.model.forEach(function (field) {
 		this.conv[field.name] = field.conv;
 	}.bind(this));
 
+	// Obtains editable fields from model
 	this.editable = [];
 	this.model.forEach(function (field) {
 		if (!field.immutable) {
@@ -357,10 +406,21 @@ function Account (scope, cb) {
 	return setImmediate(cb, null, this);
 }
 
+/**
+ * Creates memory tables related to accounts:
+ * - mem_accounts
+ * - mem_round
+ * - mem_accounts2delegates
+ * - mem_accounts2u_delegates
+ * - mem_accounts2multisignatures
+ * - mem_accounts2u_multisignatures
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb|error.
+ */
 Account.prototype.createTables = function (cb) {
-	var sql = new pgp.QueryFile(path.join('sql', 'memoryTables.sql'), {minify: true});
+	var sql = new pgp.QueryFile(path.join(process.cwd(), 'sql', 'memoryTables.sql'), {minify: true});
 
-	db.query(sql).then(function () {
+	this.scope.db.query(sql).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -368,6 +428,16 @@ Account.prototype.createTables = function (cb) {
 	});
 };
 
+/**
+ * Deletes the contents of these tables:
+ * - mem_round
+ * - mem_accounts2delegates
+ * - mem_accounts2u_delegates
+ * - mem_accounts2multisignatures
+ * - mem_accounts2u_multisignatures
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb|error.
+ */
 Account.prototype.removeTables = function (cb) {
 	var sqles = [], sql;
 
@@ -384,7 +454,7 @@ Account.prototype.removeTables = function (cb) {
 			sqles.push(sql.query);
 		});
 
-	db.query(sqles.join('')).then(function () {
+	this.scope.db.query(sqles.join('')).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -392,6 +462,12 @@ Account.prototype.removeTables = function (cb) {
 	});
 };
 
+/**
+ * Validates account schema.
+ * @param {account} account
+ * @returns {err|account} Error message or input parameter account.
+ * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
+ */
 Account.prototype.objectNormalize = function (account) {
 	var report = this.scope.schema.validate(account, {
 		id: 'Account',
@@ -408,6 +484,11 @@ Account.prototype.objectNormalize = function (account) {
 	return account;
 };
 
+/**
+ * Checks type, lenght and format from publicKey.
+ * @param {publicKey} publicKey
+ * @throws {string} throws one error for every check.
+ */
 Account.prototype.verifyPublicKey = function (publicKey) {
 	if (publicKey !== undefined) {
 		// Check type
@@ -420,17 +501,22 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 		}
 		// Check format
 		try {
-			new Buffer(publicKey, 'hex');
+			Buffer.from(publicKey, 'hex');
 		} catch (e) {
 			throw 'Invalid public key, must be a hex string';
 		}
 	}
 };
 
+/**
+ * Normalizes address and creates binary buffers to insert.
+ * @param {Object} raw - with address and public key.
+ * @returns {Object} Normalized address.
+ */
 Account.prototype.toDB = function (raw) {
 	this.binary.forEach(function (field) {
 		if (raw[field]) {
-			raw[field] = new Buffer(raw[field], 'hex');
+			raw[field] = Buffer.from(raw[field], 'hex');
 		}
 	});
 
@@ -440,6 +526,13 @@ Account.prototype.toDB = function (raw) {
 	return raw;
 };
 
+/**
+ * Gets account information for specified fields and filter criteria.
+ * @param {Object} filter - Contains address.
+ * @param {Object|function} fields - Table fields.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} Returns null or Object with database data.
+ */
 Account.prototype.get = function (filter, fields, cb) {
 	if (typeof(fields) === 'function') {
 		cb = fields;
@@ -453,6 +546,13 @@ Account.prototype.get = function (filter, fields, cb) {
 	});
 };
 
+/**
+ * Gets accounts information from mem_accounts.
+ * @param {Object} filter - Contains address.
+ * @param {Object|function} fields - Table fields.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
+ */
 Account.prototype.getAll = function (filter, fields, cb) {
 	if (typeof(fields) === 'function') {
 		cb = fields;
@@ -506,7 +606,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		fields: realFields
 	});
 
-	db.query(sql.query, sql.values).then(function (rows) {
+	this.scope.db.query(sql.query, sql.values).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -514,6 +614,13 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	});
 };
 
+/**
+ * Sets fields for specific address in mem_accounts table.
+ * @param {address} address
+ * @param {Object} fields
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb | 'Account#set error'.
+ */
 Account.prototype.set = function (address, fields, cb) {
 	// Verify public key
 	this.verifyPublicKey(fields.publicKey);
@@ -530,7 +637,7 @@ Account.prototype.set = function (address, fields, cb) {
 		modifier: this.toDB(fields)
 	});
 
-	db.none(sql.query, sql.values).then(function () {
+	this.scope.db.none(sql.query, sql.values).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -538,6 +645,15 @@ Account.prototype.set = function (address, fields, cb) {
 	});
 };
 
+/**
+ * Updates account from mem_account with diff data belonging to an editable field.
+ * Inserts into mem_round "address", "amount", "delegate", "blockId", "round"
+ * based on field balance or delegates.
+ * @param {address} address
+ * @param {Object} diff - Must contains only mem_account editable fields.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
+ */
 Account.prototype.merge = function (address, diff, cb) {
 	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
 
@@ -763,7 +879,7 @@ Account.prototype.merge = function (address, diff, cb) {
 		return done();
 	}
 
-	db.none(queries).then(function () {
+	this.scope.db.none(queries).then(function () {
 		return done();
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -771,6 +887,12 @@ Account.prototype.merge = function (address, diff, cb) {
 	});
 };
 
+/**
+ * Removes an account from mem_account table based on address.
+ * @param {address} address
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} Data with address | Account#remove error.
+ */
 Account.prototype.remove = function (address, cb) {
 	var sql = jsonSql.build({
 		type: 'remove',
@@ -779,7 +901,7 @@ Account.prototype.remove = function (address, cb) {
 			address: address
 		}
 	});
-	db.none(sql.query, sql.values).then(function () {
+	this.scope.db.none(sql.query, sql.values).then(function () {
 		return setImmediate(cb, null, address);
 	}).catch(function (err) {
 		library.logger.error(err.stack);

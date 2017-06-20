@@ -2,6 +2,8 @@
 
 var express = require('express');
 var path = require('path');
+var randomString = require('randomstring');
+
 var _ = require('lodash');
 
 var async = require('../node').async;
@@ -11,6 +13,11 @@ var database = require(path.join(dirname, '/helpers', 'database.js'));
 var genesisblock = require(path.join(dirname, '/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
 var z_schema = require('../../helpers/z_schema.js');
+var cacheHelper = require('../../helpers/cache.js');
+var Cache = require('../../modules/cache.js');
+var ed = require('../../helpers/ed');
+var Transaction = require('../../logic/transaction.js');
+var Account = require('../../logic/account.js');
 
 var modulesLoader = new function () {
 
@@ -25,9 +32,11 @@ var modulesLoader = new function () {
 		},
 		public: '../../public',
 		schema: new z_schema(),
+		ed: ed,
 		bus: {
 			message: function () {}
-		}
+		},
+		nonce: randomString.generate(16)
 	};
 
 	/**
@@ -38,7 +47,37 @@ var modulesLoader = new function () {
 	 * @param {Function} cb
 	 */
 	this.initLogic = function (Logic, scope, cb) {
-		new Logic(scope, cb);
+		switch (Logic.name) {
+		 case 'Account':
+			new Logic(scope.db, scope.schema, scope.logger, cb);
+			break;
+		 case 'Transaction':
+		 	async.series({
+				account: function (cb) {
+					new Account(scope.db, scope.schema, scope.logger, cb);
+				}
+			 }, function (err, result) {
+				 new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
+			 });
+			break;
+		 case 'Block':
+		 	async.waterfall([
+				function (waterCb) {	
+					return new Account(scope.db, scope.schema, scope.logger, waterCb);
+				},
+				function (account, waterCb) {
+					return new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, account, scope.logger, waterCb);
+				}
+			 ], function (err, transaction) {
+				 new Logic(scope.ed, scope.schema, transaction, cb);
+			});
+			break;
+		 case 'Peers':
+			new Logic(scope.logger, cb);
+			break;
+		 default:
+		 	console.log('no Logic case initLogic');
+		}
 	};
 
 	/**
@@ -66,7 +105,7 @@ var modulesLoader = new function () {
 				this.getDbConnection(waterCb);
 			}.bind(this),
 			function (db, waterCb) {
-				scope = _.merge(this.scope, {db: db});
+				scope = _.merge(this.scope, {db: db}, scope);
 				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
@@ -76,7 +115,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope = _.merge(this.scope, {logic: logic});
+				scope = _.merge(this.scope, {logic: logic}, scope);
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
@@ -92,8 +131,9 @@ var modulesLoader = new function () {
 	 * Initializes all created Modules in directory
 	 *
 	 * @param {Function} cb
+	 * @param {object} [scope={}] scope
 	 */
-	this.initAllModules = function (cb) {
+	this.initAllModules = function (cb, scope) {
 		this.initModules([
 			{accounts: require('../../modules/accounts')},
 			{blocks: require('../../modules/blocks')},
@@ -114,7 +154,7 @@ var modulesLoader = new function () {
 			{'account': require('../../logic/account')},
 			{'block': require('../../logic/block')},
 			{'peers': require('../../logic/peers.js')}
-		], {}, cb);
+		], scope || {}, cb);
 	};
 
 	/**
@@ -172,6 +212,23 @@ var modulesLoader = new function () {
 			}
 			this.db = db;
 			cb(null, this.db);
+		}.bind(this));
+	};
+
+	/**
+	 * Initializes Cache module
+	 * @param {Function} cb
+	 */
+	this.initCache = function (cb) {
+		var cacheEnabled, cacheConfig;
+		cacheEnabled = this.scope.config.cacheEnabled;
+		cacheConfig = this.scope.config.redis;
+		cacheHelper.connect(cacheEnabled, cacheConfig, this.logger, function (err, __cache) {
+			if (err) {
+				cb(err, __cache);
+			} else {
+				this.initModule(Cache, _.merge(this.scope, {cache: __cache}), cb);
+			}
 		}.bind(this));
 	};
 };

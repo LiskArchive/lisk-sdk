@@ -1,9 +1,19 @@
 'use strict';
 
+/**
+ * Buffer functions that implements bignumber.
+ * @memberof module:helpers
+ * @requires bignumber
+ * @constructor
+ */
 var BigNumber = require('bignumber.js');
 
-/*
- * Create an instance from a Buffer
+/**
+ * Creates an instance from a Buffer.
+ * @param {ArrayBuffer} buf
+ * @param {Object} opts
+ * @return {ArrayBuffer} new BigNumber instance
+ * @throws {RangeError} error description multiple of size
  */
 BigNumber.fromBuffer = function (buf, opts) {
 	if (!opts) opts = {};
@@ -38,8 +48,10 @@ BigNumber.fromBuffer = function (buf, opts) {
 	return new BigNumber(hex.join(''), 16);
 };
 
-/*
- * Return instance as Buffer
+/**
+ * Returns an instance as Buffer.
+ * @param {Object} opts
+ * @return {ArrayBuffer} new buffer | error message invalid option
  */
 BigNumber.prototype.toBuffer = function ( opts ) {
 	if (typeof opts === 'string') {
@@ -50,7 +62,7 @@ BigNumber.prototype.toBuffer = function ( opts ) {
 		var len = buf.length === 1 && buf[0] === 0 ? 0 : buf.length;
 		if (buf[0] & 0x80) len ++;
 
-		var ret = new Buffer(4 + len);
+		var ret = Buffer.alloc(4 + len);
 		if (len > 0) buf.copy(ret, 4 + (buf[0] & 0x80 ? 1 : 0));
 		if (buf[0] & 0x80) ret[4] = 0;
 
@@ -84,7 +96,7 @@ BigNumber.prototype.toBuffer = function ( opts ) {
 	var size = opts.size === 'auto' ? Math.ceil(hex.length / 2) : (opts.size || 1);
 
 	var len = Math.ceil(hex.length / (2 * size)) * size;
-	var buf = new Buffer(len);
+	var buf = Buffer.alloc(len);
 
 	// Zero-pad the hex string so the chunks are all `size` long
 	while (hex.length < 2 * len) hex = '0' + hex;

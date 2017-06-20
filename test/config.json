@@ -8,6 +8,7 @@
     "consoleLogLevel": "debug",
     "trustProxy": false,
     "topAccounts": false,
+    "cacheEnabled": true,
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -21,9 +22,17 @@
             "error"
         ]
     },
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6380,
+        "db": 0,
+        "password": null
+    },
     "api": {
+        "enabled": true,
         "access": {
-            "whiteList": []
+            "public": true,
+            "whiteList": ["127.0.0.1"]
         },
         "options": {
             "limits": {
@@ -35,8 +44,11 @@
         }
     },
     "peers": {
+        "enabled": true,
         "list": [],
-        "blackList": [],
+        "access": {
+            "blackList": []
+        },
         "options": {
             "limits": {
                 "max": 0,
@@ -53,6 +65,9 @@
         "parallelLimit": 20,
         "releaseLimit": 25,
         "relayLimit": 2
+    },
+    "transactions": {
+        "maxTxsPerQueue": 1000
     },
     "forging": {
         "force": true,

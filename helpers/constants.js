@@ -1,10 +1,50 @@
 'use strict';
 
+/**
+ * @namespace constants
+ * @memberof module:helpers
+ * @property {number} activeDelegates - The default number of delegates.
+ * @property {number} addressLength - The default address length.
+ * @property {number} blockHeaderLength - The default block header length.
+ * @property {number} blockReceiptTimeOut
+ * @property {number} confirmationLength
+ * @property {Date} epochTime
+ * @property {object} fees - The default values for fees.
+ * @property {number} fees.send
+ * @property {number} fees.vote
+ * @property {number} fees.secondsignature
+ * @property {number} fees.delegate
+ * @property {number} fees.multisignature
+ * @property {number} fees.dapp
+ * @property {number} feeStart
+ * @property {number} feeStartVolume
+ * @property {number} fixedPoint
+ * @property {number} maxAddressesLength
+ * @property {number} maxAmount
+ * @property {number} maxConfirmations
+ * @property {number} maxPayloadLength
+ * @property {number} maxPeers
+ * @property {number} maxRequests
+ * @property {number} maxSharedTxs
+ * @property {number} maxSignaturesLength
+ * @property {number} maxTxsPerBlock
+ * @property {number} minBroadhashConsensus
+ * @property {string[]} nethashes - Mainnet and Testnet.
+ * @property {number} numberLength
+ * @property {number} requestLength
+ * @property {object} rewards
+ * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
+ * @property {number} rewards.offset - Start rewards at block (n).
+ * @property {number} rewards.distance - Distance between each milestone
+ * @property {number} signatureLength
+ * @property {number} totalAmount
+ * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
+ */
 module.exports = {
 	activeDelegates: 101,
 	addressLength: 208,
 	blockHeaderLength: 248,
-	blockReceiptTimeOut: 120, // 12 blocks
+	blockReceiptTimeOut: 20, // 2 blocks
 	confirmationLength: 77,
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
 	fees: {
@@ -28,7 +68,6 @@ module.exports = {
 	maxSharedTxs: 100,
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
-	maxTxsPerQueue: 5000,
 	minBroadhashConsensus: 51,
 	nethashes: [
 		// Mainnet
@@ -38,6 +77,7 @@ module.exports = {
 	],
 	numberLength: 100000000,
 	requestLength: 104,
+	// WARNING: When changing rewards you also need to change getBlockRewards(int) SQL function!
 	rewards: {
 		milestones: [
 			500000000, // Initial Reward
@@ -50,6 +90,7 @@ module.exports = {
 		distance: 3000000, // Distance between each milestone
 	},
 	signatureLength: 196,
+	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
 };

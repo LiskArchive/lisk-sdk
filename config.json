@@ -1,13 +1,14 @@
 {
     "port": 8000,
     "address": "0.0.0.0",
-    "version": "0.5.0",
+    "version": "0.8.2",
     "minVersion": ">=0.5.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
     "consoleLogLevel": "info",
     "trustProxy": false,
     "topAccounts": false,
+    "cacheEnabled": false,
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -21,9 +22,17 @@
             "error"
         ]
     },
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6380,
+        "db": 0,
+        "password": null
+    },
     "api": {
+        "enabled": true,
         "access": {
-            "whiteList": []
+            "public": false,
+            "whiteList": ["127.0.0.1"]
         },
         "options": {
             "limits": {
@@ -35,49 +44,52 @@
         }
     },
     "peers": {
+        "enabled": true,
         "list": [
             {
-                "ip": "40.68.214.86",
+                "ip": "83.136.254.92",
                 "port": 8000
             },
             {
-                "ip": "13.70.207.248",
+                "ip": "83.136.249.76",
                 "port": 8000
             },
             {
-                "ip": "13.89.42.130",
+                "ip": "94.237.28.66",
                 "port": 8000
             },
             {
-                "ip": "52.160.98.183",
+                "ip": "94.237.24.199",
                 "port": 8000
             },
             {
-                "ip": "40.121.84.254",
+                "ip": "209.50.49.23",
                 "port": 8000
             },
             {
-                "ip": "40.69.40.11",
+                "ip": "209.50.49.40",
                 "port": 8000
             },
             {
-                "ip": "51.140.181.131",
+                "ip": "94.237.64.70",
                 "port": 8000
             },
             {
-                "ip": "52.187.55.110",
+                "ip": "94.237.64.73",
                 "port": 8000
             },
             {
-                "ip": "191.234.176.37",
+                "ip": "94.237.40.140",
                 "port": 8000
             },
             {
-                "ip": "13.73.116.99",
+                "ip": "94.237.40.141",
                 "port": 8000
             }
         ],
-        "blackList": [],
+        "access": {
+            "blackList": []
+        },
         "options": {
             "limits": {
                 "max": 0,
@@ -94,6 +106,9 @@
         "parallelLimit": 20,
         "releaseLimit": 25,
         "relayLimit": 2
+    },
+    "transactions": {
+        "maxTxsPerQueue": 1000
     },
     "forging": {
         "force": false,

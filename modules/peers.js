@@ -3,13 +3,12 @@
 var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
-var OrderBy = require('../helpers/orderBy.js');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
-var Router = require('../helpers/router.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
 var sql = require('../sql/peers.js');
@@ -18,54 +17,64 @@ var util = require('util');
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
+/**
+ * Initializes library with scope content.
+ * @memberof module:peers
+ * @class
+ * @classdesc Main peers methods.
+ * @param {function} cb - Callback function.
+ * @param {scope} scope - App instance.
+ * @return {setImmediateCallback} Callback function with `self` as data.
+ */
 // Constructor
 function Peers (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		schema: scope.schema,
+		bus: scope.bus,
+		nonce: scope.nonce,
+		build: scope.build,
+		lastCommit: scope.lastCommit,
+		logic: {
+			peers: scope.logic.peers,
+		},
+		config: {
+			peers: scope.config.peers,
+			version: scope.config.version,
+		},
+	};
 	self = this;
-
-	__private.attachApi();
 
 	setImmediate(cb, null, self);
 }
 
 // Private methods
-__private.attachApi = function () {
-	var router = new Router();
-
-	router.use(function (req, res, next) {
-		if (modules) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
-	});
-
-	router.map(shared, {
-		'get /': 'getPeers',
-		'get /version': 'version',
-		'get /get': 'getPeer',
-		'get /count': 'count'
-	});
-
-	router.use(function (req, res) {
-		res.status(500).send({success: false, error: 'API endpoint not found'});
-	});
-
-	library.network.app.use('/api/peers', router);
-	library.network.app.use(function (err, req, res, next) {
-		if (!err) { return next(); }
-		library.logger.error('API error ' + req.url, err.message);
-		res.status(500).send({success: false, error: 'API error: ' + err.message});
-	});
-};
-
+/**
+ * Returns peers lenght after get them by filter.
+ * @private
+ * @param {Object} filter
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} peers length
+ */
 __private.countByFilter = function (filter, cb) {
 	__private.getByFilter(filter, function (err, peers) {
 		return setImmediate(cb, null, peers.length);
 	});
 };
 
+/**
+ * Gets randomly ordered list of peers by filter.
+ * @private
+ * @param {Object} filter
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} peers
+ */
 __private.getByFilter = function (filter, cb) {
 	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height'];
 	var limit  = filter.limit ? Math.abs(filter.limit) : null;
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
+
 	// Sorting peers
 	var sortPeers = function (field, asc) {
 		return function (a, b) {
@@ -81,6 +90,7 @@ __private.getByFilter = function (filter, cb) {
 			return sort_res;
 		};
 	};
+
 	// Randomizing peers (using Fisher-Yates-Durstenfeld shuffle algorithm)
 	var shuffle = function (array) {
 		var m = array.length, t, i;
@@ -139,6 +149,12 @@ __private.getByFilter = function (filter, cb) {
 	return setImmediate(cb, null, peers);
 };
 
+/**
+ * Remove bans from peers list if clock period time has been pass.
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.removeBans = function (cb) {
 	var now = Date.now();
 	_.each(library.logic.peers.list(), function (peer, index) {
@@ -149,6 +165,12 @@ __private.removeBans = function (cb) {
 	return setImmediate(cb);
 };
 
+/**
+ * Pings to every member of peers list.
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.insertSeeds = function (cb) {
 	var updated = 0;
 	library.logger.trace('Peers->insertSeeds');
@@ -165,6 +187,14 @@ __private.insertSeeds = function (cb) {
 	});
 };
 
+/**
+ * Loads peers from database and checks every peer state and updated time.
+ * Pings when checks are true.
+ * @implements library.db
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.dbLoad = function (cb) {
 	var updated = 0;
 	library.logger.trace('Importing peers from database');
@@ -199,6 +229,14 @@ __private.dbLoad = function (cb) {
 	});
 };
 
+/**
+ * Inserts list of peers into `peers` table and inserts dapps peers
+ * into `peers_dapp` table.
+ * @implements library.db
+ * @private
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb
+ */
 __private.dbSave = function (cb) {
 	var peers = library.logic.peers.list(true);
 
@@ -211,16 +249,16 @@ __private.dbSave = function (cb) {
 	// Creating set of columns
 	var cs = new pgp.helpers.ColumnSet([
 		'ip', 'port', 'state', 'height', 'os', 'version', 'clock',
-		{name: 'broadhash', def: null, init: function (col) {
-			return col.value ? new Buffer(col.value, 'hex') : null;
+		{name: 'broadhash', init: function (col) {
+			return col.value ? Buffer.from(col.value, 'hex') : null;
 		}}
 	], {table: 'peers'});
 
-	// Generating insert query
-	var insert_peers = pgp.helpers.insert(peers, cs);
-
 	// Wrap sql queries in transaction and execute
 	library.db.tx(function (t) {
+		// Generating insert query
+		var insert_peers = pgp.helpers.insert(peers, cs);
+
 		var queries = [
 			// Clear peers table
 			t.none(sql.clear),
@@ -251,15 +289,35 @@ __private.dbSave = function (cb) {
 };
 
 // Public methods
+/**
+ * Calls helpers.sandbox.callMethod().
+ * @implements module:helpers#callMethod
+ * @param {function} call - Method to call.
+ * @param {*} args - List of arguments.
+ * @param {function} cb - Callback function.
+ */
 Peers.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
+	sandboxHelper.callMethod(Peers.prototype.shared, call, args, cb);
 };
 
+/**
+ * Sets peer state to active (2).
+ * @param {peer} peer
+ * @return {function} Calls peers.upsert
+ * @todo rename this function to activePeer or similar
+ */
 Peers.prototype.update = function (peer) {
 	peer.state = 2;
 	return library.logic.peers.upsert(peer);
 };
 
+/**
+ * Removes peer from peers list if it is not a peer from config file list.
+ * @implements logic.peers.remove
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @return {function} Calls peers.remove
+ */
 Peers.prototype.remove = function (pip, port) {
 	var frozenPeer = _.find(library.config.peers.list, function (peer) {
 		return peer.ip === pip && peer.port === port;
@@ -272,6 +330,14 @@ Peers.prototype.remove = function (pip, port) {
 	}
 };
 
+/**
+ * Bans peer in peers list if it is not a peer from config file list.
+ * @implements logic.peers.ban
+ * @param {string} pip - Peer ip
+ * @param {number} port
+ * @param {number} seconds
+ * @return {function} Calls peers.ban
+ */
 Peers.prototype.ban = function (pip, port, seconds) {
 	var frozenPeer = _.find(library.config.peers, function (peer) {
 		return peer.ip === pip && peer.port === port;
@@ -284,6 +350,13 @@ Peers.prototype.ban = function (pip, port, seconds) {
 	}
 };
 
+/**
+ * Pings peer.
+ * @implements transport.getFromPeer
+ * @param {peer} peer - List of arguments.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb | error when ping peer fails
+ */
 Peers.prototype.ping = function (peer, cb) {
 	library.logger.trace('Pinging peer: ' + peer.string);
 	modules.transport.getFromPeer(peer, {
@@ -299,6 +372,11 @@ Peers.prototype.ping = function (peer, cb) {
 	});
 };
 
+/**
+ * Discovers peers by getting list and validates them.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} cb | error
+ */
 Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
@@ -355,18 +433,27 @@ Peers.prototype.discover = function (cb) {
 	});
 };
 
+/**
+ * Filters peers with private or address or with the same nonce.
+ * @param {peer[]} peers
+ * @return {peer[]} Filtered list of peers
+ */
 Peers.prototype.acceptable = function (peers) {
 	return _.chain(peers).filter(function (peer) {
-		// Removing peers with private or host's ip address
-		return !(ip.isPrivate(peer.ip) || ip.address('public', 'ipv4', true).some(function (address) {
-			return [address, library.config.port].join(':') === [peer.ip, peer.port].join(':');
-		}));
+		// Removing peers with private or address or with the same nonce
+		return !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
 	}).uniqWith(function (a, b) {
 		// Removing non-unique peers
 		return (a.ip + a.port) === (b.ip + b.port);
 	}).value();
 };
 
+/**
+ * Gets peers list and calculated consensus.
+ * @param {Object} options - Constains limit, broadhash.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} error | peers, consensus
+ */
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
@@ -432,10 +519,23 @@ Peers.prototype.list = function (options, cb) {
 };
 
 // Events
+/**
+ * assigns scope to modules variable
+ * @param {modules} scope
+ */
 Peers.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transport: scope.transport,
+		system: scope.system,
+	};
 };
 
+/**
+ * Triggers onPeersReady after:
+ * - Ping to every member of peers list.
+ * - Load peers from database and checks every peer state and updated time.
+ * - Discover peers by getting list and validates them.
+ */
 Peers.prototype.onBlockchainReady = function () {
 	async.series({
 		insertSeeds: function (seriesCb) {
@@ -458,9 +558,12 @@ Peers.prototype.onBlockchainReady = function () {
 	});
 };
 
+/**
+ * Discovers peers, updates them and removes bans in 10sec intervals loop.
+ */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
-	setImmediate(function nextSeries () {
+	function peersDiscoveryAndUpdate () {
 		async.series({
 			discoverPeers: function (seriesCb) {
 				library.logger.trace('Discovering new peers...');
@@ -500,13 +603,16 @@ Peers.prototype.onPeersReady = function () {
 					return setImmediate(seriesCb);
 				});
 			}
-		}, function () {
-			// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-			return setTimeout(nextSeries, 5000);
 		});
-	});
+	}
+	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
 };
 
+/**
+ * Export peers to database.
+ * @param {function} cb - Callback function.
+ */
 Peers.prototype.cleanup = function (cb) {
 	// Save peers on exit
 	__private.dbSave (function () {
@@ -514,91 +620,105 @@ Peers.prototype.cleanup = function (cb) {
 	});
 };
 
-// Shared
-shared.count = function (req, cb) {
-	async.series({
-		connected: function (cb) {
-			__private.countByFilter({state: 2}, cb);
-		},
-		disconnected: function (cb) {
-			__private.countByFilter({state: 1}, cb);
-		},
-		banned: function (cb) {
-			__private.countByFilter({state: 0}, cb);
-		}
-	}, function (err, res) {
-		if (err) {
-			return setImmediate(cb, 'Failed to get peer count');
-		}
-
-		return setImmediate(cb, null, res);
-	});
-};
-
-shared.getPeers = function (req, cb) {
-	library.schema.validate(req.body, schema.getPeers, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		if (req.body.limit < 0 || req.body.limit > 100) {
-			return setImmediate(cb, 'Invalid limit. Maximum is 100');
-		}
-
-		__private.getByFilter(req.body, function (err, peers) {
-			if (err) {
-				return setImmediate(cb, 'Failed to get peers');
-			}
-
-			return setImmediate(cb, null, {peers: peers});
-		});
-	});
-};
-
-shared.getPeer = function (req, cb) {
-	library.schema.validate(req.body, schema.getPeer, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		__private.getByFilter({
-			ip: req.body.ip,
-			port: req.body.port
-		}, function (err, peers) {
-			if (err) {
-				return setImmediate(cb, 'Failed to get peer');
-			}
-
-			if (peers.length) {
-				return setImmediate(cb, null, {success: true, peer: peers[0]});
-			} else {
-				return setImmediate(cb, null, {success: false, error: 'Peer not found'});
-			}
-		});
-	});
-};
-
 /**
- * Returns information about version
- *
- * @public
- * @async
- * @method version
- * @param  {Object}   req HTTP request object
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Always return `null` here
- * @return {Object}   cb.obj Anonymous object with version info
- * @return {String}   cb.obj.build Build information (if available, otherwise '')
- * @return {String}   cb.obj.commit Hash of last git commit (if available, otherwise '')
- * @return {String}   cb.obj.version Lisk version from config file
+ * Checks if `modules` is loaded.
+ * @return {boolean} True if `modules` is loaded.
  */
-shared.version = function (req, cb) {
-	return setImmediate(cb, null, {
-		build:   library.build,
-		commit:  library.lastCommit,
-		version: library.config.version
-	});
+Peers.prototype.isLoaded = function () {
+	return !!modules;
+};
+
+// Shared API
+/**
+ * @todo implement API comments with apidoc.
+ * @see {@link http://apidocjs.com/}
+ */
+Peers.prototype.shared = {
+	count: function (req, cb) {
+		async.series({
+			connected: function (cb) {
+				__private.countByFilter({state: 2}, cb);
+			},
+			disconnected: function (cb) {
+				__private.countByFilter({state: 1}, cb);
+			},
+			banned: function (cb) {
+				__private.countByFilter({state: 0}, cb);
+			}
+		}, function (err, res) {
+			if (err) {
+				return setImmediate(cb, 'Failed to get peer count');
+			}
+
+			return setImmediate(cb, null, res);
+		});
+	},
+
+	getPeers: function (req, cb) {
+		library.schema.validate(req.body, schema.getPeers, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			if (req.body.limit < 0 || req.body.limit > 100) {
+				return setImmediate(cb, 'Invalid limit. Maximum is 100');
+			}
+
+			__private.getByFilter(req.body, function (err, peers) {
+				if (err) {
+					return setImmediate(cb, 'Failed to get peers');
+				}
+
+				return setImmediate(cb, null, {peers: peers});
+			});
+		});
+	},
+
+	getPeer: function (req, cb) {
+		library.schema.validate(req.body, schema.getPeer, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			__private.getByFilter({
+				ip: req.body.ip,
+				port: req.body.port
+			}, function (err, peers) {
+				if (err) {
+					return setImmediate(cb, 'Failed to get peer');
+				}
+
+				if (peers.length) {
+					return setImmediate(cb, null, {success: true, peer: peers[0]});
+				} else {
+					return setImmediate(cb, 'Peer not found');
+				}
+			});
+		});
+	},
+
+	/*
+	 * Returns information about version
+	 *
+	 * @public
+	 * @async
+	 * @method version
+	 * @param  {Object}   req HTTP request object
+	 * @param  {Function} cb Callback function
+	 * @return {Function} cb Callback function from params (through setImmediate)
+	 * @return {Object}   cb.err Always return `null` here
+	 * @return {Object}   cb.obj Anonymous object with version info
+	 * @return {String}   cb.obj.build Build information (if available, otherwise '')
+	 * @return {String}   cb.obj.commit Hash of last git commit (if available, otherwise '')
+	 * @return {String}   cb.obj.version Lisk version from config file
+	 */
+	version: function (req, cb) {
+		return setImmediate(cb, null, {
+			build: library.build,
+			commit: library.lastCommit,
+			version: library.config.version
+		});
+	}
 };
 
 // Export
