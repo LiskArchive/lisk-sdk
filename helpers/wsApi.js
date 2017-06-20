@@ -18,7 +18,7 @@ var middleware = {
 			headers = headers || {};
 
 			var peer = new Peer(headers);
-
+			headers.state = Peer.STATE.ACTIVE;
 			headers = peer.applyHeaders(headers);
 
 			z_schema.validate(headers, schema.headers, function (error) {
