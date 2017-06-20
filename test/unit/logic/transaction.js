@@ -29,7 +29,6 @@ var Dapp = require('../../../logic/dapp.js');
 var InTransfer = require('../../../logic/inTransfer.js');
 var OutTransfer = require('../../../logic/outTransfer.js');
 
-
 var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
@@ -118,7 +117,7 @@ var validUnconfirmedTrs = {
 var attachTransferAsset = function (transaction, accountLogic, rounds) {
 	async.auto({
 		rounds: function (cb) {
-			modulesLoader.initModule(Rounds, {}, cb);
+			modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
 		},
 		accountLogic: function (cb) {
 			modulesLoader.initLogicWithDb(AccountLogic, cb, {});
@@ -150,7 +149,7 @@ describe('transaction', function () {
 	before(function (done) {
 		async.auto({
 			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
+				modulesLoader.initModule(Rounds, modulesLoader.scope,cb);
 			},
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
@@ -658,7 +657,6 @@ describe('transaction', function () {
 
 		it('should throw on future timestamp', function (done) {
 			var trs = _.clone(validUnconfirmedTrs);
-			console.log(trs);
 			trs.timestamp = trs.timestamp + 115000;
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
@@ -912,7 +910,6 @@ describe('transaction', function () {
 			};
 			// this test fails, while it shouldn't.
 			transaction.apply(trs, dummyBlock, randomAccount, function (err) {
-				console.log(err);
 				expect(err).to.exist;
 				done();
 			});
