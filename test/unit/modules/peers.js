@@ -60,7 +60,7 @@ describe('peers', function () {
 		});
 	});
 
-	describe('sandboxApi', function (done) {
+	describe('sandboxApi', function () {
 
 		it('should pass the call', function () {
 			var sandboxHelper = require('../../../helpers/sandbox.js');

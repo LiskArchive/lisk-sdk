@@ -196,6 +196,7 @@ __private.insertSeeds = function (cb) {
 				peer.applyHeaders({
 					height: status.height,
 					broadhash: status.broadhash,
+					nonce: status.nonce,
 					state: Peer.STATE.ACTIVE //connected
 				});
 				updated += 1;
@@ -244,6 +245,7 @@ __private.dbLoad = function (cb) {
 						peer.applyHeaders({
 							height: status.height,
 							broadhash: status.broadhash,
+							nonce: status.nonce,
 							state: Peer.STATE.ACTIVE
 						});
 						library.logic.peers.upsert(peer);
@@ -412,6 +414,7 @@ Peers.prototype.discover = function (cb) {
 					randomPeer.applyHeaders({
 						height: status.height,
 						broadhash: status.broadhash,
+						nonce: status.nonce,
 						state: Peer.STATE.ACTIVE
 					});
 					library.logic.peers.upsert(randomPeer);
@@ -502,32 +505,32 @@ Peers.prototype.list = function (options, cb) {
 	options.attempt = 0;
 	options.matched = 0;
 
-	var consensus;
-
 	function randomList (options, peers, cb) {
 		// Get full peers list (random)
-		__private.getByFilter({}, function (err, peersList) {
-			var accepted, found, matched, picked, matchedPeers;
+		__private.getByFilter ({}, function (err, peersList) {
+			var accepted, found, matched, picked;
 
 			found = peersList.length;
-
-			peersList = __private.getMatched({state: Peer.STATE.ACTIVE}, peersList);
-
-			if (options.broadhash) {
-				matchedPeers = options.attempt === 0 ?
-					__private.getMatched({broadhash: constants.headers.broadhash}, peersList) : peersList.filter(function (peer) {
-						return peer.broadhash !== constants.headers.broadhash;
-					});
-			}
-
-			matchedPeers = matchedPeers || peersList;
-			consensus = self.getConsensus(peersList, matchedPeers);
-			matched = matchedPeers.length;
+			// Apply filters
+			peersList = peersList.filter(function (peer) {
+				if (options.broadhash) {
+					// Skip banned peers (state 0)
+					return peer.state > 0 && (
+						// Matched broadhash when attempt 0
+						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
+						// Unmatched broadhash when attempt 1
+						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
+					);
+				} else {
+					// Skip banned peers (state 0)
+					return peer.state > 0;
+				}
+			});
+			matched = peersList.length;
 			// Apply limit
-			matchedPeers = matchedPeers.slice(0, options.limit);
-			picked = matchedPeers.length;
-			accepted = self.acceptable(peers.concat(matchedPeers));
-
+			peersList = peersList.slice(0, options.limit);
+			picked = peersList.length;
+			accepted = self.acceptable(peers.concat(peersList));
 			library.logger.debug('Listing peers', {attempt: options.attempts[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
 			return setImmediate(cb, null, accepted);
 		});
@@ -551,6 +554,9 @@ Peers.prototype.list = function (options, cb) {
 		}
 	], function (err, peers) {
 		// Calculate consensus
+		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
+		consensus = isNaN(consensus) ? 0 : consensus;
+
 		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
 		return setImmediate(cb, err, peers, consensus);
 	});
@@ -631,6 +637,7 @@ Peers.prototype.onPeersReady = function () {
 								peer.applyHeaders({
 									height: status.height,
 									broadhash: status.broadhash,
+									nonce: status.nonce,
 									state: Peer.STATE.ACTIVE
 								});
 								library.logic.peers.upsert(peer);

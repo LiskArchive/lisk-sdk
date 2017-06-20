@@ -529,7 +529,7 @@ Transport.prototype.internal = {
 	},
 
 	status: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash()});
+		return setImmediate(cb, null, {success: true, height: constants.headers.height, broadhash: constants.headers.broadhash, nonce: constants.headers.nonce});
 	},
 
 	postSignatures: function (query, cb) {
@@ -675,6 +675,7 @@ Transport.prototype.internal = {
 	 * @param {function} cb
 	 */
 	acceptPeer: function (peer, cb) {
+		console.log('transport --- accept peer: ', peer);
 		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
 			return setImmediate(cb, 'No headers information');
 		}

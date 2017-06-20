@@ -55,16 +55,9 @@ function Peers (logger, cb) {
 }
 
 Peers.prototype.me = function () {
-	if (__private.me) {
-		__private.me.applyHeaders(constants.getConst('headers'));
-		return __private.me;
-	}
-
-	__private.me = new Peer(_.assign({}, {
-		state: Peer.STATE.ACTIVE
-	}, constants.getConst('headers')));
-
-	return __private.me;
+	var me = _.extend(constants.getConst('headers'), {state: Peer.STATE.ACTIVE});
+	delete me.ip;
+	return me;
 };
 
 Peers.prototype.create = function (peer) {

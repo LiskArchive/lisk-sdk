@@ -48,14 +48,14 @@
     "rimraf": "=2.6.1",
     "semver": "=5.3.0",
     "socket.io": "=1.7.2",
-    "socketcluster": "=5.9.0",
+    "socketcluster": "=5.14.2",
     "socketcluster-client": "=5.3.0",
     "sodium": "LiskHQ/node-sodium#515b166",
     "strftime": "=0.10.0",
     "valid-url": "=1.0.9",
     "validator": "=7.0.0",
     "validator.js": "=2.0.3",
-    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#3d9bd06eefd51080cb34e9b4505563a7e00947bf",
+    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#47b53a59f72441686314296f619b67cc8e855e21",
     "z-schema": "=3.18.2"
   },
   "devDependencies": {
