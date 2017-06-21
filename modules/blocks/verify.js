@@ -98,7 +98,7 @@ __private.addBlockProperties = function (block) {
 		block.version = 0;
 	}
 	if (!block.numberOfTransactions) {
-		block.numberOfTransactions = block.length;
+		block.numberOfTransactions = block.transactions.length;
 	}
 	
 	return block;
@@ -115,6 +115,7 @@ __private.deleteBlockProperties = function (block) {
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
 	}
+	// verifyBlock ensures numberOfTransactions is transactions.length
 	if (reducedBlock.numberOfTransactions) {
 		delete reducedBlock.numberOfTransactions;
 	}
