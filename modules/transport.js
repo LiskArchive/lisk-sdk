@@ -675,12 +675,10 @@ Transport.prototype.internal = {
 	 * @param {function} cb
 	 */
 	acceptPeer: function (peer, cb) {
-		console.log('transport --- accept peer: ', peer);
 		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
 			return setImmediate(cb, 'No headers information');
 		}
-		peer.state = Peer.STATE.ACTIVE;
-		console.log('transport --- accept peer: ', peer.ip + ':' + peer.port + '#' + peer.nonce + '#' + peer.height + '#' + peer.broadhash);
+		library.logger.debug('transport --- accept peer: ', peer.ip + ':' + peer.port + '#' + peer.nonce + '#' + peer.height + '#' + peer.broadhash);
 		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };

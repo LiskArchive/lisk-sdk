@@ -34,7 +34,15 @@ function Peers (logger, cb) {
 		nonceToAddressMap: {},
 
 		addSafely: function (nonce, address) {
+			//it is ok to assign nonce to new address but not new address to existing nonce
+			if (this.nonceToAddressMap[nonce] && address && this.nonceToAddressMap[nonce] !== address) {
+				throw new Error('Peer', address, 'attempts assign nonce of', this.nonceToAddressMap[nonce]);
+			}
 			if (address) {
+				var oldNonce = this.addressToNonceMap[address];
+				if (oldNonce && oldNonce !== nonce) {
+					delete this.nonceToAddressMap;
+				}
 				this.addressToNonceMap[address] = nonce;
 			}
 			if (nonce) {
@@ -142,7 +150,12 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		return false;
 	}
 
-	self.nonceToAddressMapper.addSafely(peer.nonce, peer.string);
+	try {
+		self.nonceToAddressMapper.addSafely(peer.nonce, peer.string);
+	} catch (error) {
+		library.logger.warn(error.message);
+		return false;
+	}
 
 	// Performing insert or update
 	if (self.exists(peer)) {
