@@ -10,6 +10,9 @@ var modulesLoader = require('../../../common/initModule').modulesLoader;
 var BlockLogic = require('../../../../logic/block.js');
 var exceptions = require('../../../../helpers/exceptions.js');
 var crypto = require('crypto');
+var BSON = require('bson');
+
+var bson = new BSON();
 
 var previousBlock = {
 	blockSignature:'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
@@ -389,6 +392,7 @@ describe('blocks/verify', function () {
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
 				expect(onMessage[0]).to.equal('newBlock');
+				onMessage[1] = bson.deserialize(onMessage[1]);
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
 				expect(onMessage[1].id).to.equal(validBlock1.id);
@@ -564,6 +568,7 @@ describe('blocks/verify', function () {
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
 				expect(onMessage[0]).to.equal('newBlock');
+				onMessage[1] = bson.deserialize(onMessage[1]);
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
 				expect(onMessage[1].id).to.equal(validBlock3.id);
@@ -584,6 +589,7 @@ describe('blocks/verify', function () {
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
 				expect(onMessage[0]).to.equal('newBlock');
+				onMessage[1] = bson.deserialize(onMessage[1]);
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
 				expect(onMessage[1].id).to.equal(validBlock3.id);
@@ -617,7 +623,7 @@ describe('blocks/verify', function () {
 		it('processBlock() receive block3 again should be ok (checkExists)', function (done) {
 			blocks.lastBlock.set(validBlock2);
 			deleteBlockProperties(validBlock3);
-			
+
 			blocksVerify.processBlock(validBlock3, false, function (err, result) {
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
