@@ -5,30 +5,7 @@ module.exports = function listCommand(vorpal) {
 	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../src/utils/tablify');
 	const util = require('util');
-
-	function isAccountQuery (input) {
-
-		return lisk.sendRequest('accounts', {  address: input });
-
-	}
-
-	function isBlockQuery (input) {
-
-		return lisk.sendRequest('blocks/get', {  id: input });
-
-	}
-
-	function isTransactionQuery (input) {
-
-		return lisk.sendRequest('transactions/get', {  id: input });
-
-	}
-
-	function isDelegateQuery (input) {
-
-		return lisk.sendRequest('delegates/get', {  username: input });
-
-	}
+	const query = require('../src/utils/query');
 
 	function switchType (type) {
 		return {
@@ -50,11 +27,11 @@ module.exports = function listCommand(vorpal) {
 		.action(function(userInput) {
     
 			let getType = {
-				'addresses': isAccountQuery,
-				'accounts': isAccountQuery,
-				'blocks': isBlockQuery,
-				'delegates': isDelegateQuery,
-				'transactions': isTransactionQuery
+				'addresses': query.isAccountQuery,
+				'accounts': query.isAccountQuery,
+				'blocks': query.isBlockQuery,
+				'delegates': query.isDelegateQuery,
+				'transactions': query.isTransactionQuery
 			};
 
 			let calls = userInput.variadic.map(function (input) {
@@ -62,41 +39,36 @@ module.exports = function listCommand(vorpal) {
 			});
 
 
-			 if(process.env.NODE_ENV === 'test') {
 
-				 return Promise.all(calls);
+			if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
+				return Promise.all(calls).then(result => {
+					result.map(executed => {
+						if(executed.error) {
+							vorpal.log(util.inspect(executed));
+						} else {
+							vorpal.log(util.inspect(executed[switchType(userInput.type)]));
+						}
+				 });
 
-			 } else {
+				 return result;
 
-				 if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
-					 return Promise.all(calls).then(result => {
-						 result.map(executed => {
-							 if(executed.error) {
-								 vorpal.log(util.inspect(executed));
-							 } else {
-								 vorpal.log(util.inspect(executed[switchType(userInput.type)]));
-							 }
-						 });
+				});
+			} else {
+				return Promise.all(calls).then(result => {
+					result.map(executed => {
+						if(executed.error) {
+							vorpal.log(tablify(executed).toString());
+						} else {
+							vorpal.log(tablify(executed[switchType(userInput.type)]).toString());
+						}
+					});
 
-						 return result;
+					return result;
 
-					 });
-				 } else {
-					 return Promise.all(calls).then(result => {
-						 result.map(executed => {
-							 if(executed.error) {
-								 vorpal.log(tablify(executed).toString());
-							 } else {
-								 vorpal.log(tablify(executed[switchType(userInput.type)]).toString());
-							 }
-						 });
-
-						 return result;
-
-					 });
-				 }
-
-			 }
+				}).catch((e) => {
+					return e;
+				});
+			}
 
 
 		});

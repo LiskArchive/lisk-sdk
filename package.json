@@ -34,7 +34,8 @@
     "mocha": "^3.3.0",
     "nyc": "^10.3.2",
     "should": "^11.2.1",
-    "sinon": "^2.3.1"
+    "sinon": "^2.3.1",
+    "sinon-as-promised": "^4.0.3"
   },
   "dependencies": {
     "cli-table2": "^0.2.0",
