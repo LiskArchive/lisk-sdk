@@ -94,20 +94,54 @@ describe('multisignature.js', function () {
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
 		it('should return an object', function () {
-			(signTransaction).should.be.type('object');
+			(signTransaction).should.be.type('string');
 		});
 
-		it('should have a transaction property', function () {
-			(signTransaction.transaction).should.be.type('string');
-			(signTransaction.transaction).should.be.equal(transaction.id);
-		});
-
-		it('should have a signature property', function () {
+		it('should have a fixed signature length', function () {
 			var length = 128; // crypto_sign_BYTES length
 
-			(signTransaction.signature).should.be.type('string');
-			(signTransaction.signature).should.have.lengthOf(length);
+			(signTransaction).should.have.lengthOf(length);
 		});
+
+	});
+
+	describe('#createTransaction', function () {
+
+		var recipientId = '123456789L';
+		var amount = '500';
+		var secret = 'privateSecret';
+		var secondSecret = 'privateSecondSecret';
+		var requesterPublicKey = 'abc123';
+		var msigTransaction = lisk.multisignature.createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey);
+
+		it('should create a multisignature transaction', function () {
+
+			(msigTransaction.signatures).should.be.ok;
+
+		});
+
+		it('should have requesterPublicKey as property', function () {
+
+			(msigTransaction.requesterPublicKey).should.be.equal(requesterPublicKey);
+		});
+
+		it('should have the signatures property as empty array', function () {
+
+			(msigTransaction.signatures).should.be.an.Array;
+
+		});
+
+		it('should create a multisignature transaction without requesterPublicKey and secondSecret', function () {
+
+			var msigTransaction2 = lisk.multisignature.createTransaction(recipientId, amount, secret);
+			var pubKey = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+
+			(msigTransaction2.requesterPublicKey).should.be.equal(pubKey);
+
+			console.log(msigTransaction2);
+
+		});
+
 
 	});
 

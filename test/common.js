@@ -2,12 +2,14 @@
 var cryptoLib = require('crypto-browserify');
 var should = require('should');
 var chai = require('chai');
+var sinon = require('sinon');
 
 global.chai = chai;
 global.assert = chai.assert;
 global.expect = chai.expect;
 chai.config.includeStack = true;
 global.should = require('should');
+global.sinon = require('sinon');
 
 process.env.NODE_ENV = 'test';
 
@@ -18,3 +20,5 @@ exports.cryptoLib = cryptoLib;
 exports.privateApi = require('../lib/api/privateApi');;
 exports.utils = require('../lib/api/utils');
 exports.should = should;
+exports.should = should;
+exports.sinon = sinon;
