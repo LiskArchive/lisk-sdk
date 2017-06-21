@@ -102,7 +102,7 @@ __private.addBlockProperties = function (block) {
 	}
 	
 	return block;
-}
+};
 
 /**
  * Deletes default properties from block.
@@ -120,7 +120,7 @@ __private.deleteBlockProperties = function (block) {
 		delete reducedBlock.numberOfTransactions;
 	}
 	return reducedBlock;
-}
+};
 
 /**
  * Verify block and return all possible errors related to block

@@ -389,7 +389,7 @@ describe('blocks/verify', function () {
 				expect(onMessage[3]).to.equal('transactionsSaved');
 				expect(onMessage[4][0].id).to.equal(validBlock1.transactions[0].id);
 				modulesLoader.scope.bus.clearMessages();
-				done()
+				done();
 			}, true);
 		});
 	});
@@ -555,7 +555,7 @@ describe('blocks/verify', function () {
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.be.undefined; // transactionsSaved
 				modulesLoader.scope.bus.clearMessages();
-				done()
+				done();
 			}, false);
 		});
 
@@ -577,7 +577,7 @@ describe('blocks/verify', function () {
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			}, false);
-	});
+		});
 
 	});
 

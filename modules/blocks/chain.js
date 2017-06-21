@@ -523,7 +523,7 @@ Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
 		throw 'reduced newBlock broadcast message error: ' + e;
 	}
 	library.logger.debug(['reducedBlock', reducedBlock.id, 'broadcasted correctly'].join(' '));
-}
+};
 
 /**
  * Deletes last block, undo transactions, recalculate round
