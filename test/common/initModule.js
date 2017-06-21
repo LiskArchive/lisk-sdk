@@ -28,13 +28,22 @@ var modulesLoader = new function () {
 		genesisblock: { block: genesisblock },
 		logger: this.logger,
 		network: {
-			app: express()
+			app: express(),
+			io: {
+				sockets: express()
+			}
 		},
 		public: '../../public',
 		schema: new z_schema(),
 		ed: ed,
 		bus: {
-			message: function () {}
+			args: [],
+			message: function () {
+				Array.prototype.push.apply(this.args, arguments);
+			},
+			getMessage: function () {
+				return this.args
+			}
 		},
 		nonce: randomString.generate(16)
 	};
