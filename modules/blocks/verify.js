@@ -7,6 +7,9 @@ var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
 var exceptions = require('../../helpers/exceptions.js');
+var BSON = require('bson');
+
+var bson = new BSON();
 
 var modules, library, self, __private = {};
 
@@ -98,7 +101,7 @@ __private.addBlockProperties = function (block) {
 		block.version = 0;
 	}
 	if (block.numberOfTransactions === undefined) {
-		if (block.transactions === undefined){
+		if (block.transactions === undefined) {
 			block.numberOfTransactions = 0;
 		} else {
 			block.numberOfTransactions = block.transactions.length;
@@ -291,7 +294,8 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 				try {
 					// delete default properties
 					var blockReduced = __private.deleteBlockProperties(block);
-					modules.blocks.chain.broadcastReducedBlock(blockReduced, broadcast);
+					var serializedBlockReduced = bson.serialize(blockReduced);
+					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, broadcast);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
