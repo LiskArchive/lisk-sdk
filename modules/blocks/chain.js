@@ -522,7 +522,7 @@ Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
 	} catch (e) {
 		throw 'reduced newBlock broadcast message error: ' + e;
 	}
-	library.logger.debug('reducedBlock ' + reducedBlock.id + ' broadcasted correctly');
+	library.logger.debug(['reducedBlock', reducedBlock.id, 'broadcasted correctly'].join(' '));
 }
 
 /**
