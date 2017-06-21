@@ -94,11 +94,15 @@ __private.checkTransaction = function (block, transaction, cb) {
  * @return {Object} Block object completed
  */
 __private.addBlockProperties = function (block) {
-	if (!block.version) {
+	if (block.version === undefined) {
 		block.version = 0;
 	}
-	if (!block.numberOfTransactions) {
-		block.numberOfTransactions = block.transactions.length;
+	if (block.numberOfTransactions === undefined) {
+		if (block.transactions === undefined){
+			block.numberOfTransactions = 0;
+		} else {
+			block.numberOfTransactions = block.transactions.length;
+		}
 	}
 	
 	return block;
