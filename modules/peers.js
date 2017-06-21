@@ -319,6 +319,9 @@ Peers.prototype.getConsensus = function (matched, active) {
 	active = active || __private.getMatched({state: Peer.STATE.ACTIVE});
 	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash}, active);
 
+	active = active.slice(0, constants.maxPeers);
+	matched = matched.slice(0, constants.maxPeers);
+
 	if (active.length === 0) {
 		return undefined;
 	}
@@ -368,6 +371,7 @@ Peers.prototype.remove = function (pip, port) {
 	if (frozenPeer) {
 		// FIXME: Keeping peer frozen is bad idea at all
 		library.logger.debug('Cannot remove frozen peer', pip + ':' + port);
+		library.logic.peers.update({ip: pip, port: port, status: Peer.STATE.BANNED});
 	} else {
 		return library.logic.peers.remove ({ip: pip, port: port});
 	}
@@ -388,6 +392,7 @@ Peers.prototype.ban = function (pip, port, seconds) {
 	if (frozenPeer) {
 		// FIXME: Keeping peer frozen is bad idea at all
 		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
+		library.logic.peers.update({ip: pip, port: port, status: Peer.STATE.BANNED});
 	} else {
 		return library.logic.peers.ban (pip, port, seconds);
 	}
