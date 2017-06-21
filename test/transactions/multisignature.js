@@ -94,19 +94,13 @@ describe('multisignature.js', function () {
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
 		it('should return an object', function () {
-			(signTransaction).should.be.type('object');
+			(signTransaction).should.be.type('string');
 		});
 
-		it('should have a transaction property', function () {
-			(signTransaction.transaction).should.be.type('string');
-			(signTransaction.transaction).should.be.equal(transaction.id);
-		});
-
-		it('should have a signature property', function () {
+		it('should have a fixed signature length', function () {
 			var length = 128; // crypto_sign_BYTES length
 
-			(signTransaction.signature).should.be.type('string');
-			(signTransaction.signature).should.have.lengthOf(length);
+			(signTransaction).should.have.lengthOf(length);
 		});
 
 	});
