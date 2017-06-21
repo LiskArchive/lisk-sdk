@@ -111,13 +111,13 @@ describe('vote', function () {
 				});
 			}],
 			delegateModule: ['accountModule', function (result, cb) {
-				modulesLoader.initModuleWithDb(DelegateModule, function (err, __accounts) {
+				modulesLoader.initModuleWithDb(DelegateModule, function (err, __delegates) {
 					// not all required bindings, only the ones required for votes
-					__accounts.onBind({
+					__delegates.onBind({
 						rounds: result.rounds,
 						accounts: result.accountModule,
 					});
-					cb(err, __accounts);
+					cb(err, __delegates);
 				}, {
 					logic: {
 						transaction: result.transactionLogic

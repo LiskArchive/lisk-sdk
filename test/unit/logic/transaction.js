@@ -115,30 +115,20 @@ var validUnconfirmedTrs = {
 };
 
 var attachTransferAsset = function (transaction, accountLogic, rounds) {
-	async.auto({
-		rounds: function (cb) {
-			modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
-		},
-		accountLogic: function (cb) {
-			modulesLoader.initLogicWithDb(AccountLogic, cb, {});
-		}, 
-		accountModule: ['accountLogic', function (results, cb) {
-			modulesLoader.initModuleWithDb(AccountModule, cb, {
-				logic: {
-					account: results.accountLogic,
-					transaction: transaction
-				}
-			});
-		}]
-	}, function (err, result) {
+	modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
 		var transfer = new Transfer();
 		transfer.bind({
 			modules: {
-				accounts: result.accountModule,
-				rounds: result.rounds
+				accounts: __accountModule,
+				rounds: rounds
 			}
 		});
 		transaction.attachAssetType(transactionTypes.SEND, transfer);
+	}, {
+		logic: {
+			account: accountLogic,
+			transaction: transaction
+		}
 	});
 };
 
