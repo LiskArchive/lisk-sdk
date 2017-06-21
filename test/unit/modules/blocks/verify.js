@@ -137,6 +137,13 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 	return newBLock;
 }
 
+function deleteBlockProperties (block) {
+	// see modules/blocks/verify.js for deleted fields reference.
+	delete block.version;
+	delete block.numberOfTransactions;
+	return;
+}
+
 describe('blocks/verify', function () {
 
 	var blocksVerify;
@@ -416,6 +423,8 @@ describe('blocks/verify', function () {
 			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
 			validBlock2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsValidBlock2, validBlock1);
 			expect(validBlock2.version).to.equal(0);
+			deleteBlockProperties(validBlock2);
+
 			done();
 		});
 	
@@ -434,6 +443,7 @@ describe('blocks/verify', function () {
 		it('normalizeBlock should fail (block schema: transactions)', function (done) {
 			invalidBlock2.timestamp = validBlock2.timestamp;
 			delete invalidBlock2.transactions;
+			deleteBlockProperties(invalidBlock2);
 
 			blocksVerify.processBlock(invalidBlock2, false, function (err, result) {
 				if (err) {
@@ -446,6 +456,7 @@ describe('blocks/verify', function () {
 		it('normalizeBlock should fail (transaction schema: type)', function (done) {
 			invalidBlock2.transactions = JSON.parse(JSON.stringify(validBlock2.transactions));
 			delete invalidBlock2.transactions[0].type;
+			deleteBlockProperties(invalidBlock2);
 
 			blocksVerify.processBlock(invalidBlock2, false, function (err, result) {
 				if (err) {
@@ -458,6 +469,7 @@ describe('blocks/verify', function () {
 		it('normalizeBlock should fail (transaction schema: timestamp)', function (done) {
 			invalidBlock2.transactions[0].type = validBlock2.transactions[0].type;
 			delete invalidBlock2.transactions[0].timestamp;
+			deleteBlockProperties(invalidBlock2);
 
 			blocksVerify.processBlock(invalidBlock2, false, function (err, result) {
 				if (err) {
@@ -470,7 +482,8 @@ describe('blocks/verify', function () {
 		it('validateBlockSlot should fail (fork: 3)', function (done) {
 			invalidBlock2.transactions[0].timestamp = validBlock2.transactions[0].timestamp;
 			invalidBlock2.generatorPublicKey = 'invalid-public-key';
-			
+			deleteBlockProperties(invalidBlock2);
+
 			blocksVerify.processBlock(invalidBlock2, false, function (err, result) {
 				if (err) {
 					expect(err).equal('Failed to validate block schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
@@ -483,6 +496,7 @@ describe('blocks/verify', function () {
 			var secret = 'fortune project stable road outside spoil team quantum journey fall cloud great';
 			validBlock2.height = 489;
 			var invalidBlock3 = createBlock(blocks, blockLogic, secret, 33772874, transactionsValidBlock1, validBlock2);
+			deleteBlockProperties(invalidBlock3);
 
 			blocksVerify.processBlock(invalidBlock3, false, function (err, result) {
 				if (err) {
@@ -513,7 +527,8 @@ describe('blocks/verify', function () {
 
 		it('process same block again should fail (checkExists)', function (done) {
 			blocks.lastBlock.set(validBlock1);
-			
+			deleteBlockProperties(validBlock2);
+
 			blocksVerify.processBlock(validBlock2, false, function (err, result) {
 				expect(err).to.equal(['Block', validBlock2.id, 'already exists'].join(' '));
 				done();
@@ -586,6 +601,7 @@ describe('blocks/verify', function () {
 
 		it('processBlock() should receive block3', function (done) {
 			blocks.lastBlock.set(validBlock2);
+			deleteBlockProperties(validBlock3);
 
 			blocksVerify.processBlock(validBlock3, false, function (err, result) {
 				if (err) {
@@ -599,9 +615,10 @@ describe('blocks/verify', function () {
 		});
 
 		it('processBlock() receive block3 again should be ok (checkExists)', function (done) {
-			blocks.lastBlock.set(validBlock1);
+			blocks.lastBlock.set(validBlock2);
+			deleteBlockProperties(validBlock3);
 			
-			blocksVerify.processBlock(validBlock2, false, function (err, result) {
+			blocksVerify.processBlock(validBlock3, false, function (err, result) {
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
 				expect(onMessage).to.be.an('array').that.is.empty;
