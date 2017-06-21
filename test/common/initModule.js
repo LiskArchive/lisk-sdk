@@ -37,12 +37,15 @@ var modulesLoader = new function () {
 		schema: new z_schema(),
 		ed: ed,
 		bus: {
-			args: [],
+			argsMessages: [],
 			message: function () {
-				Array.prototype.push.apply(this.args, arguments);
+				Array.prototype.push.apply(this.argsMessages, arguments);
 			},
-			getMessage: function () {
-				return this.args
+			getMessages: function () {
+				return this.argsMessages;
+			},
+			clearMessages: function () {
+				this.argsMessages = [];
 			}
 		},
 		nonce: randomString.generate(16)
