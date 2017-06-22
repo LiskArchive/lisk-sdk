@@ -10,7 +10,7 @@ describe('#tablify', () => {
 			moreData: 'data'
 		};
 
-		(tablify(data).toString()).should.be.equal('\u001b[90m┌──────────\u001b[39m\u001b[90m┬──────┐\u001b[39m\n\u001b[90m│\u001b[39m data     \u001b[90m│\u001b[39m data \u001b[90m│\u001b[39m\n\u001b[90m├──────────\u001b[39m\u001b[90m┼──────┤\u001b[39m\n\u001b[90m│\u001b[39m moreData \u001b[90m│\u001b[39m data \u001b[90m│\u001b[39m\n\u001b[90m└──────────\u001b[39m\u001b[90m┴──────┘\u001b[39m')
+		(tablify(data).toString()).should.be.equal('\u001b[90m┌──────────\u001b[39m\u001b[90m┬──────┐\u001b[39m\n\u001b[90m│\u001b[39m data     \u001b[90m│\u001b[39m data \u001b[90m│\u001b[39m\n\u001b[90m├──────────\u001b[39m\u001b[90m┼──────┤\u001b[39m\n\u001b[90m│\u001b[39m moreData \u001b[90m│\u001b[39m data \u001b[90m│\u001b[39m\n\u001b[90m└──────────\u001b[39m\u001b[90m┴──────┘\u001b[39m');
 
 	});
 

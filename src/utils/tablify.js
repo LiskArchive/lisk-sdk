@@ -10,4 +10,4 @@ module.exports = function tablify (data) {
 		});
 	}
 	return table;
-}
+};

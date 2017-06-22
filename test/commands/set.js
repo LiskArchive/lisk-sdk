@@ -12,7 +12,7 @@ vorpal
 	.show();
 
 function executeCommand (command, callback) {
-	vorpal.exec(command, function(err, data){
+	vorpal.exec(command, function (err, data){
 		if (!err) {
 			return callback(this);
 		} else {

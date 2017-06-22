@@ -28,7 +28,7 @@ describe('lisky get command palette', () => {
 
 		 query.isAccountQuery.restore();
 
-    });
+	});
 
 	it('should have the right parameters with block', () => {
 

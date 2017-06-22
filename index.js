@@ -14,7 +14,7 @@ lisky
 	  .show();
 
 
-lisky.find('help').alias('?')
-lisky.find('exit').description(`Exits ${config.name}.`)
+lisky.find('help').alias('?');
+lisky.find('exit').description(`Exits ${config.name}.`);
 
 module.exports = lisky;

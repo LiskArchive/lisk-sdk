@@ -12,7 +12,7 @@ module.exports = function setCommand (vorpal) {
 	}
 
 	function setTestnet (value) {
-		config.liskJS.testnet = (value === "true");
+		config.liskJS.testnet = (value === 'true');
 		fse.writeFileSync('config.json', JSON.stringify(config, null, 2), 'utf8');
 		return {message :'successfully set testnet to '+value};
 	}
@@ -20,7 +20,7 @@ module.exports = function setCommand (vorpal) {
 	vorpal
 		.command('set <variable> <value>')
 		.description('Set configuration <variable> to <value>')
-		.action(function(userInput, callback) {
+		.action(function (userInput, callback) {
 
 			const getType = {
 				'json': setJSON,
@@ -29,7 +29,7 @@ module.exports = function setCommand (vorpal) {
 
 			const returnValue = getType[userInput.variable](userInput.value);
 
-			return (callback && typeof callback == "function") ? callback(returnValue.message) : returnValue.message;
+			return (callback && typeof callback == 'function') ? callback(returnValue.message) : returnValue.message;
 
 		});
 
