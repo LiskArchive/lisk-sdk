@@ -21,7 +21,6 @@ module.exports = {
 	},
 	rounds: {
 	},
-	blockRewards: [],
 	senderPublicKey: [
 		'5252526207733553499'   // 464289
 	],
