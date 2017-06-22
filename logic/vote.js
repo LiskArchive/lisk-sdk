@@ -95,6 +95,12 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
 	}
 
+	for (var i = 0; i < trs.asset.votes.length; i++) {
+		if (trs.asset.votes.filter(function (v) { return v === trs.asset.votes[i]; }).length > 1) {
+			return setImmediate(cb, 'Duplicate votes are not allowed');
+		}
+	}
+
 	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
 		self.verifyVote(vote, function (err) {
 			if (err) {

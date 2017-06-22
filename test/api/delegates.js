@@ -102,37 +102,37 @@ describe('PUT /api/accounts/delegates with funds', function () {
 	});
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = '"+' + node.eAccount.publicKey + '","+' + node.eAccount.publicKey + '"';
+		var votedDelegate = Array(2).fill('+' + node.eAccount.publicKey);
 
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: [votedDelegate]
+			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.equal('Duplicate votes are not allowed');
 			done();
 		});
 	});
 
 	it('when downvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = '"+' + node.eAccount.publicKey + '","+' + node.eAccount.publicKey + '"';
+		var votedDelegate = Array(2).fill('-' + node.eAccount.publicKey);
 
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: [votedDelegate]
+			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.equal('Duplicate votes are not allowed');
 			done();
 		});
 	});
 
 	it('when upvoting and downvoting within same request should fail', function (done) {
-		var votedDelegate = '"+' + node.eAccount.publicKey + '","-' + node.eAccount.publicKey + '"';
+		var votedDelegate = ['-' + node.eAccount.publicKey, '+' + node.eAccount.publicKey];
 
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: [votedDelegate]
+			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
