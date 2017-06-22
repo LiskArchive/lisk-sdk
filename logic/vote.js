@@ -4,6 +4,7 @@ var async = require('async');
 var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 var Diff = require('../helpers/diff.js');
+var _ = require('lodash');
 
 // Private fields
 var modules, library, self;
@@ -95,10 +96,8 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
 	}
 
-	for (var i = 0; i < trs.asset.votes.length; i++) {
-		if (trs.asset.votes.filter(function (v) { return v === trs.asset.votes[i]; }).length > 1) {
-			return setImmediate(cb, 'Duplicate votes are not allowed');
-		}
+	if (trs.asset.votes.length > _.uniq(trs.asset.votes).length) {
+		return setImmediate(cb, 'Duplicate votes are not allowed');
 	}
 
 	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
