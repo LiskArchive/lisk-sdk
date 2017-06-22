@@ -109,7 +109,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Multiple votes for same delegate are not allowed');
+			node.expect(res.body).to.have.property('error').to.include('Failed to validate vote schema:');
 			done();
 		});
 	});
@@ -122,7 +122,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Multiple votes for same delegate are not allowed');
+			node.expect(res.body).to.have.property('error').to.include('Failed to validate vote schema:');
 			done();
 		});
 	});
