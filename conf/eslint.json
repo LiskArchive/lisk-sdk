@@ -16,6 +16,7 @@
       "named": "always",
       "asyncArrow": "ignore"
     }],
+    "keyword-spacing": "error",
     "callback-return": "off",
     "global-require": "off",
     "handle-callback-err": "off",

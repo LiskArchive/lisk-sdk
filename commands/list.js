@@ -40,10 +40,10 @@ module.exports = function listCommand (vorpal) {
 
 
 
-			if((userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
+			if ((userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
 				return Promise.all(calls).then(result => {
 					result.map(executed => {
-						if(executed.error) {
+						if (executed.error) {
 							vorpal.log(util.inspect(executed));
 						} else {
 							vorpal.log(util.inspect(executed[switchType(userInput.type)]));
@@ -56,7 +56,7 @@ module.exports = function listCommand (vorpal) {
 			} else {
 				return Promise.all(calls).then(result => {
 					result.map(executed => {
-						if(executed.error) {
+						if (executed.error) {
 							vorpal.log(tablify(executed).toString());
 						} else {
 							vorpal.log(tablify(executed[switchType(userInput.type)]).toString());

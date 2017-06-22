@@ -27,5 +27,9 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('default', ['mochaTest', 'eslint']);
+	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
+		grunt.config.set('eslint.options.fix', true);
+		grunt.task.run('eslint');
+	});
 
 };
