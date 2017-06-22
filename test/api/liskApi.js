@@ -859,6 +859,31 @@ describe('Lisk.api()', function () {
 		});
 	});
 
+	describe('#generateAccount', function () {
+		var expectedResponse = {
+			body: {
+				success: true,
+				publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497'
+			},
+		};
+
+		it('should get publicKey', function () {
+			var callback = sinon.spy();
+			var secret = 'dream capable public heart sauce pilot ordinary fever final brand flock boring';
+			var options = {
+				secret: secret
+			};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
+
+			LSK.generateAccount(secret, callback);
+
+			(LSK.sendRequest.calledWith('accounts/generatePublicKey', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
+		});
+	});
+
 	describe('#sendLSK', function () {
 		var expectedResponse = {
 			body: { success: true, transactionId: '8921031602435581844' }
