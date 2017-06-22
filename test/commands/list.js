@@ -1,175 +1,149 @@
 const Vorpal = require('vorpal');
 const common = require('../common');
 const lisky = common.lisky;
-const get = require('../../commands/get');
+const sinon = common.sinon;
 const list = require('../../commands/list');
+const query = require('../../src/utils/query');
+const util = require('util');
 
-let vorpal = new Vorpal();
+const vorpal = new Vorpal();
 
-vorpal.use(get);
 vorpal.use(list);
 
 vorpal
 	.delimiter('lisky>')
 	.show();
 
-function executeCommand (command, callback) {
-	vorpal.exec(command, function (err, data){
-		if (!err) {
-			return this;
-		} else {
-			return err;
-		}
-	});
-}
-
-
 describe('lisky list command palette', () => {
 
-	it('should have the right parameters with account', (done) => {
+	it('should test command list accounts', () => {
 
-		let command = 'list accounts 1813095620424213569L 4034636149257692063L';
+		let command = 'list accounts 13133549779353512613L 13133549779353512613L';
 
-		let promiseExec = vorpal.exec(command);
+		sinon.stub(query, 'isAccountQuery');
 
-		promiseExec.then(result => {
-			(result).should.be.length(2);
-			done();
-		});
-	});
+		vorpal.execSync(command);
 
-	it('should have the right parameters with block', (done) => {
+		(query.isAccountQuery.called).should.be.equal(true);
 
-		let command = 'list blocks 261210776798678785 15451307652923255487 5951827295787603085';
-
-		let promiseExec = vorpal.exec(command);
-
-		promiseExec.then(result => {
-			(result).should.be.length(3);
-			done();
-		});
+		query.isAccountQuery.restore();
 
 	});
 
-	it('should have the right parameters with delegate', (done) => {
+	it('should have the right parameters with block', () => {
 
-		let command = 'list delegates tosch joel';
+		let command = 'list blocks 3641049113933914102 5650160629533476718';
 
-		let promiseExec = vorpal.exec(command);
+		sinon.stub(query, 'isBlockQuery');
 
-		promiseExec.then(result => {
-			(result).should.be.length(2);
-			done();
-		});
+		vorpal.execSync(command);
+
+		(query.isBlockQuery.called).should.be.equal(true);
+
+		query.isBlockQuery.restore();
 
 	});
 
-	it('should have the right parameters with delegate', (done) => {
+	it('should have the right parameters with delegate', () => {
 
-		let command = 'list transactions 3641049113933914102 10995782995100491988';
+		let command = 'list delegates lightcurve tosch';
 
-		let promiseExec = vorpal.exec(command);
+		sinon.stub(query, 'isDelegateQuery');
 
-		promiseExec.then(result => {
-			(result).should.be.length(2);
-			done();
-		});
+		vorpal.execSync(command);
+
+		(query.isDelegateQuery.called).should.be.equal(true);
+
+		query.isDelegateQuery.restore();
+
+	});
+
+	it('should have the right parameters with transaction', () => {
+
+		let command = 'list transactions 16388447461355055139 14735719251498448056';
+
+		sinon.stub(query, 'isTransactionQuery');
+
+		vorpal.execSync(command);
+
+		(query.isTransactionQuery.called).should.be.equal(true);
+
+		query.isTransactionQuery.restore();
+
+	});
+
+	it('should have the right parameters with transaction, handling response', () => {
+
+		let command = 'list transactions 16388447461355055139 14735719251498448056';
+
+		sinon.stub(query, 'isTransactionQuery').resolves({ transactionid: '123' });
+
+		vorpal.execSync(command);
+
+		(query.isTransactionQuery.called).should.be.equal(true);
+
+		query.isTransactionQuery.restore();
+
+	});
+
+	it('should have the right parameters with transaction, handling error from http', () => {
+
+		let command = 'list transactions 16388447461355055139 14735719251498448056';
+
+		sinon.stub(query, 'isTransactionQuery').resolves({error: 'transaction not found'});
+
+		vorpal.execSync(command);
+
+		(query.isTransactionQuery.called).should.be.equal(true);
+
+		query.isTransactionQuery.restore();
 
 	});
 
 });
 
-describe('list command palette without test mode', () => {
 
-	beforeEach(() => {
-		process.env.NODE_ENV = 'main';
-	});
+describe('list command palette with json settings', () => {
 
-	it('should have the right parameters with transactions, no test mode', (done) => {
+	it('should have the right parameters with transactions', () => {
 
-		let command = 'list transactions 3641049113933914102 10995782995100491988';
+		let command = 'list transactions 16388447461355055139 14735719251498448056 -j';
 
-		let promiseExec = vorpal.exec(command);
+		sinon.stub(query, 'isTransactionQuery').resolves({ transactionId: '123' });
 
-		promiseExec.then(result => {
-			console.log('result', result);
-			(result).should.be.length(2);
-			done();
-		});
+		vorpal.execSync(command);
+
+		(query.isTransactionQuery.called).should.be.equal(true);
+
+		query.isTransactionQuery.restore();
 
 	});
 
-	it('should detect wrong input, without test mode', (done) => {
+	it('should print no-json output', () => {
+		let command = 'list transactions 16388447461355055139 14735719251498448056 --no-json';
 
-		let command = 'list transactions 36410491 412323 -j';
+		sinon.stub(query, 'isTransactionQuery');
 
-		let promiseExec = vorpal.exec(command);
+		vorpal.execSync(command);
 
-		promiseExec.then(result => {
-			(result).should.be.length(2);
-			(result[0].success).should.be.false;
-			done();
-		});
+		(query.isTransactionQuery.called).should.be.equal(true);
+
+		query.isTransactionQuery.restore();
+	});
+
+	it('should have the right parameters with transaction, handling error from http', () => {
+
+		let command = 'list transactions 16388447461355055139 14735719251498448056 -j';
+
+		sinon.stub(query, 'isTransactionQuery').resolves({error: 'transaction not found'});
+
+		vorpal.execSync(command);
+
+		(query.isTransactionQuery.called).should.be.equal(true);
+
+		query.isTransactionQuery.restore();
 
 	});
 
-	it('should detect wrong input, without test mode', (done) => {
 
-		let command = 'list transactions 36410491 412323 --no-json';
-
-		let promiseExec = vorpal.exec(command);
-
-		promiseExec.then(result => {
-			(result).should.be.length(2);
-			(result[0].success).should.be.false;
-			done();
-		});
-
-	});
-
-	it('should detect wrong input, without test mode', (done) => {
-
-		let command = 'list delegates tosch joel oliver -j';
-
-		let promiseExec = vorpal.exec(command);
-
-		promiseExec.then(result => {
-			(result).should.be.length(3);
-			(result[0].success).should.be.true;
-			done();
-		});
-
-	});
-
-	it('should detect wrong input, without test mode', (done) => {
-
-		let command = 'list accounts 1813095620424213569L 4034636149257692063L -j';
-
-		let promiseExec = vorpal.exec(command);
-
-		promiseExec.then(result => {
-			(result).should.be.length(2);
-			(result[0].success).should.be.true;
-			done();
-		});
-
-	});
-
-	it('should detect wrong input, without test mode', (done) => {
-
-		let command = 'list blocks 261210776798678785 15451307652923255487 -j';
-
-		let promiseExec = vorpal.exec(command);
-
-		promiseExec.then(result => {
-			(result).should.be.length(2);
-			(result[0].success).should.be.true;
-			done();
-		});
-
-	});
-
-	afterEach(() => {
-		process.env.NODE_ENV = 'test';
-	});
 });
