@@ -92,6 +92,10 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid votes. Must not be empty');
 	}
 
+	if (trs.asset.votes && trs.asset.votes.length > 33) {
+		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
+	}
+
 	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
 		self.verifyVote(vote, function (err) {
 			if (err) {
