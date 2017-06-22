@@ -16,7 +16,7 @@ vorpal
 	.show();
 
 function executeCommand (command, callback) {
-	vorpal.exec(command, function(err, data){
+	vorpal.exec(command, function (err, data){
 		if (!err) {
 			return callback(this);
 		} else {
@@ -53,7 +53,7 @@ describe('lisky get command palette', () => {
 
 	it('should have the right parameters with block', (done) => {
 
-			let command = 'get block 261210776798678785';
+		let command = 'get block 261210776798678785';
 
 		executeCommand(command, function (result) {
 			(result._command.args.type).should.be.equal('block');
@@ -94,17 +94,17 @@ describe('lisky get command palette', () => {
 		let command = 'get account 7018558261153309828L';
 
 		let expectedOutput = {
-				success: true,
-				account:  {
+			success: true,
+			account:  {
 				address: '7018558261153309828L',
-					unconfirmedBalance: '1',
-					balance: '1',
-					publicKey: null,
-					unconfirmedSignature: 0,
-					secondSignature: 0,
-					secondPublicKey: null,
-					multisignatures: [],
-					u_multisignatures: []
+				unconfirmedBalance: '1',
+				balance: '1',
+				publicKey: null,
+				unconfirmedSignature: 0,
+				secondSignature: 0,
+				secondPublicKey: null,
+				multisignatures: [],
+				u_multisignatures: []
 			}
 		};
 
@@ -166,7 +166,7 @@ describe('lisky get command palette', () => {
 describe('get command palette without test mode', () => {
 
 	beforeEach(() => {
-		process.env.NODE_ENV = 'main'
+		process.env.NODE_ENV = 'main';
 	});
 
 	it('should have the right parameters with transactions, no test mode', (done) => {
@@ -178,7 +178,7 @@ describe('get command palette without test mode', () => {
 		promiseExec.then(result => {
 			(result.id).should.be.equal('3641049113933914102');
 			done();
-		})
+		});
 
 	});
 
@@ -244,17 +244,17 @@ describe('get command palette without test mode', () => {
 	});
 
 	afterEach(() => {
-		process.env.NODE_ENV = 'test'
+		process.env.NODE_ENV = 'test';
 	});
 });
 
 describe('Should be able to use with different settings', () => {
 
 	beforeEach(() => {
-		process.env.NODE_ENV = 'main'
+		process.env.NODE_ENV = 'main';
 	});
 
-	it('should print no-json output', () => {
+	it('should print no-json output', (done) => {
 		let command = 'get block 1924405132194419123 --no-json';
 
 		let result = vorpal.exec(command);
@@ -267,7 +267,7 @@ describe('Should be able to use with different settings', () => {
 	});
 
 	afterEach(() => {
-		process.env.NODE_ENV = 'test'
+		process.env.NODE_ENV = 'test';
 	});
 
 });

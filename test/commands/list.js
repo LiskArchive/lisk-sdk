@@ -14,7 +14,7 @@ vorpal
 	.show();
 
 function executeCommand (command, callback) {
-	vorpal.exec(command, function(err, data){
+	vorpal.exec(command, function (err, data){
 		if (!err) {
 			return this;
 		} else {
@@ -82,7 +82,7 @@ describe('lisky list command palette', () => {
 describe('list command palette without test mode', () => {
 
 	beforeEach(() => {
-		process.env.NODE_ENV = 'main'
+		process.env.NODE_ENV = 'main';
 	});
 
 	it('should have the right parameters with transactions, no test mode', (done) => {
@@ -170,6 +170,6 @@ describe('list command palette without test mode', () => {
 	});
 
 	afterEach(() => {
-		process.env.NODE_ENV = 'test'
+		process.env.NODE_ENV = 'test';
 	});
 });

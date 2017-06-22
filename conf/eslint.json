@@ -1,24 +1,43 @@
 {
-  "extends": "airbnb-base",
-  "plugins": [
-    "import"
-  ],
-  "globals": {
-    "app": true
-  },
-  "env": {
-    "node": true
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
   },
   "rules": {
-    "func-names": "off",
+    "semi": "error",
+    "no-eq-null": "off",
+    "indent": ["error", "tab"],
+    "eqeqeq": "off",
+    "curly": "error",
+    "no-undef": "error",
+    "quotes": ["error", "single"],
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "always",
+      "asyncArrow": "ignore"
+    }],
+    "callback-return": "off",
     "global-require": "off",
-    "new-cap": ["error", { "newIsCapExceptions": ["mnemonic"]}],
-    "no-loop-func": "off",
-    "no-plusplus": "off",
-    "no-restricted-properties": "off",
-    "no-return-assign": "off",
-    "no-underscore-dangle": "off",
-    "no-param-reassign": "off",
-    "space-before-function-paren": ["error", {"anonymous": "always", "named": "always", "asyncArrow": "always"}]
-  }
+    "handle-callback-err": "off",
+    "no-mixed-requires": "off",
+    "no-new-require": "off"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "globals": {
+    "it": true,
+    "describe": true,
+    "before": true,
+    "beforeEach": true,
+    "after": true,
+    "afterEach": true,
+    "sinon": true,
+    "should": true
+  },
+  "plugins": []
+
 }
+
