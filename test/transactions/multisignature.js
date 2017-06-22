@@ -105,4 +105,44 @@ describe('multisignature.js', function () {
 
 	});
 
+	describe('#createTransaction', function () {
+
+		var recipientId = '123456789L';
+		var amount = '500';
+		var secret = 'privateSecret';
+		var secondSecret = 'privateSecondSecret';
+		var requesterPublicKey = 'abc123';
+		var msigTransaction = lisk.multisignature.createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey);
+
+		it('should create a multisignature transaction', function () {
+
+			(msigTransaction.signatures).should.be.ok;
+
+		});
+
+		it('should have requesterPublicKey as property', function () {
+
+			(msigTransaction.requesterPublicKey).should.be.equal(requesterPublicKey);
+		});
+
+		it('should have the signatures property as empty array', function () {
+
+			(msigTransaction.signatures).should.be.an.Array;
+
+		});
+
+		it('should create a multisignature transaction without requesterPublicKey and secondSecret', function () {
+
+			var msigTransaction2 = lisk.multisignature.createTransaction(recipientId, amount, secret);
+			var pubKey = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+
+			(msigTransaction2.requesterPublicKey).should.be.equal(pubKey);
+
+			console.log(msigTransaction2);
+
+		});
+
+
+	});
+
 });
