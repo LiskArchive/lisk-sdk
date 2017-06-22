@@ -40,7 +40,7 @@ module.exports = function listCommand(vorpal) {
 
 
 
-			if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
+			if((userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
 				return Promise.all(calls).then(result => {
 					result.map(executed => {
 						if(executed.error) {

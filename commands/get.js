@@ -35,7 +35,7 @@ module.exports = function getCommand (vorpal) {
 
 			let output = getType[userInput.type](userInput.input);
 
-			if( (userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
+			if((userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
 				return output.then((result) => {
 					if(result.error) {
 						vorpal.log(util.inspect(result));
