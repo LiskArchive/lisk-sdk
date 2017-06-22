@@ -2,6 +2,7 @@
 
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
+var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');
 var async = require('async');
 
@@ -20,8 +21,8 @@ var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 var DelegateModule = require('../../../modules/delegates.js');
 
-var transfer;
-var transaction;
+var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
 var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
@@ -95,7 +96,10 @@ var rawValidTransaction = {
 
 
 describe('transfer', function () {
+	var transfer;
+	var transaction;
 	var transferBindings;
+	var accountModule;
 
 	before(function (done) {
 		async.auto({
@@ -132,6 +136,7 @@ describe('transfer', function () {
 			transfer.bind(result.accountModule, result.rounds);
 			transaction = result.transactionLogic;
 			transaction.attachAssetType(transactionTypes.SEND, transfer);
+			accountModule = result.accountModule;
 
 			done();
 		});
@@ -208,11 +213,21 @@ describe('transfer', function () {
 		});
 	});
 
+	describe('getBytes', function () {
+		it('should be okay', function () {
+			expect(transfer.getBytes(validTransaction)).to.eql(null);
+		});
+	});
+
 	describe('apply', function () {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
 		};
+
+		function undoTransaction (trs, sender, done) {
+			transfer.undo.call(transaction, trs, dummyBlock, sender, done); 
+		}
 		
 		it('should return error if recepientid is not set', function (done) {
 			var trs = _.cloneDeep(validTransaction);
@@ -224,7 +239,20 @@ describe('transfer', function () {
 		});
 
 		it('should be okay for a valid transaction', function (done) {
-			transfer.apply.call(transaction, validTransaction, dummyBlock, validSender, done);
+			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+				var amount = new bignum(validTransaction.amount.toString());
+				var balanceBefore = new bignum(accountBefore.balance.toString());
+
+				transfer.apply.call(transaction, validTransaction, dummyBlock, validSender, function (err) {
+					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+						expect(err).to.not.exist;
+
+						var balanceAfter = new bignum(accountAfter.balance.toString());
+						expect(balanceBefore.plus(amount).toString()).to.equal(balanceAfter.toString());
+						undoTransaction(validTransaction, validSender, done);
+					});
+				});
+			});
 		});
 	});
 
@@ -233,6 +261,10 @@ describe('transfer', function () {
 			id: '9314232245035524467',
 			height: 1
 		};
+
+		function applyTransaction (trs, sender, done) {
+			transfer.apply.call(transaction, trs, dummyBlock, sender, done);
+		}
 		
 		it('should return error if recepientid is not set', function (done) {
 			var trs = _.cloneDeep(validTransaction);
@@ -244,7 +276,20 @@ describe('transfer', function () {
 		});
 
 		it('should be okay for a valid transaction', function (done) {
-			transfer.undo.call(transaction, validTransaction, dummyBlock, validSender, done); 
+			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+				var amount = new bignum(validTransaction.amount.toString());
+				var balanceBefore = new bignum(accountBefore.balance.toString());
+
+				transfer.undo.call(transaction, validTransaction, dummyBlock, validSender, function (err) { 
+					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+						expect(err).to.not.exist;
+
+						var balanceAfter = new bignum(accountAfter.balance.toString());
+						expect(balanceAfter.plus(amount).toString()).to.equal(balanceBefore.toString());
+						applyTransaction(validTransaction, validSender, done);
+					});
+				});
+			});
 		});
 	});
 
@@ -295,11 +340,20 @@ describe('transfer', function () {
 		});
 
 		it('should return false for multi signature transaction with less signatures', function () {
-			throw 'yet to implement';
+			var trs = _.cloneDeep(validTransaction);
+			var vs = _.cloneDeep(validSender);
+			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			expect(transaction.ready(trs, vs)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', function () {
-			throw 'yet to implement';
+			var trs = _.cloneDeep(validTransaction);
+			var vs = _.cloneDeep(validSender);
+			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			delete trs.signature;
+			trs.signature = transaction.sign(senderKeypair, trs);
+			trs.signatures = [transaction.multisign(validKeypair, trs)];
+			expect(transaction.ready(trs, vs)).to.equal(true);
 		});
 	});
 });

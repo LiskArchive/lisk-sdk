@@ -20,8 +20,8 @@ var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 var DelegateModule = require('../../../modules/delegates.js');
 
-var vote;
-var transaction;
+var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
 var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
@@ -84,6 +84,8 @@ var validTransaction = {
 describe('vote', function () {
 
 	var voteBindings;
+	var vote;
+	var transaction;
 
 	before(function (done) {
 		async.auto({
@@ -129,7 +131,7 @@ describe('vote', function () {
 			}]
 		}, function (err, result) {
 			expect(err).to.not.exist;
-			vote = new Vote();
+			vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
 			voteBindings = {
 				delegate: result.delegateModule,
 				rounds: result.rounds
@@ -384,7 +386,7 @@ describe('vote', function () {
 			});
 		});
 
-		it.skip('should return error when transaction votes opposite is not valid', function (done) {
+		it('should return error when transaction votes opposite is not valid', function (done) {
 			// it is failing, we don't check whether a transaction is valid or not. Should we?
 			var trs = _.cloneDeep(validTransaction);
 			vote.undo.call(transaction, trs, dummyBlock, validSender, function (err) {
@@ -413,7 +415,7 @@ describe('vote', function () {
 			});
 		});
 
-		it.skip('should throw error for duplicate votes in a transaction', function (done) {
+		it('should throw error for duplicate votes in a transaction', function (done) {
 			// this test fails, I don't think it should
 			var trs = _.cloneDeep(validTransaction);
 			trs.asset.votes = [
@@ -425,6 +427,7 @@ describe('vote', function () {
 	});
 
 	describe('undoUnconfirmed', function () {
+
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
@@ -455,32 +458,38 @@ describe('vote', function () {
 	describe('objectNormalize', function () {
 
 		it('should normalize object for valid trs', function () {
-			expect(vote.objectNormalize(validTransaction)).to.eql(validTransaction);
+			expect(vote.objectNormalize.call(transaction, validTransaction)).to.eql(validTransaction);
 		});
 
 		it('should duplicate votes in a transaction', function () {
 			var trs = _.cloneDeep(validTransaction);
 			trs.asset.votes.push(trs.asset.votes[0]);
 			expect(function () {
-				vote.objectNormalize(trs);
+				vote.objectNormalize.call(transaction, trs);
 			}).to.throw('Failed to validate vote schema'); 
 		});
 
 	});
 	describe('dbRead', function () {
+
 		it('should read votes correct', function () {
 			var rawVotes = '+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a,+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135';
 			expect(vote.dbRead({
 				v_votes: rawVotes
-			})).to.eql(rawVotes.split(','));
+			})).to.eql({
+				votes: rawVotes.split(',')
+			});
 		});
 
 		it('should return null if no votes are supplied', function () {
-			expect(vote.dbRead()).to.eql(null);
+			expect(vote.dbRead(vote.dbRead({
+				v_votes: null
+			}))).to.eql(null);
 		});
 	});
 	describe('dbSave', function () {
-		it.only('should create return db save promise', function () {
+
+		it('should create return db save promise', function () {
 			var valuesKeys = ['votes', 'transactionId'];
 			var savePromise = vote.dbSave(validTransaction);
 			expect(savePromise).to.be.an('object').with.keys(['table', 'fields', 'values']);
@@ -489,14 +498,26 @@ describe('vote', function () {
 		});
 	});
 	describe('ready', function () {
+
 		it('should return true for single signature trs', function () {
 			expect(vote.ready(validTransaction, validSender)).to.equal(true);
 		});
+
 		it('should return false for multi signature transaction with less signatures', function () {
-			throw 'yet to implement';
+			var trs = _.cloneDeep(validTransaction);
+			var vs = _.cloneDeep(validSender);
+			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			expect(transaction.ready(trs, vs)).to.equal(false);
 		});
+
 		it('should return true for multi signature transaction with alteast min signatures', function () {
-			throw 'yet to implement';
+			var trs = _.cloneDeep(validTransaction);
+			var vs = _.cloneDeep(validSender);
+			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			delete trs.signature;
+			trs.signature = transaction.sign(senderKeypair, trs);
+			trs.signatures = [transaction.multisign(validKeypair, trs)];
+			expect(transaction.ready(trs, vs)).to.equal(true);
 		});
 	});
 });
