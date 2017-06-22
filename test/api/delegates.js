@@ -109,7 +109,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Duplicate votes are not allowed');
+			node.expect(res.body).to.have.property('error').to.equal('Multiple votes for same delegate are not allowed');
 			done();
 		});
 	});
@@ -122,7 +122,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Duplicate votes are not allowed');
+			node.expect(res.body).to.have.property('error').to.equal('Multiple votes for same delegate are not allowed');
 			done();
 		});
 	});
@@ -134,13 +134,9 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			secret: account.password,
 			delegates: votedDelegate
 		}, function (err, res) {
-			var expectedErrors = [
-				'Failed to remove vote, account has not voted for this delegate',
-				'Failed to add vote, account has already voted for this delegate'
-			];
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
-			node.expect(expectedErrors).to.include(res.body.error);
+			node.expect(res.body).to.have.property('error').to.equal('Multiple votes for same delegate are not allowed');
 			done();
 		});
 	});

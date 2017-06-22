@@ -96,8 +96,8 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
 	}
 
-	if (trs.asset.votes.length > _.uniq(trs.asset.votes).length) {
-		return setImmediate(cb, 'Duplicate votes are not allowed');
+	if (trs.asset.votes.length > _.uniqBy(trs.asset.votes, function (v) { return v.slice(1); }).length) {
+		return setImmediate(cb, 'Multiple votes for same delegate are not allowed');
 	}
 
 	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
