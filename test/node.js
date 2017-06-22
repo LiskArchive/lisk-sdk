@@ -130,12 +130,10 @@ node.onNewRound = function (cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			new Rounds(function (err, rounds) {
-				var nextRound = rounds.calc(height);
-				var blocksToWait = nextRound * slots.delegates - height;
-				node.debug('blocks to wait: '.grey, blocksToWait);
-				node.waitForNewBlock(height, blocksToWait, cb);
-			});
+			var nextRound = Math.ceil(height / slots.delegates);
+			var blocksToWait = nextRound * slots.delegates - height;
+			node.debug('blocks to wait: '.grey, blocksToWait);
+			node.waitForNewBlock(height, blocksToWait, cb);
 		}
 	});
 };
@@ -164,8 +162,13 @@ node.waitForBlocks = function (blocksToWait, cb) {
 
 // Waits for a new block to be created
 node.waitForNewBlock = function (height, blocksToWait, cb) {
+	if (blocksToWait === 0) {
+		return setImmediate(cb, null, height);
+	}
+
 	var actualHeight = height;
 	var counter = 1;
+	var target = height + blocksToWait;
 
 	node.async.doWhilst(
 		function (cb) {
@@ -178,11 +181,12 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				if (height + blocksToWait === res.body.height) {
+				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
+
+				if (target === res.body.height) {
 					height = res.body.height;
 				}
 
-				node.debug('	Waiting for block:'.grey, 'Height:'.grey, height, 'Second:'.grey, counter++);
 				setTimeout(cb, 1000);
 			});
 

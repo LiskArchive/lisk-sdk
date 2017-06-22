@@ -391,7 +391,8 @@ __private.loadBlockChain = function () {
 			t.one(sql.countBlocks),
 			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
-			t.query(sql.getMemRounds)
+			t.query(sql.getMemRounds),
+			t.query(sql.countDuplicatedDelegates)
 		];
 
 		return t.batch(promises);
@@ -462,6 +463,13 @@ __private.loadBlockChain = function () {
 
 		if (unapplied.length > 0) {
 			return reload(count, 'Detected unapplied rounds in mem_round');
+		}
+
+		var duplicatedDelegates = +results[4][0].count;
+
+		if (duplicatedDelegates > 0) {
+			library.logger.error('Delegates table corrupted with duplicated entries');
+			return process.emit('exit');
 		}
 
 		function updateMemAccounts (t) {
