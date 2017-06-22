@@ -92,36 +92,23 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid votes. Must not be empty');
 	}
 
-	if (trs.asset.votes && trs.asset.votes.length > 33) {
-		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
-	}
-
-	async.applyEachSeries([ function (applyEachSeriesCb) {
-		async.each(trs.asset.votes, function (vote, eachCb) {
-			self.verifyVote(vote, function (err) {
-				if (err) {
-					return setImmediate(eachCb, ['Invalid vote at index', trs.asset.votes.indexOf(vote), '-', err].join(' '));
-				} else {
-					return setImmediate(eachCb);
-				}
-			});
-		}, function (err) {
+	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
+		self.verifyVote(vote, function (err) {
 			if (err) {
-				return setImmediate(applyEachSeriesCb, err);
+				return setImmediate(eachSeriesCb, ['Invalid vote at index', trs.asset.votes.indexOf(vote), '-', err].join(' '));
 			} else {
-				return setImmediate(applyEachSeriesCb, null);
+				return setImmediate(eachSeriesCb);
 			}
 		});
-	}, function (applyEachSeriesCb) {
-		if (trs.asset.votes.length > _.uniqBy(trs.asset.votes, function (v) { return v.slice(1); }).length) {
-			return setImmediate(applyEachSeriesCb, 'Multiple votes for same delegate are not allowed');
-		} else {
-			return setImmediate(applyEachSeriesCb);
-		}
-	}], function (err) {
+	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
+
+			if (trs.asset.votes.length > _.uniqBy(trs.asset.votes, function (v) { return v.slice(1); }).length) {
+				return setImmediate(cb, 'Multiple votes for same delegate are not allowed');
+			}
+
 			return self.checkConfirmedDelegates(trs, cb);
 		}
 	});
