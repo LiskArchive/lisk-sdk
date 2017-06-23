@@ -357,14 +357,12 @@ describe('GET /api/multisignatures/pending', function () {
 				node.expect(pending.transaction).to.have.property('type').that.is.equal(node.txTypes.MULTI);
 				node.expect(pending.transaction).to.have.property('amount').that.is.equal(0);
 				node.expect(pending.transaction).to.have.property('senderPublicKey').that.is.equal(multisigAccount.publicKey);
-				node.expect(pending.transaction).to.have.property('requesterPublicKey').that.is.null;
 				node.expect(pending.transaction).to.have.property('timestamp').that.is.a('number');
 				node.expect(pending.transaction).to.have.property('asset').that.is.an('object');
 				node.expect(pending.transaction.asset).to.have.property('multisignature').that.is.an('object');
 				node.expect(pending.transaction.asset.multisignature).to.have.property('min').that.is.a('number');
 				node.expect(pending.transaction.asset.multisignature).to.have.property('keysgroup').that.is.an('array');
 				node.expect(pending.transaction.asset.multisignature).to.have.property('lifetime').that.is.a('number');
-				node.expect(pending.transaction).to.have.property('recipientId').that.is.null;
 				node.expect(pending.transaction).to.have.property('signature').that.is.a('string');
 				node.expect(pending.transaction).to.have.property('id').that.is.equal(multiSigTx.txId);
 				node.expect(pending.transaction).to.have.property('fee').that.is.equal(node.fees.multisignatureRegistrationFee * (Keys.length + 1));
