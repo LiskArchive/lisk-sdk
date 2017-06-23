@@ -723,6 +723,14 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 				}
 			});
 		},
+		function normalizeTransaction (sender, waterCb) {
+			try {
+				transaction = library.logic.transaction.objectNormalize(transaction);
+				return setImmediate(waterCb, null, sender);
+			} catch (err) {
+				return setImmediate(waterCb, err);
+			}
+		},
 		function verifyTransaction (sender, waterCb) {
 			library.logic.transaction.verify(transaction, sender, function (err) {
 				if (err) {
