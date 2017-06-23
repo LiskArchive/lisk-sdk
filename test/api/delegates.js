@@ -245,7 +245,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: ''
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Invalid transaction asset');
+			node.expect(res.body).to.have.property('error').to.equal('Failed to validate vote schema: Expected type array but found type string');
 			done();
 		});
 	});
