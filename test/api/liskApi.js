@@ -860,27 +860,19 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#generateAccount', function () {
-		var expectedResponse = {
-			body: {
-				success: true,
-				publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497'
-			},
+		var expectedRessult= {
+			privateKey:
+				'7683ba873c5e5aa6c12df564a60a93a519e2a5682cf5358a6a5b9ccc70607e96d803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
+			publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497'
 		};
 
 		it('should get publicKey', function () {
 			var callback = sinon.spy();
 			var secret = 'dream capable public heart sauce pilot ordinary fever final brand flock boring';
-			var options = {
-				secret: secret
-			};
-			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSK.generateAccount(secret, callback);
-
-			(LSK.sendRequest.calledWith('accounts/generatePublicKey', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
-			LSK.sendRequest.restore();
+			(callback.calledWith(expectedRessult)).should.be.true();
 		});
 	});
 
