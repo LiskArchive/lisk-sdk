@@ -125,9 +125,9 @@ describe('cache', function () {
 						return callback(err, result);
 					});
 				}],
-				function (err) {
-					done(err);
-				}
+			function (err) {
+				done(err);
+			}
 			);
 		});
 	});
