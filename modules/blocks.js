@@ -24,12 +24,12 @@ __private.isActive = false;
  * @memberof module:blocks
  * @class
  * @classdesc Main Blocks methods.
- * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Blocks (cb, scope) {
+function Blocks (scope, cb) {
 	library = {
 		logger: scope.logger,
 	};

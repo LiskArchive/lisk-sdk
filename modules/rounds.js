@@ -17,13 +17,13 @@ __private.ticking = false;
  * @memberof module:rounds
  * @class
  * @classdesc Main rounds methods.
- * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  * @todo apply node pattern for callbacks: callback always at the end.
  */
 // Constructor
-function Rounds (cb, scope) {
+function Rounds (scope, cb) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,

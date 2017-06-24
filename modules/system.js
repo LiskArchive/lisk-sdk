@@ -26,11 +26,11 @@ var rcRegExp = /[a-z]+$/;
  * @class
  * @classdesc Main System methods.
  * @implements {os}
- * @param {setImmediateCallback} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {setImmediateCallback} cb - Callback function.
  */
 // Constructor
-function System (cb, scope) {
+function System (scope, cb) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,

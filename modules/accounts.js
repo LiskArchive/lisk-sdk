@@ -26,7 +26,7 @@ __private.blockReward = new BlockReward();
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
-function Accounts (cb, scope) {
+function Accounts (scope, cb) {
 	library = {
 		ed: scope.ed,
 		schema: scope.schema,

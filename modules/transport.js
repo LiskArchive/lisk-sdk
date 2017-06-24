@@ -26,12 +26,12 @@ __private.messages = {};
  * @memberof module:transport
  * @class
  * @classdesc Main Transport methods.
- * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Transport (cb, scope) {
+function Transport (scope, cb) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,

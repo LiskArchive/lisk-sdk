@@ -497,7 +497,7 @@ d.run(function () {
 					d.run(function () {
 						logger.debug('Loading module', name);
 						var Klass = require(config.modules[name]);
-						var obj = new Klass(cb, scope);
+						var obj = new Klass(scope, cb);
 						modules.push(obj);
 					});
 				};

@@ -20,12 +20,12 @@ __private.assetTypes = {};
  * @memberof module:multisignatures
  * @class
  * @classdesc Main multisignatures methods.
- * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Multisignatures (cb, scope) {
+function Multisignatures (scope, cb) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
