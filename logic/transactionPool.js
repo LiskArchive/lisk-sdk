@@ -276,6 +276,9 @@ TransactionPool.prototype.countUnconfirmed = function () {
  * @param {transaction} transaction
  */
 TransactionPool.prototype.addBundledTransaction = function (transaction) {
+	if (!transaction.receivedAt) {
+		transaction.receivedAt = new Date();
+	}
 	self.bundled.transactions.push(transaction);
 	var index = self.bundled.transactions.indexOf(transaction);
 	self.bundled.index[transaction.id] = index;
@@ -823,15 +826,24 @@ __private.expireTransactions = function (transactions, parentIds, cb) {
 		var timeNow = Math.floor(Date.now() / 1000);
 		var timeOut = __private.transactionTimeOut(transaction);
 		// transaction.receivedAt is instance of Date
-		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
-
-		if (seconds > timeOut) {
+		
+		if(!transaction.receivedAt) {
+			library.logger.info('Received a transaction with no receivedAt in these transactions: ' + JSON.stringify(transactions));
 			ids.push(transaction.id);
 			self.removeUnconfirmedTransaction(transaction.id);
-			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
+			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + undefined);
 			return setImmediate(eachSeriesCb);
 		} else {
-			return setImmediate(eachSeriesCb);
+			var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
+
+			if (seconds > timeOut) {
+				ids.push(transaction.id);
+				self.removeUnconfirmedTransaction(transaction.id);
+				library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
+				return setImmediate(eachSeriesCb);
+			} else {
+				return setImmediate(eachSeriesCb);
+			}
 		}
 	}, function (err) {
 		return setImmediate(cb, err, ids.concat(parentIds));
