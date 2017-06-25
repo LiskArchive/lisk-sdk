@@ -54,7 +54,7 @@ var validTransactionData = {
 	amount: 8067474861277,
 	sender: validSender,
 	senderId: '16313739661670634666L',
-	recipientId: '5649948960790668770L',
+	recipientId: '2460251951231579923L',
 	fee: 10000000,
 	keypair: senderKeypair,
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -68,10 +68,10 @@ var validTransaction = {
 	timestamp: 33363661,
 	senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	senderId: '16313739661670634666L',
-	recipientId: '5649948960790668770L',
+	recipientId: '2460251951231579923L',
 	amount: 8067474861277,
 	fee: 10000000,
-	signature: '7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
+	signature: '0c5e9ed74fc64ca5940a45025f7386fc40cc7f495ca48490d2c7e9fb636cbe8046e1a5ce031ff5d84f7bf753f9e4307c6c3dedcc9756844177093dd46ccade06',
 	signSignature: null,
 	requesterPublicKey: null,
 	signatures: null,
@@ -87,10 +87,10 @@ var rawValidTransaction = {
 	t_senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	m_recipientPublicKey: null,
 	t_senderId: '16313739661670634666L',
-	t_recipientId: '5649948960790668770L',
+	t_recipientId: '2460251951231579923L',
 	t_amount: 8067474861277,
 	t_fee: 10000000,
-	t_signature: '7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
+	t_signature: '0c5e9ed74fc64ca5940a45025f7386fc40cc7f495ca48490d2c7e9fb636cbe8046e1a5ce031ff5d84f7bf753f9e4307c6c3dedcc9756844177093dd46ccade06',
 	confirmations: 8343
 };
 
@@ -173,7 +173,7 @@ describe('transfer', function () {
 	});
 
 	describe('verify', function () {
-		it('should return error if recepientId is not set', function (done) {
+		it('should return error if recipientId is not set', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			delete trs.recipientId;
 			transfer.verify(trs, validSender, function (err) {
@@ -185,16 +185,6 @@ describe('transfer', function () {
 		it('should return error if amount is less than 0', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			trs.amount = -10;
-
-			transfer.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid transaction amount');
-				done();
-			});
-		});
-
-		it.skip('should return error if amount is undefined', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			delete trs.amount;
 
 			transfer.verify(trs, validSender, function (err) {
 				expect(err).to.equal('Invalid transaction amount');
@@ -229,7 +219,7 @@ describe('transfer', function () {
 			transfer.undo.call(transaction, trs, dummyBlock, sender, done); 
 		}
 		
-		it('should return error if recepientid is not set', function (done) {
+		it('should return error if recipientid is not set', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			delete trs.recipientId;
 			transfer.apply.call(transaction, trs, dummyBlock, validSender, function (err) {
@@ -240,12 +230,18 @@ describe('transfer', function () {
 
 		it('should be okay for a valid transaction', function (done) {
 			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+				expect(err).to.not.exist;
+				expect(accountBefore).to.exist;
+
 				var amount = new bignum(validTransaction.amount.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
 				transfer.apply.call(transaction, validTransaction, dummyBlock, validSender, function (err) {
+					expect(err).to.not.exist;
+
 					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
 						expect(err).to.not.exist;
+						expect(accountAfter).to.exist;
 
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 						expect(balanceBefore.plus(amount).toString()).to.equal(balanceAfter.toString());
@@ -266,7 +262,7 @@ describe('transfer', function () {
 			transfer.apply.call(transaction, trs, dummyBlock, sender, done);
 		}
 		
-		it('should return error if recepientid is not set', function (done) {
+		it('should return error if recipientid is not set', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			delete trs.recipientId;
 			transfer.undo.call(transaction, trs, dummyBlock, validSender, function (err) {
@@ -277,10 +273,14 @@ describe('transfer', function () {
 
 		it('should be okay for a valid transaction', function (done) {
 			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+				expect(err).to.not.exist;
+
 				var amount = new bignum(validTransaction.amount.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
 				transfer.undo.call(transaction, validTransaction, dummyBlock, validSender, function (err) { 
+					expect(err).to.not.exist;
+
 					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
 						expect(err).to.not.exist;
 
@@ -294,20 +294,13 @@ describe('transfer', function () {
 	});
 
 	describe('applyUnconfirmed', function () {
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
+
 		it('should be okay with valid params', function (done) {
 			transfer.applyUnconfirmed.call(transaction, validTransaction, validSender, done);
 		});
 	});
 
 	describe('undoUnconfirmed', function () {
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
 
 		it('should be okay with valid params', function (done) {
 			transfer.undoUnconfirmed.call(transaction, validTransaction, validSender, done);
@@ -350,6 +343,7 @@ describe('transfer', function () {
 			var trs = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			vs.multimin = 1;
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
 			trs.signatures = [transaction.multisign(validKeypair, trs)];
