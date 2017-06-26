@@ -52,6 +52,8 @@ function Delegates (cb, scope) {
 		config: {
 			forging: {
 				secret: scope.config.forging.secret,
+				force: scope.config.forging.force,
+				defaultKey: scope.config.forging.defaultKey,
 				access: {
 					whiteList: scope.config.forging.access.whiteList,
 				},
