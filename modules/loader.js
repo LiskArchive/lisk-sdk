@@ -342,22 +342,22 @@ __private.loadBlockChain = function () {
 					function () {
 						return count < offset;
 					}, function (cb) {
-					if (count > 1) {
-						library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
-					}
-					modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
-						if (err) {
-							return setImmediate(cb, err);
+						if (count > 1) {
+							library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
 						}
+						modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
 
-						offset = offset + limit;
-						__private.lastBlock = lastBlock;
+							offset = offset + limit;
+							__private.lastBlock = lastBlock;
 
-						return setImmediate(cb);
-					});
-				}, function (err) {
-					return setImmediate(seriesCb, err);
-				}
+							return setImmediate(cb);
+						});
+					}, function (err) {
+						return setImmediate(seriesCb, err);
+					}
 				);
 			}
 		}, function (err) {
