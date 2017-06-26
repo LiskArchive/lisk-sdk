@@ -7,12 +7,8 @@ var crypto = require('crypto');
 var async = require('async');
 
 var chai = require('chai');
-var sinon = require('sinon');
 var expect = require('chai').expect;
-var express = require('express');
-var ip = require('ip');
 var _  = require('lodash');
-var sinon = require('sinon');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var slots = require('../../../helpers/slots');
 
@@ -104,6 +100,19 @@ var rawValidTransaction = {
 	confirmations: 8343
 };
 
+var genesisTrs = {
+	type: 0,
+	amount: 10000000000000000,
+	fee: 0,
+	timestamp: 0,
+	recipientId: '16313739661670634666L',
+	senderId: '1085993630748340485L',
+	senderPublicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+	signature: 'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
+	blockId: '9314232245035524467',
+	id: '1465651642158264047'
+};
+
 var validUnconfirmedTrs = {
 	type: 0,
 	amount: 8067474861277,
@@ -186,12 +195,11 @@ describe('transaction', function () {
 		it('should create a transaction with data property', function () {
 			var trsData = _.cloneDeep(validTransactionData);
 			trsData.data = 'abc';
-			expect(transaction.create(trsData)).to.be.an('object');
+			expect(transaction.create(trsData)).to.be.an('object').to.include.key('data');
 		});
 
 		it('should create a transaction without data property', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			expect(transaction.create(trsData)).to.be.an('object');
+			expect(transaction.create(validTransactionData)).to.be.an('object');
 		});
 
 		it('should return transaction with optional data field', function () {
@@ -207,8 +215,7 @@ describe('transaction', function () {
 		});
 
 		it('should return transaction fee based on trs type', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			expect(transaction.create(trsData).fee).to.equal(10000000);
+			expect(transaction.create(validTransactionData).fee).to.equal(10000000);
 		});
 	});
 
@@ -257,7 +264,7 @@ describe('transaction', function () {
 		});
 
 		it('should update signature when data is changed', function () {
-			var originalSignature = transaction.sign(senderKeypair, validTransaction);
+			var originalSignature = validTransaction.signature;
 			var trs = _.cloneDeep(validTransaction);
 			trs.data = '123';
 			expect(transaction.sign(senderKeypair, trs)).to.be.a('string').which.is.not.equal(originalSignature);
@@ -285,7 +292,7 @@ describe('transaction', function () {
 			expect(transaction.getId(validTransaction)).to.be.a('string').which.is.equal(validTransaction.id);
 		});
 
-		it('should update id if a field is trs value changes', function () {
+		it('should update id if a field in trs value changes', function () {
 			var id = validTransaction.id;
 			var trs = _.cloneDeep(validTransaction);
 			trs.amount = 4000;
@@ -362,6 +369,15 @@ describe('transaction', function () {
 			expect(transaction.ready).to.throw();
 		});
 
+		it('should throw error when trs type is invalid', function () {
+			var trs = _.cloneDeep(validTransaction);
+			var invalidTrsType = -1;
+			trs.type = invalidTrsType;
+			expect(function () {
+				transaction.ready(trs, validSender);
+			}).to.throw('Unknown transaction type ' + invalidTrsType);
+		});
+
 		it('should return false when sender not provided', function () {
 			var trs = validTransaction;
 			expect(transaction.ready(trs)).to.equal(false);
@@ -388,9 +404,6 @@ describe('transaction', function () {
 		});
 
 		it('should return 1 for transaction from genesis block', function (done) {
-			var genesisTrs = {
-				'id': '1465651642158264047'
-			};
 			transaction.countById(genesisTrs, function (err, count) {
 				expect(err).to.not.exist;
 				expect(count).to.equal(1);
@@ -405,28 +418,19 @@ describe('transaction', function () {
 			expect(transaction.checkConfirmed).to.throw();
 		});
 
-		it('should check that trs is not confirmed', function (done) {
+		it('should not return error when trs is not confirmed', function (done) {
 			var trs = transaction.create(validTransactionData);
-			transaction.checkConfirmed(trs, function (err, count) {
+			transaction.checkConfirmed(trs, function (err) {
 				expect(err).to.not.exist;
 				done();
 			});
 		});
 
 		it('should return error for transaction which is already confirmed', function (done) {
-			var confirmedTrs = {
-				type: 0,
-				amount: 10000000000000000,
-				fee: 0,
-				timestamp: 0,
-				recipientId: '16313739661670634666L',
-				senderId: '1085993630748340485L',
-				senderPublicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-				signature: 'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
+			var dummyConfirmedTrs = {
 				id: '1465651642158264047'
 			};
-
-			transaction.checkConfirmed(confirmedTrs, function (err, count) {
+			transaction.checkConfirmed(dummyConfirmedTrs, function (err) {
 				expect(err).to.include('Transaction is already confirmed');
 				done();
 			});
@@ -448,12 +452,9 @@ describe('transaction', function () {
 		});
 
 		it('should be okay if insufficient balance from genesis account', function () {
-			var trs = _.cloneDeep(validTransaction);
 			var amount =  '999823366072900';
 			var balanceKey = 'balance';
-			// adding genesis block id for testing
-			trs.blockId = '9314232245035524467';
-			var res = transaction.checkBalance(amount, balanceKey, trs, validSender);
+			var res = transaction.checkBalance(amount, balanceKey, genesisTrs, validSender);
 			expect(res.exceeded).to.equal(false);
 			expect(res.error).to.not.exist;
 		});
@@ -472,11 +473,37 @@ describe('transaction', function () {
 			expect(transaction.process).to.throw();
 		});
 
-		it('should process the transaction', function (done) {
+		it('should return error sender is not supplied', function (done) {
+			transaction.process(validTransaction, null, function (err, res) {
+				expect(err).to.be.equal('Missing sender');
+				done();
+			});
+		});
+
+		it('should return error if generated id is different from id supplied of trs', function (done) {
 			var trs = _.cloneDeep(validTransaction);
+			trs.id = 'invalid trs id';
 			transaction.process(trs, validSender, function (err, res) {
+				expect(err).to.equal('Invalid transaction id');
+				done();
+			});
+		});
+
+		it('should return error when failed to generate id', function (done) {
+			var trs = {
+				type: 0
+			};
+			transaction.process(trs, validSender, function (err, res) {
+				expect(err).to.equal('Failed to get transaction id');
+				done();
+			});
+		});
+
+		it('should process the transaction', function (done) {
+			transaction.process(validTransaction, validSender, function (err, res) {
 				expect(err).to.not.be.ok;
 				expect(res).to.be.an('object');
+				expect(res.senderId).to.be.a('string').which.is.equal(validSender.address);
 				done();
 			});
 		});
@@ -494,8 +521,7 @@ describe('transaction', function () {
 		}
 
 		it('should return error when sender is missing', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-			transaction.verify(trs, null, {}, function (err) {
+			transaction.verify(validTransaction, null, {}, function (err) {
 				expect(err).to.equal('Missing sender');
 				done();
 			});
@@ -512,7 +538,7 @@ describe('transaction', function () {
 		});
 
 		it('should return error when missing sender second signature', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.secondSignature = '839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
 
@@ -523,8 +549,8 @@ describe('transaction', function () {
 		});
 
 		it('should return error when sender does not have a second signature', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-			trs.signSignature = transaction.sign(validKeypair, trs);
+			var trs = _.cloneDeep(validTransaction);
+			trs.signSignature = [transaction.sign(validKeypair, trs)];
 
 			transaction.verify(trs, validSender, {}, function (err) {
 				expect(err).to.include('Sender does not have a second signature');
@@ -532,21 +558,21 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should return error when sender does not have a second signature', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-			var requester = {
+		it('should return error when requester does not have a second signature', function (done) {
+			var trs = _.cloneDeep(validTransaction);
+			var dummyRequester = {
 				secondSignature : 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f'
 			};
 			trs.requesterPublicKey = '839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
 
-			transaction.verify(trs, validSender, requester, function (err) {
+			transaction.verify(trs, validSender, dummyRequester, function (err) {
 				expect(err).to.include('Missing requester second signature');
 				done();
 			});
 		});
 
-		it('should return error when publicKey is invalid', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+		it('should return error when trs sender publicKey and sender public key are different', function (done) {
+			var trs = _.cloneDeep(validTransaction);
 			var invalidPublicKey =  '01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746';
 			trs.senderPublicKey = invalidPublicKey;
 
@@ -556,14 +582,17 @@ describe('transaction', function () {
 			});
 		});
 
+		it('should be okay when trs sender publicKey and sender public key are different in genesis block', function (done) {
+			transaction.verify(genesisTrs, validSender, {}, function (err) {
+				expect(err).to.not.exist;
+				done();
+			});
+		});
+
 		it('should be impossible to send the money from genesis account', function (done) {
-
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-
+			var trs = _.cloneDeep(validTransaction);
 			//genesis account info
-			trs.senderPublicKey = node.gAccount.publicKey;
-			trs.senderId = node.gAccount.address;
-			trs.id = '6377354815333756139';
+			trs.senderPublicKey = 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			var vs = _.cloneDeep(validSender);
 			vs.publicKey = 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 
@@ -574,7 +603,7 @@ describe('transaction', function () {
 		});
 
 		it('should return error on different sender address in trs and sender', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			trs.senderId = '2581762640681118072L';
 
 			transaction.verify(trs, validSender, {}, function (err) {
@@ -584,7 +613,7 @@ describe('transaction', function () {
 		});
 
 		it('should return error when Account does not belong to multisignature group', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			// Different publicKey for multisignature account
 			vs.multisignatures = [node.eAccount.publicKey];
@@ -598,7 +627,7 @@ describe('transaction', function () {
 		});
 
 		it('should return error when signature is not correct', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			// valid keypair is a different account
 			trs.signature = transaction.sign(validKeypair, trs);
 			transaction.verify(trs, validSender, {}, function (err) {
@@ -608,7 +637,7 @@ describe('transaction', function () {
 		});
 
 		it('should return error when duplicate signature in transaction', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete trs.signature;
@@ -656,12 +685,12 @@ describe('transaction', function () {
 			var trsData = _.cloneDeep(validTransactionData);
 			trsData.sender = vs;
 			trsData.secondKeypair = validKeypair;
-			var trs = transaction.create(trsData);
-			trs.signSignature = '7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
-			trs.senderId = vs.address;
-			transaction.verify(trs, vs, function (err) {
-				expect(err).to.equal('Failed to verify second signature');
-				done();
+			createAndProcess(trsData, validSender, function (trs) {
+				trs.signSignature = '7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
+				transaction.verify(trs, vs, function (err) {
+					expect(err).to.equal('Failed to verify second signature');
+					done();
+				});
 			});
 		});
 		
@@ -673,16 +702,18 @@ describe('transaction', function () {
 			var trsData = _.cloneDeep(validTransactionData);
 			trsData.sender = sender;
 			trsData.secondKeypair = validKeypair;
-			var trs = transaction.create(trsData);
-			trs.senderId = sender.address;
-			transaction.verify(trs, sender, function (err) {
-				expect(err).to.not.exist;
-				done();
+			createAndProcess(trsData, validSender, function (trs) {
+				transaction.verify(trs, validSender, {}, function (err) {
+					transaction.verify(trs, sender, function (err) {
+						expect(err).to.not.exist;
+						done();
+					});
+				});
 			});
 		});
 
 		it('should throw return error transaction fee is incorrect', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			trs.fee = -100;
 			transaction.verify(trs, validSender, {}, function (err) {
 				expect(err).to.include('Invalid transaction fee');
@@ -691,7 +722,7 @@ describe('transaction', function () {
 		});
 
 		it('should verify transaction with correct fee (with data field)', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			trs.data = '123';
 			trs.fee += 10000000;
 			delete trs.signature;
@@ -703,7 +734,7 @@ describe('transaction', function () {
 		});
 
 		it('should verify transaction with correct fee (without data field)', function (done) {
-			transaction.verify(validUnconfirmedTrs, validSender, {}, function (err) {
+			transaction.verify(validTransaction, validSender, {}, function (err) {
 				expect(err).to.be.empty;
 				done();
 			});
@@ -732,7 +763,7 @@ describe('transaction', function () {
 		});
 
 		it('should return error on future timestamp', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
+			var trs = _.cloneDeep(validTransaction);
 			trs.timestamp = slots.getTime() + 100;
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
@@ -743,8 +774,7 @@ describe('transaction', function () {
 		});
 
 		it('should verify proper transaction with proper sender', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-			transaction.verify(trs, validSender, {}, function (err) {
+			transaction.verify(validTransaction, validSender, {}, function (err) {
 				expect(err).to.not.be.ok;
 				done();
 			});
@@ -794,11 +824,8 @@ describe('transaction', function () {
 		});
 
 		it('should verify the second signature correctly', function () {
-			var hash = crypto.createHash('sha256').update(node.eAccount.password, 'utf8').digest();
-			var keypair = ed.makeKeypair(hash);
-			var signature = transaction.sign(keypair, validTransaction);
-
-			expect(transaction.verifySecondSignature(validTransaction, keypair.publicKey, signature)).to.equal(true);
+			var signature = transaction.sign(validKeypair, validTransaction);
+			expect(transaction.verifySecondSignature(validTransaction, validKeypair.publicKey.toString('hex'), signature)).to.equal(true);
 		});
 	});
 
@@ -808,7 +835,7 @@ describe('transaction', function () {
 			expect(transaction.verifyBytes).to.throw();
 		});
 
-		it('should return when sender public publicKey is different', function () {
+		it('should return when sender public is different', function () {
 			var trsBytes = transaction.getBytes(validTransaction);
 			var invalidPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9';
 			expect(transaction.verifyBytes(trsBytes, invalidPublicKey, validTransaction.signature)).to.equal(false);
@@ -858,7 +885,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should be okay for a valid transaction', function (done) {
+		it('should subtract balance from sender account on valid transaction', function (done) {
 			accountModule.getAccount({publicKey: validTransaction.senderPublicKey}, function (err, accountBefore) {
 				var amount = new bignum(validTransaction.amount.toString()).plus(validTransaction.fee.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
@@ -866,7 +893,6 @@ describe('transaction', function () {
 				transaction.apply(validTransaction, dummyBlock, validSender, function (err) {
 					accountModule.getAccount({publicKey: validTransaction.senderPublicKey}, function (err, accountAfter) {
 						expect(err).to.not.exist;
-
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 						expect(balanceAfter.plus(amount).toString()).to.equal(balanceBefore.toString());
 						undoTransaction(validTransaction, validSender, done);
@@ -890,16 +916,7 @@ describe('transaction', function () {
 			expect(transaction.undo).to.throw();
 		});
 
-		it.skip('should return an error when recipientId is not set', function (done) {
-			// this test is failing, I am not sure if it should
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-			delete trs.recipientId;
-			transaction.undo(trs, dummyBlock, validSender, function (err) {
-				expect(err).to.equal('Invalid public key');
-			}); 
-		});
-
-		it.skip('should not update sender account when recepientId is not set', function (done) {
+		it('should not update sender balance when transaction is invalid', function (done) {
 			// this test fails, when it shouldn't
 
 			var trs = _.cloneDeep(validTransaction);
@@ -941,7 +958,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should return error with a different sender', function (done) {
+		it('should return error with a different sender', function (done) {
 			var trs = _.cloneDeep(validUnconfirmedTrs);
 			trs.amount = 10;
 			var randomAccount = {
@@ -982,15 +999,12 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should return error with a different sender', function (done) {
+		it('should return error with a different sender', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			trs.amount = 10;
-			var randomAccount = {
-				address: '239269356711361894L',
-				publicKey: '15fd9f3e23f725e402a00789bd9548d3d732ed9754b9c6125c5267601c2d8b84',
-				balance: 8067374861277,
-				u_balance: 8067374861277
-			};
+			var randomAccount = node.randomAccount();
+			randomAccount.balance = 8067374861277;
+			randomAccount.u_balance = 8067374861277;
 			// this test fails, not sure if it should
 			transaction.applyUnconfirmed(trs, randomAccount, function (err) {
 				expect(err).to.exist;
@@ -1023,14 +1037,12 @@ describe('transaction', function () {
 			}); 
 		});
 
-		it.skip('should return error with a different sender', function (done) {
+		it('should return error with a different sender', function (done) {
 			var trs = _.cloneDeep(validUnconfirmedTrs);
 			trs.amount = 10;
-			var randomAccount = {
-				address: '239269356711361894L',
-				publicKey: '15fd9f3e23f725e402a00789bd9548d3d732ed9754b9c6125c5267601c2d8b84',
-				balance: 8067374861277
-			};
+			var randomAccount = node.randomAccount(); 
+			randomAccount.balance = 8067374861277;
+			randomAccount.u_balance = 8067374861277;
 			// this test fails, while it shouldn't.
 			transaction.undoUnconfirmed(trs, randomAccount, function (err) {
 				expect(err).to.exist;
@@ -1073,8 +1085,7 @@ describe('transaction', function () {
 			var savePromise = transaction.dbSave(trs);
 			expect(savePromise).to.be.an('Array');
 			expect(savePromise).to.have.length(1);
-			var trsValues = savePromise[0].values;
-			expect(trsValues).to.have.property('data').to.eql(new Buffer('123'));
+			expect(savePromise[0].values).to.have.property('data').to.eql(new Buffer('123'));
 		});
 
 		it('should return promise object for valid parameters', function () {
@@ -1199,4 +1210,3 @@ describe('transaction', function () {
 		});
 	});
 });
-

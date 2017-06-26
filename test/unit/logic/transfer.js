@@ -7,10 +7,8 @@ var crypto = require('crypto');
 var async = require('async');
 
 var chai = require('chai');
-var sinon = require('sinon');
 var expect = require('chai').expect;
 var _  = require('lodash');
-var sinon = require('sinon');
 var transactionTypes = require('../../../helpers/transactionTypes');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
