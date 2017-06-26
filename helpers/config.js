@@ -2,6 +2,8 @@
 
 var fs = require('fs');
 var path = require('path');
+var _ = require('lodash');
+
 var z_schema = require('./z_schema.js');
 var configSchema = require('../schema/config.js');
 var constants = require('../helpers/constants.js');
@@ -42,7 +44,7 @@ function Config (configPath) {
  */
 function validateForce (configData) {
 	if (configData.forging.force) {
-		var index = Object.values(constants.nethashes).indexOf(configData.nethash);
+		var index = _.values(constants.nethashes).indexOf(configData.nethash);
 
 		if (index !== -1) {
 			console.log('Forced forging disabled for nethash', configData.nethash);
