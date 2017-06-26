@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node app.js",
     "test": "./node_modules/.bin/grunt test --verbose",
-    "travis": "./node_modules/.bin/grunt travis --verbose",
+    "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
+    "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
@@ -41,6 +42,7 @@
     "pg-promise": "=5.5.6",
     "popsicle": "=9.0.0",
     "randomstring": "=1.1.5",
+    "redis": "=2.7.1",
     "rimraf": "=2.5.4",
     "semver": "=5.3.0",
     "socket.io": "=1.7.2",

@@ -2,6 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var ip = require('ip');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
@@ -34,7 +35,27 @@ __private.retries = 5;
  */
 // Constructor
 function Loader (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		network: scope.network,
+		schema: scope.schema,
+		sequence: scope.sequence,
+		bus: scope.bus,
+		genesisblock: scope.genesisblock,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+			account: scope.logic.account,
+			peers: scope.logic.peers,
+		},
+		config: {
+			loading: {
+				verifyOnLoading: scope.config.loading.verifyOnLoading,
+				snapshot: scope.config.loading.snapshot,
+			},
+		},
+	};
 	self = this;
 
 	__private.initialize();
@@ -96,7 +117,8 @@ __private.syncTrigger = function (turnOn) {
  */
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
-	setImmediate(function nextSync () {
+
+	function nextSync () {
 		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
@@ -107,13 +129,11 @@ __private.syncTimer = function () {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
 				}
-
-				return setTimeout(nextSync, __private.syncInterval);
 			});
-		} else {
-			return setTimeout(nextSync, __private.syncInterval);
 		}
-	});
+	}
+
+	jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
 };
 
 /**
@@ -371,7 +391,8 @@ __private.loadBlockChain = function () {
 			t.one(sql.countBlocks),
 			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
-			t.query(sql.getMemRounds)
+			t.query(sql.getMemRounds),
+			t.query(sql.countDuplicatedDelegates)
 		];
 
 		return t.batch(promises);
@@ -442,6 +463,13 @@ __private.loadBlockChain = function () {
 
 		if (unapplied.length > 0) {
 			return reload(count, 'Detected unapplied rounds in mem_round');
+		}
+
+		var duplicatedDelegates = +results[4][0].count;
+
+		if (duplicatedDelegates > 0) {
+			library.logger.error('Delegates table corrupted with duplicated entries');
+			return process.emit('exit');
 		}
 
 		function updateMemAccounts (t) {
@@ -573,6 +601,7 @@ __private.loadBlocksFromNetwork = function (cb) {
  */
 __private.sync = function (cb) {
 	library.logger.info('Starting sync');
+	library.bus.message('syncStarted');
 
 	__private.isActive = true;
 	__private.syncTrigger(true);
@@ -606,6 +635,7 @@ __private.sync = function (cb) {
 		__private.blocksToSync = 0;
 
 		library.logger.info('Finished sync');
+		library.bus.message('syncFinished');
 		return setImmediate(cb, err);
 	});
 };
@@ -788,19 +818,25 @@ Loader.prototype.onPeersReady = function () {
 			if (err) {
 				__private.initialize();
 			}
-
-			return __private.syncTimer();
 		});
 	});
 };
 
 /**
- * Assigns scope to modules variable.
+ * Assigns needed modules from scope to private modules variable.
  * Calls __private.loadBlockChain
- * @param {scope} scope
+ * @param {modules} scope
  */
 Loader.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transactions: scope.transactions,
+		blocks: scope.blocks,
+		peers: scope.peers,
+		rounds: scope.rounds,
+		transport: scope.transport,
+		multisignatures: scope.multisignatures,
+		system: scope.system,
+	};
 
 	__private.loadBlockChain();
 };

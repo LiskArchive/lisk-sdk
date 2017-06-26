@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('./../node.js');
+var modulesLoader = require('./../common/initModule.js').modulesLoader;
 var transactionSortFields = require('../../sql/transactions').sortFields;
 
 var account = node.randomTxAccount();
@@ -72,6 +73,76 @@ before(function (done) {
 before(function (done) {
 	node.onNewBlock(function (err) {
 		done();
+	});
+});
+
+describe('GET /api/transactions (cache)', function () {
+	var cache;
+
+	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
+		modulesLoader.initCache(function (err, __cache) {
+			cache = __cache;
+			node.expect(err).to.not.exist;
+			node.expect(__cache).to.be.an('object');
+			return done(err, __cache);
+		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
+	});
+
+	afterEach(function (done) {
+		cache.flushDb(function (err, status) {
+			node.expect(err).to.not.exist;
+			node.expect(status).to.equal('OK');
+			done(err, status);
+		});
+	});
+
+	it('cache transactions by the url and parameters when response is a success', function (done) {
+		var url, params;
+
+		url = '/api/transactions?';
+		params = [
+			'blockId=' + '1',
+			'senderId=' + node.gAccount.address,
+			'recipientId=' + account.address,
+		];
+
+		node.get(url + params.join('&'), function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactions').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url + params.join('&'), function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				done(err, res);
+			});
+		});
+	});
+
+	it('should not cache if response is not a success', function (done) {
+		var url, params;
+		url = '/api/transactions?';
+		params = [
+			'whatever:senderId=' + node.gAccount.address
+		];
+
+		node.get(url + params.join('&'), function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			cache.getJsonForKey(url + params, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(null);
+				done(err, res);
+			});
+		});
 	});
 });
 

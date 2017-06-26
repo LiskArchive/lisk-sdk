@@ -2,6 +2,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var _ = require('lodash');
 
@@ -9,17 +10,33 @@ var _ = require('lodash');
 var modules, library, self, __private = {};
 
 /**
- * Main Broadcaster logic.
+ * Initializes variables, sets Broadcast routes and timer based on
+ * broadcast interval from config file.
  * @memberof module:transport
  * @class
- * @classdesc Initializes variables, sets Broadcast routes and timer based on
- * broadcast interval from config file.
+ * @classdesc Main Broadcaster logic.
  * @implements {__private.releaseQueue}
- * @param {scope} scope - App instance.
+ * @param {Object} broadcasts
+ * @param {boolean} force
+ * @param {Peers} peers - from logic, Peers instance
+ * @param {Transaction} transaction - from logic, Transaction instance
+ * @param {Object} logger
  */
 // Constructor
-function Broadcaster (scope) {
-	library = scope;
+function Broadcaster (broadcasts, force, peers, transaction, logger) {
+	library = {
+		logger: logger,
+		logic: {
+			peers: peers,
+			transaction: transaction,
+		},
+		config: {
+			broadcasts: broadcasts,
+			forging: {
+				force: force,
+			},
+		},
+	};
 	self = this;
 
 	self.queue = [];
@@ -47,26 +64,31 @@ function Broadcaster (scope) {
 	}];
 
 	// Broadcaster timer
-	setImmediate(function nextRelease () {
-		async.series([
-			__private.releaseQueue
-		], function (err) {
+	function nextRelease () {
+		__private.releaseQueue(function (err) {
 			if (err) {
 				library.logger.log('Broadcaster timer', err);
 			}
-
-			return setTimeout(nextRelease, self.config.broadcastInterval);
 		});
-	});
+	}
+
+	jobsQueue.register('broadcasterNextRelease', nextRelease, self.config.broadcastInterval);
+
 }
 
 // Public methods
 /**
- * Binds scope to private variable modules.
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variables modules.
+ * @param {Peers} peers
+ * @param {Transport} transport
+ * @param {Transactions} transactions
  */
-Broadcaster.prototype.bind = function (scope) {
-	modules = scope;
+Broadcaster.prototype.bind = function (peers, transport, transactions) {
+	modules = {
+		peers: peers,
+		transport: transport,
+		transactions: transactions,
+	};
 };
 
 /**
@@ -131,7 +153,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			if (params.limit === self.config.peerLimit) { peers.splice(0, self.config.broadcastLimit); }
+			if (params.limit === self.config.peerLimit) { 
+				peers = peers.slice(0, self.config.broadcastLimit);
+			}
 
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer = library.logic.peers.create(peer);

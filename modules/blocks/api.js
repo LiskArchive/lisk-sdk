@@ -11,8 +11,28 @@ var modules, library, self, __private = {};
 
 __private.blockReward = new BlockReward();
 
-function API (scope) {
-	library = scope;
+/**
+ * Initializes library.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main API logic.
+ * Allows get information.
+ * @param {Object} logger
+ * @param {Database} db
+ * @param {Block} block
+ * @param {ZSchema} schema
+ * @param {Sequence} dbSequence
+ */
+function API (logger, db, block, schema, dbSequence) {
+	library = {
+		logger: logger,
+		db: db,
+		schema: schema,
+		dbSequence: dbSequence,
+		logic: {
+			block: block,
+		},
+	};
 	self = this;
 
 	library.logger.trace('Blocks->API: Submodule initialized.');
@@ -307,16 +327,17 @@ API.prototype.getStatus = function (req, cb) {
 };
 
 /**
- * Handle modules initialization
- *
- * @public
- * @method onBind
- * @listens module:app~event:bind
- * @param  {scope}   scope Exposed modules
+ * Handle modules initialization:
+ * - blocks
+ * - system
+ * @param {modules} scope Exposed modules
  */
 API.prototype.onBind = function (scope) {
 	library.logger.trace('Blocks->API: Shared modules bind.');
-	modules = scope;
+	modules = {
+		blocks: scope.blocks,
+		system: scope.system,
+	};
 
 	// Set module as loaded
 	__private.loaded = true;

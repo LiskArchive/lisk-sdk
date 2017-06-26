@@ -20,8 +20,8 @@ __private.cleanup = false;
 __private.isActive = false;
 
 /**
- * Initializes library with scope content.
- * Calls __private.saveGenesisBlock.
+ * Initializes submodules with scope content.
+ * Calls submodules.chain.saveGenesisBlock.
  * @memberof module:blocks
  * @class
  * @classdesc Main Blocks methods.
@@ -31,15 +31,29 @@ __private.isActive = false;
  */
 // Constructor
 function Blocks (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+	};	
 
-	// Initialize submodules
+	// Initialize submodules with library content
 	this.submodules = {
-		api:     new blocksAPI(scope),
-		verify:  new blocksVerify(scope),
-		process: new blocksProcess(scope),
-		utils:   new blocksUtils(scope),
-		chain:   new blocksChain(scope)
+		api:     new blocksAPI(
+			scope.logger, scope.db, scope.logic.block, scope.schema, scope.dbSequence
+		),
+		verify:  new blocksVerify(scope.logger, scope.logic.block, 
+			scope.logic.transaction, scope.db
+		),
+		process: new blocksProcess(
+			scope.logger, scope.logic.block, scope.logic.peers, scope.logic.transaction,
+			scope.schema, scope.db, scope.dbSequence, scope.sequence, scope.genesisblock
+		),
+		utils:   new blocksUtils(scope.logger, scope.logic.block, scope.logic.transaction, 
+			scope.db, scope.dbSequence, scope.genesisblock
+		),
+		chain:   new blocksChain(
+			scope.logger, scope.logic.block, scope.logic.transaction, scope.db,
+			scope.genesisblock, scope.bus, scope.balancesSequence
+		)
 	};
 
 	// Expose submodules
@@ -59,7 +73,12 @@ function Blocks (cb, scope) {
 /**
  * PUBLIC METHODS
  */
-
+/**
+ * Last block functions, getter, setter and isFresh
+ * @property {function} get Returns lastBlock
+ * @property {function} set Sets lastBlock
+ * @property {function} isFresh Returns status of last block - if it fresh or not
+ */
 Blocks.prototype.lastBlock = {
 	get: function () {
 		return __private.lastBlock;
@@ -71,8 +90,7 @@ Blocks.prototype.lastBlock = {
 	/**
 	 * Returns status of last block - if it fresh or not
 	 *
-	 * @public
-	 * @method lastBlock.isFresh
+	 * @function isFresh
 	 * @return {Boolean} Fresh status of last block
 	 */
 	isFresh: function () {
@@ -83,6 +101,12 @@ Blocks.prototype.lastBlock = {
 	}
 };
 
+/**
+ * Last Receipt functions: get, update and isStale.
+ * @property {function} get Returns lastReceipt
+ * @property {function} update Updates lastReceipt
+ * @property {function} isStale Returns status of last receipt - if it fresh or not
+ */
 Blocks.prototype.lastReceipt = {
 	get: function () {
 		return __private.lastReceipt;
@@ -137,16 +161,12 @@ Blocks.prototype.sandboxApi = function (call, args, cb) {
 };
 
 /**
- * Handle modules initialization
- *
- * @public
- * @method onBind
- * @listens module:app~event:bind
- * @param  {scope}   scope Exposed modules
+ * Handle modules initialization.
+ * Modules are not required in this file.
+ * @param {modules} scope Exposed modules
  */
 Blocks.prototype.onBind = function (scope) {
-	modules = scope;
-
+	// TODO: move here blocks submodules modules load from app.js.
 	// Set module as loaded
 	__private.loaded = true;
 };
@@ -155,7 +175,7 @@ Blocks.prototype.onBind = function (scope) {
  * Handle node shutdown request
  *
  * @public
- * @method onBind
+ * @method cleanup
  * @listens module:app~event:cleanup
  * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
@@ -189,7 +209,7 @@ Blocks.prototype.cleanup = function (cb) {
  */
 Blocks.prototype.isLoaded = function () {
 	// Return 'true' if 'modules' are present
-	return !!modules;
+	return __private.loaded;
 };
 
 

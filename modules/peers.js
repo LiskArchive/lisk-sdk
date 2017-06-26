@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
@@ -27,7 +28,22 @@ var modules, library, self, __private = {}, shared = {};
  */
 // Constructor
 function Peers (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		schema: scope.schema,
+		bus: scope.bus,
+		nonce: scope.nonce,
+		build: scope.build,
+		lastCommit: scope.lastCommit,
+		logic: {
+			peers: scope.logic.peers,
+		},
+		config: {
+			peers: scope.config.peers,
+			version: scope.config.version,
+		},
+	};
 	self = this;
 
 	setImmediate(cb, null, self);
@@ -242,7 +258,7 @@ __private.dbSave = function (cb) {
 	library.db.tx(function (t) {
 		// Generating insert query
 		var insert_peers = pgp.helpers.insert(peers, cs);
-		
+
 		var queries = [
 			// Clear peers table
 			t.none(sql.clear),
@@ -504,11 +520,14 @@ Peers.prototype.list = function (options, cb) {
 
 // Events
 /**
- * assign scope to modules variable
- * @param {scope} scope
+ * assigns scope to modules variable
+ * @param {modules} scope
  */
 Peers.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transport: scope.transport,
+		system: scope.system,
+	};
 };
 
 /**
@@ -544,7 +563,7 @@ Peers.prototype.onBlockchainReady = function () {
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
-	setImmediate(function nextSeries () {
+	function peersDiscoveryAndUpdate () {
 		async.series({
 			discoverPeers: function (seriesCb) {
 				library.logger.trace('Discovering new peers...');
@@ -584,11 +603,10 @@ Peers.prototype.onPeersReady = function () {
 					return setImmediate(seriesCb);
 				});
 			}
-		}, function () {
-			// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-			return setTimeout(nextSeries, 5000);
 		});
-	});
+	}
+	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
 };
 
 /**

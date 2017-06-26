@@ -5,9 +5,10 @@
     "minVersion": ">=0.5.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
-    "consoleLogLevel": "info",
+    "consoleLogLevel": "none",
     "trustProxy": false,
     "topAccounts": false,
+    "cacheEnabled": false,
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -20,6 +21,12 @@
         "logEvents": [
             "error"
         ]
+    },
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6380,
+        "db": 0,
+        "password": null
     },
     "api": {
         "enabled": true,

@@ -7,8 +7,30 @@ var transactionTypes = require('../../helpers/transactionTypes.js');
 
 var modules, library, self, __private = {};
 
-function Utils (scope) {
-	library = scope;
+/**
+ * Initializes library.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main Utils logic.
+ * Allows utils functions for blocks.
+ * @param {Object} logger
+ * @param {Block} block
+ * @param {Transaction} transaction
+ * @param {Database} db
+ * @param {Sequence} dbSequence
+ * @param {Object} genesisblock
+ */
+function Utils (logger, block, transaction, db, dbSequence, genesisblock) {
+	library = {
+		logger: logger,
+		db: db,
+		dbSequence: dbSequence,
+		genesisblock: genesisblock,
+		logic: {
+			block: block,
+			transaction: transaction,
+		},
+	};
 	self = this;
 
 	library.logger.trace('Blocks->Utils: Submodule initialized.');
@@ -358,16 +380,15 @@ Utils.prototype.aggregateBlocksReward = function (filter, cb) {
 };
 
 /**
- * Handle modules initialization
- *
- * @public
- * @method onBind
- * @listens module:app~event:bind
- * @param  {scope}   scope Exposed modules
+ * Handle modules initialization:
+ * - blocks
+ * @param {modules} scope Exposed modules
  */
 Utils.prototype.onBind = function (scope) {
 	library.logger.trace('Blocks->Utils: Shared modules bind.');
-	modules = scope;
+	modules = {
+		blocks: scope.blocks
+	};
 
 	// Set module as loaded
 	__private.loaded = true;
