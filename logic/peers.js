@@ -35,21 +35,19 @@ function Peers (logger, cb) {
 		 * @throws {Error} - it is ok to assign nonce to new address but not new address to existing nonce
 		 */
 		addDistinct: function (peer) {
-			var nonce = peer.nonce;
-			var address = peer.string;
-			if (this.nonceToAddressMap[nonce] && address && this.nonceToAddressMap[nonce] !== address) {
-				throw new Error('Peer', address, 'attempts assign nonce of', this.nonceToAddressMap[nonce]);
+			if (this.nonceToAddressMap[peer.nonce] && peer.string && this.nonceToAddressMap[peer.nonce] !== peer.string) {
+				throw new Error('Peer', peer.string, 'attempts assign nonce of', this.nonceToAddressMap[peer.nonce]);
 			}
-			if (address) {
-				var oldNonce = this.addressToNonceMap[address];
-				if (oldNonce && oldNonce !== nonce) {
+			if (peer.string) {
+				var oldNonce = this.addressToNonceMap[peer.string];
+				if (oldNonce && oldNonce !== peer.nonce) {
 					delete this.nonceToAddressMap[oldNonce];
 					self.remove(peer);
 				}
-				this.addressToNonceMap[address] = nonce;
+				this.addressToNonceMap[peer.string] = peer.nonce;
 			}
-			if (nonce) {
-				this.nonceToAddressMap[nonce] = address;
+			if (peer.nonce) {
+				this.nonceToAddressMap[peer.nonce] = peer.string;
 			}
 		},
 
@@ -268,11 +266,11 @@ Peers.prototype.list = function (normalize) {
 // Public methods
 /**
  * Modules are not required in this file.
- * @param {peers} peers - Loaded modules.
+ * @param {Object} __modules - Peers module.
  */
-Peers.prototype.bind = function (peers) {
+Peers.prototype.bindModules = function (__modules) {
 	modules = {
-		peers: peers
+		peers: __modules.peers
 	};
 };
 
