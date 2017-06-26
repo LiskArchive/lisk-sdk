@@ -3,7 +3,7 @@
 var node = require('../node.js');
 var http = require('../common/httpCommunication.js');
 var transactionSortFields = require('../../sql/transactions').sortFields;
-
+var modulesLoader = require('../common/initModule').modulesLoader;
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
 var account3 = node.randomTxAccount();

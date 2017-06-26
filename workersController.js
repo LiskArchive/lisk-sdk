@@ -23,7 +23,6 @@ module.exports.run = function (worker) {
 			new SlaveWAMPServer(worker, cb);
 		},
 		config: ['slaveWAMPServer', function (scope, cb) {
-			scope.socketToAddressMap = {};
 			cb(null, scope.slaveWAMPServer.config);
 		}],
 

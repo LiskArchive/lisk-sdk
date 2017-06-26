@@ -16,7 +16,7 @@ var wsRPC = require('../../../api/ws/rpc/wsRPC');
 var currentPeers = [];
 
 
-describe('peers', function () {
+describe.skip('peers', function () {
 
 	before(function () {
 		process.env['NODE_ENV'] = 'TEST';
@@ -77,7 +77,7 @@ describe('peers', function () {
 			getPeers(function (err, __peers) {
 				currentPeers = __peers;
 				done();
-			})
+			});
 		});
 
 		it('should insert new peer', function (done) {

@@ -526,13 +526,14 @@ Delegates.prototype.sandboxApi = function (call, args, cb) {
  */
 Delegates.prototype.onBind = function (scope) {
 	modules = {
-		loader: scope.loader,
-		rounds: scope.rounds,
 		accounts: scope.accounts,
 		blocks: scope.blocks,
-		transport: scope.transport,
-		transactions: scope.transactions,
 		delegates: scope.delegates,
+		loader: scope.loader,
+		peers: scope.peers,
+		rounds: scope.rounds,
+		transactions: scope.transactions,
+		transport: scope.transport
 	};
 
 	__private.assetTypes[transactionTypes.DELEGATE].bind(

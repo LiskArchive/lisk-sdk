@@ -1,32 +1,27 @@
 {
-  "port": 8000,
-  "httpPort": 8001,
-  "address": "0.0.0.0",
-  "version": "0.8.2",
-  "minVersion": ">=0.5.0",
-  "fileLogLevel": "info",
-  "logFileName": "logs/lisk.log",
-  "consoleLogLevel": "info",
-  "trustProxy": false,
-  "topAccounts": false,
-  "db": {
-    "host": "localhost",
-    "port": 5432,
-    "database": "lisk_main",
-    "user": "",
-    "password": "password",
-    "poolSize": 95,
-    "poolIdleTimeout": 30000,
-    "reapIntervalMillis": 1000,
-    "logEvents": [
-      "error"
-    ]
-  },
-  "api": {
-    "enabled": true,
-    "access": {
-      "public": false,
-      "whiteList": ["127.0.0.1"]
+    "port": 8000,
+    "httpPort": 8001,
+    "address": "0.0.0.0",
+    "version": "0.9.0",
+    "minVersion": ">=0.5.0",
+    "fileLogLevel": "info",
+    "logFileName": "logs/lisk.log",
+    "consoleLogLevel": "none",
+    "trustProxy": false,
+    "topAccounts": false,
+    "cacheEnabled": false,
+    "db": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "lisk_main",
+        "user": "",
+        "password": "password",
+        "poolSize": 95,
+        "poolIdleTimeout": 30000,
+        "reapIntervalMillis": 1000,
+        "logEvents": [
+            "error"
+        ]
     },
     "options": {
       "limits": {

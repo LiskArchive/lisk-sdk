@@ -277,7 +277,8 @@ d.run(function () {
 				pingTimeout: 60000,
 				// Maximum amount of milliseconds to wait before force-killing
 				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
-				processTermTimeout: 10000
+				processTermTimeout: 10000,
+				logLevel: 0
 			};
 
 			if (scope.config.ssl.enabled) {

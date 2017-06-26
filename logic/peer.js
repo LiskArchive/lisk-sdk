@@ -129,7 +129,7 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.port = this.parseInt(peer.port, 0);
-	peer.state = this.parseInt(peer.state, null);
+	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
 	return peer;
 };
@@ -154,6 +154,7 @@ Peer.prototype.parseInt = function (integer, fallback) {
  */
 Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
+	headers = this.normalize(headers);
 	this.update(headers);
 	return headers;
 };
@@ -169,7 +170,7 @@ Peer.prototype.update = function (peer) {
 	// Accept only supported properties
 	_.each(this.properties, function (key) {
 		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === Peer.STATE.BANNED) && !_.includes(this.immutable, key)) {
+		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === Peer.STATE.BANNED && peer.state === Peer.STATE.ACTIVE) && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));

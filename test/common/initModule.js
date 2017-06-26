@@ -23,7 +23,6 @@ var modulesLoader = new function () {
 
 	this.db = null;
 	this.logger = new Logger({ echo: null, errorLevel: config.fileLogLevel, filename: config.logFileName });
-	config.nonce = randomString.generate(16);
 	this.scope = {
 		config: config,
 		genesisblock: { block: genesisblock },
@@ -36,7 +35,8 @@ var modulesLoader = new function () {
 		ed: ed,
 		bus: {
 			message: function () {}
-		}
+		},
+		nonce: randomString.generate(16)
 	};
 
 	/**
@@ -48,35 +48,35 @@ var modulesLoader = new function () {
 	 */
 	this.initLogic = function (Logic, scope, cb) {
 		switch (Logic.name) {
-		 case 'Account':
+		case 'Account':
 			new Logic(scope.db, scope.schema, scope.logger, cb);
 			break;
-		 case 'Transaction':
-		 	async.series({
+		case 'Transaction':
+			async.series({
 				account: function (cb) {
 					new Account(scope.db, scope.schema, scope.logger, cb);
 				}
-			 }, function (err, result) {
-				 new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
-			 });
+			}, function (err, result) {
+				new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
+			});
 			break;
-		 case 'Block':
-		 	async.waterfall([
+		case 'Block':
+			async.waterfall([
 				function (waterCb) {
 					return new Account(scope.db, scope.schema, scope.logger, waterCb);
 				},
 				function (account, waterCb) {
 					return new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, account, scope.logger, waterCb);
 				}
-			 ], function (err, transaction) {
-				 new Logic(scope.ed, scope.schema, transaction, cb);
+			], function (err, transaction) {
+				new Logic(scope.ed, scope.schema, transaction, cb);
 			});
 			break;
-		 case 'Peers':
+		case 'Peers':
 			new Logic(scope.logger, cb);
 			break;
-		 default:
-		 	console.log('no Logic case initLogic');
+		default:
+			console.log('no Logic case initLogic');
 		}
 	};
 
@@ -110,12 +110,6 @@ var modulesLoader = new function () {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
 						memo[name] = initializedLogic;
-						if (typeof initializedLogic.bind === 'function') {
-							initializedLogic.bind({modules: modules});
-						}
-						if (typeof initializedLogic.bindModules === 'function') {
-							initializedLogic.bindModules(modules);
-						}
 						return mapCb(err, memo);
 					});
 				}.bind(this), waterCb);
@@ -126,7 +120,6 @@ var modulesLoader = new function () {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
 						memo[name] = module;
-						modules[name] = module;
 						return mapCb(err, memo);
 					}.bind(this));
 				}.bind(this), waterCb);
