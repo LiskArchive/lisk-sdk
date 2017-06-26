@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
+var Peer = require('../logic/peer.js');
 var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
@@ -823,6 +824,7 @@ Transport.prototype.internal = {
 				});
 			}
 
+			peer.state = Peer.STATE.ACTIVE;
 			modules.peers.update(peer);
 
 			return setImmediate(cb, null, peer);

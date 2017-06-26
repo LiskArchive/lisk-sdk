@@ -9,7 +9,7 @@ var schema = require('../schema/peers.js');
 var __private = {};
 var self;
 var library;
-
+var modules;
 /**
  * Initializes library.
  * @memberof module:peers
@@ -22,10 +22,55 @@ var library;
 // Constructor
 function Peers (logger, cb) {
 	library = {
-		logger: logger,
+		logger: logger
 	};
 	self = this;
 	__private.peers = {};
+
+	__private.nonceToAddressMapper = {
+		addressToNonceMap: {},
+		nonceToAddressMap: {},
+		/**
+		 * @param {Peer} peer
+		 * @throws {Error} - it is ok to assign nonce to new address but not new address to existing nonce
+		 */
+		addSafely: function (peer) {
+			var nonce = peer.nonce;
+			var address = peer.string;
+			if (this.nonceToAddressMap[nonce] && address && this.nonceToAddressMap[nonce] !== address) {
+				throw new Error('Peer', address, 'attempts assign nonce of', this.nonceToAddressMap[nonce]);
+			}
+			if (address) {
+				var oldNonce = this.addressToNonceMap[address];
+				if (oldNonce && oldNonce !== nonce) {
+					delete this.nonceToAddressMap;
+					//disconnect instead of removing in case of impersonation
+					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+				}
+				this.addressToNonceMap[address] = nonce;
+			}
+			if (nonce) {
+				this.nonceToAddressMap[nonce] = address;
+			}
+		},
+
+		/**
+		 * @param {string} nonce
+		 * @returns {string|undefined} address
+		 */
+		getAddress: function (nonce) {
+			return this.nonceToAddressMap[nonce];
+		},
+
+		/**
+		 * @param {string} address
+		 * @returns {string|undefined} nonce
+		 */
+		getNonce: function (address) {
+			return this.addressToNonceMap[address];
+		}
+	};
+
 	return setImmediate(cb, null, this);
 }
 
@@ -75,11 +120,11 @@ Peers.prototype.get = function (peer) {
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
-		peer.updated = Date.now();
-		__private.peers[peer.string] = peer;
-
-		library.logger.debug('Inserted new peer', peer.string);
-		library.logger.trace('Inserted new peer', {peer: peer});
+		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
+			peer.updated = Date.now();
+			__private.peers[peer.string] = peer;
+			library.logger.debug('Inserted new peer', peer.string);
+		}
 	};
 
 	// Update existing peer
@@ -106,6 +151,13 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	
 	if (!peer.string) {
 		library.logger.warn('Upsert invalid peer rejected', {peer: peer});
+		return false;
+	}
+
+	try {
+		__private.nonceToAddressMapper.addSafely(peer);
+	} catch (error) {
+		library.logger.warn(error.message);
 		return false;
 	}
 
@@ -217,9 +269,12 @@ Peers.prototype.list = function (normalize) {
 // Public methods
 /**
  * Modules are not required in this file.
- * @param {modules} scope - Loaded modules.
+ * @param {peers} peers - Loaded modules.
  */
-Peers.prototype.bind = function (scope) {
+Peers.prototype.bind = function (peers) {
+	modules = {
+		peers: peers
+	};
 };
 
 // Export

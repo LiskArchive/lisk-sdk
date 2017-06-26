@@ -112,6 +112,13 @@ System.prototype.getNethash = function () {
 };
 
 /**
+ * Gets private variable `nonce`
+ * @return {nonce}
+ */
+System.prototype.getNonce = function () {
+	return __private.nonce;
+};
+/**
  * Gets private variable `nethash` and compares with input param.
  * @param {hash}
  * @return {boolean} True if input param is equal to private value.
@@ -150,6 +157,10 @@ System.prototype.versionCompatible = function (version) {
 
 	// ignore versionChar, check only version
 	return semver.satisfies(version, this.minVersion);
+};
+
+System.prototype.getLastBroadhash = function () {
+	return __private.broadhash;
 };
 
 /**
