@@ -34,7 +34,7 @@ function Peers (logger, cb) {
 		 * @param {Peer} peer
 		 * @throws {Error} - it is ok to assign nonce to new address but not new address to existing nonce
 		 */
-		addSafely: function (peer) {
+		addDistinct: function (peer) {
 			var nonce = peer.nonce;
 			var address = peer.string;
 			if (this.nonceToAddressMap[nonce] && address && this.nonceToAddressMap[nonce] !== address) {
@@ -44,8 +44,7 @@ function Peers (logger, cb) {
 				var oldNonce = this.addressToNonceMap[address];
 				if (oldNonce && oldNonce !== nonce) {
 					delete this.nonceToAddressMap[oldNonce];
-					//disconnect instead of removing in case of impersonation
-					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+					self.remove(peer);
 				}
 				this.addressToNonceMap[address] = nonce;
 			}
@@ -155,7 +154,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	}
 
 	try {
-		__private.nonceToAddressMapper.addSafely(peer);
+		__private.nonceToAddressMapper.addDistinct(peer);
 	} catch (error) {
 		library.logger.warn(error.message);
 		return false;

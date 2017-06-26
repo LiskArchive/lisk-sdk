@@ -124,7 +124,7 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.port = this.parseInt(peer.port, 0);
-	peer.state = this.parseInt(peer.state, null);
+	peer.state = this.parseInt(peer.state, 1);
 
 	return peer;
 };
