@@ -10,6 +10,7 @@ var constants = require('../helpers/constants.js');
 var __private = {};
 var self;
 var library;
+var modules;
 
 /**
  * Initializes library.
@@ -23,7 +24,7 @@ var library;
 // Constructor
 function Peers (logger, cb) {
 	library = {
-		logger: logger,
+		logger: logger
 	};
 	self = this;
 	__private.peers = {};
@@ -33,15 +34,22 @@ function Peers (logger, cb) {
 		addressToNonceMap: {},
 		nonceToAddressMap: {},
 
-		addSafely: function (nonce, address) {
+		/**
+		 * @param {Peer} peer
+		 */
+		addSafely: function (peer) {
 			//it is ok to assign nonce to new address but not new address to existing nonce
+			var nonce = peer.nonce;
+			var address = peer.string;
 			if (this.nonceToAddressMap[nonce] && address && this.nonceToAddressMap[nonce] !== address) {
 				throw new Error('Peer', address, 'attempts assign nonce of', this.nonceToAddressMap[nonce]);
 			}
 			if (address) {
 				var oldNonce = this.addressToNonceMap[address];
+				//Reassign peer after nonce changed
 				if (oldNonce && oldNonce !== nonce) {
 					delete this.nonceToAddressMap;
+					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 				}
 				this.addressToNonceMap[address] = nonce;
 			}
@@ -50,10 +58,18 @@ function Peers (logger, cb) {
 			}
 		},
 
+		/**
+		 * @param {string} nonce
+		 * @returns {string|undefined} address
+		 */
 		getAddress: function (nonce) {
 			return this.nonceToAddressMap[nonce];
 		},
 
+		/**
+		 * @param {string} address
+		 * @returns {string|undefined} nonce
+		 */
 		getNonce: function (address) {
 			return this.addressToNonceMap[address];
 		}
@@ -156,7 +172,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	}
 
 	try {
-		self.nonceToAddressMapper.addSafely(peer.nonce, peer.string);
+		self.nonceToAddressMapper.addSafely(peer);
 	} catch (error) {
 		library.logger.warn(error.message);
 		return false;
@@ -270,9 +286,12 @@ Peers.prototype.list = function (normalize) {
 // Public methods
 /**
  * Modules are not required in this file.
- * @param {modules} scope - Loaded modules.
+ * @param {peers} peers - Loaded modules.
  */
-Peers.prototype.bind = function (scope) {
+Peers.prototype.bind = function (peers) {
+	modules = {
+		peers: peers
+	};
 };
 
 // Export

@@ -77,7 +77,7 @@ describe('peers', function () {
 			getPeers(function (err, __peers) {
 				currentPeers = __peers;
 				done();
-			})
+			});
 		});
 
 		it('should insert new peer', function (done) {
