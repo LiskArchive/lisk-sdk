@@ -43,7 +43,7 @@ function Peers (logger, cb) {
 			if (address) {
 				var oldNonce = this.addressToNonceMap[address];
 				if (oldNonce && oldNonce !== nonce) {
-					delete this.nonceToAddressMap;
+					delete this.nonceToAddressMap[oldNonce];
 					//disconnect instead of removing in case of impersonation
 					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 				}
