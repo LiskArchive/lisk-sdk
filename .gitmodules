@@ -1,6 +1,3 @@
 [submodule "public"]
 	path = public
 	url = https://github.com/LiskHQ/lisk-ui.git
-[submodule "test/lisk-js"]
-	path = test/lisk-js
-	url = https://github.com/LiskHQ/lisk-js.git
