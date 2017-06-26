@@ -67,6 +67,7 @@
                             <a href="#functions_listTransactions" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listTransactions</a>
                             <a href="#functions_listVotes" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVotes</a>
                             <a href="#functions_listVoters" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVoters</a>
+                            <a href="#functions_broadcastSignedTransaction" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">broadcastSignedTransaction</a>
 
                             <a href="#functions_listMultisignatureTransactions" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listMultisignatureTransactions</a>
                             <a href="#functions_getMultisignatureTransaction" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">getMultisignatureTransaction</a>
@@ -398,6 +399,34 @@ lisk.api().listVotes(address, callback);
                                     <pre>
                                         <code class="language-html" data-lang="html">
 lisk.api().listVoters(publicKey, callback);
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="functions_broadcastSignedTransaction">broadcastSignedTransaction</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Create a signed transaction, use broadcastSignedTransaction to send it to the network</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api({testnet: true});
+
+var amount      = 10 * Math.pow(10, 8);
+var transaction = lisk.transaction.createTransaction('15725299599194604786L', amount, 'secretpassphrase', 'secondSecretPassphrase');
+
+console.log(transaction);
+
+LSK.broadcastSignedTransaction(transaction, function (result) {
+    console.log(result);
+});
                                         </code>
                                     </pre>
                                 </figure>
