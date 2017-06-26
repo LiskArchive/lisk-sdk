@@ -17,6 +17,7 @@ describe('top', function () {
 	importTest('transactions Transfer', './transactions/transfer.js');
 	importTest('transactions Vote', './transactions/vote.js');
 	importTest('time', './time/slots.js');
+	importTest('utils', './utils/mnemonic.js');
 
 	importTest('transactions newCrypto', './transactions/crypto/index.js');
 	importTest('api', './api/liskApi.js');
