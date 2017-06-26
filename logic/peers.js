@@ -4,6 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var Peer = require('../logic/peer.js');
 var schema = require('../schema/peers.js');
+var constants = require('../helpers/constants.js');
 
 // Private fields
 var __private = {};
@@ -26,8 +27,46 @@ function Peers (logger, cb) {
 	};
 	self = this;
 	__private.peers = {};
+	__private.me = null;
+
+	this.nonceToAddressMapper = {
+		addressToNonceMap: {},
+		nonceToAddressMap: {},
+
+		addSafely: function (nonce, address) {
+			//it is ok to assign nonce to new address but not new address to existing nonce
+			if (this.nonceToAddressMap[nonce] && address && this.nonceToAddressMap[nonce] !== address) {
+				throw new Error('Peer', address, 'attempts assign nonce of', this.nonceToAddressMap[nonce]);
+			}
+			if (address) {
+				var oldNonce = this.addressToNonceMap[address];
+				if (oldNonce && oldNonce !== nonce) {
+					delete this.nonceToAddressMap;
+				}
+				this.addressToNonceMap[address] = nonce;
+			}
+			if (nonce) {
+				this.nonceToAddressMap[nonce] = address;
+			}
+		},
+
+		getAddress: function (nonce) {
+			return this.nonceToAddressMap[nonce];
+		},
+
+		getNonce: function (address) {
+			return this.addressToNonceMap[address];
+		}
+	};
+
 	return setImmediate(cb, null, this);
 }
+
+Peers.prototype.me = function () {
+	var me = _.extend(constants.getConst('headers'), {state: Peer.STATE.ACTIVE});
+	delete me.ip;
+	return me;
+};
 
 /**
  * Returns a peer instance.
@@ -49,7 +88,13 @@ Peers.prototype.create = function (peer) {
  */
 Peers.prototype.exists = function (peer) {
 	peer = self.create(peer);
-	return !!__private.peers[peer.string];
+
+	var preferablyFromNonceAddress =
+		self.nonceToAddressMapper.getAddress(peer.nonce) ||
+		self.nonceToAddressMapper.getAddress(self.nonceToAddressMapper.getNonce(peer.string)) ||
+		peer.string;
+
+	return !!__private.peers[preferablyFromNonceAddress];
 };
 
 /**
@@ -75,11 +120,12 @@ Peers.prototype.get = function (peer) {
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
-		peer.updated = Date.now();
-		__private.peers[peer.string] = peer;
-
-		library.logger.debug('Inserted new peer', peer.string);
-		library.logger.trace('Inserted new peer', {peer: peer});
+		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
+			peer.updated = Date.now();
+			__private.peers[peer.string] = peer;
+			library.logger.debug('Inserted new peer', peer.string);
+			library.logger.trace('Inserted new peer', {peer: peer}, 'myself: ', self.me());
+		}
 	};
 
 	// Update existing peer
@@ -103,9 +149,16 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	};
 
 	peer = self.create(peer);
-	
+	peer.string = peer.string || self.nonceToAddressMapper.getAddress(peer.nonce);
 	if (!peer.string) {
 		library.logger.warn('Upsert invalid peer rejected', {peer: peer});
+		return false;
+	}
+
+	try {
+		self.nonceToAddressMapper.addSafely(peer.nonce, peer.string);
+	} catch (error) {
+		library.logger.warn(error.message);
 		return false;
 	}
 
@@ -129,7 +182,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 
 	_.each(__private.peers, function (peer, index) {
 		++cnt_total;
-		if (peer.state === 2) {
+		if (peer.state === Peer.STATE.ACTIVE) {
 			++cnt_active;
 		}
 		if (!peer.height) {
@@ -173,7 +226,7 @@ Peers.prototype.unban = function (peer) {
 	peer = self.get(peer);
 	if (peer) {
 		delete peer.clock;
-		peer.state = 1;
+		peer.state = Peer.STATE.DISCONNECTED;
 		library.logger.debug('Released ban for peer', peer.string);
 	} else {
 		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});

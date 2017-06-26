@@ -148,8 +148,6 @@ __private.query = function (action, config, cb) {
 			return done(e);
 		}
 
-		// console.log(sql.query, sql.values);
-
 		library.db.query(sql.query, sql.values).then(function (rows) {
 			return done(null, rows);
 		}).catch(function (err) {

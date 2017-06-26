@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var ip = require('ip');
+var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
 /**
  * Creates a peer.
@@ -14,6 +15,15 @@ var ip = require('ip');
  */
 // Constructor
 function Peer (peer) {
+
+	Object.defineProperties(this, {
+		rpc: {
+			get: function () {
+				return wsRPC.getClientRPCStub(this.ip, this.port);
+			}.bind(this)
+		}
+	});
+
 	return this.accept(peer || {});
 }
 
@@ -44,12 +54,14 @@ Peer.prototype.properties = [
 	'height',
 	'clock',
 	'updated',
-	'nonce'
+	'nonce',
+	'httpPort'
 ];
 
 Peer.prototype.immutable = [
 	'ip',
 	'port',
+	'httpPort',
 	'string'
 ];
 
@@ -71,6 +83,12 @@ Peer.prototype.nullable = [
 	'clock',
 	'updated'
 ];
+
+Peer.STATE = {
+	BANNED: 0,
+	DISCONNECTED: 1,
+	ACTIVE: 2
+};
 
 // Public methods
 /**
@@ -101,10 +119,12 @@ Peer.prototype.accept = function (peer) {
 	return this;
 };
 
+
+
 /**
  * Normalizes peer data.
  * @param {peer} peer
- * @return {peer} 
+ * @return {peer}
  */
 Peer.prototype.normalize = function (peer) {
 	if (peer.dappid && !Array.isArray(peer.dappid)) {
@@ -118,10 +138,7 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.port = this.parseInt(peer.port, 0);
-
-	if (!/^[0-2]{1}$/.test(peer.state)) {
-		peer.state = 1;
-	}
+	peer.state = this.parseInt(peer.state, null);
 
 	return peer;
 };
@@ -146,7 +163,6 @@ Peer.prototype.parseInt = function (integer, fallback) {
  */
 Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
-	headers = this.normalize(headers);
 	this.update(headers);
 	return headers;
 };
@@ -162,7 +178,7 @@ Peer.prototype.update = function (peer) {
 	// Accept only supported properties
 	_.each(this.properties, function (key) {
 		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === 0 && peer.state === 2) && !_.includes(this.immutable, key)) {
+		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === Peer.STATE.BANNED) && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));
@@ -186,6 +202,7 @@ Peer.prototype.object = function () {
 		}
 	});
 
+	delete copy.rpc;
 	return copy;
 };
 

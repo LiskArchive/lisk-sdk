@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
+var Peer = require('../logic/peer.js');
 var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
@@ -110,8 +111,8 @@ __private.banPeer = function (options, extraMessage) {
  * @param {string} extraMessage
  */
 __private.removePeer = function (options, extraMessage) {
-	library.logger.debug([options.code, 'Removing peer', options.peer.string, extraMessage].join(' '));
-	modules.peers.remove(options.peer.ip, options.peer.port);
+	library.logger.debug([options.code, 'Removing peer', options.peer.ip + ':' + options.peer.port, extraMessage].join(' '));
+	return modules.peers.remove(options.peer.ip, options.peer.port);
 };
 
 /**
@@ -225,7 +226,7 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 
 /**
  * Normalizes transaction and bans peer if it fails.
- * Calls balancesSequence.add to receive transaction and 
+ * Calls balancesSequence.add to receive transaction and
  * processUnconfirmedTransaction to confirm it.
  * @private
  * @implements {library.logic.transaction.objectNormalize}
@@ -253,7 +254,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	}
 
 	library.balancesSequence.add(function (cb) {
-		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + peer.string);
+		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + peer.ip + ':' + peer.port);
 		modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
 			if (err) {
 				library.logger.debug(['Transaction', id].join(' '), err.toString());
@@ -281,24 +282,19 @@ Transport.prototype.headers = function (headers) {
 	return __private.headers;
 };
 
-/**
- * Gets consensus
- * @return {number} broadcaster consensus
- */
-Transport.prototype.consensus = function () {
-	return __private.broadcaster.consensus;
-};
 
 /**
  * Returns true if broadcaster consensus is less than minBroadhashConsensus.
  * Returns false if consensus is undefined.
+ * @param {number} [modules.peers.getConsensus()]
  * @return {boolean}
  */
-Transport.prototype.poorConsensus = function () {
-	if (__private.broadcaster.consensus === undefined) {
+Transport.prototype.poorConsensus = function (consensus) {
+	var consensus = consensus || modules.peers.getConsensus();
+	if (consensus === undefined) {
 		return false;
 	} else {
-		return (__private.broadcaster.consensus < constants.minBroadhashConsensus);
+		return (consensus < constants.minBroadhashConsensus);
 	}
 };
 
@@ -311,127 +307,6 @@ Transport.prototype.poorConsensus = function () {
  */
 Transport.prototype.getPeers = function (params, cb) {
 	return __private.broadcaster.getPeers(params, cb);
-};
-
-/**
- * Calls peers.list based on config options to get peers, calls getFromPeer
- * with first peer from list.
- * @implements {modules.peers.list}
- * @implements {getFromPeer}
- * @param {Object} config
- * @param {function|Object} options
- * @param {function} cb
- * @return {setImmediateCallback|getFromPeer} error | calls getFromPeer
- */
-Transport.prototype.getFromRandomPeer = function (config, options, cb) {
-	if (typeof options === 'function') {
-		cb = options;
-		options = config;
-		config = {};
-	}
-	config.limit = 1;
-	modules.peers.list(config, function (err, peers) {
-		if (!err && peers.length) {
-			return self.getFromPeer(peers[0], options, cb);
-		} else {
-			return setImmediate(cb, err || 'No acceptable peers found');
-		}
-	});
-};
-
-/**
- * Requests information from peer(ip, port, url) and validates response:
- * - status 200
- * - headers valid schema
- * - same network (response headers nethash)
- * - compatible version (response headers version)
- * Removes peer if error, updates peer otherwise
- * @requires {popsicle}
- * @implements {library.logic.peers.create}
- * @implements {library.schema.validate}
- * @implements {modules.system.networkCompatible}
- * @implements {modules.system.versionCompatible}
- * @implements {modules.peers.update}
- * @implements {__private.removePeer}
- * @implements {__private.banPeer}
- * @param {peer} peer
- * @param {Object} options
- * @param {function} cb
- * @return {setImmediateCallback|Object} error message | {body, peer}
- * @todo implements secure http request with https
- */
-Transport.prototype.getFromPeer = function (peer, options, cb) {
-	var url;
-
-	if (options.api) {
-		url = '/peer' + options.api;
-	} else {
-		url = options.url;
-	}
-
-	peer = library.logic.peers.create(peer);
-
-	var req = {
-		url: 'http://' + peer.ip + ':' + peer.port + url,
-		method: options.method,
-		headers: __private.headers,
-		timeout: library.config.peers.options.timeout
-	};
-
-	if (options.data) {
-		req.body = options.data;
-	}
-
-	popsicle.request(req)
-		.use(popsicle.plugins.parse(['json'], false))
-		.then(function (res) {
-			if (res.status !== 200) {
-				// Remove peer
-				__private.removePeer({peer: peer, code: 'ERESPONSE ' + res.status}, req.method + ' ' + req.url);
-
-				return setImmediate(cb, ['Received bad response code', res.status, req.method, req.url].join(' '));
-			} else {
-				var headers = peer.applyHeaders(res.headers);
-
-				var report = library.schema.validate(headers, schema.headers);
-				if (!report) {
-					// Remove peer
-					__private.removePeer({peer: peer, code: 'EHEADERS'}, req.method + ' ' + req.url);
-
-					return setImmediate(cb, ['Invalid response headers', JSON.stringify(headers), req.method, req.url].join(' '));
-				}
-
-				if (!modules.system.networkCompatible(headers.nethash)) {
-					// Remove peer
-					__private.removePeer({peer: peer, code: 'ENETHASH'}, req.method + ' ' + req.url);
-
-					return setImmediate(cb, ['Peer is not on the same network', headers.nethash, req.method, req.url].join(' '));
-				}
-
-				if (!modules.system.versionCompatible(headers.version)) {
-					// Remove peer
-					__private.removePeer({peer: peer, code: 'EVERSION:' + headers.version}, req.method + ' ' + req.url);
-
-					return setImmediate(cb, ['Peer is using incompatible version', headers.version, req.method, req.url].join(' '));
-				}
-
-				modules.peers.update(peer);
-
-				return setImmediate(cb, null, {body: res.body, peer: peer});
-			}
-		}).catch(function (err) {
-			if (peer) {
-				if (err.code === 'EUNAVAILABLE') {
-				// Remove peer
-					__private.removePeer({peer: peer, code: err.code}, req.method + ' ' + req.url);
-				} else {
-				// Ban peer for 1 minute
-					__private.banPeer({peer: peer, code: err.code, clock: 60}, req.method + ' ' + req.url);
-				}
-			}
-
-			return setImmediate(cb, [err.code, 'Request failed', req.method, req.url].join(' '));
-		});
 };
 
 /**
@@ -488,7 +363,7 @@ Transport.prototype.onBlockchainReady = function () {
  */
 Transport.prototype.onSignature = function (signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
-		__private.broadcaster.enqueue({}, {api: '/signatures', data: {signature: signature}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: 'postSignatures', data: {signature: signature}});
 		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
@@ -504,7 +379,7 @@ Transport.prototype.onSignature = function (signature, broadcast) {
  */
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
-		__private.broadcaster.enqueue({}, {api: '/transactions', data: {transaction: transaction}, method: 'POST'});
+		__private.broadcaster.enqueue({}, {api: 'postTransactions', data: {transaction: transaction}});
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
@@ -521,14 +396,31 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
  */
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
-		var broadhash = modules.system.getBroadhash();
-
 		modules.system.update(function () {
-			if (!__private.broadcaster.maxRelays(block)) {
-				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
+			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
+				modules.peers.list({}, function (err, peers) {
+					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.ACTIVE; }), function (peer, cb) {
+						peer.rpc.acceptPeer(library.logic.peers.me(), function (err) {
+							if (err) {
+								library.logger.debug('Failed to update peer after new block applied', peer.string);
+								cb({errorMsg: err, peer: peer});
+								__private.banPeer({peer: peer, code: 'ECOMMON', clock: 600});
+							} else {
+								library.logger.debug('Peer notified correctly after update', peer.string);
+								cb();
+							}
+						});
+					}, function (err) {
+						if (err) {
+							library.logger.debug('Broadcasting block aborted - cannot update info at peer: ', err.peer.ip + ':' + err.peer.port);
+						} else {
+							__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}, {api: 'postBlock', data: {block: block}, immediate: true});
+						}
+					});
+				});
 			}
-			library.network.io.sockets.emit('blocks/change', block);
 		});
+		library.network.io.sockets.emit('blocks/change', block);
 	}
 };
 
@@ -540,9 +432,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
  * @param {Object} broadcast
  */
 Transport.prototype.onMessage = function (msg, broadcast) {
-	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
-		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST', immediate: true});
-	}
+	library.logger.debug('Dapps messsages not supported');
 };
 
 /**
@@ -557,7 +447,7 @@ Transport.prototype.cleanup = function (cb) {
 
 /**
  * Returns true if modules are loaded and private variable loaded is true.
- * @return {boolean} 
+ * @return {boolean}
  */
 Transport.prototype.isLoaded = function () {
 	return modules && __private.loaded;
@@ -569,31 +459,41 @@ Transport.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Transport.prototype.internal = {
-	blocksCommon: function (ids, peer, extraLogMessage, cb) {
-		var escapedIds = ids
-			// Remove quotes
-			.replace(/['"]+/g, '')
-			// Separate by comma into an array
-			.split(',')
-			// Reject any non-numeric values
-			.filter(function (id) {
-				return /^[0-9]+$/.test(id);
+	blocksCommon: function (query, cb) {
+		query = query || {};
+		return library.schema.validate(query, schema.commonBlock, function (err, valid) {
+			if (err) {
+				err = err[0].message + ': ' + err[0].path;
+				library.logger.debug('Common block request validation failed', {err: err.toString(), req: query});
+				return setImmediate(cb, err);
+			}
+
+			var escapedIds = query.ids
+				// Remove quotes
+				.replace(/['"]+/g, '')
+				// Separate by comma into an array
+				.split(',')
+				// Reject any non-numeric values
+				.filter(function (id) {
+					return /^[0-9]+$/.test(id);
+				});
+
+			if (!escapedIds.length) {
+				library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: query.ids});
+
+				// Ban peer for 10 minutes
+				__private.banPeer({peer: query.peer, code: 'ECOMMON', clock: 600}, query.extraLogMessage);
+
+				return setImmediate(cb, 'Invalid block id sequence');
+			}
+
+			library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
+				return setImmediate(cb, null, { success: true, common: rows[0] || null });
+			}).catch(function (err) {
+				library.logger.error(err.stack);
+				return setImmediate(cb, 'Failed to get common block');
 			});
 
-		if (!escapedIds.length) {
-			library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: ids});
-
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'ECOMMON', clock: 600}, extraLogMessage);
-
-			return setImmediate(cb, 'Invalid block id sequence');
-		}
-
-		library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
-			return setImmediate(cb, null, { success: true, common: rows[0] || null });
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Failed to get common block');
 		});
 	},
 
@@ -602,6 +502,7 @@ Transport.prototype.internal = {
 		// According to maxium payload of 58150 bytes per block with every transaction being a vote
 		// Discounting maxium compression setting used in middleware
 		// Maximum transport payload = 2000000 bytes
+		query = query || {};
 		modules.blocks.utils.loadBlocksData({
 			limit: 34, // 1977100 bytes
 			lastId: query.lastBlockId
@@ -614,16 +515,17 @@ Transport.prototype.internal = {
 		});
 	},
 
-	postBlock: function (block, peer, extraLogMessage, cb) {
+	postBlock: function (query, cb) {
+		query = query || {};
 		try {
-			block = library.logic.block.objectNormalize(block);
+			var block = library.logic.block.objectNormalize(query.block);
 		} catch (e) {
-			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: block });
+			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 
 			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'EBLOCK', clock: 600}, extraLogMessage);
+			__private.banPeer({peer: query.peer, code: 'EBLOCK', clock: 600}, query.extraLogMessage);
 
-			return setImmediate(cb, null, {success: false, error: e.toString()});
+			return setImmediate(cb, e.toString());
 		}
 
 		library.bus.message('receiveBlock', block);
@@ -632,18 +534,23 @@ Transport.prototype.internal = {
 	},
 
 	list: function (req, cb) {
-		modules.peers.list({limit: constants.maxPeers}, function (err, peers) {
+		req = req || {};
+		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
 	},
 
 	height: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.blocks.lastBlock.get().height});
+		return setImmediate(cb, null, {success: true, height: modules.system.getHeight()});
 	},
 
 	ping: function (req, cb) {
 		return setImmediate(cb, null, {success: true});
+	},
+
+	status: function (req, cb) {
+		return setImmediate(cb, null, {success: true, height: constants.headers.height, broadhash: constants.headers.broadhash, nonce: constants.headers.nonce});
 	},
 
 	postSignatures: function (query, cb) {
@@ -677,22 +584,20 @@ Transport.prototype.internal = {
 					signatures: trs.signatures
 				});
 			}
-
 			return setImmediate(__cb);
 		}, function () {
 			return setImmediate(cb, null, {success: true, signatures: signatures});
 		});
 	},
 
-	getTransactions: function (req, cb) {
+	getTransactions: function (query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
-
 		return setImmediate(cb, null, {success: true, transactions: transactions});
 	},
 
-	postTransactions: function (query, peer, extraLogMessage, cb) {
+	postTransactions: function (query, cb) {
 		if (query.transactions) {
-			__private.receiveTransactions(query, peer, extraLogMessage, function (err) {
+			__private.receiveTransactions(query, query.peer, query.extraLogMessage, function (err) {
 				if (err) {
 					return setImmediate(cb, null, {success: false, message: err});
 				} else {
@@ -700,7 +605,7 @@ Transport.prototype.internal = {
 				}
 			});
 		} else {
-			__private.receiveTransaction(query.transaction, peer, extraLogMessage, function (err, id) {
+			__private.receiveTransaction(query.transaction, query.peer, query.extraLogMessage, function (err, id) {
 				if (err) {
 					return setImmediate(cb, null, {success: false,  message: err});
 				} else {
@@ -778,80 +683,24 @@ Transport.prototype.internal = {
 		});
 	},
 
-	handshake: function (ip, port, headers, validateHeaders, cb) {
-		var peer = library.logic.peers.create(
-			{
-				ip: ip,
-				port: port
-			}
-		);
+	/**
+	 * @param {Peer} peer
+	 * @param {function} cb
+	 */
+	removePeer: function (peer, cb) {
+		return setImmediate(cb, __private.removePeer({peer: peer, code: 0}, '') ? null : 'Failed to remove peer');
+	},
 
-		var headers = peer.applyHeaders(headers);
-
-		validateHeaders(headers, function (error, extraMessage) {
-			if (error) {
-				// Remove peer
-				__private.removePeer({peer: peer, code: 'EHEADERS'}, extraMessage);
-
-				return setImmediate(cb, {success: false, error: error});
-			}
-
-			if (!modules.system.networkCompatible(headers.nethash)) {
-				// Remove peer
-				__private.removePeer({peer: peer, code: 'ENETHASH'}, extraMessage);
-
-				return setImmediate(cb, {
-					success: false,
-					message: 'Request is made on the wrong network',
-					expected: modules.system.getNethash(),
-					received: headers.nethash
-				});
-			}
-
-			if (!modules.system.versionCompatible(headers.version)) {
-				// Remove peer
-				__private.removePeer({
-					peer: peer,
-					code: 'EVERSION:' + headers.version
-				}, extraMessage);
-
-				return setImmediate(cb, {
-					success: false,
-					message: 'Request is made from incompatible version',
-					expected: modules.system.getMinVersion(),
-					received: headers.version
-				});
-			}
-
-			modules.peers.update(peer);
-
-			return setImmediate(cb, null, peer);
-		});
-	}
-};
-
-// Shared API
-shared.message = function (msg, cb) {
-	msg.timestamp = Math.floor(Date.now() / 1000);
-	msg.hash = __private.hashsum(msg.body, msg.timestamp);
-
-	__private.broadcaster.enqueue({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
-
-	return setImmediate(cb, null, {});
-};
-
-shared.request = function (msg, cb) {
-	msg.timestamp = Math.floor(Date.now() / 1000);
-	msg.hash = __private.hashsum(msg.body, msg.timestamp);
-
-	if (msg.body.peer) {
-		self.getFromPeer({ip: msg.body.peer.ip, port: msg.body.peer.port}, {
-			api: '/dapp/request',
-			data: msg,
-			method: 'POST'
-		}, cb);
-	} else {
-		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST'}, cb);
+	/**
+	 * @param {Peer} peer
+	 * @param {function} cb
+	 */
+	acceptPeer: function (peer, cb) {
+		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
+			return setImmediate(cb, 'No headers information');
+		}
+		library.logger.debug('transport --- accept peer: ', peer.ip + ':' + peer.port + '#' + peer.nonce + '#' + peer.height + '#' + peer.broadhash);
+		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };
 

@@ -1,7 +1,8 @@
 'use strict';
 
 var async = require('async');
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var totalMembers = node.randomNumber(2, 16);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);
@@ -22,7 +23,7 @@ var multiSigTx = {
 function sendLISK (account, i, done) {
 	var randomLISK = node.randomLISK();
 
-	node.put('/api/transactions/', {
+	http.put('/api/transactions/', {
 		secret: node.gAccount.password,
 		amount: randomLISK,
 		recipientId: account.address
@@ -36,7 +37,7 @@ function sendLISK (account, i, done) {
 }
 
 function sendLISKFromMultisigAccount (amount, recipient, done) {
-	node.put('/api/transactions/', {
+	http.put('/api/transactions/', {
 		secret: multisigAccount.password,
 		amount: amount,
 		recipientId: recipient
@@ -57,7 +58,7 @@ function confirmTransaction (transactionId, passphrases, done) {
 		function (untilCb) {
 			var passphrase = passphrases[count];
 
-			node.post('/api/multisignatures/sign', {
+			http.post('/api/multisignatures/sign', {
 				secret: passphrase,
 				transactionId: transactionId
 			}, function (err, res) {
@@ -131,7 +132,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using random passphase should fail', function (done) {
 		validParams.secret = node.randomPassword();
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
@@ -141,7 +142,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using owner\'s public key in keysgroup should fail', function (done) {
 		validParams.secret = accounts[accounts.length - 1].password;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -151,7 +152,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using empty keysgroup should fail', function (done) {
 		validParams.keysgroup = [];
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -161,7 +162,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using no keysgroup should fail', function (done) {
 		delete validParams.keysgroup;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -171,7 +172,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using string keysgroup should fail', function (done) {
 		validParams.keysgroup = 'invalid';
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -181,7 +182,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using no passphase should fail', function (done) {
 		delete validParams.secret;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -191,7 +192,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using invalid passphrase should fail', function (done) {
 		validParams.secret = multisigAccount.password + 'inv4lid';
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -201,7 +202,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using no lifetime', function (done) {
 		delete validParams.lifetime;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -211,7 +212,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using string lifetime should fail', function (done) {
 		validParams.lifetime = 'invalid';
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -221,7 +222,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using lifetime greater than maximum allowed should fail', function (done) {
 		validParams.lifetime = 73;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -231,7 +232,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using lifetime == 0 should fail', function (done) {
 		validParams.lifetime = 0;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -241,7 +242,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using negative lifetime should fail', function (done) {
 		validParams.lifetime = -1;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -251,7 +252,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using no min should fail', function (done) {
 		delete validParams.min;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -261,7 +262,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using string min should fail', function (done) {
 		validParams.min = 'invalid';
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -271,7 +272,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using min greater than the total members should fail', function (done) {
 		validParams.min = totalMembers + 5;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -281,7 +282,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using min == 0 should fail', function (done) {
 		validParams.min = 0;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -291,7 +292,7 @@ describe('PUT /api/multisignatures', function () {
 	it('using negative min should fail', function (done) {
 		validParams.min = -1;
 
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -299,7 +300,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using valid params should be ok', function (done) {
-		node.put('/api/multisignatures', validParams, function (err, res) {
+		http.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
 			multiSigTx.txId = res.body.transactionId;
@@ -320,7 +321,7 @@ describe('GET /api/multisignatures/pending', function () {
 	it('using invalid public key should fail', function (done) {
 		var publicKey = 1234;
 
-		node.get('/api/multisignatures/pending?publicKey=' + publicKey, function (err, res) {
+		http.get('/api/multisignatures/pending?publicKey=' + publicKey, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -328,7 +329,7 @@ describe('GET /api/multisignatures/pending', function () {
 	});
 
 	it('using no public key should be ok', function (done) {
-		node.get('/api/multisignatures/pending?publicKey=', function (err, res) {
+		http.get('/api/multisignatures/pending?publicKey=', function (err, res) {
 			node.expect(res.body).to.have.property('success');
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
@@ -338,7 +339,7 @@ describe('GET /api/multisignatures/pending', function () {
 	});
 
 	it('using valid public key should be ok', function (done) {
-		node.get('/api/multisignatures/pending?publicKey=' + multisigAccount.publicKey, function (err, res) {
+		http.get('/api/multisignatures/pending?publicKey=' + multisigAccount.publicKey, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions.length).to.be.at.least(1);
@@ -381,7 +382,7 @@ describe('PUT /api/transactions', function () {
 	it('when group transaction is pending should be ok', function (done) {
 		sendLISKFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + transactionId, function (err, res) {
+				http.get('/api/transactions/get?id=' + transactionId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(transactionId);
@@ -411,7 +412,7 @@ describe('POST /api/multisignatures/sign (group)', function () {
 	it('using random passphrase should fail', function (done) {
 		validParams.secret = node.randomPassword();
 
-		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+		http.post('/api/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			done();
 		});
@@ -420,7 +421,7 @@ describe('POST /api/multisignatures/sign (group)', function () {
 	it('using null passphrase should fail', function (done) {
 		validParams.secret = null;
 
-		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+		http.post('/api/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			done();
 		});
@@ -429,7 +430,7 @@ describe('POST /api/multisignatures/sign (group)', function () {
 	it('using undefined passphrase should fail', function (done) {
 		validParams.secret = undefined;
 
-		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+		http.post('/api/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			done();
 		});
@@ -438,7 +439,7 @@ describe('POST /api/multisignatures/sign (group)', function () {
 	it('using one less than total signatures should not confirm transaction', function (done) {
 		confirmTransaction(multiSigTx.txId, passphrases.slice(0, (passphrases.length - 1)), function () {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+				http.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
@@ -447,7 +448,7 @@ describe('POST /api/multisignatures/sign (group)', function () {
 	});
 
 	it('using same signature again should fail', function (done) {
-		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+		http.post('/api/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Transaction already signed');
 			done();
@@ -455,9 +456,9 @@ describe('POST /api/multisignatures/sign (group)', function () {
 	});
 
 	it('using same signature again should not confirm transaction', function (done) {
-		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+		http.post('/api/multisignatures/sign', validParams, function (err, res) {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+				http.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
@@ -468,7 +469,7 @@ describe('POST /api/multisignatures/sign (group)', function () {
 	it('using one more signature should confirm transaction', function (done) {
 		confirmTransaction(multiSigTx.txId, passphrases.slice(-1), function () {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+				http.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(multiSigTx.txId);
@@ -507,7 +508,7 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 	it('using one less than minimum signatures should not confirm transaction', function (done) {
 		confirmTransaction(multiSigTx.txId, passphrases.slice(0, (multiSigTx.min - 1)), function () {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+				http.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
@@ -516,7 +517,7 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 	});
 
 	it('using same signature again should fail', function (done) {
-		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+		http.post('/api/multisignatures/sign', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Transaction already signed');
 			done();
@@ -524,9 +525,9 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 	});
 
 	it('using same signature again should not confirm transaction', function (done) {
-		node.post('/api/multisignatures/sign', validParams, function (err, res) {
+		http.post('/api/multisignatures/sign', validParams, function (err, res) {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+				http.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
 				});
@@ -537,7 +538,7 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 	it('using one more signature should confirm transaction', function (done) {
 		confirmTransaction(multiSigTx.txId, passphrases.slice(-1), function () {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
+				http.get('/api/transactions/get?id=' + multiSigTx.txId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(multiSigTx.txId);
@@ -553,7 +554,7 @@ describe('POST /api/multisignatures/sign (regular account)', function () {
 	var transactionId;
 
 	before(function (done) {
-		node.put('/api/transactions/', {
+		http.put('/api/transactions/', {
 			secret: node.gAccount.password ,
 			amount: 1,
 			recipientId: accounts[0].address
@@ -567,7 +568,7 @@ describe('POST /api/multisignatures/sign (regular account)', function () {
 
 	it('should be impossible to sign the transaction', function (done) {
 		node.onNewBlock(function (err) {
-			node.get('/api/transactions/get?id=' + transactionId, function (err, res) {
+			http.get('/api/transactions/get?id=' + transactionId, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction');
 				node.expect(res.body.transaction).to.have.property('id').to.equal(transactionId);
@@ -580,7 +581,7 @@ describe('POST /api/multisignatures/sign (regular account)', function () {
 	});
 
 	it('should have no pending multisignatures', function (done) {
-		node.get('/api/multisignatures/pending?publicKey=' + accounts[0].publicKey, function (err, res) {
+		http.get('/api/multisignatures/pending?publicKey=' + accounts[0].publicKey, function (err, res) {
 			node.expect(res.body).to.have.property('success');
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');

@@ -1,5 +1,6 @@
 {
     "port": 4000,
+    "httpPort": 5000,
     "address": "0.0.0.0",
     "version": "0.0.0a",
     "minVersion": "0.0.0a",
@@ -45,7 +46,10 @@
     },
     "peers": {
         "enabled": true,
-        "list": [],
+        "list": [{
+            "ip": "127.0.0.1",
+            "port": "4000"
+        }],
         "access": {
             "blackList": []
         },

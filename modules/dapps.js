@@ -1557,7 +1557,6 @@ DApps.prototype.internal = {
 						} catch (e) {
 							return setImmediate(cb, e.toString());
 						}
-
 						modules.transactions.receiveTransactions([transaction], true, cb);
 					});
 				}

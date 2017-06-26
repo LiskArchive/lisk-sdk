@@ -1058,6 +1058,9 @@ Transaction.prototype.schema = {
  * @throws {string} error message
  */
 Transaction.prototype.objectNormalize = function (trs) {
+	if (_.isEmpty(trs)) {
+		throw 'Empty trs passed';
+	}
 	if (!__private.types[trs.type]) {
 		throw 'Unknown transaction type ' + trs.type;
 	}

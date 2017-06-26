@@ -4,11 +4,15 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "test": "./node_modules/.bin/grunt test --verbose",
-    "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
     "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
-    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
+    "test": "grunt test --verbose",
+    "test-unit": "grunt test-unit --verbose",
+    "test-integration": "export TEST=test/integration/peers.integration.js && export NODE_ENV=TEST && grunt travis",
+    "test-functional": "grunt test-functional",
+    "travis": "grunt travis --verbose",
+    "fetchCoverage": "grunt exec:fetchCoverage --verbose",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
+    "create-bundles": "webpack",
     "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -46,11 +50,14 @@
     "rimraf": "=2.5.4",
     "semver": "=5.3.0",
     "socket.io": "=1.7.2",
+    "socketcluster": "=5.14.2",
+    "socketcluster-client": "=5.3.0",
     "sodium": "LiskHQ/node-sodium#515b166",
     "strftime": "=0.10.0",
     "valid-url": "=1.0.9",
     "validator": "=6.2.1",
     "validator.js": "=2.0.3",
+    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#47b53a59f72441686314296f619b67cc8e855e21",
     "z-schema": "=3.18.2"
   },
   "devDependencies": {
@@ -70,11 +77,14 @@
     "grunt-obfuscator": "=0.1.0",
     "istanbul": "=0.4.5",
     "istanbul-middleware": "=0.2.2",
-    "jsdoc": "^3.4.3",
+    "jsdoc": "=3.4.3",
     "jsdox": "=0.4.10",
     "mocha": "=3.2.0",
     "moment": "=2.17.1",
-    "sinon": "=1.17.7",
-    "supertest": "=3.0.0"
+    "pm2": "=2.4.6",
+    "sinon": "=2.0.0",
+    "supertest": "=3.0.0",
+    "webpack": "=2.6.1",
+    "webpack-node-externals": "=1.6.0"
   }
 }

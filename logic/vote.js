@@ -358,8 +358,6 @@ Vote.prototype.objectNormalize = function (trs) {
  * @return {null|votes} votes object
  */
 Vote.prototype.dbRead = function (raw) {
-	// console.log(raw.v_votes);
-
 	if (!raw.v_votes) {
 		return null;
 	} else {

@@ -9,8 +9,11 @@ var randomPeer = {
 	'ip': '40.40.40.40',
 	'os': 'unknown',
 	'port': 4000,
+	'httpPort': 4001,
 	'state': 2,
-	'version': '0.0.0'
+	'version': '0.0.0',
+	'nonce': 'randomnonce',
+	rpc: {}
 };
 
 module.exports = {

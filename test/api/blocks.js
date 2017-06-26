@@ -1,7 +1,7 @@
 'use strict';
 
-var node = require('./../node.js');
-var modulesLoader = require('./../common/initModule.js').modulesLoader;
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var block = {
 	blockHeight: 0,
@@ -16,7 +16,7 @@ var testBlocksUnder101 = false;
 describe('GET /api/blocks/getBroadhash', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getBroadhash', function (err, res) {
+		http.get('/api/blocks/getBroadhash', function (err, res) {
 			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
 			done();
 		});
@@ -26,7 +26,7 @@ describe('GET /api/blocks/getBroadhash', function () {
 describe('GET /api/blocks/getEpoch', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getEpoch', function (err, res) {
+		http.get('/api/blocks/getEpoch', function (err, res) {
 			node.expect(res.body).to.have.property('epoch').to.be.a('string');
 			done();
 		});
@@ -36,7 +36,7 @@ describe('GET /api/blocks/getEpoch', function () {
 describe('GET /api/blocks/getHeight', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getHeight', function (err, res) {
+		http.get('/api/blocks/getHeight', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			if (res.body.success && res.body.height != null) {
 				node.expect(res.body).to.have.property('height').to.be.above(0);
@@ -54,7 +54,7 @@ describe('GET /api/blocks/getHeight', function () {
 describe('GET /api/blocks/getFee', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getFee', function (err, res) {
+		http.get('/api/blocks/getFee', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('fee');
 			node.expect(res.body.fee).to.equal(node.fees.transactionFee);
@@ -66,7 +66,7 @@ describe('GET /api/blocks/getFee', function () {
 describe('GET /api/blocks/getfees', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getFees', function (err, res) {
+		http.get('/api/blocks/getFees', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('fees');
 			node.expect(res.body.fees.send).to.equal(node.fees.transactionFee);
@@ -83,7 +83,7 @@ describe('GET /api/blocks/getfees', function () {
 describe('GET /api/blocks/getNethash', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getNethash', function (err, res) {
+		http.get('/api/blocks/getNethash', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('nethash').to.be.a('string');
 			node.expect(res.body.nethash).to.equal(node.config.nethash);
@@ -95,7 +95,7 @@ describe('GET /api/blocks/getNethash', function () {
 describe('GET /api/blocks/getMilestone', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getMilestone', function (err, res) {
+		http.get('/api/blocks/getMilestone', function (err, res) {
 			node.expect(res.body).to.have.property('milestone').to.be.a('number');
 			done();
 		});
@@ -105,7 +105,7 @@ describe('GET /api/blocks/getMilestone', function () {
 describe('GET /api/blocks/getReward', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getReward', function (err, res) {
+		http.get('/api/blocks/getReward', function (err, res) {
 			node.expect(res.body).to.have.property('reward').to.be.a('number');
 			done();
 		});
@@ -115,7 +115,7 @@ describe('GET /api/blocks/getReward', function () {
 describe('GET /api/blocks/getSupply', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getSupply', function (err, res) {
+		http.get('/api/blocks/getSupply', function (err, res) {
 			node.expect(res.body).to.have.property('supply').to.be.a('number');
 			done();
 		});
@@ -125,7 +125,7 @@ describe('GET /api/blocks/getSupply', function () {
 describe('GET /api/blocks/getStatus', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/blocks/getStatus', function (err, res) {
+		http.get('/api/blocks/getStatus', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
 			node.expect(res.body).to.have.property('epoch').to.be.a('string');
@@ -140,96 +140,10 @@ describe('GET /api/blocks/getStatus', function () {
 	});
 });
 
-describe('GET /blocks (cache)', function () {
-
-	var cache;
-
-	before(function (done) {
-		node.config.cacheEnabled = true;
-		done();
-	});
-
-	before(function (done) {
-		modulesLoader.initCache(function (err, __cache) {
-			cache = __cache;
-			node.expect(err).to.not.exist;
-			node.expect(__cache).to.be.an('object');
-			return done(err, __cache);
-		});
-	});
-
-	after(function (done) {
-		cache.quit(done);
-	});
-
-	afterEach(function (done) {
-		cache.flushDb(function (err, status) {
-			node.expect(err).to.not.exist;
-			node.expect(status).to.equal('OK');
-			done(err, status);
-		});
-	});
-
-	it('cache blocks by the url and parameters when response is a success', function (done) {
-		var url, params;
-		url = '/api/blocks?';
-		params = 'height=' + block.blockHeight;
-		node.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body).to.have.property('count').to.equal(1);
-			var response = res.body;
-			cache.getJsonForKey(url + params, function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(response);
-				done();
-			});
-		});
-	});
-
-	it('should not cache if response is not a success', function (done) {
-		var url, params;
-		url = '/api/blocks?';
-		params = 'height=' + -1000;
-		node.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			cache.getJsonForKey(url + params, function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(null);
-				done();
-			});
-		});
-	});
-
-	it('should remove entry from cache on new block', function (done) {
-		var url, params;
-		url = '/api/blocks?';
-		params = 'height=' + block.blockHeight;
-		node.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body).to.have.property('count').to.equal(1);
-			var response = res.body;
-			cache.getJsonForKey(url + params, function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(response);
-				node.onNewBlock(function (err) {
-					node.expect(err).to.not.exist;
-					cache.getJsonForKey(url + params, function (err, res) {
-						node.expect(err).to.not.exist;
-						node.expect(res).to.eql(null);
-						done();
-					});
-				});
-			});
-		});
-	});
-});
-
 describe('GET /blocks', function () {
 
 	function getBlocks (params, done) {
-		node.get('/api/blocks?' + params, done);
+		http.get('/api/blocks?' + params, done);
 	}
 
 	it('using height should be ok', function (done) {
@@ -374,7 +288,7 @@ describe('GET /blocks', function () {
 describe('GET /api/blocks/get?id=', function () {
 
 	function getBlocks (id, done) {
-		node.get('/api/blocks/get?id=' + id, done);
+		http.get('/api/blocks/get?id=' + id, done);
 	}
 
 	it('using genesisblock id should be ok', function (done) {

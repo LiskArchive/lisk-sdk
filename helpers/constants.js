@@ -40,7 +40,7 @@
  * @property {number} totalAmount
  * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
  */
-module.exports = {
+var constants = {
 	activeDelegates: 101,
 	addressLength: 208,
 	blockHeaderLength: 248,
@@ -91,5 +91,18 @@ module.exports = {
 	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+
+	setConst: function (key, value) {
+		constants[key] = value;
+	},
+
+	getConst: function (key) {
+		if (!constants[key]) {
+			throw new Error('No ' + key + ' constant set.');
+		}
+		return constants[key];
+	}
 };
+
+module.exports = constants;

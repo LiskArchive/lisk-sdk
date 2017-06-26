@@ -1,13 +1,14 @@
 'use strict';
 
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var account = node.randomAccount();
 
 describe('POST /api/accounts/open', function () {
 
 	function openAccount (params, done) {
-		node.post('/api/accounts/open', params, done);
+		http.post('/api/accounts/open', params, done);
 	}
 
 	it('using known passphrase should be ok', function (done) {
@@ -97,7 +98,7 @@ describe('POST /api/accounts/open', function () {
 describe('GET /api/accounts/getBalance?address=', function () {
 
 	function getBalance (address, done) {
-		node.get('/api/accounts/getBalance?address=' + address, done);
+		http.get('/api/accounts/getBalance?address=' + address, done);
 	}
 
 	it('using known address should be ok', function (done) {
@@ -139,7 +140,7 @@ describe('GET /api/accounts/getBalance?address=', function () {
 describe('GET /api/accounts/getPublicKey?address=', function () {
 
 	function getPublicKey (address, done) {
-		node.get('/api/accounts/getPublicKey?address=' + address, done);
+		http.get('/api/accounts/getPublicKey?address=' + address, done);
 	}
 
 	it('using known address should be ok', function (done) {
@@ -179,7 +180,7 @@ describe('GET /api/accounts/getPublicKey?address=', function () {
 describe('POST /api/accounts/generatePublicKey', function () {
 
 	function generatePublicKey (params, done) {
-		node.post('/api/accounts/generatePublicKey', params, done);
+		http.post('/api/accounts/generatePublicKey', params, done);
 	}
 
 	it('using known passphrase should be ok', function (done) {
@@ -235,7 +236,7 @@ describe('POST /api/accounts/generatePublicKey', function () {
 describe('GET /accounts', function () {
 
 	function getAccounts (params, done) {
-		node.get('/api/accounts?' + params, done);
+		http.get('/api/accounts?' + params, done);
 	}
 
 	it('using known address should be ok', function (done) {

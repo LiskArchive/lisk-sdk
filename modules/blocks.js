@@ -152,7 +152,7 @@ Blocks.prototype.isCleaning = {
  * @public
  * @async
  * @method sandboxApi
- * @param  {string}   call Name of the function to be called 
+ * @param  {string}   call Name of the function to be called
  * @param  {Object}   args Arguments
  * @param  {Function} cb Callback function
  */

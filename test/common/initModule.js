@@ -6,7 +6,7 @@ var randomString = require('randomstring');
 
 var _ = require('lodash');
 
-var async = require('../node').async;
+var async = require('async');
 var dirname = path.join(__dirname, '..', '..');
 var config = require(path.join(dirname, '/config.json'));
 var database = require(path.join(dirname, '/helpers', 'database.js'));
@@ -23,6 +23,7 @@ var modulesLoader = new function () {
 
 	this.db = null;
 	this.logger = new Logger({ echo: null, errorLevel: config.fileLogLevel, filename: config.logFileName });
+	config.nonce = randomString.generate(16);
 	this.scope = {
 		config: config,
 		genesisblock: { block: genesisblock },
@@ -35,8 +36,7 @@ var modulesLoader = new function () {
 		ed: ed,
 		bus: {
 			message: function () {}
-		},
-		nonce: randomString.generate(16)
+		}
 	};
 
 	/**
@@ -110,6 +110,12 @@ var modulesLoader = new function () {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
 						memo[name] = initializedLogic;
+						if (typeof initializedLogic.bind === 'function') {
+							initializedLogic.bind({modules: modules});
+						}
+						if (typeof initializedLogic.bindModules === 'function') {
+							initializedLogic.bindModules(modules);
+						}
 						return mapCb(err, memo);
 					});
 				}.bind(this), waterCb);
@@ -120,6 +126,7 @@ var modulesLoader = new function () {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
 						memo[name] = module;
+						modules[name] = module;
 						return mapCb(err, memo);
 					}.bind(this));
 				}.bind(this), waterCb);
