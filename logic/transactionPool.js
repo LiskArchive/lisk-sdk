@@ -271,9 +271,11 @@ TransactionPool.prototype.countUnconfirmed = function () {
  * @param {transaction} transaction
  */
 TransactionPool.prototype.addBundledTransaction = function (transaction) {
-	self.bundled.transactions.push(transaction);
-	var index = self.bundled.transactions.indexOf(transaction);
-	self.bundled.index[transaction.id] = index;
+	if (self.bundled.index[transaction.id] === undefined) {
+		self.bundled.transactions.push(transaction);
+		var index = self.bundled.transactions.indexOf(transaction);
+		self.bundled.index[transaction.id] = index;
+	}
 };
 
 /**
