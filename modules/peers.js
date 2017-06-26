@@ -108,7 +108,7 @@ __private.getByFilter = function (filter, cb) {
 	};
 
 	// Apply filters (by AND)
-	var peers = library.logic.peers.list();
+	var peers = library.logic.peers.list(true);
 
 	peers = self.acceptable(peers);
 
@@ -370,7 +370,6 @@ Peers.prototype.ping = function (peer, cb) {
 			library.logger.trace('Ping peer failed: ' + peer.string, err);
 			return setImmediate(cb, err);
 		} else {
-			peer.applyHeaders({state: Peer.STATE.ACTIVE});
 			return setImmediate(cb);
 		}
 	});
@@ -484,7 +483,7 @@ Peers.prototype.list = function (options, cb) {
 					);
 				} else {
 					// Skip banned and disconnected peers (state 0 and 1)
-					return peer.state > Peer.STATE.ACTIVE;
+					return peer.state === Peer.STATE.ACTIVE;
 				}
 			});
 			matched = peersList.length;
@@ -581,7 +580,7 @@ Peers.prototype.onPeersReady = function () {
 			},
 			updatePeers: function (seriesCb) {
 				var updated = 0;
-				var peers = self.acceptable(library.logic.peers.list());
+				var peers = library.logic.peers.list();
 
 				library.logger.trace('Updating peers', {count: peers.length});
 

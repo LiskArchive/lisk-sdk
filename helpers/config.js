@@ -2,7 +2,6 @@
 
 var fs = require('fs');
 var path = require('path');
-var _ = require('lodash');
 
 var z_schema = require('./z_schema.js');
 var configSchema = require('../schema/config.js');

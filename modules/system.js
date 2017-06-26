@@ -159,10 +159,6 @@ System.prototype.versionCompatible = function (version) {
 	return semver.satisfies(version, this.minVersion);
 };
 
-System.prototype.getLastBroadhash = function () {
-	return __private.broadhash;
-};
-
 /**
  * Gets private nethash or creates a new one, based on input param and data.
  * @implements {library.db.query}
