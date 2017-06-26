@@ -68,11 +68,12 @@ module.exports = {
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
 	minBroadhashConsensus: 51,
-	nethashes:{
-		mainnet: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-		testnet: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-		devnet: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d'
-	},
+	nethashes: [
+		// Mainnet
+		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+		// Testnet
+		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
+	],
 	numberLength: 100000000,
 	requestLength: 104,
 	// WARNING: When changing rewards you also need to change getBlockRewards(int) SQL function!

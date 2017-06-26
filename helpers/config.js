@@ -44,7 +44,7 @@ function Config (configPath) {
  */
 function validateForce (configData) {
 	if (configData.forging.force) {
-		var index = _.values(constants.nethashes).indexOf(configData.nethash);
+		var index = constants.nethashes.indexOf(configData.nethash);
 
 		if (index !== -1) {
 			console.log('Forced forging disabled for nethash', configData.nethash);
