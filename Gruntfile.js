@@ -151,6 +151,8 @@ module.exports = function (grunt) {
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
+	grunt.registerTask('eslint-nofix', ['eslint']);
+	grunt.registerTask('jenkins', ['exec:coverageSingle']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
 	grunt.registerTask('test-functional', ['eslint', 'exec:testFunctional']);
 

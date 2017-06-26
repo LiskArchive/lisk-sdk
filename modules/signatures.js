@@ -25,11 +25,22 @@ __private.assetTypes = {};
  */
 // Constructor
 function Signatures (cb, scope) {
-	library = scope;
+	library = {
+		schema: scope.schema,
+		ed: scope.ed,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+	};
 	self = this;
 
 	__private.assetTypes[transactionTypes.SIGNATURE] = library.logic.transaction.attachAssetType(
-		transactionTypes.SIGNATURE, new Signature()
+		transactionTypes.SIGNATURE,
+		new Signature(
+			scope.schema,
+			scope.logger
+		)
 	);
 
 	setImmediate(cb, null, self);
@@ -57,16 +68,19 @@ Signatures.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 /**
- * Calls Signature.bind() with scope to create closure.
+ * Calls Signature.bind() with modules params.
  * @implements module:signatures#Signature~bind
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 Signatures.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		accounts: scope.accounts,
+		transactions: scope.transactions,
+	};
 
-	__private.assetTypes[transactionTypes.SIGNATURE].bind({
-		modules: modules, library: library
-	});
+	__private.assetTypes[transactionTypes.SIGNATURE].bind(
+		scope.accounts
+	);
 };
 
 // Shared API

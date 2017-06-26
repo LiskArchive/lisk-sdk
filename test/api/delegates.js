@@ -2,6 +2,7 @@
 
 var node = require('../node.js');
 var http = require('../common/httpCommunication.js');
+var modulesLoader = require('./../common/initModule.js').modulesLoader;
 var genesisDelegates = require('../genesisDelegates.json');
 
 function openAccount (params, done) {
@@ -102,40 +103,41 @@ describe('PUT /api/accounts/delegates with funds', function () {
 	});
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = '"+' + node.eAccount.publicKey + '","+' + node.eAccount.publicKey + '"';
+		var votedDelegate = Array(2).fill('+' + node.eAccount.publicKey);
 
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: [votedDelegate]
+			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.include('Failed to validate vote schema:');
 			done();
 		});
 	});
 
 	it('when downvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = '"+' + node.eAccount.publicKey + '","+' + node.eAccount.publicKey + '"';
+		var votedDelegate = Array(2).fill('-' + node.eAccount.publicKey);
 
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: [votedDelegate]
+			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.include('Failed to validate vote schema:');
 			done();
 		});
 	});
 
 	it('when upvoting and downvoting within same request should fail', function (done) {
-		var votedDelegate = '"+' + node.eAccount.publicKey + '","-' + node.eAccount.publicKey + '"';
+		var votedDelegate = ['-' + node.eAccount.publicKey, '+' + node.eAccount.publicKey];
 
 		putAccountsDelegates({
 			secret: account.password,
-			delegates: [votedDelegate]
+			delegates: votedDelegate
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.equal('Multiple votes for same delegate are not allowed');
 			done();
 		});
 	});
@@ -200,7 +202,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: ['+' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.include('String is too short ');
 			done();
 		});
 	});
@@ -211,7 +213,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.include('String is too short ');
 			done();
 		});
 	});
@@ -222,7 +224,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: ['+']
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.include('Invalid vote format');
 			done();
 		});
 	});
@@ -233,7 +235,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: ['-']
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.include('Invalid vote format');
 			done();
 		});
 	});
@@ -244,7 +246,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 			delegates: ''
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.equal('Failed to validate vote schema: Expected type array but found type string');
 			done();
 		});
 	});
@@ -369,6 +371,92 @@ describe('PUT /api/delegates with funds', function () {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
+				});
+			});
+		});
+	});
+});
+
+describe('GET /api/delegates (cache)', function () {
+	var cache;
+
+	before(function (done) {
+		node.config.cacheEnabled = true;
+		done();
+	});
+
+	before(function (done) {
+		modulesLoader.initCache(function (err, __cache) {
+			cache = __cache;
+			node.expect(err).to.not.exist;
+			node.expect(__cache).to.be.an('object');
+			return done(err, __cache);
+		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
+	});
+
+	afterEach(function (done) {
+		cache.flushDb(function (err, status) {
+			node.expect(err).to.not.exist;
+			node.expect(status).to.equal('OK');
+			done(err, status);
+		});
+	});
+
+	it('cache delegates when response is a success', function (done) {
+		var url;
+		url = '/api/delegates';
+
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				done(err, res);
+			});
+		});
+	});
+
+	it('should not cache if response is not a success', function (done) {
+		var url, orderBy, params;
+		url = '/api/delegates?';
+		orderBy = 'unknown:asc';
+		params = 'orderBy=' + orderBy;
+
+		node.get(url+ params, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid sort field');
+			cache.getJsonForKey(url + params, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(null);
+				done(err, res);
+			});
+		});
+	});
+
+	it('should flush cache on the next round', function (done) {
+		var url;
+		url = '/api/delegates';
+
+		node.get(url, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('delegates').that.is.an('array');
+			var response = res.body;
+			cache.getJsonForKey(url, function (err, res) {
+				node.expect(err).to.not.exist;
+				node.expect(res).to.eql(response);
+				node.onNewRound(function (err) {
+					node.expect(err).to.not.exist;
+					cache.getJsonForKey(url, function (err, res) {
+						node.expect(err).to.not.exist;
+						node.expect(res).to.eql(null);
+						done(err, res);
+					});
 				});
 			});
 		});

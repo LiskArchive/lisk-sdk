@@ -56,19 +56,48 @@ __private.routes = {};
  */
 // Constructor
 function DApps (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		public: scope.public,
+		network: scope.network,
+		schema: scope.schema,
+		ed: scope.ed,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+		config: {
+			dapp: scope.config.dapp,
+		},
+	};
 	self = this;
 
 	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
-		transactionTypes.DAPP, new DApp()
+		transactionTypes.DAPP,
+		new DApp(
+			scope.db, 
+			scope.logger, 
+			scope.schema, 
+			scope.network
+		)
 	);
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.IN_TRANSFER, new InTransfer()
+		transactionTypes.IN_TRANSFER, 
+		new InTransfer(
+			scope.db,
+			scope.schema
+		)
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.OUT_TRANSFER, new OutTransfer()
+		transactionTypes.OUT_TRANSFER, 
+		new OutTransfer(
+			scope.db,
+			scope.schema,
+			scope.logger
+		)
 	);
 	/**
 	 * Receives an 'exit' signal and calls stopDApp for each launched app.
@@ -918,25 +947,30 @@ DApps.prototype.request = function (dappid, method, path, query, cb) {
 
 // Events
 /**
- * Bounds scope to private modules variable and modules and library
+ * Bounds used scope modules to private modules variable and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
  * @implements module:transactions#Transfer~bind
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 DApps.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transactions: scope.transactions,
+		accounts: scope.accounts,
+		peers: scope.peers,
+		sql: scope.sql,
+	};
 
-	__private.assetTypes[transactionTypes.DAPP].bind({
-		library: library
-	});
+	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
+		scope.accounts,
+		scope.rounds,
+		shared
+	);
 
-	__private.assetTypes[transactionTypes.IN_TRANSFER].bind({
-		modules: modules, library: library, shared: shared
-	});
-
-	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind({
-		modules: modules, library: library
-	});
+	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
+		scope.accounts,
+		scope.rounds,
+		scope.dapps
+	);
 };
 
 /**

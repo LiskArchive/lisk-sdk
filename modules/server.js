@@ -5,12 +5,12 @@ var path = require('path');
 var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, self, __private = {}, shared = {};
 
 __private.loaded = false;
 
 /**
- * Initializes library with scope content.
+ * Initializes Server.
  * @memberof module:server
  * @class
  * @classdesc Main server methods.
@@ -20,7 +20,6 @@ __private.loaded = false;
  */
 // Constructor
 function Server (cb, scope) {
-	library = scope;
 	self = this;
 
 	setImmediate(cb, null, self);
@@ -40,11 +39,11 @@ Server.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 /**
- * Loads scope into private variable modules.
- * @param {scope} scope - Loaded App.
+ * Modules are not required in this file.
+ * @param {modules} scope - Loaded modules.
  */
 Server.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = true;
 };
 
 /**

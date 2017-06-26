@@ -35,7 +35,27 @@ __private.retries = 5;
  */
 // Constructor
 function Loader (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		network: scope.network,
+		schema: scope.schema,
+		sequence: scope.sequence,
+		bus: scope.bus,
+		genesisblock: scope.genesisblock,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+			account: scope.logic.account,
+			peers: scope.logic.peers,
+		},
+		config: {
+			loading: {
+				verifyOnLoading: scope.config.loading.verifyOnLoading,
+				snapshot: scope.config.loading.snapshot,
+			},
+		},
+	};
 	self = this;
 
 	__private.initialize();
@@ -361,7 +381,8 @@ __private.loadBlockChain = function () {
 			t.one(sql.countBlocks),
 			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
-			t.query(sql.getMemRounds)
+			t.query(sql.getMemRounds),
+			t.query(sql.countDuplicatedDelegates)
 		];
 
 		return t.batch(promises);
@@ -432,6 +453,13 @@ __private.loadBlockChain = function () {
 
 		if (unapplied.length > 0) {
 			return reload(count, 'Detected unapplied rounds in mem_round');
+		}
+
+		var duplicatedDelegates = +results[4][0].count;
+
+		if (duplicatedDelegates > 0) {
+			library.logger.error('Delegates table corrupted with duplicated entries');
+			return process.emit('exit');
 		}
 
 		function updateMemAccounts (t) {
@@ -564,6 +592,7 @@ __private.loadBlocksFromNetwork = function (cb) {
  */
 __private.sync = function (cb) {
 	library.logger.info('Starting sync');
+	library.bus.message('syncStarted');
 
 	__private.isActive = true;
 	__private.syncTrigger(true);
@@ -597,6 +626,7 @@ __private.sync = function (cb) {
 		__private.blocksToSync = 0;
 
 		library.logger.info('Finished sync');
+		library.bus.message('syncFinished');
 		return setImmediate(cb, err);
 	});
 };
@@ -784,12 +814,20 @@ Loader.prototype.onPeersReady = function () {
 };
 
 /**
- * Assigns scope to modules variable.
+ * Assigns needed modules from scope to private modules variable.
  * Calls __private.loadBlockChain
- * @param {scope} scope
+ * @param {modules} scope
  */
 Loader.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transactions: scope.transactions,
+		blocks: scope.blocks,
+		peers: scope.peers,
+		rounds: scope.rounds,
+		transport: scope.transport,
+		multisignatures: scope.multisignatures,
+		system: scope.system,
+	};
 
 	__private.loadBlockChain();
 };

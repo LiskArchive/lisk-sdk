@@ -29,7 +29,22 @@ var modules, library, self, __private = {};
  */
 // Constructor
 function Peers (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		schema: scope.schema,
+		bus: scope.bus,
+		nonce: scope.nonce,
+		build: scope.build,
+		lastCommit: scope.lastCommit,
+		logic: {
+			peers: scope.logic.peers,
+		},
+		config: {
+			peers: scope.config.peers,
+			version: scope.config.version,
+		},
+	};
 	self = this;
 
 	setImmediate(cb, null, self);
@@ -565,11 +580,14 @@ Peers.prototype.list = function (options, cb) {
 
 // Events
 /**
- * assign scope to modules variable
- * @param {scope} scope
+ * assigns scope to modules variable
+ * @param {modules} scope
  */
 Peers.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		transport: scope.transport,
+		system: scope.system,
+	};
 };
 
 /**

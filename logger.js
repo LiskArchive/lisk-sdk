@@ -13,6 +13,7 @@ module.exports = function (config) {
 	var exports = {};
 
 	config.levels = config.levels || {
+		none: 99,
 		trace: 0,
 		debug: 1,
 		log: 2,

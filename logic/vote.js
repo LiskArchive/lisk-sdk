@@ -4,29 +4,42 @@ var async = require('async');
 var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 var Diff = require('../helpers/diff.js');
+var _ = require('lodash');
 
 // Private fields
 var modules, library, self;
 
 // Constructor
 /**
+ * Initializes library.
+ * @memberof module:accounts
  * @class
- * @classdesc Main vote logic
+ * @classdesc Main vote logic.
  * Allows validate and undo transactions, verify votes.
  * @constructor
+ * @param {Object} logger
+ * @param {ZSchema} schema
  */
-function Vote () {
+function Vote (logger, schema) {
 	self = this;
+	library = {
+		logger: logger,
+		schema: schema,
+	};
+
 }
 
 // Public methods
 /**
- * Binds scope content to private variables modules and library.
- * @param {scope} scope - App instance.
+ * Binds module content to private object modules.
+ * @param {Delegates} delegates
+ * @param {Rounds} rounds
  */
-Vote.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library = scope.library;
+Vote.prototype.bind = function (delegates, rounds) {
+	modules = {
+		delegates: delegates,
+		rounds: rounds,
+	};
 };
 
 /**
@@ -95,6 +108,11 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
+
+			if (trs.asset.votes.length > _.uniqBy(trs.asset.votes, function (v) { return v.slice(1); }).length) {
+				return setImmediate(cb, 'Multiple votes for same delegate are not allowed');
+			}
+
 			return self.checkConfirmedDelegates(trs, cb);
 		}
 	});

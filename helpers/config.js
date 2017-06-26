@@ -33,11 +33,7 @@ function Config (packageJson) {
 
 	if (!appConfig.length) {
 		console.log('Failed to read config file');
-		/**
-		 * Exits process gracefully with code 1
-		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-		 */
-		process.exitCode = 1;
+		process.exit(1);
 	} else {
 		appConfig = JSON.parse(appConfig);
 	}
@@ -47,11 +43,7 @@ function Config (packageJson) {
 
 	if (!valid) {
 		console.log('Failed to validate config data', validator.getLastErrors());
-		/**
-		 * Exits process gracefully with code 1
-		 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-		 */
-		process.exitCode = 1;
+		process.exit(1);
 	} else {
 		validateForce(appConfig);
 

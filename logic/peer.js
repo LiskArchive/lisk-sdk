@@ -5,10 +5,11 @@ var ip = require('ip');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
 /**
- * Main peer logic.
+ * Creates a peer.
  * @memberof module:peers
  * @class
  * @classdesc Main peer logic.
+ * @implements {Peer.accept}
  * @param {peer} peer
  * @return calls accept method
  */

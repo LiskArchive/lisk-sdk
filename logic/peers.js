@@ -9,21 +9,22 @@ var constants = require('../helpers/constants.js');
 // Private fields
 var __private = {};
 var self;
-var modules;
 var library;
 
 /**
- * Main peers logic.
+ * Initializes library.
  * @memberof module:peers
  * @class
  * @classdesc Main peers logic.
- * @param {scope} scope - App instance.
+ * @param {Object} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `this` as data.
  */
 // Constructor
-function Peers (scope, cb) {
-	library = scope;
+function Peers (logger, cb) {
+	library = {
+		logger: logger,
+	};
 	self = this;
 	__private.peers = {};
 	__private.me = null;
@@ -268,11 +269,10 @@ Peers.prototype.list = function (normalize) {
 
 // Public methods
 /**
- * @param {scope} scope - App instance.
+ * Modules are not required in this file.
+ * @param {modules} scope - Loaded modules.
  */
 Peers.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library.logger.trace('Logic/Peers->bind');
 };
 
 // Export

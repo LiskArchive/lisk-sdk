@@ -1,9 +1,10 @@
 {
   "name": "lisk",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "private": true,
   "scripts": {
     "start": "node app.js",
+    "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
     "test": "grunt test --verbose",
     "test-unit": "grunt test-unit --verbose",
     "test-integration": "export TEST=test/integration/peers.integration.js && export NODE_ENV=TEST && grunt travis",
@@ -45,6 +46,7 @@
     "pg-promise": "=5.5.6",
     "popsicle": "=9.0.0",
     "randomstring": "=1.1.5",
+    "redis": "=2.7.1",
     "rimraf": "=2.5.4",
     "semver": "=5.3.0",
     "socket.io": "=1.7.2",

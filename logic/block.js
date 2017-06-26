@@ -8,21 +8,26 @@ var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 
 // Private fields
-var __private = {}, genesisblock = null;
+var __private = {};
 
 /**
  * Main Block logic.
  * @memberof module:blocks
  * @class
  * @classdesc Main Block logic.
- * @param {scope} scope - App instance.
+ * @param {Object} ed
+ * @param {ZSchema} schema
+ * @param {Transaction} transaction
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
 // Constructor
-function Block (scope, cb) {
-	this.scope = scope;
-	genesisblock = this.scope.genesisblock;
+function Block (ed, schema, transaction, cb) {
+	this.scope = {
+		ed: ed,
+		schema: schema,
+		transaction: transaction,
+	};
 	if (cb) {
 		return setImmediate(cb, null, this);
 	}

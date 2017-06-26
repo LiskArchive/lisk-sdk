@@ -37,7 +37,6 @@ var workersController = require('./workersController');
 var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
 
 var AppConfig = require('./helpers/config.js');
-var checkIpInList = require('./helpers/checkIpInList.js');
 var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
@@ -67,8 +66,18 @@ var appConfig = AppConfig(require('./package.json'));
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
 
+/**
+ * The config object to handle lisk modules and lisk api.
+ * It loads `modules` and `api` folders content.
+ * Also contains db configuration from config.json.
+ * @property {object} db - Config values for database.
+ * @property {object} modules - `modules` folder content.
+ * @property {object} api - `api/http` folder content.
+ */
 var config = {
 	db: appConfig.db,
+	cache: appConfig.redis,
+	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		server: './modules/server.js',
 		accounts: './modules/accounts.js',
@@ -84,7 +93,8 @@ var config = {
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js'
+		sql: './modules/sql.js',
+		cache: './modules/cache.js'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -106,7 +116,7 @@ var config = {
  * The Object is initialized here and pass to others as parameter.
  * @property {object} - Logger instance.
  */
-var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel,
+var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, 
 	filename: appConfig.logFileName });
 
 // Trying to get last git commit
@@ -124,7 +134,7 @@ var d = require('domain').create();
 
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exitCode = 0;
+	process.exit(0);
 });
 
 // runs domain
@@ -203,7 +213,7 @@ d.run(function () {
 		 * @method network
 		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
-		 * @param {nodeStyleCallback} cb - Callback function with created Object:
+		 * @param {nodeStyleCallback} cb - Callback function with created Object: 
 		 * `{express, app, server, io, https, https_io}`.
 		 */
 		network: ['config', function (scope, cb) {
@@ -335,7 +345,7 @@ d.run(function () {
 		 * Once config, public, genesisblock, logger, build and network are completed,
 		 * adds configuration to `network.app`.
 		 * @method connect
-		 * @param {object} scope - The results from current execution,
+		 * @param {object} scope - The results from current execution, 
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
@@ -431,20 +441,26 @@ d.run(function () {
 			};
 			cb(null, new bus());
 		}],
-
 		db: function (cb) {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
-
+		/**
+		 * It tries to connect with redis server based on config. provided in config.json file
+		 * @param {function} cb
+		 */
+		cache: function (cb) {
+			var cache = require('./helpers/cache.js');
+			cache.connect(config.cacheEnabled, config.cache, logger, cb);
+		},
 		/**
 		 * Once db, bus, schema and genesisblock are completed,
 		 * loads transaction, block, account and peers from logic folder.
 		 * @method logic
-		 * @param {object} scope - The results from current execution,
+		 * @param {object} scope - The results from current execution, 
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
-		 */
+		 */	
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
@@ -472,21 +488,20 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', function (scope, cb) {
-					new Account(scope, cb);
+				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'logger', function (scope, cb) {
+					new Account(scope.db, scope.schema, scope.logger, cb);
 				}],
-				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', function (scope, cb) {
-					new Transaction(scope, cb);
+				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
+					new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
-					new Block(scope, cb);
+					new Block(scope.ed, scope.schema, scope.transaction, cb);
 				}],
-				peers: function (cb) {
-					new Peers(scope, cb);
-				}
+				peers: ['logger', function (scope, cb) {
+					new Peers(scope.logger, cb);
+				}]
 			}, cb);
 		}],
-
 		/**
 		 * Once network, connect, config, logger, bus, sequence,
 		 * dbSequence, balancesSequence, db and logic are completed,
@@ -496,7 +511,8 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
-		modules: ['network', 'webSocket', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+		modules: ['network', 'connect', 'webSocket', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
+
 			var tasks = {};
 
 			Object.keys(config.modules).forEach(function (name) {
@@ -525,7 +541,7 @@ d.run(function () {
 		 * Loads api from `api` folder using `config.api`, once modules, logger and
 		 * network are completed.
 		 * @method api
-		 * @param {object} scope - The results from current execution,
+		 * @param {object} scope - The results from current execution, 
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
@@ -535,7 +551,7 @@ d.run(function () {
 					var apiEndpointPath = config.api[moduleName][protocol];
 					try {
 						var ApiEndpoint = require(apiEndpointPath);
-						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger);
+						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
 					} catch (e) {
 						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e.message);
 					}
@@ -548,7 +564,7 @@ d.run(function () {
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules);
+			scope.logic.transaction.bindModules(scope.modules.rounds);
 			scope.logic.peers.bind(scope);
 			cb();
 		}],
@@ -635,11 +651,7 @@ d.run(function () {
 					} else {
 						scope.logger.info('Cleaned up successfully');
 					}
-					/**
-					 * Exits process gracefully with code 1
-					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-					 */
-					process.exitCode = 1;
+					process.exit(1);
 				});
 			});
 
@@ -711,7 +723,3 @@ process.on('uncaughtException', function (err) {
 	 */
 	process.emit('cleanup');
 });
-
-module.exports.run = function (worker) {
-	workersController.run(worker);
-};
