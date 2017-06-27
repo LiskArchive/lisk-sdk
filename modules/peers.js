@@ -110,8 +110,6 @@ __private.getByFilter = function (filter, cb) {
 	// Apply filters (by AND)
 	var peers = library.logic.peers.list(true);
 
-	peers = self.acceptable(peers);
-
 	peers = peers.filter(function (peer) {
 		// var peer = __private.peers[index];
 		var passed = true;
