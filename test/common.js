@@ -17,5 +17,8 @@ var lisk = require('../index.js');
 
 exports.lisk = lisk;
 exports.cryptoLib = cryptoLib;
+exports.privateApi = require('../lib/api/privateApi');;
+exports.utils = require('../lib/api/utils');
+exports.should = should;
 exports.should = should;
 exports.sinon = sinon;
