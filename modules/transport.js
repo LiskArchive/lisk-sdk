@@ -824,7 +824,6 @@ Transport.prototype.internal = {
 				});
 			}
 
-			peer.state = Peer.STATE.ACTIVE;
 			modules.peers.update(peer);
 
 			return setImmediate(cb, null, peer);

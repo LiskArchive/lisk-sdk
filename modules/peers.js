@@ -311,6 +311,7 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
  * @todo rename this function to activePeer or similar
  */
 Peers.prototype.update = function (peer) {
+	peer.state = Peer.STATE.CONNECTED;
 	return library.logic.peers.upsert(peer);
 };
 
@@ -448,6 +449,7 @@ Peers.prototype.acceptable = function (peers) {
 			return (a.ip + a.port) === (b.ip + b.port);
 		})
 		.filter(function (peer) {
+			// Removing peers with private address or nonce equal to self
 			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 		}).value();
 };
@@ -475,7 +477,7 @@ Peers.prototype.list = function (options, cb) {
 			peersList = peersList.filter(function (peer) {
 				if (options.broadhash) {
 					// Skip banned and disconnected peers (state 0 and 1)
-					return peer.state === Peer.STATE.ACTIVE && (
+					return peer.state === Peer.STATE.CONNECTED && (
 						// Matched broadhash when attempt 0
 						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
 						// Unmatched broadhash when attempt 1
@@ -483,7 +485,7 @@ Peers.prototype.list = function (options, cb) {
 					);
 				} else {
 					// Skip banned and disconnected peers (state 0 and 1)
-					return peer.state === Peer.STATE.ACTIVE;
+					return peer.state === Peer.STATE.CONNECTED;
 				}
 			});
 			matched = peersList.length;
@@ -641,7 +643,7 @@ Peers.prototype.shared = {
 	count: function (req, cb) {
 		async.series({
 			connected: function (cb) {
-				__private.countByFilter({state: Peer.STATE.ACTIVE}, cb);
+				__private.countByFilter({state: Peer.STATE.CONNECTED}, cb);
 			},
 			disconnected: function (cb) {
 				__private.countByFilter({state: Peer.STATE.DISCONNECTED}, cb);

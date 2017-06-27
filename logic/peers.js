@@ -26,48 +26,6 @@ function Peers (logger, cb) {
 	};
 	self = this;
 	__private.peers = {};
-
-	__private.nonceToAddressMapper = {
-		addressToNonceMap: {},
-		nonceToAddressMap: {},
-		/**
-		 * @param {Peer} peer
-		 * @throws {Error} - it is ok to assign nonce to new address but not new address to existing nonce
-		 */
-		addDistinct: function (peer) {
-			if (this.nonceToAddressMap[peer.nonce] && peer.string && this.nonceToAddressMap[peer.nonce] !== peer.string) {
-				throw new Error('Peer', peer.string, 'attempts assign nonce of', this.nonceToAddressMap[peer.nonce]);
-			}
-			if (peer.string) {
-				var oldNonce = this.addressToNonceMap[peer.string];
-				if (oldNonce && oldNonce !== peer.nonce) {
-					delete this.nonceToAddressMap[oldNonce];
-					self.remove(peer);
-				}
-				this.addressToNonceMap[peer.string] = peer.nonce;
-			}
-			if (peer.nonce) {
-				this.nonceToAddressMap[peer.nonce] = peer.string;
-			}
-		},
-
-		/**
-		 * @param {string} nonce
-		 * @returns {string|undefined} address
-		 */
-		getAddress: function (nonce) {
-			return this.nonceToAddressMap[nonce];
-		},
-
-		/**
-		 * @param {string} address
-		 * @returns {string|undefined} nonce
-		 */
-		getNonce: function (address) {
-			return this.addressToNonceMap[address];
-		}
-	};
-
 	return setImmediate(cb, null, this);
 }
 
@@ -121,6 +79,8 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 			peer.updated = Date.now();
 			__private.peers[peer.string] = peer;
 			library.logger.debug('Inserted new peer', peer.string);
+		} else {
+			library.logger.debug('Inserting peer rejected - peer is itself or has private address: ', peer.string);
 		}
 	};
 
@@ -148,13 +108,6 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	
 	if (!peer.string) {
 		library.logger.warn('Upsert invalid peer rejected', {peer: peer});
-		return false;
-	}
-
-	try {
-		__private.nonceToAddressMapper.addDistinct(peer);
-	} catch (error) {
-		library.logger.warn(error.message);
 		return false;
 	}
 
