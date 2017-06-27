@@ -165,6 +165,13 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		return done(err);
 	});
 };
+/**
+ * Sets snapshot rounds
+ * @param {number} rounds
+*/
+Rounds.prototype.setSnapshotRounds = function (rounds) {
+	library.config.loading.snapshot = rounds;
+};
 
 /**
  * Generates snapshot round
