@@ -204,11 +204,91 @@ __private.forge = function (cb) {
 	});
 };
 
+/**
+ * Returns the decrypted secret by deciphering encrypted secret with the key provided
+ * using aes-256-cbc algorithm.
+ * @private
+ * @param {string} encryptedSecret
+ * @param {string} key
+ * @returns {string} decryptedSecret
+ * @throws {error} if unable to decrypt using key
+ */
 __private.decryptSecret = function (encryptedSecret, key) {
 	var decipher = crypto.createDecipher('aes-256-cbc', key);
 	var decryptedSecret =	decipher.update(encryptedSecret, 'hex', 'utf8');
 	decryptedSecret += decipher.final('utf8');
 	return decryptedSecret;
+};
+
+/**
+ * Updates the forging status of an account, valid actions are enable and disable
+ * @private
+ * @param {publicKey} publicKey - PublicKey.
+ * @param {string} key - key used to decrypt encrypted passphrase
+ * @param {string} action - enable or disable forging
+ * @returns {setImmediateCallback}
+ */
+__private.updateForgingStatus = function (publicKey, key, action, cb) {
+
+	var actionEnable = action === 'enable';
+	var actionDisable = action === 'disable';
+
+	if (!(actionEnable || actionDisable)) {
+		return setImmediate(cb, 'Invalid action');
+	}
+
+	var keypair;
+	var encryptedList, decryptedSecret, encryptedItem;
+	encryptedList = library.config.forging.secret;
+
+	encryptedItem = _.find(encryptedList, function (item) {
+		return item.publicKey === publicKey;
+	});
+
+	if (!!encryptedItem) {
+		try {
+			decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, key);
+		} catch (e) {
+			return setImmediate(cb, 'Invalid key and public key combination');
+		}
+
+		keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+	} else {
+		return setImmediate(cb, ['Delegate with publicKey:', publicKey, 'not found'].join(' '));
+	}
+
+	if (keypair.publicKey.toString('hex') !== publicKey) {
+		return setImmediate(cb, 'Invalid key and public key combination');
+	}
+
+	if (actionEnable && __private.keypairs[keypair.publicKey.toString('hex')]) {
+		return setImmediate(cb, 'Forging is already enabled');
+	}
+
+	if (actionDisable && !__private.keypairs[keypair.publicKey.toString('hex')]) {
+		return setImmediate(cb, 'Delegate not found');
+	}
+
+	modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		if (account && account.isDelegate) {
+			if (actionEnable) {
+				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+				library.logger.info('Forging enabled on account: ' + account.address);
+			}
+
+			if (actionDisable) {
+				delete __private.keypairs[keypair.publicKey.toString('hex')];
+				library.logger.info('Forging disabled on account: ' + account.address);
+			}
+
+			return setImmediate(cb, null, {address: account.address});
+		} else {
+			return setImmediate(cb, 'Delegate not found');
+		}
+	});
 };
 
 /**
@@ -308,7 +388,7 @@ __private.loadDelegates = function (cb) {
 
 	var secretsList = library.config.forging.secret;
 
-	if (!secretsList || !secretsList.length || !library.config.forging.force) {
+	if (!secretsList || !secretsList.length || !library.config.forging.force || !library.config.forging.defaultKey) {
 		return setImmediate(cb);
 	} else {
 		library.logger.info(['Loading', secretsList.length, 'delegates from config'].join(' '));
@@ -597,99 +677,20 @@ Delegates.prototype.isLoaded = function () {
 Delegates.prototype.internal = {
 	forgingEnable: function (req, cb) {
 		library.schema.validate(req.body, schema.enableForging, function (err) {
-
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
 
-			var keypair;
-			var encryptedList, decryptedSecret, encryptedItem;
-			encryptedList = library.config.forging.secret;
-
-			encryptedItem = _.find(encryptedList, function (item) {
-				return item.publicKey === req.body.publicKey;
-			});
-
-			if (!!encryptedItem) {
-				try {
-					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.key);
-				} catch (e) {
-					return setImmediate(cb, 'Invalid passphrase');
-				}
-	
-				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
-			} else {
-				return setImmediate(cb, ['Delegate with publicKey:', req.body.publicKey, 'not found'].join(' '));
-			}
-
-			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-				return setImmediate(cb, 'Invalid key and public key combination');
-			}
-
-			if (__private.keypairs[keypair.publicKey.toString('hex')]) {
-				return setImmediate(cb, 'Forging is already enabled');
-			}
-
-			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				if (account && account.isDelegate) {
-					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					library.logger.info('Forging enabled on account: ' + account.address);
-					return setImmediate(cb, null, {address: account.address});
-				} else {
-					return setImmediate(cb, 'Delegate not found');
-				}
-			});
+			__private.updateForgingStatus(req.body.publicKey, req.body.key, 'enable', cb);
 		});
 	},
-
 	forgingDisable: function (req, cb) {
 		library.schema.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
 
-			var keypair;
-			var encryptedList, decryptedSecret, encryptedItem;
-			encryptedList = library.config.forging.secret;
-
-			encryptedItem = _.find(encryptedList, function (item) {
-				return item.publicKey === req.body.publicKey;
-			});
-
-			if (!!encryptedItem) {
-				try {
-					decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, req.body.key);
-				} catch (e) {
-					return setImmediate(cb, 'Invalid passphrase');
-				}
-				keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
-			} else {
-				return setImmediate(cb, ['Delegate with publicKey:', req.body.publicKey, 'not found'].join(' '));
-			}
-
-			if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-				return setImmediate(cb, 'Invalid key and public key combination');
-			}
-
-			if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
-				return setImmediate(cb, 'Delegate not found');
-			}
-
-			modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				if (account && account.isDelegate) {
-					delete __private.keypairs[keypair.publicKey.toString('hex')];
-					library.logger.info('Forging disabled on account: ' + account.address);
-					return setImmediate(cb, null, {address: account.address});
-				} else {
-					return setImmediate(cb, 'Delegate not found');
-				}
-			});
+			__private.updateForgingStatus(req.body.publicKey, req.body.key, 'disable', cb);
 		});
 	},
 

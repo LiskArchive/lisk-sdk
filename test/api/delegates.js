@@ -1174,7 +1174,7 @@ describe('POST /api/delegates/forging/disable', function () {
 			key: 'invalid key'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').not.to.be.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase');
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid key and public key combination');
 			done();
 		});
 	});
@@ -1227,7 +1227,7 @@ describe('POST /api/delegates/forging/enable', function () {
 			key: 'invalid key'
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').not.to.be.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase');
+			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid key and public key combination');
 			done();
 		});
 	});
