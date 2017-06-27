@@ -34,7 +34,7 @@ describe('peers', function () {
 			}
 			peers = __modules.peers;
 			modules = __modules;
-			peers.onBind(modules);
+			peers.onBind(__modules);
 			done();
 		}, {nonce: NONCE});
 	});

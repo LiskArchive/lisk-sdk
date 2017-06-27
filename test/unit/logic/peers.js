@@ -23,7 +23,7 @@ describe('peers', function () {
 					return peers;
 				}
 			};
-			peers.bind(peersModuleMock);
+			peers.bindModules({peers: peersModuleMock});
 			done();
 		});
 	});
@@ -291,10 +291,4 @@ describe('peers', function () {
 		});
 	});
 
-	describe('bind', function () {
-
-		it('should be ok', function () {
-			peers.bind({});
-		});
-	});
 });
