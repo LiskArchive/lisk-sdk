@@ -56,12 +56,6 @@ describe('crypto/index.js', function () {
 			(hashString).should.be.equal('a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
 		});
 
-		it('should get a correct Sha256 hash from ', function () {
-			var string = '123';
-			var hashString = newcrypto.bufferToHex(newcrypto.getSha256Hash(string));
-
-			(hashString).should.be.equal('a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
-		});
 	});
 
 	describe('#getPrivateAndPublicKeyFromSecret keys.js', function () {
