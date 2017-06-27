@@ -35,13 +35,13 @@ function System (cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
-		nonce: scope.nonce,
 		config: {
 			version: scope.config.version,
 			port: scope.config.port,
 			nethash: scope.config.nethash,
 			minVersion: scope.config.minVersion,
-		},
+			nonce: scope.config.nonce
+		}
 	};
 	self = this;
 
@@ -110,7 +110,7 @@ System.prototype.getHeight = function () {
 
 /**
  * Gets private variable `nethash`
- * @return {hash}
+ * @return {string} hash
  */
 System.prototype.getNethash = function () {
 	return __private.nethash;
@@ -118,7 +118,7 @@ System.prototype.getNethash = function () {
 
 /**
  * Gets private variable `nonce`
- * @return {nonce}
+ * @return {string} nonce
  */
 System.prototype.getNonce = function () {
 	return __private.nonce;
@@ -226,8 +226,6 @@ System.prototype.update = function (cb) {
 			return setImmediate(seriesCb);
 		},
 		setHeaders: function (seriesCb) {
-			console.log('\x1b[35m%s\x1b[0m', 'SYSTEM - HEADERS UPDATE ',  __private.height + ' # ' + __private.broadhash);
-
 			constants.setConst('headers', _.assign(constants.headers || {}, {
 				height: __private.height,
 				broadhash: __private.broadhash

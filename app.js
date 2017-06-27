@@ -278,7 +278,8 @@ d.run(function () {
 				pingTimeout: 60000,
 				// Maximum amount of milliseconds to wait before force-killing
 				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
-				processTermTimeout: 10000
+				processTermTimeout: 10000,
+				logLevel: 0
 			};
 
 			if (scope.config.ssl.enabled) {
@@ -564,8 +565,8 @@ d.run(function () {
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules.rounds);
-			scope.logic.peers.bind(scope.modules.peers);
+			scope.logic.transaction.bindModules(scope.modules);
+			scope.logic.peers.bindModules(scope.modules);
 			cb();
 		}],
 

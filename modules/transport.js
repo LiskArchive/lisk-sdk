@@ -112,7 +112,7 @@ __private.banPeer = function (options, extraMessage) {
  */
 __private.removePeer = function (options, extraMessage) {
 	library.logger.debug([options.code, 'Removing peer', options.peer.ip + ':' + options.peer.port, extraMessage].join(' '));
-	return modules.peers.remove(options.peer.ip, options.peer.port);
+	return modules.peers.remove(options.peer);
 };
 
 /**
@@ -331,10 +331,11 @@ Transport.prototype.onBind = function (scope) {
 	modules = {
 		blocks: scope.blocks,
 		dapps: scope.dapps,
-		peers: scope.peers,
+		loader: scope.loader,
 		multisignatures: scope.multisignatures,
-		transactions: scope.transactions,
+		peers: scope.peers,
 		system: scope.system,
+		transactions: scope.transactions
 	};
 
 	__private.headers = modules.system.headers();
@@ -700,6 +701,7 @@ Transport.prototype.internal = {
 			return setImmediate(cb, 'No headers information');
 		}
 		library.logger.debug('transport --- accept peer: ', peer.ip + ':' + peer.port + '#' + peer.nonce + '#' + peer.height + '#' + peer.broadhash);
+
 		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };

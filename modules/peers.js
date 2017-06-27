@@ -43,9 +43,24 @@ function Peers (cb, scope) {
 		config: {
 			peers: scope.config.peers,
 			version: scope.config.version,
-		},
+		}
 	};
 	self = this;
+
+	setInterval(function () {
+		this.list({}, function (err, peers) {
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(function (p) {
+				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
+			}));
+
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- logic peers ---- ', library.logic.peers.list().map(function (p) {
+				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
+			}));
+
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- consensus ---- ', self.getConsensus());
+		});
+
+	}.bind(this), 5000);
 
 	setImmediate(cb, null, self);
 }
@@ -109,8 +124,6 @@ __private.getByFilter = function (filter, cb) {
 
 	// Apply filters (by AND)
 	var peers = library.logic.peers.list();
-
-	peers = self.acceptable(peers);
 
 	peers = peers.filter(function (peer) {
 		// var peer = __private.peers[index];
@@ -192,7 +205,7 @@ __private.insertSeeds = function (cb) {
 	async.each(library.config.peers.list, function (peer, eachCb) {
 		peer = library.logic.peers.create(peer);
 		library.logger.debug('Processing seed peer: ' + peer.string);
-		if (_.isEmpty(modules.peers.acceptable([peer]))) {
+		if (_.isEmpty(self.acceptable([peer]))) {
 			return setImmediate(eachCb, 'Peer not accepted: ' + peer.string);
 		}
 		peer.rpc.status(function (err, status) {
@@ -337,10 +350,6 @@ Peers.prototype.getConsensus = function (matched, active) {
 	active = active.slice(0, constants.maxPeers);
 	matched = matched.slice(0, constants.maxPeers);
 
-	if (active.length === 0) {
-		return undefined;
-	}
-
 	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 1e2;
 
 	if (isNaN(consensus)) {
@@ -375,20 +384,20 @@ Peers.prototype.update = function (peer) {
 /**
  * Removes peer from peers list if it is not a peer from config file list.
  * @implements logic.peers.remove
- * @param {string} pip - Peer ip
- * @param {number} port
+ * @param {Peer} peer
  * @return {function} Calls peers.remove
  */
-Peers.prototype.remove = function (pip, port) {
+Peers.prototype.remove = function (peer) {
 	var frozenPeer = _.find(library.config.peers.list, function (peer) {
-		return peer.ip === pip && peer.port === port;
+		return peer.ip === peer.ip && peer.port === peer.port;
 	});
 	if (frozenPeer) {
 		// FIXME: Keeping peer frozen is bad idea at all
-		library.logger.debug('Cannot remove frozen peer', pip + ':' + port);
-		library.logic.peers.update({ip: pip, port: port, status: Peer.STATE.BANNED});
+		library.logger.debug('Cannot remove frozen peer', peer.ip + ':' + peer.port);
+		peer.state = Peer.STATE.DISCONNECTED;
+		library.logic.peers.upsert(peer);
 	} else {
-		return library.logic.peers.remove ({ip: pip, port: port});
+		return library.logic.peers.remove(peer);
 	}
 };
 
@@ -407,9 +416,8 @@ Peers.prototype.ban = function (pip, port, seconds) {
 	if (frozenPeer) {
 		// FIXME: Keeping peer frozen is bad idea at all
 		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
-		library.logic.peers.update({ip: pip, port: port, status: Peer.STATE.BANNED});
 	} else {
-		return library.logic.peers.ban (pip, port, seconds);
+		return library.logic.peers.ban(pip, port, seconds);
 	}
 };
 
@@ -421,7 +429,7 @@ Peers.prototype.ban = function (pip, port, seconds) {
 Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
-		modules.peers.list({limit: 1}, function (err, peers) {
+		self.list({limit: 1, allowedStates: [Peer.STATE.DISCONNECTED, Peer.STATE.ACTIVE]}, function (err, peers) {
 			var randomPeer = peers.length ? library.logic.peers.create(peers[0]) : null;
 			if (!err && randomPeer) {
 				randomPeer.rpc.status(function (err, status) {
@@ -501,10 +509,11 @@ Peers.prototype.acceptable = function (peers) {
 			return (a.ip + a.port) === (b.ip + b.port);
 		})
 		.filter(function (peer) {
-			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-				return peer.nonce !== modules.system.getNonce();
-			}
-			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+			// Removing peers with private address or nonce equal to itself
+			// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+			return peer.nonce !== modules.system.getNonce();
+			// }
+			// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 		}).value();
 };
 
@@ -517,29 +526,30 @@ Peers.prototype.acceptable = function (peers) {
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
+	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	options.attempts = ['matched broadhash', 'unmatched broadhash'];
 	options.attempt = 0;
 	options.matched = 0;
 
 	function randomList (options, peers, cb) {
 		// Get full peers list (random)
-		__private.getByFilter ({}, function (err, peersList) {
+		__private.getByFilter({}, function (err, peersList) {
 			var accepted, found, matched, picked;
 
 			found = peersList.length;
 			// Apply filters
 			peersList = peersList.filter(function (peer) {
 				if (options.broadhash) {
-					// Skip banned peers (state 0)
-					return peer.state > 0 && (
+					// Skip banned and disconnected peers by default
+					return options.allowedStates.indexOf(peer.state) !== -1 && (
 						// Matched broadhash when attempt 0
 						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
 						// Unmatched broadhash when attempt 1
 						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
 					);
 				} else {
-					// Skip banned peers (state 0)
-					return peer.state > 0;
+					// Skip banned and disconnected peers by default
+					return options.allowedStates.indexOf(peer.state) !== -1;
 				}
 			});
 			matched = peersList.length;
