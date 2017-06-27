@@ -210,7 +210,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 // Adds peers to local node
 node.addPeers = function (numOfPeers, ip, cb) {
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var port = 4000;
+	var port = 9999; //frozen peer port
 	var os, version;
 	var i = 0;
 
@@ -229,7 +229,8 @@ node.addPeers = function (numOfPeers, ip, cb) {
 				os: os,
 				ip: ip,
 				port: port,
-				version: version
+				version: version,
+				nonce: 'randomNonce'
 			}
 		});
 
