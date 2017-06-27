@@ -331,6 +331,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 		config = {};
 	}
 	config.limit = 1;
+	config.allowedStates = [Peer.STATE.DISCONNECTED, Peer.STATE.CONNECTED];
 	modules.peers.list(config, function (err, peers) {
 		if (!err && peers.length) {
 			return self.getFromPeer(peers[0], options, cb);

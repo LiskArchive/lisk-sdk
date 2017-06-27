@@ -463,6 +463,7 @@ Peers.prototype.acceptable = function (peers) {
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
+	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	options.attempts = ['matched broadhash', 'unmatched broadhash'];
 	options.attempt = 0;
 	options.matched = 0;
@@ -477,7 +478,7 @@ Peers.prototype.list = function (options, cb) {
 			peersList = peersList.filter(function (peer) {
 				if (options.broadhash) {
 					// Skip banned and disconnected peers (state 0 and 1)
-					return peer.state === Peer.STATE.CONNECTED && (
+					return options.allowedStates.indexOf(peer.state) !== -1 && (
 						// Matched broadhash when attempt 0
 						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
 						// Unmatched broadhash when attempt 1
@@ -485,7 +486,7 @@ Peers.prototype.list = function (options, cb) {
 					);
 				} else {
 					// Skip banned and disconnected peers (state 0 and 1)
-					return peer.state === Peer.STATE.CONNECTED;
+					return options.allowedStates.indexOf(peer.state) !== -1;
 				}
 			});
 			matched = peersList.length;
