@@ -80,7 +80,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 			__private.peers[peer.string] = peer;
 			library.logger.debug('Inserted new peer', peer.string);
 		} else {
-			library.logger.debug('Inserting peer rejected - peer is itself or has private address: ', peer.string);
+			library.logger.debug('Rejecting unacceptable peer', peer.string);
 		}
 	};
 
