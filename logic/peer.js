@@ -124,7 +124,7 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.port = this.parseInt(peer.port, 0);
-	peer.state = this.parseInt(peer.state, 1);
+	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
 	return peer;
 };
@@ -149,6 +149,7 @@ Peer.prototype.parseInt = function (integer, fallback) {
  */
 Peer.prototype.applyHeaders = function (headers) {
 	headers = headers || {};
+	headers = this.normalize(headers);
 	this.update(headers);
 	return headers;
 };
