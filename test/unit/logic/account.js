@@ -58,14 +58,17 @@ describe('account', function () {
 		}, {});
 	});
 	describe('Account', function () {
+
 	});
 	describe('createTables', function () {
+
 	});
 	describe('removeTables', function () {
+
 	});
 	describe('objectNormalize', function () {
 		it('should be okay for a valid account object', function () {
-			console.log(account.objectNormalize(validAccount));
+			expect(account.objectNormalize(validAccount)).to.be.an('object');
 		});
 	});
 	describe('verifyPublicKey', function () {
@@ -116,10 +119,11 @@ describe('account', function () {
 			account.get({address: 'invalid address'}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(null);
+				done();
 			});
 		});
 
-		it.only('should get the correct account against address', function (done) {
+		it('should get the correct account against address', function (done) {
 			account.get({address: validAccount.address}, function (err, res) {
 				console.log(res);
 
@@ -130,13 +134,21 @@ describe('account', function () {
 				expect(res.address).to.equal(validAccount.address);
 				expect(res.publicKey).to.equal(validAccount.publicKey);
 				expect(res.delegates).to.equal(validAccount.delegates);
-				expect(res.blockId).to.equal(validAccount.blockId);
 				done();
 			});
 		});
 	});
 
 	describe('getAll', function () {
+
+		var allAccounts;
+		before(function (done) {
+			account.getAll({}, function (err, res) {
+				allAccounts = res;
+				done();
+			});
+		});
+
 		it('should fetch correct result using address as filter', function (done) {
 			account.getAll({address: validAccount.address }, function (err, res) {
 				expect(err).to.not.exist;
@@ -146,13 +158,12 @@ describe('account', function () {
 				expect(res[0].address).to.equal(validAccount.address);
 				expect(res[0].publicKey).to.equal(validAccount.publicKey);
 				expect(res[0].delegates).to.equal(validAccount.delegates);
-				expect(res[0].blockId).to.equal(validAccount.blockId);
 				done();
 			});
 		});
-		
-		it.only('should fetch correct result using publicKey as filter', function (done) {
-			account.getAll({publicKey: validAccount.publicKey }, function (err, res) {
+
+		it('should fetch correct result using username as filter', function (done) {
+			account.getAll({username: validAccount.username}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
@@ -160,7 +171,56 @@ describe('account', function () {
 				expect(res[0].address).to.equal(validAccount.address);
 				expect(res[0].publicKey).to.equal(validAccount.publicKey);
 				expect(res[0].delegates).to.equal(validAccount.delegates);
-				expect(res[0].blockId).to.equal(validAccount.blockId);
+				done();
+			});
+		});
+
+		it('should fetch all delegates using isDelegate filter', function (done) {
+			account.getAll({isDelegate: 1}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(allAccounts.filter(function (a) {
+					return a.isDelegate === 1;
+				})).is.eql(res);
+				done();
+			});
+		});
+
+		it('should throw error if unrelated filters are provided', function (done) {
+			account.getAll({publicKey: validAccount.publicKey, unrelatedfield: 'random value'}, function (err, res) {
+				expect(err).to.equal('Account#getAll error');
+				done();
+			});
+		});
+
+		it('should fetch results for with limit of 50', function (done) {
+			account.getAll({limit: 50}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.eql(allAccounts.slice(0, 50));
+				done();
+			});
+		});
+
+		it.skip('should fetch results with offset of 50', function (done) {
+			// throws error 'LIMIT must not be negative' which is a bit strange
+			account.getAll({offset: 50}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.eql(allAccounts.slice(50));
+				done();
+			});
+		});
+
+		it.skip('should try to convert paramter to its field type', function (done) {
+			// we create realConv object but don't do anything with it
+			account.getAll({limit: '50a', isDelegate: 1}, function (err, res) {
+				expect(err).to.include('Encountered unsane number:');
+				done();
+			});
+		});
+
+		it('should ignore limit when its value is negative', function (done) {
+			account.getAll({limit: -50}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.eql(allAccounts);
 				done();
 			});
 		});
