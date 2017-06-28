@@ -9,7 +9,7 @@ var schema = require('../schema/peers.js');
 var __private = {};
 var self;
 var library;
-
+var modules;
 /**
  * Initializes library.
  * @memberof module:peers
@@ -22,7 +22,7 @@ var library;
 // Constructor
 function Peers (logger, cb) {
 	library = {
-		logger: logger,
+		logger: logger
 	};
 	self = this;
 	__private.peers = {};
@@ -75,11 +75,13 @@ Peers.prototype.get = function (peer) {
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
-		peer.updated = Date.now();
-		__private.peers[peer.string] = peer;
-
-		library.logger.debug('Inserted new peer', peer.string);
-		library.logger.trace('Inserted new peer', {peer: peer});
+		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
+			peer.updated = Date.now();
+			__private.peers[peer.string] = peer;
+			library.logger.debug('Inserted new peer', peer.string);
+		} else {
+			library.logger.debug('Rejecting unacceptable peer', peer.string);
+		}
 	};
 
 	// Update existing peer
@@ -217,9 +219,12 @@ Peers.prototype.list = function (normalize) {
 // Public methods
 /**
  * Modules are not required in this file.
- * @param {modules} scope - Loaded modules.
+ * @param {Object} __modules - Peers module.
  */
-Peers.prototype.bind = function (scope) {
+Peers.prototype.bindModules = function (__modules) {
+	modules = {
+		peers: __modules.peers
+	};
 };
 
 // Export

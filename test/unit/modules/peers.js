@@ -34,7 +34,7 @@ describe('peers', function () {
 			}
 			peers = __modules.peers;
 			modules = __modules;
-			peers.onBind(modules);
+			peers.onBind(__modules);
 			done();
 		}, {nonce: NONCE});
 	});
@@ -228,6 +228,10 @@ describe('peers', function () {
 
 	describe('acceptable', function () {
 
+		before(function () {
+			process.env['NODE_ENV'] = 'DEV';
+		});
+
 		var ip = require('ip');
 
 		it('should accept peer with public ip', function () {
@@ -240,10 +244,24 @@ describe('peers', function () {
 			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
 		});
 
-		it('should not accept peer with host\'s ip', function () {
-			var meAsPeer = _.clone(randomPeer);
-			meAsPeer.nonce = NONCE;
+		it('should not accept peer with host\'s nonce', function () {
+			var peer = _.clone(randomPeer);
+			peer.nonce = NONCE;
+			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
+		});
+
+		it('should not accept peer with different ip but the same nonce', function () {
+			process.env['NODE_ENV'] = 'TEST';
+			var meAsPeer = {
+				ip: '40.00.40.40',
+				port: 4001,
+				nonce: NONCE
+			};
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
+		});
+
+		after(function () {
+			process.env['NODE_ENV'] = 'TEST';
 		});
 	});
 

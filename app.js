@@ -557,8 +557,8 @@ d.run(function () {
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules.rounds);
-			scope.logic.peers.bind(scope);
+			scope.logic.transaction.bindModules(scope.modules);
+			scope.logic.peers.bindModules(scope.modules);
 			cb();
 		}],
 
