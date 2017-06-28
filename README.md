@@ -77,7 +77,7 @@ tar -zxvf lisk-node-Linux-x86_64.tar.gz
 
 Lisk Node has to be in `[LISK_DIR]/nodejs/node`.
 
-Load git submodules ([lisk-ui](https://github.com/LiskHQ/lisk-ui) and [lisk-js](https://github.com/LiskHQ/lisk-js)):
+Load git submodules ([lisk-ui](https://github.com/LiskHQ/lisk-ui):
 
 ```
 git submodule init
