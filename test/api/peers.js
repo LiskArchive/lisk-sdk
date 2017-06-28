@@ -481,7 +481,6 @@ describe('GET /api/peers/get', function () {
 
 	var validParams, frozenPeerPort = 9999;
 
-
 	before(function (done) {
 		node.addPeers(1, '127.0.0.1', function (err, headers) {
 			validParams = headers;

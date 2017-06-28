@@ -260,7 +260,6 @@ describe('peers', function () {
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
 		});
 
-
 		after(function () {
 			process.env['NODE_ENV'] = 'TEST';
 		});
