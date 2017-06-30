@@ -162,6 +162,19 @@ describe('account', function () {
 			});
 		});
 
+		it('should fetch correct result using address as filter when its in lower case', function (done) {
+			account.getAll({address: validAccount.address.toLowerCase() }, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res.length).to.equal(1);
+				expect(res[0].username).to.equal(validAccount.username);
+				expect(res[0].isDelegate).to.equal(validAccount.isDelegate);
+				expect(res[0].address).to.equal(validAccount.address);
+				expect(res[0].publicKey).to.equal(validAccount.publicKey);
+				expect(res[0].delegates).to.equal(validAccount.delegates);
+				done();
+			});
+		});
+
 		it('should fetch correct result using username as filter', function (done) {
 			account.getAll({username: validAccount.username}, function (err, res) {
 				expect(err).to.not.exist;
@@ -192,7 +205,7 @@ describe('account', function () {
 			});
 		});
 
-		it('should fetch results for with limit of 50', function (done) {
+		it('should fetch results with limit of 50', function (done) {
 			account.getAll({limit: 50}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(allAccounts.slice(0, 50));
@@ -221,6 +234,24 @@ describe('account', function () {
 			account.getAll({limit: -50}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(allAccounts);
+				done();
+			});
+		});
+
+		it('should sort the result according to field type in ASC order', function (done) {
+			var sortedAccounts = _.sortBy(allAccounts, 'address');
+			account.getAll({sort: 'address'}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(sortedAccounts).to.eql(res);
+				done();
+			});
+		});
+
+		it('should sort the result according to field type in DESC', function (done) {
+			var sortedAccounts = _.sortBy(allAccounts, 'address', 'desc');
+			account.getAll({sort: 'address DESC'}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(sortedAccounts).to.eql(res);
 				done();
 			});
 		});
