@@ -49,14 +49,6 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s/sql/migrations', version_dir),
 						util.format('cp %s/sql/*.sql %s/sql/', __dirname, version_dir),
 						util.format('cp %s/sql/migrations/*.sql %s/sql/migrations/', __dirname, version_dir),
-						util.format('mkdir -p %s/public/node_modules', version_dir),
-						util.format('cp -Rf %s/public/node_modules/chart.js %s/public/node_modules', __dirname, version_dir),
-						util.format('mkdir -p %s/public/bower_components', version_dir),
-						util.format('mkdir -p %s/public/socket.io', version_dir),
-						util.format('cp -Rf %s/public/bower_components/jquery %s/public/bower_components', __dirname, version_dir),
-						util.format('cp -Rf %s/public/bower_components/materialize %s/public/bower_components', __dirname, version_dir),
-						util.format('cp -Rf %s/public/bower_components/blob %s/public/bower_components', __dirname, version_dir),
-						util.format('cp -Rf %s/public/bower_components/file-saver %s/public/bower_components', __dirname, version_dir)
 					].join(' && ');
 				}
 			},
