@@ -221,15 +221,14 @@ __private.decryptSecret = function (encryptedSecret, key) {
 };
 
 /**
- * Updates the forging status of an account, valid actions are enable and disable
+ * Updates the forging status of an account, valid actions are enable and disable.
  * @private
  * @param {publicKey} publicKey - PublicKey.
- * @param {string} key - key used to decrypt encrypted passphrase
+ * @param {string} secretKey - key used to decrypt encrypted passphrase
  * @param {string} action - enable or disable forging
  * @returns {setImmediateCallback}
  */
-__private.updateForgingStatus = function (publicKey, key, action, cb) {
-
+__private.updateForgingStatus = function (publicKey, secretKey, action, cb) {
 	var actionEnable = action === 'enable';
 	var actionDisable = action === 'disable';
 
@@ -247,7 +246,7 @@ __private.updateForgingStatus = function (publicKey, key, action, cb) {
 
 	if (!!encryptedItem) {
 		try {
-			decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, key);
+			decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, secretKey);
 		} catch (e) {
 			return setImmediate(cb, 'Invalid key and public key combination');
 		}
@@ -395,7 +394,14 @@ __private.loadDelegates = function (cb) {
 	}
 
 	async.each(secretsList, function (encryptedItem, cb) {
-		var secret = __private.decryptSecret(encryptedItem.encryptedSecret, library.config.forging.defaultKey);
+		var secret;
+
+		try {
+			secret = __private.decryptSecret(encryptedItem.encryptedSecret, library.config.forging.defaultKey);
+		} catch (e) {
+			return setImmediate(cb, ['Invalid key for encrypted secret:', encryptedItem.encryptedSecret].join(' '));
+		}
+
 		var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 
 		if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
