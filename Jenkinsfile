@@ -19,13 +19,6 @@ def buildDependency() {
     # Install Nodejs
     tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
 
-    # Build submodules
-    git submodule init
-    git submodule update
-    cd public/
-    npm install
-    bower install
-    grunt release
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
