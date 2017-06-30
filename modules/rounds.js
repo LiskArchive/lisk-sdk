@@ -167,6 +167,14 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 };
 
 /**
+ * Sets snapshot rounds
+ * @param {number} rounds
+ */
+Rounds.prototype.setSnapshotRounds = function (rounds) {
+	library.config.loading.snapshot = rounds;
+};
+
+/**
  * Generates snapshot round
  * @implements {calc}
  * @implements {Round.mergeBlockGenerator}

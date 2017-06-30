@@ -123,7 +123,19 @@ var modulesLoader = new function () {
 						return mapCb(err, memo);
 					}.bind(this));
 				}.bind(this), waterCb);
-			}.bind(this)
+			}.bind(this),
+
+			function (modules, waterCb) {
+				_.each(scope.logic, function (logic) {
+					if (typeof logic.bind === 'function') {
+						logic.bind({modules: modules});
+					}
+					if (typeof logic.bindModules === 'function') {
+						logic.bindModules(modules);
+					}
+				});
+				waterCb(null, modules);
+			}
 		], cb);
 	};
 

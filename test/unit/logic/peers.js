@@ -15,9 +15,16 @@ describe('peers', function () {
 
 	var peers;
 
-	before(function () {
+	before(function (done) {
 		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
 			peers = __peers;
+			var peersModuleMock = {
+				acceptable: function (peers) {
+					return peers;
+				}
+			};
+			peers.bindModules({peers: peersModuleMock});
+			done();
 		});
 	});
 
@@ -284,10 +291,4 @@ describe('peers', function () {
 		});
 	});
 
-	describe('bind', function () {
-
-		it('should be ok', function () {
-			peers.bind({});
-		});
-	});
 });
