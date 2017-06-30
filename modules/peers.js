@@ -571,7 +571,7 @@ Peers.prototype.onBlockchainReady = function () {
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
-	function peersDiscoveryAndUpdate () {
+	function peersDiscoveryAndUpdate (cb) {
 		async.series({
 			discoverPeers: function (seriesCb) {
 				library.logger.trace('Discovering new peers...');
@@ -611,6 +611,8 @@ Peers.prototype.onPeersReady = function () {
 					return setImmediate(seriesCb);
 				});
 			}
+		}, function () {
+			return setImmediate(cb);
 		});
 	}
 	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
