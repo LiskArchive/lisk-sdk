@@ -118,18 +118,21 @@ __private.syncTrigger = function (turnOn) {
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
 
-	function nextSync () {
+	function nextSync (cb) {
 		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
-			library.sequence.add(function (cb) {
-				async.retry(__private.retries, __private.sync, cb);
+			library.sequence.add(function (sequenceCb) {
+				async.retry(__private.retries, __private.sync, sequenceCb);
 			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
 				}
+				return setImmediate(cb);
 			});
+		} else {
+			return setImmediate(cb);
 		}
 	}
 
