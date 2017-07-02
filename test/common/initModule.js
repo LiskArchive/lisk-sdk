@@ -9,6 +9,7 @@ var _ = require('lodash');
 var async = require('../node').async;
 var dirname = path.join(__dirname, '..', '..');
 var config = require(path.join(dirname, '/config.json'));
+var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
 var database = require(path.join(dirname, '/helpers', 'database.js'));
 var genesisblock = require(path.join(dirname, '/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
@@ -36,6 +37,11 @@ var modulesLoader = new function () {
 		bus: {
 			message: function () {}
 		},
+		balancesSequence: new Sequence({
+			onWarning: function (current, limit) {
+				this.logger.warn('Balance queue', current);
+			}
+		}),
 		nonce: randomString.generate(16)
 	};
 
