@@ -1,23 +1,8 @@
-var _ = require('lodash');
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var crypto = require('crypto');
 var DApp = require('../logic/dapp.js');
 var dappCategories = require('../helpers/dappCategories.js');
-var dappTypes = require('../helpers/dappTypes.js');
-var DecompressZip = require('decompress-zip');
-var extend = require('extend');
-var fs = require('fs');
-var ip = require('ip');
 var InTransfer = require('../logic/inTransfer.js');
-var npm = require('npm');
 var OrderBy = require('../helpers/orderBy.js');
 var OutTransfer = require('../logic/outTransfer.js');
-var path = require('path');
-var popsicle = require('popsicle');
-var rmdir = require('rimraf');
-var Router = require('../helpers/router.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/dapps.js');
 var sql = require('../sql/dapps.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -96,6 +81,8 @@ function DApps (cb, scope) {
 	 */
 	process.on('exit', function () {
 	});
+
+	return setImmediate(cb, null, self);
 }
 
 // Private methods
