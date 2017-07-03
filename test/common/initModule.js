@@ -18,6 +18,7 @@ var Cache = require('../../modules/cache.js');
 var ed = require('../../helpers/ed');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
+var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
 
 var modulesLoader = new function () {
 
@@ -36,7 +37,17 @@ var modulesLoader = new function () {
 		bus: {
 			message: function () {}
 		},
-		nonce: randomString.generate(16)
+		nonce: randomString.generate(16),
+		dbSequence: new Sequence({
+			onWarning: function (current, limit) {
+				scope.logger.warn('DB queue', current);
+			}
+		}),
+		sequence: new Sequence({
+			onWarning: function (current, limit) {
+				scope.logger.warn('Main queue', current);
+			}
+		}),
 	};
 
 	/**
