@@ -16,9 +16,6 @@ def buildDependency() {
     # Install Deps
     npm install
 
-    # Install Nodejs
-    tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
-
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
