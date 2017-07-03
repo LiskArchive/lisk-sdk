@@ -9,7 +9,6 @@ var fs = require('fs');
 var ip = require('ip');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
 var sql = require('../sql/peers.js');
@@ -291,16 +290,6 @@ __private.dbSave = function (cb) {
 };
 
 // Public methods
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Peers.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(Peers.prototype.shared, call, args, cb);
-};
 
 /**
  * Sets peer state to active (2).

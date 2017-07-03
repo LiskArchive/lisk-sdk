@@ -3,7 +3,6 @@
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var Round = require('../logic/round.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/rounds.js');
 
@@ -71,7 +70,7 @@ Rounds.prototype.calc = function (height) {
  * @param {number} round
  * @param {function} cb
  * @return {setImmediateCallback} error message | cb
- * 
+ *
  */
 Rounds.prototype.flush = function (round, cb) {
 	library.db.none(sql.flush, {round: round}).then(function () {
@@ -267,17 +266,6 @@ Rounds.prototype.tick = function (block, done) {
 			return done(err);
 		}
 	});
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Rounds.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events

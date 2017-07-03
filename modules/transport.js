@@ -11,7 +11,6 @@ var extend = require('extend');
 var ip = require('ip');
 var popsicle = require('popsicle');
 var schema = require('../schema/transport.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
 var zlib = require('zlib');
 
@@ -226,7 +225,7 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 
 /**
  * Normalizes transaction and bans peer if it fails.
- * Calls balancesSequence.add to receive transaction and 
+ * Calls balancesSequence.add to receive transaction and
  * processUnconfirmedTransaction to confirm it.
  * @private
  * @implements {library.logic.transaction.objectNormalize}
@@ -436,17 +435,6 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		});
 };
 
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Transport.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
-
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
@@ -559,7 +547,7 @@ Transport.prototype.cleanup = function (cb) {
 
 /**
  * Returns true if modules are loaded and private variable loaded is true.
- * @return {boolean} 
+ * @return {boolean}
  */
 Transport.prototype.isLoaded = function () {
 	return modules && __private.loaded;
