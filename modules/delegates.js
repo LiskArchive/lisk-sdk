@@ -536,7 +536,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 	__private.loadDelegates(function (err) {
 
-		function nextForge () {
+		function nextForge (cb) {
 			if (err) {
 				library.logger.error('Failed to load delegates', err);
 			}
@@ -544,7 +544,9 @@ Delegates.prototype.onBlockchainReady = function () {
 			async.series([
 				__private.forge,
 				modules.transactions.fillPool
-			]);
+			], function () {
+				return setImmediate(cb);
+			});
 		}
 
 		jobsQueue.register('delegatesNextForge', nextForge, 1000);

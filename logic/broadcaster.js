@@ -64,11 +64,12 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	}];
 
 	// Broadcaster timer
-	function nextRelease () {
+	function nextRelease (cb) {
 		__private.releaseQueue(function (err) {
 			if (err) {
 				library.logger.log('Broadcaster timer', err);
 			}
+			return setImmediate(cb);
 		});
 	}
 
