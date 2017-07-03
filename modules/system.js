@@ -43,6 +43,7 @@ function System (cb, scope) {
 			nonce: scope.config.nonce
 		}
 	};
+
 	self = this;
 
 	__private.os = os.platform() + os.release();

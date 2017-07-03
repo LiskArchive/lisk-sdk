@@ -118,7 +118,7 @@ __private.syncTrigger = function (turnOn) {
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
 
-	function nextSync () {
+	function nextSync (cb) {
 		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
@@ -129,7 +129,10 @@ __private.syncTimer = function () {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
 				}
+				return setImmediate(cb);
 			});
+		} else {
+			return setImmediate(cb);
 		}
 	}
 
@@ -593,7 +596,6 @@ __private.loadBlocksFromNetwork = function (cb) {
  * @todo check err actions
  */
 __private.sync = function (cb) {
-	console.trace('SYNC INVOKED');
 	library.logger.info('Starting sync');
 	library.bus.message('syncStarted');
 

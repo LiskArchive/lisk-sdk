@@ -2,8 +2,17 @@
 
 var _ = require('lodash');
 var ip = require('ip');
-var wsRPC = require('../api/ws/rpc/wsRPC');
+var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
+/**
+ * Creates a peer.
+ * @memberof module:peers
+ * @class
+ * @classdesc Main peer logic.
+ * @implements {Peer.accept}
+ * @param {peer} peer
+ * @return calls accept method
+ */
 // Constructor
 function Peer (peer) {
 
@@ -78,7 +87,7 @@ Peer.prototype.nullable = [
 Peer.STATE = {
 	BANNED: 0,
 	DISCONNECTED: 1,
-	ACTIVE: 2
+	CONNECTED: 2
 };
 
 // Public methods
@@ -109,8 +118,6 @@ Peer.prototype.accept = function (peer) {
 
 	return this;
 };
-
-
 
 /**
  * Normalizes peer data.
@@ -169,8 +176,8 @@ Peer.prototype.update = function (peer) {
 
 	// Accept only supported properties
 	_.each(this.properties, function (key) {
-		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === Peer.STATE.BANNED && peer.state === Peer.STATE.ACTIVE) && !_.includes(this.immutable, key)) {
+		// Change value only when is defined
+		if (peer[key] !== null && peer[key] !== undefined && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));
@@ -194,6 +201,7 @@ Peer.prototype.object = function () {
 		}
 	});
 
+	delete copy.rpc;
 	return copy;
 };
 

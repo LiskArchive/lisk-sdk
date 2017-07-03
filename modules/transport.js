@@ -3,7 +3,6 @@
 var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
-var Peer = require('../logic/peer.js');
 var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
@@ -14,6 +13,7 @@ var schema = require('../schema/transport.js');
 var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
 var zlib = require('zlib');
+var Peer = require('../logic/peer');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -209,7 +209,7 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 
 /**
  * Normalizes transaction and remove peer if it fails.
- * Calls balancesSequence.add to receive transaction and 
+ * Calls balancesSequence.add to receive transaction and
  * processUnconfirmedTransaction to confirm it.
  * @private
  * @implements {library.logic.transaction.objectNormalize}
@@ -251,7 +251,11 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 };
 
 // Public methods
-//ToDo: To remove
+/**
+ * Sets or gets headers
+ * @param {Object} [headers]
+ * @return {Object} private variable with headers
+ */
 Transport.prototype.headers = function (headers) {
 	if (headers) {
 		__private.headers = headers;
@@ -378,12 +382,12 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 		modules.system.update(function () {
 			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
 				modules.peers.list({}, function (err, peers) {
-					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.ACTIVE; }), function (peer, cb) {
+					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
 						peer.rpc.acceptPeer(library.logic.peers.me(), function (err) {
 							if (err) {
 								library.logger.debug('Failed to update peer after new block applied', peer.string);
 								cb({errorMsg: err, peer: peer});
-								__private.banPeer({peer: peer, code: 'ECOMMON', clock: 600});
+								__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
 							} else {
 								library.logger.debug('Peer notified correctly after update', peer.string);
 								cb();
@@ -426,7 +430,7 @@ Transport.prototype.cleanup = function (cb) {
 
 /**
  * Returns true if modules are loaded and private variable loaded is true.
- * @return {boolean} 
+ * @return {boolean}
  */
 Transport.prototype.isLoaded = function () {
 	return modules && __private.loaded;
@@ -448,7 +452,7 @@ Transport.prototype.internal = {
 			}
 
 			var escapedIds = query.ids
-				// Remove quotes
+			// Remove quotes
 				.replace(/['"]+/g, '')
 				// Separate by comma into an array
 				.split(',')
@@ -460,8 +464,7 @@ Transport.prototype.internal = {
 			if (!escapedIds.length) {
 				library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: query.ids});
 
-				// Ban peer for 10 minutes
-				__private.banPeer({peer: query.peer, code: 'ECOMMON', clock: 600}, query.extraLogMessage);
+				__private.removePeer({peer: query.peer, code: 'ECOMMON'});
 
 				return setImmediate(cb, 'Invalid block id sequence');
 			}
@@ -474,7 +477,6 @@ Transport.prototype.internal = {
 			});
 
 		});
-
 	},
 
 	blocks: function (query, cb) {
@@ -483,7 +485,7 @@ Transport.prototype.internal = {
 		// Discounting maxium compression setting used in middleware
 		// Maximum transport payload = 2000000 bytes
 		query = query || {};
-		modules.blocks.loadBlocksData({
+		modules.blocks.utils.loadBlocksData({
 			limit: 34, // 1977100 bytes
 			lastId: query.lastBlockId
 		}, function (err, data) {
@@ -502,8 +504,7 @@ Transport.prototype.internal = {
 		} catch (e) {
 			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: query.peer, code: 'EBLOCK', clock: 600}, query.extraLogMessage);
+			__private.removePeer({peer: query.peer, code: 'EBLOCK'});
 
 			return setImmediate(cb, e.toString());
 		}
@@ -679,8 +680,6 @@ Transport.prototype.internal = {
 		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
 			return setImmediate(cb, 'No headers information');
 		}
-		library.logger.debug('transport --- accept peer: ', peer.ip + ':' + peer.port + '#' + peer.nonce + '#' + peer.height + '#' + peer.broadhash);
-
 		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };

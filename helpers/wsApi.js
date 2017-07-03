@@ -18,7 +18,7 @@ var middleware = {
 			headers = headers || {};
 
 			var peer = new Peer(headers);
-			headers.state = Peer.STATE.ACTIVE;
+			headers.state = Peer.STATE.CONNECTED;
 			headers = peer.applyHeaders(headers);
 
 			z_schema.validate(headers, schema.headers, function (error) {
@@ -72,9 +72,9 @@ var extractHeaders = function (request) {
 	if (!headers) {
 		throw new Error('No headers specified');
 	}
+
 	headers.ip = request.remoteAddress.split(':').pop();
 	headers.port = parseInt(headers.port);
-	console.log('IP', headers.ip);
 
 	return headers;
 };

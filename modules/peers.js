@@ -7,7 +7,6 @@ var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
-var Peer = require('../logic/peer.js');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
 var sandboxHelper = require('../helpers/sandbox.js');
@@ -44,6 +43,9 @@ function Peers (cb, scope) {
 		config: {
 			peers: scope.config.peers,
 			version: scope.config.version,
+			forging: {
+				force: scope.config.forging.force
+			}
 		}
 	};
 	self = this;
@@ -98,12 +100,12 @@ __private.getByFilter = function (filter, cb) {
 			var sort_res =
 				// Nulls last
 				a[field] === b[field] ? 0 :
-				a[field] === null ? 1 :
-				b[field] === null ? -1 :
-				// Ascending
-				asc ? (a[field] < b[field] ? -1 : 1) :
-				// Descending
-				(a[field] < b[field] ? 1 : -1);
+					a[field] === null ? 1 :
+						b[field] === null ? -1 :
+							// Ascending
+							asc ? (a[field] < b[field] ? -1 : 1) :
+								// Descending
+								(a[field] < b[field] ? 1 : -1);
 			return sort_res;
 		};
 	};
@@ -202,11 +204,10 @@ __private.insertSeeds = function (cb) {
 					height: status.height,
 					broadhash: status.broadhash,
 					nonce: status.nonce,
-					state: Peer.STATE.ACTIVE //connected
+					state: Peer.STATE.CONNECTED //connected
 				});
 				updated += 1;
 			}
-
 			library.logic.peers.upsert(peer);
 			return setImmediate(eachCb, err);
 		});
@@ -251,12 +252,12 @@ __private.dbLoad = function (cb) {
 							height: status.height,
 							broadhash: status.broadhash,
 							nonce: status.nonce,
-							state: Peer.STATE.ACTIVE
+							state: Peer.STATE.CONNECTED
 						});
 						library.logic.peers.upsert(peer);
 						updated += 1;
 					}
-					return setImmediate(cb);
+					return setImmediate(eachCb);
 				});
 			}
 		}, function (err) {
@@ -330,7 +331,11 @@ __private.dbSave = function (cb) {
 
 Peers.prototype.getConsensus = function (matched, active) {
 
-	active = active || __private.getMatched({state: Peer.STATE.ACTIVE});
+	if (library.config.forging.force) {
+		return undefined;
+	}
+
+	active = active || __private.getMatched({state: Peer.STATE.CONNECTED});
 	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash}, active);
 
 	active = active.slice(0, constants.maxPeers);
@@ -371,32 +376,20 @@ Peers.prototype.update = function (peer) {
  * Removes peer from peers list if it is not a peer from config file list.
  * @implements logic.peers.remove
  * @param {Peer} peer
- * @return {function} Calls peers.remove
+ * @return {boolean} Calls peers.remove
  */
 Peers.prototype.remove = function (peer) {
-	var frozenPeer = _.find(library.config.peers.list, function (peer) {
-		return peer.ip === peer.ip && peer.port === peer.port;
+	var frozenPeer = _.find(library.config.peers.list, function (__peer) {
+		return peer.ip === __peer.ip && peer.port === __peer.port;
 	});
 	if (frozenPeer) {
 		// FIXME: Keeping peer frozen is bad idea at all
 		library.logger.debug('Cannot remove frozen peer', peer.ip + ':' + peer.port);
 		peer.state = Peer.STATE.DISCONNECTED;
 		library.logic.peers.upsert(peer);
-	} else {
-		return library.logic.peers.remove(peer);
+		return false;
 	}
-};
-
-Peers.prototype.ban = function (pip, port, seconds) {
-	var frozenPeer = _.find(library.config.peers.list, function (peer) {
-		return peer.ip === pip && peer.port === port;
-	});
-	if (frozenPeer) {
-		// FIXME: Keeping peer frozen is bad idea at all
-		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
-	} else {
-		return library.logic.peers.ban(pip, port, seconds);
-	}
+	return library.logic.peers.remove(peer);
 };
 
 /**
@@ -407,9 +400,8 @@ Peers.prototype.ban = function (pip, port, seconds) {
 Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
-		self.list({limit: 1, allowedStates: [Peer.STATE.DISCONNECTED, Peer.STATE.ACTIVE]}, function (err, peers) {
+		self.list({limit: 1, allowedStates: [Peer.STATE.DISCONNECTED, Peer.STATE.CONNECTED]}, function (err, peers) {
 			var randomPeer = peers.length ? library.logic.peers.create(peers[0]) : null;
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULE --- discovering peers from: --- ', randomPeer ? randomPeer.string : 'no peers found');
 			if (!err && randomPeer) {
 				randomPeer.rpc.status(function (err, status) {
 					if (err) {
@@ -420,7 +412,7 @@ Peers.prototype.discover = function (cb) {
 						height: status.height,
 						broadhash: status.broadhash,
 						nonce: status.nonce,
-						state: Peer.STATE.ACTIVE
+						state: Peer.STATE.CONNECTED
 					});
 					library.logic.peers.upsert(randomPeer);
 
@@ -441,7 +433,6 @@ Peers.prototype.discover = function (cb) {
 	function pickPeers (peers, waterCb) {
 		var picked = self.acceptable(peers);
 		library.logger.debug(['Picked', picked.length, 'of', peers.length, 'peers'].join(' '));
-
 		return setImmediate(waterCb, null, picked);
 	}
 
@@ -490,10 +481,10 @@ Peers.prototype.acceptable = function (peers) {
 		})
 		.filter(function (peer) {
 			// Removing peers with private address or nonce equal to itself
-			// if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-			return peer.nonce !== modules.system.getNonce();
-			// }
-			// return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+				return peer.nonce !== modules.system.getNonce();
+			}
+			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
 		}).value();
 };
 
@@ -522,11 +513,11 @@ Peers.prototype.list = function (options, cb) {
 				if (options.broadhash) {
 					// Skip banned and disconnected peers by default
 					return options.allowedStates.indexOf(peer.state) !== -1 && (
-						// Matched broadhash when attempt 0
-						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
-						// Unmatched broadhash when attempt 1
-						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
-					);
+							// Matched broadhash when attempt 0
+							options.attempt === 0 ? (peer.broadhash === options.broadhash) :
+								// Unmatched broadhash when attempt 1
+								options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
+						);
 				} else {
 					// Skip banned and disconnected peers by default
 					return options.allowedStates.indexOf(peer.state) !== -1;
@@ -587,7 +578,6 @@ Peers.prototype.onBind = function (scope) {
  * - Discover peers by getting list and validates them.
  */
 Peers.prototype.onBlockchainReady = function () {
-
 	async.series({
 		insertSeeds: function (seriesCb) {
 			__private.insertSeeds(function (err) {
@@ -629,7 +619,7 @@ Peers.prototype.onPeersReady = function () {
 				var updated = 0;
 				var peers = self.acceptable(library.logic.peers.list());
 
-				library.logger.trace('Updating peers', {peers: peers});
+				library.logger.trace('Updating peers', {count: peers.length});
 
 				async.each(peers, function (peer, eachCb) {
 					// If peer is not banned and not been updated during last 3 sec - ping
@@ -644,7 +634,7 @@ Peers.prototype.onPeersReady = function () {
 									height: status.height,
 									broadhash: status.broadhash,
 									nonce: status.nonce,
-									state: Peer.STATE.ACTIVE
+									state: Peer.STATE.CONNECTED
 								});
 								library.logic.peers.upsert(peer);
 								updated += 1;
@@ -695,7 +685,7 @@ Peers.prototype.shared = {
 	count: function (req, cb) {
 		async.series({
 			connected: function (cb) {
-				__private.countByFilter({state: Peer.STATE.ACTIVE}, cb);
+				__private.countByFilter({state: Peer.STATE.CONNECTED}, cb);
 			},
 			disconnected: function (cb) {
 				__private.countByFilter({state: Peer.STATE.DISCONNECTED}, cb);

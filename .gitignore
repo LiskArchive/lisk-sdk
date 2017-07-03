@@ -17,3 +17,6 @@ tmp
 sftp-config.json
 *.swp
 *.swo
+test/integration/logs/
+test/integration/configs/
+!test/integration/configs/config.non-forge.json

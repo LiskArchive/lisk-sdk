@@ -76,7 +76,7 @@ before(function (done) {
 	});
 });
 
-describe('GET /api/transactions (cache)', function () {
+describe.skip('GET /api/transactions (cache)', function () {
 	var cache;
 
 	before(function (done) {
@@ -115,7 +115,7 @@ describe('GET /api/transactions (cache)', function () {
 			'recipientId=' + account.address,
 		];
 
-		node.get(url + params.join('&'), function (err, res) {
+		http.get(url + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			var response = res.body;
@@ -458,7 +458,7 @@ describe('GET /api/transactions', function () {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
-		 });
+		});
 	});
 
 	it('using completely invalid fields should fail', function (done) {

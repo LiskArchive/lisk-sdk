@@ -11,12 +11,12 @@ var config = require('../../config.json');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var Peer = require('../../../logic/peer');
 var randomPeer = require('../../common/objectStubs').randomPeer;
-var wsRPC = require('../../../api/ws/rpc/wsRPC');
+var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 
 var currentPeers = [];
 
 
-describe.skip('peers', function () {
+describe('peers', function () {
 
 	before(function () {
 		process.env['NODE_ENV'] = 'TEST';
@@ -32,12 +32,13 @@ describe.skip('peers', function () {
 		});
 	}
 
-	function removeAll () {
-		peers.list().forEach(function (peer) {
-			peers.remove(peer);
+	function removeAll (done) {
+		peers.list({}, function (err, __peers) {
+			__peers.forEach(function (peer) {
+				peers.remove(peer);
+			});
+			done();
 		});
-
-		expect(peers.list()).that.is.an('array').and.to.be.empty;
 	}
 
 	before(function (done) {
@@ -54,10 +55,8 @@ describe.skip('peers', function () {
 	});
 
 	beforeEach(function (done) {
-		getPeers(function (err, __peers) {
-			currentPeers = __peers;
-			done();
-		});
+		currentPeers = [];
+		removeAll(done);
 	});
 
 	describe('sandboxApi', function () {
@@ -72,146 +71,124 @@ describe.skip('peers', function () {
 	});
 
 	describe('update', function () {
-		
+
 		beforeEach(function (done) {
-			getPeers(function (err, __peers) {
-				currentPeers = __peers;
-				done();
-			});
+			removeAll(done);
+			currentPeers = [];
 		});
 
 		it('should insert new peer', function (done) {
 			peers.update(randomPeer);
-
 			getPeers(function (err, __peers) {
-				expect(currentPeers.length + 1).that.equals(__peers.length);
-				currentPeers = __peers;
-				var inserted = __peers.find(function (p) {
-					return p.ip + ':' + p.port === randomPeer.ip + ':' + randomPeer.port;
-				});
-				expect(inserted).to.be.an('object');
-				expect(inserted).not.to.be.empty;
+				expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
+				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
 				done();
 			});
 		});
+
+
+		it('should insert new peer with only ip and port and state defined', function (done) {
+
+			var ipAndPortPeer = {
+				ip: '40.40.40.43',
+				port: 4000,
+				state: 2
+			};
+
+			peers.update(ipAndPortPeer);
+
+			getPeers(function (err, __peers) {
+				expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
+				expect(__peers[0]).to.have.property('string').equal(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
+				done();
+			});
+		});
+
 
 		it('should update existing peer', function (done) {
-			var toUpdate = _.clone(randomPeer);
-			toUpdate.height += 1;
-			peers.update(toUpdate);
+
+			peers.update(randomPeer);
 
 			getPeers(function (err, __peers) {
-				expect(currentPeers.length).that.equals(__peers.length);
-				currentPeers = __peers;
-				var updated = __peers.find(function (p) {
-					return p.ip + ':' + p.port === randomPeer.ip + ':' + randomPeer.port;
-				});
-				expect(updated).to.be.an('object');
-				expect(updated).not.to.be.empty;
-				expect(updated.ip + ':' + updated.port).that.equals(randomPeer.ip + ':' + randomPeer.port);
-				expect(updated.height).that.equals(toUpdate.height);
-				done();
-			});
-		});
-
-		it('should insert new peer if ip or port changed', function (done) {
-			var toUpdate = _.clone(randomPeer);
-			toUpdate.port += 1;
-			peers.update(toUpdate);
-
-			getPeers(function (err, __peers) {
-				expect(currentPeers.length + 1).that.equals(__peers.length);
-				currentPeers = __peers;
-				var inserted = __peers.find(function (p) {
-					return p.ip + ':' + p.port === toUpdate.ip + ':' + toUpdate.port;
-				});
-				expect(inserted).to.be.an('object');
-				expect(inserted).not.to.be.empty;
-				expect(inserted.ip + ':' + inserted.port).that.equals(toUpdate.ip + ':' + toUpdate.port);
-
-				toUpdate.ip = '40.40.40.41';
+				expect(__peers[0]).to.have.property('height').equal(randomPeer.height);
+				var toUpdate = _.clone(randomPeer);
+				toUpdate.height += 1;
 				peers.update(toUpdate);
 				getPeers(function (err, __peers) {
-					expect(currentPeers.length + 1).that.equals(__peers.length);
-					currentPeers = __peers;
-					var inserted = __peers.find(function (p) {
-						return p.ip + ':' + p.port === toUpdate.ip + ':' + toUpdate.port;
-					});
-					expect(inserted).to.be.an('object');
-					expect(inserted).not.to.be.empty;
-					expect(inserted.ip + ':' + inserted.port).that.equals(toUpdate.ip + ':' + toUpdate.port);
+					expect(__peers[0]).to.have.property('height').equal(toUpdate.height);
 					done();
 				});
 			});
+
 		});
 
-		var ipAndPortPeer = {
-			ip: '40.40.40.43',
-			port: 4000,
-			nonce: 'newrandomnonce'
-		};
+		it('should not insert new peer if address changed but nonce is the same', function (done) {
 
-		it('should insert new peer with only ip and port defined', function (done) {
-			peers.update(ipAndPortPeer);
+			peers.update(randomPeer);
 
 			getPeers(function (err, __peers) {
-				expect(currentPeers.length + 1).that.equals(__peers.length);
-				currentPeers = __peers;
-				var inserted = __peers.find(function (p) {
-					return p.ip + ':' + p.port === ipAndPortPeer.ip + ':' + ipAndPortPeer.port;
-				});
-				expect(inserted).to.be.an('object');
-				expect(inserted).not.to.be.empty;
-				expect(inserted.ip + ':' + inserted.port).that.equals(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
-				done();
-			});
-		});
-
-		it('should update peer with only one header defined', function (done) {
-			peers.update(ipAndPortPeer);
-
-			getPeers(function (err, __peers) {
-				currentPeers = __peers;
-
-				var almostEmptyPeer = _.clone(ipAndPortPeer);
-				almostEmptyPeer.height = 1;
-
-				peers.update(almostEmptyPeer);
+				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
+				var toUpdate = _.clone(randomPeer);
+				toUpdate.port += 1;
+				peers.update(toUpdate);
 				getPeers(function (err, __peers) {
-					expect(currentPeers.length).that.equals(__peers.length);
-					var inserted = __peers.find(function (p) {
-						return p.ip + ':' + p.port === ipAndPortPeer.ip + ':' + ipAndPortPeer.port;
-					});
-					expect(inserted).to.be.an('object');
-					expect(inserted).not.to.be.empty;
-					expect(inserted.ip + ':' + inserted.port).that.equals(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
-					expect(inserted.height).that.equals(almostEmptyPeer.height);
+					expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
+					done();
+				});
+			});
+
+		});
+
+		it('should not insert new peer if address changed but nonce is the same', function (done) {
+
+			peers.update(randomPeer);
+
+			getPeers(function (err, __peers) {
+				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
+				var toUpdate = _.clone(randomPeer);
+				toUpdate.port += 1;
+				peers.update(toUpdate);
+				getPeers(function (err, __peers) {
+					expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
 					done();
 				});
 			});
 		});
+
+
+		it('should insert new peer if address and nonce changed', function (done) {
+
+			peers.update(randomPeer);
+
+			getPeers(function (err, __peers) {
+				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
+				var secondPeer = _.clone(randomPeer);
+				secondPeer.port += 1;
+				secondPeer.nonce = 'someDifferentNonce';
+				peers.update(secondPeer);
+				getPeers(function (err, __peers) {
+					expect(__peers).to.have.a.lengthOf(2);
+					expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
+					expect(__peers[1]).to.have.property('string').equal(secondPeer.ip + ':' + secondPeer.port);
+					done();
+				});
+			});
+
+		});
+
 	});
 
 	describe('remove', function () {
 
-		before(function (done) {
-			peers.update(randomPeer);
-			done();
-		});
-
 		it('should remove added peer', function (done) {
-			getPeers(function (err, __peers) {
-				currentPeers = __peers;
-				var peerToRemove = currentPeers.find(function (p) {
-					return p.ip + ':' + p.port === randomPeer.ip + ':' + randomPeer.port;
-				});
-				expect(peerToRemove).to.be.an('object').and.not.to.be.empty;
-				expect(peerToRemove.state).that.equals(2);
 
-				expect(peers.remove(peerToRemove.ip, peerToRemove.port)).to.be.ok;
+			peers.update(randomPeer);
+
+			getPeers(function (err, __peers) {
+				expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
+				expect(peers.remove(randomPeer)).to.be.ok;
 				getPeers(function (err, __peers) {
-					expect(currentPeers.length - 1).that.equals(__peers.length);
-					currentPeers = __peers;
+					expect(__peers).to.be.an('array').and.to.have.lengthOf(0);
 					done();
 				});
 			});

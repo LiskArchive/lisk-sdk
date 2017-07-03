@@ -27,41 +27,41 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
-var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0]);
+var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
 	switch (syncMode) {
-	case SYNC_MODE.RANDOM:
-		var peersList = [];
+		case SYNC_MODE.RANDOM:
+			var peersList = [];
 
-		if (typeof syncModeArgs.PROBABILITY !== 'number') {
-			throw new Error('Probability parameter not specified to random sync mode');
-		}
-		var isPickedWithProbability = function (n) {
-			return !!n && Math.random() <= n;
-		};
-
-		return Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
-			if (isPickedWithProbability(syncModeArgs.PROBABILITY)) {
-				peersList.push({
-					ip: '127.0.0.1',
-					port: 4000 + index
-				});
+			if (typeof syncModeArgs.PROBABILITY !== 'number') {
+				throw new Error('Probability parameter not specified to random sync mode');
 			}
-		});
-		break;
+			var isPickedWithProbability = function (n) {
+				return !!n && Math.random() <= n;
+			};
 
-	case SYNC_MODE.ALL_TO_FIRST:
-		return [{
-			ip: '127.0.0.1',
-			port: 4001
-		}];
-		break;
+			return Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
+				if (isPickedWithProbability(syncModeArgs.PROBABILITY)) {
+					peersList.push({
+						ip: '127.0.0.1',
+						port: 4000 + index
+					});
+				}
+			});
+			break;
 
-	case SYNC_MODE.ALL_TO_GROUP:
-		throw new Error('To implement');
-		break;
+		case SYNC_MODE.ALL_TO_FIRST:
+			return [{
+				ip: '127.0.0.1',
+				port: 4001
+			}];
+			break;
+
+		case SYNC_MODE.ALL_TO_GROUP:
+			throw new Error('To implement');
+			break;
 	}
 }
 
@@ -99,9 +99,9 @@ function generatePM2NodesConfig (testNodeConfigs) {
 			'script': 'app.js',
 			'name': 'node_' + index,
 			'args': ' -p ' + nodeConfig.port +
-					' -h ' + (nodeConfig.port + 1000) +
-					' -x ' + peersAsString(nodeConfig.peers.list) +
-					' -d ' + nodeConfig.database,
+			' -h ' + (nodeConfig.port + 1000) +
+			' -x ' + peersAsString(nodeConfig.peers.list) +
+			' -d ' + nodeConfig.database,
 			'env': {
 				'NODE_ENV': 'test'
 			},
@@ -157,8 +157,17 @@ function killTestNodes (cb) {
 }
 
 function runFunctionalTests (cb) {
-	child_process.exec('npm run test-functional', {maxBuffer: require('buffer').kMaxLength - 1}, function (err, stdout) {
-		console.log(stdout);
+	var child = child_process.spawn('npm', ['run', 'test-functional'], {
+		cwd: __dirname + '/../..'
+	});
+
+	child.stdout.pipe(process.stdout);
+
+	child.on('close', function (code) {
+		return cb(code === 0 ? undefined : code);
+	});
+
+	child.on('error', function (err) {
 		return cb(err);
 	});
 }
@@ -166,7 +175,7 @@ function runFunctionalTests (cb) {
 function recreateDatabases (done) {
 	var recreatedCnt = 0;
 	testNodeConfigs.forEach(function (nodeConfig) {
-		child_process.exec('dropdb ' + nodeConfig.database + ' && createdb ' + nodeConfig.database, function (err, stdout) {
+		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, function (err, stdout) {
 			if (err) {
 				return done(err);
 			}

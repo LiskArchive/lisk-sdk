@@ -29,31 +29,20 @@ function getVotes (address, done) {
 
 function postVotes (params, done) {
 	var count = 0;
-	var limit = Math.ceil(params.delegates.length / 25);
+	var blocksToWait = Math.ceil(params.delegates.length / node.constants.maxTxsPerBlock);
 
-	async.whilst(
-		function () {
-			return count <= limit;
-		}, function (untilCb) {
-		node.onNewBlock(function (err) {
-			count++;
-			return untilCb();
+	node.async.eachSeries(params.delegates, function (delegate, eachCb) {
+		var transaction = node.lisk.vote.createVote(params.passphrase, [params.action + delegate]);
+
+		postVote(transaction, function (err, res) {
+			params.voteCb(err, res);
+			return eachCb();
 		});
 	}, function (err) {
-		async.eachSeries(params.delegates, function (delegate, eachCb) {
-			var transaction = node.lisk.vote.createVote(params.passphrase, [params.action + delegate]);
-
-			postVote(transaction, function (err, res) {
-				params.voteCb(err, res);
-				return eachCb();
-			});
-		}, function (err) {
-			node.onNewBlock(function (err) {
-				return done(err);
-			});
+		node.waitForBlocks(blocksToWait, function (err) {
+			return done(err);
 		});
-	}
-	);
+	});
 }
 
 function postVote (transaction, done) {
@@ -185,14 +174,12 @@ describe('postTransactions', function () {
 	});
 
 	it('voting twice for a delegate should fail', function (done) {
-		async.series([
+		node.async.series([
 			function (seriesCb) {
-				node.onNewBlock(function (err) {
-					var transaction = node.lisk.vote.createVote(account.password, ['+' + delegate]);
-					postVote(transaction, function (err, res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						seriesCb();
-					});
+				var transaction = node.lisk.vote.createVote(account.password, ['+' + delegate]);
+				postVote(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					return seriesCb();
 				});
 			},
 			function (seriesCb) {
@@ -202,7 +189,7 @@ describe('postTransactions', function () {
 				var transaction2 = node.lisk.vote.createVote(account.password, ['+' + delegate]);
 				postVote(transaction2, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.ok;
-					seriesCb();
+					return seriesCb();
 				});
 			},
 			function (seriesCb) {
@@ -212,13 +199,13 @@ describe('postTransactions', function () {
 				var transaction2 = node.lisk.vote.createVote(account.password, ['+' + delegate]);
 				postVote(transaction2, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
-					seriesCb();
+					return seriesCb();
 				});
 			},
 			function (seriesCb) {
 				getVotes(account.address, function (err, res) {
 					node.expect(res.body).to.have.property('delegates').that.has.lengthOf(1);
-					seriesCb(err);
+					return seriesCb(err);
 				});
 			}
 		], function (err) {
@@ -227,98 +214,94 @@ describe('postTransactions', function () {
 	});
 
 	it('removing votes from a delegate should be ok', function (done) {
-		node.onNewBlock(function (err) {
-			var transaction = node.lisk.vote.createVote(account.password, ['-' + delegate]);
-			postVote(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				done();
+		var transaction = node.lisk.vote.createVote(account.password, ['-' + delegate]);
+		postVote(transaction, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+			node.onNewBlock(function (err) {
+				return done(err);
 			});
 		});
 	});
 
 	it('voting for 33 delegates at once should be ok', function (done) {
-		node.onNewBlock(function (err) {
-			var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
-				return '+' + delegate;
-			}));
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
+			return '+' + delegate;
+		}));
 
-			postVote(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				done();
+		postVote(transaction, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+			node.onNewBlock(function (err) {
+				return done(err);
 			});
 		});
 	});
 
 	it('removing votes from 33 delegates at once should be ok', function (done) {
-		node.onNewBlock(function (err) {
-			var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
-				return '-' + delegate;
-			}));
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
+			return '-' + delegate;
+		}));
 
-			postVote(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				done();
+		postVote(transaction, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+			node.onNewBlock(function (err) {
+				return done(err);
 			});
 		});
 	});
 
 	it('voting for 34 delegates at once should fail', function (done) {
-		node.onNewBlock(function (err) {
-			var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
-				return '+' + delegate;
-			}));
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
+			return '+' + delegate;
+		}));
 
-			postVote(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
-				done();
+		postVote(transaction, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+			node.onNewBlock(function (err) {
+				return done(err);
 			});
 		});
 	});
 
 	it('voting for 101 delegates separately should be ok', function (done) {
-		node.onNewBlock(function (err) {
-			postVotes({
-				delegates: delegates,
-				passphrase: account.password,
-				action: '+',
-				voteCb: function (err, res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.a('string');
-				}
-			}, done);
-		});
+		postVotes({
+			delegates: delegates,
+			passphrase: account.password,
+			action: '+',
+			voteCb: function (err, res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').that.is.a('string');
+			}
+		}, done);
 	});
 
 	it('removing votes from 34 delegates at once should fail', function (done) {
-		node.onNewBlock(function (err) {
-			var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
-				return '-' + delegate;
-			}));
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
+			return '-' + delegate;
+		}));
 
-			postVote(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
-				done();
+		postVote(transaction, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+			node.onNewBlock(function (err) {
+				return done(err);
 			});
 		});
 	});
 
 	it('removing votes from 101 delegates separately should be ok', function (done) {
-		node.onNewBlock(function (err) {
-			postVotes({
-				delegates: delegates,
-				passphrase: account.password,
-				action: '-',
-				voteCb: function (err, res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.a('string');
-				}
-			}, done);
-		});
+		postVotes({
+			delegates: delegates,
+			passphrase: account.password,
+			action: '-',
+			voteCb: function (err, res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').that.is.a('string');
+			}
+		}, done);
 	});
 });
 
@@ -380,9 +363,6 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 				}, seriesCb);
 			},
 			function (seriesCb) {
-				return node.onNewBlock(seriesCb);
-			},
-			function (seriesCb) {
 				var slicedDelegates = delegates.slice(-25);
 				node.expect(slicedDelegates).to.have.lengthOf(25);
 
@@ -413,7 +393,9 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 		postVote(transaction, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.ok;
 			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-			done();
+			node.onNewBlock(function (err) {
+				return done(err);
+			});
 		});
 	});
 });

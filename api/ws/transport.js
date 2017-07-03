@@ -1,7 +1,7 @@
 'use strict';
 
 var wsApi = require('../../helpers/wsApi');
-var wsRPC = require('./rpc/wsRPC');
+var wsRPC = require('./rpc/wsRPC').wsRPC;
 
 function TransportWSApi (transportModule, app, logger) {
 

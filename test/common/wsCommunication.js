@@ -3,7 +3,8 @@
 var _ = require('lodash');
 var Q = require('q');
 var constants = require('../../helpers/constants');
-var ClientRPCStub = require('../../api/ws/rpc/clientRPCStub');
+var ClientRPCStub = require('../../api/ws/rpc/wsRPC').ClientRPCStub;
+var ConnectionState = require('../../api/ws/rpc/wsRPC').ConnectionState;
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var wampClient = new WAMPClient();
@@ -12,7 +13,7 @@ var node = require('../node');
 
 var wsCommunication = {
 
-	defaultSocketDefer: null,
+	defaultConnectionState: null,
 
 	connect: function (ip, port, socketDefer, headers) {
 
@@ -47,13 +48,13 @@ var wsCommunication = {
 
 	// Get the given path
 	call: function (procedure, data, done, includePeer) {
-		if (!this.defaultSocketDefer) {
-			this.defaultSocketDefer = Q.defer();
+		if (!this.defaultConnectionState) {
+			this.defaultConnectionState = new ConnectionState('127.0.0.1', 4000);
 			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 4000);
 			constants.setConst('headers', this.defaultSocketPeerHeaders);
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
-		if (includePeer && typeof data == 'object') {
+		if (includePeer && typeof data === 'object') {
 			data.peer =  _.assign({
 				ip: '127.0.0.1',
 				port: 4000

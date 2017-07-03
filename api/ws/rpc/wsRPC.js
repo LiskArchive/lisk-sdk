@@ -9,16 +9,15 @@ var constants = require('../../../helpers/constants');
 
 var wsRPC = {
 
-	wsServer: null,
-	wampClient: new WAMPClient(),
-	scClient: scClient,
 	clientsConnectionsMap: {},
+	scClient: scClient,
+	wampClient: new WAMPClient(),
+	wsServer: null,
 
 	/**
 	 * @param {MasterWAMPServer} wsServer
 	 */
 	setServer: function (wsServer) {
-		console.log('WSRPC - SETTING SERVER ');
 		this.wsServer = wsServer;
 	},
 
@@ -27,10 +26,10 @@ var wsRPC = {
 	 * @returns {MasterWAMPServer} wsServer
 	 */
 	getServer: function () {
-		if (!this.wsServer) {
+		if (!wsRPC.wsServer) {
 			throw new Error('WS server haven\'t been initialized!');
 		}
-		return this.wsServer;
+		return wsRPC.wsServer;
 	},
 	/**
 	 * @param {string} ip
@@ -50,7 +49,6 @@ var wsRPC = {
 			connectionState = new ConnectionState(ip, port);
 			this.clientsConnectionsMap[address] = connectionState;
 		}
-
 		return connectionState.stub;
 	}
 };
@@ -183,4 +181,8 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 	};
 };
 
-module.exports = wsRPC;
+module.exports = {
+	wsRPC: wsRPC,
+	ConnectionState: ConnectionState,
+	ClientRPCStub: ClientRPCStub
+};

@@ -44,7 +44,11 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	self.config.peerLimit = constants.maxPeers;
 
 	// Optionally ignore broadhash consensus
-	constants.setConst('consensus', library.config.forging.force ? 100 : undefined);
+	if (library.config.forging.force) {
+		self.consensus = undefined;
+	} else {
+		self.consensus = 100;
+	}
 
 	// Broadcast routes
 	self.routes = [{
@@ -96,6 +100,7 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
 Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
+
 	var originalLimit = params.limit;
 
 	modules.peers.list(params, function (err, peers, consensus) {
@@ -103,8 +108,9 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 			return setImmediate(cb, err);
 		}
 
-		if (originalLimit === constants.maxPeers) {
+		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
 			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
+			self.consensus = consensus;
 		}
 
 		return setImmediate(cb, null, peers);
@@ -123,7 +129,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
 };
 
 /**
- * Gets peers and for each peer create it and broadcast. 
+ * Gets peers and for each peer create it and broadcast.
  * @implements {getPeers}
  * @implements {library.logic.peers.create}
  * @param {Object} params

@@ -98,7 +98,7 @@ function Config (packageJson) {
 /**
  * Validates nethash value from constants and sets forging force to false if any.
  * @private
- * @param {Object} configData 
+ * @param {Object} configData
  */
 function validateForce (configData) {
 	if (configData.forging.force) {

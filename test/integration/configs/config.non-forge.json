@@ -1,19 +1,18 @@
 {
-    "port": 8000,
-    "httpPort": 8001,
+    "port": 4000,
+    "httpPort": 5000,
     "address": "0.0.0.0",
-    "version": "0.9.1",
-    "minVersion": ">=0.5.0",
+    "version": "0.0.0a",
+    "minVersion": "0.0.0a",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
-    "consoleLogLevel": "none",
-    "trustProxy": false,
+    "consoleLogLevel": "debug",
+    "trustProxy": true,
     "topAccounts": false,
-    "cacheEnabled": false,
     "db": {
         "host": "localhost",
         "port": 5432,
-        "database": "lisk_main",
+        "database": "lisk_local",
         "user": "",
         "password": "password",
         "poolSize": 95,
@@ -23,17 +22,13 @@
             "error"
         ]
     },
-    "redis": {
-        "host": "127.0.0.1",
-        "port": 6380,
-        "db": 0,
-        "password": null
-    },
     "api": {
         "enabled": true,
         "access": {
-            "public": false,
-            "whiteList": ["127.0.0.1"]
+            "public": true,
+            "whiteList": [
+                "127.0.0.2"
+            ]
         },
         "options": {
             "limits": {
@@ -46,48 +41,10 @@
     },
     "peers": {
         "enabled": true,
-        "list": [
-            {
-                "ip": "83.136.254.92",
-                "port": 8000
-            },
-            {
-                "ip": "83.136.249.76",
-                "port": 8000
-            },
-            {
-                "ip": "94.237.28.66",
-                "port": 8000
-            },
-            {
-                "ip": "94.237.24.199",
-                "port": 8000
-            },
-            {
-                "ip": "209.50.49.23",
-                "port": 8000
-            },
-            {
-                "ip": "209.50.49.40",
-                "port": 8000
-            },
-            {
-                "ip": "94.237.64.70",
-                "port": 8000
-            },
-            {
-                "ip": "94.237.64.73",
-                "port": 8000
-            },
-            {
-                "ip": "94.237.40.140",
-                "port": 8000
-            },
-            {
-                "ip": "94.237.40.141",
-                "port": 8000
-            }
-        ],
+        "list": [{
+            "ip": "127.0.0.1",
+            "port": 4000
+        }],
         "access": {
             "blackList": []
         },
@@ -135,8 +92,8 @@
     },
     "dapp": {
         "masterrequired": true,
-        "masterpassword": "",
+        "masterpassword": "F6XK8Zn5EYr5",
         "autoexec": []
     },
-    "nethash": "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"
+    "nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }
