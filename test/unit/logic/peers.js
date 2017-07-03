@@ -16,15 +16,18 @@ describe('peers', function () {
 	var peers;
 
 	before(function (done) {
-		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
-			peers = __peers;
-			var peersModuleMock = {
-				acceptable: function (peers) {
-					return peers;
-				}
-			};
-			peers.bindModules({peers: peersModuleMock});
-			done();
+		modulesLoader.initAllModules(function (err, __modules) {
+			if (err) {
+				return done(err);
+			}
+
+			__modules.peers.onBind(__modules);
+
+			modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
+				peers = __peers;
+				peers.bindModules({peers: __modules.peers});
+				done();
+			});
 		});
 	});
 
