@@ -927,12 +927,12 @@ describe('transaction', function () {
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
 				transaction.undo(trs, dummyBlock, validSender, function (err) {
+					expect(err).to.equal('Invalid public key');
 					accountModule.getAccount({publicKey: trs.senderPublicKey}, function (err, accountAfter) {
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 
 						expect(balanceBefore.plus(amount.mul(2)).toString()).to.not.equal(balanceAfter.toString());
 						expect(balanceBefore.toString()).to.equal(balanceAfter.toString());
-						expect(err).to.equal('Invalid public key');
 						done();
 					});
 				});
