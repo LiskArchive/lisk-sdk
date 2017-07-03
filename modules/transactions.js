@@ -46,7 +46,7 @@ function Transactions (cb, scope) {
 			transaction: scope.logic.transaction,
 		},
 	};
-	genesisblock = library.genesisblock;
+	genesisblock = scope.genesisblock;
 	self = this;
 
 	__private.transactionPool = new TransactionPool(
