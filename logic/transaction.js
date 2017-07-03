@@ -1162,12 +1162,12 @@ Transaction.prototype.dbRead = function (raw) {
 // Events
 /**
  * Binds input parameters to private variables modules.
- * @param {Rounds} rounds
+ * @param {Object} __modules
  */
-Transaction.prototype.bindModules = function (rounds) {
+Transaction.prototype.bindModules = function (__modules) {
 	this.scope.logger.trace('Logic/Transaction->bindModules');
 	modules = {
-		rounds: rounds,
+		rounds: __modules.rounds
 	};
 };
 
