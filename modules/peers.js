@@ -152,22 +152,6 @@ __private.getByFilter = function (filter, cb) {
 };
 
 /**
- * Remove bans from peers list if clock period time has been pass.
- * @private
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb
- */
-__private.removeBans = function (cb) {
-	var now = Date.now();
-	_.each(library.logic.peers.list(), function (peer, index) {
-		if (peer.clock && peer.clock <= now) {
-			library.logic.peers.unban(peer);
-		}
-	});
-	return setImmediate(cb);
-};
-
-/**
  * Pings to every member of peers list.
  * @private
  * @param {function} cb - Callback function.
@@ -329,26 +313,6 @@ Peers.prototype.remove = function (pip, port) {
 		library.logger.debug('Cannot remove frozen peer', pip + ':' + port);
 	} else {
 		return library.logic.peers.remove ({ip: pip, port: port});
-	}
-};
-
-/**
- * Bans peer in peers list if it is not a peer from config file list.
- * @implements logic.peers.ban
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {function} Calls peers.ban
- */
-Peers.prototype.ban = function (pip, port, seconds) {
-	var frozenPeer = _.find(library.config.peers.list, function (peer) {
-		return peer.ip === pip && peer.port === port;
-	});
-	if (frozenPeer) {
-		// FIXME: Keeping peer frozen is bad idea at all
-		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
-	} else {
-		return library.logic.peers.ban (pip, port, seconds);
 	}
 };
 
@@ -567,7 +531,7 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 /**
- * Discovers peers, updates them and removes bans in 10sec intervals loop.
+ * Discovers peers and updates them in 10sec intervals loop.
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
@@ -601,13 +565,6 @@ Peers.prototype.onPeersReady = function () {
 					}
 				}, function () {
 					library.logger.trace('Peers updated', {updated: updated, total: peers.length});
-					return setImmediate(seriesCb);
-				});
-			},
-			removeBans: function (seriesCb) {
-				library.logger.trace('Checking peers bans...');
-
-				__private.removeBans(function (err) {
 					return setImmediate(seriesCb);
 				});
 			}

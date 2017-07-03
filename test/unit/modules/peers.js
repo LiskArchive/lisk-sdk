@@ -170,36 +170,6 @@ describe('peers', function () {
 		});
 	});
 
-	describe('ban', function () {
-
-		var peerToBan;
-
-		before(function (done) {
-			peerToBan = _.clone(randomPeer);
-			peerToBan.port += 1;
-			peers.update(peerToBan);
-			done();
-		});
-
-		it('should ban active peer', function (done) {
-			getPeers(function (err, __peers) {
-				currentPeers = __peers;
-				peerToBan = __peers.find(function (p) {
-					return p.ip + ':' + p.port === peerToBan.ip + ':' + peerToBan.port;
-				});
-				expect(peerToBan).to.be.an('object').and.not.to.be.empty;
-				expect(peerToBan.state).that.equals(2);
-
-				expect(peers.ban(peerToBan.ip, peerToBan.port, 1)).to.be.ok;
-				getPeers(function (err, __peers) {
-					expect(currentPeers.length - 1).that.equals(__peers.length);
-					currentPeers = __peers;
-					done();
-				});
-			});
-		});
-	});
-
 	describe('remove', function () {
 
 		before(function (done) {

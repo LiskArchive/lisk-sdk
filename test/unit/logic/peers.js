@@ -222,56 +222,6 @@ describe('peers', function () {
 		});
 	});
 
-	describe('ban', function () {
-
-		it('should change the peer state to banned', function () {
-			removeAll();
-			peers.upsert(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(2);
-
-			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
-			expect(result).to.be.ok;
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(0);
-		});
-
-	});
-
-	describe('unban', function () {
-
-		it('should change the peer state to unbanned', function () {
-			removeAll();
-			peers.upsert(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(2);
-
-			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
-			expect(result).to.be.ok;
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(0);
-
-			peers.unban(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(1);
-		});
-
-		it('should do nothing when unbanning non inserted peer', function () {
-			removeAll();
-			peers.upsert(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(2);
-
-			var differentPeer = _.clone(randomPeer);
-			differentPeer.port += 1;
-
-			peers.unban(differentPeer);
-			expect(peers.list().length).equal(1);
-			expect(arePeersEqual(peers.list()[0], randomPeer)).to.be.ok;
-		});
-
-	});
-
 	describe('remove', function () {
 
 		it('should remove added peer', function () {
