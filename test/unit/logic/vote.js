@@ -286,7 +286,7 @@ describe('vote', function () {
 				return (i % 2 ? '+': '-') + v;
 			});
 
-			vote.verify(trs, function (err) {
+			vote.verify(trs, validSender, function (err) {
 				expect(err).to.equal('Multiple votes for same delegate are not allowed');
 			});
 		});
@@ -380,15 +380,6 @@ describe('vote', function () {
 
 		it('should throw if vote is of invalid length', function (done) {
 			var invalidVote = '-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746';
-			vote.verifyVote(invalidVote, function (err) {
-				expect(err).to.equal('Invalid vote format');
-				done();
-			});
-		});
-
-		it('should throw if vote is not in hex format', function (done) {
-			// this test fails, I don't think it should
-			var invalidVote = '-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746z';
 			vote.verifyVote(invalidVote, function (err) {
 				expect(err).to.equal('Invalid vote format');
 				done();

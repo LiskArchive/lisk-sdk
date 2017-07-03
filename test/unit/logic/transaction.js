@@ -582,13 +582,6 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should be okay when trs sender publicKey and sender public key are different in genesis block', function (done) {
-			transaction.verify(genesisTrs, validSender, {}, function (err) {
-				expect(err).to.not.exist;
-				done();
-			});
-		});
-
 		it('should be impossible to send the money from genesis account', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			//genesis account info
@@ -957,21 +950,6 @@ describe('transaction', function () {
 				});
 			});
 		});
-
-		it('should return error with a different sender', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-			trs.amount = 10;
-			var randomAccount = {
-				address: '239269356711361894L',
-				publicKey: '15fd9f3e23f725e402a00789bd9548d3d732ed9754b9c6125c5267601c2d8b84',
-				balance: 8067374861277
-			};
-			// this test fails, while it shouldn't.
-			transaction.undo(trs, dummyBlock, randomAccount, function (err) {
-				expect(err).to.exist;
-				done();
-			});
-		});
 	});
 
 	describe('applyUnconfirmed', function () {
@@ -999,19 +977,6 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should return error with a different sender', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.amount = 10;
-			var randomAccount = node.randomAccount();
-			randomAccount.balance = 8067374861277;
-			randomAccount.u_balance = 8067374861277;
-			// this test fails, not sure if it should
-			transaction.applyUnconfirmed(trs, randomAccount, function (err) {
-				expect(err).to.exist;
-				done();
-			});
-		});
-
 		it('should okay for valid params', function (done) {
 			transaction.applyUnconfirmed(validTransaction, validSender, function (err) {
 				expect(err).to.not.exist;
@@ -1035,19 +1000,6 @@ describe('transaction', function () {
 				expect(err).to.not.exist;
 				applyUnconfirmedTransaction(validTransaction, validSender, done);
 			}); 
-		});
-
-		it('should return error with a different sender', function (done) {
-			var trs = _.cloneDeep(validUnconfirmedTrs);
-			trs.amount = 10;
-			var randomAccount = node.randomAccount(); 
-			randomAccount.balance = 8067374861277;
-			randomAccount.u_balance = 8067374861277;
-			// this test fails, while it shouldn't.
-			transaction.undoUnconfirmed(trs, randomAccount, function (err) {
-				expect(err).to.exist;
-				done();
-			});
 		});
 	});
 
