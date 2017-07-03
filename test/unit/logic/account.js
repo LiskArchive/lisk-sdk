@@ -101,7 +101,7 @@ describe('account', function () {
 			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
 			account.get({address: validAccount.address}, requestedFields, function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.be.an.object;
+				expect(res).to.be.an('object');
 				expect(Object.keys(res)).to.eql(requestedFields);
 				done();
 			});
@@ -125,10 +125,8 @@ describe('account', function () {
 
 		it('should get the correct account against address', function (done) {
 			account.get({address: validAccount.address}, function (err, res) {
-				console.log(res);
-
 				expect(err).to.not.exist;
-				expect(res).to.be.an.object;
+				expect(res).to.be.an('object');
 				expect(res.username).to.equal(validAccount.username);
 				expect(res.isDelegate).to.equal(validAccount.isDelegate);
 				expect(res.address).to.equal(validAccount.address);
