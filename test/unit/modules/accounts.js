@@ -60,6 +60,18 @@ describe('account', function () {
 	var accountLogic;
 	var accountModuleDependencies;
 
+	function compareImmutableFields (validAccount, comparingAccount) {
+
+		var immutableFields = accountLogic.model.filter(function (field) {
+			return field.immutable;
+		}).map(function (field) {
+			return field.name;
+		});
+
+		immutableFields.forEach(function (fieldName) {
+			expect(validAccount[fieldName]).to.equal(comparingAccount[fieldName]);
+		});
+	}
 	before(function (done) {
 		async.auto({
 			rounds: function (cb) {
@@ -160,14 +172,14 @@ describe('account', function () {
 		it('should get correct account for address', function (done) {
 			account.getAccount({address: validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(validAccount);
+				compareImmutableFields(validAccount, res);
 				done();
 			});
 		});
 	});
 
 	describe('getAccounts', function () {
-		it.only('should get accounts for the filter provided', function (done) {
+		it('should get accounts for the filter provided', function (done) {
 			account.getAccounts({secondSignature: 0}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
@@ -222,7 +234,8 @@ describe('account', function () {
 						secret: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('invalid schema');
+					expect(err).to.equal('Expected type string but found type integer');
+					done();
 				});
 			});
 
@@ -259,7 +272,8 @@ describe('account', function () {
 						address: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('invalid schema');
+					expect(err).to.equal('Expected type string but found type integer');
+					done();
 				});
 			});
 
@@ -284,8 +298,8 @@ describe('account', function () {
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(Number.isInteger(res.balance)).to.be.ok;
-					expect(Number.isInteger(res.unconfirmedBalance)).to.be.ok;
+					expect(Number.isInteger(Number(res.balance))).to.be.ok;
+					expect(Number.isInteger(Number(res.unconfirmedBalance))).to.be.ok;
 					done();
 				});
 			});
@@ -299,7 +313,8 @@ describe('account', function () {
 						address: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('invalid schema');
+					expect(err).to.equal('Expected type string but found type integer');
+					done();
 				});
 			});
 
@@ -334,7 +349,8 @@ describe('account', function () {
 						secret: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('invalid schema');
+					expect(err).to.equal('Expected type string but found type integer');
+					done();
 				});
 			});
 
@@ -374,7 +390,8 @@ describe('account', function () {
 						address: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('invalid schema');
+					expect(err).to.equal('Expected type string but found type integer');
+					done();
 				});
 			});
 
@@ -389,7 +406,7 @@ describe('account', function () {
 				});
 			});
 
-			it.only('should return delegates of an account', function (done) {
+			it('should return delegates of an account', function (done) {
 				account.shared.getDelegates({
 					body: {
 						address: validAccount.address
@@ -402,8 +419,12 @@ describe('account', function () {
 			});
 		});
 		describe('getDelegatesFee', function () {
-			it('should return the correct fee for delegate', function () {
-				expect(account.shared.getDelegatesFee().fee).to.equal(constants.fee.delegate);
+			it('should return the correct fee for delegate', function (done) {
+				account.shared.getDelegatesFee({}, function (err, res) {
+					expect(err).to.not.exist;
+					expect(res.fee).to.equal(constants.fees.delegate);
+					done();
+				});
 			});
 		});
 		describe('addDelegates', function () {
@@ -413,13 +434,14 @@ describe('account', function () {
 				'+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 				'+5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819'
 			];
+
 			it('should throw if parameter doesnt have correct schema', function (done) {
 				account.shared.addDelegates({
 					body: {
-						address: 5
+						secret: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('invalid schema');
+					expect(err).to.equal('Expected type string but found type integer');
 					done();
 				});
 			});
@@ -491,7 +513,8 @@ describe('account', function () {
 						address: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('invalid schema');
+					expect(err).to.equal('Expected type string but found type integer');
+					done();
 				});
 			});
 
@@ -507,7 +530,7 @@ describe('account', function () {
 			});
 
 			it('should return error if neither publickey nor address are supplied', function (done) {
-				account.shared.getPublickey({
+				account.shared.getAccount({
 					body: {
 					}
 				}, function (err, res){
@@ -517,7 +540,7 @@ describe('account', function () {
 			});
 
 			it('should return error if publickey does not match address supplied', function (done) {
-				account.shared.getPublickey({
+				account.shared.getAccount({
 					body: {
 						publicKey: validAccount.publicKey,
 						address: node.randomAccount().address
@@ -529,9 +552,9 @@ describe('account', function () {
 			});
 
 			it('should return account using publicKey', function (done) {
-				account.shared.getPublickey({
+				account.shared.getAccount({
 					body: {
-						address: validAccount.publicKey
+						publicKey: validAccount.publicKey
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
@@ -541,7 +564,7 @@ describe('account', function () {
 			});
 
 			it('should return account using address', function (done) {
-				account.shared.getPublickey({
+				account.shared.getAccount({
 					body: {
 						address: validAccount.address
 					}
@@ -558,26 +581,54 @@ describe('account', function () {
 		describe('count', function () {
 
 			it('should get count of all private accounts', function (done) {
-				account.internal.count({}, function (err, result) {
+				account.internal.count({}, function (err, res) {
 					expect(err).to.not.exist;
-					expect(result.success).to.equal(true);
+					expect(res.success).to.equal(true);
+					done();
 				});
 			});
 		});
 
 		describe('top', function () {
+			var allAccounts;
+			before(function (done) {
+				account.getAccounts({}, function (err, res) {
+					expect(err).to.not.exist;
+					allAccounts = res;
+					done();
+				});
+			});
 
 			it('should return top 10 accounts with respect to highest balance', function (done) {
+				var topBalanceAccounts = _.orderBy(allAccounts, function (a) {
+					return a.balance;
+				}, 'desc');
 
+				topBalanceAccounts = topBalanceAccounts.map(function (account) {
+					return {
+						address: account.address,
+						balance: account.balance,
+						publicKey: account.publicKey
+					};
+				});
+				account.internal.top({
+					limit: 10
+				}, function (err, res) {
+					expect(err).to.not.exist;
+					expect(res.accounts).to.have.length(10);
+					expect(res.accounts).to.eql(topBalanceAccounts.slice(0, 10));
+					done();
+				});
 			});
 		});
 
 		describe('getAllAccounts', function () {
 
 			it('should get all private accounts', function (done) {
-				account.internal.getAllAccounts({}, function (err, result) {
+				account.internal.getAllAccounts({}, function (err, res) {
 					expect(err).to.not.exist;
-					expect(result.success).to.equal(true);
+					expect(res.success).to.equal(true);
+					done();
 				});
 			});
 		});
