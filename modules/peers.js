@@ -43,6 +43,9 @@ function Peers (cb, scope) {
 		config: {
 			peers: scope.config.peers,
 			version: scope.config.version,
+			forging: {
+				force: scope.config.forging.force
+			}
 		}
 	};
 	self = this;
@@ -344,6 +347,10 @@ __private.dbSave = function (cb) {
 
 Peers.prototype.getConsensus = function (matched, active) {
 
+	if (library.config.forging.force) {
+		return undefined;
+	}
+
 	active = active || __private.getMatched({state: Peer.STATE.ACTIVE});
 	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash}, active);
 
@@ -526,7 +533,7 @@ Peers.prototype.acceptable = function (peers) {
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
-	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
+	options.allowedStates = options.allowedStates || [Peer.STATE.ACTIVE];
 	options.attempts = ['matched broadhash', 'unmatched broadhash'];
 	options.attempt = 0;
 	options.matched = 0;

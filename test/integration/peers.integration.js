@@ -27,7 +27,7 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
-var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0]);
+var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
@@ -157,8 +157,17 @@ function killTestNodes (cb) {
 }
 
 function runFunctionalTests (cb) {
-	child_process.exec('npm run test-functional', {maxBuffer: require('buffer').kMaxLength - 1}, function (err, stdout) {
-		console.log(stdout);
+	var child = child_process.spawn('npm', ['run', 'test-functional'], {
+		cwd: __dirname + '/../..'
+	});
+
+	child.stdout.pipe(process.stdout);
+
+	child.on('close', function (code) {
+		return cb(code === 0 ? undefined : code);
+	});
+
+	child.on('error', function (err) {
 		return cb(err);
 	});
 }

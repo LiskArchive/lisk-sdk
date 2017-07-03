@@ -76,7 +76,7 @@ before(function (done) {
 	});
 });
 
-describe('GET /api/transactions (cache)', function () {
+describe.skip('GET /api/transactions (cache)', function () {
 	var cache;
 
 	before(function (done) {
