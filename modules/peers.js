@@ -415,7 +415,7 @@ Peers.prototype.acceptable = function (peers) {
 			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
 				return peer.nonce !== modules.system.getNonce();
 			}
-			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce() && (peer.os !== 'lisk-js-api');
 		}).value();
 };
 

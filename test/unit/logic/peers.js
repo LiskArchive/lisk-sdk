@@ -99,6 +99,15 @@ describe('peers', function () {
 			removeAll();
 		});
 
+		it('should not insert new peer with lisk-js-api os', function () {
+			removeAll();
+			var modifiedPeer = _.clone(randomPeer);
+			modifiedPeer.os = 'lisk-js-api';
+			peers.upsert(modifiedPeer);
+			expect(peers.list().length).equal(0);
+			removeAll();
+		});
+
 		it('should update height of existing peer', function () {
 			removeAll();
 

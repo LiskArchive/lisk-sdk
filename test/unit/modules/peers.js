@@ -214,6 +214,12 @@ describe('peers', function () {
 			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
 		});
 
+		it('should not accept peer with lisk-js-api os', function () {
+			var privatePeer = _.clone(randomPeer);
+			privatePeer.os = 'lisk-js-api';
+			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+		});
+
 		it('should not accept peer with host\'s nonce', function () {
 			var peer = _.clone(randomPeer);
 			peer.nonce = NONCE;
