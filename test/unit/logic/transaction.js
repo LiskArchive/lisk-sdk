@@ -165,7 +165,7 @@ describe('transaction', function () {
 			}]
 		}, function (err, result) {
 			transaction = result.transaction;
-			transaction.bindModules(result.rounds);
+			transaction.bindModules(result);
 			attachTransferAsset(transaction, result.accountLogic, result.rounds, done); 
 		});
 	});

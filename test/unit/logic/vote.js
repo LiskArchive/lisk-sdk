@@ -129,7 +129,7 @@ describe('vote', function () {
 			},
 			transactionLogic: ['rounds', 'accountLogic', function (result, cb) {
 				modulesLoader.initLogicWithDb(TransactionLogic, function (err, __transaction) {
-					__transaction.bindModules(result.rounds);
+					__transaction.bindModules(result);
 					cb(err, __transaction);
 				}, {
 					ed: require('../../../helpers/ed'),
@@ -288,6 +288,7 @@ describe('vote', function () {
 
 			vote.verify(trs, validSender, function (err) {
 				expect(err).to.equal('Multiple votes for same delegate are not allowed');
+				done();
 			});
 		});
 
