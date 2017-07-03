@@ -164,8 +164,8 @@ Peer.prototype.update = function (peer) {
 
 	// Accept only supported properties
 	_.each(this.properties, function (key) {
-		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === Peer.STATE.BANNED && peer.state === Peer.STATE.CONNECTED) && !_.includes(this.immutable, key)) {
+		// Change value only when is defined
+		if (peer[key] !== null && peer[key] !== undefined && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));

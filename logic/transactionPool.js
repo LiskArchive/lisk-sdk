@@ -50,22 +50,24 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 	self.processed = 0;
 
 	// Bundled transaction timer
-	function nextBundle () {
+	function nextBundle (cb) {
 		self.processBundled(function (err) {
 			if (err) {
 				library.logger.log('Bundled transaction timer', err);
 			}
+			return setImmediate(cb);
 		});
 	}
 
 	jobsQueue.register('transactionPoolNextBundle', nextBundle, self.bundledInterval);
 
 	// Transaction expiry timer
-	function nextExpiry () {
+	function nextExpiry (cb) {
 		self.expireTransactions(function (err) {
 			if (err) {
 				library.logger.log('Transaction expiry timer', err);
 			}
+			return setImmediate(cb);
 		});
 	}
 
