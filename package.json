@@ -4,6 +4,7 @@
   "description": "A command line interface for Lisk",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "NODE_ENV=test nyc mocha",
     "cover": "istanbul cover --dir ./coverage _mocha"
   },
