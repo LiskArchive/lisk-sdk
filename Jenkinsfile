@@ -202,15 +202,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         '''
       }
       },
-      "Functional Peer - Dapp" : {
-        node('node-02'){
-        sh '''
-        export TEST=test/api/peer.dapp.js TEST_TYPE='FUNC'
-        cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-        npm run jenkins
-        '''
-      }
-      },
       "Functional Peer - Blocks" : {
         node('node-02'){
         sh '''
