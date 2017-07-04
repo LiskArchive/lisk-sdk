@@ -1,4 +1,5 @@
 'use strict';
+
 var _ = require('lodash');
 var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
@@ -24,20 +25,6 @@ var self, modules, __private = {};
  * - 7: OutTransfer
  */
 __private.types = {};
-
-// Private methods
-/**
- * calculates fee based on trs type and data field
- * @param {transaction} trs
- * @param {account} sender
- */
-__private.calculateFee = function (trs, sender) {
-	var fee = new bignum(__private.types[trs.type].calculateFee.call(this, trs, sender) || 0);
-	if (trs.data) {
-		fee = fee.plus(constants.fees.data);
-	}
-	return Number(fee.toString());
-};
 
 /**
  * Main transaction logic.
@@ -101,8 +88,7 @@ Transaction.prototype.create = function (data) {
 		senderPublicKey: data.sender.publicKey,
 		requesterPublicKey: data.requester ? data.requester.publicKey.toString('hex') : null,
 		timestamp: slots.getTime(),
-		asset: {},
-		data: data.data
+		asset: {}
 	};
 
 	trs = __private.types[trs.type].create.call(this, data, trs);
@@ -113,7 +99,8 @@ Transaction.prototype.create = function (data) {
 	}
 
 	trs.id = this.getId(trs);
-	trs.fee = __private.calculateFee(trs, data.sender);
+
+	trs.fee = __private.types[trs.type].calculateFee.call(this, trs, data.sender) || false;
 
 	return trs;
 };
@@ -219,7 +206,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 		var assetSize = assetBytes ? assetBytes.length : 0;
 		var i;
 
-		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + 64 + assetSize, true);
+		bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + assetSize, true);
 		bb.writeByte(trs.type);
 		bb.writeInt(trs.timestamp);
 
@@ -250,13 +237,6 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 		bb.writeLong(trs.amount);
 
-		if (trs.data) {
-			var dataBuffer = new Buffer(trs.data, 'utf8');
-			for (i = 0; i < dataBuffer.length; i++) {
-				bb.writeByte(dataBuffer[i]);
-			}
-		}
-		
 		if (assetSize > 0) {
 			for (i = 0; i < assetSize; i++) {
 				bb.writeByte(assetBytes[i]);
@@ -580,7 +560,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Calculate fee
-	var fee = __private.calculateFee(trs, sender);
+	var fee = __private.types[trs.type].calculateFee.call(this, trs, sender) || false;
 	if (!fee || trs.fee !== fee) {
 		return setImmediate(cb, 'Invalid transaction fee');
 	}
@@ -789,11 +769,11 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 		__private.types[trs.type].undo.call(this, trs, block, sender, function (err) {
 			if (err) {
 				this.scope.account.merge(sender.address, {
-					balance: -amount,
+					balance: amount,
 					blockId: block.id,
 					round: modules.rounds.calc(block.height)
-				}, function (err2) {
-					return setImmediate(cb, err2 || err);
+				}, function (err) {
+					return setImmediate(cb, err);
 				});
 			} else {
 				return setImmediate(cb);
@@ -897,8 +877,7 @@ Transaction.prototype.dbFields = [
 	'fee',
 	'signature',
 	'signSignature',
-	'signatures',
-	'data'
+	'signatures'
 ];
 
 /**
@@ -913,14 +892,13 @@ Transaction.prototype.dbSave = function (trs) {
 		throw 'Unknown transaction type ' + trs.type;
 	}
 
-	var senderPublicKey, signature, signSignature, requesterPublicKey, data;
+	var senderPublicKey, signature, signSignature, requesterPublicKey;
 
 	try {
 		senderPublicKey = Buffer.from(trs.senderPublicKey, 'hex');
 		signature = Buffer.from(trs.signature, 'hex');
 		signSignature = trs.signSignature ? Buffer.from(trs.signSignature, 'hex') : null;
 		requesterPublicKey = trs.requesterPublicKey ? Buffer.from(trs.requesterPublicKey, 'hex') : null;
-		data = trs.data ? Buffer.from(trs.data, 'utf8') : null;
 	} catch (e) {
 		throw e;
 	}
@@ -943,7 +921,6 @@ Transaction.prototype.dbSave = function (trs) {
 				signature: signature,
 				signSignature: signSignature,
 				signatures: trs.signatures ? trs.signatures.join(',') : null,
-				data: data
 			}
 		}
 	];
@@ -1067,11 +1044,6 @@ Transaction.prototype.schema = {
 		},
 		asset: {
 			type: 'object'
-		},
-		data: {
-			type: 'string',
-			minimum: 0,
-			maximum: 64
 		}
 	},
 	required: ['type', 'timestamp', 'senderPublicKey', 'signature']
@@ -1141,8 +1113,7 @@ Transaction.prototype.dbRead = function (raw) {
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
 			confirmations: parseInt(raw.confirmations),
-			asset: {},
-			data: raw.t_data
+			asset: {}
 		};
 
 		if (!__private.types[tx.type]) {

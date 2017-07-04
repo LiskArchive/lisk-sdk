@@ -136,7 +136,7 @@ describe('transaction', function () {
 
 	var attachTransferAsset = function (transaction, accountLogic, rounds, done) {
 		modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
-			var transfer = new Transfer();
+			var transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
 			transfer.bind(__accountModule, rounds);
 			transaction.attachAssetType(transactionTypes.SEND, transfer);
 			accountModule = __accountModule;
@@ -195,17 +195,13 @@ describe('transaction', function () {
 		it('should create a transaction with data property', function () {
 			var trsData = _.cloneDeep(validTransactionData);
 			trsData.data = 'abc';
-			expect(transaction.create(trsData)).to.be.an('object').to.include.key('data');
+			var trs = transaction.create(trsData);
+			expect(trs).to.be.an('object');
+			expect(trs.asset.data).to.equal('abc')
 		});
 
 		it('should create a transaction without data property', function () {
 			expect(transaction.create(validTransactionData)).to.be.an('object');
-		});
-
-		it('should return transaction with optional data field', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			trsData.data = 'abc';
-			expect(transaction.create(trsData).data).to.be.a('string');
 		});
 
 		it('should return transaction fee based on trs type and data field', function () {
@@ -225,7 +221,7 @@ describe('transaction', function () {
 			var appliedLogic;
 			appliedLogic = transaction.attachAssetType(transactionTypes.VOTE, new Vote());
 			expect(appliedLogic).to.be.an.instanceof(Vote);
-			appliedLogic = transaction.attachAssetType(transactionTypes.SEND, new Transfer());
+			appliedLogic = transaction.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
 			expect(appliedLogic).to.be.an.instanceof(Transfer);
 			appliedLogic = transaction.attachAssetType(transactionTypes.DELEGATE, new Delegate());
 			expect(appliedLogic).to.be.an.instanceof(Delegate);
@@ -716,19 +712,19 @@ describe('transaction', function () {
 
 		it('should verify transaction with correct fee (with data field)', function (done) {
 			var trs = _.cloneDeep(validTransaction);
-			trs.data = '123';
+			trs.asset = {data: '123'};
 			trs.fee += 10000000;
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
 			transaction.verify(trs, validSender, {}, function (err) {
-				expect(err).to.be.empty;
+				expect(err).to.not.exist;
 				done();
 			});
 		});
 
 		it('should verify transaction with correct fee (without data field)', function (done) {
 			transaction.verify(validTransaction, validSender, {}, function (err) {
-				expect(err).to.be.empty;
+				expect(err).to.not.exist;
 				done();
 			});
 		});
@@ -1026,14 +1022,14 @@ describe('transaction', function () {
 			trs.signatures = [transaction.multisign(validKeypair, trs)];
 			var savePromise = transaction.dbSave(trs);
 			expect(savePromise).to.be.an('Array');
-			expect(savePromise).to.have.length(1);
+			expect(savePromise).to.have.length(2);
 			var trsValues = savePromise[0].values;
 			expect(trsValues).to.have.property('signatures').which.is.equal(trs.signatures.join(','));
 		});
 
 		it('should return response for valid parameters with data field', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.data = '123';
+			trs.asset = {data : '123'};
 			var savePromise = transaction.dbSave(trs);
 			expect(savePromise).to.be.an('Array');
 			expect(savePromise).to.have.length(1);

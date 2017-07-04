@@ -58,7 +58,7 @@ function Transactions (cb, scope) {
 	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
-		transactionTypes.SEND, new Transfer()
+		transactionTypes.SEND, new Transfer(library.logger, library.schema)
 	);
 
 	setImmediate(cb, null, self);

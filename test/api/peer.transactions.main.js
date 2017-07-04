@@ -79,9 +79,8 @@ describe('POST /peer/transactions', function () {
 
 	it('using data field should be ok', function (done) {
 		var account = node.randomAccount();
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
-		transaction.data = 'sample data';
-
+		var sampleData = 'sample data';
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password, null, sampleData);
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);

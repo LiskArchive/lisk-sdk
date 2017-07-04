@@ -126,7 +126,7 @@ describe('transfer', function () {
 			}]
 		}, function (err, result) {
 			expect(err).to.not.exist;
-			transfer = new Transfer();
+			transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
 			transferBindings = {
 				account: result.accountModule,
 				rounds: result.rounds
@@ -165,8 +165,20 @@ describe('transfer', function () {
 	});
 
 	describe('calculateFee', function () {
-		it('should return the correct fee', function () {
-			expect(transfer.calculateFee()).to.equal(node.constants.fees.send);
+		it('should throw for no params', function () {
+			expect(transfer.calculateFee).to.throw();
+		});
+
+		it('should return the correct fee for send trs without data field', function () {
+			expect(transfer.calculateFee.call(transaction, validTransaction)).to.equal(node.constants.fees.send);
+		});
+
+		it('should return the correct fee with data field', function () {
+			var trs = _.clone(validTransaction);
+			trs.asset = {
+				data: '123'
+			};
+			expect(transfer.calculateFee.call(transaction, trs)).to.equal(node.constants.fees.send + node.constants.fees.data);
 		});
 	});
 
