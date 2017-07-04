@@ -118,18 +118,21 @@ __private.syncTrigger = function (turnOn) {
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
 
-	function nextSync () {
+	function nextSync (cb) {
 		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
-			library.sequence.add(function (cb) {
-				async.retry(__private.retries, __private.sync, cb);
+			library.sequence.add(function (sequenceCb) {
+				async.retry(__private.retries, __private.sync, sequenceCb);
 			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
 				}
+				return setImmediate(cb);
 			});
+		} else {
+			return setImmediate(cb);
 		}
 	}
 
@@ -194,14 +197,14 @@ __private.loadSignatures = function (cb) {
 
 /**
  * Gets a random peer and loads transactions calling the api.
- * Validates each transaction from peer and bans peer if invalid.
+ * Validates each transaction from peer and remove peer if invalid.
  * Calls processUnconfirmedTransaction for each transaction.
  * @private
  * @implements {Loader.getNetwork}
  * @implements {library.schema.validate}
  * @implements {async.eachSeries}
  * @implements {library.logic.transaction.objectNormalize}
- * @implements {modules.peers.ban}
+ * @implements {modules.peers.remove}
  * @implements {library.balancesSequence.add}
  * @implements {modules.transactions.processUnconfirmedTransaction}
  * @param {function} cb
@@ -244,8 +247,8 @@ __private.loadTransactions = function (cb) {
 				} catch (e) {
 					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', tx: transaction});
 
-					library.logger.warn(['Transaction', id, 'is not valid, ban 10 min'].join(' '), peer.string);
-					modules.peers.ban(peer.ip, peer.port, 600);
+					library.logger.warn(['Transaction', id, 'is not valid, peer removed'].join(' '), peer.string);
+					modules.peers.remove(peer.ip, peer.port);
 
 					return setImmediate(eachSeriesCb, e);
 				}
@@ -283,7 +286,7 @@ __private.loadTransactions = function (cb) {
  * Matchs genesis block with database.
  * Verifies Snapshot mode.
  * Recreates memory tables when neccesary:
- *  - Calls logic.account to removeTables and createTables 
+ *  - Calls logic.account to removeTables and createTables
  *  - Calls block to load block. When blockchain ready emits a bus message.
  * Detects orphaned blocks in `mem_accounts` and gets delegates.
  * Loads last block and emits a bus message blockchain is ready.
@@ -332,22 +335,22 @@ __private.loadBlockChain = function () {
 					function () {
 						return count < offset;
 					}, function (cb) {
-					if (count > 1) {
-						library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
-					}
-					modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
-						if (err) {
-							return setImmediate(cb, err);
+						if (count > 1) {
+							library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
 						}
+						modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
+							if (err) {
+								return setImmediate(cb, err);
+							}
 
-						offset = offset + limit;
-						__private.lastBlock = lastBlock;
+							offset = offset + limit;
+							__private.lastBlock = lastBlock;
 
-						return setImmediate(cb);
-					});
-				}, function (err) {
-					return setImmediate(seriesCb, err);
-				}
+							return setImmediate(cb);
+						});
+					}, function (err) {
+						return setImmediate(seriesCb, err);
+					}
 				);
 			}
 		}, function (err) {
@@ -413,6 +416,8 @@ __private.loadBlockChain = function () {
 				if ((count === 1) || (count % constants.activeDelegates > 0)) {
 					library.config.loading.snapshot = (round > 1) ? (round - 1) : 1;
 				}
+
+				modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
 			}
 
 			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);
@@ -631,7 +636,7 @@ __private.sync = function (cb) {
 	});
 };
 
-/* 
+/*
  * Given a list of peers (with associated blockchain height), we find a list
  * of good peers (likely to sync with), then perform a histogram cut, removing
  * peers far from the most common observed height. This is not as easy as it
@@ -639,7 +644,7 @@ __private.sync = function (cb) {
  * therefore need to aggregate).
  */
 /**
- * Gets the list of good peers. 
+ * Gets the list of good peers.
  * @private
  * @implements {modules.blocks.lastBlock.get}
  * @implements {library.logic.peers.create}

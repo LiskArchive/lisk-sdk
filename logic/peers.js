@@ -25,7 +25,7 @@ var modules;
 // Constructor
 function Peers (logger, cb) {
 	library = {
-		logger: logger
+		logger: logger,
 	};
 	self = this;
 	__private.me = null;
@@ -145,7 +145,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 
 	_.each(__private.peers, function (peer, index) {
 		++cnt_total;
-		if (peer.state === Peer.STATE.ACTIVE) {
+		if (peer.state === Peer.STATE.CONNECTED) {
 			++cnt_active;
 		}
 		if (!peer.height) {
@@ -159,42 +159,6 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	library.logger.trace('Peer stats', {total: cnt_total, alive: cnt_active, empty_height: cnt_empty_height, empty_broadhash: cnt_empty_broadhash});
 
 	return true;
-};
-
-/**
- * Upserts peer with banned state `0` and clock with current time + seconds.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {function} Calls upsert
- */
-Peers.prototype.ban = function (ip, port, seconds) {
-	return self.upsert({
-		ip: ip,
-		port: port,
-		// State 0 for banned peer
-		state: 0,
-		clock: Date.now() + (seconds || 1) * 1000
-	});
-};
-
-/**
- * Upserts peer with unbanned state `1` and deletes clock.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {peer}
- */
-Peers.prototype.unban = function (peer) {
-	peer = self.get(peer);
-	if (peer) {
-		delete peer.clock;
-		peer.state = Peer.STATE.DISCONNECTED;
-		library.logger.debug('Released ban for peer', peer.string);
-	} else {
-		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});
-	}
-	return peer;
 };
 
 /**

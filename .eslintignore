@@ -12,3 +12,4 @@ public/bower_components
 public/static
 test/lisk-js
 helpers/bignum.js
+sql

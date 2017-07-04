@@ -48,7 +48,7 @@
         "enabled": true,
         "list": [{
             "ip": "127.0.0.1",
-            "port": "4000"
+            "port": 9999
         }],
         "access": {
             "blackList": []

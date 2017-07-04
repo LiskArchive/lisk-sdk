@@ -364,17 +364,17 @@ Multisignatures.prototype.shared = {
 
 		function checkGroupPermisions (cb) {
 			var permissionDenied = (
-			scope.transaction.asset.multisignature.keysgroup.indexOf('+' + scope.keypair.publicKey.toString('hex')) === -1
-		);
+				scope.transaction.asset.multisignature.keysgroup.indexOf('+' + scope.keypair.publicKey.toString('hex')) === -1
+			);
 
 			if (permissionDenied) {
 				return setImmediate(cb, 'Permission to sign transaction denied');
 			}
 
 			var alreadySigned = (
-			Array.isArray(scope.transaction.signatures) &&
+				Array.isArray(scope.transaction.signatures) &&
 			scope.transaction.signatures.indexOf(scope.signature.toString('hex')) !== -1
-		);
+			);
 
 			if (alreadySigned) {
 				return setImmediate(cb, 'Transaction already signed');
@@ -388,12 +388,12 @@ Multisignatures.prototype.shared = {
 
 			if (!scope.transaction.requesterPublicKey) {
 				permissionDenied = (
-				(!Array.isArray(scope.sender.multisignatures) || scope.sender.multisignatures.indexOf(scope.keypair.publicKey.toString('hex')) === -1)
-			);
+					(!Array.isArray(scope.sender.multisignatures) || scope.sender.multisignatures.indexOf(scope.keypair.publicKey.toString('hex')) === -1)
+				);
 			} else {
 				permissionDenied = (
-				(scope.sender.publicKey !== scope.keypair.publicKey.toString('hex') || (scope.transaction.senderPublicKey !== scope.keypair.publicKey.toString('hex')))
-			);
+					(scope.sender.publicKey !== scope.keypair.publicKey.toString('hex') || (scope.transaction.senderPublicKey !== scope.keypair.publicKey.toString('hex')))
+				);
 			}
 
 			if (permissionDenied)  {

@@ -79,12 +79,12 @@ module.exports = function (grunt) {
 			},
 
 			coverage: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha',
+				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha',
 				maxBuffer: maxBufferSize
 			},
 
 			coverageSingle: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST',
+				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST',
 				maxBuffer: maxBufferSize
 			},
 
@@ -148,11 +148,10 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('default', ['release']);
-	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle']);
-	grunt.registerTask('test', ['eslint', 'exec:coverage']);
-	grunt.registerTask('eslint-nofix', ['eslint']);
+	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('jenkins', ['exec:coverageSingle']);
+	grunt.registerTask('eslint-nofix', ['eslint']);
+	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
 	grunt.registerTask('test-functional', ['eslint', 'exec:testFunctional']);
 

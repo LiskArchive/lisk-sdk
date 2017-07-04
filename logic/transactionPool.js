@@ -50,22 +50,24 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 	self.processed = 0;
 
 	// Bundled transaction timer
-	function nextBundle () {
+	function nextBundle (cb) {
 		self.processBundled(function (err) {
 			if (err) {
 				library.logger.log('Bundled transaction timer', err);
 			}
+			return setImmediate(cb);
 		});
 	}
 
 	jobsQueue.register('transactionPoolNextBundle', nextBundle, self.bundledInterval);
 
 	// Transaction expiry timer
-	function nextExpiry () {
+	function nextExpiry (cb) {
 		self.expireTransactions(function (err) {
 			if (err) {
 				library.logger.log('Transaction expiry timer', err);
 			}
+			return setImmediate(cb);
 		});
 	}
 
@@ -221,8 +223,7 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 };
 
 /**
- * Removes transaction from multisignature or queued.
- * Sets receivedAt date and adds transaction to unconfirmed transactions.
+ * Removes transaction from multisignature or queued and add it to unconfirmed.
  * @param {transaction} transaction
  * @implements {removeMultisignatureTransaction}
  * @implements {removeQueuedTransaction}
@@ -235,10 +236,6 @@ TransactionPool.prototype.addUnconfirmedTransaction = function (transaction) {
 	}
 
 	if (self.unconfirmed.index[transaction.id] === undefined) {
-		if (!transaction.receivedAt) {
-			transaction.receivedAt = new Date();
-		}
-
 		self.unconfirmed.transactions.push(transaction);
 		var index = self.unconfirmed.transactions.indexOf(transaction);
 		self.unconfirmed.index[transaction.id] = index;
@@ -276,9 +273,11 @@ TransactionPool.prototype.countUnconfirmed = function () {
  * @param {transaction} transaction
  */
 TransactionPool.prototype.addBundledTransaction = function (transaction) {
-	self.bundled.transactions.push(transaction);
-	var index = self.bundled.transactions.indexOf(transaction);
-	self.bundled.index[transaction.id] = index;
+	if (self.bundled.index[transaction.id] === undefined) {
+		self.bundled.transactions.push(transaction);
+		var index = self.bundled.transactions.indexOf(transaction);
+		self.bundled.index[transaction.id] = index;
+	}
 };
 
 /**
@@ -304,15 +303,10 @@ TransactionPool.prototype.countBundled = function () {
 
 /**
  * Adds transaction to queued list (index + transactions).
- * Sets receivedAt with current date.
  * @param {transaction} transaction
  */
 TransactionPool.prototype.addQueuedTransaction = function (transaction) {
 	if (self.queued.index[transaction.id] === undefined) {
-		if (!transaction.receivedAt) {
-			transaction.receivedAt = new Date();
-		}
-
 		self.queued.transactions.push(transaction);
 		var index = self.queued.transactions.indexOf(transaction);
 		self.queued.index[transaction.id] = index;
@@ -342,15 +336,10 @@ TransactionPool.prototype.countQueued = function () {
 
 /**
  * Adds transaction to multisignature list (index + transactions).
- * Sets receivedAt with current date.
  * @param {transaction} transaction
  */
 TransactionPool.prototype.addMultisignatureTransaction = function (transaction) {
 	if (self.multisignature.index[transaction.id] === undefined) {
-		if (!transaction.receivedAt) {
-			transaction.receivedAt = new Date();
-		}
-
 		self.multisignature.transactions.push(transaction);
 		var index = self.multisignature.transactions.indexOf(transaction);
 		self.multisignature.index[transaction.id] = index;
@@ -502,7 +491,7 @@ TransactionPool.prototype.processUnconfirmedTransaction = function (transaction,
  * @return {setImmediateCallback} error | cb
  */
 TransactionPool.prototype.queueTransaction = function (transaction, cb) {
-	delete transaction.receivedAt;
+	transaction.receivedAt = new Date();
 
 	if (transaction.bundled) {
 		if (self.countBundled() >= config.transactions.maxTxsPerQueue) {

@@ -3,7 +3,6 @@
 var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
-var Peer = require('../logic/peer.js');
 var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
@@ -84,23 +83,6 @@ __private.hashsum = function (obj) {
 	}
 
 	return bignum.fromBuffer(temp).toString();
-};
-
-/**
- * Bans a peer based on ip, port and clock options.
- * @private
- * @implements {modules.peers.ban}
- * @param {Object} options - Contains code, clock and peer.
- * @param {string} extraMessage
- * @return {boolean} False if there is no peer object
- */
-__private.banPeer = function (options, extraMessage) {
-	if (!options.peer || !options.peer.ip || !options.peer.port) {
-		library.logger.trace('Peer ban skipped', {options: options});
-		return false;
-	}
-	library.logger.debug([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), extraMessage].join(' '));
-	modules.peers.ban(options.peer.ip, options.peer.port, options.clock);
 };
 
 /**
@@ -225,12 +207,12 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 };
 
 /**
- * Normalizes transaction and bans peer if it fails.
- * Calls balancesSequence.add to receive transaction and
+ * Normalizes transaction and remove peer if it fails.
+ * Calls balancesSequence.add to receive transaction and 
  * processUnconfirmedTransaction to confirm it.
  * @private
  * @implements {library.logic.transaction.objectNormalize}
- * @implements {__private.banPeer}
+ * @implements {__private.removePeer}
  * @implements {library.balancesSequence.add}
  * @implements {modules.transactions.processUnconfirmedTransaction}
  * @param {transaction} transaction
@@ -247,8 +229,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	} catch (e) {
 		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', tx: transaction});
 
-		// Ban peer for 10 minutes
-		__private.banPeer({peer: peer, code: 'ETRANSACTION', clock: 600}, extraLogMessage);
+		__private.removePeer({peer: peer, code: 'ETRANSACTION'}, extraLogMessage);
 
 		return setImmediate(cb, 'Invalid transaction body - ' + e.toString());
 	}
@@ -482,8 +463,7 @@ Transport.prototype.internal = {
 			if (!escapedIds.length) {
 				library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: query.ids});
 
-				// Ban peer for 10 minutes
-				__private.banPeer({peer: query.peer, code: 'ECOMMON', clock: 600}, query.extraLogMessage);
+				__private.removePeer({peer: peer, code: 'ECOMMON'}, extraLogMessage);
 
 				return setImmediate(cb, 'Invalid block id sequence');
 			}
@@ -523,8 +503,7 @@ Transport.prototype.internal = {
 		} catch (e) {
 			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: query.peer, code: 'EBLOCK', clock: 600}, query.extraLogMessage);
+			__private.removePeer({peer: peer, code: 'EBLOCK'}, extraLogMessage);
 
 			return setImmediate(cb, e.toString());
 		}
@@ -700,8 +679,6 @@ Transport.prototype.internal = {
 		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
 			return setImmediate(cb, 'No headers information');
 		}
-		library.logger.debug('transport --- accept peer: ', peer.ip + ':' + peer.port + '#' + peer.nonce + '#' + peer.height + '#' + peer.broadhash);
-
 		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
 	}
 };
