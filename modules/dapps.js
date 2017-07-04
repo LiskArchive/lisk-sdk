@@ -121,23 +121,7 @@ function DApps (cb, scope) {
 		});
 	});
 
-	fs.exists(path.join('.', 'public', 'dapps'), function (exists) {
-		if (exists) {
-			rmdir(path.join('.', 'public', 'dapps'), function (err) {
-				if (err) {
-					library.logger.error(err);
-				}
-
-				__private.createBasePaths(function (err) {
-					return setImmediate(cb, err, self);
-				});
-			});
-		} else {
-			__private.createBasePaths(function (err) {
-				return setImmediate(cb, null, self);
-			});
-		}
-	});
+	return setImmediate(cb, null, self);
 }
 
 // Private methods
