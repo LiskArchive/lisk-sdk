@@ -16,7 +16,7 @@ describe('crypto.js', function () {
 	});
 
 	it('should has properties', function () {
-		var properties = ['getBytes', 'getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature', 'fixedPoint'];
+		var properties = ['getBytes', 'getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
 		properties.forEach(function (property) {
 			(crypto).should.have.property(property);
 		});
@@ -168,23 +168,6 @@ describe('crypto.js', function () {
 		it('should be equal 100000000', function () {
 			var fee = getFee({type: 3});
 			(fee).should.be.type('number').and.equal(100000000);
-		});
-	});
-
-	describe('fixedPoint', function () {
-
-		var fixedPoint = crypto.fixedPoint;
-
-		it('should be ok', function () {
-			(fixedPoint).should.be.ok;
-		});
-
-		it('should be number', function () {
-			(fixedPoint).should.be.type('number').and.not.NaN;
-		});
-
-		it('should be equal 100000000', function () {
-			(fixedPoint).should.be.equal(100000000);
 		});
 	});
 

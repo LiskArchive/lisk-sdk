@@ -6,3 +6,4 @@ npm-debug.log
 yuidoc
 test/.coverage-unit
 coveralls
+coverage/
