@@ -36,12 +36,12 @@ describe('dapp.js', function () {
 
 		it('should create dapp without second signature', function () {
 			trs = createDapp('secret', null, options);
-			(trs).should.be.ok;
+			(trs).should.be.ok();
 		});
 
 		it('should create delegate with second signature', function () {
 			trs = createDapp('secret', 'secret 2', options);
-			(trs).should.be.ok;
+			(trs).should.be.ok();
 		});
 
 		describe('returned dapp', function () {
@@ -86,7 +86,7 @@ describe('dapp.js', function () {
 			});
 
 			it('should have timestamp as number', function () {
-				(trs.timestamp).should.be.type('number').and.not.NaN;
+				(trs.timestamp).should.be.type('number').and.not.NaN();
 			});
 
 			it('should have dapp inside asset', function () {
@@ -96,7 +96,7 @@ describe('dapp.js', function () {
 			describe('dapp asset', function () {
 
 				it('should be ok', function () {
-					(trs.asset.dapp).should.be.ok;
+					(trs.asset.dapp).should.be.ok();
 				});
 
 				it('should be object', function () {
@@ -154,25 +154,25 @@ describe('dapp.js', function () {
 
 			it('should be signed correctly', function () {
 				var result = lisk.crypto.verify(trs);
-				(result).should.be.ok;
+				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly now', function () {
 				trs.amount = 10000;
 				var result = lisk.crypto.verify(trs);
-				(result).should.be.not.ok;
+				(result).should.be.not.ok();
 			});
 
 			it('should be second signed correctly', function () {
 				trs.amount = 0;
 				var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
-				(result).should.be.ok;
+				(result).should.be.ok();
 			});
 
 			it('should not be second signed correctly now', function () {
 				trs.amount = 10000;
 				var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
-				(result).should.be.not.ok;
+				(result).should.be.not.ok();
 			});
 		});
 	});
