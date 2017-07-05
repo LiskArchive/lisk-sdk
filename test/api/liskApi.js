@@ -353,22 +353,16 @@ describe('Lisk.api()', function () {
 
 	describe('#checkOptions', function () {
 
-		it('should not accept falsy options like undefined', function (done) {
-			try {
+		it('should not accept falsy options like undefined', function () {
+			(function() {
 				lisk.api().sendRequest('delegates/', {limit:undefined}, function () {});
-			} catch (e) {
-				(e.message).should.be.equal('parameter value "limit" should not be undefined');
-				done();
-			}
+			}).should.throw('parameter value "limit" should not be undefined');
 		});
 
-		it('should not accept falsy options like NaN', function (done) {
-			try {
+		it('should not accept falsy options like NaN', function () {
+			(function() {
 				lisk.api().sendRequest('delegates/', {limit:NaN}, function () {});
-			} catch (e) {
-				(e.message).should.be.equal('parameter value "limit" should not be NaN');
-				done();
-			}
+			}).should.throw('parameter value "limit" should not be NaN');
 		});
 
 	});
@@ -466,15 +460,14 @@ describe('Lisk.api()', function () {
 			body: { success: true, height: 2850466 },
 		};
 
-		it('should receive Height from a random public peer', function (done) {
+		it('should receive Height from a random public peer', function () {
 			sinon.stub(privateApi, 'sendRequestPromise').resolves(expectedResponse);
-			LSK.sendRequest('blocks/getHeight', function (data) {
+			return LSK.sendRequest('blocks/getHeight', function (data) {
 				(data).should.be.ok;
 				(data).should.be.type('object');
 				(data.success).should.be.true();
 
 				privateApi.sendRequestPromise.restore();
-				done();
 			});
 		});
 	});
@@ -925,10 +918,9 @@ describe('Lisk.api()', function () {
 			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
 		});
 
-		it('should be able to get a new node when current one is not reachable', function (done) {
-			lisk.api({ node: '123', randomPeer: true }).sendRequest('blocks/getHeight', {}, function (result) {
+		it('should be able to get a new node when current one is not reachable', function () {
+			return lisk.api({ node: '123', randomPeer: true }).sendRequest('blocks/getHeight', {}, function (result) {
 				(result).should.be.type('object');
-				done();
 			});
 		});
 
@@ -953,24 +945,22 @@ describe('Lisk.api()', function () {
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
 		});
 
-		it('should stop redial when all the peers are banned already', function (done) {
+		it('should stop redial when all the peers are banned already', function () {
 			var thisLSK = lisk.api();
 			thisLSK.bannedPeers = lisk.api().defaultPeers;
 			thisLSK.currentPeer = '';
 
-			thisLSK.sendRequest('blocks/getHeight').then(function (e) {
+			return thisLSK.sendRequest('blocks/getHeight').then(function (e) {
 				(e.message).should.be.equal('could not create http request to any of the given peers');
-				done();
 			});
 		});
 
-		it('should redial to new node when randomPeer is set true', function (done) {
+		it('should redial to new node when randomPeer is set true', function () {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123' });
 
-			thisLSK.getAccount('12731041415715717263L', function (data) {
+			return thisLSK.getAccount('12731041415715717263L', function (data) {
 				(data).should.be.ok;
 				(data.success).should.be.equal(true);
-				done();
 			});
 		});
 
@@ -1003,31 +993,28 @@ describe('Lisk.api()', function () {
 
 	describe('#sendRequest with promise', function () {
 
-		it('should be able to use sendRequest as a promise for GET', function (done) {
-			lisk.api().sendRequest('blocks/getHeight', {}).then(function (result) {
+		it('should be able to use sendRequest as a promise for GET', function () {
+			return lisk.api().sendRequest('blocks/getHeight', {}).then(function (result) {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
 				(result.height).should.be.type('number');
-				done();
 			});
 		});
 
-		it('should route the request accordingly when request method is POST but GET can be used', function (done) {
-			lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
+		it('should route the request accordingly when request method is POST but GET can be used', function () {
+			return lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
 				(result).should.be.type('object');
 				(result.account).should.be.ok;
-				done();
 			});
 		});
 
-		it('should respond with error when API call is disabled', function (done) {
-			lisk.api().sendRequest('delegates/forging/enable', { secret: '123' }).then(function (result) {
+		it('should respond with error when API call is disabled', function () {
+			return lisk.api().sendRequest('delegates/forging/enable', { secret: '123' }).then(function (result) {
 				(result.error).should.be.equal('Forging not available via offlineRequest');
-				done();
 			});
 		});
 
-		it('should be able to use sendRequest as a promise for POST', function (done) {
+		it('should be able to use sendRequest as a promise for POST', function () {
 			var options = {
 				ssl: false,
 				node: '',
@@ -1043,47 +1030,43 @@ describe('Lisk.api()', function () {
 			var recipient = '10279923186189318946L';
 			var amount = 100000000;
 
-			LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function (result) {
+			return LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function (result) {
 				(result).should.be.type('object');
 				(result).should.be.ok;
-				done();
 			});
 		});
 	});
 
 	describe('#listMultisignatureTransactions', function () {
 
-		it('should list all current not signed multisignature transactions', function (done) {
-			lisk.api().listMultisignatureTransactions(function (result) {
+		it('should list all current not signed multisignature transactions', function () {
+			return lisk.api().listMultisignatureTransactions(function (result) {
 				(result).should.be.ok;
 				(result).should.be.type('object');
-				done();
 			});
 		});
 	});
 
 	describe('#getMultisignatureTransaction', function () {
 
-		it('should get a multisignature transaction by id', function (done) {
-			lisk.api().getMultisignatureTransaction('123', function (result) {
+		it('should get a multisignature transaction by id', function () {
+			return lisk.api().getMultisignatureTransaction('123', function (result) {
 				(result).should.be.ok;
 				(result).should.be.type('object');
-				done();
 			});
 		});
 	});
 
 	describe('#broadcastSignedTransaction', function () {
 
-		it('should be able to broadcast a finished and signed transaction', function (done) {
+		it('should be able to broadcast a finished and signed transaction', function () {
 
 			var LSKAPI = lisk.api({testnet: true});
 			var amount = 0.001 * Math.pow(10, 8);
 			var transaction = lisk.transaction.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
 
-			LSKAPI.broadcastSignedTransaction(transaction, function (result) {
+			return LSKAPI.broadcastSignedTransaction(transaction, function (result) {
 				(result.success).should.be.true;
-				done();
 			});
 
 		});
