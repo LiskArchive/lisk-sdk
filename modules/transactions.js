@@ -268,6 +268,10 @@ __private.getById = function (id, cb) {
 
 		if (queryName) {
 			__private.getAssetForRawTrs(rawTransaction, queryName, function (err, rawTrsWithAsset) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
 				var transaction = library.logic.transaction.dbRead(rawTrsWithAsset);
 				return setImmediate(cb, null, transaction);
 			});
@@ -284,7 +288,7 @@ __private.getById = function (id, cb) {
 __private.getAssetForRawTrs = function (rawTrs, queryName, cb) {
 	library.db.query(sql[queryName], {id: rawTrs.t_id}).then(function (rows) {
 		if (!rows.length) {
-			return setImmediate(cb, rawTrs);
+			return setImmediate(cb, null, rawTrs);
 		}
 
 		var rawTrsWithAsset = _.merge(rawTrs, rows[0]);
