@@ -571,7 +571,6 @@ describe('GET /api/transactions/get?id=', function () {
 			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipientId);
 			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
 			node.expect(res.body.transaction.asset).to.eql(transactionInCheck.asset);
-
 			done();
 		});
 	});
@@ -593,9 +592,7 @@ describe('GET /api/transactions/get?id=', function () {
 			node.expect(res.body.transaction.fee).to.equal(transactionInCheck.fee);
 			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipientId);
 			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
-
 			node.expect(res.body.transaction.asset.username).to.equal(transactionInCheck.asset.username);
-
 			done();
 		});
 	});
@@ -619,7 +616,6 @@ describe('GET /api/transactions/get?id=', function () {
 			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
 			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
 			node.expect(res.body.transaction.asset).to.eql({});
-
 			done();
 		});
 	});
