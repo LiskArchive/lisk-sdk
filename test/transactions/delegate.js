@@ -50,7 +50,7 @@ describe('delegate.js', function () {
 			});
 
 			it('should have recipientId equal null', function () {
-				(trs).should.have.property('recipientId').and.type('object').and.be.empty();
+				(trs).should.have.property('recipientId').and.be.null();
 			});
 
 			it('shoud have amount equal 0', function () {
