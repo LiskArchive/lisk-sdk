@@ -249,4 +249,34 @@ describe('crypto/index.js', function () {
 			(curveRepresentation).should.be.equal('a05621ba2d3f69f054abb1f3c155338bb44ec8b718928cf9d5b206bafd364356');
 		});
 	});
+
+	describe('#signMessageWithTwoSecrets sign.js', function () {
+
+
+		it('should sign a message using two secrets', function () {
+			var secret = '123';
+			var secondSecret = '1234';
+			var message = 'Hello.';
+			var signature = newcrypto.signMessageWithTwoSecrets(message, secret, secondSecret);
+
+			(signature).should.be.equal('7e824f3cf65fd966a9064e4ba0041f82956c795f88343965265cf6e5e6ef94fd3692a1abc6a9c95a23935ad56ae4b72fb85f0317ba5a135dd16fdd916361430d5cabc8fcb71c11280f51ca379abae0f5fdd897d8446170f0a591d943b0b10cc13fe0bdab24daa05243647bb90ced16ebb93bbe07333aae0b80108aa08c1a310348656c6c6f2e');
+		});
+	});
+
+	describe('#verifyMessageWithTwoPublicKeys sign.js', function () {
+
+		it('should verify a message using two publicKeys', function () {
+			var secret = '123';
+			var secondSecret = '1234';
+			var message = 'Hello.';
+			var signature = newcrypto.signMessageWithTwoSecrets(message, secret, secondSecret);
+
+			var publicKey1 = newcrypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+			var publicKey2 = newcrypto.getPrivateAndPublicKeyFromSecret(secondSecret).publicKey;
+
+			var verified = newcrypto.verifyMessageWithTwoPublicKeys(signature, publicKey1, publicKey2);
+
+			(verified).should.be.equal('Hello.');
+		});
+	});
 });
