@@ -769,7 +769,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 		__private.types[trs.type].undo.call(this, trs, block, sender, function (err) {
 			if (err) {
 				this.scope.account.merge(sender.address, {
-					balance: amount,
+					balance: -amount,
 					blockId: block.id,
 					round: modules.rounds.calc(block.height)
 				}, function (err) {
@@ -1133,12 +1133,12 @@ Transaction.prototype.dbRead = function (raw) {
 // Events
 /**
  * Binds input parameters to private variables modules.
- * @param {Rounds} rounds
+ * @param {Object} __modules
  */
-Transaction.prototype.bindModules = function (rounds) {
+Transaction.prototype.bindModules = function (__modules) {
 	this.scope.logger.trace('Logic/Transaction->bindModules');
 	modules = {
-		rounds: rounds,
+		rounds: __modules.rounds
 	};
 };
 

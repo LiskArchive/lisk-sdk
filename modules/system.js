@@ -112,6 +112,13 @@ System.prototype.getNethash = function () {
 };
 
 /**
+ * Gets private variable `nonce`
+ * @return {nonce}
+ */
+System.prototype.getNonce = function () {
+	return __private.nonce;
+};
+/**
  * Gets private variable `nethash` and compares with input param.
  * @param {hash}
  * @return {boolean} True if input param is equal to private value.

@@ -118,18 +118,21 @@ __private.syncTrigger = function (turnOn) {
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
 
-	function nextSync () {
+	function nextSync (cb) {
 		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
-			library.sequence.add(function (cb) {
-				async.retry(__private.retries, __private.sync, cb);
+			library.sequence.add(function (sequenceCb) {
+				async.retry(__private.retries, __private.sync, sequenceCb);
 			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
 				}
+				return setImmediate(cb);
 			});
+		} else {
+			return setImmediate(cb);
 		}
 	}
 
@@ -198,7 +201,7 @@ __private.loadSignatures = function (cb) {
 
 /**
  * Gets a random peer and loads transactions calling the api.
- * Validates each transaction from peer and bans peer if invalid.
+ * Validates each transaction from peer and remove peer if invalid.
  * Calls processUnconfirmedTransaction for each transaction.
  * @private
  * @implements {Loader.getNetwork}
@@ -206,7 +209,7 @@ __private.loadSignatures = function (cb) {
  * @implements {library.schema.validate}
  * @implements {async.eachSeries}
  * @implements {library.logic.transaction.objectNormalize}
- * @implements {modules.peers.ban}
+ * @implements {modules.peers.remove}
  * @implements {library.balancesSequence.add}
  * @implements {modules.transactions.processUnconfirmedTransaction}
  * @param {function} cb
@@ -254,8 +257,8 @@ __private.loadTransactions = function (cb) {
 				} catch (e) {
 					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', tx: transaction});
 
-					library.logger.warn(['Transaction', id, 'is not valid, ban 10 min'].join(' '), peer.string);
-					modules.peers.ban(peer.ip, peer.port, 600);
+					library.logger.warn(['Transaction', id, 'is not valid, peer removed'].join(' '), peer.string);
+					modules.peers.remove(peer.ip, peer.port);
 
 					return setImmediate(eachSeriesCb, e);
 				}
@@ -423,6 +426,8 @@ __private.loadBlockChain = function () {
 				if ((count === 1) || (count % constants.activeDelegates > 0)) {
 					library.config.loading.snapshot = (round > 1) ? (round - 1) : 1;
 				}
+
+				modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
 			}
 
 			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);
