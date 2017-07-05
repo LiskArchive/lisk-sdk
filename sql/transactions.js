@@ -46,7 +46,21 @@ var TransactionsSql = {
 
   getById: 'SELECT *, ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey" FROM trs_list WHERE "t_id" = ${id}',
 
-  getVotesById: 'SELECT * FROM votes WHERE "transactionId" = ${id}'
+  getVotesByIdTemp: 'SELECT * FROM votes WHERE "transactionId" = ${id}',
+
+  getVotesById: 'SELECT votes AS "v_votes" FROM votes WHERE "transactionId" = ${id}',
+
+  getDelegateById: 'SELECT username AS "d_username" FROM delegates WHERE "transactionId" = ${id}',
+
+  getSignatureById: 'SELECT ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" = ${id}',
+		
+	getMultiById: 'SELECT min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures WHERE "transactionId" = ${id}',
+
+	getDappById: 'SELECT name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_type", type AS "dapp_link", category AS "dapp_category", icon AS "dapp_icon FROM dapps WHERE "transactionId" = ${id}',
+
+	getInTransferById: 'SELECT "dappId" AS "in_dappId" FROM intransfer WHERE "transactionId" = ${id}',
+
+	getOutTransferById: 'SELECT "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" = ${id}',
 };
 
 module.exports = TransactionsSql;
