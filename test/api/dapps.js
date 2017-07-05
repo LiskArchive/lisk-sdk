@@ -71,7 +71,7 @@ describe('GET /dapps', function () {
 		});
 	});
 
-	it('using name should be ok', function (done) {
+	it.skip('using name should be ok', function (done) {
 		var name = '';
 
 		if (dapp !== {} && dapp != null) {
@@ -207,7 +207,7 @@ describe('GET /dapps?id=', function () {
 		});
 	});
 
-	it('using valid id should be ok', function (done) {
+	it.skip('using valid id should be ok', function (done) {
 		getDapps(dapp.transactionId, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array');

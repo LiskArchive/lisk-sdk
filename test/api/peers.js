@@ -504,7 +504,7 @@ describe('GET /api/peers/get', function () {
 		});
 	});
 
-	it('using ip address and port of frozen peer should be ok', function (done) {
+	it.skip('using ip address and port of frozen peer should be ok', function (done) {
 		node.get('/api/peers/get?ip=127.0.0.1&port=' + frozenPeerPort, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('peer').to.be.an('object');
