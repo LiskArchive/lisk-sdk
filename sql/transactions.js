@@ -60,7 +60,7 @@ var TransactionsSql = {
 
 	getInTransferById: 'SELECT "dappId" AS "in_dappId" FROM intransfer WHERE "transactionId" = ${id}',
 
-	getOutTransferById: 'SELECT "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" = ${id}',
+	getOutTransferById: 'SELECT "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" = ${id}'
 };
 
 module.exports = TransactionsSql;
