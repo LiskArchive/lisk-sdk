@@ -9,7 +9,7 @@ var schema = require('../schema/peers.js');
 var __private = {};
 var self;
 var library;
-
+var modules;
 /**
  * Initializes library.
  * @memberof module:peers
@@ -22,7 +22,7 @@ var library;
 // Constructor
 function Peers (logger, cb) {
 	library = {
-		logger: logger,
+		logger: logger
 	};
 	self = this;
 	__private.peers = {};
@@ -75,11 +75,13 @@ Peers.prototype.get = function (peer) {
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
-		peer.updated = Date.now();
-		__private.peers[peer.string] = peer;
-
-		library.logger.debug('Inserted new peer', peer.string);
-		library.logger.trace('Inserted new peer', {peer: peer});
+		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
+			peer.updated = Date.now();
+			__private.peers[peer.string] = peer;
+			library.logger.debug('Inserted new peer', peer.string);
+		} else {
+			library.logger.debug('Rejecting unacceptable peer', peer.string);
+		}
 	};
 
 	// Update existing peer
@@ -146,42 +148,6 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 };
 
 /**
- * Upserts peer with banned state `0` and clock with current time + seconds.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {function} Calls upsert
- */
-Peers.prototype.ban = function (ip, port, seconds) {
-	return self.upsert({
-		ip: ip,
-		port: port,
-		// State 0 for banned peer
-		state: 0,
-		clock: Date.now() + (seconds || 1) * 1000
-	});
-};
-
-/**
- * Upserts peer with unbanned state `1` and deletes clock.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {peer}
- */
-Peers.prototype.unban = function (peer) {
-	peer = self.get(peer);
-	if (peer) {
-		delete peer.clock;
-		peer.state = 1;
-		library.logger.debug('Released ban for peer', peer.string);
-	} else {
-		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});
-	}
-	return peer;
-};
-
-/**
  * Deletes peer from peers list.
  * @param {peer} peer
  * @return {boolean} True if peer exists
@@ -217,9 +183,12 @@ Peers.prototype.list = function (normalize) {
 // Public methods
 /**
  * Modules are not required in this file.
- * @param {modules} scope - Loaded modules.
+ * @param {Object} __modules - Peers module.
  */
-Peers.prototype.bind = function (scope) {
+Peers.prototype.bindModules = function (__modules) {
+	modules = {
+		peers: __modules.peers
+	};
 };
 
 // Export

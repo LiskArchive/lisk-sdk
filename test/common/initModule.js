@@ -73,7 +73,7 @@ var modulesLoader = new function () {
 			break;
 		 case 'Block':
 		 	async.waterfall([
-				function (waterCb) {	
+				function (waterCb) {
 					return new Account(scope.db, scope.schema, scope.logger, waterCb);
 				},
 				function (account, waterCb) {
@@ -134,7 +134,19 @@ var modulesLoader = new function () {
 						return mapCb(err, memo);
 					}.bind(this));
 				}.bind(this), waterCb);
-			}.bind(this)
+			}.bind(this),
+
+			function (modules, waterCb) {
+				_.each(scope.logic, function (logic) {
+					if (typeof logic.bind === 'function') {
+						logic.bind({modules: modules});
+					}
+					if (typeof logic.bindModules === 'function') {
+						logic.bindModules(modules);
+					}
+				});
+				waterCb(null, modules);
+			}
 		], cb);
 	};
 
@@ -154,7 +166,6 @@ var modulesLoader = new function () {
 			{multisignatures: require('../../modules/multisignatures')},
 			{peers: require('../../modules/peers')},
 			{rounds: require('../../modules/rounds')},
-			{server: require('../../modules/server')},
 			{signatures: require('../../modules/signatures')},
 			{sql: require('../../modules/sql')},
 			{system: require('../../modules/system')},

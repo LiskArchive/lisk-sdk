@@ -4,6 +4,7 @@ var async = require('async');
 var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 var Diff = require('../helpers/diff.js');
+var _ = require('lodash');
 
 // Private fields
 var modules, library, self;
@@ -107,6 +108,11 @@ Vote.prototype.verify = function (trs, sender, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
+
+			if (trs.asset.votes.length > _.uniqBy(trs.asset.votes, function (v) { return v.slice(1); }).length) {
+				return setImmediate(cb, 'Multiple votes for same delegate are not allowed');
+			}
+
 			return self.checkConfirmedDelegates(trs, cb);
 		}
 	});

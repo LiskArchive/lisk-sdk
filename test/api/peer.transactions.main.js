@@ -276,7 +276,7 @@ describe('POST /peer/transactions', function () {
 
 	it('using overflown amount should fail', function (done) {
 		var transaction = node.lisk.transaction.createTransaction('12L', 184819291270000000012910218291201281920128129,
-		node.gAccount.password);
+			node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;

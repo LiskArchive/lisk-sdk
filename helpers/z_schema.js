@@ -113,7 +113,7 @@ z_schema.registerFormat('parsedInt', function (value) {
 	if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 		return false;
 	}
-    /*eslint-enable eqeqeq */
+	/*eslint-enable eqeqeq */
 	value = parseInt(value);
 	return true;
 });
