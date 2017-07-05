@@ -12,7 +12,7 @@
     "no-eq-null": "error",
     "indent": ["error", "tab"],
     "no-use-before-define": "error",
-    "new-cap": ["error", { "newIsCap": true }],
+    "new-cap": ["error", { "newIsCap": true, "capIsNewExceptionPattern": "should[.(]" }],
     "quotes": ["error", "single", { "avoidEscape": true }],
     "no-undef": "error",
     "no-unused-vars": ["error", { "vars": "all", "args": "after-used" }],
