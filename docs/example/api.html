@@ -103,7 +103,6 @@
                         <a href="#functions_getKeys" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getKeys</a>
                         <a href="#functions_verify" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verify</a>
                         <a href="#functions_verifySecondSignature" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verifySecondSignature</a>
-                        <a href="#functions_fixedPoint" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">fixedPoint</a>
 
                         <a href="#functions_bufferToHex" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">bufferToHex</a>
                         <a href="#functions_hexToBuffer" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">hexToBuffer</a>
@@ -277,11 +276,11 @@ lisk.api().searchDelegateByUsername('username', callback);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>Get a single block by id</small></h3>
+                                <h3>Example <small>Get a single block by height</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-lisk.api().getBlock(blockId, callback);
+lisk.api().getBlock(blockHeight, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -878,25 +877,6 @@ var verification = lisk.crypto.verify(transactionObject);
                                     <pre>
                                         <code class="language-html" data-lang="html">
 var verification = lisk.crypto.verifySecondSignature(transactionObject);
-                                        </code>
-                                    </pre>
-                                </figure>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h3 id="functions_fixedPoint">fixedPoint</h3>
-
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <div class="rows">
-                            <div class="col-md-12">
-                                <h3>Example <small>Convert a given floating point LSK amount to an integer representation</small></h3>
-                                <figure class="highlight">
-                                    <pre>
-                                        <code class="language-html" data-lang="html">
-var bigAmount = lisk.crypto.fixedPoint(amount);
                                         </code>
                                     </pre>
                                 </figure>
