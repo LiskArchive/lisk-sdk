@@ -3,6 +3,8 @@
 var node = require('./../node.js');
 var modulesLoader = require('./../common/initModule.js').modulesLoader;
 var transactionSortFields = require('../../sql/transactions').sortFields;
+var transactionTypes = require('../../helpers/transactionTypes.js');
+var genesisblock = require('../genesisBlock.json');
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
@@ -547,6 +549,77 @@ describe('GET /api/transactions/get?id=', function () {
 		node.get('/api/transactions/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('should get transaction with asset for vote transaction', function (done) {
+		var transactionInCheck = genesisblock.transactions.find(function (trs) {
+			return trs.id === '9314232245035524467';
+		});
+
+		var params = 'id=' + transactionInCheck.id;
+		node.get('/api/transactions/get?' + params, function (err, res) {
+			node.expect(res.body.transaction.type).to.equal(transactionTypes.VOTE);
+			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			node.expect(res.body.transaction.id).to.equal(transactionInCheck.id);
+			node.expect(res.body.transaction.amount).to.equal(transactionInCheck.amount);
+			node.expect(res.body.transaction.fee).to.equal(transactionInCheck.fee);
+			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipientId);
+			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
+			node.expect(res.body.transaction.asset).to.eql(transactionInCheck.asset);
+
+			done();
+		});
+	});
+
+	it('should get transaction with asset for delegate transaction', function (done) {
+		var transactionInCheck = genesisblock.transactions.find(function (trs) {
+			return trs.id === '3634383815892709956';
+		});
+
+		var params = 'id=' + transactionInCheck.id;
+		node.get('/api/transactions/get?' + params, function (err, res) {
+			node.expect(res.body.transaction.type).to.equal(transactionTypes.DELEGATE);
+			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			node.expect(res.body.transaction.id).to.equal(transactionInCheck.id);
+			node.expect(res.body.transaction.amount).to.equal(transactionInCheck.amount);
+			node.expect(res.body.transaction.fee).to.equal(transactionInCheck.fee);
+			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipientId);
+			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
+
+			node.expect(res.body.transaction.asset.username).to.equal(transactionInCheck.asset.username);
+
+			done();
+		});
+	});
+
+	it('should get transaction with empty asset for transfer transaction', function (done) {
+		var transactionInCheck = genesisblock.transactions.find(function (trs) {
+			return trs.id === '1465651642158264047';
+		});
+
+		var params = 'id=' + transactionInCheck.id;
+		node.get('/api/transactions/get?' + params, function (err, res) {
+			node.expect(res.body.transaction.type).to.equal(transactionTypes.SEND);
+			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			node.expect(res.body.transaction.id).to.equal(transactionInCheck.id);
+			node.expect(res.body.transaction.amount).to.equal(transactionInCheck.amount);
+			node.expect(res.body.transaction.fee).to.equal(transactionInCheck.fee);
+			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipientId);
+			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
+			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+			node.expect(res.body.transaction.asset).to.eql({});
+
 			done();
 		});
 	});

@@ -243,27 +243,27 @@ __private.getById = function (id, cb) {
 		var queryName;
 
 		switch (rawTransaction.t_type) {
-			case transactionTypes.SIGNATURE:
-				queryName = 'getSignatureById';
-				break;
-			case transactionTypes.DELEGATE:
-				queryName = 'getDelegateById';
-				break;
-			case transactionTypes.VOTE:
-				queryName = 'getVotesById';
-				break;
-			case transactionTypes.MULTI:
-				queryName = 'getMultiById';
-				break;
-			case transactionTypes.DAPP:
-				queryName = 'getDappById';
-				break;
-			case transactionTypes.IN_TRANSFER:
-				queryName = 'getInTransferById';
-				break;
-			case transactionTypes.OUT_TRANSFER:
-				queryName = 'getOutTransferById';
-				break;
+		case transactionTypes.SIGNATURE:
+			queryName = 'getSignatureById';
+			break;
+		case transactionTypes.DELEGATE:
+			queryName = 'getDelegateById';
+			break;
+		case transactionTypes.VOTE:
+			queryName = 'getVotesById';
+			break;
+		case transactionTypes.MULTI:
+			queryName = 'getMultiById';
+			break;
+		case transactionTypes.DAPP:
+			queryName = 'getDappById';
+			break;
+		case transactionTypes.IN_TRANSFER:
+			queryName = 'getInTransferById';
+			break;
+		case transactionTypes.OUT_TRANSFER:
+			queryName = 'getOutTransferById';
+			break;
 		}
 
 		if (queryName) {
@@ -298,7 +298,7 @@ __private.getAssetForRawTrs = function (rawTrs, queryName, cb) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Transactions#getAssetForRawTrs error');
 	});
-}
+};
 /**
  * Gets transaction by calling parameter method.
  * @private
