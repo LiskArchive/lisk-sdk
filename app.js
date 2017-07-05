@@ -222,10 +222,6 @@ d.run(function () {
 			});
 		},
 
-		public: function (cb) {
-			cb(null, path.join(__dirname, 'public'));
-		},
-
 		schema: function (cb) {
 			cb(null, new z_schema());
 		},
@@ -313,14 +309,14 @@ d.run(function () {
 		}],
 
 		/**
-		 * Once config, public, genesisblock, logger, build and network are completed,
+		 * Once config, genesisblock, logger, build and network are completed,
 		 * adds configuration to `network.app`.
 		 * @method connect
 		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
-		connect: ['config', 'public', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
+		connect: ['config', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
 			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
@@ -588,7 +584,6 @@ d.run(function () {
 			 * @property {Object} modules - Several modules functions.
 			 * @property {Object} network - Several network functions.
 			 * @property {string} nonce
-			 * @property {string} public - Path to lisk public folder.
 			 * @property {undefined} ready
 			 * @property {Object} schema - ZSchema with objects.
 			 * @property {Object} sequence - Sequence function, sequence Array.

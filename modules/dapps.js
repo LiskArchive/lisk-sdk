@@ -20,7 +20,6 @@ __private.assetTypes = {};
  * Calls logic.transaction.attachAssetType().
  *
  * Listens `exit` signal.
- * Checks 'public/dapp' folder and created it if doesn't exists.
  * @memberof module:dapps
  * @class
  * @classdesc Main dapps methods.
@@ -35,7 +34,6 @@ function DApps (cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
-		public: scope.public,
 		network: scope.network,
 		schema: scope.schema,
 		ed: scope.ed,

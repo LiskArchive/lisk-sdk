@@ -3,7 +3,6 @@
 .idea/
 .project
 __MACOSX/
-dapps/
 docs/jsdoc/
 logs/*.log
 node_modules

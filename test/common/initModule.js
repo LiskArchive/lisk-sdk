@@ -30,7 +30,6 @@ var modulesLoader = new function () {
 		network: {
 			app: express()
 		},
-		public: '../../public',
 		schema: new z_schema(),
 		ed: ed,
 		bus: {
