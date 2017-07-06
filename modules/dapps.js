@@ -264,23 +264,9 @@ __private.list = function (filter, cb) {
  * @return {setImmediateCallback} if error
  */
 __private.createBasePaths = function (cb) {
-	var basePaths = [
-		__private.dappsPath,                             // -> /dapps
-		path.join(__private.appPath, 'public', 'dapps'), // -> /public/dapps
-		path.join(library.public, 'images', 'dapps'),    // -> /public/images/dapps
-	];
 
-	async.eachSeries(basePaths, function (path, eachSeriesCb) {
-		fs.exists(path, function (exists) {
-			if (exists) {
-				return setImmediate(eachSeriesCb);
-			} else {
-				return fs.mkdir(path, eachSeriesCb);
-			}
-		});
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	cb();
+
 };
 
 /**

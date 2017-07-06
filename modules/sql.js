@@ -43,25 +43,25 @@ function Sql (cb, scope) {
  */
 __private.escape = function (what) {
 	switch (typeof what) {
-	case 'string':
-		return '\'' + what.replace(
-			__private.SINGLE_QUOTES, __private.SINGLE_QUOTES_DOUBLED
-		) + '\'';
-	case 'object':
-		if (what == null) {
-			return 'null';
-		} else if (Buffer.isBuffer(what)) {
-			return 'X\'' + what.toString('hex') + '\'';
-		} else {
-			return ('\'' + JSON.stringify(what).replace(
+		case 'string':
+			return '\'' + what.replace(
 				__private.SINGLE_QUOTES, __private.SINGLE_QUOTES_DOUBLED
-			) + '\'');
-		}
-		break;
-	case 'boolean':
-		return what ? '1' : '0'; // 1 => true, 0 => false
-	case 'number':
-		if (isFinite(what)) { return '' + what; }
+			) + '\'';
+		case 'object':
+			if (what == null) {
+				return 'null';
+			} else if (Buffer.isBuffer(what)) {
+				return 'X\'' + what.toString('hex') + '\'';
+			} else {
+				return ('\'' + JSON.stringify(what).replace(
+					__private.SINGLE_QUOTES, __private.SINGLE_QUOTES_DOUBLED
+				) + '\'');
+			}
+			break;
+		case 'boolean':
+			return what ? '1' : '0'; // 1 => true, 0 => false
+		case 'number':
+			if (isFinite(what)) { return '' + what; }
 	}
 	throw 'Unsupported data ' + typeof what;
 };

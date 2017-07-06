@@ -13,7 +13,7 @@ module.exports = {
 				maximum: 31
 			},
 			port: {
-				type: 'number',
+				type: 'integer',
 				minimum: 1,
 				maximum: 65535
 			},
