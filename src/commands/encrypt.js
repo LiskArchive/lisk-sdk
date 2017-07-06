@@ -3,8 +3,8 @@ const cryptoModule = require('../utils/cryptoModule');
 module.exports = function encryptCommand (vorpal) {
 	'use strict';
 
-	function encrypt (userInput) {
-		return cryptoModule.encrypt();
+	function encrypt ({ message, secret, recipient }) {
+		return cryptoModule.encrypt(message, secret, recipient);
 	}
 
 	vorpal
