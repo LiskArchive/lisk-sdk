@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "nyc mocha",
-    "travis": "./node_modules/.bin/grunt travis --verbose"
+    "eslint": "./node_modules/.bin/grunt eslint --verbose",
+    "jenkins": "./node_modules/.bin/grunt jenkins --verbose"
   },
   "repository": {
     "type": "git",

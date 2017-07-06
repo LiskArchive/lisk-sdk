@@ -17,11 +17,23 @@ node('lisk-js-01'){
     }
   }
 
+  stage ('Run Eslint') {
+    try {
+      sh '''#!/bin/bash
+      # Run Tests
+      npm run eslint
+      '''
+    } catch (err) {
+      currentBuild.result = 'FAILURE'
+      error('Stopping build, tests failed')
+    }
+  }
+
   stage ('Run tests') {
     try {
       sh '''#!/bin/bash
       # Run Tests
-      grunt travis
+      npm run jenkins
       '''
     } catch (err) {
       currentBuild.result = 'FAILURE'
