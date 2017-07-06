@@ -68,7 +68,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-force');
 	grunt.loadNpmTasks('grunt-coveralls');
 	grunt.registerTask('jenkins', ['exec:coverageSingle', 'coveralls']);
-  grunt.registerTask('eslint', ['eslint']);
+	grunt.registerTask('eslint', ['eslint']);
 	grunt.registerTask('default', [
 		'force:on',
 		'browserify',
