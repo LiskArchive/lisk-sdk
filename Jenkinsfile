@@ -9,6 +9,7 @@ node('lisk-js-01'){
       sh '''#!/bin/bash
       # Install Deps
       npm install --verbose
+      cp ~/.coveralls.yml .
       '''
     } catch (err) {
       currentBuild.result = 'FAILURE'
