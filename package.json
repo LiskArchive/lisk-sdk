@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "nyc mocha",
+    "test:now": "nyc mocha --grep @now",
     "travis": "./node_modules/.bin/grunt travis --verbose",
     "cover": "istanbul cover --dir ./coverage _mocha"
   },
