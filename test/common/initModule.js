@@ -29,7 +29,10 @@ var modulesLoader = new function () {
 		genesisblock: { block: genesisblock },
 		logger: this.logger,
 		network: {
-			app: express()
+			app: express(),
+			io: {
+				sockets: express()
+			}
 		},
 		public: '../../public',
 		schema: new z_schema(),
