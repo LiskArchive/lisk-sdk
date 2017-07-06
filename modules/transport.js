@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
+var Peer = require('../logic/peer.js');
 var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
@@ -32,10 +33,35 @@ __private.messages = {};
  */
 // Constructor
 function Transport (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		bus: scope.bus,
+		schema: scope.schema,
+		network: scope.network,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			block: scope.logic.block,
+			transaction: scope.logic.transaction,
+			peers: scope.logic.peers,
+		},
+		config: {
+			peers: {
+				options: {
+					timeout: scope.config.peers.options.timeout,
+				},
+			},
+		},
+	};
 	self = this;
 
-	__private.broadcaster = new Broadcaster(library);
+	__private.broadcaster = new Broadcaster(
+		scope.config.broadcasts,
+		scope.config.forging.force,
+		scope.logic.peers,
+		scope.logic.transaction,
+		scope.logger
+	);
 
 	setImmediate(cb, null, self);
 }
@@ -58,23 +84,6 @@ __private.hashsum = function (obj) {
 	}
 
 	return bignum.fromBuffer(temp).toString();
-};
-
-/**
- * Bans a peer based on ip, port and clock options.
- * @private
- * @implements {modules.peers.ban}
- * @param {Object} options - Contains code, clock and peer.
- * @param {string} extraMessage
- * @return {boolean} False if there is no peer object
- */
-__private.banPeer = function (options, extraMessage) {
-	if (!options.peer || !options.peer.ip || !options.peer.port) {
-		library.logger.trace('Peer ban skipped', {options: options});
-		return false;
-	}
-	library.logger.debug([options.code, ['Ban', options.peer.string, (options.clock / 60), 'minutes'].join(' '), extraMessage].join(' '));
-	modules.peers.ban(options.peer.ip, options.peer.port, options.clock);
 };
 
 /**
@@ -199,12 +208,12 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 };
 
 /**
- * Normalizes transaction and bans peer if it fails.
+ * Normalizes transaction and remove peer if it fails.
  * Calls balancesSequence.add to receive transaction and 
  * processUnconfirmedTransaction to confirm it.
  * @private
  * @implements {library.logic.transaction.objectNormalize}
- * @implements {__private.banPeer}
+ * @implements {__private.removePeer}
  * @implements {library.balancesSequence.add}
  * @implements {modules.transactions.processUnconfirmedTransaction}
  * @param {transaction} transaction
@@ -221,8 +230,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	} catch (e) {
 		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', tx: transaction});
 
-		// Ban peer for 10 minutes
-		__private.banPeer({peer: peer, code: 'ETRANSACTION', clock: 600}, extraLogMessage);
+		__private.removePeer({peer: peer, code: 'ETRANSACTION'}, extraLogMessage);
 
 		return setImmediate(cb, 'Invalid transaction body - ' + e.toString());
 	}
@@ -305,6 +313,7 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
 		config = {};
 	}
 	config.limit = 1;
+	config.allowedStates = [Peer.STATE.DISCONNECTED, Peer.STATE.CONNECTED];
 	modules.peers.list(config, function (err, peers) {
 		if (!err && peers.length) {
 			return self.getFromPeer(peers[0], options, cb);
@@ -328,7 +337,6 @@ Transport.prototype.getFromRandomPeer = function (config, options, cb) {
  * @implements {modules.system.versionCompatible}
  * @implements {modules.peers.update}
  * @implements {__private.removePeer}
- * @implements {__private.banPeer}
  * @param {peer} peer
  * @param {Object} options
  * @param {function} cb
@@ -396,13 +404,7 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 			}
 		}).catch(function (err) {
 			if (peer) {
-				if (err.code === 'EUNAVAILABLE') {
-				// Remove peer
-					__private.removePeer({peer: peer, code: err.code}, req.method + ' ' + req.url);
-				} else {
-				// Ban peer for 1 minute
-					__private.banPeer({peer: peer, code: err.code, clock: 60}, req.method + ' ' + req.url);
-				}
+				__private.removePeer({peer: peer, code: err.code}, req.method + ' ' + req.url);
 			}
 
 			return setImmediate(cb, [err.code, 'Request failed', req.method, req.url].join(' '));
@@ -425,13 +427,24 @@ Transport.prototype.sandboxApi = function (call, args, cb) {
  * Bounds scope to private broadcaster amd initialize headers.
  * @implements {modules.system.headers}
  * @implements {broadcaster.bind}
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 Transport.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		blocks: scope.blocks,
+		dapps: scope.dapps,
+		peers: scope.peers,
+		multisignatures: scope.multisignatures,
+		transactions: scope.transactions,
+		system: scope.system,
+	};
 
 	__private.headers = modules.system.headers();
-	__private.broadcaster.bind(modules);
+	__private.broadcaster.bind(
+		scope.peers,
+		scope.transport,
+		scope.transactions
+	);
 };
 
 /**
@@ -547,8 +560,7 @@ Transport.prototype.internal = {
 		if (!escapedIds.length) {
 			library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: ids});
 
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'ECOMMON', clock: 600}, extraLogMessage);
+			__private.removePeer({peer: peer, code: 'ECOMMON'}, extraLogMessage);
 
 			return setImmediate(cb, 'Invalid block id sequence');
 		}
@@ -584,8 +596,7 @@ Transport.prototype.internal = {
 		} catch (e) {
 			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: block });
 
-			// Ban peer for 10 minutes
-			__private.banPeer({peer: peer, code: 'EBLOCK', clock: 600}, extraLogMessage);
+			__private.removePeer({peer: peer, code: 'EBLOCK'}, extraLogMessage);
 
 			return setImmediate(cb, null, {success: false, error: e.toString()});
 		}

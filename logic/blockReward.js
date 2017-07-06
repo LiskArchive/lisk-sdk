@@ -6,13 +6,13 @@ var constants = require('../helpers/constants.js');
 var __private = {};
 
 /**
- * Main BlockReward logic.
- * @memberof module:blocks
- * @class
- * @classdesc Initializes variables:
+ * Initializes variables:
  * - milestones
  * - distance
  * - rewardOffset
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main BlockReward logic.
  */
 // Constructor
 function BlockReward () {

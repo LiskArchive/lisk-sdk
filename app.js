@@ -120,8 +120,9 @@ process.env.TOP = appConfig.topAccounts;
  */
 var config = {
 	db: appConfig.db,
+	cache: appConfig.redis,
+	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
-		server: './modules/server.js',
 		accounts: './modules/accounts.js',
 		transactions: './modules/transactions.js',
 		blocks: './modules/blocks.js',
@@ -135,7 +136,8 @@ var config = {
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js'
+		sql: './modules/sql.js',
+		cache: './modules/cache.js'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -145,7 +147,6 @@ var config = {
 		loader: { http: './api/http/loader.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
 		peers: { http: './api/http/peers.js' },
-		server: { http: './api/http/server.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
 		transport: { http: './api/http/transport.js' }
@@ -175,7 +176,7 @@ var d = require('domain').create();
 
 d.on('error', function (err) {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exitCode = 0;
+	process.exit(0);
 });
 
 // runs domain
@@ -347,11 +348,7 @@ d.run(function () {
 			var randomString = require('randomstring');
 
 			scope.nonce = randomString.generate(16);
-			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
-			scope.network.app.set('view engine', 'ejs');
-			scope.network.app.set('views', path.join(__dirname, 'public'));
-			scope.network.app.use(scope.network.express.static(path.join(__dirname, 'public')));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
 			scope.network.app.use(bodyParser.json({limit: '2mb'}));
@@ -431,12 +428,18 @@ d.run(function () {
 			};
 			cb(null, new bus());
 		}],
-
 		db: function (cb) {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
-
+		/**
+		 * It tries to connect with redis server based on config. provided in config.json file
+		 * @param {function} cb
+		 */
+		cache: function (cb) {
+			var cache = require('./helpers/cache.js');
+			cache.connect(config.cacheEnabled, config.cache, logger, cb);
+		},
 		/**
 		 * Once db, bus, schema and genesisblock are completed,
 		 * loads transaction, block, account and peers from logic folder.
@@ -472,21 +475,20 @@ d.run(function () {
 						block: genesisblock
 					});
 				},
-				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', function (scope, cb) {
-					new Account(scope, cb);
+				account: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'logger', function (scope, cb) {
+					new Account(scope.db, scope.schema, scope.logger, cb);
 				}],
-				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', function (scope, cb) {
-					new Transaction(scope, cb);
+				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
+					new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
-					new Block(scope, cb);
+					new Block(scope.ed, scope.schema, scope.transaction, cb);
 				}],
-				peers: function (cb) {
-					new Peers(scope, cb);
-				}
+				peers: ['logger', function (scope, cb) {
+					new Peers(scope.logger, cb);
+				}]
 			}, cb);
 		}],
-
 		/**
 		 * Once network, connect, config, logger, bus, sequence,
 		 * dbSequence, balancesSequence, db and logic are completed,
@@ -496,7 +498,8 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
+
 			var tasks = {};
 
 			Object.keys(config.modules).forEach(function (name) {
@@ -535,7 +538,7 @@ d.run(function () {
 					var apiEndpointPath = config.api[moduleName][protocol];
 					try {
 						var ApiEndpoint = require(apiEndpointPath);
-						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger);
+						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
 					} catch (e) {
 						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
 					}
@@ -549,7 +552,7 @@ d.run(function () {
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
 			scope.logic.transaction.bindModules(scope.modules);
-			scope.logic.peers.bind(scope);
+			scope.logic.peers.bindModules(scope.modules);
 			cb();
 		}],
 
@@ -635,11 +638,7 @@ d.run(function () {
 					} else {
 						scope.logger.info('Cleaned up successfully');
 					}
-					/**
-					 * Exits process gracefully with code 1
-					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-					 */
-					process.exitCode = 1;
+					process.exit(1);
 				});
 			});
 

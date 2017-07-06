@@ -9,8 +9,32 @@ var transactionTypes = require('../../helpers/transactionTypes.js');
 
 var modules, library, self, __private = {};
 
-function Chain (scope) {
-	library = scope;
+/**
+ * Initializes library.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main Chain logic.
+ * Allows set information.
+ * @param {Object} logger
+ * @param {Block} block
+ * @param {Transaction} transaction
+ * @param {Database} db
+ * @param {Object} genesisblock
+ * @param {bus} bus
+ * @param {Sequence} balancesSequence
+ */
+function Chain (logger, block, transaction, db, genesisblock, bus, balancesSequence) {
+	library = {
+		logger: logger,
+		db: db,
+		genesisblock: genesisblock,
+		bus: bus,
+		balancesSequence: balancesSequence,
+		logic: {
+			block: block,
+			transaction: transaction,
+		},
+	};
 	self = this;
 
 	library.logger.trace('Blocks->Chain: Submodule initialized.');
@@ -20,10 +44,7 @@ function Chain (scope) {
 /**
  * Save genesis block to database
  *
- * @private
  * @async
- * @method saveGenesisBlock
- * @param  {Object}   block Full normalized genesis block
  * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
@@ -52,9 +73,7 @@ Chain.prototype.saveGenesisBlock = function (cb) {
 /**
  * Save block with transactions to database
  *
- * @private
  * @async
- * @method saveBlock
  * @param  {Object}   block Full normalized block
  * @param  {Function} cb Callback function
  * @return {Function|afterSave} cb If SQL transaction was OK - returns safterSave execution,
@@ -100,6 +119,7 @@ Chain.prototype.saveBlock = function (block, cb) {
  * @return {Object}   cb.err Error if occurred
  */
 __private.afterSave = function (block, cb) {
+	library.bus.message('transactionsSaved', block.transactions);
 	// Execute afterSave callbacks for each transaction, depends on tx type
 	// see: logic.outTransfer.afterSave, logic.dapp.afterSave
 	async.eachSeries(block.transactions, function (transaction, cb) {
@@ -251,7 +271,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 	}, function (err) {
 		if (err) {
 			// If genesis block is invalid, kill the node...
-			return process.exitCode = 0;
+			return process.exit(0);
 		} else {
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
@@ -331,11 +351,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo unconfirmed list', err);
 
-					/**
-					 * Exits process gracefully with code 0
-					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-					 */
-					return process.exitCode = 0;
+					return process.exit(0);
 				} else {
 					unconfirmedTransactionIds = ids;
 					return setImmediate(seriesCb);
@@ -403,11 +419,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
 
-						/**
-						 * Exits process gracefully with code 0
-						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-						 */
-						return process.exitCode = 0;
+						return process.exit(0);
 					}
 					// DATABASE: write
 					modules.transactions.apply(transaction, block, sender, function (err) {
@@ -417,11 +429,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 
-							/**
-							 * Exits process gracefully with code 0
-							 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-							 */
-							return process.exitCode = 0;
+							return process.exit(0);
 						}
 						// Transaction applied, removed from the unconfirmed list.
 						modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -444,11 +452,7 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 						library.logger.error('Failed to save block...');
 						library.logger.error('Block', block);
 
-						/**
-						 * Exits process gracefully with code 0
-						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-						 */
-						return process.exitCode = 0;
+						return process.exit(0);
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
@@ -537,11 +541,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo transactions', err);
 
-					/**
-					 * Exits process gracefully with code 0
-					 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-					 */
-					return process.exitCode = 0;
+					return process.exit(0);
 				}
 
 				// Delete last block from blockchain
@@ -551,11 +551,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 						// Fatal error, memory tables will be inconsistent
 						library.logger.error('Failed to delete block', err);
 
-						/**
-						 * Exits process gracefully with code 0
-						 * @see {@link https://nodejs.org/api/process.html#process_process_exit_code}
-						 */
-						return process.exitCode = 0;
+						return process.exit(0);
 					}
 
 					return setImmediate(cb, null, previousBlock);
@@ -619,16 +615,21 @@ Chain.prototype.recoverChain = function (cb) {
 };
 
 /**
- * Handle modules initialization
- *
- * @public
- * @method onBind
- * @listens module:app~event:bind
- * @param  {scope}   scope Exposed modules
+ * Handle modules initialization:
+ * - accounts
+ * - blocks
+ * - rounds
+ * - transactions
+ * @param {modules} scope Exposed modules
  */
 Chain.prototype.onBind = function (scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
-	modules = scope;
+	modules = {
+		accounts: scope.accounts,
+		blocks: scope.blocks,
+		rounds: scope.rounds,
+		transactions: scope.transactions,
+	};
 
 	// Set module as loaded
 	__private.loaded = true;

@@ -30,7 +30,17 @@ var rcRegExp = /[a-z]+$/;
  */
 // Constructor
 function System (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		nonce: scope.nonce,
+		config: {
+			version: scope.config.version,
+			port: scope.config.port,
+			nethash: scope.config.nethash,
+			minVersion: scope.config.minVersion,
+		},
+	};
 	self = this;
 
 	__private.os = os.platform() + os.release();
@@ -101,6 +111,13 @@ System.prototype.getNethash = function () {
 	return __private.nethash;
 };
 
+/**
+ * Gets private variable `nonce`
+ * @return {nonce}
+ */
+System.prototype.getNonce = function () {
+	return __private.nonce;
+};
 /**
  * Gets private variable `nethash` and compares with input param.
  * @param {hash}
@@ -213,11 +230,14 @@ System.prototype.sandboxApi = function (call, args, cb) {
 
 // Events
 /**
- * Assigns scope to modules variable.
- * @param {scope} scope - Loaded modules.
+ * Assigns used modules to modules variable.
+ * @param {modules} scope - Loaded modules.
  */
 System.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		blocks: scope.blocks,
+		transport: scope.transport,
+	};
 };
 
 // Export

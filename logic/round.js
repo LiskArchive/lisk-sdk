@@ -5,17 +5,35 @@ var RoundChanges = require('../helpers/RoundChanges.js');
 var sql = require('../sql/rounds.js');
 
 /**
- * Main Round logic.
+ * Validates required scope properties.
  * @memberof module:rounds
  * @class
  * @classdesc Main Round logic.
  * @param {Object} scope
- * @param {} t
+ * @param {Task} t
  * @constructor
  */
 // Constructor
 function Round (scope, t) {
-	this.scope = scope;
+	this.scope = {
+		backwards: scope.backwards,
+		round: scope.round,
+		roundOutsiders: scope.roundOutsiders,
+		roundDelegates: scope.roundDelegates,
+		roundFees: scope.roundFees,
+		roundRewards: scope.roundRewards,
+		library: {
+			logger: scope.library.logger,
+		},
+		modules: {
+			accounts: scope.modules.accounts,
+		},
+		block: {
+			generatorPublicKey: scope.block.generatorPublicKey,
+			id: scope.block.id,
+			height: scope.block.height,
+		},
+	};
 	this.t = t;
 
 	// List of required scope properties

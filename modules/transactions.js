@@ -16,7 +16,6 @@ var Transfer = require('../logic/transfer.js');
 // Private fields
 var __private = {};
 var shared = {};
-var genesisblock = null;
 var modules;
 var library;
 var self;
@@ -36,11 +35,27 @@ __private.assetTypes = {};
  */
 // Constructor
 function Transactions (cb, scope) {
-	library = scope;
-	genesisblock = library.genesisblock;
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		schema: scope.schema,
+		ed: scope.ed,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+		genesisblock: scope.genesisblock
+	};
+
 	self = this;
 
-	__private.transactionPool = new TransactionPool(library);
+	__private.transactionPool = new TransactionPool(
+		scope.config.broadcasts.broadcastInterval,
+		scope.config.broadcasts.releaseLimit,
+		scope.logic.transaction,
+		scope.bus,
+		scope.logger
+	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
 		transactionTypes.SEND, new Transfer()
@@ -486,7 +501,7 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
 
-	if (!sender && transaction.blockId !== genesisblock.block.id) {
+	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else {
 		if (transaction.requesterPublicKey) {
@@ -567,18 +582,26 @@ Transactions.prototype.isLoaded = function () {
 
 // Events
 /**
- * Bounds scope to private transactionPool and modules and library
+ * Bounds scope to private transactionPool and modules
  * to private Transfer instance.
  * @implements module:transactions#Transfer~bind
  * @param {scope} scope - Loaded modules.
  */
 Transactions.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		accounts: scope.accounts,
+		transactions: scope.transactions,
+	};
 
-	__private.transactionPool.bind(modules);
-	__private.assetTypes[transactionTypes.SEND].bind({
-		modules: modules, library: library
-	});
+	__private.transactionPool.bind(
+		scope.accounts,
+		scope.transactions,
+		scope.loader
+	);
+	__private.assetTypes[transactionTypes.SEND].bind(
+		scope.accounts,
+		scope.rounds
+	);
 };
 
 // Shared API

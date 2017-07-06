@@ -7,18 +7,23 @@ var express = require('express');
 var sinon = require('sinon');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var Blocks = require('../../../modules/blocks');
 
 describe('blocks', function () {
 
 	var blocks;
 
 	before(function (done) {
-		modulesLoader.initModuleWithDb(Blocks, function (err, __blocks) {
+		modulesLoader.initModules([
+			{blocks: require('../../../modules/blocks')}
+		], [
+			{'transaction': require('../../../logic/transaction')},
+			{'block': require('../../../logic/block')},
+			{'peers': require('../../../logic/peers.js')}
+		], {}, function (err, __blocks) {
 			if (err) {
 				return done(err);
 			}
-			blocks = __blocks;
+			blocks = __blocks.blocks;
 			done();
 		});
 	});

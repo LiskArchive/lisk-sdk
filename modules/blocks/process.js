@@ -8,8 +8,36 @@ var sql = require('../../sql/blocks.js');
 
 var modules, library, self, __private = {};
 
-function Process (scope) {
-	library = scope;
+/**
+ * Initializes library.
+ * @memberof module:blocks
+ * @class
+ * @classdesc Main Process logic.
+ * Allows process blocks.
+ * @param {Object} logger
+ * @param {Block} block
+ * @param {Peers} peers
+ * @param {Transaction} transaction
+ * @param {ZSchema} schema
+ * @param {Database} db
+ * @param {Sequence} dbSequence
+ * @param {Sequence} sequence
+ * @param {Object} genesisblock
+ */
+function Process (logger, block, peers, transaction, schema, db, dbSequence, sequence, genesisblock) {
+	library = {
+		logger: logger,
+		schema: schema,
+		db: db,
+		dbSequence: dbSequence,
+		sequence: sequence,
+		genesisblock: genesisblock,
+		logic: {
+			block: block,
+			peers: peers,
+			transaction: transaction,
+		},
+	};
 	self = this;
 
 	library.logger.trace('Blocks->Process: Submodule initialized.');
@@ -425,15 +453,26 @@ __private.receiveBlock = function (block, cb) {
 
 /**
  * Handle modules initialization
- *
- * @public
- * @method onBind
- * @listens module:app~event:bind
- * @param  {scope}   scope Exposed modules
+ * - accounts
+ * - blocks
+ * - delegates
+ * - loader
+ * - rounds
+ * - transactions
+ * - transport
+ * @param {modules} scope Exposed modules
  */
 Process.prototype.onBind = function (scope) {
 	library.logger.trace('Blocks->Process: Shared modules bind.');
-	modules = scope;
+	modules = {
+		accounts: scope.accounts,
+		blocks: scope.blocks,
+		delegates: scope.delegates,
+		loader: scope.loader,
+		rounds: scope.rounds,
+		transactions: scope.transactions,
+		transport: scope.transport,
+	};
 
 	// Set module as loaded
 	__private.loaded = true;

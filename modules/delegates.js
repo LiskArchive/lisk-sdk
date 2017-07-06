@@ -6,6 +6,7 @@ var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
 var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
@@ -37,11 +38,33 @@ __private.tmpKeypairs = {};
  */
 // Constructor
 function Delegates (cb, scope) {
-	library = scope;
+	library = {
+		logger: scope.logger,
+		sequence: scope.sequence,
+		ed: scope.ed,
+		db: scope.db,
+		network: scope.network,
+		schema: scope.schema,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+		config: {
+			forging: {
+				secret: scope.config.forging.secret,
+				access: {
+					whiteList: scope.config.forging.access.whiteList,
+				},
+			},
+		},
+	};
 	self = this;
 
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
-		transactionTypes.DELEGATE, new Delegate()
+		transactionTypes.DELEGATE, 
+		new Delegate(
+			scope.schema
+		)
 	);
 
 	setImmediate(cb, null, self);
@@ -493,14 +516,22 @@ Delegates.prototype.sandboxApi = function (call, args, cb) {
 /**
  * Calls Delegate.bind() with scope.
  * @implements module:delegates#Delegate~bind
- * @param {scope} scope - Loaded modules.
+ * @param {modules} scope - Loaded modules.
  */
 Delegates.prototype.onBind = function (scope) {
-	modules = scope;
+	modules = {
+		loader: scope.loader,
+		rounds: scope.rounds,
+		accounts: scope.accounts,
+		blocks: scope.blocks,
+		transport: scope.transport,
+		transactions: scope.transactions,
+		delegates: scope.delegates,
+	};
 
-	__private.assetTypes[transactionTypes.DELEGATE].bind({
-		modules: modules, library: library
-	});
+	__private.assetTypes[transactionTypes.DELEGATE].bind(
+		scope.accounts
+	);
 };
 
 /**
@@ -510,17 +541,22 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadDelegates(function nextForge (err) {
-		if (err) {
-			library.logger.error('Failed to load delegates', err);
+	__private.loadDelegates(function (err) {
+
+		function nextForge (cb) {
+			if (err) {
+				library.logger.error('Failed to load delegates', err);
+			}
+
+			async.series([
+				__private.forge,
+				modules.transactions.fillPool
+			], function () {
+				return setImmediate(cb);
+			});
 		}
 
-		async.series([
-			__private.forge,
-			modules.transactions.fillPool
-		], function (err) {
-			return setTimeout(nextForge, 1000);
-		});
+		jobsQueue.register('delegatesNextForge', nextForge, 1000);
 	});
 };
 

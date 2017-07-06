@@ -15,3 +15,5 @@ stacktrace*
 test/.coverage-unit
 tmp
 sftp-config.json
+*.swp
+*.swo

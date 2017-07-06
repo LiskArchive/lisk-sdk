@@ -6,20 +6,27 @@ var constants = require('../helpers/constants.js');
 var modules, library;
 
 /**
- * Main delegate logic.
+ * Initializes library.
  * @memberof module:delegates
  * @class
  * @classdesc Main delegate logic.
+ * @param {ZSchema} schema
  */
-function Delegate () {}
+function Delegate (schema) {
+	library = {
+		schema: schema,
+	};
+}
 
 // Public methods
 /**
- * @param {scope} scope - App instance.
+ * Binds input parameters to private variables modules.
+ * @param {Accounts} accounts
  */
-Delegate.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library = scope.library;
+Delegate.prototype.bind = function (accounts) {
+	modules = {
+		accounts: accounts,
+	};
 };
 
 /**

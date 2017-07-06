@@ -8,21 +8,22 @@ var schema = require('../schema/peers.js');
 // Private fields
 var __private = {};
 var self;
-var modules;
 var library;
-
+var modules;
 /**
- * Main peers logic.
+ * Initializes library.
  * @memberof module:peers
  * @class
  * @classdesc Main peers logic.
- * @param {scope} scope - App instance.
+ * @param {Object} logger
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `this` as data.
  */
 // Constructor
-function Peers (scope, cb) {
-	library = scope;
+function Peers (logger, cb) {
+	library = {
+		logger: logger
+	};
 	self = this;
 	__private.peers = {};
 	return setImmediate(cb, null, this);
@@ -74,11 +75,13 @@ Peers.prototype.get = function (peer) {
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
-		peer.updated = Date.now();
-		__private.peers[peer.string] = peer;
-
-		library.logger.debug('Inserted new peer', peer.string);
-		library.logger.trace('Inserted new peer', {peer: peer});
+		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
+			peer.updated = Date.now();
+			__private.peers[peer.string] = peer;
+			library.logger.debug('Inserted new peer', peer.string);
+		} else {
+			library.logger.debug('Rejecting unacceptable peer', peer.string);
+		}
 	};
 
 	// Update existing peer
@@ -145,42 +148,6 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 };
 
 /**
- * Upserts peer with banned state `0` and clock with current time + seconds.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {function} Calls upsert
- */
-Peers.prototype.ban = function (ip, port, seconds) {
-	return self.upsert({
-		ip: ip,
-		port: port,
-		// State 0 for banned peer
-		state: 0,
-		clock: Date.now() + (seconds || 1) * 1000
-	});
-};
-
-/**
- * Upserts peer with unbanned state `1` and deletes clock.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {peer}
- */
-Peers.prototype.unban = function (peer) {
-	peer = self.get(peer);
-	if (peer) {
-		delete peer.clock;
-		peer.state = 1;
-		library.logger.debug('Released ban for peer', peer.string);
-	} else {
-		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});
-	}
-	return peer;
-};
-
-/**
  * Deletes peer from peers list.
  * @param {peer} peer
  * @return {boolean} True if peer exists
@@ -215,11 +182,13 @@ Peers.prototype.list = function (normalize) {
 
 // Public methods
 /**
- * @param {scope} scope - App instance.
+ * Modules are not required in this file.
+ * @param {Object} __modules - Peers module.
  */
-Peers.prototype.bind = function (scope) {
-	modules = scope.modules;
-	library.logger.trace('Logic/Peers->bind');
+Peers.prototype.bindModules = function (__modules) {
+	modules = {
+		peers: __modules.peers
+	};
 };
 
 // Export
