@@ -21,7 +21,7 @@ node('lisk-js-01'){
     try {
       sh '''#!/bin/bash
       # Run Tests
-      npm run eslint
+      grunt eslint-ci
       '''
     } catch (err) {
       currentBuild.result = 'FAILURE'
