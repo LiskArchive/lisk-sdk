@@ -438,7 +438,14 @@ __private.loadBlockChain = function () {
 		}
 	}
 
-	library.db.task(checkMemTables).then(function ([countBlocks, getGenesisBlock, countMemAccounts, validateMemBalances, dbRoundsExceptions, dbDuplicatedDelegates]) {
+	library.db.task(checkMemTables).then(function (res) {
+		var countBlocks           = res[0],
+			getGenesisBlock       = res[1],
+			countMemAccounts      = res[2],
+			validateMemBalances   = res[3],
+			dbRoundsExceptions    = res[4],
+			dbDuplicatedDelegates = res[5];
+
 		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
 
@@ -496,7 +503,11 @@ __private.loadBlockChain = function () {
 			return t.batch(promises);
 		}
 
-		library.db.task(updateMemAccounts).then(function ([updateMemAccounts, getOrphanedMemAccounts, getDelegates]) {
+		library.db.task(updateMemAccounts).then(function (res) {
+			var updateMemAccounts      = res[0],
+				getOrphanedMemAccounts = res[1],
+				getDelegates           = res[2];
+
 			if (getOrphanedMemAccounts.length > 0) {
 				return reload(count, 'Detected orphaned blocks in mem_accounts');
 			}
