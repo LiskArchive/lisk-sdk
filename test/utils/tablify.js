@@ -1,5 +1,4 @@
 const tablify = require('../../src/utils/tablify');
-const expect = require('chai').expect;
 
 describe('#tablify', () => {
 
