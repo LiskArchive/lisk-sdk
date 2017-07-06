@@ -9,6 +9,9 @@ describe('lisky encrypt command palette', () => {
 	beforeEach(() => {
 		vorpal = new Vorpal();
 		vorpal.use(encrypt);
+
+		vorpal
+			.delimiter('lisky>');
 	});
 
 	afterEach(() => {
