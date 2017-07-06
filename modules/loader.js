@@ -395,8 +395,7 @@ __private.loadBlockChain = function () {
 			t.query(sql.getGenesisBlock),
 			t.one(sql.countMemAccounts),
 			t.query(sql.validateMemBalances),
-			t.query(sql.getRoundsExceptions),
-			t.query(sql.countDuplicatedDelegates)
+			t.query(sql.getRoundsExceptions)
 		];
 
 		return t.batch(promises);
@@ -443,8 +442,7 @@ __private.loadBlockChain = function () {
 			getGenesisBlock       = res[1],
 			countMemAccounts      = res[2],
 			validateMemBalances   = res[3],
-			dbRoundsExceptions    = res[4],
-			dbDuplicatedDelegates = res[5];
+			dbRoundsExceptions    = res[4];
 
 		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
@@ -484,13 +482,6 @@ __private.loadBlockChain = function () {
 					throw 'Rounds exceptions values doesn\'t match database layer';
 				}
 			});
-		}
-
-		var duplicatedDelegates = dbDuplicatedDelegates[0].count;
-
-		if (duplicatedDelegates > 0) {
-			library.logger.error('Delegates table corrupted with duplicated entries');
-			return process.emit('exit');
 		}
 
 		function updateMemAccounts (t) {
