@@ -21,4 +21,11 @@ describe('lisky encrypt command palette', () => {
 
 	});
 
+	it('should require 3 inputs', () => {
+		const argsFilter = arg => arg.required;
+		const encryptCommand = vorpal.commands.filter(commandFilter)[0];
+		const requiredArgs = encryptCommand._args.filter(argsFilter);
+		(requiredArgs).should.have.length(3);
+	});
+
 });
