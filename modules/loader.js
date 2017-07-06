@@ -438,7 +438,7 @@ __private.loadBlockChain = function () {
 		}
 	}
 
-	library.db.task(checkMemTables).then(function ([countBlocks, getGenesisBlock, countMemAccounts, validateMemBalances, dbRoundsExceptions]) {
+	library.db.task(checkMemTables).then(function ([countBlocks, getGenesisBlock, countMemAccounts, validateMemBalances, dbRoundsExceptions, dbDuplicatedDelegates]) {
 		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
 
@@ -479,7 +479,7 @@ __private.loadBlockChain = function () {
 			});
 		}
 
-		var duplicatedDelegates = +results[4][0].count;
+		var duplicatedDelegates = dbDuplicatedDelegates[0].count;
 
 		if (duplicatedDelegates > 0) {
 			library.logger.error('Delegates table corrupted with duplicated entries');
