@@ -3,10 +3,6 @@ module.exports = function (grunt) {
 
 	grunt.initConfig({
 		eslint: {
-			options: {
-				configFile: 'eslint_ecma5.json',
-				reset: true
-			},
 			target: ['lib/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js']
 		},
 
@@ -56,7 +52,7 @@ module.exports = function (grunt) {
 			src: 'test/.coverage-unit/*.info'
 		}
 	});
-	
+
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
 		grunt.task.run('eslint');

@@ -17,7 +17,8 @@
     "no-undef": "error",
     "no-unused-vars": ["error", { "vars": "all", "args": "after-used" }],
     "strict": ["error", "global"],
-    "semi": ["error", "always"]
+    "semi": ["error", "always"],
+    "no-console": ["error", { "allow": ["error", "info"] }]
   },
   "env": {
     "browser": true,
