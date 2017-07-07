@@ -52,6 +52,8 @@ describe('lisky encrypt command palette', () => {
 			nonce,
 			encryptedMessage,
 		};
+		const tableOutput = tablify(cryptoEncryptReturnObject).toString();
+		const jsonOutput = JSON.stringify(cryptoEncryptReturnObject);
 
 		beforeEach(() => {
 			sinon
@@ -70,23 +72,26 @@ describe('lisky encrypt command palette', () => {
 		});
 
 		it('should print the returned object', () => {
-			const expected = tablify(cryptoEncryptReturnObject).toString();
 			return vorpal.exec(command)
-				.then(() => (capturedOutput).should.equal(expected));
+				.then(() => (capturedOutput).should.equal(tableOutput));
 		});
 
 		it('should print json with --json option', () => {
 			const jsonCommand = `${ command } --json`;
-			const expected = JSON.stringify(cryptoEncryptReturnObject);
 			return vorpal.exec(jsonCommand)
-				.then(() => (capturedOutput).should.equal(expected));
+				.then(() => (capturedOutput).should.equal(jsonOutput));
 		});
 
 		it('should handle a -j shorthand for --json option', () => {
-			const jsonCommand = `${ command } -j`;
-			const expected = JSON.stringify(cryptoEncryptReturnObject);
-			return vorpal.exec(jsonCommand)
-				.then(() => (capturedOutput).should.equal(expected));
+			const jCommand = `${ command } -j`;
+			return vorpal.exec(jCommand)
+				.then(() => (capturedOutput).should.equal(jsonOutput));
+		});
+
+		it('should print a table with --no-json option', () => {
+			const noJsonCommand = `${ command } --no-json`;
+			return vorpal.exec(noJsonCommand)
+				.then(() => (capturedOutput).should.equal(tableOutput));
 		});
 
 	});
