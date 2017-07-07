@@ -50,7 +50,7 @@ describe('transfer.js', function () {
 		it('should create a transfer dapp transaction with just one signature', function () {
 			var transferTransactionOneSignature = createTransfer('secret', '', '1234213');
 			(transferTransactionOneSignature.signature).should.be.ok;
-			expect(transferTransactionOneSignature.secondSignature).to.be.undefined;
+			should(transferTransactionOneSignature.secondSignature).be.undefined();
 		});
 	});
 });

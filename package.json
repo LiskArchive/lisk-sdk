@@ -25,8 +25,6 @@
     "popsicle": "=9.1.0"
   },
   "devDependencies": {
-    "chai": "=4.0.0",
-    "chai-http": "=3.0.0",
     "coveralls": "=2.13.1",
     "grunt": "=1.0.1",
     "grunt-browserify": "=5.0.0",
