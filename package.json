@@ -6,8 +6,8 @@
   "scripts": {
     "test": "nyc mocha",
     "test:now": "nyc mocha --grep @now",
-    "travis": "./node_modules/.bin/grunt travis --verbose",
     "cover": "istanbul cover --dir ./coverage _mocha"
+    "jenkins": "./node_modules/.bin/grunt jenkins --verbose"
   },
   "repository": {
     "type": "git",
