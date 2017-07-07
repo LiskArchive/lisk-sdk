@@ -2,7 +2,7 @@ const Vorpal = require('vorpal');
 const common = require('../common');
 const lisky = common.lisky;
 const sinon = common.sinon;
-const list = require('../../commands/list');
+const list = require('../../src/commands/list');
 const query = require('../../src/utils/query');
 const util = require('util');
 

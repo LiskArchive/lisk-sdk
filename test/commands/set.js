@@ -1,7 +1,7 @@
 const Vorpal = require('vorpal');
 const common = require('../common');
 const lisky = common.lisky;
-const set = require('../../commands/set');
+const set = require('../../src/commands/set');
 
 const vorpal = new Vorpal();
 
