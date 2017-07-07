@@ -29,6 +29,7 @@ def startLisk() {
     cp test/config.json test/genesisBlock.json .
     export NODE_ENV=test
     BUILD_ID=dontKillMe ~/start_lisk.sh
+    sleep 10
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
