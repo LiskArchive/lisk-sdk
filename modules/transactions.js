@@ -240,31 +240,15 @@ __private.getById = function (id, cb) {
 		}
 
 		var rawTransaction = rows[0];
-		var queryName;
-
-		switch (rawTransaction.t_type) {
-		case transactionTypes.SIGNATURE:
-			queryName = 'getSignatureById';
-			break;
-		case transactionTypes.DELEGATE:
-			queryName = 'getDelegateById';
-			break;
-		case transactionTypes.VOTE:
-			queryName = 'getVotesById';
-			break;
-		case transactionTypes.MULTI:
-			queryName = 'getMultiById';
-			break;
-		case transactionTypes.DAPP:
-			queryName = 'getDappById';
-			break;
-		case transactionTypes.IN_TRANSFER:
-			queryName = 'getInTransferById';
-			break;
-		case transactionTypes.OUT_TRANSFER:
-			queryName = 'getOutTransferById';
-			break;
-		}
+		var queryName = {
+			[transactionTypes.SIGNATURE]: 'getSignatureById',
+			[transactionTypes.DELEGATE]: 'getDelegateById',
+			[transactionTypes.VOTE]: 'getVotesById',
+			[transactionTypes.MULTI]: 'getMultiById',
+			[transactionTypes.DAPP]: 'getDappById',
+			[transactionTypes.IN_TRANSFER]: 'getInTransferById',
+			[transactionTypes.OUT_TRANSFER]: 'getOutTransferById',
+		}[rawTransaction.t_type];
 
 		if (queryName) {
 			__private.getAssetForRawTrs(rawTransaction, queryName, function (err, rawTrsWithAsset) {
