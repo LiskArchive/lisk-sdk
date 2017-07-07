@@ -13,7 +13,9 @@ module.exports.init = function (db, bus, logger, cb) {
 	function onNotification (data) {
 		// Broadcast notify via events if channel is supported
 		if (channels[data.channel]) {
-			bus.message(channels[data.channel], data.payload);
+			var round = parseInt(data.payload);
+			logger.debug('pg-notify: Round changes:', round);
+			bus.message(channels[data.channel], round);
 		} else {
 			logger.error('pg-notify: Invalid channel:', data.channel);
 		}

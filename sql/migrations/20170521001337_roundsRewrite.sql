@@ -265,10 +265,18 @@ CREATE TRIGGER vote_insert_delete
 
 -- Create function 'delegates_update_on_block' for updating 'delegates' table data
 CREATE FUNCTION delegates_update_on_block() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+	DECLARE
+		height int;
 	BEGIN
 		PERFORM delegates_voters_cnt_update();
 		PERFORM delegates_voters_balance_update();
 		PERFORM delegates_rank_update();
+		IF (TG_OP = 'INSERT') THEN
+			height := NEW.height + 1;
+		ELSIF (TG_OP = 'DELETE') THEN
+			height := OLD.height;
+		END IF;
+		PERFORM pg_notify('round', CEIL(height / 101::float)::text);
 	RETURN NULL;
 END $$;
 
