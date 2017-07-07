@@ -118,10 +118,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		parallel(
 			"ESLint" : {
 				node('node-01'){
-				sh '''
-				cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-				npm run eslint
-				'''
+					sh '''
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run eslint
+					'''
+				}
 			},
 			"Release" : {
 				node('node-01'){
@@ -295,48 +296,48 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},  // End Node-02 Tests
 			"Unit - Helpers" : {
 				node('node-03'){
-				 sh '''
-				 export TEST=test/unit/helpers TEST_TYPE='UNIT'
-				 cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-				 npm run jenkins
-				 '''
+					sh '''
+					export TEST=test/unit/helpers TEST_TYPE='UNIT'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
 				}
 			},
 			"Unit - Modules" : {
 				node('node-03'){
-				 sh '''
-				 export TEST=test/unit/modules TEST_TYPE='UNIT'
-				 cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-				 npm run jenkins
-				 '''
+					sh '''
+					export TEST=test/unit/modules TEST_TYPE='UNIT'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
 				}
 			},
 			"Unit - SQL" : {
 				node('node-03'){
-				 sh '''
-				 export TEST=test/unit/sql TEST_TYPE='UNIT'
-				 cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-				 npm run jenkins
-				 '''
+					sh '''
+					export TEST=test/unit/sql TEST_TYPE='UNIT'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
 				}
 			},
 			"Unit - Logic" : {
 				node('node-03'){
-				 sh '''
-				 export TEST=test/unit/logic TEST_TYPE='UNIT'
-				 cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-				 npm run jenkins
-				 '''
+					sh '''
+					export TEST=test/unit/logic TEST_TYPE='UNIT'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
 				}
 			},
 			"Functional Stress - Transactions" : {
 				node('node-03'){
-				 sh '''
-				 export TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
-				 cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-				 npm run jenkins
-				 '''
-			 }
+					sh '''
+					export TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
 			}
 		) // End Parallel
 	}
