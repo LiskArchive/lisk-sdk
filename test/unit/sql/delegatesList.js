@@ -55,11 +55,9 @@ describe('DelegatesListSQL', function () {
 			var expectedDelegates = generateDelegatesList(round, delegates);
 
 			db.query(sql.generateDelegatesList, {round: round, delegates: delegates}).then(function (rows) {
-				expect(rows).to.be.array;
-				expect(rows.length).to.equal(1);
-				expect(rows[0]).to.be.object;
-				expect(rows[0].delegates).to.be.an.array;
-				expect(rows[0].delegates.length).to.equal(delegates.length);
+				expect(rows).to.be.an('array').and.lengthOf(1);
+				expect(rows[0]).to.be.an('object');
+				expect(rows[0].delegates).to.be.an('array').and.lengthOf(delegates.length);
 				for (var i = rows[0].delegates.length - 1; i >= 0; i--) {
 					expect(rows[0].delegates[i]).to.equal(expectedDelegates[i]);
 				}
@@ -177,11 +175,9 @@ describe('DelegatesListSQL', function () {
 			var expectedDelegates = generateDelegatesList(round, delegates);
 
 			db.query(sql.generateDelegatesList, {round: round, delegates: delegates}).then(function (rows) {
-				expect(rows).to.be.array;
-				expect(rows.length).to.equal(1);
-				expect(rows[0]).to.be.object;
-				expect(rows[0].delegates).to.be.an.array;
-				expect(rows[0].delegates.length).to.equal(delegates.length);
+				expect(rows).to.be.an('array').and.lengthOf(1);
+				expect(rows[0]).to.be.an('object');
+				expect(rows[0].delegates).to.be.an('array').and.lengthOf(delegates.length);
 				for (var i = rows[0].delegates.length - 1; i >= 0; i--) {
 					expect(rows[0].delegates[i]).to.equal(expectedDelegates[i]);
 				}
