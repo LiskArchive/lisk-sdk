@@ -16,6 +16,7 @@
   "dependencies": {
     "async": "=2.4.1",
     "bignumber.js": "=4.0.2",
+    "bluebird": "=3.5.0",
     "body-parser": "=1.17.2",
     "bytebuffer": "=5.0.1",
     "change-case": "=3.0.1",

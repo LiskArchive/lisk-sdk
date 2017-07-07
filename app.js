@@ -432,6 +432,10 @@ d.run(function () {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
+		pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
+			var pg_notify = require('./helpers/pg-notify.js');
+			pg_notify.init(scope.db, scope.bus, scope.logger, cb);
+		}],
 		/**
 		 * It tries to connect with redis server based on config. provided in config.json file
 		 * @param {function} cb
