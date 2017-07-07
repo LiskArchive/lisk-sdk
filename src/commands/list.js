@@ -4,7 +4,6 @@ module.exports = function listCommand (vorpal) {
 	const config = require('../../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../utils/tablify');
-	const util = require('util');
 	const query = require('../utils/query');
 
 	function switchType (type) {
@@ -44,9 +43,9 @@ module.exports = function listCommand (vorpal) {
 				return Promise.all(calls).then(result => {
 					result.map(executed => {
 						if (executed.error) {
-							vorpal.log(util.inspect(executed));
+							vorpal.log(JSON.stringify(executed));
 						} else {
-							vorpal.log(util.inspect(executed[switchType(userInput.type)]));
+							vorpal.log(JSON.stringify(executed[switchType(userInput.type)]));
 						}
 				 });
 
