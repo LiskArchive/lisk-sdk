@@ -7,10 +7,6 @@ describe('lisky encrypt command palette', () => {
 	let vorpal;
 	let capturedOutput = '';
 
-	const message = 'Hello Lisker';
-	const secret = 'pass phrase';
-	const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
-
 	beforeEach(() => {
 		vorpal = new Vorpal();
 		vorpal.use(encrypt);
@@ -44,12 +40,14 @@ describe('lisky encrypt command palette', () => {
 
 	});
 
-	describe('when executed with valid parameters', () => {
+	describe('when executed', () => {
+		const message = 'Hello Lisker';
+		const secret = 'pass phrase';
+		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
 		const command = `encrypt "${ message }" "${ secret }" "${ recipient }"`;
 
 		const nonce = '60ee6cbb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
 		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
-
 		const cryptoEncryptReturnObject = {
 			nonce,
 			encryptedMessage,
@@ -74,6 +72,13 @@ describe('lisky encrypt command palette', () => {
 		it('should print the returned object', () => {
 			const expected = tablify(cryptoEncryptReturnObject).toString();
 			return vorpal.exec(command)
+				.then(() => (capturedOutput).should.equal(expected));
+		});
+
+		it('should print json with --json option', () => {
+			const jsonCommand = `${ command } --json`;
+			const expected = JSON.stringify(cryptoEncryptReturnObject);
+			return vorpal.exec(jsonCommand)
 				.then(() => (capturedOutput).should.equal(expected));
 		});
 
