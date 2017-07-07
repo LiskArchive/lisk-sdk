@@ -39,8 +39,8 @@ describe('set command', () => {
 
 		it('should have 2 require inputs', () => {
 
-			(exists[0]._args[0].required).should.be.true;
-			(exists[0]._args[1].required).should.be.true;
+			(exists[0]._args[0].required).should.be.true();
+			(exists[0]._args[1].required).should.be.true();
 
 		});
 
