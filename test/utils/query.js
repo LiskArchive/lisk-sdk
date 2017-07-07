@@ -1,5 +1,5 @@
-const common = require('../../common');
-const query = require('../../../src/utils/query');
+const common = require('../common');
+const query = require('../../src/utils/query');
 
 function createSpy (targetFunc) {
 

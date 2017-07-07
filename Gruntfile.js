@@ -19,7 +19,7 @@ module.exports = function (grunt) {
 		},
 		// Configure EsLint
 		eslint: {
-			src: ['index.js', 'commands/**/*.js', 'src/**/*.js', 'test/**/*.js']
+			src: ['index.js', 'src/**/*.js', 'test/**/*.js']
 		}
 	});
 

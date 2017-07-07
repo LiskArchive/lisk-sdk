@@ -1,11 +1,11 @@
 module.exports = function listCommand (vorpal) {
 	'use strict';
 
-	const config = require('../config.json');
+	const config = require('../../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
-	const tablify = require('../src/utils/tablify');
+	const tablify = require('../utils/tablify');
 	const util = require('util');
-	const query = require('../src/utils/query');
+	const query = require('../utils/query');
 
 	function switchType (type) {
 		return {
@@ -25,7 +25,7 @@ module.exports = function listCommand (vorpal) {
 		.description('Get information from <type> with parameters [input, input, ...].  \n Types available: accounts, addresses, blocks, delegates, transactions \n E.g. list delegates lightcurve tosch \n E.g. list blocks 5510510593472232540 16450842638530591789')
 		.autocomplete(['accounts', 'addresses', 'blocks', 'delegates', 'transactions'])
 		.action(function (userInput) {
-    
+
 			let getType = {
 				'addresses': query.isAccountQuery,
 				'accounts': query.isAccountQuery,

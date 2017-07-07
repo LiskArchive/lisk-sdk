@@ -1,11 +1,11 @@
 module.exports = function getCommand (vorpal) {
 	'use strict';
-  
-	const config = require('../config.json');
+
+	const config = require('../../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
-	const tablify = require('../src/utils/tablify');
+	const tablify = require('../utils/tablify');
 	const util = require('util');
-	const query = require('../src/utils/query');
+	const query = require('../utils/query');
 
 	function switchType (type) {
 		return {
