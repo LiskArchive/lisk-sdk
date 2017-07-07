@@ -3,7 +3,11 @@ const lisk = require('lisk-js');
 
 class Crypto {
 	encrypt (message, secret, recipient) {
-		return lisk.crypto.encryptMessageWithSecret(message, secret, recipient);
+		try {
+			return lisk.crypto.encryptMessageWithSecret(message, secret, recipient);
+		} catch ({ message }) {
+			return { error: message };
+		}
 	}
 }
 
