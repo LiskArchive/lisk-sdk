@@ -1,10 +1,14 @@
 const cryptoModule = require('../utils/cryptoModule');
+const tablify = require('../utils/tablify');
 
 module.exports = function encryptCommand (vorpal) {
 	'use strict';
 
 	function encrypt ({ message, secret, recipient }) {
-		return cryptoModule.encrypt(message, secret, recipient);
+		const result = cryptoModule.encrypt(message, secret, recipient);
+		const table = tablify(result).toString();
+		vorpal.log(table);
+		return Promise.resolve(result);
 	}
 
 	vorpal
