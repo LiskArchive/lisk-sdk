@@ -82,6 +82,13 @@ describe('lisky encrypt command palette', () => {
 				.then(() => (capturedOutput).should.equal(expected));
 		});
 
+		it('should handle a -j shorthand for --json option', () => {
+			const jsonCommand = `${ command } -j`;
+			const expected = JSON.stringify(cryptoEncryptReturnObject);
+			return vorpal.exec(jsonCommand)
+				.then(() => (capturedOutput).should.equal(expected));
+		});
+
 	});
 
 });
