@@ -4,7 +4,6 @@ module.exports = function getCommand (vorpal) {
 	const config = require('../../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
 	const tablify = require('../utils/tablify');
-	const util = require('util');
 	const query = require('../utils/query');
 
 	function switchType (type) {
@@ -38,10 +37,10 @@ module.exports = function getCommand (vorpal) {
 			if ((userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
 				return output.then((result) => {
 					if (result.error) {
-						vorpal.log(util.inspect(result));
+						vorpal.log(JSON.stringify(result));
 						return result;
 					} else {
-						vorpal.log(util.inspect(result[switchType(userInput.type)]));
+						vorpal.log(JSON.stringify(result[switchType(userInput.type)]));
 						return result[switchType(userInput.type)];
 					}
 				});
