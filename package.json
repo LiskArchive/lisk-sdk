@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "NODE_ENV=test nyc mocha",
+    "test:now": "NODE_ENV=test nyc mocha --grep @now",
     "cover": "istanbul cover --dir ./coverage _mocha"
   },
   "repository": {
