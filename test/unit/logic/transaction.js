@@ -152,7 +152,7 @@ describe('transaction', function () {
 	before(function (done) {
 		async.auto({
 			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope,cb);
+				modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
 			},
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);

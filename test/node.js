@@ -327,6 +327,7 @@ node.randomAccount = function () {
 	account.username = node.randomDelegateName();
 	account.publicKey = node.lisk.crypto.getKeys(account.password).publicKey;
 	account.address = node.lisk.crypto.getAddress(account.publicKey);
+	account.secondPublicKey = node.lisk.crypto.getKeys(account.secondPassword).publicKey;
 
 	return account;
 };

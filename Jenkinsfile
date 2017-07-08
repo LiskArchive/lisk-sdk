@@ -29,6 +29,7 @@ def buildDependency() {
 def startLisk() {
   try {
     sh '''#!/bin/bash
+		sleep 10
     cp test/config.json test/genesisBlock.json .
     export NODE_ENV=test
     BUILD_ID=dontKillMe ~/start_lisk.sh
@@ -298,8 +299,20 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Unit - Modules" : {
         node('node-03'){
          sh '''
-         export TEST=test/unit/modules TEST_TYPE='UNIT'
+         export TEST=test/unit/modules/blocks.js TEST_TYPE='UNIT'
          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+         npm run jenkins
+
+         export TEST=test/unit/modules/cache.js TEST_TYPE='UNIT'
+         npm run jenkins
+
+         export TEST=test/unit/modules/peers.js TEST_TYPE='UNIT'
+         npm run jenkins
+
+         export TEST=test/unit/modules/rounds.js TEST_TYPE='UNIT'
+         npm run jenkins
+
+         export TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT'
          npm run jenkins
          '''
        }
