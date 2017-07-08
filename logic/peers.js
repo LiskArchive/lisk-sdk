@@ -148,42 +148,6 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 };
 
 /**
- * Upserts peer with banned state `0` and clock with current time + seconds.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {function} Calls upsert
- */
-Peers.prototype.ban = function (ip, port, seconds) {
-	return self.upsert({
-		ip: ip,
-		port: port,
-		// State 0 for banned peer
-		state: 0,
-		clock: Date.now() + (seconds || 1) * 1000
-	});
-};
-
-/**
- * Upserts peer with unbanned state `1` and deletes clock.
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {peer}
- */
-Peers.prototype.unban = function (peer) {
-	peer = self.get(peer);
-	if (peer) {
-		delete peer.clock;
-		peer.state = 1;
-		library.logger.debug('Released ban for peer', peer.string);
-	} else {
-		library.logger.debug('Failed to release ban for peer', {err: 'INVALID', peer: peer});
-	}
-	return peer;
-};
-
-/**
  * Deletes peer from peers list.
  * @param {peer} peer
  * @return {boolean} True if peer exists

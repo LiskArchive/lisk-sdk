@@ -16,7 +16,6 @@ var Transfer = require('../logic/transfer.js');
 // Private fields
 var __private = {};
 var shared = {};
-var genesisblock = null;
 var modules;
 var library;
 var self;
@@ -45,8 +44,9 @@ function Transactions (cb, scope) {
 		logic: {
 			transaction: scope.logic.transaction,
 		},
+		genesisblock: scope.genesisblock
 	};
-	genesisblock = library.genesisblock;
+
 	self = this;
 
 	__private.transactionPool = new TransactionPool(
@@ -501,7 +501,7 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
 
-	if (!sender && transaction.blockId !== genesisblock.block.id) {
+	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else {
 		if (transaction.requesterPublicKey) {

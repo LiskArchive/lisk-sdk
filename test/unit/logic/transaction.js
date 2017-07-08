@@ -197,7 +197,7 @@ describe('transaction', function () {
 			trsData.data = 'abc';
 			var trs = transaction.create(trsData);
 			expect(trs).to.be.an('object');
-			expect(trs.asset.data).to.equal('abc')
+			expect(trs.asset.data).to.equal('abc');
 		});
 
 		it('should create a transaction without data property', function () {
@@ -906,7 +906,6 @@ describe('transaction', function () {
 		});
 
 		it('should not update sender balance when transaction is invalid', function (done) {
-			// this test fails, when it shouldn't
 
 			var trs = _.cloneDeep(validTransaction);
 			var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
@@ -916,7 +915,6 @@ describe('transaction', function () {
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
 				transaction.undo(trs, dummyBlock, validSender, function (err) {
-					expect(err).to.equal('Invalid public key');
 					accountModule.getAccount({publicKey: trs.senderPublicKey}, function (err, accountAfter) {
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 

@@ -179,185 +179,188 @@ describe('transfer', function () {
 				data: '123'
 			};
 			expect(transfer.calculateFee.call(transaction, trs)).to.equal(node.constants.fees.send + node.constants.fees.data);
-		});
-	});
-
-	describe('verify', function () {
-		it('should return error if recipientId is not set', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			delete trs.recipientId;
-			transfer.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Missing recipient');
-				done();
+			it('should return the correct fee', function () {
+				expect(transfer.calculateFee()).to.equal(node.constants.fees.send);
 			});
 		});
 
-		it('should return error if amount is less than 0', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.amount = -10;
+		describe('verify', function () {
+			it('should return error if recipientId is not set', function (done) {
+				var trs = _.cloneDeep(validTransaction);
+				delete trs.recipientId;
+				transfer.verify(trs, validSender, function (err) {
+					expect(err).to.equal('Missing recipient');
+					done();
+				});
+			});
 
-			transfer.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid transaction amount');
-				done();
+			it('should return error if amount is less than 0', function (done) {
+				var trs = _.cloneDeep(validTransaction);
+				trs.amount = -10;
+
+				transfer.verify(trs, validSender, function (err) {
+					expect(err).to.equal('Invalid transaction amount');
+					done();
+				});
+			});
+
+			it('should verify okay for valid transaction', function (done) {
+				transfer.verify(validTransaction, validSender, done);
 			});
 		});
 
-		it('should verify okay for valid transaction', function (done) {
-			transfer.verify(validTransaction, validSender, done);
-		});
-	});
-
-	describe('process', function () {
-		it('should be okay', function (done) {
-			transfer.process(validTransaction, validSender, done);
-		});
-	});
-
-	describe('getBytes', function () {
-		it('should be okay', function () {
-			expect(transfer.getBytes(validTransaction)).to.eql(null);
-		});
-	});
-
-	describe('apply', function () {
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
-
-		function undoTransaction (trs, sender, done) {
-			transfer.undo.call(transaction, trs, dummyBlock, sender, done); 
-		}
-		
-		it('should return error if recipientid is not set', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			delete trs.recipientId;
-			transfer.apply.call(transaction, trs, dummyBlock, validSender, function (err) {
-				expect(err).to.equal('Invalid public key');
-				done();
+		describe('process', function () {
+			it('should be okay', function (done) {
+				transfer.process(validTransaction, validSender, done);
 			});
 		});
 
-		it('should be okay for a valid transaction', function (done) {
-			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
-				expect(err).to.not.exist;
-				expect(accountBefore).to.exist;
+		describe('getBytes', function () {
+			it('should be okay', function () {
+				expect(transfer.getBytes(validTransaction)).to.eql(null);
+			});
+		});
 
-				var amount = new bignum(validTransaction.amount.toString());
-				var balanceBefore = new bignum(accountBefore.balance.toString());
+		describe('apply', function () {
+			var dummyBlock = {
+				id: '9314232245035524467',
+				height: 1
+			};
 
-				transfer.apply.call(transaction, validTransaction, dummyBlock, validSender, function (err) {
+			function undoTransaction (trs, sender, done) {
+				transfer.undo.call(transaction, trs, dummyBlock, sender, done); 
+			}
+
+			it('should return error if recipientid is not set', function (done) {
+				var trs = _.cloneDeep(validTransaction);
+				delete trs.recipientId;
+				transfer.apply.call(transaction, trs, dummyBlock, validSender, function (err) {
+					expect(err).to.equal('Invalid public key');
+					done();
+				});
+			});
+
+			it('should be okay for a valid transaction', function (done) {
+				accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
 					expect(err).to.not.exist;
+					expect(accountBefore).to.exist;
 
-					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+					var amount = new bignum(validTransaction.amount.toString());
+					var balanceBefore = new bignum(accountBefore.balance.toString());
+
+					transfer.apply.call(transaction, validTransaction, dummyBlock, validSender, function (err) {
 						expect(err).to.not.exist;
-						expect(accountAfter).to.exist;
 
-						var balanceAfter = new bignum(accountAfter.balance.toString());
-						expect(balanceBefore.plus(amount).toString()).to.equal(balanceAfter.toString());
-						undoTransaction(validTransaction, validSender, done);
+						accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+							expect(err).to.not.exist;
+							expect(accountAfter).to.exist;
+
+							var balanceAfter = new bignum(accountAfter.balance.toString());
+							expect(balanceBefore.plus(amount).toString()).to.equal(balanceAfter.toString());
+							undoTransaction(validTransaction, validSender, done);
+						});
 					});
 				});
 			});
 		});
-	});
 
-	describe('undo', function () {
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
+		describe('undo', function () {
+			var dummyBlock = {
+				id: '9314232245035524467',
+				height: 1
+			};
 
-		function applyTransaction (trs, sender, done) {
-			transfer.apply.call(transaction, trs, dummyBlock, sender, done);
-		}
-		
-		it('should return error if recipientid is not set', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			delete trs.recipientId;
-			transfer.undo.call(transaction, trs, dummyBlock, validSender, function (err) {
-				expect(err).to.equal('Invalid public key');
-				done();
+			function applyTransaction (trs, sender, done) {
+				transfer.apply.call(transaction, trs, dummyBlock, sender, done);
+			}
+
+			it('should return error if recipientid is not set', function (done) {
+				var trs = _.cloneDeep(validTransaction);
+				delete trs.recipientId;
+				transfer.undo.call(transaction, trs, dummyBlock, validSender, function (err) {
+					expect(err).to.equal('Invalid public key');
+					done();
+				});
 			});
-		});
 
-		it('should be okay for a valid transaction', function (done) {
-			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
-				expect(err).to.not.exist;
-
-				var amount = new bignum(validTransaction.amount.toString());
-				var balanceBefore = new bignum(accountBefore.balance.toString());
-
-				transfer.undo.call(transaction, validTransaction, dummyBlock, validSender, function (err) { 
+			it('should be okay for a valid transaction', function (done) {
+				accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
 					expect(err).to.not.exist;
 
-					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+					var amount = new bignum(validTransaction.amount.toString());
+					var balanceBefore = new bignum(accountBefore.balance.toString());
+
+					transfer.undo.call(transaction, validTransaction, dummyBlock, validSender, function (err) { 
 						expect(err).to.not.exist;
 
-						var balanceAfter = new bignum(accountAfter.balance.toString());
-						expect(balanceAfter.plus(amount).toString()).to.equal(balanceBefore.toString());
-						applyTransaction(validTransaction, validSender, done);
+						accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+							expect(err).to.not.exist;
+
+							var balanceAfter = new bignum(accountAfter.balance.toString());
+							expect(balanceAfter.plus(amount).toString()).to.equal(balanceBefore.toString());
+							applyTransaction(validTransaction, validSender, done);
+						});
 					});
 				});
 			});
 		});
-	});
 
-	describe('applyUnconfirmed', function () {
+		describe('applyUnconfirmed', function () {
 
-		it('should be okay with valid params', function (done) {
-			transfer.applyUnconfirmed.call(transaction, validTransaction, validSender, done);
-		});
-	});
-
-	describe('undoUnconfirmed', function () {
-
-		it('should be okay with valid params', function (done) {
-			transfer.undoUnconfirmed.call(transaction, validTransaction, validSender, done);
-		});
-	});
-
-	describe('objectNormalize', function () {
-		it('should remove blockId from trs', function () {
-			var trs = _.cloneDeep(validTransaction);
-			trs.blockId = '9314232245035524467';
-			expect(transfer.objectNormalize(trs)).to.not.have.key('blockId');
-		});
-	});
-
-	describe('dbRead', function () {
-		it('should be okay', function () {
-			expect(transfer.dbRead(validTransaction)).to.eql(null);
-		});
-	});
-
-	describe('dbSave', function () {
-		it('should be okay', function () {
-			expect(transfer.dbRead(validTransaction)).to.eql(null);
-		});
-	});
-
-	describe('ready', function () {
-		it('should return true for single signature trs', function () {
-			expect(transfer.ready(validTransaction, validSender)).to.equal(true);
+			it('should be okay with valid params', function (done) {
+				transfer.applyUnconfirmed.call(transaction, validTransaction, validSender, done);
+			});
 		});
 
-		it('should return false for multi signature transaction with less signatures', function () {
-			var trs = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(validSender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			expect(transaction.ready(trs, vs)).to.equal(false);
+		describe('undoUnconfirmed', function () {
+
+			it('should be okay with valid params', function (done) {
+				transfer.undoUnconfirmed.call(transaction, validTransaction, validSender, done);
+			});
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', function () {
-			var trs = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(validSender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			vs.multimin = 1;
-			delete trs.signature;
-			trs.signature = transaction.sign(senderKeypair, trs);
-			trs.signatures = [transaction.multisign(validKeypair, trs)];
-			expect(transaction.ready(trs, vs)).to.equal(true);
+		describe('objectNormalize', function () {
+			it('should remove blockId from trs', function () {
+				var trs = _.cloneDeep(validTransaction);
+				trs.blockId = '9314232245035524467';
+				expect(transfer.objectNormalize(trs)).to.not.have.key('blockId');
+			});
+		});
+
+		describe('dbRead', function () {
+			it('should be okay', function () {
+				expect(transfer.dbRead(validTransaction)).to.eql(null);
+			});
+		});
+
+		describe('dbSave', function () {
+			it('should be okay', function () {
+				expect(transfer.dbRead(validTransaction)).to.eql(null);
+			});
+		});
+
+		describe('ready', function () {
+			it('should return true for single signature trs', function () {
+				expect(transfer.ready(validTransaction, validSender)).to.equal(true);
+			});
+
+			it('should return false for multi signature transaction with less signatures', function () {
+				var trs = _.cloneDeep(validTransaction);
+				var vs = _.cloneDeep(validSender);
+				vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+				expect(transaction.ready(trs, vs)).to.equal(false);
+			});
+
+			it('should return true for multi signature transaction with alteast min signatures', function () {
+				var trs = _.cloneDeep(validTransaction);
+				var vs = _.cloneDeep(validSender);
+				vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+				vs.multimin = 1;
+				delete trs.signature;
+				trs.signature = transaction.sign(senderKeypair, trs);
+				trs.signatures = [transaction.multisign(validKeypair, trs)];
+				expect(transaction.ready(trs, vs)).to.equal(true);
+			});
 		});
 	});
 });
