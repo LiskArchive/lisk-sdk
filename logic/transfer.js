@@ -14,7 +14,6 @@ var modules, library;
  */
 // Constructor
 function Transfer (logger, schema) {
-	console.log(!!logger, !!schema)
 	library = {
 		logger: logger,
 		schema: schema,
@@ -35,7 +34,7 @@ Transfer.prototype.bind = function (accounts, rounds) {
 };
 
 /**
- * Assigns data to transaction recipientId and amount.
+ * Assigns data to transaction recipientId and amount and transfer asset.
  * @param {Object} data
  * @param {transaction} trs
  * @return {transaction} trs with assigned data
@@ -45,21 +44,23 @@ Transfer.prototype.create = function (data, trs) {
 	trs.amount = data.amount;
 
 	if (data.data) {
-		trs.asset.data = data.data;
+		trs.asset.transfer = {
+			data: data.data
+		};
 	}
 
 	return trs;
 };
 
 /**
- * Returns send fees from constants.
+ * Returns send fees from constants for transactions without asset and send fees + data fees if asset exists.
  * @param {transaction} trs
  * @param {account} sender
  * @return {number} fee
  */
 Transfer.prototype.calculateFee = function (trs, sender) {
 	var fee = new bignum(constants.fees.send);
-	if (trs.asset && trs.asset.data) {
+	if (trs.asset && trs.asset.transfer && trs.asset.transfer.data) {
 		fee = fee.plus(constants.fees.data);
 	}
 	return Number(fee.toString());
@@ -95,7 +96,7 @@ Transfer.prototype.process = function (trs, sender, cb) {
 };
 
 /**
- * Creates a buffer with asset.data.
+ * Creates a buffer with asset.transfer.data.
  * @param {transaction} trs
  * @return {Array} Buffer
  * @throws {e} error
@@ -104,8 +105,8 @@ Transfer.prototype.getBytes = function (trs) {
 	var buf;
 	var data;
 
-	if (trs.asset && trs.asset.data) {
-		data = trs.asset.data;
+	if (trs.asset && trs.asset.transfer && trs.asset.transfer.data) {
+		data = trs.asset.transfer.data;
 	}
 
 	try {
@@ -203,7 +204,7 @@ Transfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
  * @property {String} data
  */
 Transfer.prototype.schema = {
-	id: 'Vote',
+	id: 'transefer',
 	type: 'object',
 	properties: {
 		data: {
@@ -215,16 +216,21 @@ Transfer.prototype.schema = {
 };
 
 /**
- * Deletes blockId from transaction 
+ * Deletes blockId from transaction, and validates schema if asset exists
  * @param {transaction} trs
  * @return {transaction}
  */
 Transfer.prototype.objectNormalize = function (trs) {
 	delete trs.blockId;
-	var report = library.schema.validate(trs.asset, Transfer.prototype.schema);
+
+	if (!trs.asset.transfer) {
+		return trs;
+	}
+
+	var report = library.schema.validate(trs.asset.transfer, Transfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate vote schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate transfer schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
@@ -241,6 +247,7 @@ Transfer.prototype.dbFields = [
 
 
 /**
+ * checks if asset exists, if so, returns value otherwise returns null
  * @param {Object} raw
  * @return {null}
  */
@@ -248,28 +255,37 @@ Transfer.prototype.dbRead = function (raw) {
 	if (!raw.tf_data) {
 		return null;
 	} else {
-		return { data: raw.tf_data };
+		var transfer = { data: raw.tf_data };
+		return {transfer: transfer};
 	}
 };
 
 /**
+ * checks if asset exists, if so, returns transfer table promise otherwise returns null
  * @param {transaction} trs
- * @return {null}
+ * @return {Object} {table:signatures, values: publicKey and transaction id} or null.
  */
 Transfer.prototype.dbSave = function (trs) {
-	var data = null;
-	if (trs.asset && trs.asset.data) {
-		data = Buffer.from(trs.asset.data, 'utf8')
+	if (trs.asset && trs.asset.transfer && trs.asset.transfer.data) {
+		var data;
+
+		try {
+			data = Buffer.from(trs.asset.transfer.data, 'utf8');
+		} catch (e) {
+			throw e;
+		}
+
+		return {
+			table: this.dbTable,
+			fields: this.dbFields,
+			values: {
+				data : data,
+				transactionId: trs.id
+			}
+		};
 	}
 
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			data : data,
-			transactionId: trs.id
-		}
-	};
+	return null;
 };
 
 

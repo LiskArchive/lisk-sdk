@@ -97,6 +97,7 @@ var rawValidTransaction = {
 	t_amount: 8067474861277,
 	t_fee: 10000000,
 	t_signature: '7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
+	tf_data: '123',
 	confirmations: 8343
 };
 
@@ -197,7 +198,7 @@ describe('transaction', function () {
 			trsData.data = 'abc';
 			var trs = transaction.create(trsData);
 			expect(trs).to.be.an('object');
-			expect(trs.asset.data).to.equal('abc');
+			expect(trs.asset.transfer.data).to.equal('abc');
 		});
 
 		it('should create a transaction without data property', function () {
@@ -712,7 +713,7 @@ describe('transaction', function () {
 
 		it('should verify transaction with correct fee (with data field)', function (done) {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset = {data: '123'};
+			trs.asset.transfer = {data: '123'};
 			trs.fee += 10000000;
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
@@ -1020,18 +1021,17 @@ describe('transaction', function () {
 			trs.signatures = [transaction.multisign(validKeypair, trs)];
 			var savePromise = transaction.dbSave(trs);
 			expect(savePromise).to.be.an('Array');
-			expect(savePromise).to.have.length(2);
 			var trsValues = savePromise[0].values;
 			expect(trsValues).to.have.property('signatures').which.is.equal(trs.signatures.join(','));
 		});
 
 		it('should return response for valid parameters with data field', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset = {data : '123'};
+			trs.asset.transfer = {data : '123'};
 			var savePromise = transaction.dbSave(trs);
 			expect(savePromise).to.be.an('Array');
-			expect(savePromise).to.have.length(1);
-			expect(savePromise[0].values).to.have.property('data').to.eql(new Buffer('123'));
+			expect(savePromise).to.have.length(2);
+			expect(savePromise[1].values).to.have.property('data').to.eql(new Buffer('123'));
 		});
 
 		it('should return promise object for valid parameters', function () {
@@ -1054,8 +1054,7 @@ describe('transaction', function () {
 				'fee',
 				'signature',
 				'signSignature',
-				'signatures',
-				'data'
+				'signatures'
 			];
 			expect(savePromise).to.be.an('Array');
 			expect(savePromise).to.have.length(1);
@@ -1093,8 +1092,11 @@ describe('transaction', function () {
 
 		it('should not remove data field after normalization', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.data = '123';
-			expect(_.keys(transaction.objectNormalize(trs))).to.include('data');
+			trs.asset.transfer= {
+				data: '123'
+			};
+			var normalizedTrs = transaction.objectNormalize(trs);
+			expect(normalizedTrs).to.have.property('asset').which.is.eql(trs.asset);
 		});
 
 		it('should throw error for invalid schema types', function () {
@@ -1115,10 +1117,9 @@ describe('transaction', function () {
 
 		it('should return transaction object with data field', function () {
 			var rawTrs = _.cloneDeep(rawValidTransaction);
-			rawTrs.t_data = '123';
 			var trs = transaction.dbRead(rawTrs);
 			expect(trs).to.be.an('object');
-			expect(trs).to.have.property('data');
+			expect(trs.asset.transfer).to.have.property('data');
 		});
 
 		it('should return null if id field is not present', function () {
@@ -1148,11 +1149,12 @@ describe('transaction', function () {
 				'signSignature',
 				'signatures',
 				'confirmations',
-				'asset',
-				'data'
+				'asset'
 			];
 			expect(trs).to.be.an('object');
-			expect((trs)).to.have.keys(expectedKeys);
+			expect(trs).to.have.keys(expectedKeys);
+			expect(trs.asset).to.have.property('transfer').which.is.an('object');
+			expect(trs.asset.transfer.data).to.equal(rawValidTransaction.tf_data);
 		});
 	});
 });

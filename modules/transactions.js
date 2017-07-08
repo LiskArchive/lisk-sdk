@@ -241,6 +241,7 @@ __private.getById = function (id, cb) {
 
 		var rawTransaction = rows[0];
 		var queryName = {
+			[transactionTypes.SEND]: 'getTransferById',
 			[transactionTypes.SIGNATURE]: 'getSignatureById',
 			[transactionTypes.DELEGATE]: 'getDelegateById',
 			[transactionTypes.VOTE]: 'getVotesById',

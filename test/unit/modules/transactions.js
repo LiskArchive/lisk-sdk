@@ -274,6 +274,7 @@ describe('transactions', function () {
 				var params = {
 					secret : transferAccount.password,
 					amount : 112340000,
+					data: 'dummy data',
 					recipientId : node.gAccount.address,
 				};
 				putTransfer(params, cb);
@@ -395,9 +396,10 @@ describe('transactions', function () {
 					expect(res.transaction.id).to.equal(trsId);
 
 					expect(res.transaction.type).to.equal(transactionTypes.SEND);
-					expect(res.transaction.fee).to.equal(constants.fees.send);
+					expect(res.transaction.fee).to.equal(constants.fees.send + constants.fees.data);
 					expect(res.transaction.senderPublicKey).to.equal(transferAccount.publicKey);
 					expect(res.transaction.recipientPublicKey).to.equal(node.gAccount.publicKey);
+					expect(res.transaction.asset.transfer.data).to.eql(trsParams.data);
 					done();
 				});
 			});
