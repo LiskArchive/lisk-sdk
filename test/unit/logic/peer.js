@@ -159,12 +159,32 @@ describe('peer', function () {
 				dappid: ['test dappid'],
 				broadhash: 'test broadhash',
 				height: 3,
-				nonce: 'ABCD123'
+				nonce: '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3'
 			};
 			expect(_.difference(_.keys(updateData), peer.headers)).to.have.lengthOf(0);
 			peer.update(updateData);
 			peer.headers.forEach(function (header) {
 				expect(peer[header]).to.exist.and.equals(updateData[header]);
+			});
+		});
+
+		it('should not update nonce if it is not a valid 32 long public key', function () {
+			var updateData = {
+				os: 'test os',
+				version: '0.0.0',
+				dappid: ['test dappid'],
+				broadhash: 'test broadhash',
+				height: 3,
+				nonce: 'randomNonce'
+			};
+			expect(_.difference(_.keys(updateData), peer.headers)).to.have.lengthOf(0);
+			peer.update(updateData);
+			peer.headers.forEach(function (header) {
+				if (header === 'nonce') {
+					expect(peer[header]).to.be.undefined;
+				} else {
+					expect(peer[header]).to.exist.and.equals(updateData[header]);
+				}
 			});
 		});
 

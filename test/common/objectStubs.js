@@ -12,8 +12,7 @@ var randomPeer = {
 	'httpPort': 4001,
 	'state': 2,
 	'version': '0.0.0',
-	'nonce': 'randomnonce',
-	rpc: {}
+	'nonce': '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3'
 };
 
 module.exports = {

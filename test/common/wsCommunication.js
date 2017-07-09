@@ -25,8 +25,6 @@ var wsCommunication = {
 			query: headers !== undefined ? headers : node.generatePeerHeaders(ip, port)
 		};
 
-		console.log(wsOptions);
-
 		var socket = scClient.connect(wsOptions);
 
 		wampClient.upgradeToWAMP(socket);
