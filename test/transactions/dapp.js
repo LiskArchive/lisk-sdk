@@ -76,7 +76,7 @@ describe('dapp.js', function () {
 			it('should have senderPublicKey as hex string', function () {
 				(trs.senderPublicKey).should.be.type('string').and.match(function () {
 					try {
-						new Buffer(trs.senderPublicKey, 'hex');
+						Buffer.from(trs.senderPublicKey, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -131,7 +131,7 @@ describe('dapp.js', function () {
 			it('should have signature as hex string', function () {
 				(trs.signature).should.be.type('string').and.match(function () {
 					try {
-						new Buffer(trs.signature, 'hex');
+						Buffer.from(trs.signature, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -143,7 +143,7 @@ describe('dapp.js', function () {
 			it('should have second signature in hex', function () {
 				(trs).should.have.property('signSignature').and.type('string').and.match(function () {
 					try {
-						new Buffer(trs.signSignature, 'hex');
+						Buffer.from(trs.signSignature, 'hex');
 					} catch (e) {
 						return false;
 					}
