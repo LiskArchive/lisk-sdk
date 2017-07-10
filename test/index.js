@@ -1,4 +1,5 @@
 require('./unit/helpers/request-limiter.js');
+require('./unit/helpers/pg-notify.js');
 require('./unit/logic/blockReward.js');
 require('./unit/sql/blockRewards.js');
 require('./unit/sql/delegatesList.js');
