@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "NODE_ENV=test nyc mocha",
-    "postinstall": "npm link"
+    "postinstall": "npm link",
     "test:watch": "npm run test -- --watch",
     "test:now": "npm run test -- --grep @now",
     "test:now:watch": "npm run test:now -- --watch",
