@@ -1,4 +1,3 @@
-require('../common');
 const Vorpal = require('vorpal');
 const set = require('../../src/commands/set');
 
