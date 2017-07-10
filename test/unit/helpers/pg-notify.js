@@ -32,6 +32,7 @@ describe('helpers/pg-notify', function () {
 		logger = {
 			debug: sinon.spy(),
 			info:  sinon.spy(),
+			warn:  sinon.spy(),
 			error: sinon.spy()
 		};
 
@@ -47,6 +48,7 @@ describe('helpers/pg-notify', function () {
 		// Reset state of spies
 		logger.debug.reset();
 		logger.info.reset();
+		logger.warn.reset();
 		logger.error.reset();
 		bus.message.reset();
 	}
@@ -60,8 +62,9 @@ describe('helpers/pg-notify', function () {
 	function reconnect (done) {
 		pg_notify.init(db, bus, logger, function (err) {
 			// Should be no error
-			expect(err).to.be.an('undefined');
+			expect(err).to.be.undefined;
 			expect(logger.info.args[0][0]).to.equal('pg-notify: Initial connection estabilished');
+			resetSpiesState();
 			done();
 		});
 	}
@@ -75,7 +78,7 @@ describe('helpers/pg-notify', function () {
 		it('try to estabilish initial connection with valid params should succeed', function (done) {
 			pg_notify.init(db, bus, logger, function (err) {
 				// Should be no error
-				expect(err).to.be.an('undefined');
+				expect(err).to.be.undefined;
 				expect(logger.info.args[0][0]).to.equal('pg-notify: Initial connection estabilished');
 				done();
 			});
@@ -152,28 +155,6 @@ describe('helpers/pg-notify', function () {
 		});
 	});
 
-	describe('isTestEnv', function () {
-		it('should return true if NODE_ENV is TEST', function (done) {
-			var node_env = process.env['NODE_ENV'];
-
-			process.env['NODE_ENV'] = 'TEST';
-			var isTestEnv = pg_notify.__get__('isTestEnv');
-			expect(isTestEnv()).to.be.ok;
-			process.env['NODE_ENV'] = node_env;
-			done();
-		});
-
-		it('should return false if NODE_ENV is not TEST', function (done) {
-			var node_env = process.env['NODE_ENV'];
-
-			process.env['NODE_ENV'] = 'PRODUCTION';
-			var isTestEnv = pg_notify.__get__('isTestEnv');
-			expect(isTestEnv()).to.be.not.ok;
-			process.env['NODE_ENV'] = node_env;
-			done();
-		});
-	});
-
 	describe('onConnectionLost', function () {
 		it('should fail after 10 retries if cannot reconnect', function (done) {
 			// Re-init connection
@@ -183,6 +164,8 @@ describe('helpers/pg-notify', function () {
 				// Spy private functions
 				var setListeners = pg_notify.__get__('setListeners');
 				var connection = pg_notify.__get__('connection');
+
+				var exit = sinon.stub(process, 'exit');
 
 				// Execute query that terminate existing connection
 				db.query(sql.interruptConnection, {database: config.db.database, pid: connection.client.processID}).then(setTimeout(function () {
@@ -208,6 +191,9 @@ describe('helpers/pg-notify', function () {
 					//Connection should be cleared
 					connection = pg_notify.__get__('connection');
 					expect(connection).to.be.an('null');
+
+					expect(exit.calledOnce).to.be.ok;
+					exit.restore();
 
 					done();
 				}, 60000)).catch(function (err) {
@@ -246,7 +232,7 @@ describe('helpers/pg-notify', function () {
 			removeListeners(connection.client, function (err) {
 				expect(removeListeners).to.be.an('function');
 				expect(connection).to.be.an('object').and.have.property('client');
-				expect(connection.client._events.notification).to.be.an('undefined');
+				expect(connection.client._events.notification).to.be.undefined;
 				done();
 			});
 		});
@@ -255,7 +241,7 @@ describe('helpers/pg-notify', function () {
 			// Spy private functions
 			var removeListeners = pg_notify.__get__('removeListeners');
 			var connection = pg_notify.__get__('connection');
-			// Overwrite listenQueries function with one that always fail
+			// Overwrite unlistenQueries function with one that always fail
 			var restore = pg_notify.__set__('unlistenQueries', failQueryBatch);
 
 			removeListeners(connection.client, function (err) {
@@ -276,10 +262,105 @@ describe('helpers/pg-notify', function () {
 			removeListeners(connection.client, function (err) {
 				expect(removeListeners).to.be.an('function');
 				expect(connection).to.be.an('object').and.have.property('client');
-				expect(connection.client._events.notification).to.be.an('undefined');
+				expect(connection.client._events.notification).to.be.undefined;
 				restore();
 				done();
 			});
 		});
+	});
+
+	describe('onNotification', function () {
+		it('should notify about round-closed event', function (done) {
+			var channel = 'round-closed';
+			var message = '123';
+
+			// Execute query that trigger notify
+			db.query(sql.triggerNotify, {channel: channel, message: message}).then(setTimeout(function () {
+				expect(logger.debug.args[0]).to.deep.equal(['pg-notify: Notification received', {channel: 'round-closed', data: '123'}]);
+				expect(logger.info.args[0]).to.deep.equal(['pg-notify: Round closed', 123]);
+				expect(bus.message.args[0]).to.deep.equal(['finishRound', 124]);
+				done();
+			}, 20)).catch(function (err) {
+				done(err);
+			});
+		});
+
+		it('should notify about round-reopened event', function (done) {
+			var channel = 'round-reopened';
+			var message = '123';
+
+			// Execute query that trigger notify
+			db.query(sql.triggerNotify, {channel: channel, message: message}).then(setTimeout(function () {
+				expect(logger.debug.args[0]).to.deep.equal(['pg-notify: Notification received', {channel: 'round-reopened', data: '123'}]);
+				expect(logger.warn.args[0]).to.deep.equal(['pg-notify: Round reopened', 123]);
+				expect(bus.message.args[0]).to.deep.equal(['finishRound', 123]);
+				done();
+			}, 20)).catch(function (err) {
+				done(err);
+			});
+		});
+
+		it('should not notify about unknown event', function (done) {
+			var channel = 'unknown';
+			var message = 'unknown';
+
+			// Execute query that trigger notify
+			db.query(sql.triggerNotify, {channel: channel, message: message}).then(setTimeout(function () {
+				expect(logger.debug.args[0]).to.be.undefined;
+				expect(logger.info.args[0]).to.be.undefined;
+				expect(logger.warn.args[0]).to.be.undefined;
+				expect(bus.message.args[0]).to.be.undefined;
+				done();
+			}, 20)).catch(function (err) {
+				done(err);
+			});
+		});
+
+		it('should not notify about event on invalid channel, but log it', function (done) {
+			var channel = 'round-reopened';
+			var message = '123';
+
+			// Overwrite channels object with custom ones
+			var restore = pg_notify.__set__('channels', {});
+
+			// Execute query that trigger notify
+			db.query(sql.triggerNotify, {channel: channel, message: message}).then(setTimeout(function () {
+				expect(logger.debug.args[0]).to.deep.equal(['pg-notify: Notification received', {channel: 'round-reopened', data: '123'}]);
+				expect(logger.error.args[0]).to.deep.equal(['pg-notify: Invalid channel', 'round-reopened']);
+				expect(logger.info.args[0]).to.be.undefined;
+				expect(logger.warn.args[0]).to.be.undefined;
+				expect(bus.message.args[0]).to.be.undefined;
+				restore();
+				done();
+			}, 20)).catch(function (err) {
+				done(err);
+			});
+		});
+
+		it('should not notify about event on not supported channel, but log it', function (done) {
+			var channel = 'test';
+			var message = '123';
+
+			// Overwrite channels object with custom ones
+			var restore = pg_notify.__set__('channels', {test: 'test'});
+
+			pg_notify.init(db, bus, logger, function (err) {
+				resetSpiesState();
+
+				// Execute query that trigger notify
+				db.query(sql.triggerNotify, {channel: channel, message: message}).then(setTimeout(function () {
+					expect(logger.debug.args[0]).to.deep.equal(['pg-notify: Notification received', {channel: 'test', data: '123'}]);
+					expect(logger.error.args[0]).to.deep.equal(['pg-notify: Channel not supported', 'test']);
+					expect(logger.info.args[0]).to.be.undefined;
+					expect(logger.warn.args[0]).to.be.undefined;
+					expect(bus.message.args[0]).to.be.undefined;
+					restore();
+					done();
+				}, 20)).catch(function (err) {
+					done(err);
+				});
+			});
+		});
+
 	});
 });
