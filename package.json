@@ -7,7 +7,8 @@
     "test": "nyc mocha",
     "test:now": "nyc mocha --grep @now",
     "cover": "istanbul cover --dir ./coverage _mocha",
-    "jenkins": "./node_modules/.bin/grunt jenkins --verbose"
+    "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
+    "prepush": "grunt eslint && npm test"
   },
   "repository": {
     "type": "git",
