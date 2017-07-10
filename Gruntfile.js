@@ -63,7 +63,8 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-force');
 	grunt.loadNpmTasks('grunt-coveralls');
-	grunt.registerTask('travis', ['eslint', 'exec:coverageSingle', 'coveralls']);
+	grunt.registerTask('jenkins', ['exec:coverageSingle', 'coveralls']);
+	grunt.registerTask('eslint-ci', ['eslint']);
 	grunt.registerTask('default', [
 		'force:on',
 		'browserify',
