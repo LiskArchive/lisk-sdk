@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "NODE_ENV=test nyc mocha",
-    "cover": "istanbul cover --dir ./coverage _mocha"
+    "cover": "istanbul cover --dir ./coverage _mocha",
+    "postinstall": "npm link"
   },
   "repository": {
     "type": "git",
