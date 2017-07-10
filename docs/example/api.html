@@ -67,6 +67,7 @@
                             <a href="#functions_listTransactions" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listTransactions</a>
                             <a href="#functions_listVotes" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVotes</a>
                             <a href="#functions_listVoters" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listVoters</a>
+                            <a href="#functions_broadcastSignedTransaction" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">broadcastSignedTransaction</a>
 
                             <a href="#functions_listMultisignatureTransactions" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">listMultisignatureTransactions</a>
                             <a href="#functions_getMultisignatureTransaction" class="list-group-item sub-item" data-parent="#api_functions_sub" style="padding-left: 34px;">getMultisignatureTransaction</a>
@@ -102,7 +103,6 @@
                         <a href="#functions_getKeys" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">getKeys</a>
                         <a href="#functions_verify" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verify</a>
                         <a href="#functions_verifySecondSignature" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">verifySecondSignature</a>
-                        <a href="#functions_fixedPoint" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">fixedPoint</a>
 
                         <a href="#functions_bufferToHex" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">bufferToHex</a>
                         <a href="#functions_hexToBuffer" class="list-group-item sub-item" data-parent="#crypto_sub" style="padding-left: 34px;">hexToBuffer</a>
@@ -276,11 +276,11 @@ lisk.api().searchDelegateByUsername('username', callback);
                     <div class="panel-body">
                         <div class="rows">
                             <div class="col-md-12">
-                                <h3>Example <small>Get a single block by id</small></h3>
+                                <h3>Example <small>Get a single block by height</small></h3>
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-lisk.api().getBlock(blockId, callback);
+lisk.api().getBlock(blockHeight, callback);
                                         </code>
                                     </pre>
                                 </figure>
@@ -406,6 +406,34 @@ lisk.api().listVoters(publicKey, callback);
                     </div>
                 </div>
 
+                <h3 id="functions_broadcastSignedTransaction">broadcastSignedTransaction</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="rows">
+                            <div class="col-md-12">
+                                <h3>Example <small>Create a signed transaction, use broadcastSignedTransaction to send it to the network</small></h3>
+                                <figure class="highlight">
+                                    <pre>
+                                        <code class="language-html" data-lang="html">
+var LSK = lisk.api({testnet: true});
+
+var amount      = 10 * Math.pow(10, 8);
+var transaction = lisk.transaction.createTransaction('15725299599194604786L', amount, 'secretpassphrase', 'secondSecretPassphrase');
+
+console.log(transaction);
+
+LSK.broadcastSignedTransaction(transaction, function (result) {
+    console.log(result);
+});
+                                        </code>
+                                    </pre>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <h3 id="functions_listMultisignatureTransactions">listMultisignatureTransactions</h3>
 
                 <div class="panel panel-default">
@@ -459,7 +487,7 @@ lisk.api().getMultisignatureTransaction('transactionID', callback);
                                     <pre>
                                         <code class="language-html" data-lang="html">
 
-var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function (data) {
+lisk.api().sendRequest('blocks/getHeight', function (data) {
     var str = JSON.stringify(data);
     document.getElementById('output').innerHTML = str;
 });
@@ -473,7 +501,7 @@ var liskBlockheight = lisk.api().sendRequest('blocks/getHeight', function (data)
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var liskNewAccount = lisk.api().sendRequest('accounts/open', { secret: 'my secret passphrase' }, function (data) {
+lisk.api().sendRequest('accounts/open', { secret: 'my secret passphrase' }, function (data) {
     var str = JSON.stringify(data);
     document.getElementById('output').innerHTML = str;
 });
@@ -496,7 +524,7 @@ var liskNewAccount = lisk.api().sendRequest('accounts/open', { secret: 'my secre
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().getNethash();
+lisk.api().getNethash();
                                         </code>
                                     </pre>
                                 </figure>
@@ -531,7 +559,7 @@ var LSK = lisk.api().getNethash();
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().setNode('mynode.com');
+lisk.api().setNode('mynode.com');
                                         </code>
                                     </pre>
                                 </figure>
@@ -551,7 +579,7 @@ var LSK = lisk.api().setNode('mynode.com');
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().listPeers();
+lisk.api().listPeers();
                                         </code>
                                     </pre>
                                 </figure>
@@ -580,7 +608,7 @@ var LSK = lisk.api().listPeers();
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().setSSL(true); // or false
+lisk.api().setSSL(true); // or false
                                         </code>
                                     </pre>
                                 </figure>
@@ -599,7 +627,7 @@ var LSK = lisk.api().setSSL(true); // or false
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var LSK = lisk.api().setTestnet(true); // or false
+lisk.api().setTestnet(true); // or false
                                         </code>
                                     </pre>
                                 </figure>
@@ -650,7 +678,7 @@ var keys = lisk.crypto.getKeys('secret');
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var keys = lisk.crypto.getAddress('5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09');
+var address = lisk.crypto.getAddress('5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09');
                                         </code>
                                     </pre>
                                 </figure>
@@ -857,25 +885,6 @@ var verification = lisk.crypto.verifySecondSignature(transactionObject);
                     </div>
                 </div>
 
-                <h3 id="functions_fixedPoint">fixedPoint</h3>
-
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <div class="rows">
-                            <div class="col-md-12">
-                                <h3>Example <small>Convert a given floating point LSK amount to an integer representation</small></h3>
-                                <figure class="highlight">
-                                    <pre>
-                                        <code class="language-html" data-lang="html">
-var bigAmount = lisk.crypto.fixedPoint(amount);
-                                        </code>
-                                    </pre>
-                                </figure>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <h3 id="functions_bufferToHex">bufferToHex</h3>
 
                 <div class="panel panel-default">
@@ -979,7 +988,7 @@ var printSignedMessage = lisk.crypto.printSignedMessage(message, signedMessage, 
                                         </code>
                                     </pre>
                                 </figure>
-                                <p>In order maintain formatting it is advised to wrap the resulting output within a <code>pre</code> tag.</p>
+                                <p>In order to maintain formatting it is advised to wrap the resulting output within a <code>pre</code> tag.</p>
                             </div>
                         </div>
                     </div>
@@ -1068,7 +1077,7 @@ var encrypted = lisk.crypto.encryptMessageWithSecret(message, secret, recipientP
                                 <figure class="highlight">
                                     <pre>
                                         <code class="language-html" data-lang="html">
-var encrypted = lisk.crypto.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);
+var decrypted = lisk.crypto.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);
                                         </code>
                                     </pre>
                                 </figure>
@@ -1080,7 +1089,7 @@ Original Message
                                         </code>
                                     </pre>
                                 </figure>
-                                <p>If successfull, returns the plain text of the senders message.</p>
+                                <p>If successful, returns the plain text of the sender's message.</p>
                             </div>
                         </div>
                     </div>

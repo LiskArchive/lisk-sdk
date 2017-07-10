@@ -33,19 +33,18 @@ describe('crypto/index.js', function () {
 		});
 	});
 
-	describe('#useFirstEightBufferEntriesReversed convert.js', function () {
-		// TODO Test fails because of prototype difference in buffers.
-		// TODO Find out if this is because of NodeJS probably adding them while routing.
+	describe('#useFirstEightBufferEntriesReversed, #toAddress convert.js', function () {
 
-		/*
-		it('should use a Buffer, cut after first 8 entries and reverse them', function () {
+		it('should use a Buffer, cut after first 8 entries and reverse them. Create numeric addresss from this', function () {
+
 			var keypair = newcrypto.getPrivateAndPublicKeyFromSecret('123');
 			var publicKeyHash = newcrypto.getSha256Hash(keypair.publicKey, 'hex');
 			var reversedAndCut = newcrypto.useFirstEightBufferEntriesReversed(publicKeyHash);
+			var numbericAddress = newcrypto.toAddress(reversedAndCut);
 
-			(reversedAndCut).should.be.eql(bufferAimed);
+			(numbericAddress).should.be.equal('12475940823804898745L');
 		});
-		*/
+
 	});
 
 	describe('#getSha256Hash hash.js', function () {
@@ -56,6 +55,7 @@ describe('crypto/index.js', function () {
 
 			(hashString).should.be.equal('a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
 		});
+
 	});
 
 	describe('#getPrivateAndPublicKeyFromSecret keys.js', function () {
@@ -141,16 +141,16 @@ describe('crypto/index.js', function () {
 
 		it('should detect invalid publicKeys', function () {
 			var invalidPublicKey = keypair.publicKey + 'ERROR';
-			expect(function () {
+			(function () {
 				newcrypto.verifyMessageWithPublicKey(signedMessage, invalidPublicKey);
-			}).to.throw(Error, 'Invalid publicKey, expected 32-byte publicKey');
+			}).should.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect not verifiable signature', function () {
 			var signedMessage = newcrypto.signMessageWithSecret(message, secret) + 'ERROR';
-			expect(function () {
+			(function () {
 				newcrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
-			}).to.throw(Error, 'Invalid signature publicKey combination, cannot verify message');
+			}).should.throw('Invalid signature publicKey combination, cannot verify message');
 		});
 	});
 

@@ -40,7 +40,7 @@ describe('multisignature.js', function () {
 		});
 
 		it('should have no recipient', function () {
-			expect(createMultisig.recipientId).to.be.null;
+			should(createMultisig.recipientId).be.null();
 		});
 
 		it('should contain asset with multisignature and the inserted parameters', function () {
@@ -50,7 +50,7 @@ describe('multisignature.js', function () {
 		});
 
 		it('should not contain secondSignature', function () {
-			expect(createMultisig.signSignature).to.be.undefined;
+			should(createMultisig.signSignature).be.undefined();
 		});
 
 	});
@@ -72,7 +72,7 @@ describe('multisignature.js', function () {
 		});
 
 		it('should have no recipient', function () {
-			expect(createMultisig2.recipientId).to.be.null;
+			should(createMultisig2.recipientId).be.null();
 		});
 
 		it('should contain asset with multisignature and the inserted parameters', function () {
@@ -82,7 +82,7 @@ describe('multisignature.js', function () {
 		});
 
 		it('should contain secondSignature', function () {
-			expect(createMultisig2.signSignature).not.to.be.undefined;
+			(createMultisig2.signSignature).should.not.be.undefined();
 		});
 
 	});
@@ -137,9 +137,6 @@ describe('multisignature.js', function () {
 			var pubKey = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
 
 			(msigTransaction2.requesterPublicKey).should.be.equal(pubKey);
-
-			console.log(msigTransaction2);
-
 		});
 
 

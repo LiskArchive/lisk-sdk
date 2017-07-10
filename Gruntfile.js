@@ -3,10 +3,6 @@ module.exports = function (grunt) {
 
 	grunt.initConfig({
 		eslint: {
-			options: {
-				configFile: 'eslint_ecma5.json',
-				reset: true
-			},
 			target: ['lib/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js']
 		},
 
