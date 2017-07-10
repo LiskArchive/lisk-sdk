@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "description": "A command line interface for Lisk",
   "main": "index.js",
+  "bin": {
+    "lisky": "./bin/lisky"
+  },
   "scripts": {
     "start": "node index.js",
     "test": "NODE_ENV=test nyc mocha",
+    "postinstall": "npm link lisky",
     "test:watch": "npm run test -- --watch",
     "test:now": "npm run test -- --grep @now",
     "test:now:watch": "npm run test:now -- --watch",
