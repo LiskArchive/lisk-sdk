@@ -12,15 +12,11 @@ var channels = {
 	'round-reopened': 'finishRound'
 };
 
-function isTestEnv () {
-	return true ? process.env['NODE_ENV'] === 'TEST' : false;
-}
-
 function onNotification (data) {
 	logger.debug('pg-notify: Notification received', {channel: data.channel, data: data.payload});
 
 	if (!channels[data.channel]) {
-		// Channel is not supported - should never happen
+		// Channel is invalid - should never happen
 		logger.error('pg-notify: Invalid channel', data.channel);
 		return;
 	}
@@ -34,6 +30,10 @@ function onNotification (data) {
 	} else if (data.channel === 'round-reopened') {
 		data.payload = parseInt(data.payload);
 		logger.warn('pg-notify: Round reopened', data.payload);
+	} else {
+		// Channel is not supported - should never happen
+		logger.error('pg-notify: Channel not supported', data.channel);
+		return;
 	}
 
 	// Broadcast notify via events
@@ -102,10 +102,7 @@ function onConnectionLost (err, e) {
 		.catch(function () {
 			// Failed after 10 attempts
 			logger.error('pg-notify: Failed to reconnect - connection lost');
-			// Kill node if we are not in test environment
-			if (!isTestEnv) {
-				process.exit();
-			}
+			process.exit();
 		});
 }
 
