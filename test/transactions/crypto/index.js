@@ -266,13 +266,11 @@ describe('crypto/index.js', function () {
 	describe('#verifyMessageWithTwoPublicKeys sign.js', function () {
 
 		it('should verify a message using two publicKeys', function () {
-			var secret = '123';
-			var secondSecret = '1234';
-			var message = 'Hello.';
-			var signature = newcrypto.signMessageWithTwoSecrets(message, secret, secondSecret);
+			
+			var signature = '7e824f3cf65fd966a9064e4ba0041f82956c795f88343965265cf6e5e6ef94fd3692a1abc6a9c95a23935ad56ae4b72fb85f0317ba5a135dd16fdd916361430d5cabc8fcb71c11280f51ca379abae0f5fdd897d8446170f0a591d943b0b10cc13fe0bdab24daa05243647bb90ced16ebb93bbe07333aae0b80108aa08c1a310348656c6c6f2e';
 
-			var publicKey1 = newcrypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
-			var publicKey2 = newcrypto.getPrivateAndPublicKeyFromSecret(secondSecret).publicKey;
+			var publicKey1 = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
+			var publicKey2 = 'caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc';
 
 			var verified = newcrypto.verifyMessageWithTwoPublicKeys(signature, publicKey1, publicKey2);
 
