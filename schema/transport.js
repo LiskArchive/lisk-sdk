@@ -43,8 +43,8 @@ module.exports = {
 			},
 			nonce: {
 				type: 'string',
-				minimum: 16,
-				max: 16
+				minimum: 64,
+				max: 64
 			}
 		},
 		required: ['port', 'version', 'nethash']
@@ -118,5 +118,20 @@ module.exports = {
 			}
 		},
 		required: ['signature']
+	},
+	updatePeer: {
+		id: 'transport.updatePeer',
+		type: 'object',
+		properties: {
+			peer: {
+				type: 'object'
+			},
+			signature: {
+				type: 'string',
+				minimum: 128,
+				max: 128
+			}
+		},
+		required: ['signature', 'peer']
 	}
 };

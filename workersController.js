@@ -25,103 +25,94 @@ module.exports.run = function (worker) {
 	var scServer = worker.getSCServer();
 
 	async.auto({
-			slaveWAMPServer: function (cb) {
-				new SlaveWAMPServer(worker, cb);
-			},
+		slaveWAMPServer: function (cb) {
+			new SlaveWAMPServer(worker, cb);
+		},
 
-			connectionPrivateKey: ['slaveWAMPServer', function (scope, cb) {
-				console.log('connection in woekrs controller', Buffer.from(scope.slaveWAMPServer.config.connectionPrivateKey, 'hex'));
-				cb(null, Buffer.from(scope.slaveWAMPServer.config.connectionPrivateKey, 'hex'))
-			}],
+		connectionPrivateKey: ['slaveWAMPServer', function (scope, cb) {
+			console.log('connection in woekrs controller', Buffer.from(scope.slaveWAMPServer.config.connectionPrivateKey, 'hex'));
+			cb(null, Buffer.from(scope.slaveWAMPServer.config.connectionPrivateKey, 'hex'))
+		}],
 
-			config: ['slaveWAMPServer', function (scope, cb) {
-				cb(null, scope.slaveWAMPServer.config);
-			}],
+		config: ['slaveWAMPServer', function (scope, cb) {
+			cb(null, scope.slaveWAMPServer.config);
+		}],
 
-			system: ['config', function (scope, cb) {
-				new System(cb, {config: scope.config});
-			}],
+		system: ['config', function (scope, cb) {
+			new System(cb, {config: scope.config});
+		}],
 
-			handshake: ['system', function (scope, cb) {
-				var handshake = Handshake(scope.system);
+		handshake: ['system', function (scope, cb) {
+			var handshake = Handshake(scope.system);
 
-				scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, function (req, next) {
+			console.log('scServer: ', scope.scServer);
 
+			scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, function (req, next) {
 
-					console.log('\x1b[35m%s\x1b[0m', "HANDSHAKE START");
+				try {
+					var headers = extractHeaders(req);
+				} catch (invalidHeadersException) {
+					return next(invalidHeadersException);
+				}
 
-					try {
-						var headers = extractHeaders(req);
-					} catch (invalidHeadersException) {
-						return next(invalidHeadersException);
+				scope.slaveWAMPServer.sendToMaster('list', {query: {nonce: headers.nonce}}, headers.nonce, function (err, result) {
+
+					//peer is already on list - no need to insert
+					if (!err && result.peers.length) {
+						return next();
 					}
-
-					console.log('\x1b[35m%s\x1b[0m', "HANDSHAKE START with ", headers.port);
-
+					//insert
 					handshake(headers, function (err, peer) {
-						var peerBuffer = Buffer.from(JSON.stringify(peer));
 
-						console.log('HANDSHAKE connectionPrivateKey length ', scope.connectionPrivateKey.length, peerBuffer.length);
-						if (peerBuffer.length === 0) {
-							console.log('HANDSHAKE ---  peerBuffer eq 0 - peeer: ', peer);
-						}
+						var peerObject = peer.object();
 						var paylaod = {
-							peer: new Peer(peer).object(),
-							signature: ed.sign(peerBuffer, scope.connectionPrivateKey).toString('hex'),
-							force: true
+							peer: peerObject,
+							signature: ed.sign(Buffer.from(JSON.stringify(peerObject)), scope.connectionPrivateKey).toString('hex')
 						};
-						scope.slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'acceptPeer', paylaod, req.remoteAddress, function (onMasterError) {
-							console.log('\x1b[35m%s\x1b[0m', "HANDSHAKE START with ", headers.port, 'RESULT ERROR   : ', onMasterError);
+						scope.slaveWAMPServer.sendToMaster(err ? 'removePeer' : 'insertPeer', paylaod, req.remoteAddress, function (onMasterError) {
 							next(err || onMasterError);
 						});
 					});
 				});
-				return cb(null, handshake);
-			}]
-		},
-		function (err, scope) {
-			scServer.on('connection', function (socket) {
-				scope.slaveWAMPServer.upgradeToWAMP(socket);
+			});
+			return cb(null, handshake);
+		}]
+	},
+	function (err, scope) {
+		scServer.on('connection', function (socket) {
+			scope.slaveWAMPServer.upgradeToWAMP(socket);
 
-				socket.on('disconnect', function () {
-					scope.slaveWAMPServer.onSocketDisconnect(socket);
-					try {
-						var headers = extractHeaders(socket.request);
-					} catch (invalidHeadersException) {
-						//ToDO: do some unable to disconnect peer logging
-						return;
+			socket.on('disconnect', function () {
+				scope.slaveWAMPServer.onSocketDisconnect(socket);
+				try {
+					var headers = extractHeaders(socket.request);
+				} catch (invalidHeadersException) {
+					//ToDO: do some unable to disconnect peer logging
+					return;
+				}
+				var peerObject = new Peer(headers).object();
+
+				var paylaod = {
+					peer: peerObject,
+					signature: ed.sign(Buffer.from(JSON.stringify(peerObject)), scope.connectionPrivateKey).toString('hex')
+				};
+
+				return scope.slaveWAMPServer.sendToMaster('removePeer', paylaod, socket.request.remoteAddress, function (err, peer) {
+					if (err) {
+						//ToDo: Again logging here- unable to remove peer
 					}
-					var peer = new Peer(headers);
-					var peerBuffer = Buffer.from(JSON.stringify(peer));
-
-					console.log('CONNECTION DISCONNECTED connectionPrivateKey length', scope.connectionPrivateKey.length, peerBuffer.length);
-
-					if (peerBuffer.length === 0) {
-						console.log('CONNECTION DISCONNECTED  ---  peerBuffer eq 0 - peeer: ', peer);
-					}
-
-					var paylaod = {
-						peer: peer,
-						signature: ed.sign(peerBuffer, scope.connectionPrivateKey).toString('hex'),
-						force: true
-					};
-
-					return scope.slaveWAMPServer.sendToMaster('removePeer', paylaod, socket.request.remoteAddress, function (err, peer) {
-						if (err) {
-							//ToDo: Again logging here- unable to remove peer
-						}
-					});
-				}.bind(this));
-
-				socket.on('connect', function (data) {
-					//ToDo: integrate this socket connection with future peer client connection - one socket will be sufficient
 				});
+			}.bind(this));
 
-				socket.on('error', function (err) {
-					//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
-				});
+			socket.on('connect', function (data) {
+				//ToDo: integrate this socket connection with future peer client connection - one socket will be sufficient
+			});
+
+			socket.on('error', function (err) {
+				//ToDo: Again logger here- log errors somewhere like err.message: 'Socket hung up'
 			});
 		});
+	});
 };
 
 module.exports.path = __dirname + '/workersController.js';

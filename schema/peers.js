@@ -95,6 +95,9 @@ module.exports = {
 			orderBy: {
 				type: 'string'
 			},
+			nonce: {
+				type: 'string'
+			},
 			limit: {
 				type: 'integer',
 				minimum: 1,

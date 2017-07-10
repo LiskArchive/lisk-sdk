@@ -296,7 +296,7 @@ d.run(function () {
 				nethash: scope.config.nethash,
 				port: scope.config.port,
 				nonce: scope.config.nonce,
-				connectionPrivateKey: constants.getConst('connectionPrivateKey')
+				connectionPrivateKey: constants.getConst('connectionPrivateKey').toString('hex')
 			};
 
 			var socketCluster = new SocketCluster(webSocketConfig);

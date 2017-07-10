@@ -5,6 +5,8 @@ var fs = require('fs');
 var Q = require('q');
 
 var chai = require('chai');
+var crypto = require('crypto');
+var ed = require('../../helpers/ed');
 var expect = require('chai').expect;
 var popsicle = require('popsicle');
 var scClient = require('socketcluster-client');
@@ -121,6 +123,7 @@ function generatePM2NodesConfig (testNodeConfigs) {
 
 	fs.writeFileSync(__dirname + '/pm2.integration.json', JSON.stringify(pm2Config, null, 4));
 }
+var keys = ed.makeKeypair(crypto.createHash('sha256').update('peersMonitor', 'utf8').digest());
 
 var monitorWSClient = {
 	protocol: 'http',
@@ -133,7 +136,7 @@ var monitorWSClient = {
 		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
 		height: 1,
 		version: '0.0.0a',
-		nonce: 'ABCD'
+		nonce: keys.publicKey.toString('hex')
 	}
 };
 

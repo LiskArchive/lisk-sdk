@@ -1,8 +1,9 @@
 'use strict';
 
+var crypto = require('crypto');
+var ed = require('../helpers/ed');
 // Root object
 var node = {};
-var Rounds = require('../modules/rounds.js');
 var slots = require('../helpers/slots.js');
 
 // Requires
@@ -33,7 +34,10 @@ node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
-node.nonce = randomString.generate(16);
+
+var keys = ed.makeKeypair(crypto.createHash('sha256').update(randomString.generate(16), 'utf8').digest());
+
+node.nonce = keys.publicKey.toString('hex');
 
 // Transaction fees
 node.fees = {

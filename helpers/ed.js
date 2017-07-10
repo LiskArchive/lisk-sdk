@@ -47,36 +47,4 @@ ed.verify = function (hash, signature, publicKey) {
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
 };
 
-/**
- * Creates a signature based on a hash and a keypair.
- * @implements {sodium}
- * @param {string} message\
- * @param {string} privateKey
- * @return {string} signature
- */
-ed.signString = function (message, privateKey) {
-
-	var messageBuffer = Buffer.from(message, 'hex');
-	var privateKeyBuffer = Buffer.from(privateKey, 'hex');
-
-	return sodium.crypto_sign_detached(messageBuffer, privateKeyBuffer);
-};
-
-/**
- * Verifies a signature based on a hash and a publicKey. All arguments are strings.
- * @implements {sodium}
- * @param {string} signature
- * @param {string} message
- * @param {string} publicKey
- * @return {Boolean} true id verified
- */
-ed.verifyString = function (signature, message, publicKey) {
-
-	var signatureBuffer = Buffer.from(signature, 'hex');
-	var messageBuffer = Buffer.from(message, 'hex');
-	var publicKeyBuffer = Buffer.from(publicKey, 'hex');
-
-	return sodium.crypto_sign_verify_detached(signatureBuffer, messageBuffer, publicKeyBuffer);
-};
-
 module.exports = ed;
