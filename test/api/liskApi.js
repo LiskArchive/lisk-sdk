@@ -32,8 +32,8 @@ describe('Lisk.api()', function () {
 
 	describe('#listPeers', function () {
 		it('should give a set of the peers', function () {
-			(LSK.listPeers()).should.be.ok;
-			(LSK.listPeers()).should.be.type.Object;
+			(LSK.listPeers()).should.be.ok();
+			(LSK.listPeers()).should.be.type('object');
 			(LSK.listPeers().official.length).should.be.equal(8);
 			(LSK.listPeers().testnet.length).should.be.equal(1);
 		});
@@ -42,7 +42,7 @@ describe('Lisk.api()', function () {
 	describe('.currentPeer', function () {
 
 		it('currentPeer should be set by default', function () {
-			(LSK.currentPeer).should.be.ok;
+			(LSK.currentPeer).should.be.ok();
 		});
 	});
 
@@ -100,14 +100,14 @@ describe('Lisk.api()', function () {
 			var LISK = lisk.api();
 			LISK.setTestnet(true);
 
-			(LISK.testnet).should.be.true;
+			(LISK.testnet).should.be.true();
 		});
 
 		it('should set to mainnet', function () {
 			var LISK = lisk.api();
 			LISK.setTestnet(false);
 
-			(LISK.testnet).should.be.false;
+			(LISK.testnet).should.be.false();
 		});
 	});
 
@@ -211,7 +211,7 @@ describe('Lisk.api()', function () {
 			};
 
 			var trimmedObj = utils.trimObj(obj);
-			(trimmedObj).should.be.ok;
+			(trimmedObj).should.be.ok();
 			(trimmedObj).should.be.eql({ myObj: '2' });
 		});
 	});
@@ -298,28 +298,28 @@ describe('Lisk.api()', function () {
 			var options = '';
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('GET');
 
 			var requestType = 'api/loader/status/sync';
 			var options = '';
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('GET');
 
 			var requestType = 'api/loader/status/ping';
 			var options = '';
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('GET');
 
 			var requestType = 'api/transactions';
 			var options = {blockId: '123', senderId: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('GET');
 		});
 
@@ -328,21 +328,21 @@ describe('Lisk.api()', function () {
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('POST');
 
 			var requestType = 'accounts/open';
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('POST');
 
 			var requestType = 'multisignatures/sign';
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('POST');
 		});
 
@@ -351,21 +351,21 @@ describe('Lisk.api()', function () {
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('PUT');
 
 			var requestType = 'signatures';
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('PUT');
 
 			var requestType = 'transactions';
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('PUT');
 		});
 
@@ -374,14 +374,14 @@ describe('Lisk.api()', function () {
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('NOACTION');
 
 			var requestType = 'dapps/uninstall';
 			var options = {secret: '123'};
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('NOACTION');
 		});
 	});
@@ -420,7 +420,7 @@ describe('Lisk.api()', function () {
 				requestUrl: 'http://localhost:8000/api/transactions?blockId=123&senderId=123'
 			};
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
@@ -439,7 +439,7 @@ describe('Lisk.api()', function () {
 				requestUrl: 'http://localhost:8000/api/delegates/search/?q=oliver'
 			};
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
@@ -456,7 +456,7 @@ describe('Lisk.api()', function () {
 				requestUrl: ''
 			};
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
@@ -473,7 +473,7 @@ describe('Lisk.api()', function () {
 				requestUrl: 'http://localhost:8000/api/accounts?address=12475940823804898745L'
 			};
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
@@ -483,7 +483,7 @@ describe('Lisk.api()', function () {
 			var LSK = lisk.api({ node: 'localhost' });
 			var checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok;
+			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.String();
 			(checkRequestAnswer.requestParams.transaction).should.have.property('amount').which.is.a.Number();
 			(checkRequestAnswer.requestParams).should.have.property('transaction').which.is.a.Object();
@@ -498,7 +498,7 @@ describe('Lisk.api()', function () {
 		it('should receive Height from a random public peer', function () {
 			sinon.stub(privateApi, 'sendRequestPromise').resolves(expectedResponse);
 			return LSK.sendRequest('blocks/getHeight', function (data) {
-				(data).should.be.ok;
+				(data).should.be.ok();
 				(data).should.be.type('object');
 				(data.success).should.be.true();
 
@@ -994,7 +994,7 @@ describe('Lisk.api()', function () {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123' });
 
 			return thisLSK.getAccount('12731041415715717263L', function (data) {
-				(data).should.be.ok;
+				(data).should.be.ok();
 				(data.success).should.be.equal(true);
 			});
 		});
@@ -1039,7 +1039,7 @@ describe('Lisk.api()', function () {
 		it('should route the request accordingly when request method is POST but GET can be used', function () {
 			return lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
 				(result).should.be.type('object');
-				(result.account).should.be.ok;
+				(result.account).should.be.ok();
 			});
 		});
 
@@ -1067,7 +1067,7 @@ describe('Lisk.api()', function () {
 
 			return LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function (result) {
 				(result).should.be.type('object');
-				(result).should.be.ok;
+				(result).should.be.ok();
 			});
 		});
 	});
@@ -1076,7 +1076,7 @@ describe('Lisk.api()', function () {
 
 		it('should list all current not signed multisignature transactions', function () {
 			return lisk.api().listMultisignatureTransactions(function (result) {
-				(result).should.be.ok;
+				(result).should.be.ok();
 				(result).should.be.type('object');
 			});
 		});
@@ -1086,7 +1086,7 @@ describe('Lisk.api()', function () {
 
 		it('should get a multisignature transaction by id', function () {
 			return lisk.api().getMultisignatureTransaction('123', function (result) {
-				(result).should.be.ok;
+				(result).should.be.ok();
 				(result).should.be.type('object');
 			});
 		});
@@ -1101,7 +1101,7 @@ describe('Lisk.api()', function () {
 			var transaction = lisk.transaction.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
 
 			return LSKAPI.broadcastSignedTransaction(transaction, function (result) {
-				(result.success).should.be.true;
+				(result.success).should.be.true();
 			});
 
 		});

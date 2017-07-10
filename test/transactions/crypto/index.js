@@ -8,7 +8,7 @@ describe('crypto/index.js', function () {
 	var newcrypto = lisk.crypto;
 
 	it('should be ok', function () {
-		(newcrypto).should.be.ok;
+		(newcrypto).should.be.ok();
 	});
 
 	it('should be object', function () {
@@ -114,7 +114,7 @@ describe('crypto/index.js', function () {
 		var signedMessage = newcrypto.signMessageWithSecret(message, secret);
 
 		it('should sign a message with message and secret provided', function () {
-			(signedMessage).should.be.ok;
+			(signedMessage).should.be.ok();
 		});
 
 		it('should sign the message correctly', function () {
@@ -132,7 +132,7 @@ describe('crypto/index.js', function () {
 		var verifyMessage = newcrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
 
 		it('should verify the message correctly', function () {
-			(verifyMessage).should.be.ok;
+			(verifyMessage).should.be.ok();
 		});
 
 		it('should output the original signed message', function () {
@@ -202,7 +202,7 @@ describe('crypto/index.js', function () {
 		var encryptedMessage = newcrypto.encryptMessageWithSecret('hello', 'secret', recipientKeyPair.publicKey);
 
 		it('should encrypt a message', function () {
-			(encryptedMessage).should.be.ok;
+			(encryptedMessage).should.be.ok();
 			(encryptedMessage).should.be.type('object');
 		});
 
@@ -222,7 +222,7 @@ describe('crypto/index.js', function () {
 		it('should be able to decrypt the message correctly with given receiver secret', function () {
 			var decryptedMessage = newcrypto.decryptMessageWithSecret(encryptedMessage.encryptedMessage, encryptedMessage.nonce, '1234', senderKeyPair.publicKey);
 
-			(decryptedMessage).should.be.ok;
+			(decryptedMessage).should.be.ok();
 			(decryptedMessage).should.be.equal(message);
 		});
 	});
