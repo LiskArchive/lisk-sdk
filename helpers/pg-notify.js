@@ -12,32 +12,42 @@ module.exports.init = function (db, bus, logger, cb) {
 	};
 
 	function onNotification (data) {
-		logger.debug('pg-notify: Notification received:', {channel: data.channel, data: data.payload});
+		logger.debug('pg-notify: Notification received', {channel: data.channel, data: data.payload});
 
-		// Broadcast notify via events if channel is supported
-		if (channels[data.channel]) {
-			// Process round-releated things
-			if (data.channel === 'round-closed') {
-				data.payload = parseInt(data.payload);
-				logger.info('pg-notify: Round closed:', data.payload);
-				// Set new round
-				data.payload += 1;
-			} else if (data.channel === 'round-reopened') {
-				data.payload = parseInt(data.payload);
-				logger.warn('pg-notify: Round reopened:', data.payload);
-			}
-
-			// Propagate notification
-			bus.message(channels[data.channel], data.payload);
-		} else {
-			// Channel is not supported
-			logger.error('pg-notify: Invalid channel:', data.channel);
+		if (!channels[data.channel]) {
+			// Channel is not supported - should never happen
+			logger.error('pg-notify: Invalid channel', data.channel);
+			return;
 		}
+
+		// Process round-releated things
+		if (data.channel === 'round-closed') {
+			data.payload = parseInt(data.payload);
+			logger.info('pg-notify: Round closed', data.payload);
+			// Set new round
+			data.payload += 1;
+		} else if (data.channel === 'round-reopened') {
+			data.payload = parseInt(data.payload);
+			logger.warn('pg-notify: Round reopened', data.payload);
+		}
+
+		// Broadcast notify via events
+		bus.message(channels[data.channel], data.payload);
 	}
 
 	function setListeners (client) {
 		client.on('notification', onNotification);
-		connection.none('LISTEN $1~', 'round')
+
+		// Generate list of queries for listen to every supported channels
+		function listenQueries (t) {
+			var queries = [];
+			Object.keys(channels).forEach(function (channel) {
+	  			queries.push(t.none('LISTEN $1~', channel));
+			});
+			return t.batch(queries);
+		}
+
+		connection.task(listenQueries)
 			.catch(function (err) {
 				logger.error(err);
 			});
@@ -45,7 +55,16 @@ module.exports.init = function (db, bus, logger, cb) {
 
 	function removeListeners (client) {
 		if (connection) {
-			connection.none('UNLISTEN $1~', 'my-channel')
+			// Generate list of queries for unlisten to every supported channels
+			function unlistenQueries (t) {
+				var queries = [];
+				Object.keys(channels).forEach(function (channel) {
+		  			queries.push(t.none('UNLISTEN $1~', channel));
+				});
+				return t.batch(queries);
+			}
+
+			connection.task(unlistenQueries)
 				.catch(function (err) {
 					logger.error(err);
 				});
