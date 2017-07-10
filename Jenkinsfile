@@ -1,5 +1,5 @@
 node('lisk-js-01'){
-  lock(resource: “lisk-js-01”, inversePrecedence: true) {
+  lock(resource: "lisk-js-01", inversePrecedence: true) {
     stage ('Prepare Workspace') {
       deleteDir()
       checkout scm
