@@ -1,6 +1,5 @@
 const Vorpal = require('vorpal');
 const common = require('../common');
-const lisky = common.lisky;
 const sinon = common.sinon;
 const get = require('../../src/commands/get');
 const query = require('../../src/utils/query');
@@ -9,10 +8,7 @@ const util = require('util');
 const vorpal = new Vorpal();
 
 vorpal.use(get);
-
-vorpal
-	.delimiter('lisky>')
-	.show();
+vorpal.pipe(output => '');
 
 describe('lisky get command palette', () => {
 

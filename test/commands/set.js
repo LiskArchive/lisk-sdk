@@ -1,15 +1,11 @@
 const Vorpal = require('vorpal');
 const common = require('../common');
-const lisky = common.lisky;
 const set = require('../../src/commands/set');
 
 const vorpal = new Vorpal();
 
 vorpal.use(set);
-
-vorpal
-	.delimiter('lisky>')
-	.show();
+vorpal.pipe(output => '');
 
 function executeCommand (command, callback) {
 	vorpal.exec(command, function (err, data){
