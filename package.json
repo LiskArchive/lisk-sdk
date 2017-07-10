@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "nyc mocha",
-    "travis": "./node_modules/.bin/grunt travis --verbose",
-    "cover": "istanbul cover --dir ./coverage _mocha"
+    "test:now": "nyc mocha --grep @now",
+    "cover": "istanbul cover --dir ./coverage _mocha",
+    "jenkins": "./node_modules/.bin/grunt jenkins --verbose"
   },
   "repository": {
     "type": "git",
@@ -24,8 +25,6 @@
     "popsicle": "=9.1.0"
   },
   "devDependencies": {
-    "chai": "=4.0.0",
-    "chai-http": "=3.0.0",
     "coveralls": "=2.13.1",
     "grunt": "=1.0.1",
     "grunt-browserify": "=5.0.0",

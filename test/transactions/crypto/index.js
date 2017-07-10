@@ -141,16 +141,16 @@ describe('crypto/index.js', function () {
 
 		it('should detect invalid publicKeys', function () {
 			var invalidPublicKey = keypair.publicKey + 'ERROR';
-			expect(function () {
+			(function () {
 				newcrypto.verifyMessageWithPublicKey(signedMessage, invalidPublicKey);
-			}).to.throw(Error, 'Invalid publicKey, expected 32-byte publicKey');
+			}).should.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect not verifiable signature', function () {
 			var signedMessage = newcrypto.signMessageWithSecret(message, secret) + 'ERROR';
-			expect(function () {
+			(function () {
 				newcrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
-			}).to.throw(Error, 'Invalid signature publicKey combination, cannot verify message');
+			}).should.throw('Invalid signature publicKey combination, cannot verify message');
 		});
 	});
 
