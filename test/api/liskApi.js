@@ -216,6 +216,41 @@ describe('Lisk.api()', function () {
 		});
 	});
 
+	describe('#extend', function() {
+
+		var defaultOptions = {
+        	testnet: false,
+        	ssl: false,
+        	randomPeer: true,
+        	node: null,
+        	port: null,
+        	nethash: null,
+        	bannedPeers: []
+		};
+
+		var options = {
+			ssl: true,
+			port: 7000,
+			testnet: true,
+		};
+
+		it('should extend obj1 by obj2 and not modify original obj1', function() {
+			var result = utils.extend(defaultOptions, options);
+
+			(result).should.be.eql({
+				testnet: true,
+				ssl: true,
+				randomPeer: true,
+				node: null,
+				port: 7000,
+				nethash: null,
+				bannedPeers: []
+			});
+			(result).should.be.not.eql(defaultOptions);
+		});
+
+	});
+
 	describe('#toQueryString', function () {
 
 		it('should create a http string from an object. Like { obj: "myval", key: "myval" } -> obj=myval&key=myval', function () {
