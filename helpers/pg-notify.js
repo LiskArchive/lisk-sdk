@@ -44,7 +44,7 @@ function onNotification (data) {
 function listenQueries (t) {
 	var queries = [];
 	Object.keys(channels).forEach(function (channel) {
-			queries.push(t.none('LISTEN $1~', channel));
+		queries.push(t.none('LISTEN $1~', channel));
 	});
 	return t.batch(queries);
 }
@@ -58,15 +58,15 @@ function setListeners (client, cb) {
 		})
 		.catch(function (err) {
 			logger.error('pg-notify: Failed to execute LISTEN queries', err);
-			return setImmediate(cb, err)
-		})
+			return setImmediate(cb, err);
+		});
 }
 
 // Generate list of queries for unlisten to every supported channels
 function unlistenQueries (t) {
 	var queries = [];
 	Object.keys(channels).forEach(function (channel) {
-			queries.push(t.none('UNLISTEN $1~', channel));
+		queries.push(t.none('UNLISTEN $1~', channel));
 	});
 	return t.batch(queries);
 }

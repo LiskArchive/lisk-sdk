@@ -53,7 +53,7 @@ describe('helpers/pg-notify', function () {
 
 	function failQueryBatch (t) {
 		var queries = [];
-				queries.push(t.none('SELECT invalid_sql_query'));
+		queries.push(t.none('SELECT invalid_sql_query'));
 		return t.batch(queries);
 	}
 
@@ -282,6 +282,4 @@ describe('helpers/pg-notify', function () {
 			});
 		});
 	});
-
-	
 });
