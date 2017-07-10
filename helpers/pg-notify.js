@@ -40,48 +40,60 @@ function onNotification (data) {
 	bus.message(channels[data.channel], data.payload);
 }
 
-function setListeners (client) {
-	client.on('notification', onNotification);
-
-	// Generate list of queries for listen to every supported channels
-	function listenQueries (t) {
-		var queries = [];
-		Object.keys(channels).forEach(function (channel) {
-  			queries.push(t.none('LISTEN $1~', channel));
-		});
-		return t.batch(queries);
-	}
-
-	connection.task(listenQueries)
-		.catch(function (err) {
-			logger.error(err);
-		});
+// Generate list of queries for listen to every supported channels
+function listenQueries (t) {
+	var queries = [];
+	Object.keys(channels).forEach(function (channel) {
+			queries.push(t.none('LISTEN $1~', channel));
+	});
+	return t.batch(queries);
 }
 
-function removeListeners (client) {
-	if (connection) {
-		// Generate list of queries for unlisten to every supported channels
-		function unlistenQueries (t) {
-			var queries = [];
-			Object.keys(channels).forEach(function (channel) {
-	  			queries.push(t.none('UNLISTEN $1~', channel));
-			});
-			return t.batch(queries);
-		}
+function setListeners (client, cb) {
+	client.on('notification', onNotification);
 
-		connection.task(unlistenQueries)
-			.catch(function (err) {
-				logger.error(err);
-			});
-	}
+	connection.task(listenQueries)
+		.then(function () {
+			return setImmediate(cb);
+		})
+		.catch(function (err) {
+			logger.error('pg-notify: Failed to execute LISTEN queries', err);
+			return setImmediate(cb, err)
+		})
+}
+
+// Generate list of queries for unlisten to every supported channels
+function unlistenQueries (t) {
+	var queries = [];
+	Object.keys(channels).forEach(function (channel) {
+			queries.push(t.none('UNLISTEN $1~', channel));
+	});
+	return t.batch(queries);
+}
+
+function removeListeners (client, cb) {
 	client.removeListener('notification', onNotification);
+
+	if (connection) {
+		connection.task(unlistenQueries)
+			.then(function () {
+				return setImmediate(cb);
+			})
+			.catch(function (err) {
+				logger.error('pg-notify: Failed to execute UNLISTEN queries', err);
+				return setImmediate(cb, err);
+			});
+	} else {
+		return setImmediate(cb);
+	}
 }
 
 function onConnectionLost (err, e) {
 	logger.error('pg-notify: Connection lost', err);
 	// Prevent use of the connection
 	connection = null;
-	removeListeners(e.client);
+	// We don't care about error here, so passing empty function as callback
+	removeListeners(e.client, function () {});
 	// Try to re-establish connection 10 times, every 5 seconds
 	reconnect(5000, 10)
 		.then(function (obj) {
@@ -106,8 +118,13 @@ function reconnect (delay, maxAttempts) {
 				.then(function (obj) {
 					// Global connection is now available
 					connection = obj;
-					setListeners(obj.client);
-					resolve(obj);
+					setListeners(obj.client, function (err) {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(obj);
+						}
+					});
 				})
 				.catch(function (err) {
 					logger.error('pg-notify: Error connecting', err);
