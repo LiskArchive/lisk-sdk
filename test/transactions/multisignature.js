@@ -8,7 +8,7 @@ describe('multisignature.js', function () {
 	var multisignature = lisk.multisignature;
 
 	it('should be ok', function () {
-		(multisignature).should.be.ok;
+		(multisignature).should.be.ok();
 	});
 
 	it('should be an Object', function () {
@@ -31,7 +31,7 @@ describe('multisignature.js', function () {
 		var createMultisig = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures);
 
 		it('should create Multisignature account with single secret', function () {
-			(createMultisig).should.be.ok;
+			(createMultisig).should.be.ok();
 			(createMultisig).should.be.type('object');
 		});
 
@@ -63,7 +63,7 @@ describe('multisignature.js', function () {
 		var createMultisig2 = multisignature.createMultisignature('secret', 'secondSecret', multiSignaturePublicKeyArray2, requestLifeTime2, minimumSignatures2);
 
 		it('should create Multisignature account with two secrets', function () {
-			(createMultisig2).should.be.ok;
+			(createMultisig2).should.be.ok();
 			(createMultisig2).should.be.type('object');
 		});
 
@@ -116,7 +116,7 @@ describe('multisignature.js', function () {
 
 		it('should create a multisignature transaction', function () {
 
-			(msigTransaction.signatures).should.be.ok;
+			(msigTransaction.signatures).should.be.ok();
 
 		});
 
@@ -127,7 +127,7 @@ describe('multisignature.js', function () {
 
 		it('should have the signatures property as empty array', function () {
 
-			(msigTransaction.signatures).should.be.an.Array;
+			(msigTransaction.signatures).should.be.an.Array();
 
 		});
 

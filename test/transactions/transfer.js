@@ -7,7 +7,7 @@ describe('transfer.js', function () {
 	var transfer = lisk.transfer;
 
 	it('should be ok', function () {
-		(transfer).should.be.ok;
+		(transfer).should.be.ok();
 	});
 
 	it('should be object', function () {
@@ -40,16 +40,16 @@ describe('transfer.js', function () {
 		});
 
 		it('should create a transfer dapp transaction with first signature', function () {
-			(transferTransaction.signature).should.be.ok;
+			(transferTransaction.signature).should.be.ok();
 		});
 
 		it('should create a transfer dapp transaction with second signature', function () {
-			(transferTransaction.signSignature).should.be.ok;
+			(transferTransaction.signSignature).should.be.ok();
 		});
 
 		it('should create a transfer dapp transaction with just one signature', function () {
 			var transferTransactionOneSignature = createTransfer('secret', '', '1234213');
-			(transferTransactionOneSignature.signature).should.be.ok;
+			(transferTransactionOneSignature.signature).should.be.ok();
 			should(transferTransactionOneSignature.secondSignature).be.undefined();
 		});
 	});

@@ -8,7 +8,7 @@ describe('signature.js', function () {
 	var signature = lisk.signature;
 
 	it('should be ok', function () {
-		(signature).should.be.ok;
+		(signature).should.be.ok();
 	});
 
 	it('should be object', function () {
@@ -30,7 +30,7 @@ describe('signature.js', function () {
 
 		it('should create signature transaction', function () {
 			sgn = createSignature('secret', 'second secret');
-			(sgn).should.be.ok;
+			(sgn).should.be.ok();
 			(sgn).should.be.type('object');
 		});
 
@@ -46,7 +46,7 @@ describe('signature.js', function () {
 
 			it('should have asset', function () {
 				(sgn.asset).should.be.type('object');
-				(sgn.asset).should.be.not.empty;
+				(sgn.asset).should.be.not.empty();
 			});
 
 			it('should have signature inside asset', function () {
@@ -56,7 +56,7 @@ describe('signature.js', function () {
 			describe('signature asset', function () {
 
 				it('should be ok', function () {
-					(sgn.asset.signature).should.be.ok;
+					(sgn.asset.signature).should.be.ok();
 				});
 
 				it('should be object', function () {

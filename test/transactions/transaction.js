@@ -26,7 +26,7 @@ describe('transaction.js', function () {
 
 		it('should create transaction without second signature', function () {
 			trs = createTransaction('58191285901858109L', 1000, 'secret');
-			(trs).should.be.ok;
+			(trs).should.be.ok();
 		});
 
 		describe('returned transaction', function () {
@@ -44,7 +44,7 @@ describe('transaction.js', function () {
 			});
 
 			it('should have timestamp as number', function () {
-				(trs.timestamp).should.be.type('number').and.not.NaN;
+				(trs.timestamp).should.be.type('number').and.not.NaN();
 			});
 
 			it('should have senderPublicKey as hex string', function () {
@@ -68,7 +68,7 @@ describe('transaction.js', function () {
 			});
 
 			it('should have empty asset object', function () {
-				(trs.asset).should.be.type('object').and.empty;
+				(trs.asset).should.be.type('object').and.empty();
 			});
 
 			it('should does not have second signature', function () {
@@ -89,13 +89,13 @@ describe('transaction.js', function () {
 
 			it('should be signed correctly', function () {
 				var result = lisk.crypto.verify(trs);
-				(result).should.be.ok;
+				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly now', function () {
 				trs.amount = 10000;
 				var result = lisk.crypto.verify(trs);
-				(result).should.be.not.ok;
+				(result).should.be.not.ok();
 			});
 		});
 	});
@@ -113,7 +113,7 @@ describe('transaction.js', function () {
 
 		it('should create transaction without second signature', function () {
 			trs = createTransaction('58191285901858109L', 1000, 'secret', secondSecret);
-			(trs).should.be.ok;
+			(trs).should.be.ok();
 		});
 
 		describe('returned transaction', function () {
@@ -131,7 +131,7 @@ describe('transaction.js', function () {
 			});
 
 			it('should have timestamp as number', function () {
-				(trs.timestamp).should.be.type('number').and.not.NaN;
+				(trs.timestamp).should.be.type('number').and.not.NaN();
 			});
 
 			it('should have senderPublicKey as hex string', function () {
@@ -155,7 +155,7 @@ describe('transaction.js', function () {
 			});
 
 			it('should have empty asset object', function () {
-				(trs.asset).should.be.type('object').and.empty;
+				(trs.asset).should.be.type('object').and.empty();
 			});
 
 			it('should have second signature', function () {
@@ -188,24 +188,24 @@ describe('transaction.js', function () {
 
 			it('should be signed correctly', function () {
 				var result = lisk.crypto.verify(trs);
-				(result).should.be.ok;
+				(result).should.be.ok();
 			});
 
 			it('should be second signed correctly', function () {
 				var result = lisk.crypto.verifySecondSignature(trs, keys.publicKey);
-				(result).should.be.ok;
+				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly now', function () {
 				trs.amount = 10000;
 				var result = lisk.crypto.verify(trs);
-				(result).should.be.not.ok;
+				(result).should.be.not.ok();
 			});
 
 			it('should not be second signed correctly now', function () {
 				trs.amount = 10000;
 				var result = lisk.crypto.verifySecondSignature(trs, keys.publicKey);
-				(result).should.be.not.ok;
+				(result).should.be.not.ok();
 			});
 		});
 	});
