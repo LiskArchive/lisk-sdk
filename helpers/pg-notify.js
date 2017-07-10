@@ -121,7 +121,8 @@ module.exports.init = function (db, bus, logger, cb) {
 			return setImmediate(cb);
 		})
 		.catch(function (err) {
-			logger.info('pg-notify: Initial connection failed', err);
+			logger.error('pg-notify: Initial connection failed', err);
+			// Error is passed to callback here, so node will not start in that case
 			return setImmediate(cb, err);
 		});
 };
