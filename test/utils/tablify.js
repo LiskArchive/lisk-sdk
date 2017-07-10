@@ -1,5 +1,4 @@
 const tablify = require('../../src/utils/tablify');
-const expect = require('chai').expect;
 
 describe('#tablify', () => {
 
@@ -21,7 +20,7 @@ describe('#tablify', () => {
 			moreData: 'data'
 		};
 
-		expect( tablify(data) ).to.have.property('0');
+		(tablify(data)).should.have.property('0');
 	});
 
 	it('should create a table from object', () => {
@@ -30,7 +29,7 @@ describe('#tablify', () => {
 
 		};
 
-		expect( tablify(data) ).to.not.have.property('0');
+		(tablify(data)).should.not.have.property('0');
 	});
 
 	it('should create a table from object', () => {
