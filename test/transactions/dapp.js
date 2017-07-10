@@ -89,19 +89,19 @@ describe('dapp.js', function () {
 			});
 
 			it('should have id as string', function () {
-				(trs.id).should.be.type('string');
+				(trs).should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type as number and equal 9', function () {
-				(trs.type).should.be.type('number').and.equal(5);
+				(trs).should.have.property('type').and.be.type('number').and.equal(5);
 			});
 
-			it('should have amount as number and eqaul 0', function () {
-				(trs.amount).should.be.type('number').and.equal(0);
+			it('should have amount as number and equal 0', function () {
+				(trs).should.have.property('amount').and.be.type('number').and.equal(0);
 			});
 
 			it('should have fee as number and equal 2500000000', function () {
-				(trs.fee).should.be.type('number').and.equal(2500000000);
+				(trs).should.have.property('fee').and.be.type('number').and.equal(2500000000);
 			});
 
 			it('should have null recipientId', function () {
@@ -109,23 +109,18 @@ describe('dapp.js', function () {
 			});
 
 			it('should have senderPublicKey as hex string', function () {
-				(trs.senderPublicKey).should.be.type('string').and.match(function () {
-					try {
-						Buffer.from(trs.senderPublicKey, 'hex');
-					} catch (e) {
-						return false;
-					}
-
-					return true;
+				(trs).should.have.property('senderPublicKey').and.be.type('string');
+				return should.doesNotThrow(function () {
+					new Buffer(trs.senderPublicKey, 'hex');
 				});
 			});
 
 			it('should have timestamp as number', function () {
-				(trs.timestamp).should.be.type('number').and.not.NaN();
+				(trs).should.have.property('timestamp').and.be.type('number').and.not.NaN();
 			});
 
 			it('should have dapp inside asset', function () {
-				(trs.asset).should.have.property('dapp');
+				(trs).should.have.property('asset').and.have.property('dapp');
 			});
 
 			describe('dapp asset', function () {
@@ -164,26 +159,16 @@ describe('dapp.js', function () {
 			});
 
 			it('should have signature as hex string', function () {
-				(trs.signature).should.be.type('string').and.match(function () {
-					try {
-						Buffer.from(trs.signature, 'hex');
-					} catch (e) {
-						return false;
-					}
-
-					return true;
+				(trs).should.have.property('signature').and.be.type('string');
+				should.doesNotThrow(function () {
+					new Buffer(trs.signature, 'hex');
 				});
 			});
 
 			it('should have second signature in hex', function () {
-				(trs).should.have.property('signSignature').and.type('string').and.match(function () {
-					try {
-						Buffer.from(trs.signSignature, 'hex');
-					} catch (e) {
-						return false;
-					}
-
-					return true;
+				(trs).should.have.property('signSignature').and.be.type('string');
+				should.doesNotThrow(function () {
+					new Buffer(trs.signSignature, 'hex');
 				});
 			});
 

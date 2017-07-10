@@ -214,25 +214,13 @@ describe('crypto.js', function () {
 
 			(keys).should.be.ok();
 			(keys).should.be.type('object');
-			(keys).should.have.property('publicKey');
-			(keys).should.have.property('privateKey');
-			(keys.publicKey).should.be.type('string').and.match(function () {
-				try {
-					Buffer.from(keys.publicKey, 'hex');
-				} catch (e) {
-					return false;
-				}
-
-				return true;
+			(keys).should.have.property('publicKey').and.be.type('string');
+			(keys).should.have.property('privateKey').and.be.type('string');
+			should.doesNotThrow(function () {
+				new Buffer(keys.publicKey, 'hex');
 			});
-			(keys.privateKey).should.be.type('string').and.match(function () {
-				try {
-					Buffer.from(keys.privateKey, 'hex');
-				} catch (e) {
-					return false;
-				}
-
-				return true;
+			should.doesNotThrow(function () {
+				new Buffer(keys.privateKey, 'hex');
 			});
 		});
 	});

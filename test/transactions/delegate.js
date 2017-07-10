@@ -102,38 +102,23 @@ describe('delegate.js', function () {
 			});
 
 			it('should have senderPublicKey in hex', function () {
-				(trs).should.have.property('senderPublicKey').and.type('string').and.match(function () {
-					try {
-						Buffer.from(trs.senderPublicKey, 'hex');
-					} catch (e) {
-						return false;
-					}
-
-					return true;
-				}).and.equal(keys.publicKey);
+				(trs).should.have.property('senderPublicKey').and.type('string').and.equal(keys.publicKey);
+				should.doesNotThrow(function () {
+					new Buffer(trs.senderPublicKey, 'hex');
+				});
 			});
 
 			it('should have signature in hex', function () {
-				(trs).should.have.property('signature').and.type('string').and.match(function () {
-					try {
-						Buffer.from(trs.signature, 'hex');
-					} catch (e) {
-						return false;
-					}
-
-					return true;
+				(trs).should.have.property('signature').and.be.type('string');
+				should.doesNotThrow(function () {
+					new Buffer(trs.signature, 'hex');
 				});
 			});
 
 			it('should have second signature in hex', function () {
-				(trs).should.have.property('signSignature').and.type('string').and.match(function () {
-					try {
-						Buffer.from(trs.signSignature, 'hex');
-					} catch (e) {
-						return false;
-					}
-
-					return true;
+				(trs).should.have.property('signSignature').and.type('string');
+				should.doesNotThrow(function () {
+					new Buffer(trs.signSignature, 'hex');
 				});
 			});
 
