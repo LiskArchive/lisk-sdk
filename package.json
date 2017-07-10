@@ -9,7 +9,8 @@
     "test:watch": "npm run test -- --watch",
     "test:now": "npm run test -- --grep @now",
     "test:now:watch": "npm run test:now -- --watch",
-    "cover": "istanbul cover --dir ./coverage _mocha"
+    "cover": "istanbul cover --dir ./coverage _mocha",
+    "prepush": "grunt eslint && npm test"
   },
   "repository": {
     "type": "git",
@@ -34,6 +35,7 @@
     "grunt": "=1.0.1",
     "grunt-mocha-test": "=0.13.2",
     "gruntify-eslint": "=3.1.0",
+    "husky": "=0.14.3",
     "mocha": "=3.3.0",
     "nyc": "=10.3.2",
     "should": "=11.2.1",
