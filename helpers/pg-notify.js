@@ -7,16 +7,30 @@ module.exports.init = function (db, bus, logger, cb) {
 	var connection;
 	// Map channels to bus.message events
 	var channels = {
-		round: 'finishRound'
+		'round-closed': 'finishRound',
+		'round-reopened': 'finishRound'
 	};
 
 	function onNotification (data) {
+		logger.debug('pg-notify: Notification received:', {channel: data.channel, data: data.payload});
+
 		// Broadcast notify via events if channel is supported
 		if (channels[data.channel]) {
-			var round = parseInt(data.payload);
-			logger.debug('pg-notify: Round changes:', round);
-			bus.message(channels[data.channel], round);
+			// Process round-releated things
+			if (data.channel === 'round-closed') {
+				data.payload = parseInt(data.payload);
+				logger.info('pg-notify: Round closed:', data.payload);
+				// Set new round
+				data.payload += 1;
+			} else if (data.channel === 'round-reopened') {
+				data.payload = parseInt(data.payload);
+				logger.warn('pg-notify: Round reopened:', data.payload);
+			}
+
+			// Propagate notification
+			bus.message(channels[data.channel], data.payload);
 		} else {
+			// Channel is not supported
 			logger.error('pg-notify: Invalid channel:', data.channel);
 		}
 	}
