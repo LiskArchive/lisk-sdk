@@ -1,25 +1,21 @@
-if (typeof module !== 'undefined' && module.exports) {
-	var common = require('../../common');
-	var lisk = common.lisk;
-}
+var newCrypto = require('../../../lib/transactions/crypto/index');
+var oldCrypto = require('../../../lib/transactions/crypto');
 
 describe('crypto/index.js', function () {
 
-	var newcrypto = lisk.crypto;
-
 	it('should be ok', function () {
-		(newcrypto).should.be.ok();
+		(newCrypto).should.be.ok();
 	});
 
 	it('should be object', function () {
-		(newcrypto).should.be.type('object');
+		(newCrypto).should.be.type('object');
 	});
 
 	describe('#bufferToHex convert.js', function () {
 
 		it('should create Hex from Buffer type', function () {
 			// var buffer = [72, 69, 76, 76, 79];
-			var hex = newcrypto.bufferToHex(naclInstance.encode_utf8('\xe5\xe4\xf6'));
+			var hex = newCrypto.bufferToHex(naclInstance.encode_utf8('\xe5\xe4\xf6'));
 			(hex).should.be.equal('c3a5c3a4c3b6');
 		});
 	});
@@ -28,7 +24,7 @@ describe('crypto/index.js', function () {
 
 		it('should create Buffer from Hex type', function () {
 			// var hex = 'c3a5c3a4c3b6';
-			var buffer = newcrypto.hexToBuffer('68656c6c6f');
+			var buffer = newCrypto.hexToBuffer('68656c6c6f');
 			(naclInstance.decode_utf8(buffer)).should.be.equal('hello');
 		});
 	});
@@ -37,10 +33,10 @@ describe('crypto/index.js', function () {
 
 		it('should use a Buffer, cut after first 8 entries and reverse them. Create numeric addresss from this', function () {
 
-			var keypair = newcrypto.getPrivateAndPublicKeyFromSecret('123');
-			var publicKeyHash = newcrypto.getSha256Hash(keypair.publicKey, 'hex');
-			var reversedAndCut = newcrypto.useFirstEightBufferEntriesReversed(publicKeyHash);
-			var numbericAddress = newcrypto.toAddress(reversedAndCut);
+			var keypair = newCrypto.getPrivateAndPublicKeyFromSecret('123');
+			var publicKeyHash = newCrypto.getSha256Hash(keypair.publicKey, 'hex');
+			var reversedAndCut = newCrypto.useFirstEightBufferEntriesReversed(publicKeyHash);
+			var numbericAddress = newCrypto.toAddress(reversedAndCut);
 
 			(numbericAddress).should.be.equal('12475940823804898745L');
 		});
@@ -51,7 +47,7 @@ describe('crypto/index.js', function () {
 
 		it('should get a correct Sha256 hash', function () {
 			var string = '123';
-			var hashString = newcrypto.bufferToHex(newcrypto.getSha256Hash(string));
+			var hashString = newCrypto.bufferToHex(newCrypto.getSha256Hash(string));
 
 			(hashString).should.be.equal('a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
 		});
@@ -64,7 +60,7 @@ describe('crypto/index.js', function () {
 		var expectedPublicKey = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
 		var expectedPrivateKey = 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
 
-		var keypair = newcrypto.getPrivateAndPublicKeyFromSecret(secret);
+		var keypair = newCrypto.getPrivateAndPublicKeyFromSecret(secret);
 
 		it('should generate the correct publicKey from a secret', function () {
 			(keypair.publicKey).should.be.equal(expectedPublicKey);
@@ -79,27 +75,27 @@ describe('crypto/index.js', function () {
 
 		var secret = '123';
 
-		var keypair1 = newcrypto.getPrivateAndPublicKeyFromSecret(secret);
-		var keypair2 = newcrypto.getRawPrivateAndPublicKeyFromSecret(secret);
+		var keypair1 = newCrypto.getPrivateAndPublicKeyFromSecret(secret);
+		var keypair2 = newCrypto.getRawPrivateAndPublicKeyFromSecret(secret);
 
 		it('should create the same privateKey as the unraw function', function () {
-			(newcrypto.bufferToHex(Buffer.from(keypair2.publicKey))).should.be.equal(keypair1.publicKey);
+			(newCrypto.bufferToHex(Buffer.from(keypair2.publicKey))).should.be.equal(keypair1.publicKey);
 		});
 
 		it('should create the same privateKey as the unraw function', function () {
-			(newcrypto.bufferToHex(Buffer.from(keypair2.privateKey))).should.be.equal(keypair1.privateKey);
+			(newCrypto.bufferToHex(Buffer.from(keypair2.privateKey))).should.be.equal(keypair1.privateKey);
 		});
 	});
 
 	describe('#getAddressFromPublicKey keys.js', function () {
 
-		var keys = lisk.crypto.getKeys('123');
-		var address1 = lisk.crypto.getAddress(keys.publicKey);
+		var keys = oldCrypto.getKeys('123');
+		var address1 = oldCrypto.getAddress(keys.publicKey);
 
 		var secret = '123';
-		var keypair = newcrypto.getPrivateAndPublicKeyFromSecret(secret);
+		var keypair = newCrypto.getPrivateAndPublicKeyFromSecret(secret);
 		var publicKey = keypair.publicKey;
-		var address = newcrypto.getAddressFromPublicKey(publicKey);
+		var address = newCrypto.getAddressFromPublicKey(publicKey);
 
 		it('should generate the same address as the old function', function () {
 			(address).should.be.equal(address1);
@@ -111,7 +107,7 @@ describe('crypto/index.js', function () {
 		var message = 'not secret message';
 		var secret = '123';
 		var signedMessageDone = '27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765';
-		var signedMessage = newcrypto.signMessageWithSecret(message, secret);
+		var signedMessage = newCrypto.signMessageWithSecret(message, secret);
 
 		it('should sign a message with message and secret provided', function () {
 			(signedMessage).should.be.ok();
@@ -126,10 +122,10 @@ describe('crypto/index.js', function () {
 
 		var message = 'not secret message';
 		var secret = '123';
-		var keypair = newcrypto.getPrivateAndPublicKeyFromSecret(secret);
+		var keypair = newCrypto.getPrivateAndPublicKeyFromSecret(secret);
 		var publicKey = keypair.publicKey;
-		var signedMessage = newcrypto.signMessageWithSecret(message, secret);
-		var verifyMessage = newcrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
+		var signedMessage = newCrypto.signMessageWithSecret(message, secret);
+		var verifyMessage = newCrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
 
 		it('should verify the message correctly', function () {
 			(verifyMessage).should.be.ok();
@@ -142,14 +138,14 @@ describe('crypto/index.js', function () {
 		it('should detect invalid publicKeys', function () {
 			var invalidPublicKey = keypair.publicKey + 'ERROR';
 			(function () {
-				newcrypto.verifyMessageWithPublicKey(signedMessage, invalidPublicKey);
+				newCrypto.verifyMessageWithPublicKey(signedMessage, invalidPublicKey);
 			}).should.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect not verifiable signature', function () {
-			var signedMessage = newcrypto.signMessageWithSecret(message, secret) + 'ERROR';
+			var signedMessage = newCrypto.signMessageWithSecret(message, secret) + 'ERROR';
 			(function () {
-				newcrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
+				newCrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
 			}).should.throw('Invalid signature publicKey combination, cannot verify message');
 		});
 	});
@@ -159,9 +155,9 @@ describe('crypto/index.js', function () {
 		it('should wrap the signed message into a printed Lisk template', function () {
 			var message = 'not secret message';
 			var secret = '123';
-			var keypair = newcrypto.getPrivateAndPublicKeyFromSecret(secret);
-			var signedMessage = newcrypto.signMessageWithSecret(message, secret);
-			var printedMessage = newcrypto.printSignedMessage(message, signedMessage, keypair.publicKey);
+			var keypair = newCrypto.getPrivateAndPublicKeyFromSecret(secret);
+			var signedMessage = newCrypto.signMessageWithSecret(message, secret);
+			var printedMessage = newCrypto.printSignedMessage(message, signedMessage, keypair.publicKey);
 
 			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\n'+
 				'-----MESSAGE-----\n'+
@@ -181,7 +177,7 @@ describe('crypto/index.js', function () {
 		it('should wrap the signed message into a printed Lisk template', function () {
 			var message = 'not secret message';
 			var secret = '123';
-			var printSignedMessage = newcrypto.signAndPrintMessage(message, secret);
+			var printSignedMessage = newCrypto.signAndPrintMessage(message, secret);
 
 			var signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\n'+
 				'-----MESSAGE-----\n'+
@@ -198,8 +194,8 @@ describe('crypto/index.js', function () {
 
 	describe('#encryptMessageWithSecret sign.js', function () {
 
-		var recipientKeyPair = newcrypto.getPrivateAndPublicKeyFromSecret('1234');
-		var encryptedMessage = newcrypto.encryptMessageWithSecret('hello', 'secret', recipientKeyPair.publicKey);
+		var recipientKeyPair = newCrypto.getPrivateAndPublicKeyFromSecret('1234');
+		var encryptedMessage = newCrypto.encryptMessageWithSecret('hello', 'secret', recipientKeyPair.publicKey);
 
 		it('should encrypt a message', function () {
 			(encryptedMessage).should.be.ok();
@@ -214,13 +210,13 @@ describe('crypto/index.js', function () {
 
 	describe('#decryptMessageWithSecret sign.js', function () {
 
-		var recipientKeyPair = newcrypto.getPrivateAndPublicKeyFromSecret('1234');
-		var senderKeyPair = newcrypto.getPrivateAndPublicKeyFromSecret('secret');
+		var recipientKeyPair = newCrypto.getPrivateAndPublicKeyFromSecret('1234');
+		var senderKeyPair = newCrypto.getPrivateAndPublicKeyFromSecret('secret');
 		var message = 'hello this is my secret message';
-		var encryptedMessage = newcrypto.encryptMessageWithSecret(message, 'secret', recipientKeyPair.publicKey);
+		var encryptedMessage = newCrypto.encryptMessageWithSecret(message, 'secret', recipientKeyPair.publicKey);
 
 		it('should be able to decrypt the message correctly with given receiver secret', function () {
-			var decryptedMessage = newcrypto.decryptMessageWithSecret(encryptedMessage.encryptedMessage, encryptedMessage.nonce, '1234', senderKeyPair.publicKey);
+			var decryptedMessage = newCrypto.decryptMessageWithSecret(encryptedMessage.encryptedMessage, encryptedMessage.nonce, '1234', senderKeyPair.publicKey);
 
 			(decryptedMessage).should.be.ok();
 			(decryptedMessage).should.be.equal(message);
@@ -229,22 +225,22 @@ describe('crypto/index.js', function () {
 
 	describe('#convertPublicKeyEd2Curve', function () {
 
-		var keyPair = newcrypto.getRawPrivateAndPublicKeyFromSecret('123');
+		var keyPair = newCrypto.getRawPrivateAndPublicKeyFromSecret('123');
 
 		it('should convert publicKey ED25519 to Curve25519 key', function () {
-			var curveRepresentation = newcrypto.convertPublicKeyEd2Curve(keyPair.publicKey);
-			curveRepresentation = newcrypto.bufferToHex(curveRepresentation);
+			var curveRepresentation = newCrypto.convertPublicKeyEd2Curve(keyPair.publicKey);
+			curveRepresentation = newCrypto.bufferToHex(curveRepresentation);
 
 			(curveRepresentation).should.be.equal('f65170b330e5ae94fe6372e0ff8b7c709eb8dfe78c816ffac94e7d3ed1729715');
 		});
 	});
 
 	describe('#convertPrivateKeyEd2Curve sign.js', function () {
-		var keyPair = newcrypto.getRawPrivateAndPublicKeyFromSecret('123');
+		var keyPair = newCrypto.getRawPrivateAndPublicKeyFromSecret('123');
 
 		it('should convert privateKey ED25519 to Curve25519 key', function () {
-			var curveRepresentation = newcrypto.convertPrivateKeyEd2Curve(keyPair.privateKey);
-			curveRepresentation = newcrypto.bufferToHex(curveRepresentation);
+			var curveRepresentation = newCrypto.convertPrivateKeyEd2Curve(keyPair.privateKey);
+			curveRepresentation = newCrypto.bufferToHex(curveRepresentation);
 
 			(curveRepresentation).should.be.equal('a05621ba2d3f69f054abb1f3c155338bb44ec8b718928cf9d5b206bafd364356');
 		});
@@ -257,7 +253,7 @@ describe('crypto/index.js', function () {
 			var secret = '123';
 			var secondSecret = '1234';
 			var message = 'Hello.';
-			var signature = newcrypto.signMessageWithTwoSecrets(message, secret, secondSecret);
+			var signature = newCrypto.signMessageWithTwoSecrets(message, secret, secondSecret);
 
 			(signature).should.be.equal('7e824f3cf65fd966a9064e4ba0041f82956c795f88343965265cf6e5e6ef94fd3692a1abc6a9c95a23935ad56ae4b72fb85f0317ba5a135dd16fdd916361430d5cabc8fcb71c11280f51ca379abae0f5fdd897d8446170f0a591d943b0b10cc13fe0bdab24daa05243647bb90ced16ebb93bbe07333aae0b80108aa08c1a310348656c6c6f2e');
 		});
@@ -266,13 +262,13 @@ describe('crypto/index.js', function () {
 	describe('#verifyMessageWithTwoPublicKeys sign.js', function () {
 
 		it('should verify a message using two publicKeys', function () {
-			
+
 			var signature = '7e824f3cf65fd966a9064e4ba0041f82956c795f88343965265cf6e5e6ef94fd3692a1abc6a9c95a23935ad56ae4b72fb85f0317ba5a135dd16fdd916361430d5cabc8fcb71c11280f51ca379abae0f5fdd897d8446170f0a591d943b0b10cc13fe0bdab24daa05243647bb90ced16ebb93bbe07333aae0b80108aa08c1a310348656c6c6f2e';
 
 			var publicKey1 = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
 			var publicKey2 = 'caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc';
 
-			var verified = newcrypto.verifyMessageWithTwoPublicKeys(signature, publicKey1, publicKey2);
+			var verified = newCrypto.verifyMessageWithTwoPublicKeys(signature, publicKey1, publicKey2);
 
 			(verified).should.be.equal('Hello.');
 		});

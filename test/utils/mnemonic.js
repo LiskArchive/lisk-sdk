@@ -1,11 +1,6 @@
-if (typeof module !== 'undefined' && module.exports) {
-	var common = require('../common');
-	var lisk = common.lisk;
-}
+var mnemonic = require('../../lib/utils/mnemonic');
 
 describe('utils/mnemonic.js', function () {
-
-	var mnemonic = lisk.mnemonic;
 
 	it('should be ok', function () {
 		(mnemonic).should.be.ok();

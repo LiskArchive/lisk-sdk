@@ -1,30 +1,25 @@
-if (typeof module !== 'undefined' && module.exports) {
-	var common = require('../common');
-	var lisk = common.lisk;
-}
+var cryptoModule = require('../../lib/transactions/crypto');
 
 describe('crypto.js', function () {
 
-	var crypto = lisk.crypto;
-
 	it('should be ok', function () {
-		(crypto).should.be.ok();
+		(cryptoModule).should.be.ok();
 	});
 
 	it('should be object', function () {
-		(crypto).should.be.type('object');
+		(cryptoModule).should.be.type('object');
 	});
 
 	it('should has properties', function () {
 		var properties = ['getBytes', 'getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
 		properties.forEach(function (property) {
-			(crypto).should.have.property(property);
+			(cryptoModule).should.have.property(property);
 		});
 	});
 
 	describe('#getBytes', function () {
 
-		var getBytes = crypto.getBytes;
+		var getBytes = cryptoModule.getBytes;
 		var bytes = null;
 
 		it('should be ok', function () {
@@ -75,7 +70,7 @@ describe('crypto.js', function () {
 
 	describe('#getHash', function () {
 
-		var getHash = crypto.getHash;
+		var getHash = cryptoModule.getHash;
 
 		it('should be ok', function () {
 			(getHash).should.be.ok();
@@ -106,7 +101,7 @@ describe('crypto.js', function () {
 
 	describe('#getId', function () {
 
-		var getId = crypto.getId;
+		var getId = cryptoModule.getId;
 
 		it('should be ok', function () {
 			(getId).should.be.ok();
@@ -134,7 +129,7 @@ describe('crypto.js', function () {
 
 	describe('#getFee', function () {
 
-		var getFee = crypto.getFee;
+		var getFee = cryptoModule.getFee;
 
 		it('should be ok', function () {
 			(getFee).should.be.ok();
@@ -173,7 +168,7 @@ describe('crypto.js', function () {
 
 	describe('#sign', function () {
 
-		var sign = crypto.sign;
+		var sign = cryptoModule.sign;
 
 		it('should be ok', function () {
 			(sign).should.be.ok();
@@ -186,7 +181,7 @@ describe('crypto.js', function () {
 
 	describe('#secondSign', function () {
 
-		var secondSign = crypto.secondSign;
+		var secondSign = cryptoModule.secondSign;
 
 		it('should be ok', function () {
 			(secondSign).should.be.ok();
@@ -199,7 +194,7 @@ describe('crypto.js', function () {
 
 	describe('#getKeys', function () {
 
-		var getKeys = crypto.getKeys;
+		var getKeys = cryptoModule.getKeys;
 
 		it('should be ok', function () {
 			(getKeys).should.be.ok();
@@ -221,7 +216,7 @@ describe('crypto.js', function () {
 
 	describe('#getAddress', function () {
 
-		var getAddress = crypto.getAddress;
+		var getAddress = cryptoModule.getAddress;
 
 		it('should be ok', function () {
 			(getAddress).should.be.ok();
@@ -232,7 +227,7 @@ describe('crypto.js', function () {
 		});
 
 		it('should generate address by publicKey', function () {
-			var keys = crypto.getKeys('secret');
+			var keys = cryptoModule.getKeys('secret');
 			var address = getAddress(keys.publicKey);
 
 			(address).should.be.ok();
@@ -243,7 +238,7 @@ describe('crypto.js', function () {
 
 	describe('#verify', function () {
 
-		var verify = crypto.verify;
+		var verify = cryptoModule.verify;
 
 		it('should be ok', function () {
 			(verify).should.be.ok();
@@ -256,7 +251,7 @@ describe('crypto.js', function () {
 
 	describe('#verifySecondSignature', function () {
 
-		var verifySecondSignature = crypto.verifySecondSignature;
+		var verifySecondSignature = cryptoModule.verifySecondSignature;
 
 		it('should be ok', function () {
 			(verifySecondSignature).should.be.ok();

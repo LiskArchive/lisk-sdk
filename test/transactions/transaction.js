@@ -1,13 +1,8 @@
-
-if (typeof module !== 'undefined' && module.exports) {
-	var slots = require('../../lib/time/slots');
-	var common = require('../common');
-	var lisk = common.lisk;
-}
+var slots = require('../../lib/time/slots');
+var transaction = require('../../lib/transactions/transaction');
+var cryptoModule = require('../../lib/transactions/crypto');
 
 describe('transaction.js', function () {
-
-	var transaction = lisk.transaction;
 
 	it('should be object', function () {
 		(transaction).should.be.type('object');
@@ -105,13 +100,13 @@ describe('transaction.js', function () {
 			});
 
 			it('should be signed correctly', function () {
-				var result = lisk.crypto.verify(trs);
+				var result = cryptoModule.verify(trs);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly now', function () {
 				trs.amount = 10000;
-				var result = lisk.crypto.verify(trs);
+				var result = cryptoModule.verify(trs);
 				(result).should.be.not.ok();
 			});
 
@@ -124,7 +119,10 @@ describe('transaction.js', function () {
 		var createTransaction = transaction.createTransaction;
 		var trs = null;
 		var secondSecret = 'second secret';
-		var keys = lisk.crypto.getKeys(secondSecret);
+		var keys = {
+			publicKey: '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
+			privateKey: '9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f'
+		};
 
 		it('should be a function', function () {
 			(createTransaction).should.be.type('function');
@@ -182,24 +180,24 @@ describe('transaction.js', function () {
 			});
 
 			it('should be signed correctly', function () {
-				var result = lisk.crypto.verify(trs);
+				var result = cryptoModule.verify(trs);
 				(result).should.be.ok();
 			});
 
 			it('should be second signed correctly', function () {
-				var result = lisk.crypto.verifySecondSignature(trs, keys.publicKey);
+				var result = cryptoModule.verifySecondSignature(trs, keys.publicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly now', function () {
 				trs.amount = 10000;
-				var result = lisk.crypto.verify(trs);
+				var result = cryptoModule.verify(trs);
 				(result).should.be.not.ok();
 			});
 
 			it('should not be second signed correctly now', function () {
 				trs.amount = 10000;
-				var result = lisk.crypto.verifySecondSignature(trs, keys.publicKey);
+				var result = cryptoModule.verifySecondSignature(trs, keys.publicKey);
 				(result).should.be.not.ok();
 			});
 

@@ -1,11 +1,8 @@
-if (typeof module !== 'undefined' && module.exports) {
-	var common = require('../common');
-	var lisk = common.lisk;
-}
+var liskApi = require('../../lib/api/liskApi');
 
 describe('ParseOfflineRequests', function () {
 
-	var LSK = lisk.api();
+	var LSK = liskApi();
 
 	describe('#httpGETPUTorPOST', function () {
 
@@ -112,7 +109,7 @@ describe('ParseOfflineRequests', function () {
 				secret: '123'
 			};
 
-			var checkRequestRouting = lisk.api().parseOfflineRequests('dapps', options);
+			var checkRequestRouting = liskApi().parseOfflineRequests('dapps', options);
 
 			(checkRequestRouting.requestMethod).should.be.equal('PUT');
 			// (checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
@@ -143,7 +140,7 @@ describe('ParseOfflineRequests', function () {
 
 	describe('#transactionOutputAfter', function () {
 
-		var LSK = lisk.api();
+		var LSK = liskApi();
 
 		it('should calculate crypto for accounts/open instead of using the API', function () {
 			var transformAnswer = {

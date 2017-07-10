@@ -1,7 +1,8 @@
-// var Buffer = require('buffer/').Buffer;
-var cryptoLib = require('crypto-browserify');
 var should = require('should');
 var sinon = require('sinon');
+var naclFactory = require('js-nacl');
+
+process.env.NODE_ENV = 'test';
 
 should.use(function (should, Assertion) {
 	Assertion.add('hexString', function () {
@@ -17,13 +18,6 @@ should.use(function (should, Assertion) {
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
 
-process.env.NODE_ENV = 'test';
-
-var lisk = require('../index.js');
-
-exports.lisk = lisk;
-exports.cryptoLib = cryptoLib;
-exports.privateApi = require('../lib/api/privateApi');
-exports.utils = require('../lib/api/utils');
-Object.defineProperty(exports, 'should', { value: should });
-exports.sinon = sinon;
+naclFactory.instantiate(function (nacl) {
+	global.naclInstance = nacl;
+});
