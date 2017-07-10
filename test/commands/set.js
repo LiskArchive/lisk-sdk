@@ -1,15 +1,11 @@
 const Vorpal = require('vorpal');
 const common = require('../common');
-const lisky = common.lisky;
-const set = require('../../commands/set');
+const set = require('../../src/commands/set');
 
 const vorpal = new Vorpal();
 
 vorpal.use(set);
-
-vorpal
-	.delimiter('lisky>')
-	.show();
+vorpal.pipe(output => '');
 
 function executeCommand (command, callback) {
 	vorpal.exec(command, function (err, data){
@@ -39,8 +35,8 @@ describe('set command', () => {
 
 		it('should have 2 require inputs', () => {
 
-			(exists[0]._args[0].required).should.be.true;
-			(exists[0]._args[1].required).should.be.true;
+			(exists[0]._args[0].required).should.be.true();
+			(exists[0]._args[1].required).should.be.true();
 
 		});
 

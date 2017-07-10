@@ -1,7 +1,7 @@
 module.exports = function setCommand (vorpal) {
 	'use strict';
 
-	let config = require('../config.json');
+	const config = require('../../config.json');
 	const lisk = require('lisk-js').api(config.liskJS);
 	const fse = require('fs-extra');
 

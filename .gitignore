@@ -38,6 +38,3 @@ jspm_packages
 
 # IDE directories
 .idea
-
-# yarn
-yarn.lock
