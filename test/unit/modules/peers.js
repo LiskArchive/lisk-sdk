@@ -15,7 +15,6 @@ var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 
 var currentPeers = [];
 
-
 describe('peers', function () {
 
 	before(function () {
@@ -57,17 +56,6 @@ describe('peers', function () {
 	beforeEach(function (done) {
 		currentPeers = [];
 		removeAll(done);
-	});
-
-	describe('sandboxApi', function () {
-
-		it('should pass the call', function () {
-			var sandboxHelper = require('../../../helpers/sandbox.js');
-			sinon.stub(sandboxHelper, 'callMethod').returns(true);
-			peers.sandboxApi();
-			expect(sandboxHelper.callMethod.calledOnce).to.be.ok;
-			sandboxHelper.callMethod.restore();
-		});
 	});
 
 	describe('update', function () {
@@ -173,9 +161,7 @@ describe('peers', function () {
 					done();
 				});
 			});
-
 		});
-
 	});
 
 	describe('remove', function () {
@@ -228,7 +214,6 @@ describe('peers', function () {
 			};
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
 		});
-
 
 		after(function () {
 			process.env['NODE_ENV'] = 'TEST';

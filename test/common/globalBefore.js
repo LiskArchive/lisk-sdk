@@ -23,7 +23,7 @@ function clearDatabaseTable (db, logger, table, cb) {
  * @param {Function} cb
  * @param {Number} [retries=10] retries
  * @param {Number} [timeout=200] timeout
- * @param {String} [baseUrl='http://localhost:4000'] timeout
+ * @param {String} [baseUrl='http://localhost:5000'] timeout
  */
 function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 	if (!retries) {

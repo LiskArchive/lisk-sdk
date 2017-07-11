@@ -1,7 +1,6 @@
 'use strict';
 
 var constants     = require('../helpers/constants.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 // Submodules
 var blocksAPI     = require('./blocks/api');
 var blocksVerify  = require('./blocks/verify');
@@ -144,20 +143,6 @@ Blocks.prototype.isCleaning = {
 	get: function () {
 		return __private.cleanup;
 	}
-};
-
-/**
- * Sandbox API wrapper
- *
- * @public
- * @async
- * @method sandboxApi
- * @param  {string}   call Name of the function to be called
- * @param  {Object}   args Arguments
- * @param  {Function} cb Callback function
- */
-Blocks.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(Blocks.prototype.shared, call, args, cb);
 };
 
 /**

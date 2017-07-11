@@ -16,9 +16,6 @@ def buildDependency() {
     # Install Deps
     npm install
 
-    # Install Nodejs
-    tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
-
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
@@ -199,16 +196,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Peer" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.js TEST_TYPE='FUNC'
-        cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-        npm run jenkins
-        '''
-      }
-      },
-      "Functional Peer - Dapp" : {
-        node('node-02'){
-        sh '''
-        export TEST=test/api/peer.dapp.js TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.ws.js TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
@@ -217,7 +205,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Blocks" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.blocks.js TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.blocks.ws.js TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
@@ -226,7 +214,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Signatures" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.signatures.js TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.signatures.ws.js TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
@@ -235,7 +223,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Transactions Collision" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.transactions.collision.js TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.transactions.collision.ws.js TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
@@ -244,7 +232,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Transactions Delegates" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.transactions.delegates.js TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.transactions.delegates.ws.js TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
@@ -253,7 +241,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Transactions Main" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.transactions.main.js  TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.transactions.main.ws.js  TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
@@ -262,7 +250,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Transaction Signatures" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.transactions.signatures.js  TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.transactions.signatures.ws.js  TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
@@ -280,7 +268,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Peer - Votes" : {
         node('node-02'){
         sh '''
-        export TEST=test/api/peer.transactions.votes.js TEST_TYPE='FUNC'
+        export TEST=test/api/peer/peer.transactions.votes.ws.js TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''

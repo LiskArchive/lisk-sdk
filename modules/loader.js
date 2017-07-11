@@ -4,7 +4,6 @@ var async = require('async');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var ip = require('ip');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
 var sql = require('../sql/loader.js');
 
@@ -742,17 +741,6 @@ Loader.prototype.getNetwork = function (cb) {
  */
 Loader.prototype.syncing = function () {
 	return !!__private.syncIntervalId;
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Loader.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 /**
