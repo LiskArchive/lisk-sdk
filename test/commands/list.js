@@ -8,7 +8,7 @@ describe('lisky list command palette', () => {
   beforeEach(() => {
     vorpal = new Vorpal();
     vorpal.use(list);
-    vorpal.pipe(output => '');
+    vorpal.pipe(() => '');
   });
 
   afterEach(() => {

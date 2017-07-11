@@ -1,9 +1,9 @@
-module.exports = function listCommand(vorpal) {
-  const config = require('../../config.json');
-  const lisk = require('lisk-js').api(config.liskJS);
-  const tablify = require('../utils/tablify');
-  const query = require('../utils/query');
+const config = require('../../config.json');
+const tablify = require('../utils/tablify');
+const query = require('../utils/query');
 
+
+module.exports = function listCommand(vorpal) {
   function switchType(type) {
     return {
       accounts: 'account',
@@ -32,10 +32,12 @@ module.exports = function listCommand(vorpal) {
 
       const calls = userInput.variadic.map(input => getType[userInput.type](input));
 
+      const shouldUseJsonOutput = (userInput.options.json === true || config.json === true)
+        && userInput.options.json !== false;
 
-      if ((userInput.options.json === true || config.json === true) && userInput.options.json !== false) {
+      if (shouldUseJsonOutput) {
         return Promise.all(calls).then((result) => {
-          result.map((executed) => {
+          result.forEach((executed) => {
             if (executed.error) {
               vorpal.log(JSON.stringify(executed));
             } else {
@@ -47,7 +49,7 @@ module.exports = function listCommand(vorpal) {
         });
       }
       return Promise.all(calls).then((result) => {
-        result.map((executed) => {
+        result.forEach((executed) => {
           if (executed.error) {
             vorpal.log(tablify(executed).toString());
           } else {

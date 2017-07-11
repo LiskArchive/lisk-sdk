@@ -7,7 +7,7 @@ describe('set command', () => {
   beforeEach(() => {
     vorpal = new Vorpal();
     vorpal.use(set);
-    vorpal.pipe(output => '');
+    vorpal.pipe(() => '');
   });
 
   afterEach(() => {
@@ -17,6 +17,7 @@ describe('set command', () => {
 
   describe('should exist', () => {
     let setCommand;
+    // eslint-disable-next-line no-underscore-dangle
     const filterCommand = vorpalCommand => vorpalCommand._name === 'set';
 
     beforeEach(() => {
@@ -24,12 +25,16 @@ describe('set command', () => {
     });
 
     it('should be available', () => {
+      // eslint-disable-next-line no-underscore-dangle
       (setCommand._args).should.be.length(2);
+      // eslint-disable-next-line no-underscore-dangle
       (setCommand._name).should.be.equal('set');
     });
 
     it('should have 2 require inputs', () => {
+      // eslint-disable-next-line no-underscore-dangle
       (setCommand._args[0].required).should.be.true();
+      // eslint-disable-next-line no-underscore-dangle
       (setCommand._args[1].required).should.be.true();
     });
   });

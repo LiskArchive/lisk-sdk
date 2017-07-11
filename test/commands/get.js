@@ -10,7 +10,7 @@ describe('lisky get command palette', () => {
   beforeEach(() => {
     vorpal = new Vorpal();
     vorpal.use(get);
-    vorpal.pipe(output => '');
+    vorpal.pipe(() => '');
   });
 
   afterEach(() => {

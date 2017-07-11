@@ -5,13 +5,12 @@ const config = require('./config.json');
 
 const commandsDir = path.join(__dirname, 'src', 'commands');
 
-// import commands from ./commands/ folder
 fse.readdirSync(commandsDir).forEach((command) => {
   const commandPath = path.join(commandsDir, command);
+  // eslint-disable-next-line global-require, import/no-dynamic-require
   lisky.use(require(commandPath));
 });
 
-// Define vorpal
 lisky
   .delimiter('lisky>')
   .history('lisky')

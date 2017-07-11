@@ -1,8 +1,7 @@
-module.exports = function setCommand(vorpal) {
-  const config = require('../../config.json');
-  const lisk = require('lisk-js').api(config.liskJS);
-  const fse = require('fs-extra');
+const config = require('../../config.json');
+const fse = require('fs-extra');
 
+module.exports = function setCommand(vorpal) {
   function setJSON(value) {
     config.json = value;
     fse.writeFileSync('config.json', JSON.stringify(config, null, 2), 'utf8');
