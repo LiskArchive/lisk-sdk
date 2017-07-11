@@ -92,7 +92,6 @@ var config = {
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js',
 		cache: './modules/cache.js'
 	},
 	api: {
@@ -140,7 +139,7 @@ d.run(function () {
 	var modules = [];
 	async.auto({
 		/**
-		 * Loads `payloadHash` and generate dapp password if it is empty and required.
+		 * Loads `payloadHash`.
 		 * Then updates config.json with new random  password.
 		 * @method config
 		 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`.
@@ -153,26 +152,7 @@ d.run(function () {
 				logger.error('Failed to assign nethash from genesis block');
 				throw Error(e);
 			}
-
-			if (appConfig.dapp.masterrequired && !appConfig.dapp.masterpassword) {
-				var randomstring = require('randomstring');
-
-				appConfig.dapp.masterpassword = randomstring.generate({
-					length: 12,
-					readable: true,
-					charset: 'alphanumeric'
-				});
-
-				if (appConfig.loading.snapshot != null) {
-					delete appConfig.loading.snapshot;
-				}
-
-				fs.writeFileSync('./config.json', JSON.stringify(appConfig, null, 4));
-
-				cb(null, appConfig);
-			} else {
-				cb(null, appConfig);
-			}
+			cb(null, appConfig);
 		},
 
 		logger: function (cb) {

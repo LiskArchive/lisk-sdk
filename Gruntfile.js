@@ -41,7 +41,6 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s', version_dir),
 						util.format('mkdir -p %s/logs', version_dir),
 						util.format('mkdir -p %s/pids', version_dir),
-						util.format('mkdir -p %s/public', version_dir),
 						util.format('cp %s/app.js %s', release_dir, version_dir),
 						util.format('cp %s/workersController.js %s', release_dir, version_dir),
 						util.format('cp %s/config.json %s', __dirname, version_dir),

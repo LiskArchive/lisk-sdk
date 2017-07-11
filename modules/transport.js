@@ -10,7 +10,6 @@ var extend = require('extend');
 var ip = require('ip');
 var popsicle = require('popsicle');
 var schema = require('../schema/transport.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
 var zlib = require('zlib');
 var Peer = require('../logic/peer');
@@ -291,17 +290,6 @@ Transport.prototype.getPeers = function (params, cb) {
 	return __private.broadcaster.getPeers(params, cb);
 };
 
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Transport.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
-
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
@@ -405,17 +393,6 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 		});
 		library.network.io.sockets.emit('blocks/change', block);
 	}
-};
-
-/**
- * Calls broadcast '/dapp/message'.
- * @implements {Broadcaster.maxRelays}
- * @implements {Broadcaster.broadcast}
- * @param {Object} msg
- * @param {Object} broadcast
- */
-Transport.prototype.onMessage = function (msg, broadcast) {
-	library.logger.debug('Dapps messsages not supported');
 };
 
 /**
@@ -594,74 +571,6 @@ Transport.prototype.internal = {
 				}
 			});
 		}
-	},
-
-	postDappMessage: function (query, cb) {
-		try {
-			if (!query.dappid) {
-				return setImmediate(cb, null, {success: false, message: 'Missing dappid'});
-			}
-			if (!query.timestamp || !query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Missing hash sum'});
-			}
-			var newHash = __private.hashsum(query.body, query.timestamp);
-			if (newHash !== query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Invalid hash sum'});
-			}
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, null, {success: false, message: e.toString()});
-		}
-
-		if (__private.messages[query.hash]) {
-			return setImmediate(cb, null);
-		}
-
-		__private.messages[query.hash] = true;
-
-		modules.dapps.message(query.dappid, query.body, function (err, body) {
-			if (!err && body.error) {
-				err = body.error;
-			}
-
-			if (err) {
-				return setImmediate(cb, null, {success: false, message: err.toString()});
-			} else {
-				library.bus.message('message', query, true);
-				return setImmediate(cb, null, extend({}, body, {success: true}));
-			}
-		});
-	},
-
-	postDappRequest: function (query, cb) {
-		try {
-			if (!query.dappid) {
-				return setImmediate(cb, null, {success: false, message: 'Missing dappid'});
-			}
-			if (!query.timestamp || !query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Missing hash sum'});
-			}
-
-			var newHash = __private.hashsum(query.body, query.timestamp);
-			if (newHash !== query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Invalid hash sum'});
-			}
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, null, {success: false, message: e.toString()});
-		}
-
-		modules.dapps.request(query.dappid, query.body.method, query.body.path, query.body.query, function (err, body) {
-			if (!err && body.error) {
-				err = body.error;
-			}
-
-			if (err) {
-				return setImmediate(cb, null, {success: false, message: err});
-			} else {
-				return setImmediate(cb, null, extend({}, body, {success: true}));
-			}
-		});
 	},
 
 	/**
