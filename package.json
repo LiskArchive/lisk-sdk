@@ -40,7 +40,7 @@
     "npm": "=5.0.3",
     "pg-monitor": "=0.8.2",
     "pg-native": "=1.10.1",
-    "pg-promise": "=6.3.4",
+    "pg-promise": "=6.3.5",
     "popsicle": "=9.1.0",
     "randomstring": "=1.1.5",
     "redis": "=2.7.1",
