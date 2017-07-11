@@ -439,7 +439,7 @@ describe('GET /api/dapps/?orderBy=', function () {
 		});
 	});
 
-	it('using orderBy == "unknown:unknown" should be ok', function (done) {
+	it('using orderBy == "unknown:unknown" should fail', function (done) {
 		getDapps('unknown:unknown', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').that.is.equal('Invalid sort field');
