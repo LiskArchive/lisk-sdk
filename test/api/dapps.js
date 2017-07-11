@@ -58,6 +58,16 @@ describe('GET /api/dapps/get?id=', function () {
 		});
 	});
 
+	it('using non-numeric id should fail', function (done) {
+		var dappId = 'ABCDEFGHIJKLMNOPQRST';
+
+		getDapp(dappId, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').that.is.equal('Object didn\'t pass validation for format id: ABCDEFGHIJKLMNOPQRST: #/id');
+			done();
+		});
+	});
+
 	it('using id with length > 20 should fail', function (done) {
 		getDapp('012345678901234567890', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
@@ -110,6 +120,16 @@ describe('GET /api/dapps/?type=', function () {
 		var type = node.randomProperty(node.dappTypes);
 
 		getDapps('', function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').that.is.equal('Expected type integer but found type string: #/type');
+			done();
+		});
+	});
+
+	it('using non-numeric type should fail', function (done) {
+		var type = 'A';
+
+		getDapps(type, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').that.is.equal('Expected type integer but found type string: #/type');
 			done();
