@@ -1,4 +1,7 @@
 {
+  "extends": [
+    "airbnb-base"
+  ],
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module"
@@ -29,16 +32,10 @@
     "es6": true
   },
   "globals": {
-    "it": true,
     "describe": true,
-    "before": true,
-    "beforeEach": true,
-    "after": true,
-    "afterEach": true,
-    "sinon": true,
-    "should": true
+    "it": true,
+    "should": true,
+    "sinon": true
   },
   "plugins": []
-
 }
-
