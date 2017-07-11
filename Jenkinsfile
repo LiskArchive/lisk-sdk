@@ -418,6 +418,8 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         rm -rf coverage-unit/*
         rm -f merged-lcov.info
         rm -rf lisk/*
+	rm -f coverage.json
+	rm -f lcov.info
         '''
         }
       }
