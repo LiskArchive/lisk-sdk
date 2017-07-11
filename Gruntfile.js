@@ -67,7 +67,7 @@ module.exports = function (grunt) {
 			},
 
 			coverageSingle: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST',
+				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST',
 				maxBuffer: maxBufferSize
 			},
 
