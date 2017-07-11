@@ -20,7 +20,7 @@ describe('helpers/pg-notify', function () {
 
 	before(function (done) {
 		// Init dummy connection with database - valid, used for tests here
-		// We don't use pg-native here on purpose - it lacks some properties on notifications objects, and we need those to perform detailed tests
+		// We don't use pg-native here on purpose - it lacks connection.client.processID, and we need it to perform reconnect tests
 		var pgp = require('pg-promise')();
 		config.db.user = config.db.user || process.env.USER;
 		db = pgp(config.db);
@@ -168,7 +168,7 @@ describe('helpers/pg-notify', function () {
 				var exit = sinon.stub(process, 'exit');
 
 				// Execute query that terminate existing connection
-				db.query(sql.interruptConnection, {database: config.db.database, pid: connection.client.processID}).then(setTimeout(function () {
+				db.query(sql.interruptConnection, {pid: connection.client.processID}).then(setTimeout(function () {
 					// 12 errors should be collected
 					expect(logger.error.args).to.be.an('array').and.lengthOf(12);
 
