@@ -7,24 +7,6 @@
     "sourceType": "module"
   },
   "rules": {
-    "semi": "error",
-    "no-eq-null": "off",
-    "indent": ["error", "tab"],
-    "eqeqeq": "off",
-    "curly": "error",
-    "no-undef": "error",
-    "quotes": ["error", "single"],
-    "space-before-function-paren": ["error", {
-      "anonymous": "always",
-      "named": "always",
-      "asyncArrow": "ignore"
-    }],
-    "keyword-spacing": "error",
-    "callback-return": "off",
-    "global-require": "off",
-    "handle-callback-err": "off",
-    "no-mixed-requires": "off",
-    "no-new-require": "off"
   },
   "env": {
     "browser": true,
