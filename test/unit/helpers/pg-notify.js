@@ -180,9 +180,9 @@ describe('helpers/pg-notify', function () {
 					var errors = logger.error.args.slice(1, 11);
 					// Iterating over errors (failed retires)
 					for (var i = errors.length - 1; i >= 0; i--) {
-						expect(errors[0][0]).to.equal('pg-notify: Error connecting');
-						expect(errors[0][1]).to.be.an('error');
-						expect(errors[0][1].message).to.equal('password authentication failed for user "invalidUser"');
+						expect(errors[i][0]).to.equal('pg-notify: Error connecting');
+						expect(errors[i][1]).to.be.an('error');
+						expect(errors[i][1].message).to.equal('password authentication failed for user "invalidUser"');
 					}
 
 					// Last error - function should fail to reconnect
