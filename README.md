@@ -1,6 +1,7 @@
 # lisky
-A command line interface for Lisk.
+Lisky is the command line interface for Lisk.
 Lisky is dedicated to help you finding information in the blockchain and database. 
+You can monitor your node, setup your delegate, observe how your delegate behaves and optimize forging processes.
 
 [![Build Status](https://jenkins.lisk.io/job/Lisky-pipeline/development)](https://jenkins.lisk.io/job/Lisky-pipeline/job/development/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
