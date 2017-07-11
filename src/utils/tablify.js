@@ -1,13 +1,12 @@
 const Table = require('cli-table2');
 
-module.exports = function tablify (data) {
+module.exports = function tablify(data) {
+  const table = new Table();
 
-	let table = new Table();
-
-	for (let property in data) {
-		table.push({
-			[property]: data[property]
-		});
-	}
-	return table;
+  for (const property in data) {
+    table.push({
+      [property]: data[property],
+    });
+  }
+  return table;
 };
