@@ -19,7 +19,13 @@ module.exports = function (grunt) {
 		},
 		// Configure EsLint
 		eslint: {
-			src: ['index.js', 'src/**/*.js', 'test/**/*.js']
+			src: [
+				'index.js',
+				'bin/**/*.js',
+				'src/**/*.js',
+				'test/**/*.js',
+				'Gruntfile.js'
+			]
 		}
 	});
 
