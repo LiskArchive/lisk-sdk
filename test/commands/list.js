@@ -1,8 +1,6 @@
-require('../common');
 const Vorpal = require('vorpal');
 const list = require('../../src/commands/list');
 const query = require('../../src/utils/query');
-const util = require('util');
 
 describe('lisky list command palette', () => {
 	let vorpal;
