@@ -30,7 +30,6 @@ var modulesLoader = new function () {
 		network: {
 			app: express()
 		},
-		public: '../../public',
 		schema: new z_schema(),
 		ed: ed,
 		bus: {
@@ -156,7 +155,6 @@ var modulesLoader = new function () {
 			{peers: require('../../modules/peers')},
 			{rounds: require('../../modules/rounds')},
 			{signatures: require('../../modules/signatures')},
-			{sql: require('../../modules/sql')},
 			{system: require('../../modules/system')},
 			{transactions: require('../../modules/transactions')},
 			{transport: require('../../modules/transport')}

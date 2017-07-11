@@ -1,7 +1,6 @@
 node_modules
 dapps
 logs/*.log
-nodejs
 npm-debug.log
 release
 ssl
