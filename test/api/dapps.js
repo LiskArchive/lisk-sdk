@@ -108,9 +108,9 @@ describe('GET /api/dapps/?type=', function () {
 	}
 
 	it('using no type should fail', function (done) {
-		var type = node.randomProperty(node.dappTypes);
+		var type = '';
 
-		getDapps('', function (err, res) {
+		getDapps(type, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').that.is.equal('Expected type integer but found type string: #/type');
 			done();
@@ -128,9 +128,9 @@ describe('GET /api/dapps/?type=', function () {
 	});
 
 	it('using type == -1 should fail', function (done) {
-		var type = node.randomProperty(node.dappTypes);
+		var type = '-1';
 
-		getDapps('-1', function (err, res) {
+		getDapps(type, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').that.is.equal('Value -1 is less than minimum 0: #/type');
 			done();
@@ -138,9 +138,9 @@ describe('GET /api/dapps/?type=', function () {
 	});
 
 	it('using type == 0 should be ok', function (done) {
-		var type = node.randomProperty(node.dappTypes);
+		var type = '0';
 
-		getDapps('0', function (err, res) {
+		getDapps(type, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array').and.has.lengthOf(2);
 			node.expect(res.body.dapps[0].type).to.equal(0);
@@ -150,9 +150,9 @@ describe('GET /api/dapps/?type=', function () {
 	});
 
 	it('using type == 1 should be ok', function (done) {
-		var type = node.randomProperty(node.dappTypes);
+		var type = '1';
 
-		getDapps('1', function (err, res) {
+		getDapps(type, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array').and.has.lengthOf(0);
 			done();
