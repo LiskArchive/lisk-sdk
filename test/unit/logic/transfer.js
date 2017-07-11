@@ -170,7 +170,7 @@ describe('transfer', function () {
 			expect(transfer.create(trsData, trs)).to.be.an('object');
 			expect(trs).to.have.property('asset');
 			expect(trs.asset).to.eql({
-				transfer: { data: '123' }
+				data: '123'
 			});
 		});
 	});
@@ -187,7 +187,7 @@ describe('transfer', function () {
 		it('should return the correct fee with data field', function () {
 			var trs = _.clone(validTransaction);
 			trs.asset = {
-				transfer: { data: '123' }
+				data: '123'
 			};
 			expect(transfer.calculateFee.call(transaction, trs)).to.equal(node.constants.fees.send + node.constants.fees.data);
 			it('should return the correct fee', function () {
@@ -234,7 +234,7 @@ describe('transfer', function () {
 			it('should return null for empty asset', function () {
 				var trs = _.cloneDeep(validTransaction);
 				trs.asset = {
-					transfer: { data: '123' }
+					data: '123'
 				};
 				expect(transfer.getBytes(trs)).to.eql(Buffer.from('123', 'utf8'));
 			});
@@ -345,25 +345,35 @@ describe('transfer', function () {
 				expect(transfer.objectNormalize(trs)).to.not.have.key('blockId');
 			});
 
-			it('should keep not remove data field', function () {
+			it('should not remove data field', function () {
 				var trs = _.cloneDeep(validTransaction);
 				trs.asset = {
-					transfer: { data: '123' }
+					data: '123'
 				};
 				expect(transfer.objectNormalize(trs).asset).to.eql(trs.asset);
+			});
+
+			it('should remove data field if value is null', function () {
+				var trs = _.cloneDeep(validTransaction);
+				trs.asset = {
+					data: null 
+				};
+				expect(transfer.objectNormalize(trs).asset).to.eql({});
 			});
 		});
 
 		describe('dbRead', function () {
 			it('should return null when data field is not set', function () {
-				expect(transfer.dbRead(rawValidTransaction)).to.eql(null);
+				expect(transfer.dbRead(rawValidTransaction)).to.eql({
+					data: null
+				});
 			});
 
-			it('should be okay when data field is not set', function () {
+			it('should be okay when data field is set', function () {
 				var rawTrs = _.cloneDeep(rawValidTransaction);
 				rawTrs.tf_data = '123';
 				expect(transfer.dbRead(rawTrs)).to.eql({
-					transfer: { data: '123' }
+					data: '123'
 				});
 			});
 		});
@@ -376,7 +386,7 @@ describe('transfer', function () {
 			it('should return transfer promise when transaction does contains asset', function () {
 				var trs = _.cloneDeep(validTransaction);
 				trs.asset = {
-					transfer: { data: '123' }
+					data: '123'
 				};
 				var transferPromise = transfer.dbSave(trs);
 				expect(transferPromise.table).to.equal('transfer');
@@ -385,7 +395,7 @@ describe('transfer', function () {
 					'transactionId'
 				]);
 				expect(transferPromise.values).to.eql({
-					data: Buffer.from(trs.asset.transfer.data, 'utf8'),
+					data: Buffer.from(trs.asset.data, 'utf8'),
 					transactionId: trs.id
 				});
 			});

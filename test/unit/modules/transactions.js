@@ -399,7 +399,7 @@ describe('transactions', function () {
 					expect(res.transaction.fee).to.equal(constants.fees.send + constants.fees.data);
 					expect(res.transaction.senderPublicKey).to.equal(transferAccount.publicKey);
 					expect(res.transaction.recipientPublicKey).to.equal(node.gAccount.publicKey);
-					expect(res.transaction.asset.transfer.data).to.eql(trsParams.data);
+					expect(res.transaction.asset.data).to.eql(trsParams.data);
 					done();
 				});
 			});

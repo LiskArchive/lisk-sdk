@@ -42,12 +42,7 @@ Transfer.prototype.bind = function (accounts, rounds) {
 Transfer.prototype.create = function (data, trs) {
 	trs.recipientId = data.recipientId;
 	trs.amount = data.amount;
-
-	if (data.data) {
-		trs.asset.transfer = {
-			data: data.data
-		};
-	}
+	trs.asset.data = data.data || null;
 
 	return trs;
 };
@@ -60,9 +55,10 @@ Transfer.prototype.create = function (data, trs) {
  */
 Transfer.prototype.calculateFee = function (trs, sender) {
 	var fee = new bignum(constants.fees.send);
-	if (trs.asset && trs.asset.transfer && trs.asset.transfer.data) {
+	if (trs.asset && trs.asset.data) {
 		fee = fee.plus(constants.fees.data);
 	}
+
 	return Number(fee.toString());
 };
 
@@ -105,8 +101,8 @@ Transfer.prototype.getBytes = function (trs) {
 	var buf;
 	var data;
 
-	if (trs.asset && trs.asset.transfer && trs.asset.transfer.data) {
-		data = trs.asset.transfer.data;
+	if (trs.asset && trs.asset.data) {
+		data = trs.asset.data;
 	}
 
 	try {
@@ -223,14 +219,14 @@ Transfer.prototype.schema = {
 Transfer.prototype.objectNormalize = function (trs) {
 	delete trs.blockId;
 
-	if (!trs.asset.transfer) {
-		return trs;
+	if (trs.asset.data === null || typeof trs.asset.data === 'undefined') {
+		delete trs.asset.data;
 	}
 
-	var report = library.schema.validate(trs.asset.transfer, Transfer.prototype.schema);
+	var report = library.schema.validate(trs.asset, Transfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate transfer schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate transfer schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
@@ -252,12 +248,8 @@ Transfer.prototype.dbFields = [
  * @return {null}
  */
 Transfer.prototype.dbRead = function (raw) {
-	if (!raw.tf_data) {
-		return null;
-	} else {
-		var transfer = { data: raw.tf_data };
-		return {transfer: transfer};
-	}
+	var data = raw.tf_data || null;
+	return {data: data};
 };
 
 /**
@@ -266,11 +258,11 @@ Transfer.prototype.dbRead = function (raw) {
  * @return {Object} {table:signatures, values: publicKey and transaction id} or null.
  */
 Transfer.prototype.dbSave = function (trs) {
-	if (trs.asset && trs.asset.transfer && trs.asset.transfer.data) {
+	if (trs.asset && trs.asset.data) {
 		var data;
 
 		try {
-			data = Buffer.from(trs.asset.transfer.data, 'utf8');
+			data = Buffer.from(trs.asset.data, 'utf8');
 		} catch (e) {
 			throw e;
 		}

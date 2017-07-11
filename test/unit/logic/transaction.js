@@ -198,7 +198,7 @@ describe('transaction', function () {
 			trsData.data = 'abc';
 			var trs = transaction.create(trsData);
 			expect(trs).to.be.an('object');
-			expect(trs.asset.transfer.data).to.equal('abc');
+			expect(trs.asset.data).to.equal('abc');
 		});
 
 		it('should create a transaction without data property', function () {
@@ -713,7 +713,7 @@ describe('transaction', function () {
 
 		it('should verify transaction with correct fee (with data field)', function (done) {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.transfer = {data: '123'};
+			trs.asset = {data: '123'};
 			trs.fee += 10000000;
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
@@ -1027,7 +1027,7 @@ describe('transaction', function () {
 
 		it('should return response for valid parameters with data field', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.transfer = {data : '123'};
+			trs.asset = {data : '123'};
 			var savePromise = transaction.dbSave(trs);
 			expect(savePromise).to.be.an('Array');
 			expect(savePromise).to.have.length(2);
@@ -1092,7 +1092,7 @@ describe('transaction', function () {
 
 		it('should not remove data field after normalization', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.transfer= {
+			trs.asset= {
 				data: '123'
 			};
 			var normalizedTrs = transaction.objectNormalize(trs);
@@ -1119,7 +1119,7 @@ describe('transaction', function () {
 			var rawTrs = _.cloneDeep(rawValidTransaction);
 			var trs = transaction.dbRead(rawTrs);
 			expect(trs).to.be.an('object');
-			expect(trs.asset.transfer).to.have.property('data');
+			expect(trs.asset).to.have.property('data');
 		});
 
 		it('should return null if id field is not present', function () {
@@ -1153,8 +1153,7 @@ describe('transaction', function () {
 			];
 			expect(trs).to.be.an('object');
 			expect(trs).to.have.keys(expectedKeys);
-			expect(trs.asset).to.have.property('transfer').which.is.an('object');
-			expect(trs.asset.transfer.data).to.equal(rawValidTransaction.tf_data);
+			expect(trs.asset).to.have.property('data').which.is.equal(rawValidTransaction.tf_data);
 		});
 	});
 });
