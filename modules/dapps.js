@@ -239,7 +239,7 @@ DApps.prototype.internal = {
 	list: function (query, cb) {
 		__private.list(query, function (err, dapps) {
 			if (err) {
-				return setImmediate(cb, 'Application not found');
+				return setImmediate(cb, err);
 			} else {
 				return setImmediate(cb, null, {success: true, dapps: dapps});
 			}
