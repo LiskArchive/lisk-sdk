@@ -38,7 +38,7 @@ describe('height', function () {
 			node.debug('> Response:'.grey, JSON.stringify(res));
 			node.expect(res).to.have.property('success').to.be.ok;
 			node.expect(res).to.be.an('object').that.has.property('height');
-			node.expect(res.height).to.be.a('number').to.be.above(1);
+			node.expect(res.height).to.be.a('number').to.be.at.least(1);
 			done();
 		});
 	});

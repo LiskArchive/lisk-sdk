@@ -16,6 +16,7 @@ var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
 var Cache = require('../../modules/cache.js');
 var ed = require('../../helpers/ed');
+var jobsQueue = require('../../helpers/jobsQueue');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
 
@@ -138,6 +139,10 @@ var modulesLoader = new function () {
 		], cb);
 	};
 
+	this.clear = function () {
+		jobsQueue.jobs = {};
+	};
+
 	/**
 	 * Initializes all created Modules in directory
 	 *
@@ -145,6 +150,7 @@ var modulesLoader = new function () {
 	 * @param {object} [scope={}] scope
 	 */
 	this.initAllModules = function (cb, scope) {
+		this.clear();
 		this.initModules([
 			{accounts: require('../../modules/accounts')},
 			{blocks: require('../../modules/blocks')},

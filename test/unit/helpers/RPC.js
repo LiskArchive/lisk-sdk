@@ -34,7 +34,7 @@ describe('wsRPC', function () {
 
 	it('should have scClient field without connections', function () {
 		expect(wsRPC).to.have.property('scClient').and.to.be.a('object');
-		expect(wsRPC).to.have.deep.property('scClient.connections').to.be.a('object').and.to.be.empty;
+		expect(wsRPC.scClient).to.have.property('connections').to.be.a('object').and.to.be.empty;
 	});
 
 	it('should have wsServer field unset', function () {

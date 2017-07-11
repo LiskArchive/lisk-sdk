@@ -93,6 +93,11 @@ __private.hashsum = function (obj) {
  * @param {string} extraMessage
  */
 __private.removePeer = function (options, extraMessage) {
+	if (!options.peer) {
+		library.logger.debug('Cannot remove empty peer');
+		return false;
+	}
+
 	library.logger.debug([options.code, 'Removing peer', options.peer.ip + ':' + options.peer.port, extraMessage].join(' '));
 	return modules.peers.remove(options.peer);
 };

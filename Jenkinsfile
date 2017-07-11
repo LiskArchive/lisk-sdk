@@ -313,7 +313,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Stress - Transactions" : {
         node('node-03'){
          sh '''
-         export TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
+         export TEST=test/api/peer/peer.transactions.stress.ws.js TEST_TYPE='FUNC'
          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
          npm run jenkins
          '''
