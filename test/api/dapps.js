@@ -23,21 +23,12 @@ before(function (done) {
 });
 
 before(function (done) {
-	var account = node.randomAccount();
-	var options = node.guestbookDapp;
-	var transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, options);
-	node.guestbookDapp.transactionId = transaction.id;
+	node.async.eachSeries([node.guestbookDapp, node.blockDataDapp], function (dapp, eachSeriesCb) {
+		var transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, dapp);
+		dapp.transactionId = transaction.id;
 
-	postTransaction(transaction, done);
-});
-
-before(function (done) {
-	var account = node.randomAccount();
-	var options = node.blockDataDapp;
-	var transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, options);
-	node.blockDataDapp.transactionId = transaction.id;
-
-	postTransaction(transaction, done);
+		postTransaction(transaction, eachSeriesCb);
+	}, done);
 });
 
 before(function (done) {
