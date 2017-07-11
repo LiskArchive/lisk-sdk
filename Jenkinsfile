@@ -16,9 +16,6 @@ def buildDependency() {
     # Install Deps
     npm install
 
-    # Install Nodejs
-    tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
-
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
@@ -200,15 +197,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         node('node-02'){
         sh '''
         export TEST=test/api/peer.js TEST_TYPE='FUNC'
-        cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-        npm run jenkins
-        '''
-      }
-      },
-      "Functional Peer - Dapp" : {
-        node('node-02'){
-        sh '''
-        export TEST=test/api/peer.dapp.js TEST_TYPE='FUNC'
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''

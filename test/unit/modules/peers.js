@@ -46,17 +46,6 @@ describe('peers', function () {
 		});
 	});
 
-	describe('sandboxApi', function (done) {
-
-		it('should pass the call', function () {
-			var sandboxHelper = require('../../../helpers/sandbox.js');
-			sinon.stub(sandboxHelper, 'callMethod').returns(true);
-			peers.sandboxApi();
-			expect(sandboxHelper.callMethod.calledOnce).to.be.ok;
-			sandboxHelper.callMethod.restore();
-		});
-	});
-
 	describe('update', function () {
 
 		it('should insert new peer', function (done) {

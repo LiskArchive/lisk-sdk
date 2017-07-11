@@ -68,15 +68,6 @@ cd lisk
 npm install
 ```
 
-Install Lisk Node, a specialized version of Node.js used to execute dapps within a virtual machine:
-
-```
-wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
-tar -zxvf lisk-node-Linux-x86_64.tar.gz
-```
-
-Lisk Node has to be in `[LISK_DIR]/nodejs/node`.
-
 ## Managing Lisk
 
 To test that Lisk is built and configured correctly, run the following command:
