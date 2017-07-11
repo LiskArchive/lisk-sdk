@@ -121,7 +121,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('jenkins', ['exec:coverageSingle']);
-	grunt.registerTask('coverageReport', ['exec:coverateReport']);
+	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 
