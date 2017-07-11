@@ -74,6 +74,9 @@ module.exports = function (grunt) {
 			fetchCoverage: {
 				command: 'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
 				maxBuffer: maxBufferSize
+			},
+			coverageReport: {
+				command: 'rm -f ./test/.coverage-unit/lcov.info; ./node_modules/.bin/istanbul report --root ./test/.coverage-unit/ --dir ./test/.coverage-unit'
 			}
 		},
 
@@ -118,6 +121,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('jenkins', ['exec:coverageSingle']);
+	grunt.registerTask('coverageReport', ['exec:coverateReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 
