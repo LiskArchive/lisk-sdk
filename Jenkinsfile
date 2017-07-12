@@ -312,8 +312,9 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					export TEST=test/unit/modules/rounds.js TEST_TYPE='UNIT'
 					npm run jenkins
 
-					TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT'
-					npm run jenkins
+					# Temporarily disabled until implemented
+					#TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT'
+					#npm run jenkins
 					'''
 				}
 			},
