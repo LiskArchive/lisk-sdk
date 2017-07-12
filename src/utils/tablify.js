@@ -7,4 +7,4 @@ export default function tablify(data) {
 		.forEach(([key, value]) => table.push({ [key]: value }));
 
 	return table;
-};
+}

@@ -20,7 +20,6 @@ export default function getCommand(vorpal) {
 		.description('Get information from <type> with parameter <input>. \n Types available: account, address, block, delegate, transaction \n E.g. get delegate lightcurve \n e.g. get block 5510510593472232540')
 		.autocomplete(['account', 'address', 'block', 'delegate', 'transaction'])
 		.action((userInput) => {
-
 			const getType = {
 				account: query.isAccountQuery.bind(query),
 				address: query.isAccountQuery.bind(query),
@@ -53,4 +52,4 @@ export default function getCommand(vorpal) {
 				return result[switchType(userInput.type)];
 			});
 		});
-};
+}

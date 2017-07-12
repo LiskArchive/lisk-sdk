@@ -1,5 +1,5 @@
-import config from '../../config.json';
 import fse from 'fs-extra';
+import config from '../../config.json';
 
 export default function setCommand(vorpal) {
 	function setJSON(value) {
@@ -27,4 +27,4 @@ export default function setCommand(vorpal) {
 
 			return (callback && typeof callback === 'function') ? callback(returnValue.message) : returnValue.message;
 		});
-};
+}

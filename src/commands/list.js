@@ -60,4 +60,4 @@ export default function listCommand(vorpal) {
 				return result;
 			}).catch(e => e);
 		});
-};
+}
