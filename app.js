@@ -37,8 +37,10 @@ var workersController = require('./workersController');
 var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
 
 var AppConfig = require('./helpers/config.js');
+var constants = require('./helpers/constants.js');
 var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
+var ed = require('./helpers/ed.js');
 var Sequence = require('./helpers/sequence.js');
 var z_schema = require('./helpers/z_schema.js');
 
@@ -273,7 +275,8 @@ d.run(function () {
 				minVersion: scope.config.minVersion,
 				nethash: scope.config.nethash,
 				port: scope.config.port,
-				nonce: scope.config.nonce
+				nonce: scope.config.nonce,
+				connectionPrivateKey: constants.getConst('connectionPrivateKey').toString('hex')
 			};
 
 			var socketCluster = new SocketCluster(webSocketConfig);
@@ -330,8 +333,12 @@ d.run(function () {
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
 			var randomString = require('randomstring');
+			var crypto = require('crypto');
 
-			scope.config.nonce = randomString.generate(16);
+			var keys = ed.makeKeypair(crypto.createHash('sha256').update(randomString.generate(16), 'utf8').digest());
+			scope.config.nonce = keys.publicKey.toString('hex');
+			constants.setConst('connectionPrivateKey', keys.privateKey);
+
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));

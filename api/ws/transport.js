@@ -8,6 +8,7 @@ function TransportWSApi (transportModule, app, logger) {
 	wsRPC.getServer().registerRPCEndpoints({
 		acceptPeer: transportModule.internal.acceptPeer,
 		removePeer: transportModule.internal.removePeer,
+		insertPeer: transportModule.internal.insertPeer,
 		ping: transportModule.internal.ping,
 		blocksCommon: transportModule.internal.blocksCommon,
 		blocks: transportModule.internal.blocks,

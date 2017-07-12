@@ -313,8 +313,8 @@ describe('peers', function () {
 				var expectedPeer = {};
 				expectedPeer[validPeer.string] = validPeer;
 				expect(peers.peersManager.peers).to.eql(expectedPeer);
-				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': 'randomnonce'});
-				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:4000'});
+				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3'});
+				expect(peers.peersManager.nonceToAddressMap).to.eql({'137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3': '40.40.40.40:4000'});
 			});
 
 			it('should not duplicate entries in fields', function () {
@@ -324,8 +324,8 @@ describe('peers', function () {
 					'40.40.40.40:4000': validPeer
 				};
 				expect(peers.peersManager.peers).to.eql(expectedPeer);
-				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': 'randomnonce'});
-				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:4000'});
+				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3'});
+				expect(peers.peersManager.nonceToAddressMap).to.eql({'137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3': '40.40.40.40:4000'});
 			});
 
 			it('should not insert peer without address', function () {
@@ -357,15 +357,15 @@ describe('peers', function () {
 				expect(peers.peersManager.peers).to.eql({
 					'40.40.40.40:4000': validPeer
 				});
-				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': 'randomnonce'});
-				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:4000'});
+				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3'});
+				expect(peers.peersManager.nonceToAddressMap).to.eql({'137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3': '40.40.40.40:4000'});
 			});
 
 			it('should not be possible to add multiple entries', function () {
 				var peerA = validPeer;
 				var peerB = _.clone(validPeer);
 				peerB.string = '50.40.40.40:4000';
-				peerB.nonce = 'peerBNonce';
+				peerB.nonce = '222222f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3';
 
 				peers.peersManager.add(peerA);
 				peers.peersManager.add(peerB);
@@ -377,12 +377,12 @@ describe('peers', function () {
 
 				expect(peers.peersManager.peers).to.eql(expectedPeers);
 				expect(peers.peersManager.addressToNonceMap).to.eql({
-					'40.40.40.40:4000': 'randomnonce',
-					'50.40.40.40:4000': 'peerBNonce'
+					'40.40.40.40:4000': '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3',
+					'50.40.40.40:4000': '222222f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3'
 				});
 				expect(peers.peersManager.nonceToAddressMap).to.eql({
-					'randomnonce': '40.40.40.40:4000',
-					'peerBNonce': '50.40.40.40:4000'
+					'137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3': '40.40.40.40:4000',
+					'222222f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3': '50.40.40.40:4000'
 				});
 			});
 		});

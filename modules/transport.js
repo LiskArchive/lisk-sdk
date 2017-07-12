@@ -5,6 +5,7 @@ var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
+var ed = require('../helpers/ed.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
@@ -254,6 +255,17 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	}, cb);
 };
 
+/**
+ * Basing on encrypted signature checks if peer's data was not malformed
+ * @param {object} peer
+ * @param {hex} signature
+ * @param {hex} nonce
+ * @returns {Boolean} if access to update peer's data granted
+ */
+__private.validateUpdatePeerAccess = function (peer, signature, nonce) {
+	return ed.verify(Buffer.from(JSON.stringify(peer)), Buffer.from(signature, 'hex'), Buffer.from(nonce, 'hex'));
+};
+
 // Public methods
 /**
  * Sets or gets headers
@@ -376,9 +388,12 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
 				modules.peers.list({}, function (err, peers) {
 					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
-						peer.rpc.acceptPeer(library.logic.peers.me(), function (err) {
+
+						var me = new Peer(library.logic.peers.me()).object();
+						var signature = ed.sign(Buffer.from(JSON.stringify(me)), constants.getConst('connectionPrivateKey')).toString('hex');
+						peer.rpc.acceptPeer({peer: me, signature: signature}, function (err) {
 							if (err) {
-								library.logger.debug('Failed to update peer after new block applied', peer.string);
+								library.logger.debug('Failed to update peer after new block applied', peer.string + ':' + err.toString());
 								cb({errorMsg: err, peer: peer});
 								__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
 							} else {
@@ -434,7 +449,7 @@ Transport.prototype.internal = {
 			}
 
 			var escapedIds = query.ids
-			// Remove quotes
+				// Remove quotes
 				.replace(/['"]+/g, '')
 				// Separate by comma into an array
 				.split(',')
@@ -498,7 +513,10 @@ Transport.prototype.internal = {
 
 	list: function (req, cb) {
 		req = req || {};
-		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
+
+		var peersFinder = _.isEmpty(req.query) ? modules.peers.list : modules.peers.shared.getPeers;
+
+		peersFinder(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
@@ -579,22 +597,82 @@ Transport.prototype.internal = {
 	},
 
 	/**
-	 * @param {Peer} peer
+	 * Removes peer from peers list
+	 * @param {Object} query
+	 * @param {Peer} query.peer
+	 * @param {string} query.signature - signed peer data with in hex format
 	 * @param {function} cb
 	 */
-	removePeer: function (peer, cb) {
-		return setImmediate(cb, __private.removePeer({peer: peer, code: 0}, '') ? null : 'Failed to remove peer');
+	removePeer: function (query, cb) {
+		library.schema.validate(query, schema.updatePeer, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+			if (__private.validateUpdatePeerAccess(query.peer, query.signature, constants.headers.nonce)) {
+				return setImmediate(cb, __private.removePeer({peer: query.peer, code: 0}, '') ? null : 'Failed to remove peer');
+			} else {
+				return setImmediate(cb, 'Unsuccessful validation of update peer signature');
+			}
+		});
 	},
 
 	/**
-	 * @param {Peer} peer
+	 * Updates peer on peers list if exists
+	 * @param {Object} query
+	 * @param {Peer} query.peer
+	 * @param {string} query.signature - signed peer data with in hex format
 	 * @param {function} cb
 	 */
-	acceptPeer: function (peer, cb) {
-		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
-			return setImmediate(cb, 'No headers information');
-		}
-		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
+	acceptPeer: function (query, cb) {
+		library.schema.validate(query, schema.updatePeer, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+			var nonce =
+				library.logic.peers.peersManager.getNonce(query.peer.ip + ':' + query.peer.port) ||
+				library.logic.peers.peersManager.getNonce(library.logic.peers.peersManager.getAddress(query.peer.nonce));
+
+			if (!nonce) {
+				return setImmediate(cb, 'Peer is not on the peers list. Cannot update.');
+			}
+
+			if (__private.validateUpdatePeerAccess(query.peer, query.signature, nonce)) {
+				if (['height', 'nonce', 'broadhash'].some(function (header) { return query.peer[header] === undefined; })) {
+					return setImmediate(cb, 'No headers information');
+				}
+				library.logger.debug('transport --- accept query.peer: ', query.peer.ip + ':' + query.peer.port + '#' + query.peer.nonce + '#' + query.peer.height + '#' + query.peer.broadhash);
+				return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
+			} else {
+				return setImmediate(cb, 'Unsuccessful validation of update peer signature');
+			}
+		});
+	},
+
+
+	/**
+	 * Inserts new peer to peers list
+	 * @param {Object} query
+	 * @param {Peer} query.peer
+	 * @param {string} query.signature - signed peer data with in hex format
+	 * @param {function} cb
+	 */
+	insertPeer: function (query, cb) {
+		library.schema.validate(query, schema.updatePeer, function (err) {
+
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			if (__private.validateUpdatePeerAccess(query.peer, query.signature, constants.headers.nonce)) {
+				if (['height', 'nonce', 'broadhash'].some(function (header) { return query.peer[header] === undefined; })) {
+					return setImmediate(cb, 'No headers information');
+				}
+				library.logger.debug('transport --- accept query.peer: ', query.peer.ip + ':' + query.peer.port + '#' + query.peer.nonce + '#' + query.peer.height + '#' + query.peer.broadhash);
+				return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
+			} else {
+				return setImmediate(cb, 'Unsuccessful validation of update peer signature');
+			}
+		});
 	}
 };
 

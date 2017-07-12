@@ -128,6 +128,14 @@ Peer.prototype.normalize = function (peer) {
 	peer.port = this.parseInt(peer.port, 0);
 	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
+	if (peer.nonce) {
+		try {
+			peer.nonce = Buffer.from(peer.nonce, 'hex').length === 32 ? peer.nonce : undefined;
+		} catch (e) {
+			peer.nonce = undefined;
+		}
+	}
+
 	return peer;
 };
 
