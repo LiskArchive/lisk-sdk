@@ -1,12 +1,15 @@
-'use strict';
 const lisk = require('lisk-js');
 
 class Crypto {
-	encrypt (message, secret, recipient) {
+	constructor() {
+		this.lisk = lisk;
+	}
+
+	encrypt(message, secret, recipient) {
 		try {
-			return lisk.crypto.encryptMessageWithSecret(message, secret, recipient);
-		} catch ({ message }) {
-			return { error: message };
+			return this.lisk.crypto.encryptMessageWithSecret(message, secret, recipient);
+		} catch ({ message: error }) {
+			return { error };
 		}
 	}
 }

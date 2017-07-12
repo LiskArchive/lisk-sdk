@@ -23,13 +23,12 @@ describe('cryptoModule class', () => {
 	});
 
 	it('should handle error responses', () => {
-		const message = 'Cannot read property \'length\' of null';
-		const error = new TypeError(message);
+		const errorMessage = 'Cannot read property \'length\' of null';
+		const error = new TypeError(errorMessage);
 		stub.throws(error);
 
-		const result = cryptoModule.encrypt(message, secret, recipient);
+		const result = cryptoModule.encrypt(errorMessage, secret, recipient);
 
-		(result).should.have.property('error', message);
+		(result).should.have.property('error', errorMessage);
 	});
-
 });
