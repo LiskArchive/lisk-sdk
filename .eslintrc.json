@@ -1,28 +1,28 @@
 {
-  "extends": [
-    "airbnb-base"
-  ],
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module"
-  },
-  "rules": {
-    "camelcase": ["error", { "properties": "always" }],
-    "eqeqeq": ["error", "always"],
-    "indent": ["error", "tab"],
-    "new-cap": ["error", { "newIsCap": true, "capIsNewExceptionPattern": "should[.(]" }],
-    "no-console": ["error", { "allow": ["error", "info", "warn"] }],
+	"extends": [
+		"airbnb-base"
+	],
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module"
+	},
+	"rules": {
+		"camelcase": ["error", { "properties": "always" }],
+		"eqeqeq": ["error", "always"],
+		"indent": ["error", "tab"],
+		"new-cap": ["error", { "newIsCap": true, "capIsNewExceptionPattern": "should[.(]" }],
+		"no-console": ["error", { "allow": ["error", "info", "warn"] }],
 		"no-tabs": "off"
-  },
-  "env": {
-    "browser": true,
-    "es6": true,
-    "mocha": true,
-    "node": true
-  },
-  "globals": {
-    "should": true,
-    "sinon": true
-  },
-  "plugins": []
+	},
+	"env": {
+		"browser": true,
+		"es6": true,
+		"mocha": true,
+		"node": true
+	},
+	"globals": {
+		"should": true,
+		"sinon": true
+	},
+	"plugins": []
 }
