@@ -34,7 +34,7 @@ describe('peers', function () {
 			}
 			peers = __modules.peers;
 			modules = __modules;
-			peers.onBind(modules);
+			peers.onBind(__modules);
 			done();
 		}, {nonce: NONCE});
 	});
@@ -43,17 +43,6 @@ describe('peers', function () {
 		getPeers(function (err, __peers) {
 			currentPeers = __peers;
 			done();
-		});
-	});
-
-	describe('sandboxApi', function (done) {
-
-		it('should pass the call', function () {
-			var sandboxHelper = require('../../../helpers/sandbox.js');
-			sinon.stub(sandboxHelper, 'callMethod').returns(true);
-			peers.sandboxApi();
-			expect(sandboxHelper.callMethod.calledOnce).to.be.ok;
-			sandboxHelper.callMethod.restore();
 		});
 	});
 
@@ -170,36 +159,6 @@ describe('peers', function () {
 		});
 	});
 
-	describe('ban', function () {
-
-		var peerToBan;
-
-		before(function (done) {
-			peerToBan = _.clone(randomPeer);
-			peerToBan.port += 1;
-			peers.update(peerToBan);
-			done();
-		});
-
-		it('should ban active peer', function (done) {
-			getPeers(function (err, __peers) {
-				currentPeers = __peers;
-				peerToBan = __peers.find(function (p) {
-					return p.ip + ':' + p.port === peerToBan.ip + ':' + peerToBan.port;
-				});
-				expect(peerToBan).to.be.an('object').and.not.to.be.empty;
-				expect(peerToBan.state).that.equals(2);
-
-				expect(peers.ban(peerToBan.ip, peerToBan.port, 1)).to.be.ok;
-				getPeers(function (err, __peers) {
-					expect(currentPeers.length - 1).that.equals(__peers.length);
-					currentPeers = __peers;
-					done();
-				});
-			});
-		});
-	});
-
 	describe('remove', function () {
 
 		before(function (done) {
@@ -228,6 +187,10 @@ describe('peers', function () {
 
 	describe('acceptable', function () {
 
+		before(function () {
+			process.env['NODE_ENV'] = 'DEV';
+		});
+
 		var ip = require('ip');
 
 		it('should accept peer with public ip', function () {
@@ -240,10 +203,30 @@ describe('peers', function () {
 			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
 		});
 
-		it('should not accept peer with host\'s ip', function () {
-			var meAsPeer = _.clone(randomPeer);
-			meAsPeer.nonce = NONCE;
+		it('should not accept peer with lisk-js-api os', function () {
+			var privatePeer = _.clone(randomPeer);
+			privatePeer.os = 'lisk-js-api';
+			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+		});
+
+		it('should not accept peer with host\'s nonce', function () {
+			var peer = _.clone(randomPeer);
+			peer.nonce = NONCE;
+			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
+		});
+
+		it('should not accept peer with different ip but the same nonce', function () {
+			process.env['NODE_ENV'] = 'TEST';
+			var meAsPeer = {
+				ip: '40.00.40.40',
+				port: 4001,
+				nonce: NONCE
+			};
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
+		});
+
+		after(function () {
+			process.env['NODE_ENV'] = 'TEST';
 		});
 	});
 

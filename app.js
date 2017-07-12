@@ -123,7 +123,6 @@ var config = {
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
-		server: './modules/server.js',
 		accounts: './modules/accounts.js',
 		transactions: './modules/transactions.js',
 		blocks: './modules/blocks.js',
@@ -137,7 +136,6 @@ var config = {
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js',
 		cache: './modules/cache.js'
 	},
 	api: {
@@ -148,7 +146,6 @@ var config = {
 		loader: { http: './api/http/loader.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
 		peers: { http: './api/http/peers.js' },
-		server: { http: './api/http/server.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
 		transport: { http: './api/http/transport.js' }
@@ -160,7 +157,7 @@ var config = {
  * The Object is initialized here and pass to others as parameter.
  * @property {object} - Logger instance.
  */
-var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, 
+var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel,
 	filename: appConfig.logFileName });
 
 // Trying to get last git commit
@@ -186,7 +183,7 @@ d.run(function () {
 	var modules = [];
 	async.auto({
 		/**
-		 * Loads `payloadHash` and generate dapp password if it is empty and required.
+		 * Loads `payloadHash`.
 		 * Then updates config.json with new random  password.
 		 * @method config
 		 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`.
@@ -199,26 +196,7 @@ d.run(function () {
 				logger.error('Failed to assign nethash from genesis block');
 				throw Error(e);
 			}
-
-			if (appConfig.dapp.masterrequired && !appConfig.dapp.masterpassword) {
-				var randomstring = require('randomstring');
-
-				appConfig.dapp.masterpassword = randomstring.generate({
-					length: 12,
-					readable: true,
-					charset: 'alphanumeric'
-				});
-
-				if (appConfig.loading.snapshot != null) {
-					delete appConfig.loading.snapshot;
-				}
-
-				fs.writeFileSync('./config.json', JSON.stringify(appConfig, null, 4));
-
-				cb(null, appConfig);
-			} else {
-				cb(null, appConfig);
-			}
+			cb(null, appConfig);
 		},
 
 		logger: function (cb) {
@@ -244,10 +222,6 @@ d.run(function () {
 			});
 		},
 
-		public: function (cb) {
-			cb(null, path.join(__dirname, 'public'));
-		},
-
 		schema: function (cb) {
 			cb(null, new z_schema());
 		},
@@ -257,7 +231,7 @@ d.run(function () {
 		 * @method network
 		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
-		 * @param {nodeStyleCallback} cb - Callback function with created Object: 
+		 * @param {nodeStyleCallback} cb - Callback function with created Object:
 		 * `{express, app, server, io, https, https_io}`.
 		 */
 		network: ['config', function (scope, cb) {
@@ -335,14 +309,14 @@ d.run(function () {
 		}],
 
 		/**
-		 * Once config, public, genesisblock, logger, build and network are completed,
+		 * Once config, genesisblock, logger, build and network are completed,
 		 * adds configuration to `network.app`.
 		 * @method connect
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
-		connect: ['config', 'public', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
+		connect: ['config', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
 			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
@@ -350,11 +324,7 @@ d.run(function () {
 			var randomString = require('randomstring');
 
 			scope.nonce = randomString.generate(16);
-			scope.network.app.engine('html', require('ejs').renderFile);
 			scope.network.app.use(require('express-domain-middleware'));
-			scope.network.app.set('view engine', 'ejs');
-			scope.network.app.set('views', path.join(__dirname, 'public'));
-			scope.network.app.use(scope.network.express.static(path.join(__dirname, 'public')));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
 			scope.network.app.use(bodyParser.json({limit: '2mb'}));
@@ -450,10 +420,10 @@ d.run(function () {
 		 * Once db, bus, schema and genesisblock are completed,
 		 * loads transaction, block, account and peers from logic folder.
 		 * @method logic
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
-		 */	
+		 */
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
@@ -534,10 +504,10 @@ d.run(function () {
 		 * Loads api from `api` folder using `config.api`, once modules, logger and
 		 * network are completed.
 		 * @method api
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
-		 */	
+		 */
 		api: ['modules', 'logger', 'network', function (scope, cb) {
 			Object.keys(config.api).forEach(function (moduleName) {
 				Object.keys(config.api[moduleName]).forEach(function (protocol) {
@@ -557,8 +527,8 @@ d.run(function () {
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules.rounds);
-			scope.logic.peers.bind(scope);
+			scope.logic.transaction.bindModules(scope.modules);
+			scope.logic.peers.bindModules(scope.modules);
 			cb();
 		}],
 
@@ -566,7 +536,7 @@ d.run(function () {
 		 * Once 'ready' is completed, binds and listens for connections on the
 		 * specified host and port for `scope.network.server`.
 		 * @method listen
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
 		 */
@@ -614,7 +584,6 @@ d.run(function () {
 			 * @property {Object} modules - Several modules functions.
 			 * @property {Object} network - Several network functions.
 			 * @property {string} nonce
-			 * @property {string} public - Path to lisk public folder.
 			 * @property {undefined} ready
 			 * @property {Object} schema - ZSchema with objects.
 			 * @property {Object} sequence - Sequence function, sequence Array.

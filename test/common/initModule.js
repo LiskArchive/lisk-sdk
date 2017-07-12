@@ -18,6 +18,7 @@ var Cache = require('../../modules/cache.js');
 var ed = require('../../helpers/ed');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
+var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
 
 var modulesLoader = new function () {
 
@@ -33,7 +34,6 @@ var modulesLoader = new function () {
 				sockets: express()
 			}
 		},
-		public: '../../public',
 		schema: new z_schema(),
 		ed: ed,
 		bus: {
@@ -48,7 +48,17 @@ var modulesLoader = new function () {
 				this.argsMessages = [];
 			}
 		},
-		nonce: randomString.generate(16)
+		nonce: randomString.generate(16),
+		dbSequence: new Sequence({
+			onWarning: function (current, limit) {
+				this.logger.warn('DB queue', current);
+			}
+		}),
+		sequence: new Sequence({
+			onWarning: function (current, limit) {
+				this.logger.warn('Main queue', current);
+			}
+		}),
 	};
 
 	/**
@@ -74,7 +84,7 @@ var modulesLoader = new function () {
 			break;
 		 case 'Block':
 		 	async.waterfall([
-				function (waterCb) {	
+				function (waterCb) {
 					return new Account(scope.db, scope.schema, scope.logger, waterCb);
 				},
 				function (account, waterCb) {
@@ -135,7 +145,19 @@ var modulesLoader = new function () {
 						return mapCb(err, memo);
 					}.bind(this));
 				}.bind(this), waterCb);
-			}.bind(this)
+			}.bind(this),
+
+			function (modules, waterCb) {
+				_.each(scope.logic, function (logic) {
+					if (typeof logic.bind === 'function') {
+						logic.bind({modules: modules});
+					}
+					if (typeof logic.bindModules === 'function') {
+						logic.bindModules(modules);
+					}
+				});
+				waterCb(null, modules);
+			}
 		], cb);
 	};
 
@@ -155,9 +177,7 @@ var modulesLoader = new function () {
 			{multisignatures: require('../../modules/multisignatures')},
 			{peers: require('../../modules/peers')},
 			{rounds: require('../../modules/rounds')},
-			{server: require('../../modules/server')},
 			{signatures: require('../../modules/signatures')},
-			{sql: require('../../modules/sql')},
 			{system: require('../../modules/system')},
 			{transactions: require('../../modules/transactions')},
 			{transport: require('../../modules/transport')}

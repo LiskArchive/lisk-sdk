@@ -9,8 +9,8 @@ var fs = require('fs');
 var ip = require('ip');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
+var Peer = require('../logic/peer.js');
 var sql = require('../sql/peers.js');
 var util = require('util');
 
@@ -71,7 +71,7 @@ __private.countByFilter = function (filter, cb) {
  * @returns {setImmediateCallback} peers
  */
 __private.getByFilter = function (filter, cb) {
-	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height'];
+	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
 	var limit  = filter.limit ? Math.abs(filter.limit) : null;
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
 
@@ -108,15 +108,11 @@ __private.getByFilter = function (filter, cb) {
 
 	// Apply filters (by AND)
 	var peers = library.logic.peers.list(true);
+
 	peers = peers.filter(function (peer) {
 		// var peer = __private.peers[index];
 		var passed = true;
 		_.each(filter, function (value, key) {
-			// Special case for dapp peers
-			if (key === 'dappid' && (peer[key] === null || (Array.isArray(peer[key]) && !_.includes(peer[key], String(value))))) {
-				passed = false;
-				return false;
-			}
 			// Every filter field need to be in allowed fields, exists and match value
 			if (_.includes(allowedFields, key) && !(peer[key] !== undefined && peer[key] === value)) {
 				passed = false;
@@ -147,22 +143,6 @@ __private.getByFilter = function (filter, cb) {
 	}
 
 	return setImmediate(cb, null, peers);
-};
-
-/**
- * Remove bans from peers list if clock period time has been pass.
- * @private
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb
- */
-__private.removeBans = function (cb) {
-	var now = Date.now();
-	_.each(library.logic.peers.list(), function (peer, index) {
-		if (peer.clock && peer.clock <= now) {
-			library.logic.peers.unban(peer);
-		}
-	});
-	return setImmediate(cb);
 };
 
 /**
@@ -230,8 +210,8 @@ __private.dbLoad = function (cb) {
 };
 
 /**
- * Inserts list of peers into `peers` table and inserts dapps peers
- * into `peers_dapp` table.
+ * Inserts list of peers into `peers` table
+ *
  * @implements library.db
  * @private
  * @param {function} cb - Callback function.
@@ -266,18 +246,6 @@ __private.dbSave = function (cb) {
 			t.none(insert_peers)
 		];
 
-		// Inserting dapps peers
-		_.each(peers, function (peer) {
-			if (peer.dappid) {
-				// If there are dapps on peer - push separately for every dapp
-				_.each (peer.dappid, function (dappid) {
-					var dapp_peer = peer;
-					dapp_peer.dappid = dappid;
-					queries.push(t.none(sql.addDapp, peer));
-				});
-			}
-		});
-
 		return t.batch(queries);
 	}).then(function (data) {
 		library.logger.info('Peers exported to database');
@@ -289,16 +257,6 @@ __private.dbSave = function (cb) {
 };
 
 // Public methods
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Peers.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(Peers.prototype.shared, call, args, cb);
-};
 
 /**
  * Sets peer state to active (2).
@@ -307,7 +265,7 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
  * @todo rename this function to activePeer or similar
  */
 Peers.prototype.update = function (peer) {
-	peer.state = 2;
+	peer.state = Peer.STATE.CONNECTED;
 	return library.logic.peers.upsert(peer);
 };
 
@@ -327,26 +285,6 @@ Peers.prototype.remove = function (pip, port) {
 		library.logger.debug('Cannot remove frozen peer', pip + ':' + port);
 	} else {
 		return library.logic.peers.remove ({ip: pip, port: port});
-	}
-};
-
-/**
- * Bans peer in peers list if it is not a peer from config file list.
- * @implements logic.peers.ban
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {function} Calls peers.ban
- */
-Peers.prototype.ban = function (pip, port, seconds) {
-	var frozenPeer = _.find(library.config.peers, function (peer) {
-		return peer.ip === pip && peer.port === port;
-	});
-	if (frozenPeer) {
-		// FIXME: Keeping peer frozen is bad idea at all
-		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
-	} else {
-		return library.logic.peers.ban (pip, port, seconds);
 	}
 };
 
@@ -412,7 +350,7 @@ Peers.prototype.discover = function (cb) {
 				}
 
 				// Set peer state to disconnected
-				peer.state = 1;
+				peer.state = Peer.STATE.DISCONNECTED;
 				// We rely on data from other peers only when new peer is discovered for the first time
 				library.logic.peers.upsert(peer, true);
 				return setImmediate(eachCb);
@@ -439,13 +377,18 @@ Peers.prototype.discover = function (cb) {
  * @return {peer[]} Filtered list of peers
  */
 Peers.prototype.acceptable = function (peers) {
-	return _.chain(peers).filter(function (peer) {
-		// Removing peers with private or address or with the same nonce
-		return !ip.isPrivate(peer.ip) && peer.nonce !== library.nonce;
-	}).uniqWith(function (a, b) {
-		// Removing non-unique peers
-		return (a.ip + a.port) === (b.ip + b.port);
-	}).value();
+	return _(peers)
+		.uniqWith(function (a, b) {
+			// Removing non-unique peers
+			return (a.ip + a.port) === (b.ip + b.port);
+		})
+		.filter(function (peer) {
+			// Removing peers with private address or nonce equal to self
+			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+				return peer.nonce !== modules.system.getNonce() && (peer.os !== 'lisk-js-api');
+			}
+			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce() && (peer.os !== 'lisk-js-api');
+		}).value();
 };
 
 /**
@@ -457,6 +400,7 @@ Peers.prototype.acceptable = function (peers) {
 Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
+	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	options.attempts = ['matched broadhash', 'unmatched broadhash'];
 	options.attempt = 0;
 	options.matched = 0;
@@ -470,16 +414,16 @@ Peers.prototype.list = function (options, cb) {
 			// Apply filters
 			peersList = peersList.filter(function (peer) {
 				if (options.broadhash) {
-					// Skip banned peers (state 0)
-					return peer.state > 0 && (
+					// Skip banned and disconnected peers (state 0 and 1)
+					return options.allowedStates.indexOf(peer.state) !== -1 && (
 						// Matched broadhash when attempt 0
 						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
 						// Unmatched broadhash when attempt 1
 						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
 					);
 				} else {
-					// Skip banned peers (state 0)
-					return peer.state > 0;
+					// Skip banned and disconnected peers (state 0 and 1)
+					return options.allowedStates.indexOf(peer.state) !== -1;
 				}
 			});
 			matched = peersList.length;
@@ -559,11 +503,11 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 /**
- * Discovers peers, updates them and removes bans in 10sec intervals loop.
+ * Discovers peers and updates them in 10sec intervals loop.
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
-	function peersDiscoveryAndUpdate () {
+	function peersDiscoveryAndUpdate (cb) {
 		async.series({
 			discoverPeers: function (seriesCb) {
 				library.logger.trace('Discovering new peers...');
@@ -595,14 +539,9 @@ Peers.prototype.onPeersReady = function () {
 					library.logger.trace('Peers updated', {updated: updated, total: peers.length});
 					return setImmediate(seriesCb);
 				});
-			},
-			removeBans: function (seriesCb) {
-				library.logger.trace('Checking peers bans...');
-
-				__private.removeBans(function (err) {
-					return setImmediate(seriesCb);
-				});
 			}
+		}, function () {
+			return setImmediate(cb);
 		});
 	}
 	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
@@ -637,13 +576,13 @@ Peers.prototype.shared = {
 	count: function (req, cb) {
 		async.series({
 			connected: function (cb) {
-				__private.countByFilter({state: 2}, cb);
+				__private.countByFilter({state: Peer.STATE.CONNECTED}, cb);
 			},
 			disconnected: function (cb) {
-				__private.countByFilter({state: 1}, cb);
+				__private.countByFilter({state: Peer.STATE.DISCONNECTED}, cb);
 			},
 			banned: function (cb) {
-				__private.countByFilter({state: 0}, cb);
+				__private.countByFilter({state: Peer.STATE.BANNED}, cb);
 			}
 		}, function (err, res) {
 			if (err) {

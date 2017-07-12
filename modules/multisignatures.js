@@ -5,7 +5,6 @@ var crypto = require('crypto');
 var extend = require('extend');
 var genesisblock = null;
 var Multisignature = require('../logic/multisignature.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/multisignatures.js');
 var sql = require('../sql/multisignatures.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -164,17 +163,6 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			return done(cb);
 		});
 	}
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Multisignatures.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
@@ -364,17 +352,17 @@ Multisignatures.prototype.shared = {
 
 		function checkGroupPermisions (cb) {
 			var permissionDenied = (
-			scope.transaction.asset.multisignature.keysgroup.indexOf('+' + scope.keypair.publicKey.toString('hex')) === -1
-		);
+				scope.transaction.asset.multisignature.keysgroup.indexOf('+' + scope.keypair.publicKey.toString('hex')) === -1
+			);
 
 			if (permissionDenied) {
 				return setImmediate(cb, 'Permission to sign transaction denied');
 			}
 
 			var alreadySigned = (
-			Array.isArray(scope.transaction.signatures) &&
+				Array.isArray(scope.transaction.signatures) &&
 			scope.transaction.signatures.indexOf(scope.signature.toString('hex')) !== -1
-		);
+			);
 
 			if (alreadySigned) {
 				return setImmediate(cb, 'Transaction already signed');
@@ -388,12 +376,12 @@ Multisignatures.prototype.shared = {
 
 			if (!scope.transaction.requesterPublicKey) {
 				permissionDenied = (
-				(!Array.isArray(scope.sender.multisignatures) || scope.sender.multisignatures.indexOf(scope.keypair.publicKey.toString('hex')) === -1)
-			);
+					(!Array.isArray(scope.sender.multisignatures) || scope.sender.multisignatures.indexOf(scope.keypair.publicKey.toString('hex')) === -1)
+				);
 			} else {
 				permissionDenied = (
-				(scope.sender.publicKey !== scope.keypair.publicKey.toString('hex') || (scope.transaction.senderPublicKey !== scope.keypair.publicKey.toString('hex')))
-			);
+					(scope.sender.publicKey !== scope.keypair.publicKey.toString('hex') || (scope.transaction.senderPublicKey !== scope.keypair.publicKey.toString('hex')))
+				);
 			}
 
 			if (permissionDenied)  {

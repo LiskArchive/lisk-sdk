@@ -45,7 +45,10 @@
     },
     "peers": {
         "enabled": true,
-        "list": [],
+        "list": [{
+            "ip": "127.0.0.1",
+            "port": 9999
+        }],
         "access": {
             "blackList": []
         },
@@ -192,11 +195,6 @@
             "key": "./ssl/lisk.key",
             "cert": "./ssl/lisk.crt"
         }
-    },
-    "dapp": {
-        "masterrequired": true,
-        "masterpassword": "",
-        "autoexec": []
     },
     "nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }

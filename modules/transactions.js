@@ -6,7 +6,6 @@ var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var OrderBy = require('../helpers/orderBy.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
@@ -16,7 +15,6 @@ var Transfer = require('../logic/transfer.js');
 // Private fields
 var __private = {};
 var shared = {};
-var genesisblock = null;
 var modules;
 var library;
 var self;
@@ -45,8 +43,9 @@ function Transactions (cb, scope) {
 		logic: {
 			transaction: scope.logic.transaction,
 		},
+		genesisblock: scope.genesisblock
 	};
-	genesisblock = library.genesisblock;
+
 	self = this;
 
 	__private.transactionPool = new TransactionPool(
@@ -501,7 +500,7 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
 
-	if (!sender && transaction.blockId !== genesisblock.block.id) {
+	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else {
 		if (transaction.requesterPublicKey) {
@@ -559,17 +558,6 @@ Transactions.prototype.receiveTransactions = function (transactions, broadcast, 
  */
 Transactions.prototype.fillPool = function (cb) {
 	return __private.transactionPool.fillPool(cb);
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Transactions.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 /**

@@ -120,8 +120,6 @@ Chain.prototype.saveBlock = function (block, cb) {
  */
 __private.afterSave = function (block, cb) {
 	library.bus.message('transactionsSaved', block.transactions);
-	// Execute afterSave callbacks for each transaction, depends on tx type
-	// see: logic.outTransfer.afterSave, logic.dapp.afterSave
 	async.eachSeries(block.transactions, function (transaction, cb) {
 		return library.logic.transaction.afterSave(transaction, cb);
 	}, function (err) {

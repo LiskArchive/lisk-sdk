@@ -3,7 +3,6 @@
 var async = require('async');
 var crypto = require('crypto');
 var os = require('os');
-var sandboxHelper = require('../helpers/sandbox.js');
 var semver = require('semver');
 var sql = require('../sql/system.js');
 
@@ -112,6 +111,13 @@ System.prototype.getNethash = function () {
 };
 
 /**
+ * Gets private variable `nonce`
+ * @return {nonce}
+ */
+System.prototype.getNonce = function () {
+	return __private.nonce;
+};
+/**
  * Gets private variable `nethash` and compares with input param.
  * @param {hash}
  * @return {boolean} True if input param is equal to private value.
@@ -208,17 +214,6 @@ System.prototype.update = function (cb) {
 		modules.transport.headers(__private);
 		return setImmediate(cb, err);
 	});
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-System.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
