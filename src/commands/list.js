@@ -2,7 +2,6 @@ import config from '../../config.json';
 import tablify from '../utils/tablify';
 import query from '../utils/query';
 
-
 export default function listCommand(vorpal) {
 	function switchType(type) {
 		return {
