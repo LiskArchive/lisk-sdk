@@ -13,8 +13,7 @@
     "test:now": "npm test -- --grep @now",
     "test:now:watch": "npm run test:now -- --watch",
     "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
-    "prepush": "grunt eslint && npm test",
-    "postinstall": "npm link lisky"
+    "prepush": "grunt eslint && npm test"
   },
   "repository": {
     "type": "git",
