@@ -8,7 +8,7 @@ describe('lisky list command palette', () => {
 	beforeEach(() => {
 		vorpal = new Vorpal();
 		vorpal.use(list);
-		vorpal.pipe(output => '');
+		vorpal.pipe(() => '');
 	});
 
 	afterEach(() => {
@@ -75,20 +75,19 @@ describe('lisky list command palette', () => {
 		});
 
 		it('should have the right parameters with transaction, handling error from http', () => {
-			stub.resolves({error: 'transaction not found'});
+			stub.resolves({ error: 'transaction not found' });
 
 			vorpal.execSync(command);
 
 			(query.isTransactionQuery.called).should.be.equal(true);
 		});
-
 	});
 
 	describe('options', () => {
 		let stub;
 		const transactionsCommand = 'list transactions 16388447461355055139 14735719251498448056';
-		const jsonCommand = `${ transactionsCommand } -j`;
-		const noJsonCommand = `${ transactionsCommand } --no-json`;
+		const jsonCommand = `${transactionsCommand} -j`;
+		const noJsonCommand = `${transactionsCommand} --no-json`;
 
 		beforeEach(() => {
 			stub = sinon.stub(query, 'isTransactionQuery');
@@ -115,13 +114,11 @@ describe('lisky list command palette', () => {
 		});
 
 		it('should print json, handling error from http', () => {
-			stub.resolves({error: 'transaction not found'});
+			stub.resolves({ error: 'transaction not found' });
 
 			vorpal.execSync(jsonCommand);
 
 			(query.isTransactionQuery.called).should.be.equal(true);
 		});
-
 	});
-
 });

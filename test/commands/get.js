@@ -5,12 +5,12 @@ const query = require('../../src/utils/query');
 describe('lisky get command palette', () => {
 	let vorpal;
 	const transactionId = '16388447461355055139';
-	const transactionCommand = `get transaction ${ transactionId }`;
+	const transactionCommand = `get transaction ${transactionId}`;
 
 	beforeEach(() => {
 		vorpal = new Vorpal();
 		vorpal.use(get);
-		vorpal.pipe(output => '');
+		vorpal.pipe(() => '');
 	});
 
 	afterEach(() => {
@@ -19,27 +19,25 @@ describe('lisky get command palette', () => {
 	});
 
 	it('should test command get account', () => {
-		 sinon.stub(query, 'isAccountQuery');
+		sinon.stub(query, 'isAccountQuery');
 
-		 const command = 'get account 13133549779353512613L';
-		 vorpal.execSync(command);
+		const command = 'get account 13133549779353512613L';
+		vorpal.execSync(command);
 
-		 (query.isAccountQuery.called).should.be.equal(true);
+		(query.isAccountQuery.called).should.be.equal(true);
 
-		 query.isAccountQuery.restore();
-
+		query.isAccountQuery.restore();
 	});
 
 	it('should have the right parameters with block', () => {
-		 sinon.stub(query, 'isBlockQuery');
+		sinon.stub(query, 'isBlockQuery');
 
-		 const command = 'get block 3641049113933914102';
-		 vorpal.execSync(command);
+		const command = 'get block 3641049113933914102';
+		vorpal.execSync(command);
 
-		 (query.isBlockQuery.called).should.be.equal(true);
+		(query.isBlockQuery.called).should.be.equal(true);
 
-		 query.isBlockQuery.restore();
-
+		query.isBlockQuery.restore();
 	});
 
 	it('should have the right parameters with delegate', () => {
@@ -51,7 +49,6 @@ describe('lisky get command palette', () => {
 		(query.isDelegateQuery.called).should.be.equal(true);
 
 		query.isDelegateQuery.restore();
-
 	});
 
 	describe('get transaction', () => {
@@ -79,19 +76,18 @@ describe('lisky get command palette', () => {
 		});
 
 		it('should have the right parameters with transaction, handling error from http', () => {
-			stub.resolves({error: 'transaction not found'});
+			stub.resolves({ error: 'transaction not found' });
 
 			vorpal.execSync(transactionCommand);
 
 			(query.isTransactionQuery.called).should.be.equal(true);
 		});
-
 	});
 
 	describe('options', () => {
 		let stub;
-		const jsonCommand = `${ transactionCommand } -j`;
-		const noJsonCommand = `${ transactionCommand } --no-json`;
+		const jsonCommand = `${transactionCommand} -j`;
+		const noJsonCommand = `${transactionCommand} --no-json`;
 
 		beforeEach(() => {
 			stub = sinon.stub(query, 'isTransactionQuery');
@@ -115,13 +111,11 @@ describe('lisky get command palette', () => {
 		});
 
 		it('should have the right parameters with transaction, handling error from http', () => {
-			stub.resolves({error: 'transaction not found'});
+			stub.resolves({ error: 'transaction not found' });
 
 			vorpal.execSync(jsonCommand);
 
 			(query.isTransactionQuery.called).should.be.equal(true);
 		});
-
 	});
-
 });

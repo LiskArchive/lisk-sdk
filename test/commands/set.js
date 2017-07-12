@@ -7,7 +7,7 @@ describe('set command', () => {
 	beforeEach(() => {
 		vorpal = new Vorpal();
 		vorpal.use(set);
-		vorpal.pipe(output => '');
+		vorpal.pipe(() => '');
 	});
 
 	afterEach(() => {
@@ -17,6 +17,7 @@ describe('set command', () => {
 
 	describe('should exist', () => {
 		let setCommand;
+		// eslint-disable-next-line no-underscore-dangle
 		const filterCommand = vorpalCommand => vorpalCommand._name === 'set';
 
 		beforeEach(() => {
@@ -24,16 +25,18 @@ describe('set command', () => {
 		});
 
 		it('should be available', () => {
+			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args).should.be.length(2);
+			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._name).should.be.equal('set');
-
 		});
 
 		it('should have 2 require inputs', () => {
+			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args[0].required).should.be.true();
+			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args[1].required).should.be.true();
 		});
-
 	});
 
 	describe('should set json to true', () => {
@@ -45,31 +48,24 @@ describe('set command', () => {
 		it('should be set json true and give feedback', () => {
 			const result = vorpal.execSync(setJsonTrueCommand);
 			(result).should.be.equal(setJsonTrueResult);
-
 		});
 
 		it('should be set json back to false and give feedback', () => {
 			const result = vorpal.execSync(setJsonFalseCommand);
 			(result).should.be.equal(setJsonFalseResult);
-
 		});
 
 		it('should be set json back to false and give feedback', () => {
 			const result = vorpal.execSync(setJsonFalseCommand);
 			(result).should.be.equal(setJsonFalseResult);
-
 		});
 
-		it('should be set json back to false and give feedback asynchronous', () => {
-			return vorpal.exec(setJsonFalseCommand, function (result) {
-				(result).should.be.equal(setJsonFalseResult);
-			});
-		});
-
+		it('should be set json back to false and give feedback asynchronous', () => vorpal.exec(setJsonFalseCommand, (result) => {
+			(result).should.be.equal(setJsonFalseResult);
+		}));
 	});
 
 	describe('switch testnet and mainnet', () => {
-
 		it('should set testnet to true', () => {
 			const command = 'set testnet true';
 
@@ -85,7 +81,5 @@ describe('set command', () => {
 
 			(result).should.be.equal('successfully set testnet to false');
 		});
-
 	});
-
 });

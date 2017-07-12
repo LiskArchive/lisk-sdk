@@ -51,5 +51,4 @@ describe('query class with different parameters', () => {
 
 		(stub.calledWithExactly(route, options)).should.be.true();
 	});
-
 });

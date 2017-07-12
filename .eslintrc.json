@@ -1,44 +1,28 @@
 {
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module"
-  },
-  "rules": {
-    "semi": "error",
-    "no-eq-null": "off",
-    "indent": ["error", "tab"],
-    "eqeqeq": "off",
-    "curly": "error",
-    "no-undef": "error",
-    "quotes": ["error", "single"],
-    "space-before-function-paren": ["error", {
-      "anonymous": "always",
-      "named": "always",
-      "asyncArrow": "ignore"
-    }],
-    "keyword-spacing": "error",
-    "callback-return": "off",
-    "global-require": "off",
-    "handle-callback-err": "off",
-    "no-mixed-requires": "off",
-    "no-new-require": "off"
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
-  },
-  "globals": {
-    "it": true,
-    "describe": true,
-    "before": true,
-    "beforeEach": true,
-    "after": true,
-    "afterEach": true,
-    "sinon": true,
-    "should": true
-  },
-  "plugins": []
-
+	"extends": [
+		"airbnb-base"
+	],
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module"
+	},
+	"rules": {
+		"camelcase": ["error", { "properties": "always" }],
+		"eqeqeq": ["error", "always"],
+		"indent": ["error", "tab"],
+		"new-cap": ["error", { "newIsCap": true, "capIsNewExceptionPattern": "should[.(]" }],
+		"no-console": ["error", { "allow": ["error", "info", "warn"] }],
+		"no-tabs": "off"
+	},
+	"env": {
+		"browser": true,
+		"es6": true,
+		"mocha": true,
+		"node": true
+	},
+	"globals": {
+		"should": true,
+		"sinon": true
+	},
+	"plugins": []
 }
-
