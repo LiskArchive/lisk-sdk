@@ -64,9 +64,9 @@ describe('blocks/process', function () {
 							'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
 							'forks_stat',
 							'votes where "transactionId" = \'17502993173215211070\''
-							], function(table, seriesCb) {
-								clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-						}, function(err, result) {
+						], function (table, seriesCb) {
+							clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+						}, function (err, result) {
 							if (err) {
 								return setImmediate(err);
 							}
@@ -74,18 +74,18 @@ describe('blocks/process', function () {
 						});
 					},
 					loadTables: function (seriesCb) {
-						async.everySeries(loadTables, function(table, seriesCb) {
+						async.everySeries(loadTables, function (table, seriesCb) {
 							var cs = new db.$config.pgp.helpers.ColumnSet(
 								table.fields, {table: table.name}
 							);
 							var insert = db.$config.pgp.helpers.insert(table.data, cs);
 							db.none(insert)
-							.then(function (data) {
-								seriesCb(null, true);
-							}).catch(function (err) {
-								return setImmediate(err);
-							});
-						}, function(err, result) {
+								.then(function (data) {
+									seriesCb(null, true);
+								}).catch(function (err) {
+									return setImmediate(err);
+								});
+						}, function (err, result) {
 							if (err) {
 								return setImmediate(err);
 							}
