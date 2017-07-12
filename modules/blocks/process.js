@@ -205,8 +205,8 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 				return setImmediate(cb, err, modules.blocks.lastBlock.get());
 			});
 		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#loadBlocksOffset error');
+			library.logger.error(err);
+			return setImmediate(cb, ['Blocks#loadBlocksOffset error', err].join(': '));
 		});
 	}, cb);
 };
