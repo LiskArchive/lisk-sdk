@@ -172,20 +172,19 @@ describe('blocks/verify', function () {
 				{'block': require('../../../../logic/block')},
 				{'transaction': require('../../../../logic/transaction')},
 				{'account': require('../../../../logic/account')},
-			], {}, function (err, __blocks) {
+			], {}, function (err, __modules) {
 				if (err) {
 					return done(err);
 				}
-				__blocks.blocks.verify.onBind(__blocks);
-				__blocks.delegates.onBind(__blocks);
-				__blocks.transactions.onBind(__blocks);
-				__blocks.blocks.chain.onBind(__blocks);
-				__blocks.rounds.onBind(__blocks);
-				__blocks.transport.onBind(__blocks);
-				blockLogic.scope.transaction.bindModules(__blocks.rounds);
-				blocks = __blocks.blocks;
-				blocksVerify = __blocks.blocks.verify;
-				accounts = __blocks.accounts;
+				__modules.blocks.verify.onBind(__modules);
+				__modules.delegates.onBind(__modules);
+				__modules.transactions.onBind(__modules);
+				__modules.blocks.chain.onBind(__modules);
+				__modules.rounds.onBind(__modules);
+				__modules.transport.onBind(__modules);
+				blocks = __modules.blocks;
+				blocksVerify = __modules.blocks.verify;
+				accounts = __modules.accounts;
 				done();
 			});
 		});
