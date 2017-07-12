@@ -1,6 +1,6 @@
-const Table = require('cli-table2');
+import Table from 'cli-table2';
 
-module.exports = function tablify(data) {
+export default function tablify(data) {
 	const table = new Table();
 
 	Object.entries(data)

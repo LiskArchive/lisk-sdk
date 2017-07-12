@@ -1,9 +1,9 @@
-const config = require('../../config.json');
-const tablify = require('../utils/tablify');
-const query = require('../utils/query');
+import config from '../../config.json';
+import tablify from '../utils/tablify';
+import query from '../utils/query';
 
 
-module.exports = function listCommand(vorpal) {
+export default function listCommand(vorpal) {
 	function switchType(type) {
 		return {
 			accounts: 'account',

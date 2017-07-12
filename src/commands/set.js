@@ -1,7 +1,7 @@
-const config = require('../../config.json');
-const fse = require('fs-extra');
+import config from '../../config.json';
+import fse from 'fs-extra';
 
-module.exports = function setCommand(vorpal) {
+export default function setCommand(vorpal) {
 	function setJSON(value) {
 		config.json = value;
 		fse.writeFileSync('config.json', JSON.stringify(config, null, 2), 'utf8');

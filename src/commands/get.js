@@ -1,8 +1,8 @@
-const config = require('../../config.json');
-const tablify = require('../utils/tablify');
-const query = require('../utils/query');
+import config from '../../config.json';
+import tablify from '../utils/tablify';
+import query from '../utils/query';
 
-module.exports = function getCommand(vorpal) {
+export default function getCommand(vorpal) {
 	function switchType(type) {
 		return {
 			account: 'account',
@@ -20,12 +20,13 @@ module.exports = function getCommand(vorpal) {
 		.description('Get information from <type> with parameter <input>. \n Types available: account, address, block, delegate, transaction \n E.g. get delegate lightcurve \n e.g. get block 5510510593472232540')
 		.autocomplete(['account', 'address', 'block', 'delegate', 'transaction'])
 		.action((userInput) => {
+
 			const getType = {
-				account: query.isAccountQuery,
-				address: query.isAccountQuery,
-				block: query.isBlockQuery,
-				delegate: query.isDelegateQuery,
-				transaction: query.isTransactionQuery,
+				account: query.isAccountQuery.bind(query),
+				address: query.isAccountQuery.bind(query),
+				block: query.isBlockQuery.bind(query),
+				delegate: query.isDelegateQuery.bind(query),
+				transaction: query.isTransactionQuery.bind(query),
 			};
 
 			const output = getType[userInput.type](userInput.input);

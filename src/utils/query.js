@@ -1,4 +1,4 @@
-const lisk = require('./liskInstance');
+import lisk from './liskInstance';
 
 class Query {
 	constructor() {
@@ -6,6 +6,7 @@ class Query {
 	}
 
 	isBlockQuery(input) {
+		//console.log(this);
 		return this.client.sendRequest('blocks/get', { id: input });
 	}
 
@@ -22,4 +23,4 @@ class Query {
 	}
 }
 
-module.exports = new Query();
+export default new Query();
