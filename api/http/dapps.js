@@ -30,7 +30,7 @@ function DappsHttpApi (dappsModule, app) {
 	});
 
 	router.get('/', httpApi.middleware.sanitize('query', schema.list, dappsModule.internal.list));
-	router.get('/:id', httpApi.middleware.sanitize('param', schema.get, dappsModule.internal.get));
+	router.get('/get', httpApi.middleware.sanitize('query', schema.get, dappsModule.internal.get));
 
 	httpApi.registerEndpoint('/api/dapps', app, router, dappsModule.isLoaded);
 }
