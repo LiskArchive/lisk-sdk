@@ -10,7 +10,7 @@ node('lisky-01'){
         sh '''#!/bin/bash
         # Install Deps
         npm install --verbose
-        cp ~/.coveralls.yml .
+        cp ~/.coveralls.yml-lisky .coveralls.yml
         '''
       } catch (err) {
         currentBuild.result = 'FAILURE'
@@ -18,11 +18,23 @@ node('lisky-01'){
       }
     }
 
+    stage ('Run Eslint') {
+      try {
+        sh '''#!/bin/bash
+        # Run Eslint
+        grunt eslint
+        '''
+      } catch (err) {
+        currentBuild.result = 'FAILURE'
+        error('Stopping build, tests failed')
+      }
+    }
+
     stage ('Run tests') {
       try {
         sh '''#!/bin/bash
-        # Run Tests and eslint
-        npm run jenkins
+        # Run Tests
+        npm run test
         '''
       } catch (err) {
         currentBuild.result = 'FAILURE'
