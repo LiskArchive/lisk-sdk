@@ -25,7 +25,7 @@ describe('lisky get command palette', () => {
 	});
 
 	it('should test command get account', () => {
-		sinon.stub(query, 'isAccountQuery');
+		sinon.stub(query, 'isAccountQuery').resolves({ account: {} });
 		const restore = query.isAccountQuery.restore;
 
 		const command = 'get account 13133549779353512613L';
@@ -35,7 +35,7 @@ describe('lisky get command palette', () => {
 	});
 
 	it('should have the right parameters with block', () => {
-		sinon.stub(query, 'isBlockQuery');
+		sinon.stub(query, 'isBlockQuery').resolves({ block: {} });
 		const restore = query.isBlockQuery.restore;
 
 		const command = 'get block 3641049113933914102';
@@ -45,7 +45,7 @@ describe('lisky get command palette', () => {
 	});
 
 	it('should have the right parameters with delegate', () => {
-		sinon.stub(query, 'isDelegateQuery');
+		sinon.stub(query, 'isDelegateQuery').resolves({ delegate: {} });
 		const restore = query.isDelegateQuery.restore;
 
 		const command = 'get delegate lightcurve';
@@ -58,7 +58,7 @@ describe('lisky get command palette', () => {
 		let stub;
 
 		beforeEach(() => {
-			stub = sinon.stub(query, 'isTransactionQuery');
+			stub = sinon.stub(query, 'isTransactionQuery').resolves({ transaction: {} });
 		});
 
 		afterEach(() => {
@@ -71,8 +71,6 @@ describe('lisky get command palette', () => {
 		});
 
 		it('should have the right parameters with transaction, handling response', () => {
-			stub.resolves({ transactionid: '123' });
-
 			return vorpal.exec(transactionCommand)
 				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
@@ -91,7 +89,7 @@ describe('lisky get command palette', () => {
 		const noJsonCommand = `${transactionCommand} --no-json`;
 
 		beforeEach(() => {
-			stub = sinon.stub(query, 'isTransactionQuery');
+			stub = sinon.stub(query, 'isTransactionQuery').resolves({ transaction: '{}' });
 		});
 
 		afterEach(() => {
@@ -99,8 +97,6 @@ describe('lisky get command palette', () => {
 		});
 
 		it('should print json output', () => {
-			stub.resolves({ transactionId: '123' });
-
 			return vorpal.exec(jsonCommand)
 				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
