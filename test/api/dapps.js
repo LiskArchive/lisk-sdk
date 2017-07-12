@@ -186,8 +186,8 @@ describe('GET /api/dapps/?name=', function () {
 		});
 	});
 
-	it('using unknown name should be ok', function (done) {
-		var name = 'fooBar';
+	it('using name == "Unknown" should be ok', function (done) {
+		var name = 'Unknown';
 
 		getDapps(name, function (err, res) {
 			node.expect(res.body).to.have.property('success');
