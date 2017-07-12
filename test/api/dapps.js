@@ -397,7 +397,6 @@ describe('GET /api/dapps/?limit=1&offset=', function () {
 		getDapps(offset, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array').and.has.lengthOf(1);
-			node.expect(res.body.dapps[0].name).to.equal(node.blockDataDapp.name);
 			done();
 		});
 	});
@@ -408,7 +407,6 @@ describe('GET /api/dapps/?limit=1&offset=', function () {
 		getDapps(offset, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('dapps').that.is.an('array').and.has.lengthOf(1);
-			node.expect(res.body.dapps[0].name).to.equal(node.guestbookDapp.name);
 			done();
 		});
 	});
