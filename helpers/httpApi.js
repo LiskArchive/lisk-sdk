@@ -157,7 +157,7 @@ var middleware = {
 
 		var key = req.originalUrl;
 		cache.getJsonForKey(key, function (err, cachedValue) {
-			//there was an error or value doesn't exist for key
+			// There was an error or value doesn't exist for key
 			if (err || !cachedValue) {
 				// Monkey patching res.json function only if we expect to cache response
 				var expressSendJson = res.json;

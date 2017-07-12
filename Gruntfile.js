@@ -42,7 +42,6 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s/logs', version_dir),
 						util.format('mkdir -p %s/pids', version_dir),
 						util.format('cp %s/app.js %s', release_dir, version_dir),
-						util.format('cp %s/workersController.js %s', release_dir, version_dir),
 						util.format('cp %s/config.json %s', __dirname, version_dir),
 						util.format('cp %s/package.json %s', __dirname, version_dir),
 						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
@@ -68,7 +67,7 @@ module.exports = function (grunt) {
 			},
 
 			coverageSingle: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST',
+				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST',
 				maxBuffer: maxBufferSize
 			},
 
@@ -90,6 +89,10 @@ module.exports = function (grunt) {
 			createBundles: {
 				command: 'npm run create-bundles',
 				maxBuffer: maxBufferSize
+			},
+
+			coverageReport: {
+				command: 'rm -f ./test/.coverage-unit/lcov.info; ./node_modules/.bin/istanbul report --root ./test/.coverage-unit/ --dir ./test/.coverage-unit'
 			}
 		},
 
@@ -134,6 +137,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('jenkins', ['exec:coverageSingle']);
+	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
