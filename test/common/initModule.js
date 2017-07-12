@@ -42,12 +42,12 @@ var modulesLoader = new function () {
 		nonce: randomString.generate(16),
 		dbSequence: new Sequence({
 			onWarning: function (current, limit) {
-				scope.logger.warn('DB queue', current);
+				this.logger.warn('DB queue', current);
 			}
 		}),
 		sequence: new Sequence({
 			onWarning: function (current, limit) {
-				scope.logger.warn('Main queue', current);
+				this.logger.warn('Main queue', current);
 			}
 		}),
 	};
