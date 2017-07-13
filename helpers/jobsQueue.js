@@ -21,7 +21,7 @@ var jobsQueue = {
 			});
 		};
 
-		jobsQueue.jobs[name] = setTimeout(nextJob, time);
+		jobsQueue.jobs[name] = nextJob();
 		return jobsQueue.jobs[name];
 	}
 
