@@ -20,7 +20,7 @@ var wsCommunication = {
 		var wsOptions = {
 			protocol: 'http',
 			hostname: ip || '127.0.0.1',
-			port: +port || 4000,
+			port: +port || 5000,
 			autoReconnect: true,
 			query: headers !== undefined ? headers : node.generatePeerHeaders(ip, port)
 		};
@@ -49,15 +49,15 @@ var wsCommunication = {
 	// Get the given path
 	call: function (procedure, data, done, includePeer) {
 		if (!this.defaultConnectionState) {
-			this.defaultConnectionState = new ConnectionState('127.0.0.1', 4000);
-			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 4000);
+			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
+			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 5000);
 			constants.setConst('headers', this.defaultSocketPeerHeaders);
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
 		if (includePeer && typeof data === 'object') {
 			data.peer =  _.assign({
 				ip: '127.0.0.1',
-				port: 4000
+				port: 5000
 			}, this.defaultSocketPeerHeaders);
 		}
 
@@ -69,7 +69,7 @@ var wsCommunication = {
 
 		var peersConnectionsDefers = Array.apply(null, new Array(numOfPeers)).map(function () {
 			var socketDefer = Q.defer();
-			this.connect(ip, 4000, socketDefer, node.generatePeerHeaders(ip, node.randomizeSelection(1000) + 3001));
+			this.connect(ip, 5000, socketDefer, node.generatePeerHeaders(ip, node.randomizeSelection(1000) + 4001));
 			return socketDefer;
 		}.bind(this));
 

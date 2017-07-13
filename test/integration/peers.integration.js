@@ -46,7 +46,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 				if (isPickedWithProbability(syncModeArgs.PROBABILITY)) {
 					peersList.push({
 						ip: '127.0.0.1',
-						port: 4000 + index
+						port: 5000 + index
 					});
 				}
 			});
@@ -55,7 +55,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 		case SYNC_MODE.ALL_TO_FIRST:
 			return [{
 				ip: '127.0.0.1',
-				port: 4001
+				port: 5001
 			}];
 			break;
 
@@ -69,7 +69,7 @@ function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
 	return Array.apply(null, new Array(numOfPeers)).map(function (val, index) {
 		return {
 			ip: '127.0.0.1',
-			port: 4000 + index,
+			port: 5000 + index,
 			database: 'lisk_local_' + index,
 			peers: {
 				list: generateNodePeers(numOfPeers, syncMode)
@@ -99,7 +99,7 @@ function generatePM2NodesConfig (testNodeConfigs) {
 			'script': 'app.js',
 			'name': 'node_' + index,
 			'args': ' -p ' + nodeConfig.port +
-			' -h ' + (nodeConfig.port + 1000) +
+			' -h ' + (nodeConfig.port - 1000) +
 			' -x ' + peersAsString(nodeConfig.peers.list) +
 			' -d ' + nodeConfig.database,
 			'env': {
@@ -217,7 +217,7 @@ before(function (done) {
 	};
 
 	testNodeConfigs.forEach(function (testNodeConfig) {
-		waitUntilBlockchainReady(nodeReadyCb, 20, 2000, 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port + 1000));
+		waitUntilBlockchainReady(nodeReadyCb, 20, 2000, 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000));
 	});
 });
 
@@ -292,7 +292,7 @@ describe('propagation', function () {
 		before(function (done) {
 			Q.all(testNodeConfigs.map(function (testNodeConfig) {
 				return popsicle.get({
-					url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port + 1000) + '/api/blocks',
+					url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
 					headers: {
 						'Accept': 'application/json',
 						'ip': '0.0.0.0',

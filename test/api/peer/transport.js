@@ -18,7 +18,7 @@ describe('handshake', function () {
 
 	it('should not connect without headers', function (done) {
 
-		ws.connect('127.0.0.1', 4000, socketDefer, null);
+		ws.connect('127.0.0.1', 5000, socketDefer, null);
 
 		socketDefer.promise
 			.then(function (socket) {
@@ -31,10 +31,10 @@ describe('handshake', function () {
 	it('using incorrect nethash in headers should fail', function (done) {
 		socketDefer = Q.defer();
 
-		var headers = node.generatePeerHeaders('127.0.0.1', 4002);
+		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
 		headers['nethash'] = 'incorrect';
 
-		ws.connect('127.0.0.1', 4000, socketDefer, headers);
+		ws.connect('127.0.0.1', 5000, socketDefer, headers);
 
 		socketDefer.promise
 			.then(function (socket) {
@@ -47,10 +47,10 @@ describe('handshake', function () {
 	it('using incorrect version in headers should fail', function (done) {
 		socketDefer = Q.defer();
 
-		var headers = node.generatePeerHeaders('127.0.0.1', 4002);
+		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
 		headers['version'] = '0.1.0a';
 
-		ws.connect('127.0.0.1', 4000, socketDefer, headers);
+		ws.connect('127.0.0.1', 5000, socketDefer, headers);
 
 		socketDefer.promise
 			.then(function (socket) {
@@ -63,10 +63,10 @@ describe('handshake', function () {
 	it('should not accept itself as a peer', function (done) {
 		socketDefer = Q.defer();
 
-		var headers = node.generatePeerHeaders('127.0.0.1', 4000);
+		var headers = node.generatePeerHeaders('127.0.0.1', 5000);
 		headers['version'] = '0.1.0a';
 
-		ws.connect('127.0.0.1', 4000, socketDefer, headers);
+		ws.connect('127.0.0.1', 5000, socketDefer, headers);
 
 		socketDefer.promise
 			.then(function (socket) {
@@ -80,7 +80,7 @@ describe('handshake', function () {
 
 		var socketDefer = Q.defer();
 
-		ws.connect('127.0.0.1', 4000, socketDefer, node.generatePeerHeaders('127.0.0.1', 4002));
+		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
 
 		socketDefer.promise
 			.then(function (socket) {
@@ -95,7 +95,7 @@ describe('handshake', function () {
 
 		var socketDefer = Q.defer();
 
-		ws.connect('127.0.0.1', 4000, socketDefer, node.generatePeerHeaders('127.0.0.1', 4002));
+		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
 
 		socketDefer.promise
 			.then(function (socket) {
@@ -130,7 +130,7 @@ describe('RPC', function () {
 
 	before(function (done) {
 		var socketDefer = Q.defer();
-		ws.connect('127.0.0.1', 4000, socketDefer);
+		ws.connect('127.0.0.1', 5000, socketDefer);
 		socketDefer.promise
 			.then(function (socket) {
 				clientSocket = socket;
@@ -197,16 +197,22 @@ describe('RPC', function () {
 
 		it('should should work ok with asking for a list multiple times', function (done) {
 
+			var count = 0;
 			for (var i = 0; i < 100; i += 1) {
 				clientSocket.wampSend('list')
 					.then(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('peers').to.be.an('array');
-						done();
+						count += 1;
+						if (count === 99) {
+							return done();
+						}
 					}).catch(function (err) {
 						done(err);
 					});
 			}
+
+
 		});
 	});
 
