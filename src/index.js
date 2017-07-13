@@ -14,11 +14,15 @@ fse.readdirSync(commandsDir).forEach((command) => {
 	lisky.use(commandModule.default);
 });
 
+const isInteractive = process.argv.length > 2;
+
 lisky
 	.delimiter('lisky>')
-	.history('lisky')
-	.show();
+	.history('lisky');
 
+if (!isInteractive) {
+	lisky.show();
+}
 
 lisky.find('help').alias('?');
 lisky.find('exit').description(`Exits ${config.name}.`);
