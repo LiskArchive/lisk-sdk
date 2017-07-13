@@ -7,7 +7,7 @@
     "lisky": "./bin/lisky"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "babel-node src/index.js",
     "test": "NODE_ENV=test nyc mocha --compilers js:babel-register",
     "test:watch": "npm test -- --watch",
     "test:now": "npm test -- --grep @now",
