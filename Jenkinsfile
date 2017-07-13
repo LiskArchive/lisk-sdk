@@ -206,10 +206,10 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				'''
 				}
 			}, //End node-01 tests
-			"Functional Peer - Peer" : {
+			"Functional Peer - Peers" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/peer.js TEST_TYPE='FUNC'
+					export TEST=test/api/peers.js TEST_TYPE='FUNC'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
 					'''
@@ -269,10 +269,19 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},
+			"Functional Peer - Transport" : {
+				node('node-02'){
+					sh '''
+					export TEST=test/api/peer/transport.js TEST_TYPE='FUNC'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},
 			"Functional Peer - Peers" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/peers.js TEST_TYPE='FUNC'
+					export TEST=test/api/peer/peers.ws.js TEST_TYPE='FUNC'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
 					'''
