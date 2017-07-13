@@ -46,8 +46,6 @@ var TransactionsSql = {
 
 	getById: 'SELECT *, ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey" FROM trs_list WHERE "t_id" = ${id}',
 
-	getVotesByIdTemp: 'SELECT * FROM votes WHERE "transactionId" = ${id}',
-
 	getVotesById: 'SELECT votes AS "v_votes" FROM votes WHERE "transactionId" = ${id}',
 
 	getDelegateById: 'SELECT username AS "d_username" FROM delegates WHERE "transactionId" = ${id}',
