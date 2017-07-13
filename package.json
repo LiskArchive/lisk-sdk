@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "A command line interface for Lisk",
   "main": "./dist/index.js",
-  "bin": {
-    "lisky": "./bin/lisky"
+  "directories": {
+    "bin": "./bin"
   },
   "scripts": {
     "start": "babel-node src/index.js",
@@ -13,9 +13,9 @@
     "test:now": "npm test -- --grep @now",
     "test:now:watch": "npm run test:now -- --watch",
     "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register",
+    "build": "babel src -d dist",
     "prepush": "grunt eslint && npm test",
-    "postinstall": "npm run build && npm link lisky",
-    "build": "babel src -d dist"
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",

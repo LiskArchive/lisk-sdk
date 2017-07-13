@@ -2182,9 +2182,9 @@ istanbul-reports@^1.1.1:
   dependencies:
     handlebars "^4.0.3"
 
-"js-nacl@github:liskhq/js-nacl#6dc1417":
+js-nacl@LiskHQ/js-nacl#6dc1417:
   version "1.2.1"
-  resolved "https://codeload.github.com/liskhq/js-nacl/tar.gz/6dc1417"
+  resolved "https://codeload.github.com/LiskHQ/js-nacl/tar.gz/6dc1417"
 
 js-tokens@^3.0.0:
   version "3.0.2"
@@ -2383,13 +2383,13 @@ lodash.keys@^3.0.0:
     lodash.isarguments "^3.0.0"
     lodash.isarray "^3.0.0"
 
-lodash@=4.17.4, lodash@^4.0.0, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.5.1:
-  version "4.17.4"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
-
 lodash@^3.10.1, lodash@^3.3.1, lodash@~3.10.1:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
+
+lodash@^4.0.0, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.5.1:
+  version "4.17.4"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
 lodash@~4.3.0:
   version "4.3.0"
@@ -2542,13 +2542,9 @@ minimist@0.0.8, minimist@~0.0.1:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.8.tgz#857fcabfc3397d2625b8228262e86aa7a011b05d"
 
-minimist@LiskHQ/minimist#2f27878:
+minimist@LiskHQ/minimist#2f27878, minimist@^1.1.3, minimist@^1.2.0:
   version "1.2.0"
   resolved "https://codeload.github.com/LiskHQ/minimist/tar.gz/2f27878"
-
-minimist@^1.1.3, minimist@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
 
 mkdirp@0.5.1, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1:
   version "0.5.1"
