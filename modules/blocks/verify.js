@@ -349,7 +349,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 		verifyBlock: function (seriesCb) {
 			// Sanity check of the block, if values are coherent.
 			// No access to database
-			var check = self.verifyBlock(block, function (err) {
+			self.verifyBlock(block, function (err) {
 				if (err) {
 					library.logger.error(['Block', block.id, 'verification failed'].join(' '), err);
 					return setImmediate(seriesCb, err);
