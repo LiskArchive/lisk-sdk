@@ -6,7 +6,6 @@ var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var OrderBy = require('../helpers/orderBy.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
@@ -561,17 +560,6 @@ Transactions.prototype.receiveTransactions = function (transactions, broadcast, 
  */
 Transactions.prototype.fillPool = function (cb) {
 	return __private.transactionPool.fillPool(cb);
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Transactions.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 /**

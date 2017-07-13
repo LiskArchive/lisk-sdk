@@ -1,6 +1,6 @@
 {
   "name": "lisk",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "scripts": {
     "start": "node app.js",
@@ -8,6 +8,7 @@
     "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
     "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
+    "coverageReport": "./node_modules/.bin/grunt coverageReport --verbose",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
   },
@@ -33,10 +34,8 @@
     "ip": "=1.1.5",
     "json-schema": "=0.2.3",
     "json-sql": "LiskHQ/json-sql#27e1ed1",
-    "lisk-sandbox": "LiskHQ/lisk-sandbox#083dcfa",
     "lodash": "=4.17.4",
     "method-override": "=2.3.9",
-    "npm": "=5.0.3",
     "pg-monitor": "=0.8.2",
     "pg-native": "=1.10.1",
     "pg-promise": "=5.9.3",

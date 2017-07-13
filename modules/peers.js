@@ -9,7 +9,6 @@ var fs = require('fs');
 var ip = require('ip');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
 var sql = require('../sql/peers.js');
@@ -114,11 +113,6 @@ __private.getByFilter = function (filter, cb) {
 		// var peer = __private.peers[index];
 		var passed = true;
 		_.each(filter, function (value, key) {
-			// Special case for dapp peers
-			if (key === 'dappid' && (peer[key] === null || (Array.isArray(peer[key]) && !_.includes(peer[key], String(value))))) {
-				passed = false;
-				return false;
-			}
 			// Every filter field need to be in allowed fields, exists and match value
 			if (_.includes(allowedFields, key) && !(peer[key] !== undefined && peer[key] === value)) {
 				passed = false;
@@ -216,8 +210,8 @@ __private.dbLoad = function (cb) {
 };
 
 /**
- * Inserts list of peers into `peers` table and inserts dapps peers
- * into `peers_dapp` table.
+ * Inserts list of peers into `peers` table
+ *
  * @implements library.db
  * @private
  * @param {function} cb - Callback function.
@@ -252,18 +246,6 @@ __private.dbSave = function (cb) {
 			t.none(insert_peers)
 		];
 
-		// Inserting dapps peers
-		_.each(peers, function (peer) {
-			if (peer.dappid) {
-				// If there are dapps on peer - push separately for every dapp
-				_.each (peer.dappid, function (dappid) {
-					var dapp_peer = peer;
-					dapp_peer.dappid = dappid;
-					queries.push(t.none(sql.addDapp, peer));
-				});
-			}
-		});
-
 		return t.batch(queries);
 	}).then(function (data) {
 		library.logger.info('Peers exported to database');
@@ -275,16 +257,6 @@ __private.dbSave = function (cb) {
 };
 
 // Public methods
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Peers.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(Peers.prototype.shared, call, args, cb);
-};
 
 /**
  * Sets peer state to active (2).

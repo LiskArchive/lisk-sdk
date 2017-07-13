@@ -46,8 +46,24 @@ node.fees = {
 
 // Test application
 node.guestbookDapp = {
-	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
-	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip'
+	category: 0,
+	name: 'Lisk Guestbook',
+	description: 'The official Lisk guestbook',
+	tags: 'guestbook message sidechain',
+	type: 0,
+	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
+	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png'
+};
+
+// Test application
+node.blockDataDapp = {
+	category: 1,
+	name: 'BlockData',
+	description: 'Blockchain based home monitoring tool',
+	tags: 'monitoring temperature power sidechain',
+	type: 0,
+	link: 'https://github.com/MaxKK/blockDataDapp/archive/master.zip',
+	icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
 };
 
 // Existing delegate account

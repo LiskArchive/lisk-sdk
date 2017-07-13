@@ -1,7 +1,7 @@
 {
     "port": 8000,
     "address": "0.0.0.0",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "minVersion": ">=0.5.0",
     "fileLogLevel": "info",
     "logFileName": "logs/lisk.log",
@@ -131,11 +131,6 @@
             "key": "./ssl/lisk.key",
             "cert": "./ssl/lisk.crt"
         }
-    },
-    "dapp": {
-        "masterrequired": true,
-        "masterpassword": "",
-        "autoexec": []
     },
     "nethash": "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"
 }
