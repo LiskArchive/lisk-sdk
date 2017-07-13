@@ -134,112 +134,155 @@ __private.deleteBlockProperties = function (block) {
  * @public
  * @method verifyBlock
  * @param  {Object}  block Full block
- * @return {String}  error string | verified
+ * @param  {Function} cb Callback function
+ * @return {String}  error string | null
  */
-Verify.prototype.verifyBlock = function (block) {
+Verify.prototype.verifyBlock = function (block, cb) {
 	var lastBlock = modules.blocks.lastBlock.get();
-
-	if (block.version > 0) {
-		return 'Invalid block version';
-	}
-
+	
 	// Calculate expected block slot
 	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
 	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
-	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-		return 'Invalid block timestamp';
-	}
-
 	// Set block height
 	block.height = lastBlock.height + 1;
+	
+	async.series([
+		function baseValidations (seriesCb) {
+			var error = null;
 
-	if (!block.previousBlock && block.height !== 1) {
-		return 'Invalid previous block';
-	} else if (block.previousBlock !== lastBlock.id) {
-		// Fork: Same height but different previous block id.
-		modules.delegates.fork(block, 1);
-		return ['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' ');
-	}
+			async.parallel({
+				version: function (parallelCb) {
+					if (block.version > 0) {
+						error = 'Invalid block version';
+					}
+					return setImmediate(parallelCb, error);
+				},
+				timestamp: function (parallelCb) {
+					if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
+						error = 'Invalid block timestamp';
+					}
+					return setImmediate(parallelCb, error);
+				},
+				previousBlock: function (parallelCb) {
+					if (!block.previousBlock && block.height !== 1) {
+						error = 'Invalid previous block';
+					} else if (block.previousBlock !== lastBlock.id) {
+						// Fork: Same height but different previous block id.
+						modules.delegates.fork(block, 1);
+						error = ['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' ');
+					}
+					return setImmediate(parallelCb, error);
+				},
+				payloadLength: function (parallelCb) {
+					if (block.payloadLength > constants.maxPayloadLength) {
+						error = 'Payload length is too high';
+					}
+					return setImmediate(parallelCb, error);
+				},
+				numberOfTransactions: function (parallelCb) {
+					if (block.transactions.length !== block.numberOfTransactions) {
+						error = 'Invalid number of transactions';
+					}
+					return setImmediate(parallelCb, error);
+				},
+				maxTxsPerBlock: function (parallelCb) {
+					if (block.transactions.length > constants.maxTxsPerBlock) {
+						error = 'Transactions length is too high';
+					}
+					return setImmediate(parallelCb, error);
+				}
+			}, function (err, results) {
+				seriesCb(err);
+			});
+	  },
+		function advanceValidations (seriesCb) {
+			async.parallel({
+				expectedReward: function (parallelCb) {
+					// Calculate expected rewards
+					var expectedReward = __private.blockReward.calcReward(block.height);
 
-	if (block.payloadLength > constants.maxPayloadLength) {
-		return 'Payload length is too high';
-	}
+					if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
+						return setImmediate(parallelCb, ['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
+					}
 
-	if (block.transactions.length !== block.numberOfTransactions) {
-		return 'Invalid number of transactions';
-	}
+					return setImmediate(parallelCb);
+				},
+				transactions: function (parallelCb) {
+					// Checking if transactions of the block adds up to block values.
+					var totalAmount = 0,
+						totalFee = 0,
+						payloadHash = crypto.createHash('sha256'),
+						appliedTransactions = {};
 
-	if (block.transactions.length > constants.maxTxsPerBlock) {
-		return 'Transactions length is too high';
-	}
+					for (var i in block.transactions) {
+						var transaction = block.transactions[i];
+						var bytes;
 
-	// Checking if transactions of the block adds up to block values.
-	var totalAmount = 0,
-	    totalFee = 0,
-	    payloadHash = crypto.createHash('sha256'),
-	    appliedTransactions = {};
+						try {
+							bytes = library.logic.transaction.getBytes(transaction);
+						} catch (e) {
+							return setImmediate(parallelCb, e.toString());
+						}
 
-	for (var i in block.transactions) {
-		var transaction = block.transactions[i];
-		var bytes;
+						if (appliedTransactions[transaction.id]) {
+							return setImmediate(parallelCb, 'Encountered duplicate transaction: ' + transaction.id);
+						}
 
-		try {
-			bytes = library.logic.transaction.getBytes(transaction);
-		} catch (e) {
-			return e.toString();
+						appliedTransactions[transaction.id] = transaction;
+						if (bytes) { payloadHash.update(bytes); }
+						totalAmount += transaction.amount;
+						totalFee += transaction.fee;
+					}
+
+					if (payloadHash.digest().toString('hex') !== block.payloadHash) {
+						return setImmediate(parallelCb, 'Invalid payload hash');
+					}
+
+					if (totalAmount !== block.totalAmount) {
+						return setImmediate(parallelCb, 'Invalid total amount');
+					}
+
+					if (totalFee !== block.totalFee) {
+						return setImmediate(parallelCb, 'Invalid total fee');
+					}
+
+					return setImmediate(parallelCb);
+				},
+				signature: function (parallelCb) {
+					var valid;
+					try {
+						valid = library.logic.block.verifySignature(block);
+					} catch (e) {
+						return setImmediate(parallelCb, e.toString());
+					}
+					if (!valid) {
+						return setImmediate(parallelCb, 'Failed to verify block signature');
+					}
+
+					return setImmediate(parallelCb);
+				}
+			}, function (err, results) {
+				seriesCb(err);
+			});
+		},
+		function blockIdValidation (seriesCb) {
+			var getBlockId;
+			try {
+				getBlockId = library.logic.block.getId(block);
+			} catch (e) {
+				return setImmediate(seriesCb, e.toString());
+			}
+
+			if (getBlockId !== block.id) {
+				return setImmediate(seriesCb, 'Invalid block id');
+			}
+
+			return setImmediate(seriesCb);
 		}
-
-		if (appliedTransactions[transaction.id]) {
-			return 'Encountered duplicate transaction: ' + transaction.id;
-		}
-
-		appliedTransactions[transaction.id] = transaction;
-		if (bytes) { payloadHash.update(bytes); }
-		totalAmount += transaction.amount;
-		totalFee += transaction.fee;
-	}
-	
-	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-		return 'Invalid payload hash';
-	}
-
-	if (totalAmount !== block.totalAmount) {
-		return 'Invalid total amount';
-	}
-
-	if (totalFee !== block.totalFee) {
-		return 'Invalid total fee';
-	}
-	
-	// Calculate expected rewards
-	var expectedReward = __private.blockReward.calcReward(block.height);
-
-	if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
-		return ['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' ');
-	}
-
-	var valid;
-	try {
-		valid = library.logic.block.verifySignature(block);
-	} catch (e) {
-		return e.toString();
-	}
-	if (!valid) {
-		return 'Failed to verify block signature';
-	}
-	
-	var getBlockId;
-	try {
-		getBlockId = library.logic.block.getId(block);
-	} catch (e) {
-		return e.toString();
-	}
-
-	if (getBlockId !== block.id) {
-		return 'Invalid block id';
-	}
-	return 'verified';
+	],function (err, results) {
+		cb(err);
+	});
 };
 
 /**
@@ -306,14 +349,14 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 		verifyBlock: function (seriesCb) {
 			// Sanity check of the block, if values are coherent.
 			// No access to database
-			var check = self.verifyBlock(block);
+			var check = self.verifyBlock(block, function (err) {
+				if (err) {
+					library.logger.error(['Block', block.id, 'verification failed'].join(' '), err);
+					return setImmediate(seriesCb, err);
+				}
 
-			if (check !== 'verified') {
-				library.logger.error(['Block', block.id, 'verification failed'].join(' '), check);
-				return setImmediate(seriesCb, check);
-			}
-
-			return setImmediate(seriesCb);
+				return setImmediate(seriesCb);
+			});
 		},
 		checkExists: function (seriesCb) {
 			// Check if block id is already in the database (very low probability of hash collision).
