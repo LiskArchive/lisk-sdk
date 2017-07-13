@@ -3,7 +3,6 @@
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/signatures.js');
 var Signature = require('../logic/signature.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -53,17 +52,6 @@ function Signatures (cb, scope) {
  */
 Signatures.prototype.isLoaded = function () {
 	return !!modules;
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Signatures.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events

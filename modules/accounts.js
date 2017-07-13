@@ -6,7 +6,6 @@ var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var schema = require('../schema/accounts.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Vote = require('../logic/vote.js');
 
@@ -215,18 +214,6 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	}
 
 	return library.logic.account.merge(address, data, cb);
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {} args - List of arguments.
- * @param {function} cb - Callback function.
- * @todo verified function and arguments.
- */
-Accounts.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
