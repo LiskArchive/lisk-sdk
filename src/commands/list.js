@@ -22,11 +22,11 @@ export default function listCommand(vorpal) {
 		.autocomplete(['accounts', 'addresses', 'blocks', 'delegates', 'transactions'])
 		.action((userInput) => {
 			const getType = {
-				addresses: query.isAccountQuery,
-				accounts: query.isAccountQuery,
-				blocks: query.isBlockQuery,
-				delegates: query.isDelegateQuery,
-				transactions: query.isTransactionQuery,
+				addresses: query.isAccountQuery.bind(query),
+				accounts: query.isAccountQuery.bind(query),
+				blocks: query.isBlockQuery.bind(query),
+				delegates: query.isDelegateQuery.bind(query),
+				transactions: query.isTransactionQuery.bind(query),
 			};
 
 			const calls = userInput.variadic.map(input => getType[userInput.type](input));
