@@ -44,7 +44,6 @@
     "grunt-mocha-test": "=0.13.2",
     "gruntify-eslint": "=4.0.0",
     "husky": "=0.14.3",
-    "lodash": "=4.17.4",
     "mocha": "=3.3.0",
     "nyc": "=11.0.3",
     "should": "=11.2.1",
