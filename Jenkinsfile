@@ -278,7 +278,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},
-			"Functional Peer - Peers" : {
+			"Functional Peer - Peers websockets" : {
 				node('node-02'){
 					sh '''
 					export TEST=test/api/peer/peers.ws.js TEST_TYPE='FUNC'
