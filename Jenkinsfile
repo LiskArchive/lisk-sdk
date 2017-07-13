@@ -12,10 +12,8 @@ def initBuild() {
 def buildDependency() {
 	try {
 		sh '''#!/bin/bash
-
 		# Install Deps
 		npm install
-
 		'''
 	} catch (err) {
 		currentBuild.result = 'FAILURE'
@@ -54,6 +52,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					initBuild()
 				}
 			},
+			"Build Node-04" : {
+				node('node-04'){
+					initBuild()
+				}
+			},
 			"Initialize Master Workspace" : {
 				node('master-01'){
 					sh '''
@@ -87,6 +90,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-03'){
 					buildDependency()
 				}
+			},
+			"Build Dependencies Node-04" : {
+				node('node-04'){
+					buildDependency()
+				}
 			}
 		)
 	}
@@ -107,6 +115,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-03'){
 					startLisk()
 				}
+			},
+			"Start Lisk Node-04" : {
+				node('node-04'){
+					startLisk()
+				}
 			}
 		)
 	}
@@ -118,14 +131,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run eslint
-					'''
-				}
-			},
-			"Release" : {
-				node('node-01'){
-					sh '''
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					grunt release
 					'''
 				}
 			},
@@ -194,11 +199,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Functional Transactions" : {
 				node('node-01'){
-					sh '''
-					export TEST=test/api/transactions.js TEST_TYPE='FUNC'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
+				sh '''
+				export TEST=test/api/transactions.js TEST_TYPE='FUNC'
+				cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+				npm run jenkins
+				'''
 				}
 			}, //End node-01 tests
 			"Functional Peer - Peer" : {
@@ -294,9 +299,22 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Unit - Modules" : {
 				node('node-03'){
 					sh '''
-					export TEST=test/unit/modules TEST_TYPE='UNIT'
+					export TEST=test/unit/modules/blocks.js TEST_TYPE='UNIT'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
+
+					export TEST=test/unit/modules/cache.js TEST_TYPE='UNIT'
+					npm run jenkins
+
+					export TEST=test/unit/modules/peers.js TEST_TYPE='UNIT'
+					npm run jenkins
+
+					export TEST=test/unit/modules/rounds.js TEST_TYPE='UNIT'
+					npm run jenkins
+
+					# Temporarily disabled until implemented
+					#TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT'
+					#npm run jenkins
 					'''
 				}
 			},
@@ -317,9 +335,9 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run jenkins
 					'''
 				}
-			},
+			}, // Begin node-04
 			"Functional Stress - Transactions" : {
-				node('node-03'){
+				node('node-04'){
 					sh '''
 					export TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
@@ -346,8 +364,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-02'){
 					sh '''#!/bin/bash
 					export HOST=127.0.0.1:4000
-					# Gathers unit test into single lcov.info
-					npm run coverageReport
 					npm run fetchCoverage
 					# Submit coverage reports to Master
 					scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-02.zip
@@ -358,10 +374,22 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-03'){
 					sh '''#!/bin/bash
 					export HOST=127.0.0.1:4000
+					# Gathers unit test into single lcov.info
+					npm run coverageReport
 					npm run fetchCoverage
 					# Submit coverage reports to Master
 					scp test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
 					scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-03.zip
+					'''
+				}
+			},
+			"Gather Coverage Node-04" : {
+				node('node-04'){
+					sh '''#!/bin/bash
+					export HOST=127.0.0.1:4000
+					npm run fetchCoverage
+					# Submit coverage reports to Master
+					scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-04.zip
 					'''
 				}
 			}
@@ -375,6 +403,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			unzip coverage-func-node-01.zip -d node-01
 			unzip coverage-func-node-02.zip -d node-02
 			unzip coverage-func-node-03.zip -d node-03
+			unzip coverage-func-node-04.zip -d node-04
 			bash merge_lcov.sh . merged-lcov.info
 			cp merged-lcov.info $WORKSPACE/merged-lcov.info
 			cp .coveralls.yml $WORKSPACE/.coveralls.yml
@@ -388,37 +417,44 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		parallel(
 			"Cleanup Node-01" : {
 				node('node-01'){
-				sh '''
-				pkill -f app.js -9
-				'''
+					sh '''
+					pkill -f app.js -9
+					'''
 				}
 			},
 			"Cleanup Node-02" : {
 				node('node-02'){
-				sh '''
-				pkill -f app.js -9
-				'''
+					sh '''
+					pkill -f app.js -9
+					'''
 				}
 			},
 			"Cleanup Node-03" : {
 				node('node-03'){
-				sh '''
-				pkill -f app.js -9
-				'''
+					sh '''
+					pkill -f app.js -9
+					'''
+				}
+			},
+			"Cleanup Node-04" : {
+				node('node-04'){
+					sh '''
+					pkill -f app.js -9
+					'''
 				}
 			},
 			"Cleanup Master" : {
 				node('master-01'){
-				sh '''
-				cd /var/lib/jenkins/coverage/
-				rm -rf node-0*
-				rm -rf *.zip
-				rm -rf coverage-unit/*
-				rm -f merged-lcov.info
-				rm -rf lisk/*
-				rm -f coverage.json
-				rm -f lcov.info
-				'''
+					sh '''
+					cd /var/lib/jenkins/coverage/
+					rm -rf node-0*
+					rm -rf *.zip
+					rm -rf coverage-unit/*
+					rm -f merged-lcov.info
+					rm -rf lisk/*
+					rm -f coverage.json
+					rm -f lcov.info
+					'''
 				}
 			}
 		)
