@@ -1,4 +1,4 @@
-const tablify = require('../../src/utils/tablify');
+import tablify from '../../src/utils/tablify';
 
 describe('#tablify', () => {
 	it('should create a table from object', () => {

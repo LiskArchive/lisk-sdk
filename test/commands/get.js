@@ -1,6 +1,6 @@
-const Vorpal = require('vorpal');
-const get = require('../../src/commands/get');
-const query = require('../../src/utils/query');
+import Vorpal from 'vorpal';
+import get from '../../src/commands/get';
+import query from '../../src/utils/query';
 
 describe('lisky get command palette', () => {
 	let vorpal;

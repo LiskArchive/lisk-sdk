@@ -1,5 +1,5 @@
-const lisk = require('../../src/utils/liskInstance');
-const query = require('../../src/utils/query');
+import lisk from '../../src/utils/liskInstance';
+import query from '../../src/utils/query';
 
 describe('query class with different parameters', () => {
 	let stub;
