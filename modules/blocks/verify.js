@@ -107,7 +107,7 @@ Verify.prototype.verifyBlock = function (block, cb) {
 	block.height = lastBlock.height + 1;
 	
 	async.series([
-    function baseValidations (seriesCb) {
+		function baseValidations (seriesCb) {
 			var error = null;
 
 			async.parallel({
@@ -164,15 +164,15 @@ Verify.prototype.verifyBlock = function (block, cb) {
 					if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
 						return setImmediate(parallelCb, ['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
 					}
-					
+
 					return setImmediate(parallelCb);
 				},
 				transactions: function (parallelCb) {
 					// Checking if transactions of the block adds up to block values.
 					var totalAmount = 0,
-							totalFee = 0,
-							payloadHash = crypto.createHash('sha256'),
-							appliedTransactions = {};
+						totalFee = 0,
+						payloadHash = crypto.createHash('sha256'),
+						appliedTransactions = {};
 
 					for (var i in block.transactions) {
 						var transaction = block.transactions[i];
@@ -239,8 +239,8 @@ Verify.prototype.verifyBlock = function (block, cb) {
 
 			return setImmediate(seriesCb);
 		}
-	],function(err, results) {
-    cb(err);
+	],function (err, results) {
+		cb(err);
 	});
 };
 
