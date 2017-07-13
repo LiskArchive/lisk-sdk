@@ -10,52 +10,51 @@ var rewire = require('rewire');
 var jobsQueue = require('../../../helpers/jobsQueue.js');
 var peers = rewire('../../../modules/peers');
 
-// Global variables
-var clock;
-var recallInterval = 1000;
-var execTimeInterval = 1;
-
-function dummyFunction (cb) {
-	setTimeout(cb, execTimeInterval);
-}
-
-function testExecution (job, name, spy, done) {
-	expect(jobsQueue.jobs).to.be.an('object');
-	// Job returned from 'register' should be equal to one in 'jobsQueue'
-	expect(job).to.equal(jobsQueue.jobs[name]);
-	// Shouldn't be called before recallInterval
-	expect(spy.callCount).to.equal(0);
-	clock.tick(recallInterval/2);
-	expect(spy.callCount).to.equal(0);
-	clock.tick(recallInterval/2);
-	// Should be called once after recallInterval
-	expect(spy.callCount).to.equal(1);
-	// Should be called once before execTimeInterval
-	clock.tick(execTimeInterval/2);
-	expect(spy.callCount).to.equal(1);
-	clock.tick(execTimeInterval/2);
-	expect(spy.callCount).to.equal(1);
-	// Should be called twice after another execTimeInterval+recallInterval
-	clock.tick(recallInterval);
-	expect(spy.callCount).to.equal(2);
-	// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-	expect(job).to.not.equal(jobsQueue.jobs[name]);
-	// Should be called thrice after another execTimeInterval+recallInterval
-	clock.tick(execTimeInterval+recallInterval);
-	expect(spy.callCount).to.equal(3);
-	// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-	expect(job).to.not.equal(jobsQueue.jobs[name]);
-}
-
-beforeEach(function () {
-	clock = sinon.useFakeTimers();
-});
-
-afterEach(function () {
-	clock.restore();
-});
-
 describe('helpers/jobsQueue', function () {
+	// Test global variables
+	var clock;
+	var recallInterval = 1000;
+	var execTimeInterval = 1;
+
+	function dummyFunction (cb) {
+		setTimeout(cb, execTimeInterval);
+	}
+
+	function testExecution (job, name, spy, done) {
+		expect(jobsQueue.jobs).to.be.an('object');
+		// Job returned from 'register' should be equal to one in 'jobsQueue'
+		expect(job).to.equal(jobsQueue.jobs[name]);
+		// Shouldn't be called before recallInterval
+		expect(spy.callCount).to.equal(0);
+		clock.tick(recallInterval/2);
+		expect(spy.callCount).to.equal(0);
+		clock.tick(recallInterval/2);
+		// Should be called once after recallInterval
+		expect(spy.callCount).to.equal(1);
+		// Should be called once before execTimeInterval
+		clock.tick(execTimeInterval/2);
+		expect(spy.callCount).to.equal(1);
+		clock.tick(execTimeInterval/2);
+		expect(spy.callCount).to.equal(1);
+		// Should be called twice after another execTimeInterval+recallInterval
+		clock.tick(recallInterval);
+		expect(spy.callCount).to.equal(2);
+		// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
+		expect(job).to.not.equal(jobsQueue.jobs[name]);
+		// Should be called thrice after another execTimeInterval+recallInterval
+		clock.tick(execTimeInterval+recallInterval);
+		expect(spy.callCount).to.equal(3);
+		// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
+		expect(job).to.not.equal(jobsQueue.jobs[name]);
+	}
+
+	before(function () {
+		clock = sinon.useFakeTimers();
+	});
+
+	after(function () {
+		clock.restore();
+	});
 
 	describe('register', function () {
 		it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', function () {
