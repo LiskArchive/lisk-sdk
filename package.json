@@ -2,7 +2,7 @@
   "name": "lisky",
   "version": "0.1.0",
   "description": "A command line interface for Lisk",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "bin": {
     "lisky": "./bin/lisky"
   },
