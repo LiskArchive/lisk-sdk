@@ -24,26 +24,39 @@ describe('helpers/jobsQueue', function () {
 		expect(jobsQueue.jobs).to.be.an('object');
 		// Job returned from 'register' should be equal to one in 'jobsQueue'
 		expect(job).to.equal(jobsQueue.jobs[name]);
-		// Shouldn't be called before recallInterval
-		expect(spy.callCount).to.equal(0);
-		clock.tick(recallInterval/2);
-		expect(spy.callCount).to.equal(0);
-		clock.tick(recallInterval/2);
-		// Should be called once after recallInterval
+
+		// First execution should happen immediatelly
 		expect(spy.callCount).to.equal(1);
-		// Should be called once before execTimeInterval
-		clock.tick(execTimeInterval/2);
+
+		// Every next execution should happen after execTimeInterval+recallInterval and not before
+		var interval = execTimeInterval+recallInterval;
+
+		clock.tick(interval-10);
 		expect(spy.callCount).to.equal(1);
-		clock.tick(execTimeInterval/2);
-		expect(spy.callCount).to.equal(1);
-		// Should be called twice after another execTimeInterval+recallInterval
-		clock.tick(recallInterval);
+
+		clock.tick(11);
 		expect(spy.callCount).to.equal(2);
+
 		// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
 		expect(job).to.not.equal(jobsQueue.jobs[name]);
-		// Should be called thrice after another execTimeInterval+recallInterval
-		clock.tick(execTimeInterval+recallInterval);
+
+		// Next execution should happen after recallInterval+execTimeInterval
+		clock.tick(interval-10);
+		expect(spy.callCount).to.equal(2);
+
+		clock.tick(11);
 		expect(spy.callCount).to.equal(3);
+
+		// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
+		expect(job).to.not.equal(jobsQueue.jobs[name]);
+
+		// Next execution should happen after recallInterval+execTimeInterval
+		clock.tick(interval-10);
+		expect(spy.callCount).to.equal(3);
+
+		clock.tick(11);
+		expect(spy.callCount).to.equal(4);
+
 		// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
 		expect(job).to.not.equal(jobsQueue.jobs[name]);
 	}
