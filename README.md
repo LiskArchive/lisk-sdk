@@ -46,6 +46,8 @@ Lisk is a next generation crypto-currency and decentralized application platform
   sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
   ```
 
+  **NOTE:** Database user require privileges to `CREATE EXTENSION pgcrypto`.
+
 - Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
 
   `npm install -g bower`
