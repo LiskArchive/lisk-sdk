@@ -5,7 +5,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "test": "nyc mocha",
+    "test:watch": "chokidar \"./(lib|test)/**/*.js\" -c \"npm run test\" --initial",
     "test:now": "npm run test -- --grep @now",
+    "test:now:watch": "chokidar \"./(lib|test)/**/*.js\" -c \"npm run test:now\" --initial",
     "cover": "istanbul cover --dir ./coverage _mocha",
     "eslint": "./node_modules/.bin/grunt eslint --verbose",
     "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
@@ -32,6 +34,7 @@
     "babel-cli": "=6.24.1",
     "babel-polyfill": "=6.23.0",
     "babel-preset-env": "=1.6.0",
+    "chokidar-cli": "=1.2.0",
     "coveralls": "=2.13.1",
     "grunt": "=1.0.1",
     "grunt-browserify": "=5.0.0",
