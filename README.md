@@ -13,6 +13,8 @@ You can monitor your node, setup your delegate, observe how your delegate behave
 $ npm install -g lisky
 ```
 
+With a global installation, npm will add the `lisky` executable to your PATH.
+
 # Usage:
 
 ```bash
