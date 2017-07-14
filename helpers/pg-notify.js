@@ -23,13 +23,21 @@ function onNotification (data) {
 
 	// Process round-releated things
 	if (data.channel === 'round-closed') {
-		data.payload = parseInt(data.payload);
-		logger.info('pg-notify: Round closed', data.payload);
-		// Set new round
-		data.payload += 1;
+		logger.info('pg-notify: Round closed');
+		try {
+			data.payload = JSON.parse(data.payload);
+		} catch(e) {
+			logger.error('pg-notify: Unable to parse JSON', {err: e, data: data});
+			return;
+		}
 	} else if (data.channel === 'round-reopened') {
-		data.payload = parseInt(data.payload);
-		logger.warn('pg-notify: Round reopened', data.payload);
+		logger.warn('pg-notify: Round reopened');
+		try {
+			data.payload = JSON.parse(data.payload);
+		} catch(e) {
+			logger.error('pg-notify: Unable to parse JSON', {err: e, data: data});
+			return;
+		}
 	} else {
 		// Channel is not supported - should never happen
 		logger.error('pg-notify: Channel not supported', data.channel);
