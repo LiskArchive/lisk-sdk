@@ -54,4 +54,20 @@ BEGIN
   RETURN delegates;
 END $$;
 
+-- Create function that returns generated delegates list for current round
+CREATE OR REPLACE FUNCTION getDelegatesList() RETURNS text[] LANGUAGE PLPGSQL AS $$
+DECLARE
+  list text[];
+BEGIN
+  SELECT generateDelegatesList(
+    -- Get current round
+    (SELECT CEIL((height+1) / 101::float)::int AS round FROM blocks ORDER BY height DESC LIMIT 1),
+    -- Get current 101 delegates sorted by rank
+    ARRAY(SELECT ENCODE(pk, 'hex') AS pk FROM delegates ORDER BY rank ASC LIMIT 101)
+  ) INTO list;
+
+  -- Return generated delagets list 
+  RETURN list;
+END $$;
+
 COMMIT;
