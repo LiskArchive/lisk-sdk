@@ -272,10 +272,10 @@ CREATE FUNCTION delegates_update_on_block() RETURNS TRIGGER LANGUAGE PLPGSQL AS 
 		-- Perform notification to backend that round changed
 		IF (TG_OP = 'INSERT') THEN
 			-- Last block of round inserted - round is closed here and processing is done
-			PERFORM pg_notify('round-closed', CEIL(NEW.height / 101::float)::text);
+			PERFORM pg_notify('round-closed', json_build_object('round', CEIL((NEW.height+1) / 101::float)::int, 'list', generateDelegatesList(CEIL((NEW.height+1) / 101::float)::int, ARRAY(SELECT ENCODE(pk, 'hex') AS pk FROM delegates ORDER BY rank ASC LIMIT 101)))::text);
 		ELSIF (TG_OP = 'DELETE') THEN
 			-- Last block of round deleted - round reopened, processing is done here
-			PERFORM pg_notify('round-reopened', CEIL(OLD.height / 101::float)::text);
+			PERFORM pg_notify('round-reopened', json_build_object('round', CEIL((OLD.height) / 101::float)::int, 'list', generateDelegatesList(CEIL((OLD.height) / 101::float)::int, ARRAY(SELECT ENCODE(pk, 'hex') AS pk FROM delegates ORDER BY rank ASC LIMIT 101)))::text);
 		END IF;
 	RETURN NULL;
 END $$;
