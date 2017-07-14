@@ -157,16 +157,6 @@ Verify.prototype.verifyBlock = function (block, cb) {
 	  },
 		function advanceValidations (seriesCb) {
 			async.parallel({
-				expectedReward: function (parallelCb) {
-					// Calculate expected rewards
-					var expectedReward = __private.blockReward.calcReward(block.height);
-
-					if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
-						return setImmediate(parallelCb, ['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
-					}
-
-					return setImmediate(parallelCb);
-				},
 				transactions: function (parallelCb) {
 					// Checking if transactions of the block adds up to block values.
 					var totalAmount = 0,
@@ -225,16 +215,21 @@ Verify.prototype.verifyBlock = function (block, cb) {
 				seriesCb(err);
 			});
 		},
-		function blockIdValidation (seriesCb) {
-			var getBlockId;
+		function blockIdGeneration (seriesCb) {
 			try {
-				getBlockId = library.logic.block.getId(block);
+				block.id = library.logic.block.getId(block);
 			} catch (e) {
 				return setImmediate(seriesCb, e.toString());
 			}
 
-			if (getBlockId !== block.id) {
-				return setImmediate(seriesCb, 'Invalid block id');
+			return setImmediate(seriesCb);
+		},
+		function expectedReward (seriesCb) {
+			// Calculate expected rewards
+			var expectedReward = __private.blockReward.calcReward(block.height);
+
+			if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
+				return setImmediate(seriesCb, ['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
 			}
 
 			return setImmediate(seriesCb);
