@@ -425,4 +425,27 @@ describe('DelegatesListSQL', function () {
 			});
 		});
 	});
+
+	describe('checking SQL function getDelegatesList()', function () {
+		it('SQL getDelegatesList() results should be equal to generateDelegatesList() - real 101 delegates from current database', function (done) {
+			db.task(function (t) {
+				return t.batch([
+					t.query(sql.getDelegatesList),
+					t.query(sql.getActiveDelegates),
+					t.query(sql.getRound)
+				]);
+			}).then(function (res) {
+				var delegates_list   = res[0][0].list,
+					active_delegates = res[1][0].delegates,
+					round            = res[2][0].round;
+				
+				var expectedDelegates = generateDelegatesList(round.toString(), active_delegates);
+				expect(delegates_list).to.deep.equal(expectedDelegates);
+
+				done();
+			}).catch(function (err) {
+				done(err);
+			});
+		});
+	});
 });
