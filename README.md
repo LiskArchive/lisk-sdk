@@ -1,6 +1,6 @@
 # lisky
 Lisky is the command line interface for Lisk.
-Lisky is dedicated to help you finding information in the blockchain and database. 
+Lisky is dedicated to help you finding information in the blockchain and database.
 You can monitor your node, setup your delegate, observe how your delegate behaves and optimize forging processes.
 
 [![Build Status](https://jenkins.lisk.io/job/Lisky-pipeline/development)](https://jenkins.lisk.io/job/Lisky-pipeline/job/development/)
@@ -14,12 +14,12 @@ $ npm install -g lisky
 ```
 
 # Usage:
-    
+
 ```bash
 $ lisky
 
 lisky> help
-    
+
     help [command...]                    Provides help for a given command.
     exit                                 Exits lisky.
     get [options] <type> <input>         Get information from <type> with parameter <input>.
@@ -31,7 +31,7 @@ lisky> help
                                          E.g. list delegates lightcurve tosch
                                          E.g. list blocks 5510510593472232540 16450842638530591789
     set <variable> <value>               Set configuration <variable> to <value>
-    
+
 ```
 
 
@@ -39,8 +39,8 @@ lisky> help
 
 | Command | Description |
 | --- | --- |
-| `set json true|false` | Sets default to json output (true) or text output (false) |
-| `set testnet true|false` | Set default to testnet (true) or mainnet (false) |
+| <code>set json true&#124;false</code> | Sets default to json output (true) or text output (false) |
+| <code>set testnet true&#124;false</code> | Set default to testnet (true) or mainnet (false) |
 
 # Run Test
 
