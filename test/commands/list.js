@@ -22,6 +22,18 @@ describe('lisky list command palette', () => {
 		vorpal.ui.removeAllListeners();
 	});
 
+	it('should handle being called with no type', () => {
+		const command = 'list';
+		return vorpal.exec(command)
+			.then(result => (result).should.match(/Missing required argument/));
+	});
+
+	it('should handle being called with no variadic', () => {
+		const command = 'list accounts';
+		return vorpal.exec(command)
+			.then(result => (result).should.match(/Missing required argument/));
+	});
+
 	it('should test command list accounts', () => {
 		sinon.stub(query, 'isAccountQuery');
 		const restore = query.isAccountQuery.restore;
