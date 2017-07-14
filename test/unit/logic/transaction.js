@@ -14,7 +14,6 @@ var slots = require('../../../helpers/slots');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var Transaction = require('../../../logic/transaction.js');
-var Rounds = require('../../../modules/rounds.js');
 var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 
@@ -133,10 +132,10 @@ describe('transaction', function () {
 	var transaction;
 	var accountModule;
 
-	var attachTransferAsset = function (transaction, accountLogic, rounds, done) {
+	var attachTransferAsset = function (transaction, accountLogic, done) {
 		modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
 			var transfer = new Transfer();
-			transfer.bind(__accountModule, rounds);
+			transfer.bind(__accountModule);
 			transaction.attachAssetType(transactionTypes.SEND, transfer);
 			accountModule = __accountModule;
 			done();
@@ -150,9 +149,6 @@ describe('transaction', function () {
 
 	before(function (done) {
 		async.auto({
-			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope,cb);
-			},
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
 			},
@@ -165,7 +161,7 @@ describe('transaction', function () {
 		}, function (err, result) {
 			transaction = result.transaction;
 			transaction.bindModules(result);
-			attachTransferAsset(transaction, result.accountLogic, result.rounds, done); 
+			attachTransferAsset(transaction, result.accountLogic, done); 
 		});
 	});
 

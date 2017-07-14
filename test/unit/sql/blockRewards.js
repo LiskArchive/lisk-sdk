@@ -8,19 +8,6 @@ var constants = require('../../../helpers/constants.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var db;
 
-before(function (done) {
-	modulesLoader.getDbConnection(function (err, db_handle) {
-		if (err) {
-			return done(err);
-		}
-		db = db_handle;
-		done();
-	});
-});
-
-constants.rewards.distance = 3000000;
-constants.rewards.offset = 1451520;
-
 function calcBlockReward (height, reward, done) {
 	return db.query(sql.calcBlockReward, {height: height}).then(function (rows) {
 		expect(rows).to.be.an('array');
@@ -90,6 +77,18 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 };
 
 describe('BlockRewardsSQL', function () {
+	before(function (done) {
+		modulesLoader.getDbConnection(function (err, db_handle) {
+			if (err) {
+				return done(err);
+			}
+			db = db_handle;
+			done();
+		});
+	});
+
+	constants.rewards.distance = 3000000;
+	constants.rewards.offset = 1451520;
 
 	describe('checking SQL function getBlockRewards()', function () {
 
@@ -116,7 +115,6 @@ describe('BlockRewardsSQL', function () {
 			});
 		});
 	});
-
 
 	describe('checking SQL function calcBlockReward(int)', function () {
 

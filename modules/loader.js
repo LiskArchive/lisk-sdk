@@ -6,6 +6,7 @@ var exceptions = require('../helpers/exceptions');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var ip = require('ip');
 var schema = require('../schema/loader.js');
+var slots = require('../helpers/slots.js');
 var sql = require('../sql/loader.js');
 
 require('colors');
@@ -301,7 +302,7 @@ __private.loadTransactions = function (cb) {
  * Loads last block and emits a bus message blockchain is ready.
  * @private
  * @implements {library.db.task}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @implements {library.bus.message}
  * @implements {library.logic.account.removeTables}
  * @implements {library.logic.account.createTables}
@@ -319,7 +320,6 @@ __private.loadBlockChain = function () {
 	function load (count) {
 		verify = true;
 		__private.total = count;
-
 		async.series({
 			removeTables: function (seriesCb) {
 				library.logic.account.removeTables(function (err) {
@@ -426,7 +426,7 @@ __private.loadBlockChain = function () {
 					library.config.loading.snapshot = (round > 1) ? (round - 1) : 1;
 				}
 
-				modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
+				//modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
 			}
 
 			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);
@@ -446,7 +446,7 @@ __private.loadBlockChain = function () {
 		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
 
-		var round = modules.rounds.calc(count);
+		var round = slots.calcRound(count);
 
 		if (count === 1) {
 			return reload(count);
@@ -462,9 +462,9 @@ __private.loadBlockChain = function () {
 
 		var missed = !(countMemAccounts.count);
 
-		if (missed) {
-			return reload(count, 'Detected missed blocks in mem_accounts');
-		}
+		// if (missed) {
+		// 	return reload(count, 'Detected missed blocks in mem_accounts');
+		// }
 
 		if (validateMemBalances.length) {
 			return reload(count, 'Memory balances doesn\'t match blockchain balances');
@@ -836,7 +836,6 @@ Loader.prototype.onBind = function (scope) {
 		transactions: scope.transactions,
 		blocks: scope.blocks,
 		peers: scope.peers,
-		rounds: scope.rounds,
 		transport: scope.transport,
 		multisignatures: scope.multisignatures,
 		system: scope.system,

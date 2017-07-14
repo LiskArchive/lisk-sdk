@@ -440,7 +440,7 @@ __private.receiveBlock = function (block, cb) {
 	library.logger.info([
 		'Received new block id:', block.id,
 		'height:', block.height,
-		'round:',  modules.rounds.calc(block.height),
+		'round:',  slots.calcRound(block.height),
 		'slot:', slots.getSlotNumber(block.timestamp),
 		'reward:', block.reward
 	].join(' '));
@@ -457,7 +457,6 @@ __private.receiveBlock = function (block, cb) {
  * - blocks
  * - delegates
  * - loader
- * - rounds
  * - transactions
  * - transport
  * @param {modules} scope Exposed modules
@@ -469,7 +468,6 @@ Process.prototype.onBind = function (scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
 	};

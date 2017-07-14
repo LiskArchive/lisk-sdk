@@ -132,7 +132,6 @@ var config = {
 		system: './modules/system.js',
 		peers: './modules/peers.js',
 		delegates: './modules/delegates.js',
-		rounds: './modules/rounds.js',
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',

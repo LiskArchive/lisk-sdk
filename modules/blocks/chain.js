@@ -617,7 +617,6 @@ Chain.prototype.recoverChain = function (cb) {
  * Handle modules initialization:
  * - accounts
  * - blocks
- * - rounds
  * - transactions
  * @param {modules} scope Exposed modules
  */
@@ -626,7 +625,6 @@ Chain.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
 		blocks: scope.blocks,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 	};
 

@@ -163,7 +163,7 @@ __private.forge = function (cb) {
 				library.logger.info([
 					'Forged new block id:', forgedBlock.id,
 					'height:', forgedBlock.height,
-					'round:', modules.rounds.calc(forgedBlock.height),
+					'round:', slots.calcRound(forgedBlock.height),
 					'slot:', slots.getSlotNumber(currentBlockData.time),
 					'reward:' + forgedBlock.reward
 				].join(' '));
@@ -466,7 +466,6 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 Delegates.prototype.onBind = function (scope) {
 	modules = {
 		loader: scope.loader,
-		rounds: scope.rounds,
 		accounts: scope.accounts,
 		blocks: scope.blocks,
 		transport: scope.transport,

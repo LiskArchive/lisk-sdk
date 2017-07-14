@@ -8,16 +8,6 @@ var sql = require('../../sql/delegatesList.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var db;
 
-before(function (done) {
-	modulesLoader.getDbConnection(function (err, db_handle) {
-		if (err) {
-			return done(err);
-		}
-		db = db_handle;
-		done();
-	});
-});
-
 function generateDelegatesList (round, delegates) {
 	var i, x, n, old, len;
 	var list = [];
@@ -44,6 +34,49 @@ function generateDelegatesList (round, delegates) {
 };
 
 describe('DelegatesListSQL', function () {
+
+	before(function (done) {
+		modulesLoader.getDbConnection(function (err, db_handle) {
+			if (err) {
+				return done(err);
+			}
+			db = db_handle;
+			done();
+		});
+	});
+
+	function getKeysSortByVote (cb) {
+		library.db.query(sql.delegateList).then(function (rows) {
+			return setImmediate(cb, null, rows.map(function (el) {
+				return el.pk;
+			}));
+		}).catch(function (err) {
+			return setImmediate(cb, err);
+		});
+	};
+
+	function generateDelegateList (height, cb) {
+		getKeysSortByVote(function (err, truncDelegateList) {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+
+			var seedSource = modules.rounds.calc(height).toString();
+			var currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest();
+
+			for (var i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
+				for (var x = 0; x < 4 && i < delCount; i++, x++) {
+					var newIndex = currentSeed[x] % delCount;
+					var b = truncDelegateList[newIndex];
+					truncDelegateList[newIndex] = truncDelegateList[i];
+					truncDelegateList[i] = b;
+				}
+				currentSeed = crypto.createHash('sha256').update(currentSeed).digest();
+			}
+
+			return setImmediate(cb, null, truncDelegateList);
+		});
+	}
 
 	describe('checking SQL function generateDelegatesList()', function () {
 		it('SQL generateDelegatesList() results should be equal to generateDelegatesList() - fake 101 delegates', function (done) {
