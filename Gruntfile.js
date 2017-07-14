@@ -3,14 +3,14 @@ module.exports = function (grunt) {
 
 	grunt.initConfig({
 		eslint: {
-			target: ['lib/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js']
+			target: ['src/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js']
 		},
 
 		pkg: grunt.file.readJSON('package.json'),
 
 		browserify: {
 			js: {
-				src: './index.js',
+				src: './src/index.js',
 				dest: './dist/lisk-js.js'
 			},
 			options: {
@@ -22,7 +22,7 @@ module.exports = function (grunt) {
 
 		watch: {
 			scripts: {
-				files: ['lib/*.js'],
+				files: ['src/*.js'],
 				tasks: ['eslint', 'browserify'],
 				options: {
 					spawn: false,
