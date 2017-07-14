@@ -18,7 +18,7 @@ var DelegatesSql = {
 
   count: 'SELECT COUNT(*)::int FROM delegates',
 
-  delegateList: 'SELECT ENCODE(pk, \'hex\') AS pk FROM delegates ORDER BY rank ASC LIMIT 101',
+  delegateList: 'SELECT getDelegatesList() AS list;',
 
   search: function (params) {
     var sql = [

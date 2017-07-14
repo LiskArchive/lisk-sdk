@@ -58,6 +58,7 @@ Chain.prototype.saveGenesisBlock = function (cb) {
 		if (!blockId) {
 			// If there is no block with genesis ID - save to database
 			// WARNING: DB_WRITE
+			// FIXME: That will fail if we already have genesis block in database, but with different ID
 			self.saveBlock(library.genesisblock.block, function (err) {
 				return setImmediate(cb, err);
 			});

@@ -165,11 +165,11 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 };
 
 /**
- * This function will be triggered when a round finishes, it will clear all cache entires.
+ * This function will be triggered when a round changed, it will clear all cache entires.
  * @param {Round} round
  * @param {Function} cb
  */
-Cache.prototype.onFinishRound = function (round, cb) {
+Cache.prototype.onRoundChanged = function (round, cb) {
 	cb = cb || function () {};
 
 	if(!self.isReady()) { return cb(errorCacheDisabled); }

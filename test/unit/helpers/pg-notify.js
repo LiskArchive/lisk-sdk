@@ -278,7 +278,7 @@ describe('helpers/pg-notify', function () {
 			db.query(sql.triggerNotify, {channel: channel, message: message}).then(setTimeout(function () {
 				expect(logger.debug.args[0]).to.deep.equal(['pg-notify: Notification received', {channel: 'round-closed', data: '123'}]);
 				expect(logger.info.args[0]).to.deep.equal(['pg-notify: Round closed', 123]);
-				expect(bus.message.args[0]).to.deep.equal(['finishRound', 124]);
+				expect(bus.message.args[0]).to.deep.equal(['roundChanged', 124]);
 				done();
 			}, 20)).catch(function (err) {
 				done(err);
@@ -293,7 +293,7 @@ describe('helpers/pg-notify', function () {
 			db.query(sql.triggerNotify, {channel: channel, message: message}).then(setTimeout(function () {
 				expect(logger.debug.args[0]).to.deep.equal(['pg-notify: Notification received', {channel: 'round-reopened', data: '123'}]);
 				expect(logger.warn.args[0]).to.deep.equal(['pg-notify: Round reopened', 123]);
-				expect(bus.message.args[0]).to.deep.equal(['finishRound', 123]);
+				expect(bus.message.args[0]).to.deep.equal(['roundChanged', 123]);
 				done();
 			}, 20)).catch(function (err) {
 				done(err);

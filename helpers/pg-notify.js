@@ -8,8 +8,8 @@ var db, bus, logger;
 var connection;
 // Map channels to bus.message events
 var channels = {
-	'round-closed': 'finishRound',
-	'round-reopened': 'finishRound'
+	'round-closed': 'roundChanged',
+	'round-reopened': 'roundChanged'
 };
 
 function onNotification (data) {
