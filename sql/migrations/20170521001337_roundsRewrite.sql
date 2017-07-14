@@ -92,7 +92,7 @@ CREATE FUNCTION delegates_voters_cnt_update() RETURNS TABLE(updated INT) LANGUAG
 	BEGIN
 		RETURN QUERY
 			WITH
-			last_round AS (SELECT CEIL(height / 101::float)::int AS round FROM blocks WHERE height % 101 = 0 ORDER BY height DESC LIMIT 1),
+			last_round AS (SELECT CEIL(height / 101::float)::int AS round FROM blocks WHERE height % 101 = 0 OR height = 1 ORDER BY height DESC LIMIT 1),
 			updated AS (UPDATE delegates SET voters_cnt = cnt FROM
 			(SELECT
 				d.pk,
@@ -113,7 +113,7 @@ SELECT delegates_voters_cnt_update();
 CREATE FUNCTION delegates_voters_balance_update() RETURNS TABLE(updated INT) LANGUAGE PLPGSQL AS $$
 	BEGIN
 		RETURN QUERY
-			WITH last_round AS (SELECT height, CEIL(height / 101::float)::int AS round FROM blocks WHERE height % 101 = 0 ORDER BY height DESC LIMIT 1),
+			WITH last_round AS (SELECT height, CEIL(height / 101::float)::int AS round FROM blocks WHERE height % 101 = 0 OR height = 1 ORDER BY height DESC LIMIT 1),
 			current_round_txs AS (SELECT t.id FROM trs t LEFT JOIN blocks b ON b.id = t."blockId" WHERE b.height > (SELECT height FROM last_round)),
 			voters AS (SELECT DISTINCT ON (voter_address) voter_address FROM votes_details),
 			balances AS (
@@ -286,7 +286,7 @@ CREATE CONSTRAINT TRIGGER block_insert
 	AFTER INSERT ON blocks
 	DEFERRABLE INITIALLY DEFERRED
 	FOR EACH ROW
-	WHEN (NEW.height % 101 = 0)
+	WHEN (NEW.height % 101 = 0 OR NEW.height = 1)
 	EXECUTE PROCEDURE delegates_update_on_block();
 
 -- Create trigger that will execute 'delegates_update_on_block' after deletion of last block of round
