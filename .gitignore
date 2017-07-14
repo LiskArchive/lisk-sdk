@@ -7,3 +7,4 @@ yuidoc
 test/.coverage-unit
 coveralls
 coverage/
+dist/
