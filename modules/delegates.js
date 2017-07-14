@@ -479,22 +479,19 @@ Delegates.prototype.onBind = function (scope) {
 };
 
 /**
- * Handle node shutdown request
+ * Trigger when get notification from postgres that round changed
  *
  * @public
  * @method onRoundChanged
  * @listens module:pg-notify~event:roundChanged
- * @implements module:delegates#generateDelegateList
- * @param  {number} round Current round
+ * @param {object} data Data received from postgres
+ * @param {object} data.round Current round
+ * @param {object} data.list Delegates list used for slot calculations
  */
-Delegates.prototype.onRoundChanged = function (round) {
-	self.generateDelegateList(function (err) {
-		if (err) {
-			library.logger.error('Cannot get delegates list for round', err);
-		}
-		
-		library.network.io.sockets.emit('rounds/change', {number: round});
-	});
+Delegates.prototype.onRoundChanged = function (data) {
+	__private.delegatesList = data.list;
+	library.network.io.sockets.emit('rounds/change', {number: data.round});
+	library.logger.info('Round changed, current round', data.round);
 };
 
 /**
