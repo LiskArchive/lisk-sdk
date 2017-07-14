@@ -377,7 +377,45 @@ describe('blocks/verify', function () {
 					expect(validBlock.id).to.equal(blockId);
 					done();
 				});
+			});
 
+			it('should generate valid block id for invalid block id string-number value', function (done) {
+				var blockId = validBlock.id;
+				validBlock.id = '11850828211026019526';
+
+				blocksVerify.verifyBlock(validBlock, function (err, result) {
+					if (err) {
+						return done(err);
+					}
+					expect(validBlock.id).to.equal(blockId);
+					done();
+				});
+			});
+
+			it('should generate valid block id for invalid block id int-number value', function (done) {
+				var blockId = validBlock.id;
+				validBlock.id = 11850828211026019526;
+
+				blocksVerify.verifyBlock(validBlock, function (err, result) {
+					if (err) {
+						return done(err);
+					}
+					expect(validBlock.id).to.equal(blockId);
+					done();
+				});
+			});
+
+			it('should generate valid block id for valid block id int-number value', function (done) {
+				var blockId = validBlock.id;
+				validBlock.id = 11850828211026019525;
+
+				blocksVerify.verifyBlock(validBlock, function (err, result) {
+					if (err) {
+						return done(err);
+					}
+					expect(validBlock.id).to.equal(blockId);
+					done();
+				});
 			});
 
 			// expectedReward
