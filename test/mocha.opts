@@ -1,2 +1,3 @@
 --timeout 10000
 --require ./test/setup.js
+--compilers js:babel-register
