@@ -27,6 +27,9 @@
     "popsicle": "=9.1.0"
   },
   "devDependencies": {
+    "babel-cli": "=6.24.1",
+    "babel-polyfill": "=6.23.0",
+    "babel-preset-env": "=1.6.0",
     "coveralls": "=2.13.1",
     "grunt": "=1.0.1",
     "grunt-browserify": "=5.0.0",
