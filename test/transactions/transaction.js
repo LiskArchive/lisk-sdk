@@ -50,7 +50,7 @@ describe('transaction.js', function () {
 			it('should have senderPublicKey as hex string', function () {
 				(trs.senderPublicKey).should.be.type('string').and.match(function () {
 					try {
-						new Buffer(trs.senderPublicKey, 'hex');
+						Buffer.from(trs.senderPublicKey, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -78,7 +78,7 @@ describe('transaction.js', function () {
 			it('should have signature as hex string', function () {
 				(trs.signature).should.be.type('string').and.match(function () {
 					try {
-						new Buffer(trs.signature, 'hex');
+						Buffer.from(trs.signature, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -137,7 +137,7 @@ describe('transaction.js', function () {
 			it('should have senderPublicKey as hex string', function () {
 				(trs.senderPublicKey).should.be.type('string').and.match(function () {
 					try {
-						new Buffer(trs.senderPublicKey, 'hex');
+						Buffer.from(trs.senderPublicKey, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -165,7 +165,7 @@ describe('transaction.js', function () {
 			it('should have signature as hex string', function () {
 				(trs.signature).should.be.type('string').and.match(function () {
 					try {
-						new Buffer(trs.signature, 'hex');
+						Buffer.from(trs.signature, 'hex');
 					} catch (e) {
 						return false;
 					}
@@ -177,7 +177,7 @@ describe('transaction.js', function () {
 			it('should have signSignature as hex string', function () {
 				(trs.signSignature).should.be.type('string').and.match(function () {
 					try {
-						new Buffer(trs.signSignature, 'hex');
+						Buffer.from(trs.signSignature, 'hex');
 					} catch (e) {
 						return false;
 					}

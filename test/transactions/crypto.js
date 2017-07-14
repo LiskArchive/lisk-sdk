@@ -218,7 +218,7 @@ describe('crypto.js', function () {
 			(keys).should.have.property('privateKey');
 			(keys.publicKey).should.be.type('string').and.match(function () {
 				try {
-					new Buffer(keys.publicKey, 'hex');
+					Buffer.from(keys.publicKey, 'hex');
 				} catch (e) {
 					return false;
 				}
@@ -227,7 +227,7 @@ describe('crypto.js', function () {
 			});
 			(keys.privateKey).should.be.type('string').and.match(function () {
 				try {
-					new Buffer(keys.privateKey, 'hex');
+					Buffer.from(keys.privateKey, 'hex');
 				} catch (e) {
 					return false;
 				}

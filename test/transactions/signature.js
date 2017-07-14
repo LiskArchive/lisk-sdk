@@ -70,7 +70,7 @@ describe('signature.js', function () {
 				it('should have publicKey in hex', function () {
 					(sgn.asset.signature.publicKey).should.be.type('string').and.match(function () {
 						try {
-							new Buffer(sgn.asset.signature.publicKey);
+							Buffer.from(sgn.asset.signature.publicKey);
 						} catch (e) {
 							return false;
 						}
@@ -80,7 +80,7 @@ describe('signature.js', function () {
 				});
 
 				it('should have publicKey in 32 bytes', function () {
-					var publicKey = new Buffer(sgn.asset.signature.publicKey, 'hex');
+					var publicKey = Buffer.from(sgn.asset.signature.publicKey, 'hex');
 					(publicKey.length).should.be.equal(32);
 				});
 			});
