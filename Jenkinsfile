@@ -148,15 +148,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         '''
       }
       },
-      "Functional Dapps" : {
-        node('node-01'){
-        sh '''
-        export TEST=test/api/dapps.js TEST_TYPE='FUNC'
-        cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-        npm run jenkins
-        '''
-      }
-      },
       "Functional Loader" : {
         node('node-01'){
         sh '''
