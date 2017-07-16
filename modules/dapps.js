@@ -80,7 +80,7 @@ function DApps (cb, scope) {
 	process.on('exit', function () {
 	});
 
-	return setImmediate(cb, null, self);
+	setImmediate(cb, null, self);
 }
 
 // Private methods
