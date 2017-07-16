@@ -107,7 +107,15 @@ __private.addBlockProperties = function (block) {
 			block.numberOfTransactions = block.transactions.length;
 		}
 	}
-	
+	if (block.totalAmount === undefined) {
+		block.totalAmount = 0;
+	}
+	if (block.totalFee === undefined) {
+		block.totalFee = 0;
+	}
+	if (block.payloadLength === undefined) {
+		block.payloadLength = 0;
+	}
 	return block;
 };
 
@@ -126,6 +134,16 @@ __private.deleteBlockProperties = function (block) {
 	if (reducedBlock.numberOfTransactions) {
 		delete reducedBlock.numberOfTransactions;
 	}
+	if (reducedBlock.totalAmount === 0) {
+		delete reducedBlock.totalAmount;
+	}
+	if (reducedBlock.totalFee === 0) {
+		delete reducedBlock.totalFee;
+	}
+	if (reducedBlock.payloadLength === 0) {
+		delete reducedBlock.payloadLength;
+	}
+	delete reducedBlock.id;
 	return reducedBlock;
 };
 
