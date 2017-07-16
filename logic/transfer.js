@@ -42,7 +42,10 @@ Transfer.prototype.bind = function (accounts, rounds) {
 Transfer.prototype.create = function (data, trs) {
 	trs.recipientId = data.recipientId;
 	trs.amount = data.amount;
-	trs.asset.data = data.data || null;
+
+	if (data.data) {
+		trs.asset.data = data.data;
+	}
 
 	return trs;
 };
@@ -248,8 +251,11 @@ Transfer.prototype.dbFields = [
  * @return {null}
  */
 Transfer.prototype.dbRead = function (raw) {
-	var data = raw.tf_data || null;
-	return {data: data};
+	if (raw.tf_data) {
+		return { data: raw.tf_data };
+	}
+
+	return null;
 };
 
 /**

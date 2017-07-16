@@ -774,7 +774,8 @@ Transactions.prototype.shared = {
 										recipientId: recipientId,
 										keypair: keypair,
 										requester: keypair,
-										secondKeypair: secondKeypair
+										secondKeypair: secondKeypair,
+										data: req.body.data
 									});
 								} catch (e) {
 									return setImmediate(cb, e.toString());

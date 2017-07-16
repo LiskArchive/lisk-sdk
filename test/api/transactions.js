@@ -644,7 +644,7 @@ describe('GET /api/transactions/queued/get?id=', function () {
 				node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
 				node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
 				node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-				node.expect(res.body.transaction.data).to.equal(transactionInCheck.data);
+				node.expect(res.body.transaction.asset.data).to.equal(transactionInCheck.data);
 				done();
 			});
 		});
