@@ -364,7 +364,7 @@ describe('transfer', function () {
 
 		describe('dbRead', function () {
 			it('should return null when data field is not set', function () {
-				expect(transfer.dbRead(rawValidTransaction)).to.eql({});
+				expect(transfer.dbRead(rawValidTransaction)).to.eql(null);
 			});
 
 			it('should be okay when data field is set', function () {

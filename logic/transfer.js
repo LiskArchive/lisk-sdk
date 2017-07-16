@@ -222,8 +222,14 @@ Transfer.prototype.schema = {
 Transfer.prototype.objectNormalize = function (trs) {
 	delete trs.blockId;
 
-	if (trs.asset.data === null || typeof trs.asset.data === 'undefined') {
-		delete trs.asset.data;
+	if (!trs.asset) {
+		return trs;
+	}
+
+	for (var i in trs.asset) {
+		if (trs.asset[i] === null || typeof trs.asset[i] === 'undefined') {
+			delete trs.asset[i];
+		}
 	}
 
 	var report = library.schema.validate(trs.asset, Transfer.prototype.schema);
