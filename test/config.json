@@ -479,31 +479,25 @@
 					"encryptedSecret": "47f7103ecc7c7d1678e311533632fe970b9f85ab32f22ace7be420c46f3a4926f3d29ab6c2e33df3f2160965c4109c72474503f3db45076a03e43c3024c7ad00fc312022b599bac6893f2a6770b80e69",
 					"publicKey": "904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37"
 				}
-
 				],
-				"access": {
-					"whiteList": [
-						"127.0.0.1"
-					]
-				}
-		},
-		"loading": {
-			"verifyOnLoading": false,
-			"loadPerIteration": 5000
-		},
-		"ssl": {
-			"enabled": false,
-			"options": {
-				"port": 443,
-				"address": "0.0.0.0",
-				"key": "./ssl/lisk.key",
-				"cert": "./ssl/lisk.crt"
-			}
-		},
-		"dapp": {
-			"masterrequired": true,
-			"masterpassword": "",
-			"autoexec": []
-		},
-		"nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
+        "access": {
+            "whiteList": [
+                "127.0.0.1"
+            ]
+        }
+    },
+    "loading": {
+        "verifyOnLoading": false,
+        "loadPerIteration": 5000
+    },
+    "ssl": {
+        "enabled": false,
+        "options": {
+            "port": 443,
+            "address": "0.0.0.0",
+            "key": "./ssl/lisk.key",
+            "cert": "./ssl/lisk.crt"
+        }
+    },
+    "nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }

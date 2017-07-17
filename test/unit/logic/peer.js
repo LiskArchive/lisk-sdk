@@ -42,13 +42,6 @@ describe('peer', function () {
 			var __peer = peer.accept({ip: ip.toLong(randomPeer.ip)});
 			expect(__peer.ip).to.equal(randomPeer.ip);
 		});
-
-		it('should convert dappid to array', function () {
-			var __peer = peer.accept({dappid: 'random-dapp-id'});
-			expect(__peer.dappid).to.be.an('array');
-			expect(_.isEqual(__peer.dappid, ['random-dapp-id'])).to.be.ok;
-			delete __peer.dappid;
-		});
 	});
 
 	describe('parseInt', function () {
@@ -135,7 +128,6 @@ describe('peer', function () {
 			var updateData = {
 				os: 'test os',
 				version: '0.0.0',
-				dappid: ['test dappid'],
 				broadhash: 'test broadhash',
 				height: 3,
 				nonce: 'ABCD123'

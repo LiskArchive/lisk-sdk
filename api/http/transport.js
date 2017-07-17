@@ -15,8 +15,6 @@ var schema = require('../../schema/transport');
  * 	- get	/ping
  * 	- get	/signatures
  * 	- get	/transactions
- * 	- post	/dapp/message
- * 	- post	/dapp/request
  * 	- post	/blocks
  * 	- post	/signatures
  * 	- post	/transactions
@@ -46,9 +44,7 @@ function TransportHttpApi (transportModule, app, logger, cache) {
 		'get /height': 'height',
 		'get /ping': 'ping',
 		'get /signatures': 'getSignatures',
-		'get /transactions': 'getTransactions',
-		'post /dapp/message': 'postDappMessage',
-		'post /dapp/request': 'postDappRequest'
+		'get /transactions': 'getTransactions'
 
 	});
 
@@ -80,9 +76,6 @@ function TransportHttpApi (transportModule, app, logger, cache) {
 
 			req.peer = peer;
 
-			if (req.body && req.body.dappid) {
-				req.peer.dappid = req.body.dappid;
-			}
 			return next();
 		});
 

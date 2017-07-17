@@ -11,7 +11,6 @@ var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
 var OrderBy = require('../helpers/orderBy.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/delegates.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/delegates.js');
@@ -63,7 +62,7 @@ function Delegates (cb, scope) {
 	self = this;
 
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
-		transactionTypes.DELEGATE, 
+		transactionTypes.DELEGATE,
 		new Delegate(
 			scope.schema
 		)
@@ -77,7 +76,7 @@ function Delegates (cb, scope) {
  * Gets delegate public keys sorted by vote descending.
  * @private
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} 
+ * @returns {setImmediateCallback}
  */
 __private.getKeysSortByVote = function (cb) {
 	modules.accounts.getAccounts({
@@ -125,11 +124,11 @@ __private.getBlockSlotData = function (slot, height, cb) {
 };
 
 /**
- * Gets peers, checks consensus and generates new block, once delegates 
+ * Gets peers, checks consensus and generates new block, once delegates
  * are enabled, client is ready to forge and is the correct slot.
  * @private
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} 
+ * @returns {setImmediateCallback}
  */
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
@@ -381,7 +380,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
  * Loads delegates from config and stores in private `keypairs`.
  * @private
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} 
+ * @returns {setImmediateCallback}
  */
 __private.loadDelegates = function (cb) {
 
@@ -598,17 +597,6 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 			return setImmediate(cb, 'Failed to verify slot: ' + currentSlot);
 		}
 	});
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Delegates.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events

@@ -11,9 +11,7 @@ var extend = require('extend');
 var ip = require('ip');
 var popsicle = require('popsicle');
 var schema = require('../schema/transport.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var sql = require('../sql/transport.js');
-var zlib = require('zlib');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -208,8 +206,8 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 };
 
 /**
- * Normalizes transaction and remove peer if it fails.
- * Calls balancesSequence.add to receive transaction and 
+ * Normalizes transaction and bans peer if it fails.
+ * Calls balancesSequence.add to receive transaction and
  * processUnconfirmedTransaction to confirm it.
  * @private
  * @implements {library.logic.transaction.objectNormalize}
@@ -411,17 +409,6 @@ Transport.prototype.getFromPeer = function (peer, options, cb) {
 		});
 };
 
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Transport.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
-
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
@@ -432,7 +419,6 @@ Transport.prototype.sandboxApi = function (call, args, cb) {
 Transport.prototype.onBind = function (scope) {
 	modules = {
 		blocks: scope.blocks,
-		dapps: scope.dapps,
 		peers: scope.peers,
 		multisignatures: scope.multisignatures,
 		transactions: scope.transactions,
@@ -510,19 +496,6 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 };
 
 /**
- * Calls broadcast '/dapp/message'.
- * @implements {Broadcaster.maxRelays}
- * @implements {Broadcaster.broadcast}
- * @param {Object} msg
- * @param {Object} broadcast
- */
-Transport.prototype.onMessage = function (msg, broadcast) {
-	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
-		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST', immediate: true});
-	}
-};
-
-/**
  * Sets loaded to false.
  * @param {function} cb
  * @return {setImmediateCallback} cb
@@ -534,7 +507,7 @@ Transport.prototype.cleanup = function (cb) {
 
 /**
  * Returns true if modules are loaded and private variable loaded is true.
- * @return {boolean} 
+ * @return {boolean}
  */
 Transport.prototype.isLoaded = function () {
 	return modules && __private.loaded;
@@ -685,74 +658,6 @@ Transport.prototype.internal = {
 		}
 	},
 
-	postDappMessage: function (query, cb) {
-		try {
-			if (!query.dappid) {
-				return setImmediate(cb, null, {success: false, message: 'Missing dappid'});
-			}
-			if (!query.timestamp || !query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Missing hash sum'});
-			}
-			var newHash = __private.hashsum(query.body, query.timestamp);
-			if (newHash !== query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Invalid hash sum'});
-			}
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, null, {success: false, message: e.toString()});
-		}
-
-		if (__private.messages[query.hash]) {
-			return setImmediate(cb, null);
-		}
-
-		__private.messages[query.hash] = true;
-
-		modules.dapps.message(query.dappid, query.body, function (err, body) {
-			if (!err && body.error) {
-				err = body.error;
-			}
-
-			if (err) {
-				return setImmediate(cb, null, {success: false, message: err.toString()});
-			} else {
-				library.bus.message('message', query, true);
-				return setImmediate(cb, null, extend({}, body, {success: true}));
-			}
-		});
-	},
-
-	postDappRequest: function (query, cb) {
-		try {
-			if (!query.dappid) {
-				return setImmediate(cb, null, {success: false, message: 'Missing dappid'});
-			}
-			if (!query.timestamp || !query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Missing hash sum'});
-			}
-
-			var newHash = __private.hashsum(query.body, query.timestamp);
-			if (newHash !== query.hash) {
-				return setImmediate(cb, null, {success: false, message: 'Invalid hash sum'});
-			}
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, null, {success: false, message: e.toString()});
-		}
-
-		modules.dapps.request(query.dappid, query.body.method, query.body.path, query.body.query, function (err, body) {
-			if (!err && body.error) {
-				err = body.error;
-			}
-
-			if (err) {
-				return setImmediate(cb, null, {success: false, message: err});
-			} else {
-				return setImmediate(cb, null, extend({}, body, {success: true}));
-			}
-		});
-	},
-
 	handshake: function (ip, port, headers, validateHeaders, cb) {
 		var peer = library.logic.peers.create(
 			{
@@ -802,31 +707,6 @@ Transport.prototype.internal = {
 
 			return setImmediate(cb, null, peer);
 		});
-	}
-};
-
-// Shared API
-shared.message = function (msg, cb) {
-	msg.timestamp = Math.floor(Date.now() / 1000);
-	msg.hash = __private.hashsum(msg.body, msg.timestamp);
-
-	__private.broadcaster.enqueue({dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST'});
-
-	return setImmediate(cb, null, {});
-};
-
-shared.request = function (msg, cb) {
-	msg.timestamp = Math.floor(Date.now() / 1000);
-	msg.hash = __private.hashsum(msg.body, msg.timestamp);
-
-	if (msg.body.peer) {
-		self.getFromPeer({ip: msg.body.peer.ip, port: msg.body.peer.port}, {
-			api: '/dapp/request',
-			data: msg,
-			method: 'POST'
-		}, cb);
-	} else {
-		self.getFromRandomPeer({dappid: msg.dappid}, {api: '/dapp/request', data: msg, method: 'POST'}, cb);
 	}
 };
 
