@@ -52,12 +52,12 @@ $ npm run test
 
 # Documentation
 
-If you want to know all the details on this project, as a [user](https://docs.lisk.io/v1.1/docs/user-documentation) and [developer](https://docs.lisk.io/v1.1/docs/developer-documentation), we have created intense documentation on our Readme.
+If you want to know all the details on this project, as a [user](https://docs.lisk.io/v1.1/docs/user-documentation) and [developer](https://docs.lisk.io/v1.1/docs/developer-documentation), we have more comprehensive documentation on our Readme site.
 
 
 # Get involved
 
-As with every repository on LiskHQ we are working intensively with Github Open-Soruce tools.
-If you find a bug, you can create an [Issue](https://github.com/LiskHQ/lisky/issues), please describe it as much in detail as you can.
+As with every repository on LiskHQ we are working intensively with Github Open-Source tools.
+If you find a bug, you can create an [Issue](https://github.com/LiskHQ/lisky/issues), please describe it in as much detail as you can.
 
 We would be more than happy if you decide to contribute to this code and make it better on the way. Please have a look at Lisk contribution guidelines before you start.
