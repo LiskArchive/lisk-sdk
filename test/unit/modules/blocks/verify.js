@@ -260,7 +260,7 @@ describe('blocks/verify', function () {
 
 		});
 
-		describe('advanceValidations', function () {
+		describe('advancedValidations', function () {
 			// transactions
 		
 			it('transactions getBytes() should fail for unknown transaction type', function (done) {
@@ -364,8 +364,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('blockIdGeneration and expectedReward', function () {
-			// blockIdGeneration
+		describe('setBlockId and expectedReward', function () {
+			// setBlockId
 			it('should generate valid block id for not number id value', function (done) {
 				var blockId = validBlock.id;
 				validBlock.id = 'invalid-block-id';
