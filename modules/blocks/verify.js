@@ -214,7 +214,7 @@ Verify.prototype.verifyBlock = function (block, cb) {
 				seriesCb(err);
 			});
 	  },
-		function advanceValidations (seriesCb) {
+		function advancedValidations (seriesCb) {
 			async.parallel({
 				transactions: function (parallelCb) {
 					// Checking if transactions of the block adds up to block values.
@@ -274,7 +274,7 @@ Verify.prototype.verifyBlock = function (block, cb) {
 				seriesCb(err);
 			});
 		},
-		function blockIdGeneration (seriesCb) {
+		function setBlockId (seriesCb) {
 			try {
 				block.id = library.logic.block.getId(block);
 			} catch (e) {
@@ -293,8 +293,8 @@ Verify.prototype.verifyBlock = function (block, cb) {
 
 			return setImmediate(seriesCb);
 		}
-	],function (err, results) {
-		cb(err);
+	], function (err, results) {
+		return setImmediate(cb, err);
 	});
 };
 

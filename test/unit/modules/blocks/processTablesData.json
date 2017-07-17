@@ -146,22 +146,6 @@
 				"payloadHash": "\\x3e6e94638e1fe7f2edaeb7301ebbb7a5d2b6f51f65dde97977ef76465e108e61",
 				"generatorPublicKey": "\\x67651d29dc8d94bcb1174d5bd602762850a89850503b01a5ffde3b726b43d3d2",
 				"blockSignature": "\\xd827618273720668effd9b3b67eb6a056ae3bb71510a7a636524f4706388d300f4ca1d8ee3e0fdba86f7dfd1cee0cb9235deafd7949e4ec615a1fabdff7b2d04"
-			},
-			{
-				"id": "15261447262059365744",
-				"rowId": 11,
-				"version": 0,
-				"timestamp": 35566110,
-				"height": 11,
-				"previousBlock": "9230558580356301042",
-				"numberOfTransactions": 1,
-				"totalAmount": "57000000",
-				"totalFee": "10000000",
-				"reward": "0",
-				"payloadLength": 117,
-				"payloadHash": "\\x5788bd2da1d0a70e53788895f1f866647d383ef4ee835ad7c4c0ae6d1509e60d",
-				"generatorPublicKey": "\\xfab7b58be4c1e9542c342023b52e9d359ea89a3af34440bdb97318273e8555f0",
-				"blockSignature": "\\x138fbedad8c568df8fe724de21b41823426ee31df4418718a1cc9944eed16c037045200ef875eb6504b69c05e59e1e7631cd6991f7aec8029b3a5136c001840a"
 			}
 		]
   },
@@ -191,7 +175,7 @@
 				"u_multimin": 0,
 				"multilifetime": 0,
 				"u_multilifetime": 0,
-				"blockId": "15261447262059365744",
+				"blockId": "9230558580356301042",
 				"nameexist": 0,
 				"u_nameexist": 0,
 				"producedblocks": 0,
@@ -222,7 +206,7 @@
 				"u_multimin": 0,
 				"multilifetime": 0,
 				"u_multilifetime": 0,
-				"blockId": "15261447262059365744",
+				"blockId": "9230558580356301042",
 				"nameexist": 0,
 				"u_nameexist": 0,
 				"producedblocks": 0,
@@ -361,22 +345,6 @@
 				"amount": "0",
 				"fee": "100000000",
 				"signature": "\\x9619e27a64f8f982a6f5e3c8f1b3f667224216e90df89d2089dd4b9c3b270b674392e3f623e66b72caa56bc710712279279f8b9f68588f7e20b3380172c6800f",
-				"signSignature": null,
-				"requesterPublicKey": null,
-				"signatures": null
-			},
-			{
-				"id": "1056042028317378647",
-				"rowId": 112,
-				"blockId": "15261447262059365744",
-				"type": 0,
-				"timestamp": 35566120,
-				"senderPublicKey": "\\xc76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5",
-				"senderId": "2737453412992791987L",
-				"recipientId": "2896019180726908125L",
-				"amount": "57000000",
-				"fee": "10000000",
-				"signature": "\\x8d3f7e35c95e138762ec1fbbfa8ceff2e7d0851969afbd5f361002e0c40fb8e9a139eb3b103d3c2048b3309e27cbb97d4fa9db2fe809f95bf75cd6b80efc920c",
 				"signSignature": null,
 				"requesterPublicKey": null,
 				"signatures": null

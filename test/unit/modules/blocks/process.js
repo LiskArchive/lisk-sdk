@@ -102,7 +102,7 @@ describe('blocks/process', function () {
  		});
 	});
 
-	describe('loadBlocksOffset - no errors', function () {
+	describe('loadBlocksOffset {verify: true} - no errors', function () {
 		
 		it('should load block 2 from database: no transaction', function (done) {
 			blocks.lastBlock.set(genesisBlock);
@@ -130,7 +130,7 @@ describe('blocks/process', function () {
 		});
 	});
 
-	describe('loadBlocksOffset - block/trs errors', function () {
+	describe('loadBlocksOffset {verify: true} - block/trs errors', function () {
 		
 		it('should load block 4 from db and return error blockSignature', function (done) {
 			blocksProcess.loadBlocksOffset(1, 4, true, function (err, loadedBlock) {
@@ -221,16 +221,116 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 11 from db and return error invalid delegate', function (done) {
-			blocks.lastBlock.set(loadTables[0].data[8]);
+	});
 
-			blocksProcess.loadBlocksOffset(1, 11, true, function (err, loadedBlock) {
+	describe('loadBlocksOffset {verify: false} - rerun block/trs errors', function () {
+		it('should clear db for errors', function (done) {
+			async.every([
+				'forks_stat'
+			], function (table, seriesCb) {
+				clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+			}, function (err, result) {
 				if (err) {
-					expect(err).equal('Failed to verify slot: 3556611');
+					done(err);
+				}
+				done();
+			});
+		});
+
+		it('should load and process block 4 from db with blockSignature error', function (done) {
+			blocks.lastBlock.set(loadTables[0].data[1]);
+
+			blocksProcess.loadBlocksOffset(1, 4, false, function (err, loadedBlock) {
+				if (err) {
+					return done(err);
+				}
+				
+				expect(loadedBlock.id).equal(loadTables[0].data[2].id);
+				expect(loadedBlock.previousBlock).equal(loadTables[0].data[2].previousBlock);
+				done();
+			});
+		});
+
+		it('should load and process block 5 from db with invalid payloadHash', function (done) {
+			blocks.lastBlock.set(loadTables[0].data[2]);
+
+			blocksProcess.loadBlocksOffset(1, 5, false, function (err, loadedBlock) {
+				if (err) {
+					return done(err);
+				}
+
+				expect(loadedBlock.id).equal(loadTables[0].data[3].id);
+				expect(loadedBlock.previousBlock).equal(loadTables[0].data[3].previousBlock);
+				done();
+			});
+		});
+
+		it('should load and process block 6 from db with invalid block timestamp', function (done) {
+			blocks.lastBlock.set(loadTables[0].data[3]);
+
+			blocksProcess.loadBlocksOffset(1, 6, false, function (err, loadedBlock) {
+				if (err) {
+					done(err);
+				}
+
+				expect(loadedBlock.id).equal(loadTables[0].data[4].id);
+				expect(loadedBlock.previousBlock).equal(loadTables[0].data[4].previousBlock);
+				done();
+			});
+		});
+
+		it('should load block 7 from db and return error unknown transaction type', function (done) {
+			blocks.lastBlock.set(loadTables[0].data[4]);
+
+			blocksProcess.loadBlocksOffset(1, 7, true, function (err, loadedBlock) {
+				if (err) {
+					expect(err).equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
 					return done();
 				}
 				
 				done(loadedBlock);
+			});
+		});
+
+		it('should load and process block 8 from db with Invalid block version error', function (done) {
+			blocks.lastBlock.set(loadTables[0].data[5]);
+
+			blocksProcess.loadBlocksOffset(1, 8, false, function (err, loadedBlock) {
+				if (err) {
+					done(err);
+				}
+				
+				expect(loadedBlock.id).equal(loadTables[0].data[6].id);
+				expect(loadedBlock.previousBlock).equal(loadTables[0].data[6].previousBlock);
+				done();
+			});
+		});
+
+		it('should load and process block 9 from db with Invalid previous block error (no fork:1)', function (done) {
+			blocks.lastBlock.set(loadTables[0].data[1]);
+
+			blocksProcess.loadBlocksOffset(1, 9, false, function (err, loadedBlock) {
+				if (err) {
+					done(err);
+				}
+				
+				expect(loadedBlock.id).equal(loadTables[0].data[7].id);
+				expect(loadedBlock.previousBlock).equal(loadTables[0].data[7].previousBlock);
+				done();
+			});
+		});
+
+		it('should load and process block 10 from db with duplicated vote error', function (done) {
+			blocks.lastBlock.set(loadTables[0].data[7]);
+
+			blocksProcess.loadBlocksOffset(1, 10, false, function (err, loadedBlock) {
+				if (err) {
+					done(err);
+				}
+				
+				expect(loadedBlock.id).equal(loadTables[0].data[8].id);
+				expect(loadedBlock.previousBlock).equal(loadTables[0].data[8].previousBlock);
+				done();
 			});
 		});
 
