@@ -102,14 +102,9 @@ Transfer.prototype.process = function (trs, sender, cb) {
  */
 Transfer.prototype.getBytes = function (trs) {
 	var buf;
-	var data;
-
-	if (trs.asset && trs.asset.data) {
-		data = trs.asset.data;
-	}
 
 	try {
-		buf = data ? Buffer.from(data, 'utf8') : null;
+		buf = (trs.asset && trs.asset.data) ? Buffer.from(trs.asset.data, 'utf8') : null;
 	} catch (e) {
 		throw e;
 	}
@@ -203,12 +198,12 @@ Transfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
  * @property {String} data
  */
 Transfer.prototype.schema = {
-	id: 'transefer',
+	id: 'transfer',
 	type: 'object',
 	properties: {
 		data: {
 			type: 'string',
-			minLength: 0,
+			minLength: 1,
 			maxLength: 64
 		}
 	}
@@ -226,10 +221,8 @@ Transfer.prototype.objectNormalize = function (trs) {
 		return trs;
 	}
 
-	for (var i in trs.asset) {
-		if (trs.asset[i] === null || typeof trs.asset[i] === 'undefined') {
-			delete trs.asset[i];
-		}
+	if (trs.asset.data === null || typeof trs.asset.data === 'undefined') {
+		delete trs.asset.data;
 	}
 
 	var report = library.schema.validate(trs.asset, Transfer.prototype.schema);
@@ -291,7 +284,6 @@ Transfer.prototype.dbSave = function (trs) {
 
 	return null;
 };
-
 
 /**
  * Checks sender multisignatures and transaction signatures.

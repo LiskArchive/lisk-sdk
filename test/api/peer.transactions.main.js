@@ -77,7 +77,7 @@ describe('POST /peer/transactions', function () {
 			});
 	});
 
-	it('using data field should be ok', function (done) {
+	it('using valid data field should be ok', function (done) {
 		var account = node.randomAccount();
 		var sampleData = 'sample data';
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password, null, sampleData);

@@ -45,8 +45,8 @@ SELECT b."id" AS "b_id",
        ot."dappId" AS "ot_dappId",
        ot."outTransactionId" AS "ot_outTransactionId",
        ENCODE(t."requesterPublicKey", 'hex') AS "t_requesterPublicKey",
-			 CONVERT_FROM(tf."data", 'utf8') AS "tf_data",
-			 t."signatures" AS "t_signatures"
+       CONVERT_FROM(tf."data", 'utf8') AS "tf_data",
+       t."signatures" AS "t_signatures"
 
 FROM blocks b
 

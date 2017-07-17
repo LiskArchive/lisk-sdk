@@ -292,8 +292,6 @@ describe('transactions', function () {
 				var trsId = transactionsByType[transactionTypes.SEND].transactionId;
 				var trs = transactionsByType[transactionTypes.SEND].transaction;
 				getTransactionById(trsId, function (err, res) {
-					console.log('res');
-					console.log(res);
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.type).to.equal(trs.type);
