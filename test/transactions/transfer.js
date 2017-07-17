@@ -1,4 +1,5 @@
 if (typeof module !== 'undefined' && module.exports) {
+	var slots = require('../../lib/time/slots');
 	var common = require('../common');
 	var lisk = common.lisk;
 }
@@ -52,5 +53,38 @@ describe('transfer.js', function () {
 			(transferTransactionOneSignature.signature).should.be.ok;
 			expect(transferTransactionOneSignature.secondSignature).to.be.undefined;
 		});
+
+		it('should use time slots to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
+
+			var trs = createTransfer('secret', null, '1234213');
+
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime())).should.be.true();
+
+			stub.restore();
+			clock.restore();
+		});
+
+		it('should use time slots with an offset to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var offset = 10e3;
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
+
+			var trs = createTransfer('secret', null, '1234213', offset);
+
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+
+			stub.restore();
+			clock.restore();
+		});
+
 	});
+
 });
