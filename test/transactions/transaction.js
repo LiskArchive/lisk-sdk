@@ -1,4 +1,6 @@
+
 if (typeof module !== 'undefined' && module.exports) {
+	var slots = require('../../lib/time/slots');
 	var common = require('../common');
 	var lisk = common.lisk;
 }
@@ -27,6 +29,37 @@ describe('transaction.js', function () {
 		it('should create transaction without second signature', function () {
 			trs = createTransaction('58191285901858109L', 1000, 'secret');
 			(trs).should.be.ok();
+		});
+
+		it('should use time slots to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
+
+			trs = createTransaction('58191285901858109L', 1000, 'secret');
+
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime())).should.be.true();
+
+			stub.restore();
+			clock.restore();
+		});
+
+		it('should use time slots with an offset to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var offset = 10e3;
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
+
+			trs = createTransaction('58191285901858109L', 1000, 'secret', null, offset);
+
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+
+			stub.restore();
+			clock.restore();
 		});
 
 		describe('returned transaction', function () {
@@ -97,7 +130,9 @@ describe('transaction.js', function () {
 				var result = lisk.crypto.verify(trs);
 				(result).should.be.not.ok();
 			});
+
 		});
+
 	});
 
 	describe('#createTransaction with second secret', function () {
@@ -207,6 +242,9 @@ describe('transaction.js', function () {
 				var result = lisk.crypto.verifySecondSignature(trs, keys.publicKey);
 				(result).should.be.not.ok();
 			});
+
 		});
+
 	});
+
 });
