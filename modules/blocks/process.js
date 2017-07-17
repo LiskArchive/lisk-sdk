@@ -208,22 +208,23 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 							return setImmediate(cb, err);
 						} else {
 							// Apply block - broadcast: false, saveBlock: false
-							modules.blocks.chain.applyBlock(block, false, cb, false);
-
-							// Update last block
-							modules.blocks.lastBlock.set(block);
+							modules.blocks.chain.applyBlock(block, false, function (err) {
+								setImmediate(cb, err);
+							}, false);
 						}
 					});
 
 				} else {
 					if (block.id === library.genesisblock.block.id) {
-						modules.blocks.chain.applyGenesisBlock(block, cb);
+						modules.blocks.chain.applyGenesisBlock(block, function (err) {
+							setImmediate(cb, err);
+						});
 					} else {
 						// Apply block - broadcast: false, saveBlock: false
-						modules.blocks.chain.applyBlock(block, false, cb, false);
+						modules.blocks.chain.applyBlock(block, false, function (err) {
+							setImmediate(cb, err);
+						}, false);
 					}
-					// Update last block
-					modules.blocks.lastBlock.set(block);
 				}
 
 			}, function (err) {
