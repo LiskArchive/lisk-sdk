@@ -1082,9 +1082,28 @@ describe('Lisk.api()', function () {
 			stub.resolves(futureTimestampResponse);
 			stub.onThirdCall().resolves(successResponse);
 
-			return thisLSK.sendRequest('transactions/')
+			return thisLSK.sendRequest('transactions')
 				.then(function () {
 					(spy.callCount).should.equal(3);
+					(spy.args[1][1]).should.have.property('timeOffset').equal(10e3);
+					(spy.args[2][1]).should.have.property('timeOffset').equal(20e3);
+					stub.restore();
+					spy.restore();
+				});
+		});
+
+		it('should not retry timestamp in future failures forever', function () {
+			var thisLSK = lisk.api();
+			var futureTimestampResponse = {
+				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' }
+			};
+			var stub = sinon.stub(privateApi, 'sendRequestPromise');
+			var spy = sinon.spy(thisLSK, 'sendRequest');
+			stub.resolves(futureTimestampResponse);
+
+			return thisLSK.sendRequest('transactions')
+				.then(function (response) {
+					(response).should.equal(futureTimestampResponse.body);
 					stub.restore();
 					spy.restore();
 				});
