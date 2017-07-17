@@ -131,7 +131,7 @@ __private.deleteBlockProperties = function (block) {
 		delete reducedBlock.version;
 	}
 	// verifyBlock ensures numberOfTransactions is transactions.length
-	if (reducedBlock.numberOfTransactions) {
+	if (typeof(reducedBlock.numberOfTransactions) === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
 	if (reducedBlock.totalAmount === 0) {
