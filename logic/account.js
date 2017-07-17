@@ -355,7 +355,7 @@ function Account (db, schema, logger, cb) {
 			immutable: true
 		}
 	];
-	
+
 	// Obtains fields from model
 	this.fields = this.model.map(function (field) {
 		var _tmp = {};
@@ -374,7 +374,7 @@ function Account (db, schema, logger, cb) {
 
 		return _tmp;
 	});
-	
+
 	// Obtains bynary fields from model
 	this.binary = [];
 	this.model.forEach(function (field) {
@@ -382,7 +382,7 @@ function Account (db, schema, logger, cb) {
 			this.binary.push(field.name);
 		}
 	}.bind(this));
-	
+
 	// Obtains filters from model
 	this.filter = {};
 	this.model.forEach(function (field) {
@@ -447,12 +447,12 @@ Account.prototype.removeTables = function (cb) {
 		'mem_accounts2u_delegates',
 		'mem_accounts2multisignatures',
 		'mem_accounts2u_multisignatures'].forEach(function (table) {
-			sql = jsonSql.build({
-				type: 'remove',
-				table: table
-			});
-			sqles.push(sql.query);
+		sql = jsonSql.build({
+			type: 'remove',
+			table: table
 		});
+		sqles.push(sql.query);
+	});
 
 	this.scope.db.query(sqles.join('')).then(function () {
 		return setImmediate(cb);
@@ -693,9 +693,9 @@ Account.prototype.merge = function (address, diff, cb) {
 				} else if (trueValue < 0) {
 					update.$dec = update.$dec || {};
 					update.$dec[value] = Math.floor(Math.abs(trueValue));
-						// If decrementing u_balance on account
+					// If decrementing u_balance on account
 					if (update.$dec.u_balance) {
-							// Remove virginity and ensure marked columns become immutable
+						// Remove virginity and ensure marked columns become immutable
 						update.virgin = 0;
 					}
 					if (value === 'balance') {

@@ -72,6 +72,12 @@ Peer.prototype.nullable = [
 	'updated'
 ];
 
+Peer.STATE = {
+	BANNED: 0,
+	DISCONNECTED: 1,
+	CONNECTED: 2
+};
+
 // Public methods
 /**
  * Checks peer properties and adjusts according rules.
@@ -118,10 +124,7 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.port = this.parseInt(peer.port, 0);
-
-	if (!/^[0-2]{1}$/.test(peer.state)) {
-		peer.state = 1;
-	}
+	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
 	return peer;
 };
@@ -161,8 +164,8 @@ Peer.prototype.update = function (peer) {
 
 	// Accept only supported properties
 	_.each(this.properties, function (key) {
-		// Change value only when is defined, also prevent release ban when banned peer connect to our node
-		if (peer[key] !== null && peer[key] !== undefined && !(key === 'state' && this.state === 0 && peer.state === 2) && !_.includes(this.immutable, key)) {
+		// Change value only when is defined
+		if (peer[key] !== null && peer[key] !== undefined && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
 	}.bind(this));

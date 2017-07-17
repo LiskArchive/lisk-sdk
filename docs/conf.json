@@ -13,7 +13,7 @@
       "./modules/",
       "./schema/"
     ],
-    "exclude": [ "./public", "./node_modules"]
+    "exclude": [ "./node_modules"]
   },
   "plugins": ["plugins/markdown"],
   "opts": {
