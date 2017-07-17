@@ -2,6 +2,7 @@ const path = require('path');
 const fse = require('fs-extra');
 const lisky = require('vorpal')();
 const config = require('./config.json');
+const packageJson = require('./package.json');
 
 const commandsDir = path.join(__dirname, 'src', 'commands');
 
@@ -11,9 +12,25 @@ fse.readdirSync(commandsDir).forEach((command) => {
 	lisky.use(require(commandPath));
 });
 
+const logo = `
+ _ _     _
+| (_)___| | ___   _
+| | / __| |/ / | | |
+| | \\__ \\   <| |_| |
+|_|_|___/_|\\_\\\\__, |
+              |___/
+`;
+const { version } = packageJson;
+const message = `
+Running v${version}.
+Type \`help\` to get started.
+`;
+const intro = `${logo}${message}`;
+
 lisky
 	.delimiter('lisky>')
 	.history('lisky')
+	.log(intro)
 	.show();
 
 
