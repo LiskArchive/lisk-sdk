@@ -38,24 +38,6 @@ InTransfer.prototype.bind = function (accounts, rounds, sharedApi) {
 };
 
 /**
- * Assigns data to transaction recipientId and amount.
- * Generates inTransfer data into transaction asset.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-InTransfer.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = data.amount;
-
-	trs.asset.inTransfer = {
-		dappId: data.dappId
-	};
-
-	return trs;
-};
-
-/**
  * Returns send fee from constants.
  * @param {transaction} trs
  * @param {account} sender

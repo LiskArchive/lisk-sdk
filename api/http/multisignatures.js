@@ -26,8 +26,7 @@ function MultisignaturesHttpApi (mutlisignaturesModule, app) {
 
 	router.map(mutlisignaturesModule.shared, {
 		'get /pending': 'pending',
-		'post /sign': 'sign',
-		'put /': 'addMultisignature',
+		'post /sign': 'postSignatures',
 		'get /accounts': 'getAccounts'
 	});
 

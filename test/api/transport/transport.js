@@ -197,22 +197,20 @@ describe('RPC', function () {
 
 		it('should should work ok with asking for a list multiple times', function (done) {
 
-			var count = 0;
+			var successfullAsks = 0;
 			for (var i = 0; i < 100; i += 1) {
 				clientSocket.wampSend('list')
 					.then(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('peers').to.be.an('array');
-						count += 1;
-						if (count === 99) {
-							return done();
+						successfullAsks += 1;
+						if (successfullAsks === 100) {
+							done();
 						}
 					}).catch(function (err) {
 						done(err);
 					});
 			}
-
-
 		});
 	});
 

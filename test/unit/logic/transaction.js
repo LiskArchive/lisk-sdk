@@ -127,7 +127,6 @@ var validUnconfirmedTrs = {
 	id: '16580139363949197645' 
 };
 
-
 describe('transaction', function () {
 
 	var transaction;
@@ -166,33 +165,6 @@ describe('transaction', function () {
 			transaction = result.transaction;
 			transaction.bindModules(result);
 			attachTransferAsset(transaction, result.accountLogic, result.rounds, done); 
-		});
-	});
-
-	describe('create', function () {
-
-		it('should throw an error with no param', function () {
-			expect(transaction.create).to.throw();
-		});
-
-		it('should throw an error when sender is not set', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			delete trsData.sender;
-			expect(function () {
-				transaction.create(transaction, trsData);
-			}).to.throw();
-		});
-
-		it('should throw an error when keypair is not set', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			delete trsData.keypair;
-			expect(function () {
-				transaction.create(transaction, trsData);
-			}).to.throw();
-		});
-
-		it('should return transaction fee based on trs type', function () {
-			expect(transaction.create(validTransactionData).fee).to.equal(10000000);
 		});
 	});
 
@@ -370,7 +342,7 @@ describe('transaction', function () {
 		});
 
 		it('should not return error when trs is not confirmed', function (done) {
-			var trs = transaction.create(validTransactionData);
+			var trs = node.lisk.transaction.createTransaction(validTransactionData.recipientId, validTransactionData.amount, validTransactionData.keypair.privateKey);
 			transaction.checkConfirmed(trs, function (err) {
 				expect(err).to.not.exist;
 				done();
@@ -463,8 +435,8 @@ describe('transaction', function () {
 	describe('verify', function () {
 
 		function createAndProcess (trsData, sender, cb) {
-			var trs = transaction.create(trsData);
-			transaction.process(trs, sender, function (err, __trs) {
+			var trs = node.lisk.transaction.createTransaction(trsData.recipientId, trsData.amount, trsData.keypair.privateKey, trsData.secondKeypair.privateKey);
+			transaction.process(validTransaction, sender, function (err, __trs) {
 				expect(err).to.not.exist;
 				expect(__trs).to.be.an('object');
 				cb(__trs);

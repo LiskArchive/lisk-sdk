@@ -62,7 +62,7 @@ describe('postSignatures', function () {
 		ws.call('postSignatures', validParams, function (err, res) {
 			node.debug('> Response:'.grey, JSON.stringify(res));
 			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message').to.equal('Invalid signature body');
+			node.expect(res).to.have.property('message').to.contain('Invalid signature body');
 			done();
 		});
 	});
@@ -136,6 +136,20 @@ describe('postSignatures', function () {
 			});
 		});
 
+		it('using processable signature for coSigner1 multiple times should fail', function (done) {
+			var signature = node.lisk.multisignature.signTransaction(transaction, coSigner1.password);
+
+			postSignature(transaction, signature, function (err, res) {
+				node.onNewBlock(function () {
+					postSignature(transaction, signature, function (err, res) {
+						node.expect(res).to.have.property('success').not.to.be.ok;
+						node.expect(res).to.have.property('message').to.equal('Error processing signature: Permission to sign transaction denied');
+						done();
+					});
+				});
+			});
+		});
+
 		it('using processable signature for coSigner1 should not confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
 				node.onNewBlock(function (err) {
@@ -182,9 +196,7 @@ describe('postSignatures', function () {
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.ok;
-				node.onNewBlock(function (err) {
-					done();
-				});
+				node.onNewBlock(done);
 			});
 		});
 
@@ -202,6 +214,20 @@ describe('postSignatures', function () {
 				node.onNewBlock(function (err) {
 					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
+						done();
+					});
+				});
+			});
+		});
+
+		it('using processable signature for coSigner1 multiple times should fail', function (done) {
+			var signature = node.lisk.multisignature.signTransaction(transaction, coSigner1.password);
+
+			postSignature(transaction, signature, function (err, res) {
+				node.onNewBlock(function () {
+					postSignature(transaction, signature, function (err, res) {
+						node.expect(res).to.have.property('success').not.to.be.ok;
+						node.expect(res).to.have.property('message').to.equal('Error processing signature: Signature already exists');
 						done();
 					});
 				});

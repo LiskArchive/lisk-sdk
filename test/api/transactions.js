@@ -2,42 +2,32 @@
 
 var node = require('../node.js');
 var http = require('../common/httpCommunication.js');
+var sendLiskTrs = require('../common/complexTransactions.js').sendLISK;
 var transactionSortFields = require('../../sql/transactions').sortFields;
 var modulesLoader = require('../common/initModule').modulesLoader;
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
-var account3 = node.randomTxAccount();
 
 var transactionList = [];
 var offsetTimestamp = 0;
 
-function openAccount (params, done) {
-	http.post('/api/accounts/open', params, function (err, res) {
-		done(err, res);
-	});
-}
-
-function putTransaction (params, done) {
-	http.put('/api/transactions', params, done);
-}
-
 function sendLISK (account, amount, done) {
 	var expectedFee = node.expectedFee(amount);
 
-	putTransaction({
+	sendLiskTrs({
 		secret: node.gAccount.password,
 		amount: amount,
-		recipientId: account.address
+		address: account.address
 	}, function (err, res) {
-		node.expect(res.body).to.have.property('success').to.be.ok;
-		node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+		node.expect(res).to.have.property('success').to.be.ok;
+		node.expect(res).to.have.property('transactionId').that.is.not.empty;
 		transactionList.push({
 			'sender': node.gAccount.address,
 			'recipient': account.address,
 			'grossSent': (amount + expectedFee) / node.normalizer,
 			'fee': expectedFee / node.normalizer,
 			'netSent': amount / node.normalizer,
-			'txId': res.body.transactionId,
+			'txId': res.transactionId,
 			'type': node.txTypes.SEND
 		});
 		done(err, res);
@@ -76,7 +66,7 @@ before(function (done) {
 	});
 });
 
-describe.skip('GET /api/transactions (cache)', function () {
+describe('GET /api/transactions (cache)', function () {
 	var cache;
 
 	before(function (done) {
@@ -134,7 +124,7 @@ describe.skip('GET /api/transactions (cache)', function () {
 			'whatever:senderId=' + node.gAccount.address
 		];
 
-		node.get(url + params.join('&'), function (err, res) {
+		http.get(url + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			cache.getJsonForKey(url + params, function (err, res) {
@@ -642,191 +632,6 @@ describe('GET /api/transactions/unconfirmed', function () {
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body).to.have.property('count').that.is.an('number');
 			done();
-		});
-	});
-});
-
-describe('PUT /api/transactions', function () {
-
-	it('using valid parameters should be ok', function (done) {
-		var amountToSend = 100000000;
-		var expectedFee = node.expectedFee(amountToSend);
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
-			transactionList.push({
-				'sender': account.address,
-				'recipient': account2.address,
-				'grossSent': (amountToSend + expectedFee) / node.normalizer,
-				'fee': expectedFee / node.normalizer,
-				'netSent': amountToSend / node.normalizer,
-				'txId': res.body.transactionId,
-				'type': node.txTypes.SEND
-			});
-			done();
-		});
-	});
-
-	it('using negative amount should fail', function (done) {
-		var amountToSend = -100000000;
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using float amount should fail', function (done) {
-		var amountToSend = 1.2;
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using entire balance should fail', function (done) {
-		openAccount({ secret: account.password }, function (err, res) {
-			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
-			account.balance = res.body.account.balance;
-
-			putTransaction({
-				secret: account.password,
-				amount: Math.floor(account.balance),
-				recipientId: account2.address
-			}, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: [0-9.]+/);
-				done();
-			});
-		});
-	});
-
-	it('using zero amount should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: 0,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using positive overflown amount should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using negative overflown amount should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using small fractional amount should be ok', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: 1,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId');
-			done();
-		});
-	});
-
-	it('using no passphase should fail', function (done) {
-		var amountToSend = 100000000;
-
-		putTransaction({
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using no recipient should fail', function (done) {
-		var amountToSend = 100000000;
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	describe('to a cold address', function (done) {
-		var recipientId = '13896491535841206186L';
-
-		it('should be ok', function (done) {
-			var amountToSend = 110000000;
-
-			putTransaction({
-				secret: node.gAccount.password,
-				amount: amountToSend,
-				recipientId: recipientId
-			}, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				done();
-			});
-		});
-	});
-
-	describe('from a cold address', function (done) {
-		var passphrase = 'fiber diet blind uncover crunch breeze bicycle globe attack chalk cousin divert';
-
-		before(function (done) {
-			node.onNewBlock(done);
-		});
-
-		it('should be ok', function (done) {
-			var amountToSend = 100000000;
-
-			putTransaction({
-				secret: passphrase,
-				amount: amountToSend,
-				recipientId: account2.address
-			}, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				done();
-			});
 		});
 	});
 });
