@@ -1,4 +1,6 @@
+
 if (typeof module !== 'undefined' && module.exports) {
+	var slots = require('../../lib/time/slots');
 	var common = require('../common');
 	var lisk = common.lisk;
 }
@@ -36,10 +38,44 @@ describe('delegate.js', function () {
 			trs = createDelegate('secret', 'delegate', 'secret 2');
 		});
 
+		it('should use time slots to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
+
+			trs = createDelegate('secret', 'delegate', null);
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime())).should.be.true();
+
+			stub.restore();
+			clock.restore();
+		});
+
+		it('should use time slots with an offset to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var offset = 10e3;
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
+
+			trs = createDelegate('secret', 'delegate', null, offset);
+
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+
+			stub.restore();
+			clock.restore();
+		});
+
 		describe('returned delegate', function () {
 
 			var keys = lisk.crypto.getKeys('secret');
 			var secondKeys = lisk.crypto.getKeys('secret 2');
+
+			beforeEach(function () {
+				trs = createDelegate('secret', 'delegate', 'secret 2');
+			});
 
 			it('should be ok', function () {
 				(trs).should.be.ok();
@@ -141,7 +177,11 @@ describe('delegate.js', function () {
 				it('should be have property username', function () {
 					(trs.asset.delegate).should.have.property('username').and.be.type('string').and.equal('delegate');
 				});
+
 			});
+
 		});
+
 	});
+
 });

@@ -32,6 +32,7 @@
     "naclInstance": true,
     "Promise": true,
     "Uint8Array": true,
-    "should": true
+    "should": true,
+    "sinon": true
   }
 }
