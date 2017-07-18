@@ -33,22 +33,6 @@ Signature.prototype.bind = function (accounts) {
 };
 
 /**
- * Creates a signature and sets related data.
- * @param {Object} data - Uses secondKeypair publicKey.
- * @param {transaction} trs - Transaction to add signature data to asset.
- * @returns {transaction} trs with new data
- */
-Signature.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = 0;
-	trs.asset.signature = {
-		publicKey: data.secondKeypair.publicKey.toString('hex')
-	};
-
-	return trs;
-};
-
-/**
  * Obtains constant fee secondsignature.
  * @see {@link module:helpers~constants}
  * @param {transaction} trs - Unnecessary parameter.
