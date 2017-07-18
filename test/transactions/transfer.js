@@ -4,7 +4,6 @@ if (typeof module !== 'undefined' && module.exports) {
 	var lisk = common.lisk;
 }
 describe('transfer.js', function () {
-
 	var transfer = lisk.transfer;
 
 	it('should be ok', function () {
@@ -20,9 +19,12 @@ describe('transfer.js', function () {
 	});
 
 	describe('#createInTransfer', function () {
-
-		var createInTransfer = lisk.transfer.createInTransfer;
-		var transferTransaction = createInTransfer('1234213', 'secret', 'secondSecret');
+		var createInTransfer = transfer.createInTransfer;
+		var dappId = '1234213';
+		var amount = 10e8;
+		var secret = 'secret';
+		var secondSecret = 'secondSecret';
+		var transferTransaction = createInTransfer(dappId, amount, secret, secondSecret);
 
 		it('should be a function', function () {
 			(createInTransfer).should.be.type('function');
@@ -37,7 +39,11 @@ describe('transfer.js', function () {
 		});
 
 		it('should create a transfer dapp transaction with dapp id in asset', function () {
-			(transferTransaction.asset.inTransfer.dappId).should.be.equal('1234213');
+			(transferTransaction.asset.inTransfer.dappId).should.be.equal(dappId);
+		});
+
+		it('should create a transfer dapp transaction with a provided amount', function () {
+			(transferTransaction.amount).should.be.equal(amount);
 		});
 
 		it('should create a transfer dapp transaction with first signature', function () {
@@ -49,7 +55,7 @@ describe('transfer.js', function () {
 		});
 
 		it('should create a transfer dapp transaction with just one signature', function () {
-			var transferTransactionOneSignature = createInTransfer('1234213', 'secret');
+			var transferTransactionOneSignature = createInTransfer(dappId, amount, secret);
 			(transferTransactionOneSignature.signature).should.be.ok();
 			(transferTransactionOneSignature).should.not.have.property('secondSignature');
 		});
@@ -60,7 +66,7 @@ describe('transfer.js', function () {
 			var time = 36174862;
 			var stub = sinon.stub(slots, 'getTime').returns(time);
 
-			var trs = createInTransfer('1234213', 'secret');
+			var trs = createInTransfer(dappId, amount, secret);
 
 			(trs).should.have.property('timestamp').and.be.equal(time);
 			(stub.calledWithExactly(now.getTime())).should.be.true();
@@ -76,7 +82,7 @@ describe('transfer.js', function () {
 			var time = 36174862;
 			var stub = sinon.stub(slots, 'getTime').returns(time);
 
-			var trs = createInTransfer('1234213', 'secret', null, offset);
+			var trs = createInTransfer(dappId, amount, secret, null, offset);
 
 			(trs).should.have.property('timestamp').and.be.equal(time);
 			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
