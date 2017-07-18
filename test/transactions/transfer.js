@@ -22,7 +22,7 @@ describe('transfer.js', function () {
 	describe('#createInTransfer', function () {
 
 		var createInTransfer = lisk.transfer.createInTransfer;
-		var transferTransaction = createInTransfer('secret', 'secondSecret', '1234213');
+		var transferTransaction = createInTransfer('1234213', 'secret', 'secondSecret');
 
 		it('should be a function', function () {
 			(createInTransfer).should.be.type('function');
@@ -49,7 +49,7 @@ describe('transfer.js', function () {
 		});
 
 		it('should create a transfer dapp transaction with just one signature', function () {
-			var transferTransactionOneSignature = createInTransfer('secret', '', '1234213');
+			var transferTransactionOneSignature = createInTransfer('1234213', 'secret');
 			(transferTransactionOneSignature.signature).should.be.ok();
 			(transferTransactionOneSignature).should.not.have.property('secondSignature');
 		});
@@ -60,7 +60,7 @@ describe('transfer.js', function () {
 			var time = 36174862;
 			var stub = sinon.stub(slots, 'getTime').returns(time);
 
-			var trs = createInTransfer('secret', null, '1234213');
+			var trs = createInTransfer('1234213', 'secret');
 
 			(trs).should.have.property('timestamp').and.be.equal(time);
 			(stub.calledWithExactly(now.getTime())).should.be.true();
@@ -76,7 +76,7 @@ describe('transfer.js', function () {
 			var time = 36174862;
 			var stub = sinon.stub(slots, 'getTime').returns(time);
 
-			var trs = createInTransfer('secret', null, '1234213', offset);
+			var trs = createInTransfer('1234213', 'secret', null, offset);
 
 			(trs).should.have.property('timestamp').and.be.equal(time);
 			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
