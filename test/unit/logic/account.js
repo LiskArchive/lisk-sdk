@@ -71,9 +71,10 @@ describe('account', function () {
 			expect(account.objectNormalize(validAccount)).to.be.an('object');
 		});
 	});
+
 	describe('verifyPublicKey', function () {
-		it('should throw error for empty params', function () {
-			expect(account.verifyPublicKey).to.throw();
+		it('should be okay for empty params', function () {
+			expect(account.verifyPublicKey()).to.be.undefined;
 		});
 
 		it('should throw if parameter is not a string', function () {
@@ -92,6 +93,12 @@ describe('account', function () {
 			expect(function () {
 				account.verifyPublicKey('c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az');
 			}).to.throw('Invalid public key, must be a hex string');
+		});
+
+		it('should be okay if parameter is in correct format', function () {
+			expect(function () {
+				account.verifyPublicKey('c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a2');
+			}).to.not.throw();
 		});
 	});
 
@@ -143,6 +150,42 @@ describe('account', function () {
 		before(function (done) {
 			account.getAll({}, function (err, res) {
 				allAccounts = res;
+				done();
+			});
+		});
+
+		it('should remove any non-existent fields and return result', function (done) {
+			var fields = [
+				'address',
+				'username',
+				'non-existent-field'
+			];
+			account.getAll({address: validAccount.address }, fields, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res.length).to.equal(1);
+				expect(res[0].username).to.equal(validAccount.username);
+				expect(res[0].address).to.equal(validAccount.address);
+				expect(Object.keys(res[0])).to.include('address', 'username');
+				done();
+			});
+		});
+
+		it('should ignore limit if its < 1', function (done) {
+			account.getAll({
+				limit: 0
+			}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.eql(allAccounts);
+				done();
+			});
+		});
+
+		it('should ignore offset if its < 1', function (done) {
+			account.getAll({
+				offset: 0
+			}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.eql(allAccounts);
 				done();
 			});
 		});
@@ -211,23 +254,6 @@ describe('account', function () {
 			});
 		});
 
-		it.skip('should fetch results with offset of 50', function (done) {
-			// throws error 'LIMIT must not be negative' which is a bit strange
-			account.getAll({offset: 50}, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts.slice(50));
-				done();
-			});
-		});
-
-		it.skip('should try to convert paramter to its field type', function (done) {
-			// we create realConv object but don't do anything with it
-			account.getAll({limit: '50a', isDelegate: 1}, function (err, res) {
-				expect(err).to.include('Encountered unsane number:');
-				done();
-			});
-		});
-
 		it('should ignore limit when its value is negative', function (done) {
 			account.getAll({limit: -50}, function (err, res) {
 				expect(err).to.not.exist;
@@ -237,19 +263,27 @@ describe('account', function () {
 		});
 
 		it('should sort the result according to field type in ASC order', function (done) {
-			var sortedAccounts = _.sortBy(allAccounts, 'address');
-			account.getAll({sort: 'address'}, function (err, res) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {
+					username: v.username
+				};
+			});
+			account.getAll({sort: {username: 1}}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(sortedAccounts).to.eql(res);
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});
 
 		it('should sort the result according to field type in DESC', function (done) {
-			var sortedAccounts = _.sortBy(allAccounts, 'address', 'desc');
-			account.getAll({sort: 'address DESC'}, function (err, res) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').reverse().map(function (v) {
+				return {
+					username: v.username
+				};
+			});
+			account.getAll({sort: {username: -1}}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(sortedAccounts).to.eql(res);
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});

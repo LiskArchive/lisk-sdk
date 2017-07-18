@@ -18,6 +18,7 @@ var AccountModule = require('../../../modules/accounts.js');
 var TransactionLogic = require('../../../logic/transaction.js');
 var TransactionModule = require('../../../modules/transactions.js');
 var DelegateModule = require('../../../modules/delegates.js');
+var BlocksModule = require('../../../modules/blocks.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 
 
@@ -32,8 +33,6 @@ var validAccount = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	secondPublicKey: null,
-	balance: '231386135',
-	u_balance: '231386135',
 	vote: '9820020609280331',
 	rate: '0',
 	delegates: null,
@@ -61,7 +60,6 @@ describe('account', function () {
 	var accountModuleDependencies;
 
 	function compareImmutableFields (validAccount, comparingAccount) {
-
 		var immutableFields = accountLogic.model.filter(function (field) {
 			return field.immutable;
 		}).map(function (field) {
@@ -72,6 +70,7 @@ describe('account', function () {
 			expect(validAccount[fieldName]).to.equal(comparingAccount[fieldName]);
 		});
 	}
+
 	before(function (done) {
 		async.auto({
 			rounds: function (cb) {
@@ -80,9 +79,13 @@ describe('account', function () {
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
 			},
+			blockModule: ['accountLogic', function (result, cb) {
+				modulesLoader.initModuleWithDb(BlocksModule, cb, {
+					logic : { /* dependencies not included */},
+				});
+			}],
 			transactionLogic: ['accountLogic', function (result, cb) {
 				modulesLoader.initLogicWithDb(TransactionLogic, cb, {
-					ed: require('../../../helpers/ed'),
 					account: result.accountLogic
 				});
 			}],
@@ -102,13 +105,16 @@ describe('account', function () {
 			modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
 				expect(err).to.not.exist;
 
-
 				account = __accountModule;
 				accountLogic = result.accountLogic;
+
+				// for correctly initializing setting blocks module
+				result.blockModule.lastBlock.set({height: 10});
 
 				result.delegateModule.onBind({
 					accounts: __accountModule,
 					transactions: result.transactionModule,
+					blocks: result.blockModule
 				});
 
 				result.transactionModule.onBind({
@@ -120,9 +126,8 @@ describe('account', function () {
 				account.onBind({
 					delegates: result.delegateModule,
 					accounts: account,
-					transactions: result.transactionModule,
+					transactions: result.transactionModule
 				});
-
 
 				accountModuleDependencies = result; 
 				done();
@@ -141,9 +146,6 @@ describe('account', function () {
 				new AccountModule();
 			}).to.throw();
 		});
-	});
-
-	describe('__private.openAccount', function () {
 	});
 
 	describe('generateAddressByPublicKey', function () {
@@ -202,17 +204,6 @@ describe('account', function () {
 		});
 	});
 
-	describe('sandboxApi', function () {
-		it('should pass the call', function () {
-			// to-update
-			var sandboxHelper = require('../../../helpers/sandbox.js');
-			sinon.stub(sandboxHelper, 'callMethod').returns(true);
-			account.sandboxApi();
-			expect(sandboxHelper.callMethod.calledOnce).to.be.ok;
-			sandboxHelper.callMethod.restore();
-		});
-	});
-
 	describe('Accounts.prototype.onBind', function () {
 		it('should throw error with empty params', function () {
 			expect(account.onBind).to.throw();
@@ -224,10 +215,9 @@ describe('account', function () {
 			expect(account.isLoaded).to.be.ok;
 		});
 	});
+
 	describe('Accounts.prototype.shared', function () {
-
 		describe('open ', function () {
-
 			it('should throw if parameter doesnt have correct schema', function (done) {
 				account.shared.open({
 					body: {
@@ -254,12 +244,13 @@ describe('account', function () {
 			it('should return existing account for the secret', function (done) {
 				account.shared.open({
 					body: {
-						secret: accountSecret
+						secret: node.gAccount.password
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
 					expect(res).to.be.an('object');
-					expect(res.account.balance).to.not.equal('0');
+					expect(res.account.address).to.equal(node.gAccount.address);
+					expect(res.account.publicKey).to.equal(node.gAccount.publicKey);
 					done();
 				});
 			});
@@ -294,7 +285,7 @@ describe('account', function () {
 			it('should return balance for existing account', function (done) {
 				account.shared.getBalance({
 					body: {
-						address: node.randomAccount().address
+						address: node.gAccount.address
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
@@ -341,6 +332,7 @@ describe('account', function () {
 				});
 			});
 		});
+
 		describe('generatePublicKey', function () {
 
 			it('should throw if parameter doesnt have correct schema', function (done) {
@@ -406,18 +398,31 @@ describe('account', function () {
 				});
 			});
 
-			it('should return delegates of an account', function (done) {
+			it('should return empty array of an account which dont have any delegate', function (done) {
 				account.shared.getDelegates({
 					body: {
-						address: validAccount.address
+						address: node.eAccount.address
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(res.delegates).to.eql([]);
+					expect(res.delegates).to.be.an('array').which.is.eql([]);
+					done();
+				});
+			});
+
+			it('should return delegates of an account', function (done) {
+				account.shared.getDelegates({
+					body: {
+						address: node.gAccount.address
+					}
+				}, function (err, res){
+					expect(err).to.not.exist;
+					expect(res.delegates).to.be.an('array');
 					done();
 				});
 			});
 		});
+
 		describe('getDelegatesFee', function () {
 			it('should return the correct fee for delegate', function (done) {
 				account.shared.getDelegatesFee({}, function (err, res) {
@@ -427,7 +432,103 @@ describe('account', function () {
 				});
 			});
 		});
-		describe('addDelegates', function () {
+
+		describe('addDelegates (non-multisignature account)', function () {
+
+			var votes = [
+				'-141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+				'-3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+				'-5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819'
+			];
+
+			it('should return error if invalid passpharse', function (done) {
+				account.shared.addDelegates({
+					body: {
+						publicKey: node.gAccount.publicKey,
+						secret: node.eAccount.password,
+						delegates: votes,
+					}
+				}, function (err, res){
+					expect(err).to.equal('Invalid passphrase');
+					done();
+				});
+			});
+
+			it('should throw if parameter doesnt have correct schema', function (done) {
+				account.shared.addDelegates({
+					body: {
+						secret: 5
+					}
+				}, function (err, res){
+					expect(err).to.equal('Expected type string but found type integer');
+					done();
+				});
+			});
+
+			it('should add delegate votes for an account', function (done) {
+				account.shared.addDelegates({
+					body: {
+						publicKey: node.gAccount.publicKey,
+						secret: node.gAccount.password,
+						delegates: votes
+					}
+				}, function (err, res){
+					expect(err).to.not.exist;
+					expect(res).to.be.an('object');
+					expect(res.transaction.asset.votes).to.eql(votes);
+					done();
+				});
+			});
+		});
+
+		describe('addDelegates (multisignature account)', function () {
+
+			function postSignature (transaction, signature, done) {
+				node.post('/peer/signatures', {
+					signature: {
+						transaction: transaction.id,
+						signature: signature
+					}
+				}, done);
+			}
+
+			function addTransaction (transaction, done) {
+				node.post('/peer/transactions', {
+					transaction: transaction
+				}, function (err, res) {
+					done(err, res.body);
+				});
+			}
+
+			var multiAccount = node.randomAccount();
+			var multiAccount2 = node.randomAccount();
+			var multiAccount3 = node.randomAccount();
+
+			before(function (done) {
+				var transferTrs = node.lisk.transaction.createTransaction(multiAccount.address, 100000000000, node.gAccount.password);
+				addTransaction(transferTrs, node.onNewBlock.bind(node, function (err) {
+					expect(err).to.not.exist;
+					var lifetime = 1;
+					var min = 2;
+					var keysgroup = [
+						'+' + multiAccount2.publicKey,
+						'+' + multiAccount3.publicKey
+					];
+
+					var multiTrs = node.lisk.multisignature.createMultisignature(multiAccount.password, null, keysgroup, lifetime, min);
+					addTransaction(multiTrs, function (err, res) {
+						expect(err).to.not.exist;
+						var signature1 = node.lisk.multisignature.signTransaction(multiTrs, multiAccount2.password);
+						var signature2 = node.lisk.multisignature.signTransaction(multiTrs, multiAccount3.password);
+						async.each([signature1, signature2], function (signature, eachCb) {
+							postSignature(multiTrs, signature, eachCb);
+						}, function (err) {
+							expect(err).to.not.exist;
+							node.onNewBlock(done);
+						});
+					});
+				}));
+			});
 
 			var votes = [
 				'+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
@@ -446,11 +547,12 @@ describe('account', function () {
 				});
 			});
 
-			it('should return error if its not a multisignature account', function (done) {
+			it('should return error if multisignature account not found', function (done) {
+				var randomAccount = node.randomAccount();
 				account.shared.addDelegates({
 					body: {
-						address: validAccount.address,
-						secret: accountSecret,
+						publicKey: randomAccount.publicKey,
+						secret: randomAccount.password,
 						delegates: votes,
 						multisigAccountPublicKey: node.randomAccount().publicKey
 					}
@@ -461,24 +563,11 @@ describe('account', function () {
 			});
 
 			it('should return error if its not a multisignature account', function (done) {
+				var randomAccount = node.randomAccount();
 				account.shared.addDelegates({
 					body: {
-						address: validAccount.address,
-						secret: accountSecret,
-						delegates: votes,
-						multisigAccountPublicKey: node.gAccount.publicKey
-					}
-				}, function (err, res){
-					expect(err).to.equal('Account does not have multisignatures enabled');
-					done();
-				});
-			});
-
-			it('should return error if its not a multisignature account', function (done) {
-				account.shared.addDelegates({
-					body: {
-						address: validAccount.address,
-						secret: accountSecret,
+						publicKey: randomAccount.publicKey,
+						secret: randomAccount.password,
 						delegates: votes,
 						multisigAccountPublicKey: node.gAccount.publicKey
 					}
@@ -491,9 +580,10 @@ describe('account', function () {
 			it('should add delegate votes for an account', function (done) {
 				account.shared.addDelegates({
 					body: {
-						address: validAccount.address,
-						secret: accountSecret,
-						delegates: votes
+						publicKey: multiAccount2.publicKey,
+						secret: multiAccount2.password,
+						delegates: votes,
+						multisigAccountPublicKey: multiAccount.publicKey
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
@@ -502,7 +592,6 @@ describe('account', function () {
 					done();
 				});
 			});
-			// need more tests
 		});
 
 		describe('getAccount', function () {
@@ -600,23 +689,32 @@ describe('account', function () {
 			});
 
 			it('should return top 10 accounts with respect to highest balance', function (done) {
-				var topBalanceAccounts = _.orderBy(allAccounts, function (a) {
+				var topAccountsBalance = _.orderBy(allAccounts, 'balance').map(function (a) {
 					return a.balance;
-				}, 'desc');
+				}).reverse();
 
-				topBalanceAccounts = topBalanceAccounts.map(function (account) {
-					return {
-						address: account.address,
-						balance: account.balance,
-						publicKey: account.publicKey
-					};
-				});
 				account.internal.top({
 					limit: 10
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
-					expect(res.accounts).to.eql(topBalanceAccounts.slice(0, 10));
+					expect(res.accounts.map(function (v) { return v.balance; })).to.eql(topAccountsBalance.slice(0, 10));
+					done();
+				});
+			});
+
+			it('should get accounts with highest balance in the range 10-20', function (done) {
+				var topAccountsBalance = _.orderBy(allAccounts, 'balance').map(function (a) {
+					return a.balance;
+				}).reverse();
+
+				account.internal.top({
+					limit: 10,
+					offset: 10
+				}, function (err, res) {
+					expect(err).to.not.exist;
+					expect(res.accounts).to.have.length(10);
+					expect(res.accounts.map(function (v) { return v.balance; })).to.eql(topAccountsBalance.slice(10, 20));
 					done();
 				});
 			});
@@ -628,6 +726,7 @@ describe('account', function () {
 				account.internal.getAllAccounts({}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.success).to.equal(true);
+					expect(res.accounts).to.be.an('array');
 					done();
 				});
 			});
