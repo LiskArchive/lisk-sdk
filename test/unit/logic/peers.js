@@ -16,15 +16,18 @@ describe('peers', function () {
 	var peers;
 
 	before(function (done) {
-		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
-			peers = __peers;
-			var peersModuleMock = {
-				acceptable: function (peers) {
-					return peers;
-				}
-			};
-			peers.bindModules({peers: peersModuleMock});
-			done();
+		modulesLoader.initAllModules(function (err, __modules) {
+			if (err) {
+				return done(err);
+			}
+
+			__modules.peers.onBind(__modules);
+
+			modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
+				peers = __peers;
+				peers.bindModules({peers: __modules.peers});
+				done();
+			});
 		});
 	});
 
@@ -96,6 +99,15 @@ describe('peers', function () {
 			removeAll();
 			peers.upsert(randomPeer);
 			expect(peers.list().length).equal(1);
+			removeAll();
+		});
+
+		it('should not insert new peer with lisk-js-api os', function () {
+			removeAll();
+			var modifiedPeer = _.clone(randomPeer);
+			modifiedPeer.os = 'lisk-js-api';
+			peers.upsert(modifiedPeer);
+			expect(peers.list().length).equal(0);
 			removeAll();
 		});
 
@@ -220,56 +232,6 @@ describe('peers', function () {
 			removeAll();
 			expect(peers.get(randomPeer)).to.be.undefined;
 		});
-	});
-
-	describe('ban', function () {
-
-		it('should change the peer state to banned', function () {
-			removeAll();
-			peers.upsert(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(2);
-
-			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
-			expect(result).to.be.ok;
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(0);
-		});
-
-	});
-
-	describe('unban', function () {
-
-		it('should change the peer state to unbanned', function () {
-			removeAll();
-			peers.upsert(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(2);
-
-			var result = peers.ban(randomPeer.ip, randomPeer.port, 10);
-			expect(result).to.be.ok;
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(0);
-
-			peers.unban(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(1);
-		});
-
-		it('should do nothing when unbanning non inserted peer', function () {
-			removeAll();
-			peers.upsert(randomPeer);
-			expect(peers.list().length).equal(1);
-			expect(peers.list()[0].state).equal(2);
-
-			var differentPeer = _.clone(randomPeer);
-			differentPeer.port += 1;
-
-			peers.unban(differentPeer);
-			expect(peers.list().length).equal(1);
-			expect(arePeersEqual(peers.list()[0], randomPeer)).to.be.ok;
-		});
-
 	});
 
 	describe('remove', function () {

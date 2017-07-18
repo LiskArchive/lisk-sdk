@@ -46,17 +46,6 @@ describe('peers', function () {
 		});
 	});
 
-	describe('sandboxApi', function (done) {
-
-		it('should pass the call', function () {
-			var sandboxHelper = require('../../../helpers/sandbox.js');
-			sinon.stub(sandboxHelper, 'callMethod').returns(true);
-			peers.sandboxApi();
-			expect(sandboxHelper.callMethod.calledOnce).to.be.ok;
-			sandboxHelper.callMethod.restore();
-		});
-	});
-
 	describe('update', function () {
 
 		it('should insert new peer', function (done) {
@@ -170,36 +159,6 @@ describe('peers', function () {
 		});
 	});
 
-	describe('ban', function () {
-
-		var peerToBan;
-
-		before(function (done) {
-			peerToBan = _.clone(randomPeer);
-			peerToBan.port += 1;
-			peers.update(peerToBan);
-			done();
-		});
-
-		it('should ban active peer', function (done) {
-			getPeers(function (err, __peers) {
-				currentPeers = __peers;
-				peerToBan = __peers.find(function (p) {
-					return p.ip + ':' + p.port === peerToBan.ip + ':' + peerToBan.port;
-				});
-				expect(peerToBan).to.be.an('object').and.not.to.be.empty;
-				expect(peerToBan.state).that.equals(2);
-
-				expect(peers.ban(peerToBan.ip, peerToBan.port, 1)).to.be.ok;
-				getPeers(function (err, __peers) {
-					expect(currentPeers.length - 1).that.equals(__peers.length);
-					currentPeers = __peers;
-					done();
-				});
-			});
-		});
-	});
-
 	describe('remove', function () {
 
 		before(function (done) {
@@ -241,6 +200,12 @@ describe('peers', function () {
 		it('should not accept peer with private ip', function () {
 			var privatePeer = _.clone(randomPeer);
 			privatePeer.ip = '127.0.0.1';
+			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+		});
+
+		it('should not accept peer with lisk-js-api os', function () {
+			var privatePeer = _.clone(randomPeer);
+			privatePeer.os = 'lisk-js-api';
 			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
 		});
 

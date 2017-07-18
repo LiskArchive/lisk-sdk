@@ -16,9 +16,6 @@ def buildDependency() {
     # Install Deps
     npm install
 
-    # Install Nodejs
-    tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
-
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
@@ -205,15 +202,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         '''
       }
       },
-      "Functional Peer - Dapp" : {
-        node('node-02'){
-        sh '''
-        export TEST=test/api/peer.dapp.js TEST_TYPE='FUNC'
-        cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-        npm run jenkins
-        '''
-      }
-      },
       "Functional Peer - Blocks" : {
         node('node-02'){
         sh '''
@@ -350,6 +338,8 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         node('node-02'){
           sh '''#!/bin/bash
           export HOST=127.0.0.1:4000
+          # Gathers unit test into single lcov.info
+          npm run coverageReport
           npm run fetchCoverage
           # Submit coverage reports to Master
           scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-02.zip
@@ -418,6 +408,8 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         rm -rf coverage-unit/*
         rm -f merged-lcov.info
         rm -rf lisk/*
+        rm -f coverage.json
+        rm -f lcov.info
         '''
         }
       }

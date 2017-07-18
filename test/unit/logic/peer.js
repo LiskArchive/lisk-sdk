@@ -42,13 +42,6 @@ describe('peer', function () {
 			var __peer = peer.accept({ip: ip.toLong(randomPeer.ip)});
 			expect(__peer.ip).to.equal(randomPeer.ip);
 		});
-
-		it('should convert dappid to array', function () {
-			var __peer = peer.accept({dappid: 'random-dapp-id'});
-			expect(__peer.dappid).to.be.an('array');
-			expect(_.isEqual(__peer.dappid, ['random-dapp-id'])).to.be.ok;
-			delete __peer.dappid;
-		});
 	});
 
 	describe('parseInt', function () {
@@ -121,13 +114,13 @@ describe('peer', function () {
 			expect(peer.someProp).to.not.exist;
 		});
 
-		it('should not change state of banned peer', function () {
+		it('should change state of banned peer', function () {
 			var initialState = peer.state;
 			// Ban peer
 			peer.state = 0;
 			// Try to unban peer
 			peer.update({state: 2});
-			expect(peer.state).to.equal(0);
+			expect(peer.state).to.equal(2);
 			peer.state = initialState;
 		});
 
@@ -135,7 +128,6 @@ describe('peer', function () {
 			var updateData = {
 				os: 'test os',
 				version: '0.0.0',
-				dappid: ['test dappid'],
 				broadhash: 'test broadhash',
 				height: 3,
 				nonce: 'ABCD123'

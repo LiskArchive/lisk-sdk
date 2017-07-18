@@ -5,7 +5,6 @@ var crypto = require('crypto');
 var extend = require('extend');
 var genesisblock = null;
 var Multisignature = require('../logic/multisignature.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/multisignatures.js');
 var sql = require('../sql/multisignatures.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -164,17 +163,6 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 			return done(cb);
 		});
 	}
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Multisignatures.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events

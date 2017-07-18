@@ -9,7 +9,6 @@ var fs = require('fs');
 var ip = require('ip');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
 var sql = require('../sql/peers.js');
@@ -114,11 +113,6 @@ __private.getByFilter = function (filter, cb) {
 		// var peer = __private.peers[index];
 		var passed = true;
 		_.each(filter, function (value, key) {
-			// Special case for dapp peers
-			if (key === 'dappid' && (peer[key] === null || (Array.isArray(peer[key]) && !_.includes(peer[key], String(value))))) {
-				passed = false;
-				return false;
-			}
 			// Every filter field need to be in allowed fields, exists and match value
 			if (_.includes(allowedFields, key) && !(peer[key] !== undefined && peer[key] === value)) {
 				passed = false;
@@ -149,22 +143,6 @@ __private.getByFilter = function (filter, cb) {
 	}
 
 	return setImmediate(cb, null, peers);
-};
-
-/**
- * Remove bans from peers list if clock period time has been pass.
- * @private
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb
- */
-__private.removeBans = function (cb) {
-	var now = Date.now();
-	_.each(library.logic.peers.list(), function (peer, index) {
-		if (peer.clock && peer.clock <= now) {
-			library.logic.peers.unban(peer);
-		}
-	});
-	return setImmediate(cb);
 };
 
 /**
@@ -232,8 +210,8 @@ __private.dbLoad = function (cb) {
 };
 
 /**
- * Inserts list of peers into `peers` table and inserts dapps peers
- * into `peers_dapp` table.
+ * Inserts list of peers into `peers` table
+ *
  * @implements library.db
  * @private
  * @param {function} cb - Callback function.
@@ -268,18 +246,6 @@ __private.dbSave = function (cb) {
 			t.none(insert_peers)
 		];
 
-		// Inserting dapps peers
-		_.each(peers, function (peer) {
-			if (peer.dappid) {
-				// If there are dapps on peer - push separately for every dapp
-				_.each (peer.dappid, function (dappid) {
-					var dapp_peer = peer;
-					dapp_peer.dappid = dappid;
-					queries.push(t.none(sql.addDapp, peer));
-				});
-			}
-		});
-
 		return t.batch(queries);
 	}).then(function (data) {
 		library.logger.info('Peers exported to database');
@@ -291,16 +257,6 @@ __private.dbSave = function (cb) {
 };
 
 // Public methods
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Peers.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(Peers.prototype.shared, call, args, cb);
-};
 
 /**
  * Sets peer state to active (2).
@@ -329,26 +285,6 @@ Peers.prototype.remove = function (pip, port) {
 		library.logger.debug('Cannot remove frozen peer', pip + ':' + port);
 	} else {
 		return library.logic.peers.remove ({ip: pip, port: port});
-	}
-};
-
-/**
- * Bans peer in peers list if it is not a peer from config file list.
- * @implements logic.peers.ban
- * @param {string} pip - Peer ip
- * @param {number} port
- * @param {number} seconds
- * @return {function} Calls peers.ban
- */
-Peers.prototype.ban = function (pip, port, seconds) {
-	var frozenPeer = _.find(library.config.peers.list, function (peer) {
-		return peer.ip === pip && peer.port === port;
-	});
-	if (frozenPeer) {
-		// FIXME: Keeping peer frozen is bad idea at all
-		library.logger.debug('Cannot ban frozen peer', pip + ':' + port);
-	} else {
-		return library.logic.peers.ban (pip, port, seconds);
 	}
 };
 
@@ -449,9 +385,9 @@ Peers.prototype.acceptable = function (peers) {
 		.filter(function (peer) {
 			// Removing peers with private address or nonce equal to self
 			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
-				return peer.nonce !== modules.system.getNonce();
+				return peer.nonce !== modules.system.getNonce() && (peer.os !== 'lisk-js-api');
 			}
-			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce() && (peer.os !== 'lisk-js-api');
 		}).value();
 };
 
@@ -567,11 +503,11 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 /**
- * Discovers peers, updates them and removes bans in 10sec intervals loop.
+ * Discovers peers and updates them in 10sec intervals loop.
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
-	function peersDiscoveryAndUpdate () {
+	function peersDiscoveryAndUpdate (cb) {
 		async.series({
 			discoverPeers: function (seriesCb) {
 				library.logger.trace('Discovering new peers...');
@@ -603,14 +539,9 @@ Peers.prototype.onPeersReady = function () {
 					library.logger.trace('Peers updated', {updated: updated, total: peers.length});
 					return setImmediate(seriesCb);
 				});
-			},
-			removeBans: function (seriesCb) {
-				library.logger.trace('Checking peers bans...');
-
-				__private.removeBans(function (err) {
-					return setImmediate(seriesCb);
-				});
 			}
+		}, function () {
+			return setImmediate(cb);
 		});
 	}
 	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)

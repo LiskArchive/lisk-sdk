@@ -2,7 +2,7 @@
 
 Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. For more information please refer to our website: https://lisk.io/.
 
-[![Build Status](https://travis-ci.org/LiskHQ/lisk.svg?branch=development)](https://travis-ci.org/LiskHQ/lisk)
+[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=Lisk-Pipeline/development)](https://jenkins.lisk.io/job/Lisk-Pipeline/development)
 [![Coverage Status](https://coveralls.io/repos/github/LiskHQ/lisk/badge.svg?branch=development)](https://coveralls.io/github/LiskHQ/lisk?branch=development)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 [![Join the chat at https://gitter.im/LiskHQ/lisk](https://badges.gitter.im/LiskHQ/lisk.svg)](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -67,15 +67,6 @@ git clone https://github.com/LiskHQ/lisk.git
 cd lisk
 npm install
 ```
-
-Install Lisk Node, a specialized version of Node.js used to execute dapps within a virtual machine:
-
-```
-wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
-tar -zxvf lisk-node-Linux-x86_64.tar.gz
-```
-
-Lisk Node has to be in `[LISK_DIR]/nodejs/node`.
 
 ## Managing Lisk
 
