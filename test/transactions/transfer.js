@@ -16,16 +16,16 @@ describe('transfer.js', function () {
 	});
 
 	it('should have properties', function () {
-		(transfer).should.have.property('createTransfer');
+		(transfer).should.have.property('createInTransfer');
 	});
 
-	describe('#createTransfer', function () {
+	describe('#createInTransfer', function () {
 
-		var createTransfer = lisk.transfer.createTransfer;
-		var transferTransaction = createTransfer('secret', 'secondSecret', '1234213');
+		var createInTransfer = lisk.transfer.createInTransfer;
+		var transferTransaction = createInTransfer('secret', 'secondSecret', '1234213');
 
 		it('should be a function', function () {
-			(createTransfer).should.be.type('function');
+			(createInTransfer).should.be.type('function');
 		});
 
 		it('should create a transfer dapp transaction', function () {
@@ -49,9 +49,9 @@ describe('transfer.js', function () {
 		});
 
 		it('should create a transfer dapp transaction with just one signature', function () {
-			var transferTransactionOneSignature = createTransfer('secret', '', '1234213');
-			(transferTransactionOneSignature.signature).should.be.ok;
-			expect(transferTransactionOneSignature.secondSignature).to.be.undefined;
+			var transferTransactionOneSignature = createInTransfer('secret', '', '1234213');
+			(transferTransactionOneSignature.signature).should.be.ok();
+			(transferTransactionOneSignature).should.not.have.property('secondSignature');
 		});
 
 		it('should use time slots to get the time for the timestamp', function () {
@@ -60,7 +60,7 @@ describe('transfer.js', function () {
 			var time = 36174862;
 			var stub = sinon.stub(slots, 'getTime').returns(time);
 
-			var trs = createTransfer('secret', null, '1234213');
+			var trs = createInTransfer('secret', null, '1234213');
 
 			(trs).should.have.property('timestamp').and.be.equal(time);
 			(stub.calledWithExactly(now.getTime())).should.be.true();
@@ -76,7 +76,7 @@ describe('transfer.js', function () {
 			var time = 36174862;
 			var stub = sinon.stub(slots, 'getTime').returns(time);
 
-			var trs = createTransfer('secret', null, '1234213', offset);
+			var trs = createInTransfer('secret', null, '1234213', offset);
 
 			(trs).should.have.property('timestamp').and.be.equal(time);
 			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
