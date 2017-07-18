@@ -37,7 +37,7 @@ describe('transfer.js', function () {
 		});
 
 		it('should create a transfer dapp transaction with dapp id in asset', function () {
-			(transferTransaction.asset.dapptransfer.dappid).should.be.equal('1234213');
+			(transferTransaction.asset.inTransfer.dappId).should.be.equal('1234213');
 		});
 
 		it('should create a transfer dapp transaction with first signature', function () {
