@@ -6,7 +6,7 @@ var ws = require('../common/wsCommunication.js');
 var peersSortFields = require('../../sql/peers').sortFields;
 
 before(function (done) {
-	ws.addPeer('127.0.0.1', 4000, done);
+	ws.addPeer('127.0.0.1', 5000, done);
 });
 
 describe('GET /api/peers/version', function () {

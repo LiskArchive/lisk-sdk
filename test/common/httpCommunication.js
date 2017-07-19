@@ -55,7 +55,7 @@ var httpCommunication = {
 
 			var request = node.popsicle.get({
 				url: node.baseUrl + '/peer/height',
-				headers: node.generatePeerHeaders(ip, 4000)
+				headers: node.generatePeerHeaders(ip, 5000)
 			});
 
 			request.use(node.popsicle.plugins.parse(['json']));
@@ -76,7 +76,7 @@ var httpCommunication = {
 		}, function (err) {
 			// Wait for peer to be swept to db
 			setTimeout(function () {
-				return cb(err, node.generatePeerHeaders(ip, 4000));
+				return cb(err, node.generatePeerHeaders(ip, 5000));
 			}, 3000);
 		});
 	}

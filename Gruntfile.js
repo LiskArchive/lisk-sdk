@@ -73,7 +73,7 @@ module.exports = function (grunt) {
 			},
 
 			coverageUnit: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/**/*.js',
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.js',
 				maxBuffer: maxBufferSize
 			},
 

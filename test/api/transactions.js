@@ -137,7 +137,7 @@ describe('GET /api/transactions (cache)', function () {
 			'whatever:senderId=' + node.gAccount.address
 		];
 
-		node.get(url + params.join('&'), function (err, res) {
+		http.get(url + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			cache.getJsonForKey(url + params, function (err, res) {

@@ -226,7 +226,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 };
 
 node.generatePeerHeaders = function (ip, port) {
-	port = port || 4000;
+	port = port || 9999;
 	ip = ip || '127.0.0.1';
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];

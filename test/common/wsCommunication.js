@@ -20,7 +20,7 @@ var wsCommunication = {
 		var wsOptions = {
 			protocol: 'http',
 			hostname: ip || '127.0.0.1',
-			port: +port || 5000,
+			port: +port || 9999,
 			autoReconnect: true,
 			query: headers !== undefined ? headers : node.generatePeerHeaders(ip, port)
 		};
@@ -50,14 +50,14 @@ var wsCommunication = {
 	call: function (procedure, data, done, includePeer) {
 		if (!this.defaultConnectionState) {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
-			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 5000);
+			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 9999);
 			constants.setConst('headers', this.defaultSocketPeerHeaders);
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
 		if (includePeer && typeof data === 'object') {
 			data.peer =  _.assign({
 				ip: '127.0.0.1',
-				port: 5000
+				port: 9999
 			}, this.defaultSocketPeerHeaders);
 		}
 

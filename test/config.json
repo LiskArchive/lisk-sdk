@@ -1,6 +1,6 @@
 {
-    "port": 4000,
-    "httpPort": 5000,
+    "port": 5000,
+    "httpPort": 4000,
     "address": "0.0.0.0",
     "version": "0.0.0a",
     "minVersion": "0.0.0a",
@@ -48,7 +48,7 @@
         "enabled": true,
         "list": [{
             "ip": "127.0.0.1",
-            "port": "4000"
+            "port": "5000"
         }],
         "access": {
             "blackList": []

@@ -281,7 +281,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Functional Peer - Peers websockets" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/peer/peers.ws.js TEST_TYPE='FUNC'
+					export TEST=test/api/peer/peer.ws.js TEST_TYPE='FUNC'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
 					'''
