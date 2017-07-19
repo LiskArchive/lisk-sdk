@@ -18,7 +18,7 @@
     "async": "=2.4.1",
     "bignumber.js": "=4.0.2",
     "body-parser": "=1.17.2",
-    "bson": "^1.0.4",
+    "bson": "=1.0.4",
     "bytebuffer": "=5.0.1",
     "change-case": "=3.0.1",
     "colors": "=1.1.2",
