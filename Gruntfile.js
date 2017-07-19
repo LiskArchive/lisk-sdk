@@ -28,7 +28,7 @@ module.exports = function configureGrunt(grunt) {
 		},
 	});
 
-	grunt.registerTask('default', ['mochaTest', 'eslint']);
+	grunt.registerTask('default', ['eslint', 'mochaTest']);
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', () => {
 		grunt.config.set('eslint.options.fix', true);
 		grunt.task.run('eslint');
