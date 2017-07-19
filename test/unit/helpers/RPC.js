@@ -47,10 +47,25 @@ describe('wsRPC', function () {
 			wsRPC.setServer(null);
 		});
 
-		it('should set wsServer', function () {
-			expect(wsRPC).to.have.property('wsServer').and.to.be.null;
+		it('getter should return throw an error when setting server to null', function () {
+			wsRPC.setServer(null);
+			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+		});
+
+		it('getter should return throw an error when setting server to 0', function () {
+			wsRPC.setServer(0);
+			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+		});
+
+		it('getter should return throw an error when setting server to undefined', function () {
+			wsRPC.setServer(undefined);
+			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+		});
+
+		it('should return server instance after setting it', function () {
 			wsRPC.setServer({name: 'my ws server'});
-			expect(wsRPC).to.have.property('wsServer').and.to.a('object').eql({name: 'my ws server'});
+			var wsRPCServer = wsRPC.getServer();
+			expect(wsRPCServer).to.be.an('object').eql({name: 'my ws server'});
 		});
 
 		after(function () {

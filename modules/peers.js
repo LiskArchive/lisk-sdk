@@ -49,21 +49,6 @@ function Peers (cb, scope) {
 	};
 	self = this;
 
-	setInterval(function () {
-		this.list({}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(function (p) {
-				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
-			}));
-
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- logic peers ---- ', library.logic.peers.list().map(function (p) {
-				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
-			}));
-
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- consensus ---- ', self.getConsensus());
-		});
-
-	}.bind(this), 5000);
-
 	setImmediate(cb, null, self);
 }
 
@@ -85,8 +70,8 @@ __private.countByFilter = function (filter, cb) {
  * Gets randomly ordered list of peers by filter.
  * @private
  * @param {Object} filter
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} peers
+ * @param {function} [cb=undefined] cb - Callback function (synchronous function if not passed.
+ * @returns {setImmediateCallback|[Peer]} peers
  */
 __private.getByFilter = function (filter, cb) {
 	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
@@ -160,6 +145,9 @@ __private.getByFilter = function (filter, cb) {
 		peers = peers.slice(offset);
 	}
 
+	if (!cb) {
+		return peers;
+	}
 	return setImmediate(cb, null, peers);
 };
 
@@ -174,6 +162,23 @@ __private.getMatched = function (test, peers) {
 	});
 };
 
+__private.updatePeerStatus = function (err, status, peer) {
+
+	if (err) {
+		peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+		return false;
+	} else {
+		peer.applyHeaders({
+			height: status.height,
+			broadhash: status.broadhash,
+			nonce: status.nonce,
+			state: Peer.STATE.CONNECTED //connected
+		});
+	}
+
+	library.logic.peers.upsert(peer);
+};
+
 /**
  * Pings to every member of peers list.
  * @private
@@ -186,23 +191,13 @@ __private.insertSeeds = function (cb) {
 	async.each(library.config.peers.list, function (peer, eachCb) {
 		peer = library.logic.peers.create(peer);
 		library.logger.debug('Processing seed peer: ' + peer.string);
-		if (_.isEmpty(self.acceptable([peer]))) {
-			return setImmediate(eachCb, 'Peer not accepted: ' + peer.string);
-		}
 		peer.rpc.status(function (err, status) {
-			if (err) {
-				peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
-				library.logger.trace('Ping peer failed: ' + peer.string, err);
-			} else {
-				peer.applyHeaders({
-					height: status.height,
-					broadhash: status.broadhash,
-					nonce: status.nonce,
-					state: Peer.STATE.CONNECTED //connected
-				});
+			__private.updatePeerStatus(err, status, peer);
+			if (!err) {
 				updated += 1;
+			} else {
+				library.logger.trace('Ping peer failed: ' + peer.string, err);
 			}
-			library.logic.peers.upsert(peer);
 			return setImmediate(eachCb, err);
 		});
 	}, function (err) {
@@ -238,18 +233,11 @@ __private.dbLoad = function (cb) {
 
 			function updatePeer (peer, cb) {
 				peer.rpc.status(function (err, status) {
-					if (err) {
-						peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
-						library.logger.trace('Ping peer from db failed: ' + peer.string, err);
-					} else {
-						peer.applyHeaders({
-							height: status.height,
-							broadhash: status.broadhash,
-							nonce: status.nonce,
-							state: Peer.STATE.CONNECTED
-						});
-						library.logic.peers.upsert(peer);
+					__private.updatePeerStatus(err, status, peer);
+					if (!err) {
 						updated += 1;
+					} else {
+						library.logger.trace('Ping peer from db failed: ' + peer.string, err);
 					}
 					return setImmediate(eachCb);
 				});
@@ -317,13 +305,13 @@ Peers.prototype.getConsensus = function (matched, active) {
 		return undefined;
 	}
 
-	active = active || __private.getMatched({state: Peer.STATE.CONNECTED});
-	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash}, active);
+	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED});
+	matched = matched || __private.getMatched({broadhash: modules.system.getBroadhash()}, active);
 
 	active = active.slice(0, constants.maxPeers);
 	matched = matched.slice(0, constants.maxPeers);
 
-	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 1e2;
+	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 100;
 
 	if (isNaN(consensus)) {
 		return 0;
@@ -376,18 +364,7 @@ Peers.prototype.discover = function (cb) {
 			var randomPeer = peers.length ? library.logic.peers.create(peers[0]) : null;
 			if (!err && randomPeer) {
 				randomPeer.rpc.status(function (err, status) {
-					if (err) {
-						randomPeer.applyHeaders({state: Peer.STATE.DISCONNECTED});
-						return setImmediate(waterCb, err);
-					}
-					randomPeer.applyHeaders({
-						height: status.height,
-						broadhash: status.broadhash,
-						nonce: status.nonce,
-						state: Peer.STATE.CONNECTED
-					});
-					library.logic.peers.upsert(randomPeer);
-
+					__private.updatePeerStatus(err, status, randomPeer);
 					randomPeer.rpc.list(waterCb);
 				});
 			} else {
@@ -499,7 +476,7 @@ Peers.prototype.list = function (options, cb) {
 			// Apply limit
 			peersList = peersList.slice(0, options.limit);
 			picked = peersList.length;
-			accepted = self.acceptable(peers.concat(peersList));
+			accepted = peers.concat(peersList);
 			library.logger.debug('Listing peers', {attempt: options.attempts[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
 			return setImmediate(cb, null, accepted);
 		});
@@ -589,7 +566,7 @@ Peers.prototype.onPeersReady = function () {
 			},
 			updatePeers: function (seriesCb) {
 				var updated = 0;
-				var peers = self.acceptable(library.logic.peers.list());
+				var peers = library.logic.peers.list();
 
 				library.logger.trace('Updating peers', {count: peers.length});
 
@@ -598,18 +575,11 @@ Peers.prototype.onPeersReady = function () {
 					if (peer && peer.state > 0 && (!peer.updated || Date.now() - peer.updated > 3000)) {
 						library.logger.trace('Updating peer', peer);
 						peer.rpc.status(function (err, status) {
-							if (err) {
-								peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
-								library.logger.trace('Every 10sec peers check ping peer failed ' + peer.string, err);
-							} else {
-								peer.applyHeaders({
-									height: status.height,
-									broadhash: status.broadhash,
-									nonce: status.nonce,
-									state: Peer.STATE.CONNECTED
-								});
-								library.logic.peers.upsert(peer);
+							__private.updatePeerStatus(err, status, peer);
+							if (!err) {
 								updated += 1;
+							} else {
+								library.logger.trace('Every 10sec peers check ping peer failed ' + peer.string, err);
 							}
 							return setImmediate(eachCb);
 						});
@@ -626,7 +596,7 @@ Peers.prototype.onPeersReady = function () {
 		});
 	}
 	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 10000);
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 60000);
 };
 
 /**

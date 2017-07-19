@@ -1,6 +1,6 @@
 {
-    "port": 5000,
-    "httpPort": 4000,
+    "port": 4000,
+    "httpPort": 5000,
     "address": "0.0.0.0",
     "version": "0.0.0a",
     "minVersion": "0.0.0a",
@@ -26,9 +26,7 @@
         "enabled": true,
         "access": {
             "public": true,
-            "whiteList": [
-                "127.0.0.2"
-            ]
+            "whiteList": []
         },
         "options": {
             "limits": {
@@ -43,7 +41,7 @@
         "enabled": true,
         "list": [{
             "ip": "127.0.0.1",
-            "port": 4000
+            "port": 5000
         }],
         "access": {
             "blackList": []
@@ -89,11 +87,6 @@
             "key": "./ssl/lisk.key",
             "cert": "./ssl/lisk.crt"
         }
-    },
-    "dapp": {
-        "masterrequired": true,
-        "masterpassword": "F6XK8Zn5EYr5",
-        "autoexec": []
     },
     "nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }

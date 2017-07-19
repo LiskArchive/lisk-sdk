@@ -130,7 +130,6 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	var clientSocket = wsRPC.scClient.connect(options);
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
-
 	clientSocket.on('connect', function () {
 		return connectionState.resolve(clientSocket);
 	});

@@ -139,19 +139,6 @@ describe('RPC', function () {
 			});
 	});
 
-	describe('ping', function () {
-
-		it('should return true', function (done) {
-			clientSocket.wampSend('ping')
-				.then(function (result) {
-					node.expect(result).to.have.property('success').to.be.ok;
-					done();
-				}).catch(function (err) {
-					done(err);
-				});
-		});
-	});
-
 	describe('height', function () {
 
 		it('should return height', function (done) {

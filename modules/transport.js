@@ -508,10 +508,6 @@ Transport.prototype.internal = {
 		return setImmediate(cb, null, {success: true, height: modules.system.getHeight()});
 	},
 
-	ping: function (req, cb) {
-		return setImmediate(cb, null, {success: true});
-	},
-
 	status: function (req, cb) {
 		return setImmediate(cb, null, {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()});
 	},
