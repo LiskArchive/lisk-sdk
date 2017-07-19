@@ -26,7 +26,6 @@ before(function (done) {
 	node.async.eachSeries([node.guestbookDapp, node.blockDataDapp], function (dapp, eachSeriesCb) {
 		var transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, dapp);
 		dapp.transactionId = transaction.id;
-
 		postTransaction(transaction, eachSeriesCb);
 	}, done);
 });

@@ -725,7 +725,7 @@ Loader.prototype.getNetwork = function (cb) {
 			return setImmediate(cb, err);
 		}
 
-		__private.network = Loader.prototype.findGoodPeers(peers);
+		__private.network = self.findGoodPeers(peers);
 
 		if (!__private.network.peers.length) {
 			return setImmediate(cb, 'Failed to find enough good peers');
