@@ -455,22 +455,20 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#sendRequest', function () {
-		var expectedResponse = {
-			body: { success: true, height: 2850466 },
-		};
 
-		it('should receive Height from a random public peer', function (done) {
-			sinon.stub(LSK, 'sendRequestPromise').resolves(expectedResponse);
-
-			LSK.sendRequest('blocks/getHeight', function (data) {
-				(data).should.be.ok;
+		it('should receive Height from a random public peer', function () {
+			var expectedResponse = {
+				body: { success: true, height: 2850466 },
+			};
+			var stub = sinon.stub(LSK, 'sendRequestPromise').resolves(expectedResponse);
+			return LSK.sendRequest('blocks/getHeight', function (data) {
+				(data).should.be.ok();
 				(data).should.be.type('object');
 				(data.success).should.be.true();
-
-				LSK.sendRequestPromise.restore();
-				done();
+				stub.restore();
 			});
 		});
+
 	});
 
 	describe('#listActiveDelegates', function () {
@@ -1025,6 +1023,45 @@ describe('Lisk.api()', function () {
 				done();
 			});
 		});
+
+		it('should retry timestamp in future failures', function () {
+			var thisLSK = lisk.api();
+			var successResponse = { body: { success: true } };
+			var futureTimestampResponse = {
+				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' }
+			};
+			var stub = sinon.stub(thisLSK, 'sendRequestPromise');
+			var spy = sinon.spy(thisLSK, 'sendRequest');
+			stub.resolves(futureTimestampResponse);
+			stub.onThirdCall().resolves(successResponse);
+
+			return thisLSK.sendRequest('transactions')
+				.then(function () {
+					(spy.callCount).should.equal(3);
+					(spy.args[1][1]).should.have.property('timeOffset').equal(10e3);
+					(spy.args[2][1]).should.have.property('timeOffset').equal(20e3);
+					stub.restore();
+					spy.restore();
+				});
+		});
+
+		it('should not retry timestamp in future failures forever', function () {
+			var thisLSK = lisk.api();
+			var futureTimestampResponse = {
+				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' }
+			};
+			var stub = sinon.stub(thisLSK, 'sendRequestPromise');
+			var spy = sinon.spy(thisLSK, 'sendRequest');
+			stub.resolves(futureTimestampResponse);
+
+			return thisLSK.sendRequest('transactions')
+				.then(function (response) {
+					(response).should.equal(futureTimestampResponse.body);
+					stub.restore();
+					spy.restore();
+				});
+		});
+
 	});
 
 	describe('#listMultisignatureTransactions', function () {

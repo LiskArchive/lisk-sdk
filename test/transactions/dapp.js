@@ -1,4 +1,6 @@
+
 if (typeof module !== 'undefined' && module.exports) {
+	var slots = require('../../lib/time/slots');
 	var common = require('../common');
 	var lisk = common.lisk;
 }
@@ -44,10 +46,43 @@ describe('dapp.js', function () {
 			(trs).should.be.ok;
 		});
 
-		describe('returned dapp', function () {
+		it('should use time slots to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
 
+			trs = createDapp('secret', null, options);
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime())).should.be.true();
+
+			stub.restore();
+			clock.restore();
+		});
+
+		it('should use time slots with an offset to get the time for the timestamp', function () {
+			var now = new Date();
+			var clock = sinon.useFakeTimers(now, 'Date');
+			var offset = 10e3;
+			var time = 36174862;
+			var stub = sinon.stub(slots, 'getTime').returns(time);
+
+			trs = createDapp('secret', null, options, offset);
+
+			(trs).should.have.property('timestamp').and.be.equal(time);
+			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+
+			stub.restore();
+			clock.restore();
+		});
+
+		describe('returned dapp', function () {
 			// var keys = lisk.crypto.getKeys('secret');
 			var secondKeys = lisk.crypto.getKeys('secret 2');
+
+			beforeEach(function () {
+				trs = createDapp('secret', 'secret 2', options);
+			});
 
 			it('should be object', function () {
 				(trs).should.be.type('object');
