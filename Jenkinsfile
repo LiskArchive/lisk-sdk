@@ -206,46 +206,10 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
             '''
           }
       },
-      "Functional Transport - Peer" : {
-        node('node-02'){
-            sh '''
-            export TEST=test/api/transport/transport.peer.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run jenkins
-            '''
-          }
-      },
       "Functional Transport - Blocks" : {
         node('node-02'){
             sh '''
             export TEST=test/api/transport/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run jenkins
-            '''
-          }
-      },
-      "Functional Transport - Signatures" : {
-        node('node-02'){
-            sh '''
-            export TEST=test/api/transport/transport.signatures.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run jenkins
-            '''
-          }
-      },
-      "Functional Transport - Transactions Collision" : {
-        node('node-02'){
-            sh '''
-            export TEST=test/api/transport/transport.transactions.collision.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run jenkins
-            '''
-          }
-      },
-      "Functional Transport - Transactions Delegates" : {
-        node('node-02'){
-            sh '''
-            export TEST=test/api/transport/transport.transactions.delegates.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -260,15 +224,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
             '''
           }
       },
-      "Functional Transport - Transaction Signatures" : {
-        node('node-02'){
-            sh '''
-            export TEST=test/api/transport/transport.transactions.signatures.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
-            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run jenkins
-            '''
-          }
-      },
       "Functional Transport - Peers" : {
         node('node-02'){
             sh '''
@@ -277,15 +232,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
             npm run jenkins
             '''
           }
-      },
-      "Functional Transport - Votes" : {
-        node('node-02'){
-            sh '''
-            export TEST=test/api/transport/transport.transactions.votes.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run jenkins
-            '''
-        }
       },  // End Node-02 Tests
         "Unit - Helpers" : {
             node('node-03'){

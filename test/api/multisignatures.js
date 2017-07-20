@@ -96,7 +96,7 @@ describe('GET /api/multisignatures/pending', function () {
 	});
 });
 
-describe('POST /api/multisignatures/sign (regular account)', function () {
+describe('POST signatures/sign (regular account)', function () {
 
 	var transaction;
 

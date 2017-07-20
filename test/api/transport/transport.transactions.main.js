@@ -2,10 +2,30 @@
 
 var crypto = require('crypto');
 var node = require('../../node.js');
-var http = require('../../common/httpCommunication.js');
+var _ = require('lodash');
 var ws = require('../../common/wsCommunication.js');
+var http = require('../../common/httpCommunication.js');
 
 var genesisblock = require('../../genesisBlock.json');
+
+function getConfirmedTransaction (transaction, cb) {
+	http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+		node.expect(res.body).to.have.property('success');
+		if (!res.body.success) {
+			return cb(null, undefined);
+		}
+		node.expect(res.body).to.have.property('transaction').to.be.an('object');
+		return cb(null, res.body.transaction);
+	});
+}
+
+function getConfirmedTransactions (cb) {
+	http.get('/api/transactions', function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res.body).to.have.property('transactions').to.be.an('array');
+		cb(null, res.body.transactions);
+	});
+}
 
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', {
@@ -13,13 +33,24 @@ function postTransaction (transaction, done) {
 	}, done, true);
 }
 
-function getAddress (address, done) {
-	http.get('/api/accounts?address=' + address, done);
+function postTransactions (transactions, done) {
+	ws.call('postTransactions', {
+		transactions: transactions
+	}, done, true);
+}
+
+function postSignature (signature, transaction, done) {
+	ws.call('postSignatures', {
+		signature: {
+			signature: signature,
+			transaction: transaction.id
+		}
+	}, done, true);
 }
 
 describe('getTransactions', function () {
 
-	it('using valid headers should be ok', function (done) {
+	it('should return valid response', function (done) {
 		ws.call('getTransactions', function (err, res) {
 			node.expect(res).to.have.property('success').to.be.ok;
 			node.expect(res).to.have.property('transactions').to.be.an('array');
@@ -48,221 +79,155 @@ describe('getTransactions', function () {
 
 describe('postTransactions', function () {
 
-	it('using valid headers should be ok', function (done) {
-		var account = node.randomAccount();
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+	describe('passphrase', function () {
 
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
-			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-			done();
-		});
-	});
+		var wrongTransactions = [];
 
-	it('using already processed transaction should fail', function (done) {
-		var account = node.randomAccount();
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+		describe('schema', function () {
 
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
-			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-
-			postTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
-				done();
+			it('sending null transaction should return schema check error', function (done) {
+				postTransaction(null, function (err, res) {
+					node.expect(res).to.have.property('success').not.to.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
+					done();
+				}, true);
+				wrongTransactions.push(null);
 			});
-		});
-	});
 
-	it('using already confirmed transaction should fail', function (done) {
-		var account = node.randomAccount();
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+			it('sending empty transaction should return schema check error', function (done) {
+				postTransaction({}, function (err, res) {
+					node.expect(res).to.have.property('success').not.to.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
+					done();
+				}, true);
+				wrongTransactions.push({});
+			});
 
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
-			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+			it('using valid transaction should be ok', function (done) {
+				var account = node.randomAccount();
+				var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
-			node.onNewBlock(function (err) {
 				postTransaction(transaction, function (err, res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Transaction is already confirmed: [0-9]+/);
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 					done();
 				});
 			});
+
 		});
-	});
 
-	it('using varying recipientId casing should go to same address', function (done) {
-		var account = node.randomAccount();
-		var keys = node.lisk.crypto.getKeys(account.password);
-		var address = node.lisk.crypto.getAddress(keys.publicKey);
+		describe('processing', function () {
 
-		var transaction = node.lisk.transaction.createTransaction(address, 100000000, node.gAccount.password);
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
+			it('when sender has no funds should fail', function (done) {
+				var noFundsAccount = node.randomAccount();
+				var transaction = node.lisk.transaction.createTransaction('1L', 1, noFundsAccount.password);
 
-			node.onNewBlock(function (err) {
-				var transaction2 = node.lisk.transaction.createTransaction(address.toLowerCase(), 100000000, node.gAccount.password);
-				postTransaction(transaction2, function (err, res) {
+				postTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
+					done();
+				});
+
+				wrongTransactions.push(transaction);
+			});
+
+			it('when sender has funds should be ok', function (done) {
+
+				var account = node.randomAccount();
+				var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+
+				postTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					done();
+				});
+			});
 
-					node.onNewBlock(function (err) {
-						getAddress(address, function (err, res) {
-							node.expect(res.body).to.have.property('success').to.be.ok;
-							node.expect(res.body).to.have.property('account').that.is.an('object');
-							node.expect(res.body.account).to.have.property('balance').to.equal('200000000');
+			it('using already processed transaction should fail', function (done) {
+				var account = node.randomAccount();
+				var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+
+				postTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+
+					postTransaction(transaction, function (err, res) {
+						node.expect(res).to.have.property('success').to.be.not.ok;
+						node.expect(res).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
+						done();
+					});
+				});
+			});
+		});
+
+		describe('confirmation', function () {
+
+			it('should not confirm all malformed transactions', function (done) {
+
+				postTransactions(wrongTransactions, function (err, res) {
+					node.onNewBlock(function () {
+						getConfirmedTransactions(function (err, transactions) {
+							var wrongTransactionIds = wrongTransactions.map(function (wrongTransaction) {
+								return _.get(wrongTransaction, 'id', null);
+							}).filter(function (transactionId) {
+								return !!transactionId;
+							});
+							node.expect(_.intersection(_.map(transactions, 'id'), wrongTransactionIds)).to.have.lengthOf(0);
 							done();
 						});
 					});
 				});
 			});
-		});
-	});
 
-	it('using transaction with undefined recipientId should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction(undefined, 1, node.gAccount.password);
+			it('when sender has no funds and sends proper transaction it should not be confirmed', function (done) {
 
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message').to.eql('Missing recipient');
-			done();
-		});
-	});
+				var transaction = node.lisk.transaction.createTransaction('1L', 1, 'randomstring');
 
-	it('using transaction with invalid recipientId should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('0123456789001234567890L', 1, node.gAccount.password);
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message').to.contain('Invalid transaction body');
-			done();
-		});
-	});
-
-	it('using transaction with negative amount should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', -1, node.gAccount.password);
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
-		});
-	});
-
-	it('using invalid passphrase should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.gAccount.password);
-		transaction.recipientId = '1L';
-		transaction.id = node.lisk.crypto.getId(transaction);
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
-		});
-	});
-
-	it('when sender has no funds should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('1L', 1, 'randomstring');
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
-			done();
-		});
-	});
-
-	it('when sender does not have enough funds should always fail', function (done) {
-		var account = node.randomAccount();
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
-			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-
-			node.onNewBlock(function () {
-				var count = 1;
-				var transaction2 = node.lisk.transaction.createTransaction(node.gAccount.address, 2, account.password);
-
-				node.async.doUntil(function (next) {
-					postTransaction(transaction2, function (err, res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 1e-8/);
-						count++;
-						return next();
+				postTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
+					node.onNewBlock(function () {
+						getConfirmedTransaction(transaction, function (err, res) {
+							node.expect(res).to.be.undefined;
+							done();
+						});
 					});
-				}, function () {
-					return count === 10;
-				}, function () {
-					return done();
 				});
 			});
-		});
-	});
 
-	it('using fake signature should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.gAccount.password);
-		transaction.signature = crypto.randomBytes(64).toString('hex');
-		transaction.id = node.lisk.crypto.getId(transaction);
+			it('when sender has funds and sends proper transaction it should be confirmed', function (done) {
+				var account = node.randomAccount();
+				var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
-		});
-	});
+				postTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.onNewBlock(function () {
+						getConfirmedTransaction(transaction, function (err, res) {
+							node.expect(res).to.be.an('object').to.have.property('id').equal(transaction.id);
+							done();
+						});
+					});
+				});
+			});
 
-	it('using invalid publicKey should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.gAccount.password);
-		transaction.senderPublicKey = node.randomPassword();
+			it('using already confirmed transaction should fail', function (done) {
+				var account = node.randomAccount();
+				var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
-		});
-	});
+				postTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 
-	it('using invalid signature should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('12L', 1, node.gAccount.password);
-		transaction.signature = node.randomPassword();
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
-		});
-	});
-
-	it('using very large amount and genesis block id should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('12L', 10000000000000000, node.gAccount.password);
-		transaction.blockId = genesisblock.id;
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
-		});
-	});
-
-	it('using overflown amount should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('12L', 184819291270000000012910218291201281920128129,
-			node.gAccount.password);
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
-		});
-	});
-
-	it('using float amount should fail', function (done) {
-		var transaction = node.lisk.transaction.createTransaction('12L', 1.3, node.gAccount.password);
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.not.ok;
-			node.expect(res).to.have.property('message');
-			done();
+					node.onNewBlock(function (err) {
+						postTransaction(transaction, function (err, res) {
+							node.expect(res).to.have.property('success').to.be.not.ok;
+							node.expect(res).to.have.property('message').to.match(/Transaction is already confirmed: [0-9]+/);
+							done();
+						});
+					});
+				});
+			});
 		});
 	});
 
