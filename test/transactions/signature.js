@@ -99,14 +99,9 @@ describe('signature.js', function () {
 				});
 
 				it('should have publicKey in hex', function () {
-					(sgn.asset.signature.publicKey).should.be.type('string').and.match(function () {
-						try {
-							Buffer.from(sgn.asset.signature.publicKey);
-						} catch (e) {
-							return false;
-						}
-
-						return true;
+					(sgn.asset.signature).should.have.property('publicKey').and.be.type('string');
+					should.doesNotThrow(function () {
+						new Buffer(sgn.asset.signature.publicKey, 'hex');
 					});
 				});
 
