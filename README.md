@@ -67,3 +67,13 @@ As with every repository on LiskHQ we are working intensively with Github Open-S
 If you find a bug, you can create an [Issue](https://github.com/LiskHQ/lisky/issues), please describe it in as much detail as you can.
 
 We would be more than happy if you decide to contribute to this code and make it better on the way. Please have a look at Lisk contribution guidelines before you start.
+
+# License
+
+Copyright © 2016-2017 Lisk Foundation
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
