@@ -38,3 +38,6 @@ jspm_packages
 
 # IDE directories
 .idea
+
+# Distribution folder
+dist

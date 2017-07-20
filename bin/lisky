@@ -1,3 +1,2 @@
 #!/usr/bin/env node
-
-module.exports = require('../index');
+module.exports = require('../dist');
