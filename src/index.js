@@ -14,9 +14,25 @@ fse.readdirSync(commandsDir).forEach((command) => {
 	lisky.use(commandModule.default);
 });
 
+const logo = `
+ _ _     _
+| (_)___| | ___   _
+| | / __| |/ / | | |
+| | \\__ \\   <| |_| |
+|_|_|___/_|\\_\\\\__, |
+              |___/
+`;
+const { version } = packageJson;
+const message = `
+Running v${version}.
+Type \`help\` to get started.
+`;
+const intro = `${logo}${message}`;
+
 lisky
 	.delimiter('lisky>')
 	.history('lisky')
+	.log(intro)
 	.show();
 
 

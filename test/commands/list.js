@@ -2,6 +2,11 @@ import Vorpal from 'vorpal';
 import list from '../../src/commands/list';
 import query from '../../src/utils/query';
 
+const createRejectionHandler = restoreFn => (e) => {
+	restoreFn();
+	throw e;
+};
+
 describe('lisky list command palette', () => {
 	let vorpal;
 
@@ -18,35 +23,32 @@ describe('lisky list command palette', () => {
 
 	it('should test command list accounts', () => {
 		sinon.stub(query, 'isAccountQuery');
+		const restore = query.isAccountQuery.restore;
 
 		const command = 'list accounts 13133549779353512613L 13133549779353512613L';
-		vorpal.execSync(command);
-
-		(query.isAccountQuery.called).should.be.equal(true);
-
-		query.isAccountQuery.restore();
+		return vorpal.exec(command)
+			.then(() => (query.isAccountQuery.called).should.be.equal(true))
+			.then(restore, createRejectionHandler(restore));
 	});
 
 	it('should have the right parameters with block', () => {
 		sinon.stub(query, 'isBlockQuery');
+		const restore = query.isBlockQuery.restore;
 
 		const command = 'list blocks 3641049113933914102 5650160629533476718';
-		vorpal.execSync(command);
-
-		(query.isBlockQuery.called).should.be.equal(true);
-
-		query.isBlockQuery.restore();
+		return vorpal.exec(command)
+			.then(() => (query.isBlockQuery.called).should.be.equal(true))
+			.then(restore, createRejectionHandler(restore));
 	});
 
 	it('should have the right parameters with delegate', () => {
 		sinon.stub(query, 'isDelegateQuery');
+		const restore = query.isDelegateQuery.restore;
 
 		const command = 'list delegates lightcurve tosch';
-		vorpal.execSync(command);
-
-		(query.isDelegateQuery.called).should.be.equal(true);
-
-		query.isDelegateQuery.restore();
+		return vorpal.exec(command)
+			.then(() => (query.isDelegateQuery.called).should.be.equal(true))
+			.then(restore, createRejectionHandler(restore));
 	});
 
 	describe('list transactions', () => {
@@ -62,24 +64,22 @@ describe('lisky list command palette', () => {
 		});
 
 		it('should have the right parameters with transaction', () => {
-			vorpal.execSync(command);
-			(query.isTransactionQuery.called).should.be.equal(true);
+			return vorpal.exec(command)
+				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
 
 		it('should have the right parameters with transaction, handling response', () => {
 			stub.resolves({ transactionid: '123' });
 
-			vorpal.execSync(command);
-
-			(query.isTransactionQuery.called).should.be.equal(true);
+			return vorpal.exec(command)
+				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
 
 		it('should have the right parameters with transaction, handling error from http', () => {
 			stub.resolves({ error: 'transaction not found' });
 
-			vorpal.execSync(command);
-
-			(query.isTransactionQuery.called).should.be.equal(true);
+			return vorpal.exec(command)
+				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
 	});
 
@@ -100,25 +100,22 @@ describe('lisky list command palette', () => {
 		it('should print json output', () => {
 			stub.resolves({ transactionId: '123' });
 
-			vorpal.execSync(jsonCommand);
-
-			(query.isTransactionQuery.called).should.be.equal(true);
+			return vorpal.exec(jsonCommand)
+				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
 
 		it('should print no-json output', () => {
 			stub.resolves({ transactionId: '123' });
 
-			vorpal.execSync(noJsonCommand);
-
-			(query.isTransactionQuery.called).should.be.equal(true);
+			return vorpal.exec(noJsonCommand)
+				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
 
 		it('should print json, handling error from http', () => {
 			stub.resolves({ error: 'transaction not found' });
 
-			vorpal.execSync(jsonCommand);
-
-			(query.isTransactionQuery.called).should.be.equal(true);
+			return vorpal.exec(jsonCommand)
+				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
 		});
 	});
 });
