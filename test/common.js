@@ -13,8 +13,7 @@ var lisk = require('../index.js');
 
 exports.lisk = lisk;
 exports.cryptoLib = cryptoLib;
-exports.privateApi = require('../lib/api/privateApi');;
+exports.privateApi = require('../lib/api/privateApi');
 exports.utils = require('../lib/api/utils');
-// See https://github.com/shouldjs/should.js/issues/41
 Object.defineProperty(exports, 'should', { value: should });
 exports.sinon = sinon;
