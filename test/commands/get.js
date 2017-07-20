@@ -64,15 +64,11 @@ describe('lisky get command palette', () => {
 			query.isTransactionQuery.restore();
 		});
 
-		it('should have the right parameters with transaction', () => {
-			return vorpal.exec(transactionCommand)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+		it('should have the right parameters with transaction', () => vorpal.exec(transactionCommand)
+			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
 
-		it('should have the right parameters with transaction, handling response', () => {
-			return vorpal.exec(transactionCommand)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+		it('should have the right parameters with transaction, handling response', () => vorpal.exec(transactionCommand)
+			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
 
 		it('should have the right parameters with transaction, handling error from http', () => {
 			stub.resolves({ error: 'transaction not found' });
@@ -95,15 +91,11 @@ describe('lisky get command palette', () => {
 			query.isTransactionQuery.restore();
 		});
 
-		it('should print json output', () => {
-			return vorpal.exec(jsonCommand)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+		it('should print json output', () => vorpal.exec(jsonCommand)
+			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
 
-		it('should print no-json output', () => {
-			return vorpal.exec(noJsonCommand)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+		it('should print no-json output', () => vorpal.exec(noJsonCommand)
+			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
 
 		it('should have the right parameters with transaction, handling error from http', () => {
 			stub.resolves({ error: 'transaction not found' });

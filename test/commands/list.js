@@ -63,10 +63,8 @@ describe('lisky list command palette', () => {
 			query.isTransactionQuery.restore();
 		});
 
-		it('should have the right parameters with transaction', () => {
-			return vorpal.exec(command)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+		it('should have the right parameters with transaction', () => vorpal.exec(command)
+			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
 
 		it('should have the right parameters with transaction, handling response', () => {
 			stub.resolves({ transactionid: '123' });

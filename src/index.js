@@ -2,6 +2,7 @@ import path from 'path';
 import fse from 'fs-extra';
 import vorpal from 'vorpal';
 import config from './../config.json';
+import { version } from '../package.json';
 
 const lisky = vorpal();
 
@@ -22,7 +23,7 @@ const logo = `
 |_|_|___/_|\\_\\\\__, |
               |___/
 `;
-const { version } = packageJson;
+
 const message = `
 Running v${version}.
 Type \`help\` to get started.
