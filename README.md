@@ -15,6 +15,12 @@ $ npm install -g lisky
 
 With a global installation, npm will add the `lisky` executable to your PATH.
 
+## Prerequisites
+
+Nodejs 6.11.x or greater
+
+NPM 3.x or greater
+
 # Usage:
 
 ```bash
