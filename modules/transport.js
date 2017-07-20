@@ -197,6 +197,9 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 			transactions = query.transactions;
 
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				if (!transaction) {
+					return setImmediate(eachSeriesCb, 'Cannot receive empty transaction');
+				}
 				transaction.bundled = true;
 
 				__private.receiveTransaction(transaction, peer, extraLogMessage, function (err) {
@@ -229,6 +232,8 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
  * @return {setImmediateCallback} cb, error message
  */
 __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb) {
+
+	console.log('receive transaction query', transaction);
 	var id = (transaction ? transaction.id : 'null');
 
 	try {

@@ -177,8 +177,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 Multisignatures.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
-		transactions: scope.transactions,
-		transport: scope.transport
+		transactions: scope.transactions
 	};
 
 	__private.assetTypes[transactionTypes.MULTI].bind(
@@ -349,10 +348,6 @@ Multisignatures.prototype.shared = {
 		}, function (err) {
 			return setImmediate(cb, err, {transactions: scope.pending});
 		});
-	},
-
-	postSignatures: function (req, cb) {
-		return modules.transport.internal.postSignatures(req.body, cb);
 	}
 };
 

@@ -63,7 +63,8 @@ Signatures.prototype.isLoaded = function () {
 Signatures.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
-		transactions: scope.transactions
+		transactions: scope.transactions,
+		transport: scope.transport
 	};
 
 	__private.assetTypes[transactionTypes.SIGNATURE].bind(
@@ -81,6 +82,10 @@ Signatures.prototype.shared = {
 		var fee = constants.fees.secondsignature;
 
 		return setImmediate(cb, null, {fee: fee});
+	},
+
+	postSignatures: function (req, cb) {
+		return modules.transport.internal.postSignatures(req.body, cb);
 	}
 };
 
