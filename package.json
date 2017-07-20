@@ -9,11 +9,10 @@
   "scripts": {
     "start": "node index.js",
     "test": "NODE_ENV=test nyc mocha",
-    "postinstall": "npm link lisky",
-    "test:watch": "npm run test -- --watch",
-    "test:now": "npm run test -- --grep @now",
+    "test:watch": "npm test -- --watch",
+    "test:now": "npm test -- --grep @now",
     "test:now:watch": "npm run test:now -- --watch",
-    "cover": "istanbul cover --dir ./coverage _mocha",
+    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
     "prepush": "grunt eslint && npm test"
   },
   "repository": {
@@ -27,21 +26,22 @@
     "nodejs",
     "javascript"
   ],
-  "author": "",
+  "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/LiskHQ/lisky/issues"
   },
   "homepage": "https://github.com/LiskHQ/lisky#readme",
   "devDependencies": {
-    "eslint-config-airbnb": "=14.1.0",
+    "eslint-config-airbnb-base": "=11.2.0",
+    "eslint-config-lisk-base": "^0.1.0",
     "eslint-plugin-import": "=2.2.0",
     "grunt": "=1.0.1",
     "grunt-mocha-test": "=0.13.2",
-    "gruntify-eslint": "=3.1.0",
+    "gruntify-eslint": "=4.0.0",
     "husky": "=0.14.3",
     "mocha": "=3.3.0",
-    "nyc": "=10.3.2",
+    "nyc": "=11.0.3",
     "should": "=11.2.1",
     "sinon": "=2.3.1"
   },

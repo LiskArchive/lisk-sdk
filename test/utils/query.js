@@ -1,59 +1,54 @@
-const common = require('../common');
+const lisk = require('../../src/utils/liskInstance');
 const query = require('../../src/utils/query');
 
-function createSpy (targetFunc) {
-
-	const spy = function () {
-		spy.args = arguments;
-		spy.returnValue = targetFunc.apply(this, arguments);
-		return spy.returnValue;
-	};
-
-	return spy;
-
-}
-
 describe('query class with different parameters', () => {
+	let stub;
 
+	beforeEach(() => {
+		stub = sinon.stub(lisk, 'sendRequest');
+	});
+
+	afterEach(() => {
+		lisk.sendRequest.restore();
+	});
 
 	it('should query to isBlockQuery', () => {
+		const route = 'blocks/get';
+		const id = '5650160629533476718';
+		const options = { id };
 
-		let spiedFunction = createSpy(query.isBlockQuery);
+		query.isBlockQuery(id);
 
-		spiedFunction('5650160629533476718');
-
-		(spiedFunction.args[0]).should.be.equal('5650160629533476718');
-
+		(stub.calledWithExactly(route, options)).should.be.true();
 	});
 
 	it('should query to isAccountQuery', () => {
+		const route = 'accounts';
+		const address = '13782017140058682841L';
+		const options = { address };
 
-		let spiedFunction = createSpy(query.isAccountQuery);
+		query.isAccountQuery(address);
 
-		spiedFunction('13782017140058682841L');
-
-		(spiedFunction.args[0]).should.be.equal('13782017140058682841L');
-
+		(stub.calledWithExactly(route, options)).should.be.true();
 	});
 
 	it('should query to isTransactionQuery', () => {
+		const route = 'transactions/get';
+		const id = '16388447461355055139';
+		const options = { id };
 
-		let spiedFunction = createSpy(query.isTransactionQuery);
+		query.isTransactionQuery(id);
 
-		spiedFunction('16388447461355055139');
-
-		(spiedFunction.args[0]).should.be.equal('16388447461355055139');
-
+		(stub.calledWithExactly(route, options)).should.be.true();
 	});
 
 	it('should query to isDelegateQuery', () => {
+		const route = 'delegates/get';
+		const username = 'lightcurve';
+		const options = { username };
 
-		let spiedFunction = createSpy(query.isDelegateQuery);
+		query.isDelegateQuery(username);
 
-		spiedFunction('lightcurve');
-
-		(spiedFunction.args[0]).should.be.equal('lightcurve');
-
+		(stub.calledWithExactly(route, options)).should.be.true();
 	});
-
 });

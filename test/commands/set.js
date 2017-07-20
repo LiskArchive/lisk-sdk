@@ -1,110 +1,85 @@
 const Vorpal = require('vorpal');
-const common = require('../common');
 const set = require('../../src/commands/set');
 
-const vorpal = new Vorpal();
+describe('set command', () => {
+	let vorpal;
 
-vorpal.use(set);
-vorpal.pipe(output => '');
-
-function executeCommand (command, callback) {
-	vorpal.exec(command, function (err, data){
-		if (!err) {
-			return callback(this);
-		} else {
-			return err;
-		}
+	beforeEach(() => {
+		vorpal = new Vorpal();
+		vorpal.use(set);
+		vorpal.pipe(() => '');
 	});
 
-}
-
-describe('set command', () => {
+	afterEach(() => {
+		// See https://github.com/dthree/vorpal/issues/230
+		vorpal.ui.removeAllListeners();
+	});
 
 	describe('should exist', () => {
-
+		let setCommand;
+		// eslint-disable-next-line no-underscore-dangle
 		const filterCommand = vorpalCommand => vorpalCommand._name === 'set';
 
-		let exists = vorpal.commands.filter(filterCommand);
+		beforeEach(() => {
+			setCommand = vorpal.commands.filter(filterCommand)[0];
+		});
 
 		it('should be available', () => {
-
-			(exists[0]._args).should.be.length(2);
-			(exists[0]._name).should.be.equal('set');
-
+			// eslint-disable-next-line no-underscore-dangle
+			(setCommand._args).should.be.length(2);
+			// eslint-disable-next-line no-underscore-dangle
+			(setCommand._name).should.be.equal('set');
 		});
 
 		it('should have 2 require inputs', () => {
-
-			(exists[0]._args[0].required).should.be.true();
-			(exists[0]._args[1].required).should.be.true();
-
+			// eslint-disable-next-line no-underscore-dangle
+			(setCommand._args[0].required).should.be.true();
+			// eslint-disable-next-line no-underscore-dangle
+			(setCommand._args[1].required).should.be.true();
 		});
-
 	});
 
 	describe('should set json to true', () => {
+		const setJsonTrueCommand = 'set json true';
+		const setJsonFalseCommand = 'set json false';
+		const setJsonTrueResult = 'successfully set json output to true';
+		const setJsonFalseResult = 'successfully set json output to false';
 
 		it('should be set json true and give feedback', () => {
-
-			let command = 'set json true';
-
-			let res = vorpal.execSync(command);
-			(res).should.be.equal('successfully set json output to true');
-
+			const result = vorpal.execSync(setJsonTrueCommand);
+			(result).should.be.equal(setJsonTrueResult);
 		});
 
 		it('should be set json back to false and give feedback', () => {
-
-			let command = 'set json false';
-
-			let res = vorpal.execSync(command);
-			(res).should.be.equal('successfully set json output to false');
-
+			const result = vorpal.execSync(setJsonFalseCommand);
+			(result).should.be.equal(setJsonFalseResult);
 		});
 
 		it('should be set json back to false and give feedback', () => {
-
-			let command = 'set json false';
-
-			let res = vorpal.execSync(command);
-			(res).should.be.equal('successfully set json output to false');
-
+			const result = vorpal.execSync(setJsonFalseCommand);
+			(result).should.be.equal(setJsonFalseResult);
 		});
 
-		it('should be set json back to false and give feedback asynchronous', (done) => {
-
-			let command = 'set json false';
-
-			vorpal.exec(command, function (result) {
-				(result).should.be.equal('successfully set json output to false');
-				done();
-			});
-
-
-		});
-
+		it('should be set json back to false and give feedback asynchronous', () => vorpal.exec(setJsonFalseCommand, (result) => {
+			(result).should.be.equal(setJsonFalseResult);
+		}));
 	});
 
 	describe('switch testnet and mainnet', () => {
-
 		it('should set testnet to true', () => {
+			const command = 'set testnet true';
 
-			let command = 'set testnet true';
+			const result = vorpal.execSync(command);
 
-			let res = vorpal.execSync(command);
-			(res).should.be.equal('successfully set testnet to true');
-
+			(result).should.be.equal('successfully set testnet to true');
 		});
 
 		it('should set testnet to false', () => {
+			const command = 'set testnet false';
 
-			let command = 'set testnet false';
+			const result = vorpal.execSync(command);
 
-			let res = vorpal.execSync(command);
-			(res).should.be.equal('successfully set testnet to false');
-
+			(result).should.be.equal('successfully set testnet to false');
 		});
-
 	});
-
 });

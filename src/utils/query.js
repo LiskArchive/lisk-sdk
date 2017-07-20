@@ -1,24 +1,24 @@
-'use strict';
-
-const config = require('../../config.json');
-const lisk = require('lisk-js').api(config.liskJS);
+const lisk = require('./liskInstance');
 
 class Query {
-
-	isBlockQuery (input) {
-		return lisk.sendRequest('blocks/get', {  id: input });
+	constructor() {
+		this.client = lisk;
 	}
 
-	isAccountQuery (input) {
-		return lisk.sendRequest('accounts', {  address: input });
+	isBlockQuery(input) {
+		return this.client.sendRequest('blocks/get', { id: input });
 	}
 
-	isTransactionQuery (input) {
-		return lisk.sendRequest('transactions/get', {  id: input });
+	isAccountQuery(input) {
+		return this.client.sendRequest('accounts', { address: input });
 	}
 
-	isDelegateQuery (input) {
-		return lisk.sendRequest('delegates/get', {  username: input });
+	isTransactionQuery(input) {
+		return this.client.sendRequest('transactions/get', { id: input });
+	}
+
+	isDelegateQuery(input) {
+		return this.client.sendRequest('delegates/get', { username: input });
 	}
 }
 
