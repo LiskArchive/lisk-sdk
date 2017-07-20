@@ -7,7 +7,27 @@ var sendTransaction = require('../common/complexTransactions.js').sendTransactio
 var modulesLoader = require('./../common/initModule.js').modulesLoader;
 var genesisDelegates = require('../genesisDelegates.json');
 
-describe('GET /api/delegates (cache)', function () {
+//insert one extra delegate
+before(function (done) {
+	var delegate = node.randomAccount();
+	sendLISK({
+		secret: node.gAccount.password,
+		amount: node.randomLISK(),
+		address: delegate.address
+	}, function (err, res) {
+		node.expect(err).to.be.null;
+		node.onNewBlock(function () {
+			var insertDelegateTrs = node.lisk.delegate.createDelegate(delegate.password, delegate.username);
+			sendTransaction(insertDelegateTrs, function (err, res) {
+				node.expect(err).to.be.null;
+				node.onNewBlock(done);
+			});
+		});
+	});
+});
+
+
+describe.skip('GET /api/delegates (cache)', function () {
 	var cache;
 
 	before(function (done) {
@@ -94,6 +114,10 @@ describe('GET /api/delegates (cache)', function () {
 });
 
 describe('GET /api/delegates', function () {
+
+	before(function () {
+		
+	});
 	it('using no params should be ok', function (done) {
 		http.get('/api/delegates', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
