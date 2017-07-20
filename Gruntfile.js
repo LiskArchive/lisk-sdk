@@ -6,6 +6,7 @@ module.exports = function configureGrunt(grunt) {
 		mochaTest: {
 			test: {
 				options: {
+					require: 'babel-register',
 					reporter: 'spec',
 					// Optionally suppress output to standard out (defaults to false)
 					quiet: false,
@@ -28,7 +29,7 @@ module.exports = function configureGrunt(grunt) {
 		},
 	});
 
-	grunt.registerTask('default', ['mochaTest', 'eslint']);
+	grunt.registerTask('default', ['eslint', 'mochaTest']);
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', () => {
 		grunt.config.set('eslint.options.fix', true);
 		grunt.task.run('eslint');

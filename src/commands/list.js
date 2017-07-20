@@ -1,9 +1,8 @@
-const config = require('../../config.json');
-const tablify = require('../utils/tablify');
-const query = require('../utils/query');
+import config from '../../config.json';
+import tablify from '../utils/tablify';
+import query from '../utils/query';
 
-
-module.exports = function listCommand(vorpal) {
+export default function listCommand(vorpal) {
 	function switchType(type) {
 		return {
 			accounts: 'account',
@@ -23,11 +22,11 @@ module.exports = function listCommand(vorpal) {
 		.autocomplete(['accounts', 'addresses', 'blocks', 'delegates', 'transactions'])
 		.action((userInput) => {
 			const getType = {
-				addresses: query.isAccountQuery,
-				accounts: query.isAccountQuery,
-				blocks: query.isBlockQuery,
-				delegates: query.isDelegateQuery,
-				transactions: query.isTransactionQuery,
+				addresses: query.isAccountQuery.bind(query),
+				accounts: query.isAccountQuery.bind(query),
+				blocks: query.isBlockQuery.bind(query),
+				delegates: query.isDelegateQuery.bind(query),
+				transactions: query.isTransactionQuery.bind(query),
 			};
 
 			const calls = userInput.variadic.map(input => getType[userInput.type](input));
@@ -60,4 +59,4 @@ module.exports = function listCommand(vorpal) {
 				return result;
 			}).catch(e => e);
 		});
-};
+}

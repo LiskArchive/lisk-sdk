@@ -1,7 +1,6 @@
-/* eslint-disable arrow-body-style */
-const Vorpal = require('vorpal');
-const list = require('../../src/commands/list');
-const query = require('../../src/utils/query');
+import Vorpal from 'vorpal';
+import list from '../../src/commands/list';
+import query from '../../src/utils/query';
 
 const createRejectionHandler = restoreFn => (e) => {
 	restoreFn();
@@ -76,10 +75,8 @@ describe('lisky list command palette', () => {
 			query.isTransactionQuery.restore();
 		});
 
-		it('should have the right parameters with transaction', () => {
-			return vorpal.exec(command)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+		it('should have the right parameters with transaction', () => vorpal.exec(command)
+			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
 
 		it('should have the right parameters with transaction, handling response', () => {
 			stub.resolves({ transactionid: '123' });
