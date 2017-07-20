@@ -137,7 +137,7 @@ describe('account', function () {
 	});
 
 	describe('generateAddressByPublicKey', function () {
-		it('should generate correct address for the public key provided', function () {
+		it('should generate correct address for the publicKey provided', function () {
 			expect(account.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
@@ -150,7 +150,7 @@ describe('account', function () {
 	});
 
 	describe('getAccount', function () {
-		it('should convert public key filter to address and call account.get', function (done) {
+		it('should convert publicKey filter to address and call account.get', function (done) {
 			var getAccountStub = sinon.stub(accountLogic, 'get');
 			account.getAccount({publicKey: validAccount.publicKey});
 			expect(getAccountStub.calledOnce).to.be.ok;
@@ -208,7 +208,7 @@ describe('account', function () {
 
 	describe('Accounts.prototype.shared', function () {
 		describe('open ', function () {
-			it('should throw if parameter doesnt have correct schema', function (done) {
+			it('should throw if parameter doesn\'t have correct schema', function (done) {
 				account.shared.open({
 					body: {
 						secret: 5
@@ -310,7 +310,7 @@ describe('account', function () {
 				});
 			});
 
-			it('should return public key for an existing account', function (done) {
+			it('should return publicKey for an existing account', function (done) {
 				account.shared.getPublickey({
 					body: {
 						address: validAccount.address
@@ -336,7 +336,7 @@ describe('account', function () {
 				});
 			});
 
-			it('should generate public key for new account', function (done) {
+			it('should generate publicKey for new account', function (done) {
 				var randomAccount = node.randomAccount();
 				account.shared.generatePublicKey({
 					body: {
@@ -350,7 +350,7 @@ describe('account', function () {
 				});
 			});
 
-			it('should return public key of an existing account', function (done) {
+			it('should return publicKey of an existing account', function (done) {
 				account.shared.generatePublicKey({
 					body: {
 						secret: accountSecret
@@ -425,13 +425,14 @@ describe('account', function () {
 
 		describe('addDelegates (non-multisignature account)', function () {
 
+			// Votes for genesis_2, genesis_3, genesis_4
 			var votes = [
 				'-141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 				'-3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 				'-5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819'
 			];
 
-			it('should return error if invalid passpharse', function (done) {
+			it('should return error if invalid passphrase', function (done) {
 				account.shared.addDelegates({
 					body: {
 						publicKey: node.gAccount.publicKey,
@@ -519,7 +520,7 @@ describe('account', function () {
 					});
 				}));
 			});
-
+			// Votes for genesis_2, genesis_3, genesis_4
 			var votes = [
 				'+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 				'+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
@@ -608,7 +609,7 @@ describe('account', function () {
 				});
 			});
 
-			it('should return error if neither publickey nor address are supplied', function (done) {
+			it('should return error if neither publicKey nor address are supplied', function (done) {
 				account.shared.getAccount({
 					body: {
 					}

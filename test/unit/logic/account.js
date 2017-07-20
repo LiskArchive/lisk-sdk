@@ -83,7 +83,7 @@ describe('account', function () {
 			}).to.throw('Invalid public key, must be a string');
 		});
 
-		it('should throw if parameter is of wrong size', function () {
+		it('should throw if parameter is of invalid length', function () {
 			expect(function () {
 				account.verifyPublicKey('231312312321');
 			}).to.throw('Invalid public key, must be 64 characters long');
