@@ -1,7 +1,6 @@
 const tablify = require('../../src/utils/tablify');
 
 describe('#tablify', () => {
-
 	it('should create a table from object', () => {
 		const data = {
 			data: 'data',
