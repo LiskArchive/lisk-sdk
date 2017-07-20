@@ -91,7 +91,7 @@ describe('transaction.js', function () {
 				(trs).should.have.property('recipientId').and.be.type('string').and.equal('58191285901858109L');
 			});
 
-			it('should have amount as number and eqaul to 1000', function () {
+			it('should have amount as number and equal to 1000', function () {
 				(trs).should.have.property('amount').and.be.type('number').and.equal(1000);
 			});
 
@@ -151,7 +151,7 @@ describe('transaction.js', function () {
 				(trs).should.have.property('id').and.be.type('string');
 			});
 
-			it('should have type as number and eqaul 0', function () {
+			it('should have type as number and equal 0', function () {
 				(trs).should.have.property('type').and.be.type('number').and.equal(0);
 			});
 
@@ -170,7 +170,7 @@ describe('transaction.js', function () {
 				(trs).should.have.property('recipientId').and.be.type('string').and.equal('58191285901858109L');
 			});
 
-			it('should have amount as number and eqaul to 1000', function () {
+			it('should have amount as number and equal to 1000', function () {
 				(trs).should.have.property('amount').and.be.type('number').and.equal(1000);
 			});
 
