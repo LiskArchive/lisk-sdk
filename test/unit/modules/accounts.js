@@ -141,7 +141,7 @@ describe('account', function () {
 			expect(account.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
-		it.skip('should throw error for invalid publicKey', function () {
+		it('should throw error for invalid publicKey', function () {
 			var invalidPublicKey = 'invalidPublicKey';
 			expect(function () {
 				account.generateAddressByPublicKey(invalidPublicKey);
@@ -658,17 +658,6 @@ describe('account', function () {
 	});
 
 	describe('Accounts.prototype.internal', function () {
-		describe('count', function () {
-
-			it.skip('should get count of all private accounts', function (done) {
-				account.internal.count({}, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res.success).to.equal(true);
-					done();
-				});
-			});
-		});
-
 		describe('top', function () {
 			var allAccounts;
 			before(function (done) {
@@ -706,18 +695,6 @@ describe('account', function () {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
 					expect(res.accounts.map(function (v) { return v.balance; })).to.eql(topAccountsBalance.slice(10, 20));
-					done();
-				});
-			});
-		});
-
-		describe('getAllAccounts', function () {
-
-			it.skip('should get all private accounts', function (done) {
-				account.internal.getAllAccounts({}, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res.success).to.equal(true);
-					expect(res.accounts).to.be.an('array');
 					done();
 				});
 			});

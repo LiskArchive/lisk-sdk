@@ -543,10 +543,6 @@ Accounts.prototype.shared = {
  * @see {@link http://apidocjs.com/}
  */
 Accounts.prototype.internal = {
-	count: function (req, cb) {
-		return setImmediate(cb, null, {success: true, count: Object.keys(__private.accounts).length});
-	},
-
 	top: function (query, cb) {
 		self.getAccounts({
 			sort: {
@@ -570,10 +566,6 @@ Accounts.prototype.internal = {
 			return setImmediate(cb, null, {success: true, accounts: accounts});
 		});
 	},
-
-	getAllAccounts: function (req, cb) {
-		return setImmediate(cb, null, {success: true, accounts: __private.accounts});
-	}
 };
 
 // Export
