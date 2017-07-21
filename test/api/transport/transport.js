@@ -376,14 +376,14 @@ describe('RPC', function () {
 
 		it('should should work ok with asking for a list multiple times', function (done) {
 
-			var successfullAsks = 0;
+			var successfulAsks = 0;
 			for (var i = 0; i < 100; i += 1) {
 				clientSocket.wampSend('list')
 					.then(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('peers').to.be.an('array');
-						successfullAsks += 1;
-						if (successfullAsks === 100) {
+						successfulAsks += 1;
+						if (successfulAsks === 100) {
 							done();
 						}
 					}).catch(function (err) {

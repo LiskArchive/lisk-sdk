@@ -580,7 +580,7 @@ Transactions.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
 		transactions: scope.transactions,
-		transport: scope.transport,
+		transport: scope.transport
 	};
 
 	__private.transactionPool.bind(

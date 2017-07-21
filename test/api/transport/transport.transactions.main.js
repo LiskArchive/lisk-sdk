@@ -1,12 +1,11 @@
 'use strict';
 
-var crypto = require('crypto');
-var node = require('../../node.js');
 var _ = require('lodash');
-var ws = require('../../common/wsCommunication.js');
-var http = require('../../common/httpCommunication.js');
+var crypto = require('crypto');
 
-var genesisblock = require('../../genesisBlock.json');
+var http = require('../../common/httpCommunication.js');
+var node = require('../../node.js');
+var ws = require('../../common/wsCommunication.js');
 
 function getConfirmedTransaction (transaction, cb) {
 	http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {

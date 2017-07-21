@@ -64,7 +64,7 @@ function Multisignatures (cb, scope) {
  */
 Multisignatures.prototype.processSignature = function (tx, cb) {
 	if (!tx) {
-		return setImmediate(cb, 'Cannot process empty transaction.');
+		return setImmediate(cb, 'Cannot process an empty signature.');
 	}
 	var transaction = modules.transactions.getMultisignatureTransaction(tx.transaction);
 
