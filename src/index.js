@@ -2,6 +2,7 @@ import path from 'path';
 import fse from 'fs-extra';
 import vorpal from 'vorpal';
 import config from './../config.json';
+import { version } from '../package.json';
 
 const lisky = vorpal();
 
@@ -14,6 +15,21 @@ fse.readdirSync(commandsDir).forEach((command) => {
 	lisky.use(commandModule.default);
 });
 
+const logo = `
+ _ _     _
+| (_)___| | ___   _
+| | / __| |/ / | | |
+| | \\__ \\   <| |_| |
+|_|_|___/_|\\_\\\\__, |
+              |___/
+`;
+
+const message = `
+Running v${version}.
+Type \`help\` to get started.
+`;
+const intro = `${logo}${message}`;
+
 const isInteractive = process.argv.length > 2;
 
 lisky
@@ -21,7 +37,7 @@ lisky
 	.history('lisky');
 
 if (!isInteractive) {
-	lisky.show();
+	lisky.log(intro).show();
 }
 
 lisky.find('help').alias('?');
