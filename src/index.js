@@ -30,12 +30,15 @@ Type \`help\` to get started.
 `;
 const intro = `${logo}${message}`;
 
+const isInteractive = process.argv.length > 2;
+
 lisky
 	.delimiter('lisky>')
-	.history('lisky')
-	.log(intro)
-	.show();
+	.history('lisky');
 
+if (!isInteractive) {
+	lisky.log(intro).show();
+}
 
 lisky.find('help').alias('?');
 lisky.find('exit').description(`Exits ${config.name}.`);
