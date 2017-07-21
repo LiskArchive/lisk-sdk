@@ -29,9 +29,7 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('should return error when data field length is greater than 64 characters', function (done) {
-		var data = new Array(65).fill('x').reduce(function (acc, val) {
-			return acc + val;
-		}, '');
+		var data = new Array(65).fill('x').join('');
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
@@ -50,28 +48,6 @@ describe('POST /peer/transactions', function () {
 			expect(res.success).to.equal(false);
 			expect(res.message).to.equal('Invalid transaction body - Failed to validate transfer schema: Expected type string but found type integer');
 			done();
-		});
-	});
-
-	it('should be okay when data field is \'0\'', function (done) {
-		var data = '0';
-		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
-		addTransaction(trs, function (err, res) {
-			expect(err).to.not.exist;
-			var transactionId = res.transactionId;
-			node.onNewBlock(function (err) {
-				getTransactionById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.asset).to.eql({data: '0'});
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.type).to.equal(trs.type);
-					done();
-				});
-			});
 		});
 	});
 
@@ -121,9 +97,7 @@ describe('POST /peer/transactions', function () {
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.id).to.equal(trs.id);
 					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.asset).to.eql({
-						data: data
-					});
+					expect(res.transaction.asset.data).to.equal(data);
 					expect(res.transaction.fee).to.equal(trs.fee);
 					expect(res.transaction.type).to.equal(trs.type);
 					done();
@@ -133,7 +107,7 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('should create transaction with utf-8 string', function (done) {
-		var data = '綾波レ綾';
+		var data = '綾波レイ';
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
@@ -146,9 +120,7 @@ describe('POST /peer/transactions', function () {
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.id).to.equal(trs.id);
 					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.asset).to.eql({
-						data: data
-					});
+					expect(res.transaction.asset.data).to.equal(data);
 					expect(res.transaction.fee).to.equal(trs.fee);
 					expect(res.transaction.type).to.equal(trs.type);
 					done();
