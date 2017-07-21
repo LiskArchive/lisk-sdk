@@ -1,14 +1,11 @@
 'use strict';
 
-var async = require('async');
 var constants = require('../helpers/constants.js');
-var crypto = require('crypto');
-var schema = require('../schema/signatures.js');
 var Signature = require('../logic/signature.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, library, self, __private = {};
 
 __private.assetTypes = {};
 
