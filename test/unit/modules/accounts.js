@@ -366,7 +366,7 @@ describe('account', function () {
 
 		describe('getDelegates', function () {
 
-			it('should throw if parameter doesnt have correct schema', function (done) {
+			it('should throw if parameter doesn\'t have correct schema', function (done) {
 				account.shared.getPublickey({
 					body: {
 						address: 5
@@ -619,7 +619,7 @@ describe('account', function () {
 				});
 			});
 
-			it('should return error if publickey does not match address supplied', function (done) {
+			it('should return error if publicKey does not match address supplied', function (done) {
 				account.shared.getAccount({
 					body: {
 						publicKey: validAccount.publicKey,
