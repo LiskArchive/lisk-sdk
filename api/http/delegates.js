@@ -7,14 +7,14 @@ var httpApi = require('../../helpers/httpApi');
  * Binds api with modules and creates common url.
  * - End point: `/api/delegates`
  * - Public API:
-	- get 	/
-	- get 	/count
-	- get 	/search
-	- get 	/voters
-	- get 	/get
-	- get 	/fee
-	- get 	/forging/getForgedByAccount
-	- get	/getNextForgers
+ * 	- get 	/
+ * 	- get 	/count
+ * 	- get 	/search
+ * 	- get 	/voters
+ * 	- get 	/get
+ * 	- get 	/fee
+ * 	- get 	/forging/getForgedByAccount
+ * 	- get	/getNextForgers
  * - Private API:
  * 	- post 	/forging/enable
  * 	- post 	/forging/disable

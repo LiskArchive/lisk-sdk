@@ -8,10 +8,10 @@ var schema = require('../../schema/dapps');
  * Binds api with modules and creates common url.
  * - End point: `/api/dapps`
  * - Private API:
-	  - get		/categories
+ * 	- get	/categories
  * - Sanitized
-  	- get		/
-  	- get		/get
+ * 	- get	/
+ * 	- get	/get
  * @memberof module:dapps
  * @requires helpers/Router
  * @requires helpers/httpApi

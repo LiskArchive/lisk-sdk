@@ -232,8 +232,6 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
  * @return {setImmediateCallback} cb, error message
  */
 __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb) {
-
-	console.log('receive transaction query', transaction);
 	var id = (transaction ? transaction.id : 'null');
 
 	try {

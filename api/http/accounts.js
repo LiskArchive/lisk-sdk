@@ -8,14 +8,11 @@ var schema = require('../../schema/accounts.js');
  * Binds api with modules and creates common url.
  * - End point: `/api/accounts`
  * - Public API:
-	- post 	/open
-	- get 	/getBalance
-	- get 	/getPublicKey
-	- post 	/generatePublicKey
-	- get 	/delegates
-	- get 	/delegates/fee
-	- put 	/delegates
-	- get 	/
+ * 	- get 	/getBalance
+ * 	- get 	/getPublicKey
+ * 	- get 	/delegates
+ * 	- get 	/delegates/fee
+ * 	- get 	/
  * - Private API:
  * 	- get 	/count
  * @memberof module:accounts
