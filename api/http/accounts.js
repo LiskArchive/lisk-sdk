@@ -8,16 +8,16 @@ var schema = require('../../schema/accounts.js');
  * Binds api with modules and creates common url.
  * - End point: `/api/accounts`
  * - Public API:
-	- post 	/open
-	- get 	/getBalance
-	- get 	/getPublicKey
-	- post 	/generatePublicKey
-	- get 	/delegates
-	- get 	/delegates/fee
-	- put 	/delegates
-	- get 	/
+		- get 	/
+		- get   /getBalance
+		- get 	/getPublicKey
+		- post 	/generatePublicKey
+		- get 	/delegates
+		- get 	/delegates/fee
  * - Private API:
- * 	- get 	/count
+	  - get 	/count
+		- get 	/getAllAccounts
+	  - get 	/top
  * @memberof module:accounts
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -31,11 +31,11 @@ function AccountsHttpApi (accountsModule, app) {
 	var router = new Router();
 
 	router.map(accountsModule.shared, {
+		'get /': 'getAccount',
 		'get /getBalance': 'getBalance',
 		'get /getPublicKey': 'getPublickey',
 		'get /delegates': 'getDelegates',
 		'get /delegates/fee': 'getDelegatesFee',
-		'get /': 'getAccount'
 	});
 
 	router.map(accountsModule.internal, {

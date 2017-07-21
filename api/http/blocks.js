@@ -7,18 +7,18 @@ var httpApi = require('../../helpers/httpApi');
  * Binds api with modules and creates common url.
  * - End point: `/api/blocks`
  * - Public API:
- * 	- get	/get
- * 	- get	/
- * 	- get	/getBroadhash
- * 	- get	/getEpoch
- * 	- get	/getHeight
- * 	- get	/getNethash
- * 	- get	/getFee
- * 	- get	/getFees
- * 	- get	/getMilestone
- * 	- get	/getReward
- * 	- get	/getSupply
- * 	- get	/getStatus
+	  - get		/
+	  - get		/get
+	  - get		/getBroadhash
+	  - get		/getEpoch
+	  - get		/getHeight
+	  - get		/getNethash
+	  - get		/getFee
+	  - get		/getFees
+	  - get		/getMilestone
+	  - get		/getReward
+	  - get		/getSupply
+	  - get		/getStatus
  * @memberof module:blocks
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -37,8 +37,8 @@ function BlocksHttpApi (blocksModule, app, logger, cache) {
 	]);
 
 	router.map(blocksModule.shared, {
-		'get /get': 'getBlock',
 		'get /': 'getBlocks',
+		'get /get': 'getBlock',
 		'get /getBroadhash': 'getBroadhash',
 		'get /getEpoch': 'getEpoch',
 		'get /getHeight': 'getHeight',

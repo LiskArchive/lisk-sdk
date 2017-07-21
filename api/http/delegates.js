@@ -7,22 +7,21 @@ var httpApi = require('../../helpers/httpApi');
  * Binds api with modules and creates common url.
  * - End point: `/api/delegates`
  * - Public API:
-	- get 	/count
-	- get 	/search
-	- get 	/voters
-	- get 	/get
-	- get 	/
-	- get 	/fee
-	- get 	/forging/getForgedByAccount
-	- put	/
-	- get	/getNextForgers
+		- get 	/
+		- get 	/count
+		- get 	/search
+		- get 	/voters
+		- get 	/get
+		- get 	/fee
+		- get 	/forging/getForgedByAccount
+		- get	  /getNextForgers
  * - Private API:
- * 	- post 	/forging/enable
- * 	- post 	/forging/disable
- * 	- get 	/forging/status
+		- post 	/forging/enable
+	 	- post 	/forging/disable
+	  - get 	/forging/status
  * - Debug API:
- * 	- get	/forging/disableAll
- * 	- get	/forging/enableAll
+	  - get   /forging/disableAll
+	  - get 	/forging/enableAll
  * @memberof module:delegates
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -39,11 +38,11 @@ function DelegatesHttpApi (delegatesModule, app, logger, cache) {
 	router.attachMiddlwareForUrls(httpApi.middleware.useCache.bind(null, logger, cache), ['get /']);
 
 	router.map(delegatesModule.shared, {
+		'get /': 'getDelegates',
 		'get /count': 'count',
 		'get /search': 'search',
 		'get /voters': 'getVoters',
 		'get /get': 'getDelegate',
-		'get /': 'getDelegates',
 		'get /fee': 'getFee',
 		'get /forging/getForgedByAccount': 'getForgedByAccount',
 		'get /getNextForgers': 'getNextForgers'

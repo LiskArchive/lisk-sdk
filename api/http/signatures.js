@@ -7,8 +7,8 @@ var httpApi = require('../../helpers/httpApi');
  * Binds api with modules and creates common url.
  * - End point: `/api/signatures`
  * - Public API:
- * 	- get	/fee
- * 	- put	/
+	  - post	/
+	  - get		/fee
  * @memberof module:signatures
  * @requires helpers/Router
  * @requires helpers/httpApi

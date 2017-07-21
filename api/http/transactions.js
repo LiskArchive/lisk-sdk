@@ -7,16 +7,16 @@ var httpApi = require('../../helpers/httpApi');
  * Binds api with modules and creates common url.
  * - End point: `/api/transactions`
  * - Public API:
- * 	- get	/
- * 	- get	/get
- * 	- get	/count
- * 	- get	/queued/get
- * 	- get	/queued
- * 	- get	/multisignatures/get
- *  - get	/multisignatures
- * 	- get	/unconfirmed/get
- * 	- get	/unconfirmed
- * 	- put	/
+	  - get		/
+	  - get		/get
+	  - get		/count
+	  - get		/queued/get
+	  - get		/queued
+	  - get		/multisignatures/get
+	  - get		/multisignatures
+	  - get		/unconfirmed/get
+	  - get		/unconfirmed
+	  - post 	/
  * @memberof module:transactions
  * @requires helpers/Router
  * @requires helpers/httpApi
