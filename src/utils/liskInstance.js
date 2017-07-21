@@ -1,4 +1,4 @@
-const config = require('../../config.json');
-const lisk = require('lisk-js').api(config.liskJS);
+import lisk from 'lisk-js';
+import config from '../../config.json';
 
-module.exports = lisk;
+export default lisk.api(config.liskJS);
