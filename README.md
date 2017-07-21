@@ -17,9 +17,21 @@ With a global installation, npm will add the `lisky` executable to your PATH.
 
 ## Prerequisites
 
-Nodejs 6.11.x or greater
+- Node.js (https://nodejs.org/) -- Node.js serves as the underlying engine for code execution.
 
-NPM 3.x or greater
+  System wide via package manager:
+
+  ```bash
+  curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
+
+  Locally using nvm:
+
+  ```bash
+  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+  nvm install v6.10.1
+  ```
 
 # Usage:
 
