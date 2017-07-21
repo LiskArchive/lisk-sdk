@@ -194,19 +194,19 @@ describe('account', function () {
 		});
 	});
 
-	describe('Accounts.prototype.onBind', function () {
+	describe('onBind', function () {
 		it('should throw error with empty params', function () {
 			expect(account.onBind).to.throw();
 		});
 	});
 
-	describe('Accounts.prototype.isLoaded', function () {
+	describe('isLoaded', function () {
 		it('should return true when modules are loaded', function () {
 			expect(account.isLoaded).to.be.ok;
 		});
 	});
 
-	describe('Accounts.prototype.shared', function () {
+	describe('shared', function () {
 		describe('open ', function () {
 			it('should throw if parameter doesn\'t have correct schema', function (done) {
 				account.shared.open({
@@ -657,7 +657,7 @@ describe('account', function () {
 		});
 	});
 
-	describe('Accounts.prototype.internal', function () {
+	describe('internal', function () {
 		describe('count', function () {
 
 			it.skip('should get count of all private accounts', function (done) {
