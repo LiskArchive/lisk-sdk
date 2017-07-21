@@ -82,7 +82,8 @@ module.exports = {
 				minLength: 1,
 				maxLength: 100
 			}
-		}
+		},
+		required: ['secret']
 	},
 	getAccount: {
 		id: 'accounts.getAccount',
