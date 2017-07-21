@@ -96,7 +96,7 @@ node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 node.randomDelegateName = function () {
 	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for (var i = 0; i < size; i++) {
 		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -291,7 +291,7 @@ node.expectedFee = function (amount) {
 node.randomUsername = function () {
 	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
 	var username = '';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for (var i = 0; i < size; i++) {
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -337,6 +337,7 @@ node.randomAccount = function () {
 	account.username = node.randomDelegateName();
 	account.publicKey = node.lisk.crypto.getKeys(account.password).publicKey;
 	account.address = node.lisk.crypto.getAddress(account.publicKey);
+	account.secondPublicKey = node.lisk.crypto.getKeys(account.secondPassword).publicKey;
 
 	return account;
 };
