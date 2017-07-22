@@ -435,9 +435,9 @@ describe('DelegatesListSQL', function () {
 					t.query(sql.getRound)
 				]);
 			}).then(function (res) {
-				var delegates_list   = res[0][0].list,
-					active_delegates = res[1][0].delegates,
-					round            = res[2][0].round;
+				var delegates_list   = res[0][0].list;
+				var active_delegates = res[1][0].delegates;
+				var round            = res[2][0].round;
 				
 				var expectedDelegates = generateDelegatesList(round.toString(), active_delegates);
 				expect(delegates_list).to.deep.equal(expectedDelegates);

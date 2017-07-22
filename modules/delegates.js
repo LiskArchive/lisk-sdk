@@ -446,8 +446,6 @@ Delegates.prototype.fork = function (block, cause) {
 Delegates.prototype.validateBlockSlot = function (block, cb) {
 	var currentSlot = slots.getSlotNumber(block.timestamp);
 	var delegate_id = __private.delegatesList[currentSlot % slots.delegates];
-	// var nextDelegate_id = __private.delegatesList[(currentSlot + 1) % slots.delegates];
-	// var previousDelegate_id = __private.delegatesList[(currentSlot - 1) % slots.delegates];
 
 	if (delegate_id && block.generatorPublicKey === delegate_id) {
 		return setImmediate(cb);
@@ -479,7 +477,7 @@ Delegates.prototype.onBind = function (scope) {
 };
 
 /**
- * Trigger when get notification from postgres that round changed
+ * Triggered on receiving notification from postgres, indicating round has changed.
  *
  * @public
  * @method onRoundChanged

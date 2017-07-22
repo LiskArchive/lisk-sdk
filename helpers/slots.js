@@ -115,8 +115,8 @@ module.exports = {
 	},
 
 	/**
-	 * Calculate round number for supplied height
-	 * @param {number} height Height from which calculate round
+	 * Calculates round number from the given height
+	 * @param {number} height Height from which round is calculated
 	 * @return {number} Round
 	 */
 	calcRound: function (height) {

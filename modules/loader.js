@@ -437,11 +437,11 @@ __private.loadBlockChain = function () {
 	}
 
 	library.db.task(checkMemTables).then(function (res) {
-		var countBlocks           = res[0],
-			getGenesisBlock       = res[1],
-			countMemAccounts      = res[2],
-			validateMemBalances   = res[3],
-			dbRoundsExceptions    = res[4];
+		var countBlocks         = res[0];
+		var getGenesisBlock     = res[1];
+		var countMemAccounts    = res[2];
+		var validateMemBalances = res[3];
+		var dbRoundsExceptions  = res[4];
 
 		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
@@ -467,18 +467,18 @@ __private.loadBlockChain = function () {
 		// }
 
 		if (validateMemBalances.length) {
-			return reload(count, 'Memory balances doesn\'t match blockchain balances');
+			return reload(count, 'Memory table balances do not match balances of blockchain');
 		}
 
 		// Compare rounds exceptions with database layer
 		var roundsExceptions = Object.keys(exceptions.rounds);
 		if (roundsExceptions.length !== dbRoundsExceptions.length) {
-			throw 'Rounds exceptions count doesn\'t match database layer';
+			throw 'Rounds exceptions count does not match database layer';
 		} else {
 			dbRoundsExceptions.forEach(function (row) {
 				var ex = exceptions.rounds[row.round];
 				if (!ex || ex.rewards_factor !== row.rewards_factor || ex.fees_factor !== row.fees_factor || ex.fees_bonus !== Number(row.fees_bonus)) {
-					throw 'Rounds exceptions values doesn\'t match database layer';
+					throw 'Rounds exception values do not match database layer';
 				}
 			});
 		}
@@ -494,9 +494,9 @@ __private.loadBlockChain = function () {
 		}
 
 		library.db.task(updateMemAccounts).then(function (res) {
-			var updateMemAccounts      = res[0],
-				getOrphanedMemAccounts = res[1],
-				getDelegates           = res[2];
+			var updateMemAccounts      = res[0];
+			var getOrphanedMemAccounts = res[1];
+			var getDelegates           = res[2];
 
 			if (getOrphanedMemAccounts.length > 0) {
 				return reload(count, 'Detected orphaned blocks in mem_accounts');

@@ -50,7 +50,7 @@ BEGIN
     i := i + 1;
   END LOOP;
 
-  -- Return generated delagets list
+  -- Return generated delegates list
   RETURN delegates;
 END $$;
 
@@ -66,7 +66,7 @@ BEGIN
     ARRAY(SELECT ENCODE(pk, 'hex') AS pk FROM delegates ORDER BY rank ASC LIMIT 101)
   ) INTO list;
 
-  -- Return generated delagets list 
+  -- Return generated delegates list
   RETURN list;
 END $$;
 

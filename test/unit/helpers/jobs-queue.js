@@ -99,7 +99,7 @@ describe('helpers/jobsQueue', function () {
 			testExecution(job, name, spy);
 		});
 
-		it('should throw an error imediatelly when try to register same job twice', function () {
+		it('should throw an error immediately when trying to register same job twice', function () {
 			var name = 'job4';
 			var spy = sinon.spy(dummyFunction);
 			var job = jobsQueue.register(name, spy, recallInterval);
@@ -126,19 +126,19 @@ describe('helpers/jobsQueue', function () {
 			expect(jobsQueuePeers).to.equal(jobsQueue);
 		});
 
-		it('should throw an error when try to pass job that is not a function', function () {
+		it('should throw an error when trying to pass job that is not a function', function () {
 			expect(function () {
 				jobsQueue.register('test_job', 'test', recallInterval);
 			}).to.throw('Syntax error - invalid parameters supplied');
 		});
 
-		it('should throw an error when try to pass name that is not a string', function () {
+		it('should throw an error when trying to pass name that is not a string', function () {
 			expect(function () {
 				jobsQueue.register(123, dummyFunction, recallInterval);
 			}).to.throw('Syntax error - invalid parameters supplied');
 		});
 
-		it('should throw an error when try to pass time that is not integer', function () {
+		it('should throw an error when trying to pass time that is not integer', function () {
 			expect(function () {
 				jobsQueue.register('test_job', dummyFunction, 0.22);
 			}).to.throw('Syntax error - invalid parameters supplied');

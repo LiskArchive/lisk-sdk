@@ -21,7 +21,7 @@ function onNotification (data) {
 		return;
 	}
 
-	// Process round-releated things
+	// Process round-related things
 	if (data.channel === 'round-closed') {
 		logger.info('pg-notify: Round closed');
 		try {
@@ -70,7 +70,7 @@ function setListeners (client, cb) {
 		});
 }
 
-// Generate list of queries for unlisten to every supported channels
+// Generate list of unlisten queries for every supported channel
 function unlistenQueries (t) {
 	var queries = [];
 	Object.keys(channels).forEach(function (channel) {

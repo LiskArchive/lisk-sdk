@@ -86,7 +86,7 @@ describe('helpers/pg-notify', function () {
 	});
 
 	describe('init', function () {
-		it('try to estabilish initial connection with valid params should succeed', function (done) {
+		it('should establish initial connection using valid params', function (done) {
 			pg_notify.init(db, bus, logger, function (err) {
 				// Should be no error
 				expect(err).to.be.undefined;
@@ -95,7 +95,7 @@ describe('helpers/pg-notify', function () {
 			});
 		});
 
-		it('try to estabilish initial connection with invalid params should fail after 1 retry', function (done) {
+		it('should fail (after 1 retry) to establish initial connection using invalid params', function (done) {
 			pg_notify.init(invalid_db, bus, logger, function (err) {
 				var err_msg = 'password authentication failed for user "invalidUser"';
 				// Error should propagate
@@ -113,7 +113,7 @@ describe('helpers/pg-notify', function () {
 			});
 		});
 
-		it('try to estabilish initial connection with valid params but error during LISTEN queries should fail after 1 retry', function (done) {
+		it('should establish initial connection using valid params and fail (after 1 retry) if execution of LISTEN queries encounters error', function (done) {
 			// Spy private functions
 			var setListeners = pg_notify.__get__('setListeners');
 			var connection = pg_notify.__get__('connection');
@@ -137,7 +137,7 @@ describe('helpers/pg-notify', function () {
 	});
 
 	describe('setListeners', function () {
-		it('listeners should be set correctly after successfull connection', function (done) {
+		it('should set listeners correctly after successful connection', function (done) {
 			// Spy private functions
 			var setListeners = pg_notify.__get__('setListeners');
 			var connection = pg_notify.__get__('connection');
@@ -150,7 +150,7 @@ describe('helpers/pg-notify', function () {
 			done();
 		});
 
-		it('should fail if error occurred during LISTEN queries', function (done) {
+		it('should fail if execution of LISTEN encounters error', function (done) {
 			// Spy private functions
 			var setListeners = pg_notify.__get__('setListeners');
 			var connection = pg_notify.__get__('connection');
@@ -189,7 +189,7 @@ describe('helpers/pg-notify', function () {
 					expect(logger.error.args[0][1].message).to.equal('terminating connection due to administrator command');
 
 					var errors = logger.error.args.slice(1, 11);
-					// Iterating over errors (failed retires)
+					// Iterating over errors (failed retries)
 					for (var i = errors.length - 1; i >= 0; i--) {
 						expect(errors[i][0]).to.equal('pg-notify: Error connecting');
 						expect(errors[i][1]).to.be.an('error');
@@ -199,7 +199,7 @@ describe('helpers/pg-notify', function () {
 					// Last error - function should fail to reconnect
 					expect(logger.error.args[11][0]).to.equal('pg-notify: Failed to reconnect - connection lost');
 					
-					//Connection should be cleared
+					// Connection should be cleared
 					connection = pg_notify.__get__('connection');
 					expect(connection).to.be.an('null');
 
@@ -235,7 +235,7 @@ describe('helpers/pg-notify', function () {
 	});
 
 	describe('removeListeners', function () {
-		it('listeners should be removed correctly', function (done) {
+		it('should remove listeners correctly', function (done) {
 			// Spy private functions
 			var removeListeners = pg_notify.__get__('removeListeners');
 			var connection = pg_notify.__get__('connection');
@@ -248,7 +248,7 @@ describe('helpers/pg-notify', function () {
 			});
 		});
 
-		it('listeners should be removed correctly even if error occurred during UNLISTEN queries', function (done) {
+		it('should remove listeners correctly even if error encountered executing UNLISTEN queries', function (done) {
 			// Spy private functions
 			var removeListeners = pg_notify.__get__('removeListeners');
 			var connection = pg_notify.__get__('connection');
@@ -263,7 +263,7 @@ describe('helpers/pg-notify', function () {
 			});
 		});
 
-		it('listeners should be removed correctly even if connection is null', function (done) {
+		it('should remove listeners correctly even if connection is null', function (done) {
 			// Spy private functions
 			var removeListeners = pg_notify.__get__('removeListeners');
 			var connection = pg_notify.__get__('connection');
