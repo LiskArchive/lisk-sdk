@@ -19,9 +19,7 @@ function calcBlockReward (height, reward, done) {
 			expect(Number(rows[0].reward)).to.equal(reward);
 		}
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcSupply (height, supply, done) {
@@ -35,9 +33,7 @@ function calcSupply (height, supply, done) {
 			expect(Number(rows[0].supply)).to.equal(supply);
 		}
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcSupply_test (height_start, height_end, expected_reward, done) {
@@ -47,9 +43,7 @@ function calcSupply_test (height_start, height_end, expected_reward, done) {
 		expect(rows[0]).to.be.an('object');
 		expect(rows[0].result).to.equal(true);
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcSupply_test_fail (height_start, height_end, expected_reward, done) {
@@ -59,9 +53,7 @@ function calcSupply_test_fail (height_start, height_end, expected_reward, done) 
 		expect(rows[0]).to.be.an('object');
 		expect(rows[0].result).to.equal(false);
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcBlockReward_test (height_start, height_end, expected_reward, done) {
@@ -71,9 +63,7 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 		expect(rows[0]).to.be.an('object');
 		expect(Number(rows[0].result)).to.equal(0);
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 describe('BlockRewardsSQL', function () {
@@ -110,9 +100,7 @@ describe('BlockRewardsSQL', function () {
 				expect(Number(rows[0].milestones[3])).to.equal(constants.rewards.milestones[3]);
 				expect(Number(rows[0].milestones[4])).to.equal(constants.rewards.milestones[4]);
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 	});
 
@@ -359,9 +347,7 @@ describe('BlockRewardsSQL', function () {
 					expect(rows[0]).to.be.an('object');
 					expect(Number(rows[0].result)).to.equal(1000);
 					done();
-				}).catch(function (err) {
-					done(err);
-				});
+				}).catch(done);
 			});
 		});
 

@@ -20,11 +20,7 @@ describe('Rounds-related SQL triggers', function () {
 		db = pgp(config.db);
 
 		// Clear tables
-		db.none('DELETE FROM blocks; DELETE FROM mem_accounts;').then(function (rows) {
-			done();
-		}).catch(function (err) {
-			done(err);
-		});
+		db.none('DELETE FROM blocks; DELETE FROM mem_accounts;').then(done).catch(done);
 	});
 
 	before(function (done) {
@@ -67,9 +63,8 @@ describe('Rounds-related SQL triggers', function () {
 				cb(null, new z_schema());
 			},
 			network: function (cb) {
-				cb(null, {
-					io: {sockets: {emit: sinon.spy()}},
-				});
+				// Init with empty function
+				cb(null, {io: {sockets: {emit: function () {}}}});
 			},
 			logger: function (cb) {
 				cb(null, logger);
@@ -208,12 +203,12 @@ describe('Rounds-related SQL triggers', function () {
 		var genesisAccount;
 		var accounts;
 
-		before(function() {
+		before(function () {
 			// Get genesis accounts address - should be senderId from first transaction
 			genesisAccount = library.genesisblock.block.transactions[0].senderId;
 
 			// Get unique accounts from genesis block
-			accounts = _.reduce(library.genesisblock.block.transactions, function(accounts, tx) {
+			accounts = _.reduce(library.genesisblock.block.transactions, function (accounts, tx) {
 				if (tx.senderId && accounts.indexOf(tx.senderId) === -1) {
 					accounts.push(tx.senderId);
 				}
@@ -228,9 +223,7 @@ describe('Rounds-related SQL triggers', function () {
 			db.query('SELECT * FROM mem_accounts').then(function (rows) {
 				expect(rows.length).to.equal(0);
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 
 		it('should load genesis block with transactions into database (native)', function (done) {
@@ -239,9 +232,7 @@ describe('Rounds-related SQL triggers', function () {
 				expect(genesisBlock.id).to.equal(library.genesisblock.block.id);
 				expect(genesisBlock.transactions.length).to.equal(library.genesisblock.block.transactions.length);
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 
 		it('should populate delegates table (native) and set data (trigger block_insert->delegates_update_on_block)', function (done) {
@@ -265,9 +256,7 @@ describe('Rounds-related SQL triggers', function () {
 					expect(delegate.blocks_missed_cnt).to.equal(0);
 				});
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 
 		it('should populate modules.delegates.__private.delegatesList with 101 public keys (pg-notify)', function () {
@@ -300,9 +289,7 @@ describe('Rounds-related SQL triggers', function () {
 						}
 					});
 					done();
-				}).catch(function (err) {
-					done(err);
-				});
+				}).catch(done);
 			})
 		});
 	});

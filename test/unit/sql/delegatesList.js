@@ -95,9 +95,7 @@ describe('DelegatesListSQL', function () {
 					expect(rows[0].delegates[i]).to.equal(expectedDelegates[i]);
 				}
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 
 		it('SQL generateDelegatesList() results should be equal to generateDelegatesList() - real 101 delegates, exact order', function (done) {
@@ -316,9 +314,7 @@ describe('DelegatesListSQL', function () {
 				expect(rows[0].delegates[99]).to.equal('e44b43666fc2a9982c6cd9cb617e4685d7b7cf9fc05e16935f41c7052bb3e15f');
 				expect(rows[0].delegates[100]).to.equal('eddeb37070a19e1277db5ec34ea12225e84ccece9e6b2bb1bb27c3ba3999dac7');
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 
 		it('SQL generateDelegatesList() should raise exception for round 0', function (done) {
@@ -443,9 +439,7 @@ describe('DelegatesListSQL', function () {
 				expect(delegates_list).to.deep.equal(expectedDelegates);
 
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 	});
 });
