@@ -5,6 +5,7 @@ require('./unit/helpers/slots.js');
 require('./unit/logic/blockReward.js');
 require('./unit/sql/blockRewards.js');
 require('./unit/sql/delegatesList.js');
+require('./unit/sql/rounds.js');
 require('./unit/modules/peers.js');
 require('./unit/modules/blocks.js');
 
