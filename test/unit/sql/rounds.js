@@ -7,11 +7,25 @@ var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon  = require('sinon');
 
-var config = require('../../../config.json');
-var Sequence = require('../../../helpers/sequence.js');
+var config    = require('../../../config.json');
+var node      = require('../../node.js');
+var Sequence  = require('../../../helpers/sequence.js');
+var slots     = require('../../../helpers/slots.js');
 
 describe('Rounds-related SQL triggers', function () {
 	var db, logger, library, rewiredModules = {}, modules = [];
+	var mem_state;
+
+	function normalizeMemAccounts (mem_accounts) {
+		var accounts = {};
+		_.map(mem_accounts, function (acc) {
+			acc.balance = Number(acc.balance);
+			acc.u_balance = Number(acc.u_balance);
+			acc.fees = Number(acc.fees);
+			accounts[acc.address] = acc;
+		});
+		return accounts;
+	}
 
 	before(function (done) {
 		// Init dummy connection with database - valid, used for tests here
@@ -24,10 +38,14 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	before(function (done) {
+		// Set block time to 1 second, so we can forge valid block every second
+		slots.interval = 1;
+
 		logger = {
 			trace: sinon.spy(),
 			debug: sinon.spy(),
 			info:  sinon.spy(),
+			log:   sinon.spy(),
 			warn:  sinon.spy(),
 			error: sinon.spy()
 		};
@@ -37,10 +55,10 @@ describe('Rounds-related SQL triggers', function () {
 			transactions: '../../../modules/transactions.js',
 			blocks: '../../../modules/blocks.js',
 			signatures: '../../../modules/signatures.js',
-			// transport: '../../../modules/transport.js',
-			// loader: '../../../modules/loader.js',
-			// system: '../../../modules/system.js',
-			// peers: '../../../modules/peers.js',
+			transport: '../../../modules/transport.js',
+			loader: '../../../modules/loader.js',
+			system: '../../../modules/system.js',
+			peers: '../../../modules/peers.js',
 			delegates: '../../../modules/delegates.js',
 			multisignatures: '../../../modules/multisignatures.js',
 			dapps: '../../../modules/dapps.js',
@@ -177,7 +195,7 @@ describe('Rounds-related SQL triggers', function () {
 					tasks[name] = function (cb) {
 						var Instance = rewire(modulesInit[name]);
 						rewiredModules[name] = Instance;
-						var obj = new Instance(cb, scope);
+						var obj = new rewiredModules[name](cb, scope);
 						modules.push(obj);
 					};
 				});
@@ -194,6 +212,8 @@ describe('Rounds-related SQL triggers', function () {
 			}]
 		}, function (err, scope) {
 			library = scope;
+			// Overwrite onBlockchainReady function to prevent automatic forging
+			library.modules.delegates.onBlockchainReady = function () {};
 			done(err);
 		});
 	});
@@ -221,6 +241,7 @@ describe('Rounds-related SQL triggers', function () {
 
 		it('should not populate mem_accounts', function (done) {
 			db.query('SELECT * FROM mem_accounts').then(function (rows) {
+				mem_state = normalizeMemAccounts(rows);
 				expect(rows.length).to.equal(0);
 				done();
 			}).catch(done);
@@ -272,11 +293,11 @@ describe('Rounds-related SQL triggers', function () {
 		it('should apply transactions of genesis block to mem_accounts (native)', function (done) {
 			library.modules.blocks.chain.applyGenesisBlock(genesisBlock, function (err) {
 				db.query('SELECT * FROM mem_accounts').then(function (rows) {
+					mem_state = normalizeMemAccounts(rows);
 					// Number of returned accounts should be equal to number of unique accounts in genesis block
 					expect(rows.length).to.equal(accounts.length);
 
-					_.each(rows, function (account) {
-						account.balance = Number(account.balance);
+					_.each(mem_state, function (account) {
 						if (account.address === genesisAccount) {
 							// Genesis account should have negative balance
 							expect(account.balance).to.be.below(0);
@@ -294,4 +315,145 @@ describe('Rounds-related SQL triggers', function () {
 		});
 	});
 
+	describe('round', function () {
+		var transactions = [];
+
+		function addTransaction (transaction, cb) {
+			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
+			// See: modules.transport.__private.receiveTransaction
+			transaction = library.logic.transaction.objectNormalize(transaction);
+			library.balancesSequence.add(function (sequenceCb) {
+				library.modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
+					if (err) {
+						return setImmediate(sequenceCb, err.toString());
+					} else {
+						return setImmediate(sequenceCb, null, transaction.id);
+					}
+				});
+			}, cb);
+		}
+
+		function forge (cb) {
+			var transactionPool = rewiredModules.transactions.__get__('__private.transactionPool');
+			var forge = rewiredModules.delegates.__get__('__private.forge');
+
+			async.series([
+				transactionPool.fillPool,
+				forge,
+			], function (err) {
+				cb(err);
+			});
+		}
+
+		function addTransactionsAndForge (transactions, cb) {
+			async.waterfall([
+				function addTransactions (waterCb) {
+					async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+						addTransaction(transaction, eachSeriesCb);
+					}, waterCb);
+				},
+				forge
+			], function (err) {
+				cb(err);
+			});
+		}
+
+		function expectedMemState (transactions) {
+			_.each(transactions, function (tx) {
+				var block_id = library.modules.blocks.lastBlock.get().id;
+
+				var address = tx.senderId
+				if (mem_state[address]) {
+					// Update sender
+					mem_state[address].balance -= (tx.fee+tx.amount);
+					mem_state[address].u_balance -= (tx.fee+tx.amount);
+					mem_state[address].blockId = block_id;
+					mem_state[address].virgin = 0;
+				}
+
+				address = tx.recipientId;
+				if (mem_state[address]) {
+					// Update recipient
+					found = true;
+					mem_state[address].balance += tx.amount;
+					mem_state[address].u_balance += tx.amount;
+					mem_state[address].blockId = block_id;
+				} else {
+					// Funds sent to new account
+					mem_state[address] = {
+						address: address,
+						balance: tx.amount,
+						blockId: block_id,
+						delegates: null,
+						fees: 0,
+						isDelegate: 0,
+						missedblocks: 0,
+						multilifetime: 0,
+						multimin: 0,
+						multisignatures: null,
+						nameexist: 0,
+						producedblocks: 0,
+						publicKey: null,
+						rate: '0',
+						rewards: '0',
+						secondPublicKey: null,
+						secondSignature: 0,
+						u_balance: tx.amount,
+						u_delegates: null,
+						u_isDelegate: 0,
+						u_multilifetime: 0,
+						u_multimin: 0,
+						u_multisignatures: null,
+						u_nameexist: 0,
+						u_secondSignature: 0,
+						u_username: null,
+						username: null,
+						virgin: 1,
+						vote: '0'
+					}
+				}
+			});
+			return mem_state;
+		}
+
+		before(function () {
+			// Set delegates module as loaded to allow manual forging
+			rewiredModules.delegates.__set__('__private.loaded', true);
+		});
+
+		it('should load all secrets of 101 delegates and set modules.delegates.__private.keypairs (native)', function (done) {
+			var loadDelegates = rewiredModules.delegates.__get__('__private.loadDelegates');
+			loadDelegates(function (err) {
+				if (err) { done(err); }
+				var keypairs = rewiredModules.delegates.__get__('__private.keypairs');
+				expect(Object.keys(keypairs).length).to.equal(config.forging.secret.length);
+				_.each(keypairs, function (keypair, pk) {
+					expect(keypair.publicKey).to.be.instanceOf(Buffer);
+					expect(keypair.privateKey).to.be.instanceOf(Buffer);
+					expect(pk).to.equal(keypair.publicKey.toString('hex'));
+				});
+				done();
+			});
+		});
+
+		it('should forge block with 1 TRANSFER transaction and update mem_accounts', function (done) {
+			var tx = node.lisk.transaction.createTransaction(
+				node.randomAccount().address,
+				node.randomNumber(100000000, 1000000000),
+				node.gAccount.password
+			);
+			transactions.push(tx);
+
+			addTransactionsAndForge(transactions, function (err) {
+				if (err) { done(err); }
+				var expected_mem_state = expectedMemState(transactions);
+				db.query('SELECT * FROM mem_accounts').then(function (rows) {
+					mem_state = normalizeMemAccounts(rows);
+					expect(mem_state).to.deep.equal(expected_mem_state);
+					done();
+				}).catch(done);
+			});
+		});
+
+	});
 });
