@@ -59,7 +59,7 @@ CREATE FUNCTION rounds_rewards_init() RETURNS void LANGUAGE PLPGSQL AS $$
 						b.reward * COALESCE(e.rewards_factor, 1) AS reward, COALESCE(e.fees_bonus, 0) AS fb
 					FROM blocks b 
 					LEFT JOIN rounds_exceptions e ON CEIL(b.height / 101::float)::int = e.round
-					WHERE CEIL(b.height / 101::float)::int = row.round
+					WHERE CEIL(b.height / 101::float)::int = row.round AND b.height > 1
 				),
 				-- Calculating total fees of round, apply exception fees bonus
 				fees AS (SELECT SUM(fees) + fb AS total, FLOOR((SUM(fees) + fb) / 101) AS single FROM round GROUP BY fb),
@@ -115,7 +115,7 @@ CREATE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 					b.reward * COALESCE(e.rewards_factor, 1) AS reward, COALESCE(e.fees_bonus, 0) AS fb
 				FROM blocks b 
 				LEFT JOIN rounds_exceptions e ON CEIL(b.height / 101::float)::int = e.round
-				WHERE CEIL(height / 101::float)::int = CEIL(NEW.height / 101::float)::int
+				WHERE CEIL(height / 101::float)::int = CEIL(NEW.height / 101::float)::int AND b.height > 1
 			),
 			-- Calculating total fees of round, apply exception fees bonus
 			fees AS (SELECT SUM(fees) + fb AS total, FLOOR((SUM(fees) + fb) / 101) AS single FROM round GROUP BY fb),
