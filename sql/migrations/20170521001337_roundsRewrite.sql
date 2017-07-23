@@ -258,7 +258,7 @@ CREATE FUNCTION delegates_forged_blocks_cnt_update() RETURNS TRIGGER LANGUAGE PL
 END $$;
 
 -- Create trigger that will execute 'delegates_forged_blocks_cnt_update' after insertion or deletion of block
-CREATE CONSTRAINT TRIGGER vote_insert_delete
+CREATE CONSTRAINT TRIGGER block_insert_delete
 	AFTER INSERT OR DELETE ON blocks
 	DEFERRABLE INITIALLY DEFERRED
 	FOR EACH ROW
