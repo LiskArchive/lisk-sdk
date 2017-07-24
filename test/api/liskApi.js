@@ -219,13 +219,13 @@ describe('Lisk.api()', function () {
 	describe('#extend', function() {
 
 		var defaultOptions = {
-        	testnet: false,
-        	ssl: false,
-        	randomPeer: true,
-        	node: null,
-        	port: null,
-        	nethash: null,
-        	bannedPeers: []
+			testnet: false,
+			ssl: false,
+			randomPeer: true,
+			node: null,
+			port: null,
+			nethash: null,
+			bannedPeers: []
 		};
 
 		var options = {
