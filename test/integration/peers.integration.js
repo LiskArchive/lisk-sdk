@@ -36,7 +36,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 			var peersList = [];
 
 			if (typeof syncModeArgs.PROBABILITY !== 'number') {
-				throw newError('Probability parameter not specified to random sync mode');
+				throw new Error('Probability parameter not specified to random sync mode');
 			}
 			var isPickedWithProbability = function (n) {
 				return !!n && Math.random() <= n;

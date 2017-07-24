@@ -15,13 +15,12 @@ var middleware = {
 	Handshake: function (system) {
 		return function (headers, cb) {
 
-			headers = headers || {};
-
 			var peer = new Peer(headers);
 			headers.state = Peer.STATE.CONNECTED;
-			headers = peer.applyHeaders(headers);
 
 			z_schema.validate(headers, schema.headers, function (error) {
+				headers = peer.applyHeaders(headers);
+
 				if (error) {
 					return setImmediate(cb, {
 						success: false,

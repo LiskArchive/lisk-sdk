@@ -139,7 +139,8 @@ describe('wsRPC', function () {
 			});
 
 			it('should return client stub with rpc methods registered on MasterWAMPServer', function () {
-				wsRPC.wsServer.reassignRPCEndpoints(validRPCEndpoint);
+				var wsServer = wsRPC.getServer();
+				wsServer.reassignRPCEndpoints(validRPCEndpoint);
 				var rpcStub = wsRPC.getClientRPCStub(validIp, validPort);
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 			});
@@ -151,8 +152,9 @@ describe('wsRPC', function () {
 			};
 
 			it('should return client stub with event and rpc methods registered on MasterWAMPServer', function () {
-				wsRPC.wsServer.reassignRPCEndpoints(validRPCEndpoint);
-				wsRPC.wsServer.reassignEventEndpoints(validEventEndpoint);
+				var wsServer = wsRPC.getServer();
+				wsServer.reassignRPCEndpoints(validRPCEndpoint);
+				wsServer.reassignEventEndpoints(validEventEndpoint);
 				var rpcStub = wsRPC.getClientRPCStub(validIp, validPort);
 				expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');

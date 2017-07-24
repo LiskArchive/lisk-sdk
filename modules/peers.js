@@ -539,7 +539,7 @@ Peers.prototype.list = function (options, cb) {
 Peers.prototype.onBind = function (scope) {
 	modules = {
 		transport: scope.transport,
-		system: scope.system,
+		system: scope.system
 	};
 };
 

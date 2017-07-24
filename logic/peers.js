@@ -4,8 +4,8 @@ var _ = require('lodash');
 var async = require('async');
 var Peer = require('../logic/peer.js');
 var schema = require('../schema/peers.js');
-var constants = require('../helpers/constants.js');
-var PeersManager = require('../helpers/peersManager.js');
+var System = require('../modules/system.js');
+var peersManager = require('../helpers/peersManager.js');
 
 // Private fields
 var __private = {};
@@ -25,18 +25,18 @@ var modules;
 // Constructor
 function Peers (logger, cb) {
 	library = {
-		logger: logger,
+		logger: logger
 	};
 	self = this;
 	__private.me = null;
 
-	this.peersManager = new PeersManager();
+	this.peersManager = peersManager;
 
 	return setImmediate(cb, null, this);
 }
 
 Peers.prototype.me = function () {
-	var me = _.extend(constants.getConst('headers'), {state: Peer.STATE.CONNECTED});
+	var me = _.extend(System.getHeaders(), {state: Peer.STATE.CONNECTED});
 	delete me.ip;
 	return me;
 };

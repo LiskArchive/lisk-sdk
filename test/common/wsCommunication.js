@@ -2,10 +2,10 @@
 
 var _ = require('lodash');
 var Promise = require('bluebird');
-var constants = require('../../helpers/constants');
 var PromiseDefer = require('../../helpers/promiseDefer');
 var ClientRPCStub = require('../../api/ws/rpc/wsRPC').ClientRPCStub;
 var ConnectionState = require('../../api/ws/rpc/wsRPC').ConnectionState;
+var System = require('../../modules/system');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var wampClient = new WAMPClient();
@@ -43,8 +43,6 @@ var wsCommunication = {
 		socket.on('error', function (err) {
 			console.log(err);
 		});
-
-		constants.setConst('headers', wsOptions.query);
 	},
 
 	// Get the given path
@@ -52,7 +50,7 @@ var wsCommunication = {
 		if (!this.defaultConnectionState) {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
 			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 9999);
-			constants.setConst('headers', this.defaultSocketPeerHeaders);
+			System.setHeaders(this.defaultSocketPeerHeaders);
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
 		if (includePeer && typeof data === 'object') {

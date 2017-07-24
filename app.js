@@ -245,7 +245,6 @@ d.run(function () {
 				appName: 'lisk',
 				workerController: workersController.path,
 				perMessageDeflate: false,
-				secretKey: 'liskSecretKey',
 				pingInterval: 5000,
 				// How many milliseconds to wait without receiving a ping
 				// before closing the socket

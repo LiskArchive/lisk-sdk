@@ -4,21 +4,22 @@ var _ = require('lodash');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var constants = require('../../../helpers/constants');
+var System = require('../../../modules/system');
 var PromiseDefer = require('../../../helpers/promiseDefer');
+
+var wsServer = null;
 
 var wsRPC = {
 
 	clientsConnectionsMap: {},
 	scClient: scClient,
 	wampClient: new WAMPClient(),
-	wsServer: null,
 
 	/**
-	 * @param {MasterWAMPServer} wsServer
+	 * @param {MasterWAMPServer} __wsServer
 	 */
-	setServer: function (wsServer) {
-		this.wsServer = wsServer;
+	setServer: function (__wsServer) {
+		wsServer = __wsServer;
 	},
 
 	/**
@@ -26,10 +27,10 @@ var wsRPC = {
 	 * @returns {MasterWAMPServer} wsServer
 	 */
 	getServer: function () {
-		if (!wsRPC.wsServer) {
+		if (!wsServer) {
 			throw new Error('WS server haven\'t been initialized!');
 		}
-		return wsRPC.wsServer;
+		return wsServer;
 	},
 	/**
 	 * @param {string} ip
@@ -123,7 +124,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 		port: connectionState.port,
 		protocol: 'http',
 		autoReconnect: true,
-		query: constants.getConst('headers')
+		query: System.getHeaders()
 	};
 
 	var clientSocket = wsRPC.scClient.connect(options);

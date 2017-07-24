@@ -1,6 +1,5 @@
 'use strict';
 
-var _ = require('lodash');
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
@@ -13,6 +12,7 @@ var schema = require('../schema/transport.js');
 var sql = require('../sql/transport.js');
 var zlib = require('zlib');
 var Peer = require('../logic/peer');
+var System = require('../modules/system');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -298,7 +298,7 @@ Transport.prototype.getPeers = function (params, cb) {
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
- * @implements {modules.system.headers}
+ * @implements {System.getHeaders}
  * @implements {broadcaster.bind}
  * @param {modules} scope - Loaded modules.
  */
@@ -313,7 +313,7 @@ Transport.prototype.onBind = function (scope) {
 		transactions: scope.transactions
 	};
 
-	__private.headers = modules.system.headers();
+	__private.headers = System.getHeaders();
 	__private.broadcaster.bind(
 		scope.peers,
 		scope.transport,
@@ -513,7 +513,7 @@ Transport.prototype.internal = {
 	},
 
 	status: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: constants.headers.height, broadhash: constants.headers.broadhash, nonce: constants.headers.nonce});
+		return setImmediate(cb, null, {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()});
 	},
 
 	postSignatures: function (query, cb) {
