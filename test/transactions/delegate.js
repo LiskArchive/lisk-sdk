@@ -104,21 +104,21 @@ describe('delegate.js', function () {
 			it('should have senderPublicKey in hex', function () {
 				(trs).should.have.property('senderPublicKey').and.type('string').and.equal(keys.publicKey);
 				should.doesNotThrow(function () {
-					new Buffer(trs.senderPublicKey, 'hex');
+					Buffer.from(trs.senderPublicKey, 'hex');
 				});
 			});
 
 			it('should have signature in hex', function () {
 				(trs).should.have.property('signature').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(trs.signature, 'hex');
+					Buffer.from(trs.signature, 'hex');
 				});
 			});
 
 			it('should have second signature in hex', function () {
 				(trs).should.have.property('signSignature').and.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(trs.signSignature, 'hex');
+					Buffer.from(trs.signSignature, 'hex');
 				});
 			});
 

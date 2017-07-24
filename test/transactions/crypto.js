@@ -217,10 +217,10 @@ describe('crypto.js', function () {
 			(keys).should.have.property('publicKey').and.be.type('string');
 			(keys).should.have.property('privateKey').and.be.type('string');
 			should.doesNotThrow(function () {
-				new Buffer(keys.publicKey, 'hex');
+				Buffer.from(keys.publicKey, 'hex');
 			});
 			should.doesNotThrow(function () {
-				new Buffer(keys.privateKey, 'hex');
+				Buffer.from(keys.privateKey, 'hex');
 			});
 		});
 	});

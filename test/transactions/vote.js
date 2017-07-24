@@ -103,21 +103,21 @@ describe('vote.js', function () {
 			it('should have senderPublicKey hex string equal to sender public key', function () {
 				(vt).should.have.property('senderPublicKey').and.be.type('string').and.equal(publicKey);
 				should.doesNotThrow(function () {
-					new Buffer(vt.senderPublicKey, 'hex');
+					Buffer.from(vt.senderPublicKey, 'hex');
 				});
 			});
 
 			it('should have signature hex string', function () {
 				(vt).should.have.property('signature').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(vt.signature, 'hex');
+					Buffer.from(vt.signature, 'hex');
 				});
 			});
 
 			it('should have second signature hex string', function () {
 				(vt).should.have.property('signSignature').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(vt.signSignature, 'hex');
+					Buffer.from(vt.signSignature, 'hex');
 				});
 			});
 
@@ -169,7 +169,7 @@ describe('vote.js', function () {
 					vt.asset.votes.forEach(function (v) {
 						(v).should.be.type('string').startWith('+');
 						should.doesNotThrow(function () {
-							new Buffer(v.substring(1, v.length), 'hex');
+							Buffer.from(v.substring(1, v.length), 'hex');
 						});
 					});
 				});

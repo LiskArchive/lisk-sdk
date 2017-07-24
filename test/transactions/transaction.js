@@ -83,7 +83,7 @@ describe('transaction.js', function () {
 			it('should have senderPublicKey as hex string', function () {
 				(trs).should.have.property('senderPublicKey').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(trs.senderPublicKey, 'hex');
+					Buffer.from(trs.senderPublicKey, 'hex');
 				});
 			});
 
@@ -106,7 +106,7 @@ describe('transaction.js', function () {
 			it('should have signature as hex string', function () {
 				(trs).should.have.property('signature').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(trs.signature, 'hex');
+					Buffer.from(trs.signature, 'hex');
 				});
 			});
 
@@ -162,7 +162,7 @@ describe('transaction.js', function () {
 			it('should have senderPublicKey as hex string', function () {
 				(trs).should.have.property('senderPublicKey').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(trs.senderPublicKey, 'hex');
+					Buffer.from(trs.senderPublicKey, 'hex');
 				});
 			});
 
@@ -185,14 +185,14 @@ describe('transaction.js', function () {
 			it('should have signature as hex string', function () {
 				(trs).should.have.property('signature').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(trs.signature, 'hex');
+					Buffer.from(trs.signature, 'hex');
 				});
 			});
 
 			it('should have signSignature as hex string', function () {
 				(trs).should.have.property('signSignature').and.be.type('string');
 				should.doesNotThrow(function () {
-					new Buffer(trs.signSignature, 'hex');
+					Buffer.from(trs.signSignature, 'hex');
 				});
 			});
 
