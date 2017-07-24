@@ -47,7 +47,7 @@ describe('signature.js', function () {
 		it('should use time slots with an offset to get the time for the timestamp', function () {
 			var now = new Date();
 			var clock = sinon.useFakeTimers(now, 'Date');
-			var offset = 10e3;
+			var offset = 10;
 			var time = 36174862;
 			var stub = sinon.stub(slots, 'getTime').returns(time);
 

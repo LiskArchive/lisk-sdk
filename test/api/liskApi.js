@@ -1087,8 +1087,8 @@ describe('Lisk.api()', function () {
 			return thisLSK.sendRequest('transactions')
 				.then(function () {
 					(spy.callCount).should.equal(3);
-					(spy.args[1][1]).should.have.property('timeOffset').equal(10e3);
-					(spy.args[2][1]).should.have.property('timeOffset').equal(20e3);
+					(spy.args[1][1]).should.have.property('timeOffset').equal(10);
+					(spy.args[2][1]).should.have.property('timeOffset').equal(20);
 					stub.restore();
 					spy.restore();
 				});

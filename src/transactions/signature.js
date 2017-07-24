@@ -48,8 +48,6 @@ function newSignature (secondSecret) {
  */
 
 function createSignature (secret, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
 	var keys = crypto.getKeys(secret);
 
 	var signature = newSignature(secondSecret);
@@ -59,7 +57,7 @@ function createSignature (secret, secondSecret, timeOffset) {
 		fee: constants.fees.signature,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			signature: signature
 		}

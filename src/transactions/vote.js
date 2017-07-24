@@ -32,8 +32,6 @@ var slots       = require('../time/slots.js');
  */
 
 function createVote (secret, delegates, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
 	var keys = crypto.getKeys(secret);
 
 	var transaction = {
@@ -42,7 +40,7 @@ function createVote (secret, delegates, secondSecret, timeOffset) {
 		fee: constants.fees.vote,
 		recipientId: crypto.getAddress(keys.publicKey),
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			votes: delegates
 		}

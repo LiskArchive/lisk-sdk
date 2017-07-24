@@ -34,14 +34,12 @@ var slots       = require('../time/slots.js');
  */
 
 function createTransaction (recipientId, amount, secret, secondSecret, data, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
 	var transaction = {
 		type: 0,
 		amount: amount,
 		fee: constants.fees.send,
 		recipientId: recipientId,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {},
 		data: data
 	};
