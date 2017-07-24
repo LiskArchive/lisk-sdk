@@ -1068,7 +1068,7 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should retry timestamp in future failures', function () {
-			var thisLSK = lisk.api();
+			var thisLSK = liskApi();
 			var successResponse = { body: { success: true } };
 			var futureTimestampResponse = {
 				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' }
@@ -1089,7 +1089,7 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should not retry timestamp in future failures forever', function () {
-			var thisLSK = lisk.api();
+			var thisLSK = liskApi();
 			var futureTimestampResponse = {
 				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' }
 			};

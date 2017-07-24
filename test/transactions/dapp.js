@@ -92,6 +92,8 @@ describe('dapp.js', function () {
 					});
 
 					it('should use time slots to get the time for the timestamp', function () {
+						trs = createDapp('secret', null, options);
+
 						(trs).should.have.property('timestamp').and.be.equal(time);
 						(getTimeStub.calledWithExactly(now.getTime())).should.be.true();
 					});
