@@ -156,8 +156,11 @@ describe('peers', function () {
 				peers.update(secondPeer);
 				getPeers(function (err, __peers) {
 					expect(__peers).to.have.a.lengthOf(2);
-					expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
-					expect(__peers[1]).to.have.property('string').equal(secondPeer.ip + ':' + secondPeer.port);
+					var peersAddresses = __peers.map(function (p) {
+						return p.string;
+					});
+					expect(peersAddresses.indexOf(randomPeer.ip + ':' + randomPeer.port) !== -1).to.be.ok;
+					expect(peersAddresses.indexOf(secondPeer.ip + ':' + secondPeer.port) !== -1).to.be.ok;
 					done();
 				});
 			});
