@@ -21,6 +21,7 @@
   "dependencies": {
     "async": "=2.4.1",
     "bignumber.js": "=4.0.2",
+    "bluebird": "=3.5.0",
     "body-parser": "=1.17.2",
     "bytebuffer": "=5.0.1",
     "change-case": "=3.0.1",
@@ -81,9 +82,9 @@
     "lisk-js": "=0.4.3",
     "mocha": "=3.4.2",
     "moment": "=2.18.1",
+    "pm2": "=2.4.6",
     "sinon": "=2.3.4",
     "supertest": "=3.0.0",
-    "pm2": "=2.4.6",
     "webpack": "=2.6.1",
     "webpack-node-externals": "=1.6.0"
   }

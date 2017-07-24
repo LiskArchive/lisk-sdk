@@ -1,11 +1,10 @@
 'use strict';
 
-var Q = require('q');
-var _ = require('lodash');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var node = require('../../node');
 var ws = require('../../common/wsCommunication');
+var PromiseDefer = require('../../../helpers/promiseDefer');
 
 
 describe('handshake', function () {
@@ -13,7 +12,7 @@ describe('handshake', function () {
 	var socketDefer = null;
 
 	beforeEach(function () {
-		socketDefer = Q.defer();
+		socketDefer = PromiseDefer();
 	});
 
 	it('should not connect without headers', function (done) {
@@ -29,7 +28,7 @@ describe('handshake', function () {
 	});
 
 	it('using incorrect nethash in headers should fail', function (done) {
-		socketDefer = Q.defer();
+		socketDefer = PromiseDefer();
 
 		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
 		headers['nethash'] = 'incorrect';
@@ -45,7 +44,7 @@ describe('handshake', function () {
 	});
 
 	it('using incorrect version in headers should fail', function (done) {
-		socketDefer = Q.defer();
+		socketDefer = PromiseDefer();
 
 		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
 		headers['version'] = '0.1.0a';
@@ -61,7 +60,7 @@ describe('handshake', function () {
 	});
 
 	it('should not accept itself as a peer', function (done) {
-		socketDefer = Q.defer();
+		socketDefer = PromiseDefer();
 
 		var headers = node.generatePeerHeaders('127.0.0.1', 5000);
 		headers['version'] = '0.1.0a';
@@ -78,7 +77,7 @@ describe('handshake', function () {
 
 	it('should connect with valid options', function (done) {
 
-		var socketDefer = Q.defer();
+		var socketDefer = PromiseDefer();
 
 		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
 
@@ -93,7 +92,7 @@ describe('handshake', function () {
 
 	it('should list connected peer properly', function (done) {
 
-		var socketDefer = Q.defer();
+		var socketDefer = PromiseDefer();
 
 		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
 
@@ -129,7 +128,7 @@ describe('RPC', function () {
 	var clientSocket;
 
 	before(function (done) {
-		var socketDefer = Q.defer();
+		var socketDefer = PromiseDefer();
 		ws.connect('127.0.0.1', 5000, socketDefer);
 		socketDefer.promise
 			.then(function (socket) {

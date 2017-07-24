@@ -1,8 +1,9 @@
 'use strict';
 
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require('bluebird');
 var constants = require('../../helpers/constants');
+var PromiseDefer = require('../../helpers/promiseDefer');
 var ClientRPCStub = require('../../api/ws/rpc/wsRPC').ClientRPCStub;
 var ConnectionState = require('../../api/ws/rpc/wsRPC').ConnectionState;
 var scClient = require('socketcluster-client');
@@ -68,12 +69,12 @@ var wsCommunication = {
 	addPeers: function (numOfPeers, ip, cb) {
 
 		var peersConnectionsDefers = Array.apply(null, new Array(numOfPeers)).map(function () {
-			var socketDefer = Q.defer();
+			var socketDefer = PromiseDefer();
 			this.connect(ip, 5000, socketDefer, node.generatePeerHeaders(ip, node.randomizeSelection(1000) + 4001));
 			return socketDefer;
 		}.bind(this));
 
-		Q.all(peersConnectionsDefers.map(function (peerDefer) {	return peerDefer.promise; }))
+		Promise.all(peersConnectionsDefers.map(function (peerDefer) {	return peerDefer.promise; }))
 			.then(function (results) {
 				return cb(null, results);
 			})
@@ -85,7 +86,7 @@ var wsCommunication = {
 	// Adds peer to local node
 	addPeer: function (ip, port, cb) {
 
-		var socketDefer = Q.defer();
+		var socketDefer = PromiseDefer();
 		this.connect(ip, port, socketDefer);
 
 		socketDefer.promise.then(function () {
