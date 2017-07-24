@@ -69,6 +69,20 @@ function getTime (time) {
 }
 
 /**
+* @method getTimeWithOffset
+* @param offset
+* @return {number}
+*/
+
+function getTimeWithOffset (offset) {
+	var now = new Date().getTime();
+	var time = offset
+		? now - (offset * 1000)
+		: now;
+	return getTime(time);
+}
+
+/**
  * @method getRealTime
  * @param epochTime
  * @return {number}
@@ -131,6 +145,7 @@ module.exports = {
 	interval: interval,
 	delegates: delegates,
 	getTime: getTime,
+	getTimeWithOffset: getTimeWithOffset,
 	getRealTime: getRealTime,
 	getSlotNumber: getSlotNumber,
 	getSlotTime: getSlotTime,
