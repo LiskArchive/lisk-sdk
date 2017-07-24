@@ -33,7 +33,7 @@ module.exports = function (grunt) {
 
 		exec: {
 			coverageSingle: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST'
+				command: './node_modules/.bin/nyc --report-dir=test/.coverage-unit --reporter=lcov ./node_modules/.bin/_mocha $TEST'
 			}
 		},
 
