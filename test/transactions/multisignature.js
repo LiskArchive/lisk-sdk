@@ -89,25 +89,20 @@ describe('multisignature.js', function () {
 		var requestLifeTime = 5;
 		var multiSignaturePublicKeyArray = ['+123456789', '-987654321'];
 		var now = new Date();
-		var time = 36174862;
 		var clock;
-		var stub;
 
 		beforeEach(function () {
 			clock = sinon.useFakeTimers(now, 'Date');
-			stub = sinon.stub(slots, 'getTime').returns(time);
 		});
 
 		afterEach(function () {
-			stub.restore();
 			clock.restore();
 		});
 
 		it('should use time slots to get the time for the timestamp', function () {
 			var trs = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures);
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime())).should.be.true();
+			(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
 		});
 
 		it('should use time slots with an offset to get the time for the timestamp', function () {
@@ -115,8 +110,7 @@ describe('multisignature.js', function () {
 
 			var trs = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures, offset);
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+			(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
 		});
 
 	});
@@ -185,25 +179,20 @@ describe('multisignature.js', function () {
 
 		describe('with time offset', function () {
 			var now = new Date();
-			var time = 36174862;
 			var clock;
-			var stub;
 
 			beforeEach(function () {
 				clock = sinon.useFakeTimers(now, 'Date');
-				stub = sinon.stub(slots, 'getTime').returns(time);
 			});
 
 			afterEach(function () {
-				stub.restore();
 				clock.restore();
 			});
 
 			it('should use time slots to get the time for the timestamp', function () {
 				var trs = multisignature.createTransaction(recipientId, amount, secret, null, null);
 
-				(trs).should.have.property('timestamp').and.be.equal(time);
-				(stub.calledWithExactly(now.getTime())).should.be.true();
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
 			});
 
 			it('should use time slots with an offset to get the time for the timestamp', function () {
@@ -211,8 +200,7 @@ describe('multisignature.js', function () {
 
 				var trs = multisignature.createTransaction(recipientId, amount, secret, null, null, offset);
 
-				(trs).should.have.property('timestamp').and.be.equal(time);
-				(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
 			});
 
 		});

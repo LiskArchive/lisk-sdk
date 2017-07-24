@@ -30,34 +30,32 @@ describe('signature.js', function () {
 			(sgn).should.be.type('object');
 		});
 
-		it('should use time slots to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+		describe('timestamp', function () {
+			var now;
+			var clock;
 
-			sgn = createSignature('secret', 'second secret');
-			(sgn).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime())).should.be.true();
+			beforeEach(function () {
+				now = new Date();
+				clock = sinon.useFakeTimers(now, 'Date');
+			});
 
-			stub.restore();
-			clock.restore();
-		});
+			afterEach(function () {
+				clock.restore();
+			});
 
-		it('should use time slots with an offset to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var offset = 10;
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+			it('should use time slots to get the time for the timestamp', function () {
+				sgn = createSignature('secret', 'second secret');
+				(sgn).should.have.property('timestamp').and.be.equal(slots.getTime());
+			});
 
-			sgn = createSignature('secret', 'second secret', offset);
+			it('should use time slots with an offset to get the time for the timestamp', function () {
+				var offset = 10;
 
-			(sgn).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+				sgn = createSignature('secret', 'second secret', offset);
 
-			stub.restore();
-			clock.restore();
+				(sgn).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
+			});
+
 		});
 
 		describe('returned signature transaction', function () {

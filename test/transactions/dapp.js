@@ -74,36 +74,29 @@ describe('dapp.js', function () {
 				});
 
 				describe('timestamp', function () {
-					let now;
-					let clock;
-					let time;
-					let getTimeStub;
+					var now;
+					var clock;
 
 					beforeEach(function () {
 						now = new Date();
 						clock = sinon.useFakeTimers(now, 'Date');
-						time = 36174862;
-						getTimeStub = sinon.stub(slots, 'getTime').returns(time);
 					});
 
 					afterEach(function () {
-						getTimeStub.restore();
 						clock.restore();
 					});
 
 					it('should use time slots to get the time for the timestamp', function () {
 						trs = createDapp('secret', null, options);
 
-						(trs).should.have.property('timestamp').and.be.equal(time);
-						(getTimeStub.calledWithExactly(now.getTime())).should.be.true();
+						(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
 					});
 
 					it('should use time slots with an offset to get the time for the timestamp', function () {
 						var offset = 10;
 						trs = createDapp('secret', null, options, offset);
 
-						(trs).should.have.property('timestamp').and.be.equal(time);
-						(getTimeStub.calledWithExactly(now.getTime() - offset)).should.be.true();
+						(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
 					});
 				});
 

@@ -26,35 +26,33 @@ describe('transaction.js', function () {
 			(trs).should.be.ok();
 		});
 
-		it('should use time slots to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+		describe('timestamp', function () {
+			var now;
+			var clock;
 
-			trs = createTransaction('58191285901858109L', 1000, 'secret');
+			beforeEach(function () {
+				now = new Date();
+				clock = sinon.useFakeTimers(now, 'Date');
+			});
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime())).should.be.true();
+			afterEach(function () {
+				clock.restore();
+			});
 
-			stub.restore();
-			clock.restore();
-		});
+			it('should use time slots to get the time for the timestamp', function () {
+				trs = createTransaction('58191285901858109L', 1000, 'secret');
 
-		it('should use time slots with an offset to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var offset = 10;
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
+			});
 
-			trs = createTransaction('58191285901858109L', 1000, 'secret', null, null, offset);
+			it('should use time slots with an offset to get the time for the timestamp', function () {
+				var offset = 10;
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+				trs = createTransaction('58191285901858109L', 1000, 'secret', null, null, offset);
 
-			stub.restore();
-			clock.restore();
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
+			});
+
 		});
 
 		describe('returned transaction', function () {
