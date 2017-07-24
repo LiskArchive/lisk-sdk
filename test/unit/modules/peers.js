@@ -9,7 +9,6 @@ var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../config.json');
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var Peer = require('../../../logic/peer');
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 
@@ -156,8 +155,11 @@ describe('peers', function () {
 				peers.update(secondPeer);
 				getPeers(function (err, __peers) {
 					expect(__peers).to.have.a.lengthOf(2);
-					expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
-					expect(__peers[1]).to.have.property('string').equal(secondPeer.ip + ':' + secondPeer.port);
+					var peersAddresses = __peers.map(function (p) {
+						return p.string;
+					});
+					expect(peersAddresses.indexOf(randomPeer.ip + ':' + randomPeer.port) !== -1).to.be.ok;
+					expect(peersAddresses.indexOf(secondPeer.ip + ':' + secondPeer.port) !== -1).to.be.ok;
 					done();
 				});
 			});
@@ -238,25 +240,6 @@ describe('peers', function () {
 
 			testWampServer.registerRPCEndpoints(usedRPCEndpoints);
 			wsRPC.setServer(testWampServer);
-		});
-
-		describe('onBlockchainReady', function () {
-
-			it('should update peers during onBlockchainReady', function (done) {
-				sinon.stub(peers, 'discover').callsArgWith(0, null);
-				var config = require('../../config.json');
-				var initialPeers = _.clone(config.peers.list);
-				if (initialPeers.length === 0) {
-					config.peers.list.push(randomPeer);
-				}
-				peers.onBlockchainReady();
-
-				setTimeout(function () {
-					expect(peers.discover.called).to.be.ok;
-					peers.discover.restore();
-					done();
-				}, 500);
-			});
 		});
 
 		describe('onPeersReady', function () {

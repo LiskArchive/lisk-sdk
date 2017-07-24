@@ -49,7 +49,16 @@ describe('handshake', function () {
 		});
 	});
 
-	it('should return error when null request passed', function (done) {
+	it('should return error when empty undefined request', function (done) {
+
+		handshake(undefined, function (err, data) {
+			expect(err).not.to.be.empty;
+			expect(err).to.have.property('error').that.is.an('array');
+			done();
+		});
+	});
+
+	it('should return error when empty null request', function (done) {
 
 		handshake(null, function (err, data) {
 			expect(err).not.to.be.empty;
@@ -58,13 +67,61 @@ describe('handshake', function () {
 		});
 	});
 
-	it('should return error when wrong request passed', function (done) {
+	it('should return error when 0 as request', function (done) {
 
-		handshake(null, function (err, data) {
+		handshake(0, function (err, data) {
 			expect(err).not.to.be.empty;
 			expect(err).to.have.property('error').that.is.an('array');
 			done();
 		});
 	});
 
+	it('should return error when empty request passed', function (done) {
+
+		handshake({}, function (err, data) {
+			expect(err).not.to.be.empty;
+			expect(err).to.have.property('error').that.is.an('array');
+			done();
+		});
+	});
+
+	it('should return error when wrong request without version passed', function (done) {
+		var malformedRequest = _.clone(validRequest);
+		delete malformedRequest.version;
+		handshake(malformedRequest, function (err, data) {
+			expect(err).not.to.be.empty;
+			expect(err).to.have.property('error').that.is.an('array');
+			done();
+		});
+	});
+
+	it('should return error when wrong request without port passed', function (done) {
+		var malformedRequest = _.clone(validRequest);
+		delete malformedRequest.port;
+		handshake(malformedRequest, function (err, data) {
+			expect(err).not.to.be.empty;
+			expect(err).to.have.property('error').that.is.an('array');
+			done();
+		});
+	});
+
+	it('should return error when wrong request without ip passed', function (done) {
+		var malformedRequest = _.clone(validRequest);
+		delete malformedRequest.ip;
+		handshake(malformedRequest, function (err, data) {
+			expect(err).not.to.be.empty;
+			expect(err).to.have.property('error').that.is.an('array');
+			done();
+		});
+	});
+
+	it('should return error when wrong request without nethash passed', function (done) {
+		var malformedRequest = _.clone(validRequest);
+		delete malformedRequest.nethash;
+		handshake(malformedRequest, function (err, data) {
+			expect(err).not.to.be.empty;
+			expect(err).to.have.property('error').that.is.an('array');
+			done();
+		});
+	});
 });

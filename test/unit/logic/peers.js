@@ -308,19 +308,19 @@ describe('peers', function () {
 				var expectedPeer = {};
 				expectedPeer[validPeer.string] = validPeer;
 				expect(peers.peersManager.peers).to.eql(expectedPeer);
-				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': 'randomnonce'});
-				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:4000'});
+				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:5000': 'randomnonce'});
+				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:5000'});
 			});
 
 			it('should not duplicate entries in fields', function () {
 				peers.peersManager.add(validPeer);
 				peers.peersManager.add(validPeer);
 				var expectedPeer = {
-					'40.40.40.40:4000': validPeer
+					'40.40.40.40:5000': validPeer
 				};
 				expect(peers.peersManager.peers).to.eql(expectedPeer);
-				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': 'randomnonce'});
-				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:4000'});
+				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:5000': 'randomnonce'});
+				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:5000'});
 			});
 
 			it('should not insert peer without address', function () {
@@ -335,10 +335,10 @@ describe('peers', function () {
 				delete validPeer.nonce;
 				peers.peersManager.add(validPeer);
 				var expectedPeer = {
-					'40.40.40.40:4000': validPeer
+					'40.40.40.40:5000': validPeer
 				};
 				expect(peers.peersManager.peers).to.eql(expectedPeer);
-				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': undefined});
+				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:5000': undefined});
 				expect(peers.peersManager.nonceToAddressMap).to.eql({});
 			});
 
@@ -350,10 +350,10 @@ describe('peers', function () {
 				peers.peersManager.add(peerB);
 
 				expect(peers.peersManager.peers).to.eql({
-					'40.40.40.40:4000': validPeer
+					'40.40.40.40:5000': validPeer
 				});
-				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:4000': 'randomnonce'});
-				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:4000'});
+				expect(peers.peersManager.addressToNonceMap).to.eql({'40.40.40.40:5000': 'randomnonce'});
+				expect(peers.peersManager.nonceToAddressMap).to.eql({'randomnonce': '40.40.40.40:5000'});
 			});
 
 			it('should not be possible to add multiple entries', function () {
@@ -366,17 +366,17 @@ describe('peers', function () {
 				peers.peersManager.add(peerB);
 
 				var expectedPeers = {
-					'40.40.40.40:4000': peerA,
+					'40.40.40.40:5000': peerA,
 					'50.40.40.40:4000': peerB
 				};
 
 				expect(peers.peersManager.peers).to.eql(expectedPeers);
 				expect(peers.peersManager.addressToNonceMap).to.eql({
-					'40.40.40.40:4000': 'randomnonce',
+					'40.40.40.40:5000': 'randomnonce',
 					'50.40.40.40:4000': 'peerBNonce'
 				});
 				expect(peers.peersManager.nonceToAddressMap).to.eql({
-					'randomnonce': '40.40.40.40:4000',
+					'randomnonce': '40.40.40.40:5000',
 					'peerBNonce': '50.40.40.40:4000'
 				});
 			});
@@ -525,7 +525,7 @@ describe('peers', function () {
 				peers.peersManager.add(peerB);
 
 				var expectedPeers = {
-					'40.40.40.40:4000': peerA,
+					'40.40.40.40:5000': peerA,
 					'50.40.40.40:4000': peerB
 				};
 

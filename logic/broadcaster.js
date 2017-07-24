@@ -152,7 +152,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		},
 		function sendToPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
-			if (params.limit === self.config.peerLimit) { peers = peers.slice(0, self.config.broadcastLimit); }
+			if (params.limit === self.config.peerLimit) {
+				peers = peers.slice(0, self.config.broadcastLimit);
+			}
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer.rpc[options.api](options.data, function (err, result) {
 					if (err) {

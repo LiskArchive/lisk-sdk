@@ -37,10 +37,6 @@ describe('wsRPC', function () {
 		expect(wsRPC.scClient).to.have.property('connections').to.be.a('object').and.to.be.empty;
 	});
 
-	it('should have wsServer field unset', function () {
-		expect(wsRPC).to.have.property('wsServer').and.to.be.null;
-	});
-
 	describe('setServer', function () {
 
 		before(function () {
