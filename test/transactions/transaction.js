@@ -46,11 +46,11 @@ describe('transaction.js', function () {
 			});
 
 			it('should use time slots with an offset to get the time for the timestamp', function () {
-				var offset = 10;
+				var offset = -10;
 
 				trs = createTransaction('58191285901858109L', 1000, 'secret', null, null, offset);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});
 
 		});

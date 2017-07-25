@@ -86,7 +86,7 @@ describe('slots.js', function () {
 		});
 
 		it('should call getTime using the offset', function () {
-			var offset = 3;
+			var offset = -3;
 
 			var time = getTimeWithOffset(offset);
 

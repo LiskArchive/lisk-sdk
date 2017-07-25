@@ -54,11 +54,11 @@ describe('delegate.js', function () {
 			});
 
 			it('should use time slots with an offset to get the time for the timestamp', function () {
-				var offset = 10;
+				var offset = -10;
 
 				trs = createDelegate('secret', 'delegate', null, offset);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});
 
 		});

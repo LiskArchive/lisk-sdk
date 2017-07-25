@@ -77,7 +77,7 @@ function getTime (time) {
 function getTimeWithOffset (offset) {
 	var now = new Date().getTime();
 	var time = offset
-		? now - (offset * 1000)
+		? now + (offset * 1000)
 		: now;
 	return getTime(time);
 }

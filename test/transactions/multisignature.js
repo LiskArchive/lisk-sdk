@@ -106,11 +106,11 @@ describe('multisignature.js', function () {
 		});
 
 		it('should use time slots with an offset to get the time for the timestamp', function () {
-			var offset = 10;
+			var offset = -10;
 
 			var trs = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures, offset);
 
-			(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
+			(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 		});
 
 	});
@@ -196,11 +196,11 @@ describe('multisignature.js', function () {
 			});
 
 			it('should use time slots with an offset to get the time for the timestamp', function () {
-				var offset = 10;
+				var offset = -10;
 
 				var trs = multisignature.createTransaction(recipientId, amount, secret, null, null, offset);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});
 
 		});

@@ -49,11 +49,11 @@ describe('signature.js', function () {
 			});
 
 			it('should use time slots with an offset to get the time for the timestamp', function () {
-				var offset = 10;
+				var offset = -10;
 
 				sgn = createSignature('secret', 'second secret', offset);
 
-				(sgn).should.have.property('timestamp').and.be.equal(slots.getTime() - offset);
+				(sgn).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});
 
 		});
