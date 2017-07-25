@@ -1,6 +1,6 @@
-var slots = require('../../lib/time/slots');
-var transaction = require('../../lib/transactions/transaction');
-var cryptoModule = require('../../lib/transactions/crypto');
+import slots from '../../src/time/slots';
+import transaction from '../../src/transactions/transaction';
+import cryptoModule from '../../src/transactions/crypto';
 
 describe('transaction.js', function () {
 

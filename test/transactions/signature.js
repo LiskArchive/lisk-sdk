@@ -1,5 +1,5 @@
-var slots = require('../../lib/time/slots');
-var signature = require('../../lib/transactions/signature');
+import slots from '../../src/time/slots';
+import signature from '../../src/transactions/signature';
 
 describe('signature.js', function () {
 

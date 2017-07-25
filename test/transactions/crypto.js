@@ -1,4 +1,4 @@
-var cryptoModule = require('../../lib/transactions/crypto');
+import cryptoModule from '../../src/transactions/crypto';
 
 describe('crypto.js', function () {
 

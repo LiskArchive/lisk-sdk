@@ -1,6 +1,6 @@
-var slots = require('../../lib/time/slots');
-var multisignature = require('../../lib/transactions/multisignature');
-var cryptoModule = require('../../lib/transactions/crypto');
+import slots from '../../src/time/slots';
+import multisignature from '../../src/transactions/multisignature';
+import cryptoModule from '../../src/transactions/crypto';
 
 describe('multisignature.js', function () {
 

@@ -1,4 +1,4 @@
-var mnemonic = require('../../lib/utils/mnemonic');
+import mnemonic from '../../src/utils/mnemonic';
 
 describe('utils/mnemonic.js', function () {
 

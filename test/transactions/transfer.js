@@ -1,5 +1,5 @@
-var slots = require('../../lib/time/slots');
-var transfer = require('../../lib/transactions/transfer');
+import slots from '../../src/time/slots';
+import transfer from '../../src/transactions/transfer';
 
 describe('transfer.js', function () {
 

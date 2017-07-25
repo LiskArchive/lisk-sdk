@@ -1,5 +1,5 @@
-var newCrypto = require('../../../lib/transactions/crypto/index');
-var oldCrypto = require('../../../lib/transactions/crypto');
+import newCrypto from '../../../src/transactions/crypto/index';
+import oldCrypto from '../../../src/transactions/crypto';
 
 describe('crypto/index.js', function () {
 

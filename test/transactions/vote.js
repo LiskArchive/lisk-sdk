@@ -1,6 +1,6 @@
-var slots = require('../../lib/time/slots');
-var vote = require('../../lib/transactions/vote');
-var cryptoModule = require('../../lib/transactions/crypto');
+import slots from '../../src/time/slots';
+import vote from '../../src/transactions/vote';
+import cryptoModule from '../../src/transactions/crypto';
 
 describe('vote.js', function () {
 

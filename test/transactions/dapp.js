@@ -1,6 +1,6 @@
-var slots = require('../../lib/time/slots');
-var dapp = require('../../lib/transactions/dapp');
-var cryptoModule = require('../../lib/transactions/crypto');
+import slots from '../../src/time/slots';
+import dapp from '../../src/transactions/dapp';
+import cryptoModule from '../../src/transactions/crypto';
 
 describe('dapp.js', function () {
 
