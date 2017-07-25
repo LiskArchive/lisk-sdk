@@ -3,7 +3,7 @@ module.exports = function (grunt) {
 
 	grunt.initConfig({
 		eslint: {
-			target: ['src/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js'],
+			target: ['src/**/*.js', 'test/**/*.js', 'Gruntfile.js', 'index.js'],
 		},
 
 		pkg: grunt.file.readJSON('package.json'),
