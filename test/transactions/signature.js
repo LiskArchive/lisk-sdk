@@ -99,10 +99,7 @@ describe('signature.js', function () {
 				});
 
 				it('should have publicKey in hex', function () {
-					(sgn.asset.signature).should.have.property('publicKey').and.be.type('string');
-					should.doesNotThrow(function () {
-						Buffer.from(sgn.asset.signature.publicKey, 'hex');
-					});
+					(sgn.asset.signature).should.have.property('publicKey').and.be.type('string').and.be.hexString();
 				});
 
 				it('should have publicKey in 32 bytes', function () {

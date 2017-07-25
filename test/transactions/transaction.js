@@ -81,10 +81,7 @@ describe('transaction.js', function () {
 			});
 
 			it('should have senderPublicKey as hex string', function () {
-				(trs).should.have.property('senderPublicKey').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.senderPublicKey, 'hex');
-				});
+				(trs).should.have.property('senderPublicKey').and.be.type('string').and.be.hexString();
 			});
 
 			it('should have recipientId as string and to be equal 58191285901858109L', function () {
@@ -104,10 +101,7 @@ describe('transaction.js', function () {
 			});
 
 			it('should have signature as hex string', function () {
-				(trs).should.have.property('signature').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.signature, 'hex');
-				});
+				(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
 			});
 
 			it('should be signed correctly', function () {
@@ -160,10 +154,7 @@ describe('transaction.js', function () {
 			});
 
 			it('should have senderPublicKey as hex string', function () {
-				(trs).should.have.property('senderPublicKey').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.senderPublicKey, 'hex');
-				});
+				(trs).should.have.property('senderPublicKey').and.be.type('string').and.be.hexString();
 			});
 
 			it('should have recipientId as string and to be equal 58191285901858109L', function () {
@@ -183,17 +174,11 @@ describe('transaction.js', function () {
 			});
 
 			it('should have signature as hex string', function () {
-				(trs).should.have.property('signature').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.signature, 'hex');
-				});
+				(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
 			});
 
 			it('should have signSignature as hex string', function () {
-				(trs).should.have.property('signSignature').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.signSignature, 'hex');
-				});
+				(trs).should.have.property('signSignature').and.be.type('string').and.be.hexString();
 			});
 
 			it('should be signed correctly', function () {

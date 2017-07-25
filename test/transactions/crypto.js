@@ -214,14 +214,8 @@ describe('crypto.js', function () {
 
 			(keys).should.be.ok();
 			(keys).should.be.type('object');
-			(keys).should.have.property('publicKey').and.be.type('string');
-			(keys).should.have.property('privateKey').and.be.type('string');
-			should.doesNotThrow(function () {
-				Buffer.from(keys.publicKey, 'hex');
-			});
-			should.doesNotThrow(function () {
-				Buffer.from(keys.privateKey, 'hex');
-			});
+			(keys).should.have.property('publicKey').and.be.type('string').and.be.hexString();
+			(keys).should.have.property('privateKey').and.be.type('string').and.be.hexString();
 		});
 	});
 

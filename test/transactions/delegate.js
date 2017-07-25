@@ -102,24 +102,15 @@ describe('delegate.js', function () {
 			});
 
 			it('should have senderPublicKey in hex', function () {
-				(trs).should.have.property('senderPublicKey').and.type('string').and.equal(keys.publicKey);
-				should.doesNotThrow(function () {
-					Buffer.from(trs.senderPublicKey, 'hex');
-				});
+				(trs).should.have.property('senderPublicKey').and.type('string').and.equal(keys.publicKey).and.be.hexString();
 			});
 
 			it('should have signature in hex', function () {
-				(trs).should.have.property('signature').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.signature, 'hex');
-				});
+				(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
 			});
 
 			it('should have second signature in hex', function () {
-				(trs).should.have.property('signSignature').and.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.signSignature, 'hex');
-				});
+				(trs).should.have.property('signSignature').and.type('string').and.be.hexString();
 			});
 
 			it('should have delegate asset', function () {
