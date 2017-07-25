@@ -71,7 +71,7 @@
     "istanbul-middleware": "=0.2.2",
     "jsdoc": "=3.4.3",
     "jsdox": "=0.4.10",
-    "lisk-js": "git://github.com/LiskHQ/lisk-js#146-fee-for-optional-data",
+    "lisk-js": "=1.0.0",
     "mocha": "=3.4.2",
     "moment": "=2.18.1",
     "sinon": "=2.3.4",
