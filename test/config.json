@@ -10,6 +10,7 @@
     "trustProxy": false,
     "topAccounts": false,
     "cacheEnabled": true,
+    "wsWorkers": 1,
     "db": {
         "host": "localhost",
         "port": 5432,
