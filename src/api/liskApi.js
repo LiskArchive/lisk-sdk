@@ -39,14 +39,14 @@
  * @main lisk
  */
 
-var LiskJS = {};
+const LiskJS = {};
 LiskJS.crypto = require('../transactions/crypto');
-var parseOfflineRequest = require('./parseTransaction');
-var privateApi = require('./privateApi');
-var config = require('../../config.json');
-var extend = require('./utils').extend;
+const parseOfflineRequest = require('./parseTransaction');
+const privateApi = require('./privateApi');
+const config = require('../../config.json');
+const extend = require('./utils').extend;
 
-function LiskAPI (options) {
+function LiskAPI(options) {
 	if (!(this instanceof LiskAPI)) {
 		return new LiskAPI(options);
 	}
@@ -80,7 +80,7 @@ function LiskAPI (options) {
  */
 
 LiskAPI.prototype.getNethash = function (providedNethash) {
-	var NetHash = (this.testnet) ? privateApi.netHashOptions.call(this).testnet : privateApi.netHashOptions.call(this).mainnet;
+	const NetHash = (this.testnet) ? privateApi.netHashOptions.call(this).testnet : privateApi.netHashOptions.call(this).mainnet;
 
 	if (providedNethash) {
 		NetHash.nethash = providedNethash;
@@ -97,9 +97,9 @@ LiskAPI.prototype.getNethash = function (providedNethash) {
 
 LiskAPI.prototype.listPeers = function () {
 	return {
-		official: this.defaultPeers.map(function (node) { return {node: node};}),
-		ssl: this.defaultSSLPeers.map(function (node) { return {node: node, ssl: true};}),
-		testnet: this.defaultTestnetPeers.map(function (node) { return {node: node, testnet: true};}),
+		official: this.defaultPeers.map(node => ({ node })),
+		ssl: this.defaultSSLPeers.map(node => ({ node, ssl: true })),
+		testnet: this.defaultTestnetPeers.map(node => ({ node, testnet: true })),
 	};
 };
 
@@ -146,18 +146,18 @@ LiskAPI.prototype.setSSL = function (ssl) {
 	}
 };
 
-function parseResponse (requestType, options, requestSuccess) {
-	var parser = parseOfflineRequest(requestType, options);
+function parseResponse(requestType, options, requestSuccess) {
+	const parser = parseOfflineRequest(requestType, options);
 	return parser.requestMethod === 'GET'
 		? requestSuccess.body
 		: parser.transactionOutputAfter(requestSuccess.body);
 }
 
-function handleTimestampIsInFutureFailures (requestType, options, result) {
+function handleTimestampIsInFutureFailures(requestType, options, result) {
 	if (!result.success && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
-		var newOptions = {};
+		const newOptions = {};
 
-		Object.keys(options).forEach(function (key) {
+		Object.keys(options).forEach((key) => {
 			newOptions[key] = options[key];
 		});
 		newOptions.timeOffset = (options.timeOffset || 0) + 10;
@@ -167,26 +167,26 @@ function handleTimestampIsInFutureFailures (requestType, options, result) {
 	return Promise.resolve(result);
 }
 
-function handleSendRequestFailures (requestType, options, error) {
-	var that = this;
+function handleSendRequestFailures(requestType, options, error) {
+	const that = this;
 	if (privateApi.checkReDial.call(that)) {
-		return new Promise(function (resolve, reject) {
-			setTimeout(function () {
+		return new Promise(((resolve, reject) => {
+			setTimeout(() => {
 				privateApi.banNode.call(that);
 				that.setNode();
 				that.sendRequest(requestType, options)
 					.then(resolve, reject);
 			}, 1000);
-		});
+		}));
 	}
 	return Promise.resolve({
 		success: false,
-		error: error,
-		message: 'could not create http request to any of the given peers'
+		error,
+		message: 'could not create http request to any of the given peers',
 	});
 }
 
-function optionallyCallCallback (callback, result) {
+function optionallyCallCallback(callback, result) {
 	if (callback && (typeof callback === 'function')) {
 		callback(result);
 	}
@@ -221,12 +221,12 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
  */
 
 LiskAPI.prototype.getAddressFromSecret = function (secret) {
-	var accountKeys = LiskJS.crypto.getKeys(secret);
-	var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
+	const accountKeys = LiskJS.crypto.getKeys(secret);
+	const accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
 
 	return {
 		address: accountAddress,
-		publicKey: accountKeys.publicKey
+		publicKey: accountKeys.publicKey,
 	};
 };
 
@@ -239,9 +239,7 @@ LiskAPI.prototype.getAddressFromSecret = function (secret) {
  */
 
 LiskAPI.prototype.getAccount = function (address, callback) {
-	return this.sendRequest('accounts', { address: address }, function (result) {
-		return callback(result);
-	});
+	return this.sendRequest('accounts', { address }, result => callback(result));
 };
 
 /**
@@ -253,7 +251,7 @@ LiskAPI.prototype.getAccount = function (address, callback) {
  */
 
 LiskAPI.prototype.generateAccount = function (secret, callback) {
-	var keys = LiskJS.crypto.getPrivateAndPublicKeyFromSecret(secret);
+	const keys = LiskJS.crypto.getPrivateAndPublicKeyFromSecret(secret);
 	callback(keys);
 	return this;
 };
@@ -267,9 +265,7 @@ LiskAPI.prototype.generateAccount = function (secret, callback) {
  */
 
 LiskAPI.prototype.listActiveDelegates = function (limit, callback) {
-	this.sendRequest('delegates/', { limit: limit}, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('delegates/', { limit }, result => callback(result));
 };
 
 /**
@@ -281,11 +277,9 @@ LiskAPI.prototype.listActiveDelegates = function (limit, callback) {
  */
 
 LiskAPI.prototype.listStandbyDelegates = function (limit, callback) {
-	var standByOffset = 101;
+	const standByOffset = 101;
 
-	this.sendRequest('delegates/', { limit: limit, orderBy: 'rate:asc', offset: standByOffset}, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('delegates/', { limit, orderBy: 'rate:asc', offset: standByOffset }, result => callback(result));
 };
 
 /**
@@ -297,9 +291,7 @@ LiskAPI.prototype.listStandbyDelegates = function (limit, callback) {
  */
 
 LiskAPI.prototype.searchDelegateByUsername = function (username, callback) {
-	this.sendRequest('delegates/search/', { q: username }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('delegates/search/', { q: username }, result => callback(result));
 };
 
 /**
@@ -311,9 +303,7 @@ LiskAPI.prototype.searchDelegateByUsername = function (username, callback) {
  */
 
 LiskAPI.prototype.listBlocks = function (amount, callback) {
-	this.sendRequest('blocks', { limit: amount }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('blocks', { limit: amount }, result => callback(result));
 };
 
 /**
@@ -325,9 +315,7 @@ LiskAPI.prototype.listBlocks = function (amount, callback) {
  */
 
 LiskAPI.prototype.listForgedBlocks = function (publicKey, callback) {
-	this.sendRequest('blocks', { generatorPublicKey: publicKey }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('blocks', { generatorPublicKey: publicKey }, result => callback(result));
 };
 
 /**
@@ -339,9 +327,7 @@ LiskAPI.prototype.listForgedBlocks = function (publicKey, callback) {
  */
 
 LiskAPI.prototype.getBlock = function (block, callback) {
-	this.sendRequest('blocks', { height: block }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('blocks', { height: block }, result => callback(result));
 };
 
 /**
@@ -357,9 +343,7 @@ LiskAPI.prototype.getBlock = function (block, callback) {
 LiskAPI.prototype.listTransactions = function (address, limit, offset, callback) {
 	offset = offset || '0';
 	limit = limit || '20';
-	this.sendRequest('transactions', { senderId: address, recipientId: address, limit: limit, offset: offset, orderBy: 'timestamp:desc' }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('transactions', { senderId: address, recipientId: address, limit, offset, orderBy: 'timestamp:desc' }, result => callback(result));
 };
 
 /**
@@ -371,9 +355,7 @@ LiskAPI.prototype.listTransactions = function (address, limit, offset, callback)
  */
 
 LiskAPI.prototype.getTransaction = function (transactionId, callback) {
-	this.sendRequest('transactions/get', { id: transactionId }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('transactions/get', { id: transactionId }, result => callback(result));
 };
 
 /**
@@ -385,9 +367,7 @@ LiskAPI.prototype.getTransaction = function (transactionId, callback) {
  */
 
 LiskAPI.prototype.listVotes = function (address, callback) {
-	this.sendRequest('accounts/delegates', { address: address }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('accounts/delegates', { address }, result => callback(result));
 };
 
 /**
@@ -399,9 +379,7 @@ LiskAPI.prototype.listVotes = function (address, callback) {
  */
 
 LiskAPI.prototype.listVoters = function (publicKey, callback) {
-	this.sendRequest('delegates/voters', { publicKey: publicKey }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('delegates/voters', { publicKey }, result => callback(result));
 };
 
 /**
@@ -416,9 +394,7 @@ LiskAPI.prototype.listVoters = function (publicKey, callback) {
  */
 
 LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, callback) {
-	this.sendRequest('transactions', { recipientId: recipient, amount: amount, secret: secret, secondSecret: secondSecret }, function (response) {
-		return callback(response);
-	});
+	this.sendRequest('transactions', { recipientId: recipient, amount, secret, secondSecret }, response => callback(response));
 };
 
 /**
@@ -429,9 +405,7 @@ LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, c
  */
 
 LiskAPI.prototype.listMultisignatureTransactions = function (callback) {
-	this.sendRequest('transactions/multisignatures', function (result) {
-		return callback(result);
-	});
+	this.sendRequest('transactions/multisignatures', result => callback(result));
 };
 
 /**
@@ -443,24 +417,18 @@ LiskAPI.prototype.listMultisignatureTransactions = function (callback) {
  */
 
 LiskAPI.prototype.getMultisignatureTransaction = function (transactionId, callback) {
-	this.sendRequest('transactions/multisignatures/get', { id: transactionId }, function (result) {
-		return callback(result);
-	});
+	this.sendRequest('transactions/multisignatures/get', { id: transactionId }, result => callback(result));
 };
 
 LiskAPI.prototype.broadcastSignedTransaction = function (transaction, callback) {
-
-	var request = {
+	const request = {
 		requestMethod: 'POST',
-		requestUrl: privateApi.getFullUrl.call(this) + '/peer/' + 'transactions',
+		requestUrl: `${privateApi.getFullUrl.call(this)}/peer/` + 'transactions',
 		nethash: this.nethash,
-		requestParams: { transaction }
+		requestParams: { transaction },
 	};
 
-	privateApi.doPopsicleRequest.call(this, request).then(function (result) {
-		return callback(result.body);
-	});
-
+	privateApi.doPopsicleRequest.call(this, request).then(result => callback(result.body));
 };
 
 module.exports = LiskAPI;

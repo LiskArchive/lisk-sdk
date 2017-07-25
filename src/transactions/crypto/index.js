@@ -1,7 +1,7 @@
-var convert = require('./convert');
-var sign = require('./sign');
-var keys = require('./keys');
-var hash = require('./hash');
+const convert = require('./convert');
+const sign = require('./sign');
+const keys = require('./keys');
+const hash = require('./hash');
 
 module.exports = {
 	bufferToHex: convert.bufferToHex,
@@ -21,5 +21,5 @@ module.exports = {
 	getSha256Hash: hash.getSha256Hash,
 	toAddress: convert.toAddress,
 	signMessageWithTwoSecrets: sign.signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys: sign.verifyMessageWithTwoPublicKeys
+	verifyMessageWithTwoPublicKeys: sign.verifyMessageWithTwoPublicKeys,
 };

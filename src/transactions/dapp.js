@@ -17,9 +17,9 @@
  * @class dapp
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+const crypto = require('./crypto.js');
+const constants = require('../constants.js');
+const slots = require('../time/slots.js');
 
 /**
  * @method createDapp
@@ -31,10 +31,10 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createDapp (secret, secondSecret, options, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createDapp(secret, secondSecret, options, timeOffset) {
+	const keys = crypto.getKeys(secret);
 
-	var transaction = {
+	const transaction = {
 		type: 5,
 		amount: 0,
 		fee: constants.fees.dapp,
@@ -49,15 +49,15 @@ function createDapp (secret, secondSecret, options, timeOffset) {
 				tags: options.tags,
 				type: options.type,
 				link: options.link,
-				icon: options.icon
-			}
-		}
+				icon: options.icon,
+			},
+		},
 	};
 
 	crypto.sign(transaction, keys);
 
 	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
+		const secondKeys = crypto.getKeys(secondSecret);
 		crypto.secondSign(transaction, secondKeys);
 	}
 
@@ -66,5 +66,5 @@ function createDapp (secret, secondSecret, options, timeOffset) {
 }
 
 module.exports = {
-	createDapp: createDapp
+	createDapp,
 };

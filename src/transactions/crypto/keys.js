@@ -13,44 +13,44 @@
  *
  */
 
-var Buffer = require('buffer/').Buffer;
-var bignum = require('browserify-bignum');
+const Buffer = require('buffer/').Buffer;
+const bignum = require('browserify-bignum');
 
-var hash = require('./hash');
-var convert = require('./convert');
+const hash = require('./hash');
+const convert = require('./convert');
 
-function getPrivateAndPublicKeyFromSecret (secret) {
-	var sha256Hash = hash.getSha256Hash(secret, 'utf8');
-	var keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
+function getPrivateAndPublicKeyFromSecret(secret) {
+	const sha256Hash = hash.getSha256Hash(secret, 'utf8');
+	const keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
 	return {
 		privateKey: convert.bufferToHex(Buffer.from(keypair.signSk)),
-		publicKey: convert.bufferToHex(Buffer.from(keypair.signPk))
+		publicKey: convert.bufferToHex(Buffer.from(keypair.signPk)),
 	};
 }
 
-function getRawPrivateAndPublicKeyFromSecret (secret) {
-	var sha256Hash = hash.getSha256Hash(secret, 'utf8');
-	var keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
+function getRawPrivateAndPublicKeyFromSecret(secret) {
+	const sha256Hash = hash.getSha256Hash(secret, 'utf8');
+	const keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
 	return {
 		privateKey: keypair.signSk,
-		publicKey: keypair.signPk
+		publicKey: keypair.signPk,
 	};
 }
 
-function getAddressFromPublicKey (publicKey) {
-	var publicKeyHash = hash.getSha256Hash(publicKey, 'hex');
+function getAddressFromPublicKey(publicKey) {
+	const publicKeyHash = hash.getSha256Hash(publicKey, 'hex');
 
-	var publicKeyTransform = convert.useFirstEightBufferEntriesReversed(publicKeyHash);
-	var address = bignum.fromBuffer(publicKeyTransform).toString() + 'L';
+	const publicKeyTransform = convert.useFirstEightBufferEntriesReversed(publicKeyHash);
+	const address = `${bignum.fromBuffer(publicKeyTransform).toString()}L`;
 
 	return address;
 }
 
 module.exports = {
 	getKeypair: getPrivateAndPublicKeyFromSecret,
-	getPrivateAndPublicKeyFromSecret: getPrivateAndPublicKeyFromSecret,
-	getRawPrivateAndPublicKeyFromSecret: getRawPrivateAndPublicKeyFromSecret,
-	getAddressFromPublicKey: getAddressFromPublicKey
+	getPrivateAndPublicKeyFromSecret,
+	getRawPrivateAndPublicKeyFromSecret,
+	getAddressFromPublicKey,
 };

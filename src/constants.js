@@ -6,17 +6,17 @@
  * @type object
  */
 
-var fixedPoint = Math.pow(10, 8);
+const fixedPoint = Math.pow(10, 8);
 
-var sendFee = 0.1 * fixedPoint;
-var signatureFee = 5 * fixedPoint;
-var delegateFee = 25 * fixedPoint;
-var voteFee = 1 * fixedPoint;
-var multisignatureFee = 5 * fixedPoint;
-var dappFee = 25 * fixedPoint;
+const sendFee = 0.1 * fixedPoint;
+const signatureFee = 5 * fixedPoint;
+const delegateFee = 25 * fixedPoint;
+const voteFee = 1 * fixedPoint;
+const multisignatureFee = 5 * fixedPoint;
+const dappFee = 25 * fixedPoint;
 
 module.exports = {
-	fixedPoint: fixedPoint,
+	fixedPoint,
 	fees: {
 		send: sendFee,
 		signature: signatureFee,
@@ -32,5 +32,5 @@ module.exports = {
 		3: voteFee,
 		4: multisignatureFee,
 		5: dappFee,
-	}
+	},
 };

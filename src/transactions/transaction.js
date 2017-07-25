@@ -17,9 +17,9 @@
  * @class transaction
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+const crypto = require('./crypto.js');
+const constants = require('../constants.js');
+const slots = require('../time/slots.js');
 
 /**
  * @method createTransaction
@@ -33,24 +33,24 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createTransaction (recipientId, amount, secret, secondSecret, data, timeOffset) {
-	var transaction = {
+function createTransaction(recipientId, amount, secret, secondSecret, data, timeOffset) {
+	const transaction = {
 		type: 0,
-		amount: amount,
+		amount,
 		fee: constants.fees.send,
-		recipientId: recipientId,
+		recipientId,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {},
-		data: data
+		data,
 	};
 
-	var keys = crypto.getKeys(secret);
+	const keys = crypto.getKeys(secret);
 	transaction.senderPublicKey = keys.publicKey;
 
 	crypto.sign(transaction, keys);
 
 	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
+		const secondKeys = crypto.getKeys(secondSecret);
 		crypto.secondSign(transaction, secondKeys);
 	}
 
@@ -59,5 +59,5 @@ function createTransaction (recipientId, amount, secret, secondSecret, data, tim
 }
 
 module.exports = {
-	createTransaction: createTransaction
+	createTransaction,
 };

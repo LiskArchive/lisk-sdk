@@ -17,9 +17,9 @@
  * @class multisignature
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+const crypto = require('./crypto.js');
+const constants = require('../constants.js');
+const slots = require('../time/slots.js');
 
 /**
  * @method createTransaction
@@ -33,18 +33,18 @@ var slots       = require('../time/slots.js');
  * @return {string}
  */
 
-function createTransaction (recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset) {
+function createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset) {
 
-	var transaction = {
+	const transaction = {
 		type: 0,
-		amount: amount,
+		amount,
 		fee: constants.fees.send,
-		recipientId: recipientId,
+		recipientId,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {}
 	};
 
-	var keys = crypto.getKeys(secret);
+	const keys = crypto.getKeys(secret);
 	transaction.senderPublicKey = keys.publicKey;
 
 	transaction.requesterPublicKey = requesterPublicKey || transaction.senderPublicKey;
@@ -53,7 +53,7 @@ function createTransaction (recipientId, amount, secret, secondSecret, requester
 	crypto.sign(transaction, keys);
 
 	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
+		const secondKeys = crypto.getKeys(secondSecret);
 		crypto.secondSign(transaction, secondKeys);
 	}
 
@@ -71,9 +71,9 @@ function createTransaction (recipientId, amount, secret, secondSecret, requester
  * @return {string}
  */
 
-function signTransaction (trs, secret) {
-	var keys = crypto.getKeys(secret);
-	var signature = crypto.multiSign(trs, keys);
+function signTransaction(trs, secret) {
+	const keys = crypto.getKeys(secret);
+	const signature = crypto.multiSign(trs, keys);
 
 	return signature;
 }
@@ -90,11 +90,11 @@ function signTransaction (trs, secret) {
  * @return {Object}
  */
 
-function createMultisignature (secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
-	var keys = crypto.getKeys(secret);
-	var keygroupFees = keysgroup.length + 1;
+function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
+	const keys = crypto.getKeys(secret);
+	const keygroupFees = keysgroup.length + 1;
 
-	var transaction = {
+	const transaction = {
 		type: 4,
 		amount: 0,
 		fee: (constants.fees.multisignature * keygroupFees),
@@ -103,17 +103,17 @@ function createMultisignature (secret, secondSecret, keysgroup, lifetime, min, t
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			multisignature: {
-				min: min,
-				lifetime: lifetime,
-				keysgroup: keysgroup
-			}
-		}
+				min,
+				lifetime,
+				keysgroup,
+			},
+		},
 	};
 
 	crypto.sign(transaction, keys);
 
 	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
+		const secondKeys = crypto.getKeys(secondSecret);
 		crypto.secondSign(transaction, secondKeys);
 	}
 
@@ -122,7 +122,7 @@ function createMultisignature (secret, secondSecret, keysgroup, lifetime, min, t
 }
 
 module.exports = {
-	signTransaction: signTransaction,
-	createMultisignature: createMultisignature,
-	createTransaction: createTransaction
+	signTransaction,
+	createMultisignature,
+	createTransaction,
 };

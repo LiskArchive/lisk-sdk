@@ -3,37 +3,34 @@ import privateApi from '../../src/api/privateApi';
 import utils from '../../src/api/utils';
 import transactionModule from '../../src/transactions/transaction';
 
-describe('Lisk.api()', function () {
+describe('Lisk.api()', () => {
+	const LSK = liskApi();
+	const testPort = 7000;
+	const livePort = 8000;
+	const localNode = 'localhost';
+	const externalNode = 'external';
+	const defaultSecret = 'secret';
+	const defaultSecondSecret = 'second secret';
 
-	var LSK = liskApi();
-	var testPort = 7000;
-	var livePort = 8000;
-	var localNode = 'localhost';
-	var externalNode = 'external';
-	var defaultSecret = 'secret';
-	var defaultSecondSecret = 'second secret';
-
-	describe('liskApi()', function () {
-
-		it('should create a new instance when using liskApi()', function () {
+	describe('liskApi()', () => {
+		it('should create a new instance when using liskApi()', () => {
 			(LSK).should.be.ok();
 		});
 
-		it('new liskApi() should be Object', function () {
+		it('new liskApi() should be Object', () => {
 			(LSK).should.be.type('object');
 		});
 
-		it('should use testnet peer for testnet settings', function () {
-			var TESTLSK = liskApi({ testnet: true });
+		it('should use testnet peer for testnet settings', () => {
+			const TESTLSK = liskApi({ testnet: true });
 
 			(TESTLSK.port).should.be.equal(testPort);
 			(TESTLSK.testnet).should.be.equal(true);
 		});
-
 	});
 
-	describe('#listPeers', function () {
-		it('should give a set of the peers', function () {
+	describe('#listPeers', () => {
+		it('should give a set of the peers', () => {
 			(LSK.listPeers()).should.be.ok();
 			(LSK.listPeers()).should.be.type('object');
 			(LSK.listPeers().official.length).should.be.equal(8);
@@ -41,203 +38,193 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('.currentPeer', function () {
-
-		it('currentPeer should be set by default', function () {
+	describe('.currentPeer', () => {
+		it('currentPeer should be set by default', () => {
 			(LSK.currentPeer).should.be.ok();
 		});
 	});
 
-	describe('#getNethash', function () {
-
-		it('Nethash should be hardcoded variables', function () {
-			var NetHash = {
+	describe('#getNethash', () => {
+		it('Nethash should be hardcoded variables', () => {
+			const NetHash = {
 				'Content-Type': 'application/json',
-				'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				'os': 'lisk-js-api',
-				'version': '1.0.0',
-				'minVersion': '>=0.5.0',
-				'port': livePort,
+				nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				os: 'lisk-js-api',
+				version: '1.0.0',
+				minVersion: '>=0.5.0',
+				port: livePort,
 			};
 			(LSK.getNethash()).should.eql(NetHash);
 		});
 
-		it('should give corret Nethash for testnet', function () {
+		it('should give corret Nethash for testnet', () => {
 			LSK.setTestnet(true);
 
-			var NetHash = {
+			const NetHash = {
 				'Content-Type': 'application/json',
-				'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				'os': 'lisk-js-api',
-				'version': '1.0.0',
-				'minVersion': '>=0.5.0',
-				'port': testPort,
+				nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				broadhash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				os: 'lisk-js-api',
+				version: '1.0.0',
+				minVersion: '>=0.5.0',
+				port: testPort,
 			};
 
 			(LSK.getNethash()).should.eql(NetHash);
 		});
 
 
-		it('should be possible to use my own Nethash', function () {
-			var NetHash = {
+		it('should be possible to use my own Nethash', () => {
+			const NetHash = {
 				'Content-Type': 'application/json',
-				'nethash': '123',
-				'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				'os': 'lisk-js-api',
-				'version': '0.0.0a',
-				'minVersion': '>=0.5.0',
-				'port': livePort,
+				nethash: '123',
+				broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+				os: 'lisk-js-api',
+				version: '0.0.0a',
+				minVersion: '>=0.5.0',
+				port: livePort,
 			};
-			var LSKNethash = liskApi({ nethash: '123' });
+			const LSKNethash = liskApi({ nethash: '123' });
 
 			(LSKNethash.nethash).should.eql(NetHash);
 		});
 	});
 
-	describe('#setTestnet', function () {
-
-		it('should set to testnet', function () {
-			var LISK = liskApi();
+	describe('#setTestnet', () => {
+		it('should set to testnet', () => {
+			const LISK = liskApi();
 			LISK.setTestnet(true);
 
 			(LISK.testnet).should.be.true();
 		});
 
-		it('should set to mainnet', function () {
-			var LISK = liskApi();
+		it('should set to mainnet', () => {
+			const LISK = liskApi();
 			LISK.setTestnet(false);
 
 			(LISK.testnet).should.be.false();
 		});
 	});
 
-	describe('#setNode', function () {
-
-		it('should be able to set my own node', function () {
-			var myOwnNode = 'myOwnNode.com';
+	describe('#setNode', () => {
+		it('should be able to set my own node', () => {
+			const myOwnNode = 'myOwnNode.com';
 			LSK.setNode(myOwnNode);
 
 			(LSK.currentPeer).should.be.equal(myOwnNode);
 		});
 
-		it('should select a node when not explicitly set', function () {
+		it('should select a node when not explicitly set', () => {
 			LSK.setNode();
 
 			(LSK.currentPeer).should.be.ok();
 		});
 	});
 
-	describe('#selectNode', function () {
-
-		it('should return the node from initial settings when set', function () {
-			var LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: true, randomPeer: false });
+	describe('#selectNode', () => {
+		it('should return the node from initial settings when set', () => {
+			const LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: true, randomPeer: false });
 
 			(privateApi.selectNode.call(LiskUrlInit)).should.be.equal(localNode);
 		});
 	});
 
-	describe('#getRandomPeer', function () {
-		var LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: true, randomPeer: false });
-		it('should give a random peer', function () {
+	describe('#getRandomPeer', () => {
+		const LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: true, randomPeer: false });
+		it('should give a random peer', () => {
 			(privateApi.getRandomPeer.call(LiskUrlInit)).should.be.ok();
 		});
 	});
 
-	describe('#banNode', function () {
-
-		it('should add current node to LSK.bannedPeers', function () {
-			var currentNode = LSK.currentPeer;
+	describe('#banNode', () => {
+		it('should add current node to LSK.bannedPeers', () => {
+			const currentNode = LSK.currentPeer;
 			privateApi.banNode.call(LSK);
 
 			(LSK.bannedPeers).should.containEql(currentNode);
 		});
 	});
 
-	describe('#getFullUrl', function () {
-
-		it('should give the full url inclusive port', function () {
-			var LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: false });
-			var fullUrl = 'http://' + localNode + ':' + testPort;
+	describe('#getFullUrl', () => {
+		it('should give the full url inclusive port', () => {
+			const LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: false });
+			const fullUrl = `http://${localNode}:${testPort}`;
 
 			(privateApi.getFullUrl.call(LiskUrlInit)).should.be.equal(fullUrl);
 		});
 
-		it('should give the full url without port and with SSL', function () {
-			var LiskUrlInit = liskApi({ port: '', node: localNode, ssl: true });
-			var fullUrl = 'https://' + localNode;
+		it('should give the full url without port and with SSL', () => {
+			const LiskUrlInit = liskApi({ port: '', node: localNode, ssl: true });
+			const fullUrl = `https://${localNode}`;
 
 			(privateApi.getFullUrl.call(LiskUrlInit)).should.be.equal(fullUrl);
 		});
 	});
 
-	describe('#getURLPrefix', function () {
-
-		it('should be http when ssl is false', function () {
+	describe('#getURLPrefix', () => {
+		it('should be http when ssl is false', () => {
 			LSK.setSSL(false);
 
 			(privateApi.getURLPrefix.call(LSK)).should.be.equal('http');
 		});
 
-		it('should be https when ssl is true', function () {
+		it('should be https when ssl is true', () => {
 			LSK.setSSL(true);
 
 			(privateApi.getURLPrefix.call(LSK)).should.be.equal('https');
 		});
 	});
 
-	describe('#trimObj', function () {
-
-		var untrimmedObj = {
-			' my_Obj ': ' myval '
+	describe('#trimObj', () => {
+		const untrimmedObj = {
+			' my_Obj ': ' myval ',
 		};
 
-		var trimmedObj = {
-			'my_Obj': 'myval'
+		const trimmedObj = {
+			my_Obj: 'myval',
 		};
 
-		it('should not be equal before trim', function () {
+		it('should not be equal before trim', () => {
 			(untrimmedObj).should.not.be.equal(trimmedObj);
 		});
 
-		it('should be equal after trim an Object in keys and value', function () {
-			var trimIt = utils.trimObj(untrimmedObj);
+		it('should be equal after trim an Object in keys and value', () => {
+			const trimIt = utils.trimObj(untrimmedObj);
 
 			(trimIt).should.be.eql(trimmedObj);
 		});
 
-		it('should accept numbers and strings as value', function () {
-			var obj = {
-				'myObj': 2
+		it('should accept numbers and strings as value', () => {
+			const obj = {
+				myObj: 2,
 			};
 
-			var trimmedObj = utils.trimObj(obj);
+			const trimmedObj = utils.trimObj(obj);
 			(trimmedObj).should.be.ok();
 			(trimmedObj).should.be.eql({ myObj: '2' });
 		});
 	});
 
-	describe('#extend', function() {
-
-		var defaultOptions = {
+	describe('#extend', () => {
+		const defaultOptions = {
 			testnet: false,
 			ssl: false,
 			randomPeer: true,
 			node: null,
 			port: null,
 			nethash: null,
-			bannedPeers: []
+			bannedPeers: [],
 		};
 
-		var options = {
+		const options = {
 			ssl: true,
 			port: testPort,
 			testnet: true,
 		};
 
-		it('should extend obj1 by obj2 and not modify original obj1', function() {
-			var result = utils.extend(defaultOptions, options);
+		it('should extend obj1 by obj2 and not modify original obj1', () => {
+			const result = utils.extend(defaultOptions, options);
 
 			(result).should.be.eql({
 				testnet: true,
@@ -246,56 +233,51 @@ describe('Lisk.api()', function () {
 				node: null,
 				port: testPort,
 				nethash: null,
-				bannedPeers: []
+				bannedPeers: [],
 			});
 			(result).should.be.not.eql(defaultOptions);
 		});
-
 	});
 
-	describe('#toQueryString', function () {
-
-		it('should create a http string from an object. Like { obj: "myval", key: "myval" } -> obj=myval&key=myval', function () {
-			var myObj = {
+	describe('#toQueryString', () => {
+		it('should create a http string from an object. Like { obj: "myval", key: "myval" } -> obj=myval&key=myval', () => {
+			const myObj = {
 				obj: 'myval',
-				key: 'my2ndval'
+				key: 'my2ndval',
 			};
 
-			var serialised = utils.toQueryString(myObj);
+			const serialised = utils.toQueryString(myObj);
 
 			(serialised).should.be.equal('obj=myval&key=my2ndval');
 		});
 	});
 
-	describe('#serialiseHttpData', function () {
-
-		it('should create a http string from an object and trim.', function () {
-			var myObj = {
+	describe('#serialiseHttpData', () => {
+		it('should create a http string from an object and trim.', () => {
+			const myObj = {
 				obj: ' myval',
-				key: 'my2ndval '
+				key: 'my2ndval ',
 			};
 
-			var serialised = privateApi.serialiseHttpData(myObj);
+			const serialised = privateApi.serialiseHttpData(myObj);
 
 			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
 	});
 
-	describe('#getAddressFromSecret', function () {
-
-		it('should create correct address and publicKey', function () {
-			var address = {
+	describe('#getAddressFromSecret', () => {
+		it('should create correct address and publicKey', () => {
+			const address = {
 				publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				address: '18160565574430594874L'
+				address: '18160565574430594874L',
 			};
 
 			(LSK.getAddressFromSecret(defaultSecret)).should.eql(address);
 		});
 	});
 
-	describe('#checkRequest', function () {
-
-		it('should identify GET requests', function () {
+	describe('#checkRequest', () => {
+		it('should identify GET requests', () => {
 			var requestType = 'api/loader/status';
 			var options = '';
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
@@ -318,69 +300,69 @@ describe('Lisk.api()', function () {
 			(checkRequestAnswer).should.be.equal('GET');
 
 			var requestType = 'api/transactions';
-			var options = {blockId: '123', senderId: '123'};
+			var options = { blockId: '123', senderId: '123' };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('GET');
 		});
 
-		it('should identify POST requests', function () {
+		it('should identify POST requests', () => {
 			var requestType = 'accounts/generatePublicKey';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('POST');
 
 			var requestType = 'accounts/open';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('POST');
 
 			var requestType = 'multisignatures/sign';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('POST');
 		});
 
-		it('should identify PUT requests', function () {
+		it('should identify PUT requests', () => {
 			var requestType = 'accounts/delegates';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('PUT');
 
 			var requestType = 'signatures';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('PUT');
 
 			var requestType = 'transactions';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('PUT');
 		});
 
-		it('should identify NOACTION requests', function () {
+		it('should identify NOACTION requests', () => {
 			var requestType = 'delegates/forging/enable';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.equal('NOACTION');
 
 			var requestType = 'dapps/uninstall';
-			var options = {secret: defaultSecret};
+			var options = { secret: defaultSecret };
 			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
@@ -388,102 +370,99 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#checkOptions', function () {
-
-		it('should not accept falsy options like undefined', function () {
-			(function() {
-				liskApi().sendRequest('delegates/', {limit:undefined}, function () {});
+	describe('#checkOptions', () => {
+		it('should not accept falsy options like undefined', () => {
+			(function () {
+				liskApi().sendRequest('delegates/', { limit: undefined }, () => {});
 			}).should.throw('parameter value "limit" should not be undefined');
 		});
 
-		it('should not accept falsy options like NaN', function () {
-			(function() {
-				liskApi().sendRequest('delegates/', {limit:NaN}, function () {});
+		it('should not accept falsy options like NaN', () => {
+			(function () {
+				liskApi().sendRequest('delegates/', { limit: NaN }, () => {});
 			}).should.throw('parameter value "limit" should not be NaN');
 		});
-
 	});
 
-	describe('#changeRequest', function () {
+	describe('#changeRequest', () => {
+		it('should give the correct parameters for GET requests', () => {
+			const requestType = 'transactions';
+			const options = { blockId: '123', senderId: '123' };
+			const LSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
 
-		it('should give the correct parameters for GET requests', function () {
-			var requestType = 'transactions';
-			var options = {blockId: '123', senderId: '123'};
-			var LSK = liskApi({ node: localNode });
-			var checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
-
-			var output = {
+			const output = {
 				nethash: '',
 				requestMethod: 'GET',
 				requestParams: {
 					blockId: '123',
-					senderId: '123'
+					senderId: '123',
 				},
-				requestUrl: 'http://' + localNode + ':' + livePort + '/api/transactions?blockId=123&senderId=123'
+				requestUrl: `http://${localNode}:${livePort}/api/transactions?blockId=123&senderId=123`,
 			};
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
-		it('should give the correct parameters for GET requests with parameters', function () {
-			var requestType = 'delegates/search/';
-			var options = {q: 'oliver'};
-			var LSK = liskApi({ node: localNode });
-			var checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+		it('should give the correct parameters for GET requests with parameters', () => {
+			const requestType = 'delegates/search/';
+			const options = { q: 'oliver' };
+			const LSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
 
-			var output = {
+			const output = {
 				nethash: '',
 				requestMethod: 'GET',
 				requestParams: {
 					q: 'oliver',
 				},
-				requestUrl: 'http://' + localNode + ':' + livePort + '/api/delegates/search/?q=oliver'
+				requestUrl: `http://${localNode}:${livePort}/api/delegates/search/?q=oliver`,
 			};
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
-		it('should give the correct parameters for NOACTION requests', function () {
-			var requestType = 'delegates/forging/enable';
-			var options = {secret: defaultSecret};
-			var LSK = liskApi({ node: localNode });
-			var checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+		it('should give the correct parameters for NOACTION requests', () => {
+			const requestType = 'delegates/forging/enable';
+			const options = { secret: defaultSecret };
+			const LSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
 
-			var output = {
+			const output = {
 				nethash: '',
 				requestMethod: '',
 				requestParams: '',
-				requestUrl: ''
+				requestUrl: '',
 			};
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
-		it('should give the correct parameters for POST requests', function () {
-			var requestType = 'accounts/open';
-			var options = {secret: defaultSecret};
-			var LSK = liskApi({ node: localNode });
-			var checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+		it('should give the correct parameters for POST requests', () => {
+			const requestType = 'accounts/open';
+			const options = { secret: defaultSecret };
+			const LSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
 
-			var output = {
+			const output = {
 				nethash: '',
 				requestMethod: 'GET',
-				requestParams: {secret: defaultSecret},
-				requestUrl: 'http://' + localNode + ':' + livePort + '/api/accounts?address=18160565574430594874L'
+				requestParams: { secret: defaultSecret },
+				requestUrl: `http://${localNode}:${livePort}/api/accounts?address=18160565574430594874L`,
 			};
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
 		});
 
-		it('should give the correct parameters for PUT requests', function () {
-			var requestType = 'signatures';
-			var options = {secret: defaultSecret, secondSecret: defaultSecondSecret};
-			var LSK = liskApi({ node: localNode });
-			var checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+		it('should give the correct parameters for PUT requests', () => {
+			const requestType = 'signatures';
+			const options = { secret: defaultSecret, secondSecret: defaultSecondSecret };
+			const LSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.String();
@@ -492,25 +471,23 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#sendRequest', function () {
-
-		it('should receive Height from a random public peer', function () {
-			var expectedResponse = {
+	describe('#sendRequest', () => {
+		it('should receive Height from a random public peer', () => {
+			const expectedResponse = {
 				body: { success: true, height: 2850466 },
 			};
-			var stub = sinon.stub(privateApi, 'sendRequestPromise').resolves(expectedResponse);
-			return LSK.sendRequest('blocks/getHeight', function (data) {
+			const stub = sinon.stub(privateApi, 'sendRequestPromise').resolves(expectedResponse);
+			return LSK.sendRequest('blocks/getHeight', (data) => {
 				(data).should.be.ok();
 				(data).should.be.type('object');
 				(data.success).should.be.true();
 				stub.restore();
 			});
 		});
-
 	});
 
-	describe('#listActiveDelegates', function () {
-		var expectedResponse = {
+	describe('#listActiveDelegates', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				delegates: [{
@@ -528,9 +505,9 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should list active delegates', function () {
-			var callback = sinon.spy();
-			var options = { limit: '1' };
+		it('should list active delegates', () => {
+			const callback = sinon.spy();
+			const options = { limit: '1' };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSK.listActiveDelegates('1', callback);
@@ -542,8 +519,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listStandbyDelegates', function () {
-		var expectedResponse = {
+	describe('#listStandbyDelegates', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				delegates: [{
@@ -561,9 +538,9 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should list standby delegates', function () {
-			var callback = sinon.spy();
-			var options =  { limit: '1', orderBy: 'rate:asc', offset: 101 };
+		it('should list standby delegates', () => {
+			const callback = sinon.spy();
+			const options = { limit: '1', orderBy: 'rate:asc', offset: 101 };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSK.listStandbyDelegates('1', callback);
@@ -575,8 +552,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#searchDelegateByUsername', function () {
-		var expectedResponse = {
+	describe('#searchDelegateByUsername', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				delegates: [{
@@ -590,9 +567,9 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should find a delegate by name', function () {
-			var callback = sinon.spy();
-			var options = { q: 'oliver' };
+		it('should find a delegate by name', () => {
+			const callback = sinon.spy();
+			const options = { q: 'oliver' };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSK.searchDelegateByUsername('oliver', callback);
@@ -604,8 +581,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listBlocks', function () {
-		var expectedResponse = {
+	describe('#listBlocks', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				blocks: [{
@@ -629,9 +606,9 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should list amount of blocks defined', function () {
-			var callback = sinon.spy();
-			var options = { limit: '1'};
+		it('should list amount of blocks defined', () => {
+			const callback = sinon.spy();
+			const options = { limit: '1' };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSK.listBlocks('1', callback);
@@ -643,17 +620,17 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listForgedBlocks', function () {
-		var expectedResponse = {
+	describe('#listForgedBlocks', () => {
+		const expectedResponse = {
 			body: {
-				success: true
-			}
+				success: true,
+			},
 		};
 
-		it('should list amount of ForgedBlocks', function () {
-			var callback = sinon.spy();
-			var key = '130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0';
-			var options = { generatorPublicKey: key};
+		it('should list amount of ForgedBlocks', () => {
+			const callback = sinon.spy();
+			const key = '130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0';
+			const options = { generatorPublicKey: key };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSK.listForgedBlocks(key, callback);
@@ -665,8 +642,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#getBlock', function () {
-		var expectedResponse = {
+	describe('#getBlock', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				blocks: [{
@@ -691,10 +668,10 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should get a block of certain height', function () {
-			var callback = sinon.spy();
-			var blockId = '2346638';
-			var options = { height: blockId};
+		it('should get a block of certain height', () => {
+			const callback = sinon.spy();
+			const blockId = '2346638';
+			const options = { height: blockId };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSK.getBlock(blockId, callback);
@@ -706,8 +683,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listTransactions', function () {
-		var expectedResponse = {
+	describe('#listTransactions', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				transactions: [{
@@ -732,15 +709,15 @@ describe('Lisk.api()', function () {
 		};
 
 
-		it('should list transactions of a defined account', function () {
-			var callback = sinon.spy();
-			var address = '12731041415715717263L';
-			var options = {
+		it('should list transactions of a defined account', () => {
+			const callback = sinon.spy();
+			const address = '12731041415715717263L';
+			const options = {
 				senderId: address,
 				recipientId: address,
 				limit: '1',
 				offset: '2',
-				orderBy: 'timestamp:desc'
+				orderBy: 'timestamp:desc',
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
@@ -753,8 +730,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#getTransaction', function () {
-		var expectedResponse = {
+	describe('#getTransaction', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				transaction: {
@@ -777,11 +754,11 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should list a defined transaction', function () {
-			var callback = sinon.spy();
-			var transactionId= '7520138931049441691';
-			var options = {
-				id: transactionId
+		it('should list a defined transaction', () => {
+			const callback = sinon.spy();
+			const transactionId = '7520138931049441691';
+			const options = {
+				id: transactionId,
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
@@ -794,8 +771,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listVotes', function () {
-		var expectedResponse = {
+	describe('#listVotes', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				delegates: [{
@@ -813,11 +790,11 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should list votes of an account', function () {
-			var callback = sinon.spy();
-			var address= '16010222169256538112L';
-			var options = {
-				address: address
+		it('should list votes of an account', () => {
+			const callback = sinon.spy();
+			const address = '16010222169256538112L';
+			const options = {
+				address,
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
@@ -830,8 +807,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#listVoters', function () {
-		var expectedResponse = {
+	describe('#listVoters', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				accounts: [{
@@ -843,11 +820,11 @@ describe('Lisk.api()', function () {
 			},
 		};
 
-		it('should list voters of an account', function () {
-			var callback = sinon.spy();
-			var publicKey= '6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a';
-			var options = {
-				publicKey: publicKey
+		it('should list voters of an account', () => {
+			const callback = sinon.spy();
+			const publicKey = '6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a';
+			const options = {
+				publicKey,
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
@@ -860,8 +837,8 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#getAccount', function () {
-		var expectedResponse = {
+	describe('#getAccount', () => {
+		const expectedResponse = {
 			body: {
 				success: true,
 				account: {
@@ -873,16 +850,16 @@ describe('Lisk.api()', function () {
 					secondSignature: 1,
 					secondPublicKey: 'b823d706cec22383f9f10bb5095a66ed909d9224da0707168dad9d1c9cdef29c',
 					multisignatures: [],
-					'u_multisignatures': [],
+					u_multisignatures: [],
 				},
 			},
 		};
 
-		it('should get account information', function () {
-			var callback = sinon.spy();
-			var address= '12731041415715717263L';
-			var options = {
-				address: address
+		it('should get account information', () => {
+			const callback = sinon.spy();
+			const address = '12731041415715717263L';
+			const options = {
+				address,
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(2, expectedResponse);
 
@@ -895,16 +872,16 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#generateAccount', function () {
-		var expectedRessult= {
+	describe('#generateAccount', () => {
+		const expectedRessult = {
 			privateKey:
 				'7683ba873c5e5aa6c12df564a60a93a519e2a5682cf5358a6a5b9ccc70607e96d803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
-			publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497'
+			publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
 		};
 
-		it('should get publicKey', function () {
-			var callback = sinon.spy();
-			var secret = 'dream capable public heart sauce pilot ordinary fever final brand flock boring';
+		it('should get publicKey', () => {
+			const callback = sinon.spy();
+			const secret = 'dream capable public heart sauce pilot ordinary fever final brand flock boring';
 
 			LSK.generateAccount(secret, callback);
 			(callback.called).should.be.true();
@@ -912,34 +889,34 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#sendLSK', function () {
-		var expectedResponse = {
-			body: { success: true, transactionId: '8921031602435581844' }
+	describe('#sendLSK', () => {
+		const expectedResponse = {
+			body: { success: true, transactionId: '8921031602435581844' },
 		};
-		it('should send testnet LSK', function () {
-			var options = {
+		it('should send testnet LSK', () => {
+			const options = {
 				ssl: false,
 				node: '',
 				randomPeer: true,
 				testnet: true,
 				port: testPort,
-				bannedPeers: []
+				bannedPeers: [],
 			};
-			var callback = sinon.spy();
-			var LSKnode = liskApi(options);
-			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
-			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
-			var recipient = '10279923186189318946L';
-			var amount = 100000000;
+			const callback = sinon.spy();
+			const LSKnode = liskApi(options);
+			const secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+			const secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
+			const recipient = '10279923186189318946L';
+			const amount = 100000000;
 			sinon.stub(LSKnode, 'sendRequest').callsArgWith(2, expectedResponse);
 
 			LSKnode.sendLSK(recipient, amount, secret, secondSecret, callback);
 
 			(LSKnode.sendRequest.calledWith('transactions', {
 				recipientId: recipient,
-				amount: amount,
-				secret: secret,
-				secondSecret: secondSecret
+				amount,
+				secret,
+				secondSecret,
 			})).should.be.true();
 
 			(callback.called).should.be.true();
@@ -948,144 +925,134 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('#checkReDial', function () {
-
-		it('should check if all the peers are already banned', function () {
-			var LSK = liskApi();
+	describe('#checkReDial', () => {
+		it('should check if all the peers are already banned', () => {
+			const LSK = liskApi();
 			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
 		});
 
-		it('should be able to get a new node when current one is not reachable', function () {
-			return liskApi({ node: externalNode, randomPeer: true }).sendRequest('blocks/getHeight', {}, function (result) {
-				(result).should.be.type('object');
-			});
-		});
+		it('should be able to get a new node when current one is not reachable', () => liskApi({ node: externalNode, randomPeer: true }).sendRequest('blocks/getHeight', {}, (result) => {
+			(result).should.be.type('object');
+		}));
 
-		it('should recognize that now all the peers are banned for mainnet', function () {
-			var thisLSK = liskApi();
+		it('should recognize that now all the peers are banned for mainnet', () => {
+			const thisLSK = liskApi();
 			thisLSK.bannedPeers = liskApi().defaultPeers;
 
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
 		});
 
-		it('should recognize that now all the peers are banned for testnet', function () {
-			var thisLSK = liskApi({ testnet: true });
+		it('should recognize that now all the peers are banned for testnet', () => {
+			const thisLSK = liskApi({ testnet: true });
 			thisLSK.bannedPeers = liskApi().defaultTestnetPeers;
 
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
 		});
 
-		it('should recognize that now all the peers are banned for ssl', function () {
-			var thisLSK = liskApi({ssl: true});
+		it('should recognize that now all the peers are banned for ssl', () => {
+			const thisLSK = liskApi({ ssl: true });
 			thisLSK.bannedPeers = liskApi().defaultSSLPeers;
 
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
 		});
 
-		it('should stop redial when all the peers are banned already', function () {
-			var thisLSK = liskApi();
+		it('should stop redial when all the peers are banned already', () => {
+			const thisLSK = liskApi();
 			thisLSK.bannedPeers = liskApi().defaultPeers;
 			thisLSK.currentPeer = '';
 
-			return thisLSK.sendRequest('blocks/getHeight').then(function (e) {
+			return thisLSK.sendRequest('blocks/getHeight').then((e) => {
 				(e.message).should.be.equal('could not create http request to any of the given peers');
 			});
 		});
 
-		it('should redial to new node when randomPeer is set true', function () {
-			var thisLSK = liskApi({ randomPeer: true, node: externalNode });
+		it('should redial to new node when randomPeer is set true', () => {
+			const thisLSK = liskApi({ randomPeer: true, node: externalNode });
 
-			return thisLSK.getAccount('12731041415715717263L', function (data) {
+			return thisLSK.getAccount('12731041415715717263L', (data) => {
 				(data).should.be.ok();
 				(data.success).should.be.equal(true);
 			});
 		});
 
-		it('should not redial to new node when randomPeer is set to true but unknown nethash provided', function () {
-			var thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: '123' });
+		it('should not redial to new node when randomPeer is set to true but unknown nethash provided', () => {
+			const thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: '123' });
 
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
 		});
 
-		it('should redial to mainnet nodes when nethash is set and randomPeer is true', function () {
-			var thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511' });
+		it('should redial to mainnet nodes when nethash is set and randomPeer is true', () => {
+			const thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511' });
 
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(true);
 			(thisLSK.testnet).should.be.equal(false);
 		});
 
-		it('should redial to testnet nodes when nethash is set and randomPeer is true', function () {
-			var thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba' });
+		it('should redial to testnet nodes when nethash is set and randomPeer is true', () => {
+			const thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba' });
 
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(true);
 			(thisLSK.testnet).should.be.equal(true);
 		});
 
-		it('should not redial when randomPeer is set false', function () {
-			var thisLSK = liskApi({ randomPeer: false});
+		it('should not redial when randomPeer is set false', () => {
+			const thisLSK = liskApi({ randomPeer: false });
 
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
 		});
 	});
 
-	describe('#sendRequest with promise', function () {
+	describe('#sendRequest with promise', () => {
+		it('should be able to use sendRequest as a promise for GET', () => liskApi().sendRequest('blocks/getHeight', {}).then((result) => {
+			(result).should.be.type('object');
+			(result.success).should.be.equal(true);
+			(result.height).should.be.type('number');
+		}));
 
-		it('should be able to use sendRequest as a promise for GET', function () {
-			return liskApi().sendRequest('blocks/getHeight', {}).then(function (result) {
-				(result).should.be.type('object');
-				(result.success).should.be.equal(true);
-				(result.height).should.be.type('number');
-			});
-		});
+		it('should route the request accordingly when request method is POST but GET can be used', () => liskApi().sendRequest('accounts/open', { secret: defaultSecret }).then((result) => {
+			(result).should.be.type('object');
+			(result.account).should.be.ok();
+		}));
 
-		it('should route the request accordingly when request method is POST but GET can be used', function () {
-			return liskApi().sendRequest('accounts/open', { secret: defaultSecret }).then(function (result) {
-				(result).should.be.type('object');
-				(result.account).should.be.ok();
-			});
-		});
+		it('should respond with error when API call is disabled', () => liskApi().sendRequest('delegates/forging/enable', { secret: defaultSecret }).then((result) => {
+			(result.error).should.be.equal('Forging not available via offlineRequest');
+		}));
 
-		it('should respond with error when API call is disabled', function () {
-			return liskApi().sendRequest('delegates/forging/enable', { secret: defaultSecret }).then(function (result) {
-				(result.error).should.be.equal('Forging not available via offlineRequest');
-			});
-		});
-
-		it('should be able to use sendRequest as a promise for POST', function () {
-			var options = {
+		it('should be able to use sendRequest as a promise for POST', () => {
+			const options = {
 				ssl: false,
 				node: '',
 				randomPeer: true,
 				testnet: true,
 				port: testPort,
-				bannedPeers: []
+				bannedPeers: [],
 			};
 
-			var LSKnode = liskApi(options);
-			var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
-			var secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
-			var recipient = '10279923186189318946L';
-			var amount = 100000000;
+			const LSKnode = liskApi(options);
+			const secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+			const secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
+			const recipient = '10279923186189318946L';
+			const amount = 100000000;
 
-			return LSKnode.sendRequest('transactions', { recipientId: recipient, secret: secret, secondSecret: secondSecret, amount: amount }).then(function (result) {
+			return LSKnode.sendRequest('transactions', { recipientId: recipient, secret, secondSecret, amount }).then((result) => {
 				(result).should.be.type('object');
 				(result).should.be.ok();
 			});
 		});
 
-		it('should retry timestamp in future failures', function () {
-			var thisLSK = liskApi();
-			var successResponse = { body: { success: true } };
-			var futureTimestampResponse = {
-				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' }
+		it('should retry timestamp in future failures', () => {
+			const thisLSK = liskApi();
+			const successResponse = { body: { success: true } };
+			const futureTimestampResponse = {
+				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
 			};
-			var stub = sinon.stub(privateApi, 'sendRequestPromise');
-			var spy = sinon.spy(thisLSK, 'sendRequest');
+			const stub = sinon.stub(privateApi, 'sendRequestPromise');
+			const spy = sinon.spy(thisLSK, 'sendRequest');
 			stub.resolves(futureTimestampResponse);
 			stub.onThirdCall().resolves(successResponse);
 
 			return thisLSK.sendRequest('transactions')
-				.then(function () {
+				.then(() => {
 					(spy.callCount).should.equal(3);
 					(spy.args[1][1]).should.have.property('timeOffset').equal(10);
 					(spy.args[2][1]).should.have.property('timeOffset').equal(20);
@@ -1094,59 +1061,47 @@ describe('Lisk.api()', function () {
 				});
 		});
 
-		it('should not retry timestamp in future failures forever', function () {
-			var thisLSK = liskApi();
-			var futureTimestampResponse = {
-				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' }
+		it('should not retry timestamp in future failures forever', () => {
+			const thisLSK = liskApi();
+			const futureTimestampResponse = {
+				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
 			};
-			var stub = sinon.stub(privateApi, 'sendRequestPromise');
-			var spy = sinon.spy(thisLSK, 'sendRequest');
+			const stub = sinon.stub(privateApi, 'sendRequestPromise');
+			const spy = sinon.spy(thisLSK, 'sendRequest');
 			stub.resolves(futureTimestampResponse);
 
 			return thisLSK.sendRequest('transactions')
-				.then(function (response) {
+				.then((response) => {
 					(response).should.equal(futureTimestampResponse.body);
 					stub.restore();
 					spy.restore();
 				});
 		});
-
 	});
 
-	describe('#listMultisignatureTransactions', function () {
-
-		it('should list all current not signed multisignature transactions', function () {
-			return liskApi().listMultisignatureTransactions(function (result) {
-				(result).should.be.ok();
-				(result).should.be.type('object');
-			});
-		});
+	describe('#listMultisignatureTransactions', () => {
+		it('should list all current not signed multisignature transactions', () => liskApi().listMultisignatureTransactions((result) => {
+			(result).should.be.ok();
+			(result).should.be.type('object');
+		}));
 	});
 
-	describe('#getMultisignatureTransaction', function () {
-
-		it('should get a multisignature transaction by id', function () {
-			return liskApi().getMultisignatureTransaction('123', function (result) {
-				(result).should.be.ok();
-				(result).should.be.type('object');
-			});
-		});
+	describe('#getMultisignatureTransaction', () => {
+		it('should get a multisignature transaction by id', () => liskApi().getMultisignatureTransaction('123', (result) => {
+			(result).should.be.ok();
+			(result).should.be.type('object');
+		}));
 	});
 
-	describe('#broadcastSignedTransaction', function () {
+	describe('#broadcastSignedTransaction', () => {
+		it('should be able to broadcast a finished and signed transaction', () => {
+			const LSKAPI = liskApi({ testnet: true });
+			const amount = 0.001 * Math.pow(10, 8);
+			const transaction = transactionModule.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
 
-		it('should be able to broadcast a finished and signed transaction', function () {
-
-			var LSKAPI = liskApi({testnet: true});
-			var amount = 0.001 * Math.pow(10, 8);
-			var transaction = transactionModule.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
-
-			return LSKAPI.broadcastSignedTransaction(transaction, function (result) {
+			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {
 				(result.success).should.be.true();
 			});
-
 		});
-
 	});
-
 });

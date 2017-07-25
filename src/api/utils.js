@@ -8,7 +8,7 @@ module.exports = {
 	trimObj: function trimObj(obj) {
 		if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
 
-		return Object.keys(obj).reduce(function(acc, key) {
+		return Object.keys(obj).reduce((acc, key) => {
 			acc[key.trim()] = typeof obj[key] === 'string'
 				? obj[key].trim()
 				: Number.isInteger(obj[key])
@@ -23,12 +23,12 @@ module.exports = {
 	 *
 	 * @return query string
 	 */
-	toQueryString: function(obj) {
-		var parts = [];
+	toQueryString(obj) {
+		const parts = [];
 
-		for (var i in obj) {
+		for (const i in obj) {
 			if (obj.hasOwnProperty(i)) {
-				parts.push(encodeURIComponent(i) + '=' + encodeURI(obj[i]));
+				parts.push(`${encodeURIComponent(i)}=${encodeURI(obj[i])}`);
 			}
 		}
 
@@ -43,10 +43,10 @@ module.exports = {
 	 *
 	 * @return obj Object
 	 */
-	extend: function(obj, src) {
+	extend(obj, src) {
 		// clone settings
-		var cloneObj = JSON.parse(JSON.stringify(obj));
-		Object.keys(src).forEach(function(key) { cloneObj[key] = src[key]; });
+		const cloneObj = JSON.parse(JSON.stringify(obj));
+		Object.keys(src).forEach((key) => { cloneObj[key] = src[key]; });
 		return cloneObj;
-	}
+	},
 };

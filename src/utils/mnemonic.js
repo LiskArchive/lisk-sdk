@@ -28,10 +28,10 @@
  * @class mnemonic
  */
 
-var bignum = require('browserify-bignum');
-var crypto = require('crypto-browserify');
-var wordList = require('./words.js');
-var Buffer = require('buffer/').Buffer;
+const bignum = require('browserify-bignum');
+const crypto = require('crypto-browserify');
+const wordList = require('./words.js');
+const Buffer = require('buffer/').Buffer;
 
 /**
  * @method entropyToSha256
@@ -51,17 +51,17 @@ function entropyToSha256(entropy) {
  */
 
 function entropyChecksum(entropy) {
-	var hash = entropyToSha256(entropy);
-	var bits = entropy.length * 8;
-	var cs = bits / 32;
-	var hashbits = bignum.fromBuffer(hash).toString(2);
+	const hash = entropyToSha256(entropy);
+	const bits = entropy.length * 8;
+	const cs = bits / 32;
+	let hashbits = bignum.fromBuffer(hash).toString(2);
 	// zero pad the hash bits
 	while (hashbits.length % 256 !== 0) {
-		hashbits = '0' + hashbits;
+		hashbits = `0${hashbits}`;
 	}
-	var checksum = hashbits.slice(0, cs);
+	const checksum = hashbits.slice(0, cs);
 	return checksum;
-};
+}
 
 /**
  *
@@ -71,19 +71,19 @@ function entropyChecksum(entropy) {
  */
 
 function generate() {
-	var entropy = crypto.randomBytes(16);
-	var bin = '';
-	var mnemonic = [];
+	const entropy = crypto.randomBytes(16);
+	let bin = '';
+	const mnemonic = [];
 	for (var i = 0; i < entropy.length; i++) {
-		bin = bin + ('00000000' + entropy[i].toString(2)).slice(-8);
+		bin += (`00000000${entropy[i].toString(2)}`).slice(-8);
 	}
-	bin = bin + entropyChecksum(entropy);
+	bin += entropyChecksum(entropy);
 	for (i = 0; i < bin.length / 11; i++) {
-		var wi = parseInt(bin.slice(i * 11, (i + 1) * 11), 2);
+		const wi = parseInt(bin.slice(i * 11, (i + 1) * 11), 2);
 		mnemonic.push(wordList[wi]);
 	}
 	return mnemonic.join(' ');
-};
+}
 
 /**
  * @method isValid
@@ -93,29 +93,29 @@ function generate() {
  */
 
 function isValid(mnemonic) {
-	var words = mnemonic.split(' ');
-	var bin = '';
+	const words = mnemonic.split(' ');
+	let bin = '';
 	if (words.length !== 12) {
 		return false;
 	}
 	for (var i = 0; i < words.length; i++) {
-		var ind = wordList.indexOf(words[i]);
+		const ind = wordList.indexOf(words[i]);
 		if (ind < 0) return false;
-		bin = bin + ('00000000000' + ind.toString(2)).slice(-11);
+		bin += (`00000000000${ind.toString(2)}`).slice(-11);
 	}
 
-	var cs = bin.length / 33;
-	var hashBits = bin.slice(-cs);
-	var nonhashBits = bin.slice(0, bin.length - cs);
-	var buf = Buffer.alloc(nonhashBits.length / 8);
+	const cs = bin.length / 33;
+	const hashBits = bin.slice(-cs);
+	const nonhashBits = bin.slice(0, bin.length - cs);
+	const buf = Buffer.alloc(nonhashBits.length / 8);
 	for (i = 0; i < nonhashBits.length / 8; i++) {
 		buf.writeUInt8(parseInt(bin.slice(i * 8, (i + 1) * 8), 2), i);
 	}
-	var expectedHashBits = entropyChecksum(buf);
+	const expectedHashBits = entropyChecksum(buf);
 	return expectedHashBits === hashBits;
-};
+}
 
 module.exports = {
-	generate: generate,
-	isValid: isValid,
+	generate,
+	isValid,
 };

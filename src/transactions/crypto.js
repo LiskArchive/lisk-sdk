@@ -17,11 +17,11 @@
  * @class crypto
  */
 
-var crypto = require('crypto-browserify');
-var constants = require('../constants.js');
+const crypto = require('crypto-browserify');
+const constants = require('../constants.js');
 
-var ByteBuffer = require('bytebuffer');
-var bignum = require('browserify-bignum');
+const ByteBuffer = require('bytebuffer');
+const bignum = require('browserify-bignum');
 
 /**
  * @method getTransactionBytes
@@ -29,17 +29,16 @@ var bignum = require('browserify-bignum');
  * @return {object}
  */
 
-function getTransactionBytes (transaction) {
-
+function getTransactionBytes(transaction) {
 	/**
 	 * @method isSendTransaction
 	 * @return {object}
 	 */
 
-	function isSendTransaction () {
+	function isSendTransaction() {
 		return {
 			assetBytes: null,
-			assetSize: 0
+			assetSize: 0,
 		};
 	}
 
@@ -48,21 +47,21 @@ function getTransactionBytes (transaction) {
 	 * @return {object}
 	 */
 
-	function isSignatureTransaction () {
-		var bb = new ByteBuffer(32, true);
-		var publicKey = transaction.asset.signature.publicKey;
-		var publicKeyBuffer = Buffer.from(publicKey, 'hex');
+	function isSignatureTransaction() {
+		const bb = new ByteBuffer(32, true);
+		const publicKey = transaction.asset.signature.publicKey;
+		const publicKeyBuffer = Buffer.from(publicKey, 'hex');
 
-		for (var i = 0; i < publicKeyBuffer.length; i++) {
+		for (let i = 0; i < publicKeyBuffer.length; i++) {
 			bb.writeByte(publicKeyBuffer[i]);
 		}
 
 		bb.flip();
-		var signatureBytes = new Uint8Array(bb.toArrayBuffer());
+		const signatureBytes = new Uint8Array(bb.toArrayBuffer());
 
 		return {
 			assetBytes: signatureBytes,
-			assetSize: 32
+			assetSize: 32,
 		};
 	}
 
@@ -71,10 +70,10 @@ function getTransactionBytes (transaction) {
 	 * @return {object}
 	 */
 
-	function isDelegateTransaction () {
+	function isDelegateTransaction() {
 		return {
 			assetBytes: Buffer.from(transaction.asset.delegate.username),
-			assetSize: Buffer.from(transaction.asset.delegate.username).length
+			assetSize: Buffer.from(transaction.asset.delegate.username).length,
 		};
 	}
 
@@ -83,12 +82,12 @@ function getTransactionBytes (transaction) {
 	 * @return {object}
 	 */
 
-	function isVoteTransaction () {
-		var voteTransactionBytes = (Buffer.from(transaction.asset.votes.join('')) || null);
+	function isVoteTransaction() {
+		const voteTransactionBytes = (Buffer.from(transaction.asset.votes.join('')) || null);
 
 		return {
 			assetBytes: voteTransactionBytes,
-			assetSize: (voteTransactionBytes.length || 0)
+			assetSize: (voteTransactionBytes.length || 0),
 		};
 	}
 
@@ -97,25 +96,25 @@ function getTransactionBytes (transaction) {
 	 * @return {object}
 	 */
 
-	function isMultisignatureTransaction () {
-		var MINSIGNATURES = 1;
-		var LIFETIME = 1;
-		var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
+	function isMultisignatureTransaction() {
+		const MINSIGNATURES = 1;
+		const LIFETIME = 1;
+		const keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
 
-		var bb = new ByteBuffer(MINSIGNATURES + LIFETIME + keysgroupBuffer.length, true);
+		const bb = new ByteBuffer(MINSIGNATURES + LIFETIME + keysgroupBuffer.length, true);
 		bb.writeByte(transaction.asset.multisignature.min);
 		bb.writeByte(transaction.asset.multisignature.lifetime);
-		for (var i = 0; i < keysgroupBuffer.length; i++) {
+		for (let i = 0; i < keysgroupBuffer.length; i++) {
 			bb.writeByte(keysgroupBuffer[i]);
 		}
 		bb.flip();
 
 		bb.toBuffer();
-		var multiSigBuffer = new Uint8Array(bb.toArrayBuffer());
+		const multiSigBuffer = new Uint8Array(bb.toArrayBuffer());
 
 		return {
 			assetBytes: multiSigBuffer,
-			assetSize: multiSigBuffer.length
+			assetSize: multiSigBuffer.length,
 		};
 	}
 
@@ -124,17 +123,17 @@ function getTransactionBytes (transaction) {
 	 * @return {object}
 	 */
 
-	function isDappTransaction () {
-		var dapp = transaction.asset.dapp;
-		var buf = Buffer.from(dapp.name);
+	function isDappTransaction() {
+		const dapp = transaction.asset.dapp;
+		let buf = Buffer.from(dapp.name);
 
 		if (dapp.description) {
-			var descriptionBuf = Buffer.from(dapp.description);
+			const descriptionBuf = Buffer.from(dapp.description);
 			buf = Buffer.concat([buf, descriptionBuf]);
 		}
 
 		if (dapp.tags) {
-			var tagsBuf = Buffer.from(dapp.tags);
+			const tagsBuf = Buffer.from(dapp.tags);
 			buf = Buffer.concat([buf, tagsBuf]);
 		}
 
@@ -146,7 +145,7 @@ function getTransactionBytes (transaction) {
 			buf = Buffer.concat([buf, Buffer.from(dapp.icon)]);
 		}
 
-		var bb = new ByteBuffer(4 + 4, true);
+		const bb = new ByteBuffer(4 + 4, true);
 		bb.writeInt(dapp.type);
 		bb.writeInt(dapp.category);
 		bb.flip();
@@ -155,7 +154,7 @@ function getTransactionBytes (transaction) {
 
 		return {
 			assetBytes: buf,
-			assetSize: buf.length
+			assetSize: buf.length,
 		};
 	}
 
@@ -164,12 +163,12 @@ function getTransactionBytes (transaction) {
 	 * @return {object}
 	 */
 
-	function isDappInTransferTransaction () {
-		var buf = Buffer.from(transaction.asset.inTransfer.dappId);
+	function isDappInTransferTransaction() {
+		const buf = Buffer.from(transaction.asset.inTransfer.dappId);
 
 		return {
 			assetBytes: buf,
-			assetSize: buf.length
+			assetSize: buf.length,
 		};
 	}
 
@@ -178,14 +177,14 @@ function getTransactionBytes (transaction) {
 	 * @return {object}
 	 */
 
-	function isDappOutTransferTransaction () {
-		var dappBuf = Buffer.from(transaction.asset.outTransfer.dappId);
-		var transactionBuf = Buffer.from(transaction.asset.outTransfer.transactionId);
-		var buf = Buffer.concat([dappBuf, transactionBuf]);
+	function isDappOutTransferTransaction() {
+		const dappBuf = Buffer.from(transaction.asset.outTransfer.dappId);
+		const transactionBuf = Buffer.from(transaction.asset.outTransfer.transactionId);
+		const buf = Buffer.concat([dappBuf, transactionBuf]);
 
 		return {
 			assetBytes: buf,
-			assetSize: buf.length
+			assetSize: buf.length,
 		};
 	}
 
@@ -196,15 +195,15 @@ function getTransactionBytes (transaction) {
 	 * @type object
 	 */
 
-	var transactionType = {
-		'0': isSendTransaction,
-		'1': isSignatureTransaction,
-		'2': isDelegateTransaction,
-		'3': isVoteTransaction,
-		'4': isMultisignatureTransaction,
-		'5': isDappTransaction,
-		'6': isDappInTransferTransaction,
-		'7': isDappOutTransferTransaction,
+	const transactionType = {
+		0: isSendTransaction,
+		1: isSignatureTransaction,
+		2: isDelegateTransaction,
+		3: isVoteTransaction,
+		4: isMultisignatureTransaction,
+		5: isDappTransaction,
+		6: isDappInTransferTransaction,
+		7: isDappOutTransferTransaction,
 	};
 
 	return transactionType[transaction.type]();
@@ -217,14 +216,13 @@ function getTransactionBytes (transaction) {
  * @return {buffer}
  */
 
-function createTransactionBuffer (transaction, options) {
-	function assignHexToTransactionBytes (partTransactionBuffer, hexValue) {
-		var hexBuffer = Buffer.from(hexValue, 'hex');
-		for (var i = 0; i < hexBuffer.length; i++) {
+function createTransactionBuffer(transaction, options) {
+	function assignHexToTransactionBytes(partTransactionBuffer, hexValue) {
+		const hexBuffer = Buffer.from(hexValue, 'hex');
+		for (let i = 0; i < hexBuffer.length; i++) {
 			partTransactionBuffer.writeByte(hexBuffer[i]);
 		}
 		return partTransactionBuffer;
-
 	}
 
 	/**
@@ -233,8 +231,8 @@ function createTransactionBuffer (transaction, options) {
 	 * @return {buffer}
 	 */
 
-	function createEmptyTransactionBuffer (assetSize) {
-		var typeSizes = {
+	function createEmptyTransactionBuffer(assetSize) {
+		const typeSizes = {
 			TRANSACTION_TYPE: 1,
 			TIMESTAMP: 4,
 			MULTISIGNATURE_PUBLICKEY: 32,
@@ -242,12 +240,12 @@ function createTransactionBuffer (transaction, options) {
 			AMOUNT: 8,
 			SIGNATURE_TRANSACTION: 64,
 			SECOND_SIGNATURE_TRANSACTION: 64,
-			DATA: 64
+			DATA: 64,
 		};
 
-		var totalBytes = 0;
+		let totalBytes = 0;
 
-		for (var key in typeSizes) {
+		for (const key in typeSizes) {
 			if (typeSizes.hasOwnProperty(key)) {
 				totalBytes += typeSizes[key];
 			}
@@ -264,7 +262,7 @@ function createTransactionBuffer (transaction, options) {
 	 * @return {buffer}
 	 */
 
-	function assignTransactionBuffer (transactionBuffer, assetSize, assetBytes) {
+	function assignTransactionBuffer(transactionBuffer, assetSize, assetBytes) {
 		transactionBuffer.writeInt8(transaction.type);
 		transactionBuffer.writeInt(transaction.timestamp);
 
@@ -275,8 +273,8 @@ function createTransactionBuffer (transaction, options) {
 		}
 
 		if (transaction.recipientId) {
-			var recipient = transaction.recipientId.slice(0, -1);
-			recipient = bignum(recipient).toBuffer({size: 8});
+			let recipient = transaction.recipientId.slice(0, -1);
+			recipient = bignum(recipient).toBuffer({ size: 8 });
 
 			for (var i = 0; i < 8; i++) {
 				transactionBuffer.writeByte(recipient[i] || 0);
@@ -289,7 +287,7 @@ function createTransactionBuffer (transaction, options) {
 		transactionBuffer.writeLong(transaction.amount);
 
 		if (transaction.data) {
-			var dataBuffer = Buffer.from(transaction.data);
+			const dataBuffer = Buffer.from(transaction.data);
 			for (i = 0; i < dataBuffer.length; i++) {
 				transactionBuffer.writeByte(dataBuffer[i]);
 			}
@@ -301,7 +299,7 @@ function createTransactionBuffer (transaction, options) {
 			}
 		}
 
-		if(options !== 'multisignature') {
+		if (options !== 'multisignature') {
 			if (transaction.signature) {
 				assignHexToTransactionBytes(transactionBuffer, transaction.signature);
 			}
@@ -312,8 +310,8 @@ function createTransactionBuffer (transaction, options) {
 		}
 
 		transactionBuffer.flip();
-		var arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
-		var buffer = [];
+		const arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
+		const buffer = [];
 
 		for (var i = 0; i < arrayBuffer.length; i++) {
 			buffer[i] = arrayBuffer[i];
@@ -323,12 +321,12 @@ function createTransactionBuffer (transaction, options) {
 	}
 
 	// Get Transaction Size and Bytes
-	var transactionAssetSizeBuffer = getTransactionBytes(transaction);
-	var assetSize = transactionAssetSizeBuffer.assetSize;
-	var assetBytes = transactionAssetSizeBuffer.assetBytes;
+	const transactionAssetSizeBuffer = getTransactionBytes(transaction);
+	const assetSize = transactionAssetSizeBuffer.assetSize;
+	const assetBytes = transactionAssetSizeBuffer.assetBytes;
 
-	var emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
-	var assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer, assetSize, assetBytes);
+	const emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
+	const assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer, assetSize, assetBytes);
 
 	return assignedTransactionBuffer;
 }
@@ -340,7 +338,7 @@ function createTransactionBuffer (transaction, options) {
  * @return {buffer}
  */
 
-function getBytes (transaction, options) {
+function getBytes(transaction, options) {
 	return createTransactionBuffer(transaction, options);
 }
 
@@ -351,14 +349,14 @@ function getBytes (transaction, options) {
  * @return {string}
  */
 
-function getId (transaction) {
-	var hash = crypto.createHash('sha256').update(getBytes(transaction).toString('hex'), 'hex').digest();
-	var temp = Buffer.alloc(8);
-	for (var i = 0; i < 8; i++) {
+function getId(transaction) {
+	const hash = crypto.createHash('sha256').update(getBytes(transaction).toString('hex'), 'hex').digest();
+	const temp = Buffer.alloc(8);
+	for (let i = 0; i < 8; i++) {
 		temp[i] = hash[7 - i];
 	}
 
-	var id = bignum.fromBuffer(temp).toString();
+	const id = bignum.fromBuffer(temp).toString();
 	return id;
 }
 
@@ -369,8 +367,8 @@ function getId (transaction) {
  * @return {string}
  */
 
-function getHash (transaction) {
-	var bytes = getBytes(transaction);
+function getHash(transaction) {
+	const bytes = getBytes(transaction);
 	return crypto.createHash('sha256').update(bytes).digest();
 }
 
@@ -381,7 +379,7 @@ function getHash (transaction) {
  * @return {number}
  */
 
-function getFee (transaction) {
+function getFee(transaction) {
 	return constants.fee[transaction.type];
 }
 
@@ -393,9 +391,9 @@ function getFee (transaction) {
  * @return {string}
  */
 
-function sign (transaction, keys) {
-	var hash = getHash(transaction);
-	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
+function sign(transaction, keys) {
+	const hash = getHash(transaction);
+	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
 
 	if (!transaction.signature) {
 		transaction.signature = Buffer.from(signature).toString('hex');
@@ -412,9 +410,9 @@ function sign (transaction, keys) {
  * @return {string}
  */
 
-function secondSign (transaction, keys) {
-	var hash = getHash(transaction);
-	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
+function secondSign(transaction, keys) {
+	const hash = getHash(transaction);
+	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
 	transaction.signSignature = Buffer.from(signature).toString('hex');
 }
 
@@ -426,10 +424,10 @@ function secondSign (transaction, keys) {
  * @return {string}
  */
 
-function multiSign (transaction, keys) {
-	var bytes = getBytes(transaction, 'multisignature');
-	var hash = crypto.createHash('sha256').update(bytes).digest();
-	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
+function multiSign(transaction, keys) {
+	const bytes = getBytes(transaction, 'multisignature');
+	const hash = crypto.createHash('sha256').update(bytes).digest();
+	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
 
 	return Buffer.from(signature).toString('hex');
 }
@@ -441,25 +439,25 @@ function multiSign (transaction, keys) {
  * @return {boolean}
  */
 
-function verify (transaction) {
-	var remove = 64;
+function verify(transaction) {
+	let remove = 64;
 
 	if (transaction.signSignature) {
 		remove = 128;
 	}
 
-	var bytes = getBytes(transaction);
-	var data2 = Buffer.alloc(bytes.length - remove);
+	const bytes = getBytes(transaction);
+	const data2 = Buffer.alloc(bytes.length - remove);
 
-	for (var i = 0; i < data2.length; i++) {
+	for (let i = 0; i < data2.length; i++) {
 		data2[i] = bytes[i];
 	}
 
-	var hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
+	const hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
 
-	var signatureBuffer = Buffer.from(transaction.signature, 'hex');
-	var senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
-	var res = naclInstance.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
+	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
+	const senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
+	const res = naclInstance.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
 
 	return res;
 }
@@ -472,19 +470,19 @@ function verify (transaction) {
  * @return {boolean}
  */
 
-function verifySecondSignature (transaction, publicKey) {
-	var bytes = getBytes(transaction);
-	var data2 = Buffer.alloc(bytes.length - 64);
+function verifySecondSignature(transaction, publicKey) {
+	const bytes = getBytes(transaction);
+	const data2 = Buffer.alloc(bytes.length - 64);
 
-	for (var i = 0; i < data2.length; i++) {
+	for (let i = 0; i < data2.length; i++) {
 		data2[i] = bytes[i];
 	}
 
-	var hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
+	const hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
 
-	var signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
-	var publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	var res = naclInstance.crypto_sign_verify_detached(signSignatureBuffer, hash, publicKeyBuffer);
+	const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
+	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+	const res = naclInstance.crypto_sign_verify_detached(signSignatureBuffer, hash, publicKeyBuffer);
 
 	return res;
 }
@@ -496,13 +494,13 @@ function verifySecondSignature (transaction, publicKey) {
  * @return {object}
  */
 
-function getKeys (secret) {
-	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
-	var keypair = naclInstance.crypto_sign_keypair_from_seed(hash);
+function getKeys(secret) {
+	const hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
+	const keypair = naclInstance.crypto_sign_keypair_from_seed(hash);
 
 	return {
-		publicKey : Buffer.from(keypair.signPk).toString('hex'),
-		privateKey : Buffer.from(keypair.signSk).toString('hex')
+		publicKey: Buffer.from(keypair.signPk).toString('hex'),
+		privateKey: Buffer.from(keypair.signSk).toString('hex'),
 	};
 }
 
@@ -513,32 +511,32 @@ function getKeys (secret) {
  * @return {hex publicKey}
  */
 
-function getAddress (publicKey) {
-	var publicKeyHash = crypto.createHash('sha256').update(publicKey.toString('hex'), 'hex').digest();
-	var temp = Buffer.alloc(8);
+function getAddress(publicKey) {
+	const publicKeyHash = crypto.createHash('sha256').update(publicKey.toString('hex'), 'hex').digest();
+	const temp = Buffer.alloc(8);
 
-	for (var i = 0; i < 8; i++) {
+	for (let i = 0; i < 8; i++) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	var address = bignum.fromBuffer(temp).toString() + 'L';
+	const address = `${bignum.fromBuffer(temp).toString()}L`;
 	return address;
 }
 
-var cryptoModule = require('./crypto/index');
+const cryptoModule = require('./crypto/index');
 
 module.exports = {
-	getBytes: getBytes,
-	getHash: getHash,
-	getId: getId,
-	getFee: getFee,
-	sign: sign,
-	secondSign: secondSign,
-	multiSign: multiSign,
-	getKeys: getKeys,
-	getAddress: getAddress,
-	verify: verify,
-	verifySecondSignature: verifySecondSignature,
+	getBytes,
+	getHash,
+	getId,
+	getFee,
+	sign,
+	secondSign,
+	multiSign,
+	getKeys,
+	getAddress,
+	verify,
+	verifySecondSignature,
 
 	bufferToHex: cryptoModule.bufferToHex,
 	hexToBuffer: cryptoModule.hexToBuffer,
@@ -557,5 +555,5 @@ module.exports = {
 	convertPrivateKeyEd2Curve: cryptoModule.convertPrivateKeyEd2Curve,
 	toAddress: cryptoModule.toAddress,
 	signMessageWithTwoSecrets: cryptoModule.signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys: cryptoModule.verifyMessageWithTwoPublicKeys
+	verifyMessageWithTwoPublicKeys: cryptoModule.verifyMessageWithTwoPublicKeys,
 };

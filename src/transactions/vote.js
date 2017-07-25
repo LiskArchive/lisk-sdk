@@ -17,9 +17,9 @@
  * @class vote
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+const crypto = require('./crypto.js');
+const constants = require('../constants.js');
+const slots = require('../time/slots.js');
 
 /**
  * @method createVote
@@ -31,10 +31,10 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createVote (secret, delegates, secondSecret, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createVote(secret, delegates, secondSecret, timeOffset) {
+	const keys = crypto.getKeys(secret);
 
-	var transaction = {
+	const transaction = {
 		type: 3,
 		amount: 0,
 		fee: constants.fees.vote,
@@ -42,14 +42,14 @@ function createVote (secret, delegates, secondSecret, timeOffset) {
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			votes: delegates
-		}
+			votes: delegates,
+		},
 	};
 
 	crypto.sign(transaction, keys);
 
 	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
+		const secondKeys = crypto.getKeys(secondSecret);
 		crypto.secondSign(transaction, secondKeys);
 	}
 
@@ -59,5 +59,5 @@ function createVote (secret, delegates, secondSecret, timeOffset) {
 }
 
 module.exports = {
-	createVote: createVote
+	createVote,
 };

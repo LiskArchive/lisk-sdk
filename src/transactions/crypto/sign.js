@@ -13,165 +13,160 @@
  *
  */
 
-var ed2curve = require('ed2curve');
-var convert = require('./convert');
-var keys = require('./keys');
+const ed2curve = require('ed2curve');
+const convert = require('./convert');
+const keys = require('./keys');
 
-function signMessageWithSecret (message, secret) {
-	var msgBytes = naclInstance.encode_utf8(message);
-	var keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
+function signMessageWithSecret(message, secret) {
+	const msgBytes = naclInstance.encode_utf8(message);
+	const keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
 
-	var signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
-	var hexSignedMessage = convert.bufferToHex(signedMessage);
+	const signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
+	const hexSignedMessage = convert.bufferToHex(signedMessage);
 
 	return hexSignedMessage;
 }
 
-function signMessageWithTwoSecrets (message, secret, secondSecret) {
-	var msgBytes = naclInstance.encode_utf8(message);
-	var keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
-	var secondKeypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secondSecret);
+function signMessageWithTwoSecrets(message, secret, secondSecret) {
+	const msgBytes = naclInstance.encode_utf8(message);
+	const keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
+	const secondKeypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secondSecret);
 
-	var signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
-	var doubleSignedMessage =  naclInstance.crypto_sign(signedMessage, secondKeypairBytes.privateKey);
+	const signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
+	const doubleSignedMessage = naclInstance.crypto_sign(signedMessage, secondKeypairBytes.privateKey);
 
-	var hexSignedMessage = convert.bufferToHex(doubleSignedMessage);
+	const hexSignedMessage = convert.bufferToHex(doubleSignedMessage);
 
 	return hexSignedMessage;
-
 }
 
-function verifyMessageWithTwoPublicKeys (signedMessage, publicKey, secondPublicKey) {
-	var signedMessageBytes = convert.hexToBuffer(signedMessage);
-	var publicKeyBytes = convert.hexToBuffer(publicKey);
-	var secondPublicKeyBytes = convert.hexToBuffer(secondPublicKey);
+function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondPublicKey) {
+	const signedMessageBytes = convert.hexToBuffer(signedMessage);
+	const publicKeyBytes = convert.hexToBuffer(publicKey);
+	const secondPublicKeyBytes = convert.hexToBuffer(secondPublicKey);
 
 	if (publicKeyBytes.length !== 32) {
 		throw new Error('Invalid first publicKey, expected 32-byte publicKey');
 	}
 
-	if(secondPublicKeyBytes.length !== 32) {
+	if (secondPublicKeyBytes.length !== 32) {
 		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
 	}
 
 	// Give appropriate error messages from crypto_sign_open
-	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, secondPublicKeyBytes);
+	const openSignature = naclInstance.crypto_sign_open(signedMessageBytes, secondPublicKeyBytes);
 
 	if (openSignature) {
+		const openSecondSignature = naclInstance.crypto_sign_open(openSignature, publicKeyBytes);
 
-		var openSecondSignature = naclInstance.crypto_sign_open(openSignature, publicKeyBytes);
-
-		if(openSecondSignature) {
+		if (openSecondSignature) {
 			// Returns original message
 			return naclInstance.decode_utf8(openSecondSignature);
-		} else {
-			throw new Error('Invalid signature second publicKey, cannot verify message');
 		}
-
+		throw new Error('Invalid signature second publicKey, cannot verify message');
 	} else {
 		throw new Error('Invalid signature primary publicKey, cannot verify message');
 	}
 }
 
 
-function signAndPrintMessage (message, secret) {
-	var signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
-	var messageHeader = '-----MESSAGE-----';
-	var plainMessage = message;
-	var pubklicKeyHeader = '-----PUBLIC KEY-----';
-	var publicKey = keys.getPrivateAndPublicKeyFromSecret(secret).publicKey;
-	var signatureHeader = '-----SIGNATURE-----';
-	var signedMessage = signMessageWithSecret(message, secret);
-	var signatureFooter = '-----END LISK SIGNED MESSAGE-----';
+function signAndPrintMessage(message, secret) {
+	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
+	const messageHeader = '-----MESSAGE-----';
+	const plainMessage = message;
+	const pubklicKeyHeader = '-----PUBLIC KEY-----';
+	const publicKey = keys.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+	const signatureHeader = '-----SIGNATURE-----';
+	const signedMessage = signMessageWithSecret(message, secret);
+	const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
-	var outputArray = [
-		signedMessageHeader, messageHeader, plainMessage, pubklicKeyHeader, publicKey, signatureHeader, signedMessage, signatureFooter
+	const outputArray = [
+		signedMessageHeader, messageHeader, plainMessage, pubklicKeyHeader, publicKey, signatureHeader, signedMessage, signatureFooter,
 	];
 
 	return outputArray.join('\n');
 }
 
-function printSignedMessage (message, signedMessage, publicKey) {
-	var signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
-	var messageHeader = '-----MESSAGE-----';
-	var plainMessage = message;
-	var publicKeyHeader = '-----PUBLIC KEY-----';
-	var printPublicKey = publicKey;
-	var signatureHeader = '-----SIGNATURE-----';
-	var printSignedMessage = signedMessage;
-	var signatureFooter = '-----END LISK SIGNED MESSAGE-----';
+function printSignedMessage(message, signedMessage, publicKey) {
+	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
+	const messageHeader = '-----MESSAGE-----';
+	const plainMessage = message;
+	const publicKeyHeader = '-----PUBLIC KEY-----';
+	const printPublicKey = publicKey;
+	const signatureHeader = '-----SIGNATURE-----';
+	const printSignedMessage = signedMessage;
+	const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
-	var outputArray = [
-		signedMessageHeader, messageHeader, plainMessage, publicKeyHeader, printPublicKey, signatureHeader, printSignedMessage, signatureFooter
+	const outputArray = [
+		signedMessageHeader, messageHeader, plainMessage, publicKeyHeader, printPublicKey, signatureHeader, printSignedMessage, signatureFooter,
 	];
 
 	return outputArray.join('\n');
 }
 
-function verifyMessageWithPublicKey (signedMessage, publicKey) {
-	var signedMessageBytes = convert.hexToBuffer(signedMessage);
-	var publicKeyBytes = convert.hexToBuffer(publicKey);
+function verifyMessageWithPublicKey(signedMessage, publicKey) {
+	const signedMessageBytes = convert.hexToBuffer(signedMessage);
+	const publicKeyBytes = convert.hexToBuffer(publicKey);
 
 	if (publicKeyBytes.length !== 32) {
 		throw new Error('Invalid publicKey, expected 32-byte publicKey');
 	}
 
 	// Give appropriate error messages from crypto_sign_open
-	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+	const openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
 
 	if (openSignature) {
 		// Returns original message
 		return naclInstance.decode_utf8(openSignature);
-	} else {
-		throw new Error('Invalid signature publicKey combination, cannot verify message');
 	}
+	throw new Error('Invalid signature publicKey combination, cannot verify message');
 }
 
-function convertPublicKeyEd2Curve (publicKey) {
+function convertPublicKeyEd2Curve(publicKey) {
 	return ed2curve.convertPublicKey(publicKey);
 }
 
-function convertPrivateKeyEd2Curve (privateKey) {
+function convertPrivateKeyEd2Curve(privateKey) {
 	return ed2curve.convertSecretKey(privateKey);
 }
 
-function encryptMessageWithSecret (message, secret, recipientPublicKey) {
-	var senderPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
-	var recipientPublicKeyBytes = convert.hexToBuffer(recipientPublicKey);
+function encryptMessageWithSecret(message, secret, recipientPublicKey) {
+	const senderPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	const recipientPublicKeyBytes = convert.hexToBuffer(recipientPublicKey);
 	var message = naclInstance.encode_utf8(message);
 
-	var nonce = naclInstance.crypto_box_random_nonce();
-	var packet = naclInstance.crypto_box(message, nonce, convertPublicKeyEd2Curve(recipientPublicKeyBytes), convertPrivateKeyEd2Curve(senderPrivateKey));
+	const nonce = naclInstance.crypto_box_random_nonce();
+	const packet = naclInstance.crypto_box(message, nonce, convertPublicKeyEd2Curve(recipientPublicKeyBytes), convertPrivateKeyEd2Curve(senderPrivateKey));
 
-	var nonceHex = convert.bufferToHex(nonce);
-	var encryptedMessage = convert.bufferToHex(packet);
+	const nonceHex = convert.bufferToHex(nonce);
+	const encryptedMessage = convert.bufferToHex(packet);
 
 	return {
 		nonce: nonceHex,
-		encryptedMessage: encryptedMessage
+		encryptedMessage,
 	};
 }
 
-function decryptMessageWithSecret (packet, nonce, secret, senderPublicKey) {
-	var recipientPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
-	var senderPublicKeyBytes = convert.hexToBuffer(senderPublicKey);
-	var packetBytes = convert.hexToBuffer(packet);
-	var nonceBytes = convert.hexToBuffer(nonce);
+function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
+	const recipientPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	const senderPublicKeyBytes = convert.hexToBuffer(senderPublicKey);
+	const packetBytes = convert.hexToBuffer(packet);
+	const nonceBytes = convert.hexToBuffer(nonce);
 
-	var decoded = naclInstance.crypto_box_open(packetBytes, nonceBytes, convertPublicKeyEd2Curve(senderPublicKeyBytes), convertPrivateKeyEd2Curve(recipientPrivateKey));
+	const decoded = naclInstance.crypto_box_open(packetBytes, nonceBytes, convertPublicKeyEd2Curve(senderPublicKeyBytes), convertPrivateKeyEd2Curve(recipientPrivateKey));
 
 	return naclInstance.decode_utf8(decoded);
 }
 
 module.exports = {
-	verifyMessageWithPublicKey: verifyMessageWithPublicKey,
-	signMessageWithSecret: signMessageWithSecret,
-	printSignedMessage: printSignedMessage,
-	signAndPrintMessage: signAndPrintMessage,
-	encryptMessageWithSecret: encryptMessageWithSecret,
-	decryptMessageWithSecret: decryptMessageWithSecret,
-	convertPublicKeyEd2Curve: convertPublicKeyEd2Curve,
-	convertPrivateKeyEd2Curve: convertPrivateKeyEd2Curve,
-	signMessageWithTwoSecrets: signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys: verifyMessageWithTwoPublicKeys
+	verifyMessageWithPublicKey,
+	signMessageWithSecret,
+	printSignedMessage,
+	signAndPrintMessage,
+	encryptMessageWithSecret,
+	decryptMessageWithSecret,
+	convertPublicKeyEd2Curve,
+	convertPrivateKeyEd2Curve,
+	signMessageWithTwoSecrets,
+	verifyMessageWithTwoPublicKeys,
 };

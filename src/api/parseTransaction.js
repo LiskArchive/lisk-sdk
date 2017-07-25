@@ -13,7 +13,7 @@
  *
  */
 
-var LiskJS = {};
+const LiskJS = {};
 LiskJS.crypto = require('../transactions/crypto');
 LiskJS.dapp = require('../transactions/dapp');
 LiskJS.multisignature = require('../transactions/multisignature');
@@ -32,7 +32,7 @@ LiskJS.vote = require('../transactions/vote');
  * @main lisk
  */
 
-function ParseOfflineRequest (requestType, options) {
+function ParseOfflineRequest(requestType, options) {
 	if (!(this instanceof ParseOfflineRequest)) {
 		return new ParseOfflineRequest(requestType, options);
 	}
@@ -71,8 +71,8 @@ ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, optio
 ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 	requestType = this.checkDoubleNamedAPI(requestType, this.options);
 
-	var requestMethod;
-	var requestIdentification =  {
+	let requestMethod;
+	const requestIdentification = {
 		'accounts/open': 'POST',
 		'accounts/generatePublicKey': 'POST',
 		'delegates/forging/enable': 'NOACTION',
@@ -83,11 +83,11 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 		'dapps/stop': 'NOACTION',
 		'multisignatures/sign': 'POST',
 		'accounts/delegates': 'PUT',
-		'transactions': 'PUT',
-		'signatures': 'PUT',
-		'delegates': 'PUT',
-		'dapps': 'PUT',
-		'multisignatures': 'POST'
+		transactions: 'PUT',
+		signatures: 'PUT',
+		delegates: 'PUT',
+		dapps: 'PUT',
+		multisignatures: 'POST',
 	};
 
 	if (!requestIdentification[requestType]) {
@@ -107,22 +107,22 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 
 ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 	if (this.options && this.options.hasOwnProperty('secret')) {
-		var accountKeys = LiskJS.crypto.getKeys(this.options['secret']);
+		const accountKeys = LiskJS.crypto.getKeys(this.options.secret);
 		var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
 	}
 
-	var OfflineRequestThis = this;
-	var requestIdentification =  {
+	const OfflineRequestThis = this;
+	const requestIdentification = {
 		'accounts/open': function () {
 			return {
 				requestMethod: 'GET',
-				requestUrl: 'accounts?address='+accountAddress
+				requestUrl: `accounts?address=${accountAddress}`,
 			};
 		},
 		'accounts/generatePublicKey': function () {
 			return {
 				requestMethod: 'GET',
-				requestUrl: 'accounts?address='+accountAddress
+				requestUrl: `accounts?address=${accountAddress}`,
 			};
 		},
 		'delegates/forging/enable': 'POST',
@@ -132,79 +132,79 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'dapps/launch': 'POST',
 		'dapps/stop': 'POST',
 		'multisignatures/sign': function () {
-			var transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options['transaction'], OfflineRequestThis.options['secret']);
+			const transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options.transaction, OfflineRequestThis.options.secret);
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'signatures',
-				params: { signature: transaction }
+				params: { signature: transaction },
 			};
 		},
 		'accounts/delegates': function () {
-			var transaction = LiskJS.vote.createVote(OfflineRequestThis.options['secret'], OfflineRequestThis.options['delegates'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+			const transaction = LiskJS.vote.createVote(OfflineRequestThis.options.secret, OfflineRequestThis.options.delegates, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction: transaction }
+				params: { transaction },
 			};
 		},
-		'transactions': function () {
-			var transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options['recipientId'], OfflineRequestThis.options['amount'], OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+		transactions() {
+			const transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options.recipientId, OfflineRequestThis.options.amount, OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction: transaction }
+				params: { transaction },
 			};
 		},
-		'signatures': function () {
-			var transaction = LiskJS.signature.createSignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+		signatures() {
+			const transaction = LiskJS.signature.createSignature(OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction: transaction }
+				params: { transaction },
 			};
 		},
-		'delegates': function () {
-			var transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options['secret'], OfflineRequestThis.options['username'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+		delegates() {
+			const transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options.secret, OfflineRequestThis.options.username, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction: transaction }
+				params: { transaction },
 			};
 		},
-		'dapps': function () {
-			var DappOptions = {
-				category: OfflineRequestThis.options['category'],
-				name: OfflineRequestThis.options['name'],
-				description: OfflineRequestThis.options['description'],
-				tags: OfflineRequestThis.options['tags'],
-				type: OfflineRequestThis.options['type'],
-				link: OfflineRequestThis.options['link'],
-				icon: OfflineRequestThis.options['icon'],
-				secret: OfflineRequestThis.options['secret'],
-				secondSecret: OfflineRequestThis.options['secondSecret']
+		dapps() {
+			const DappOptions = {
+				category: OfflineRequestThis.options.category,
+				name: OfflineRequestThis.options.name,
+				description: OfflineRequestThis.options.description,
+				tags: OfflineRequestThis.options.tags,
+				type: OfflineRequestThis.options.type,
+				link: OfflineRequestThis.options.link,
+				icon: OfflineRequestThis.options.icon,
+				secret: OfflineRequestThis.options.secret,
+				secondSecret: OfflineRequestThis.options.secondSecret,
 			};
 
-			var transaction = LiskJS.dapp.createDapp(DappOptions);
+			const transaction = LiskJS.dapp.createDapp(DappOptions);
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction: transaction }
+				params: { transaction },
 			};
 		},
-		'multisignatures': function () {
-			var transaction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['keysgroup'], OfflineRequestThis.options['lifetime'], OfflineRequestThis.options['min'], OfflineRequestThis.options['timeOffset']);
+		multisignatures() {
+			const transaction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.keysgroup, OfflineRequestThis.options.lifetime, OfflineRequestThis.options.min, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
-				params: { transaction: transaction }
+				params: { transaction },
 			};
-		}
+		},
 	};
 
 	return requestIdentification[this.requestType]();
@@ -218,28 +218,28 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
  */
 
 ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) {
-	if (this.options['secret']) {
-		var accountKeys = LiskJS.crypto.getKeys(this.options['secret']);
+	if (this.options.secret) {
+		var accountKeys = LiskJS.crypto.getKeys(this.options.secret);
 		var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
 	}
 
-	var transformAnswer;
-	var requestIdentification =  {
+	let transformAnswer;
+	const requestIdentification = {
 		'accounts/open': function () {
 			if (requestAnswer.error === 'Account not found') {
 				transformAnswer = {
 					success: 'true',
-					'account': {
-						'address': accountAddress,
-						'unconfirmedBalance': '0',
-						'balance': '0',
-						'publicKey': accountKeys.publicKey,
-						'unconfirmedSignature': '0',
-						'secondSignature': '0',
-						'secondPublicKey': null,
-						'multisignatures': null,
-						'u_multisignatures': null
-					}
+					account: {
+						address: accountAddress,
+						unconfirmedBalance: '0',
+						balance: '0',
+						publicKey: accountKeys.publicKey,
+						unconfirmedSignature: '0',
+						secondSignature: '0',
+						secondPublicKey: null,
+						multisignatures: null,
+						u_multisignatures: null,
+					},
 				};
 			} else {
 				transformAnswer = requestAnswer;
@@ -249,44 +249,44 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 		},
 		'accounts/generatePublicKey': function () {
 			return {
-				'success': 'true',
-				'publicKey': accountKeys.publicKey
+				success: 'true',
+				publicKey: accountKeys.publicKey,
 			};
 		},
 		'delegates/forging/enable': function () {
 			return {
-				'success': 'false',
-				'error': 'Forging not available via offlineRequest'
+				success: 'false',
+				error: 'Forging not available via offlineRequest',
 			};
 		},
 		'delegates/forging/disable': function () {
 			return {
-				'success': 'false',
-				'error': 'Forging not available via offlineRequest'
+				success: 'false',
+				error: 'Forging not available via offlineRequest',
 			};
 		},
 		'dapps/install': function () {
 			return {
-				'success': 'false',
-				'error': 'Install dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Install dapp not available via offlineRequest',
 			};
 		},
 		'dapps/uninstall': function () {
 			return {
-				'success': 'false',
-				'error': 'Uninstall dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Uninstall dapp not available via offlineRequest',
 			};
 		},
 		'dapps/launch': function () {
 			return {
-				'success': 'false',
-				'error': 'Launch dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Launch dapp not available via offlineRequest',
 			};
 		},
 		'dapps/stop': function () {
 			return {
-				'success': 'false',
-				'error': 'Stop dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Stop dapp not available via offlineRequest',
 			};
 		},
 		'multisignatures/sign': function () {
@@ -295,21 +295,21 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 		'accounts/delegates': function () {
 			return requestAnswer;
 		},
-		'transactions': function () {
+		transactions() {
 			return requestAnswer;
 		},
-		'signatures': function () {
+		signatures() {
 			return requestAnswer;
 		},
-		'delegates': function () {
+		delegates() {
 			return requestAnswer;
 		},
-		'dapps': function () {
+		dapps() {
 			return requestAnswer;
 		},
-		'multisignatures': function () {
+		multisignatures() {
 			return requestAnswer;
-		}
+		},
 	};
 
 	return requestIdentification[this.requestType]();

@@ -4,7 +4,7 @@ import naclFactory from 'js-nacl';
 
 process.env.NODE_ENV = 'test';
 
-should.use(function (should, Assertion) {
+should.use((should, Assertion) => {
 	Assertion.add('hexString', function () {
 		this.params = {
 			operator: 'to be hex string',
@@ -18,6 +18,6 @@ should.use(function (should, Assertion) {
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
 
-naclFactory.instantiate(function (nacl) {
+naclFactory.instantiate((nacl) => {
 	global.naclInstance = nacl;
 });

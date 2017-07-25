@@ -17,8 +17,8 @@
 // var convert = require('./convert');
 
 // TODO: Discuss behaviour with format and hashing
-function getSha256Hash (stringToSign, format) {
-	if(!format || format === 'utf8') {
+function getSha256Hash(stringToSign, format) {
+	if (!format || format === 'utf8') {
 		stringToSign = naclInstance.encode_utf8(stringToSign);
 	} else {
 		stringToSign = naclInstance.from_hex(stringToSign);
@@ -29,5 +29,5 @@ function getSha256Hash (stringToSign, format) {
 }
 
 module.exports = {
-	getSha256Hash: getSha256Hash
+	getSha256Hash,
 };

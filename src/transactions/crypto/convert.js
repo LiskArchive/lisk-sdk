@@ -13,35 +13,35 @@
  *
  */
 
-var Buffer = require('buffer/').Buffer;
-var bignum = require('browserify-bignum');
+const Buffer = require('buffer/').Buffer;
+const bignum = require('browserify-bignum');
 
-function bufferToHex (buffer) {
+function bufferToHex(buffer) {
 	return naclInstance.to_hex(buffer);
 }
 
-function hexToBuffer (hex) {
+function hexToBuffer(hex) {
 	return naclInstance.from_hex(hex);
 }
 
 // TODO: Discuss behaviour and output format
-function useFirstEightBufferEntriesReversed (publicKeyBytes) {
-	var publicKeyTransform = Buffer.alloc(8);
+function useFirstEightBufferEntriesReversed(publicKeyBytes) {
+	const publicKeyTransform = Buffer.alloc(8);
 
-	for (var i = 0; i < 8; i++) {
+	for (let i = 0; i < 8; i++) {
 		publicKeyTransform[i] = publicKeyBytes[7 - i];
 	}
 
 	return publicKeyTransform;
 }
 
-function toAddress (buffer) {
-	return bignum.fromBuffer(buffer).toString() + 'L';
+function toAddress(buffer) {
+	return `${bignum.fromBuffer(buffer).toString()}L`;
 }
 
 module.exports = {
-	bufferToHex: bufferToHex,
-	hexToBuffer: hexToBuffer,
-	useFirstEightBufferEntriesReversed: useFirstEightBufferEntriesReversed,
-	toAddress: toAddress
+	bufferToHex,
+	hexToBuffer,
+	useFirstEightBufferEntriesReversed,
+	toAddress,
 };

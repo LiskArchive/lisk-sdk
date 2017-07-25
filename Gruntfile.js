@@ -3,7 +3,7 @@ module.exports = function (grunt) {
 
 	grunt.initConfig({
 		eslint: {
-			target: ['src/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js']
+			target: ['src/**', 'test/**', '!test/mocha.opts', 'Gruntfile.js', 'index.js'],
 		},
 
 		pkg: grunt.file.readJSON('package.json'),
@@ -11,13 +11,13 @@ module.exports = function (grunt) {
 		browserify: {
 			js: {
 				src: './src/index.js',
-				dest: './dist/lisk-js.js'
+				dest: './dist/lisk-js.js',
 			},
 			options: {
 				browserifyOptions: {
-					standalone: 'lisk'
-				}
-			}
+					standalone: 'lisk',
+				},
+			},
 		},
 
 		watch: {
@@ -26,34 +26,34 @@ module.exports = function (grunt) {
 				tasks: ['eslint', 'browserify'],
 				options: {
 					spawn: false,
-					livereload: true
+					livereload: true,
 				},
 			},
 		},
 
 		exec: {
 			coverageSingle: {
-				command: './node_modules/.bin/nyc --report-dir=test/.coverage-unit --reporter=lcov ./node_modules/.bin/_mocha $TEST'
-			}
+				command: './node_modules/.bin/nyc --report-dir=test/.coverage-unit --reporter=lcov ./node_modules/.bin/_mocha $TEST',
+			},
 		},
 
 		uglify: {
 			options: {
-				mangle: false
+				mangle: false,
 			},
 			myTarget: {
 				files: {
-					'dist/lisk-js.min.js': ['dist/lisk-js.js']
-				}
-			}
+					'dist/lisk-js.min.js': ['dist/lisk-js.js'],
+				},
+			},
 		},
 
 		coveralls: {
-			src: 'test/.coverage-unit/*.info'
-		}
+			src: 'test/.coverage-unit/*.info',
+		},
 	});
 
-	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
+	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', () => {
 		grunt.config.set('eslint.options.fix', true);
 		grunt.task.run('eslint');
 	});
@@ -70,6 +70,6 @@ module.exports = function (grunt) {
 		'browserify',
 		'eslint',
 		'uglify',
-		'watch'
+		'watch',
 	]);
 };

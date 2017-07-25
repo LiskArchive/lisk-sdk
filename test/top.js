@@ -1,13 +1,12 @@
 function importTest(name, path) {
-	describe(name, function () {
+	describe(name, () => {
 		require(path);
 	});
 }
 
 // var common = require('./common');
 
-describe('top', function () {
-
+describe('top', () => {
 	importTest('transactions Crypto ', './transactions/crypto.js');
 	importTest('transactions DAPP ', './transactions/dapp.js');
 	importTest('transactions Delegate ', './transactions/delegate.js');

@@ -17,9 +17,9 @@
  * @class signature
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+const crypto = require('./crypto.js');
+const constants = require('../constants.js');
+const slots = require('../time/slots.js');
 
 /**
  * @method newSignature
@@ -28,11 +28,11 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function newSignature (secondSecret) {
-	var keys = crypto.getKeys(secondSecret);
+function newSignature(secondSecret) {
+	const keys = crypto.getKeys(secondSecret);
 
-	var signature = {
-		publicKey: keys.publicKey
+	const signature = {
+		publicKey: keys.publicKey,
 	};
 
 	return signature;
@@ -47,11 +47,11 @@ function newSignature (secondSecret) {
  * @return {Object}
  */
 
-function createSignature (secret, secondSecret, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createSignature(secret, secondSecret, timeOffset) {
+	const keys = crypto.getKeys(secret);
 
-	var signature = newSignature(secondSecret);
-	var transaction = {
+	const signature = newSignature(secondSecret);
+	const transaction = {
 		type: 1,
 		amount: 0,
 		fee: constants.fees.signature,
@@ -59,8 +59,8 @@ function createSignature (secret, secondSecret, timeOffset) {
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			signature: signature
-		}
+			signature,
+		},
 	};
 
 	crypto.sign(transaction, keys);
@@ -70,5 +70,5 @@ function createSignature (secret, secondSecret, timeOffset) {
 }
 
 module.exports = {
-	createSignature: createSignature
+	createSignature,
 };
