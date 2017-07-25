@@ -109,10 +109,7 @@ describe('dapp.js', function () {
 			});
 
 			it('should have senderPublicKey as hex string', function () {
-				(trs).should.have.property('senderPublicKey').and.be.type('string');
-				return should.doesNotThrow(function () {
-					Buffer.from(trs.senderPublicKey, 'hex');
-				});
+				(trs).should.have.property('senderPublicKey').and.be.type('string').and.be.hexString();
 			});
 
 			it('should have timestamp as number', function () {
@@ -159,17 +156,11 @@ describe('dapp.js', function () {
 			});
 
 			it('should have signature as hex string', function () {
-				(trs).should.have.property('signature').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.signature, 'hex');
-				});
+				(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
 			});
 
 			it('should have second signature in hex', function () {
-				(trs).should.have.property('signSignature').and.be.type('string');
-				should.doesNotThrow(function () {
-					Buffer.from(trs.signSignature, 'hex');
-				});
+				(trs).should.have.property('signSignature').and.be.type('string').and.be.hexString();
 			});
 
 			it('should be signed correctly', function () {

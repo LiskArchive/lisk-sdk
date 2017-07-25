@@ -3,6 +3,16 @@ var cryptoLib = require('crypto-browserify');
 var should = require('should');
 var sinon = require('sinon');
 
+should.use(function (should, Assertion) {
+	Assertion.add('hexString', function () {
+		this.params = {
+			operator: 'to be hex string',
+		};
+		(Buffer.from(this.obj, 'hex').toString('hex'))
+			.should.equal(this.obj);
+	});
+});
+
 // See https://github.com/shouldjs/should.js/issues/41
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
