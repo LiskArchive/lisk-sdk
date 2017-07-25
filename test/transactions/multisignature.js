@@ -105,7 +105,7 @@ describe('multisignature.js', function () {
 			(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
 		});
 
-		it('should use time slots with an offset to get the time for the timestamp', function () {
+		it('should use time slots with an offset of -10 seconds to get the time for the timestamp', function () {
 			var offset = -10;
 
 			var trs = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures, offset);
@@ -195,7 +195,7 @@ describe('multisignature.js', function () {
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
 			});
 
-			it('should use time slots with an offset to get the time for the timestamp', function () {
+			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', function () {
 				var offset = -10;
 
 				var trs = multisignature.createTransaction(recipientId, amount, secret, null, null, offset);

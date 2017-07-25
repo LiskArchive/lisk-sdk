@@ -53,7 +53,7 @@ describe('vote.js', function () {
 				(vt).should.have.property('timestamp').and.be.equal(slots.getTime());
 			});
 
-			it('should use time slots with an offset to get the time for the timestamp', function () {
+			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', function () {
 				var offset = -10;
 				vt = createVote('secret', publicKeys, null, offset);
 
