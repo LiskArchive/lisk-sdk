@@ -1,4 +1,4 @@
-var slots = require('../../lib/time/slots');
+import slots from '../../src/time/slots';
 
 describe('slots.js', function () {
 

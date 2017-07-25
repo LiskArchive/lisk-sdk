@@ -1,6 +1,6 @@
-var should = require('should');
-var sinon = require('sinon');
-var naclFactory = require('js-nacl');
+import should from 'should';
+import sinon from 'sinon';
+import naclFactory from 'js-nacl';
 
 process.env.NODE_ENV = 'test';
 

@@ -1,4 +1,4 @@
-var liskApi = require('../../lib/api/liskApi');
+import liskApi from '../../src/api/liskApi';
 
 describe('ParseOfflineRequests', function () {
 

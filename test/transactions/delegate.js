@@ -1,6 +1,6 @@
-var slots = require('../../lib/time/slots');
-var delegate = require('../../lib/transactions/delegate');
-var cryptoModule = require('../../lib/transactions/crypto');
+import slots from '../../src/time/slots';
+import delegate from '../../src/transactions/delegate';
+import cryptoModule from '../../src/transactions/crypto';
 
 describe('delegate.js', function () {
 

@@ -1,7 +1,7 @@
-var liskApi = require('../../lib/api/liskApi');
-var privateApi = require('../../lib/api/privateApi');
-var utils = require('../../lib/api/utils');
-var transactionModule = require('../../lib/transactions/transaction');
+import liskApi from '../../src/api/liskApi';
+import privateApi from '../../src/api/privateApi';
+import utils from '../../src/api/utils';
+import transactionModule from '../../src/transactions/transaction';
 
 describe('Lisk.api()', function () {
 
