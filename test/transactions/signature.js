@@ -101,7 +101,7 @@ describe('signature.js', function () {
 				it('should have publicKey in hex', function () {
 					(sgn.asset.signature).should.have.property('publicKey').and.be.type('string');
 					should.doesNotThrow(function () {
-						new Buffer(sgn.asset.signature.publicKey, 'hex');
+						Buffer.from(sgn.asset.signature.publicKey, 'hex');
 					});
 				});
 
