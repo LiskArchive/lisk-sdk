@@ -1,12 +1,8 @@
-if (typeof module !== 'undefined' && module.exports) {
-	var slots = require('../../lib/time/slots');
-	var common = require('../common');
-	var lisk = common.lisk;
-}
+var slots = require('../../lib/time/slots');
+var vote = require('../../lib/transactions/vote');
+var cryptoModule = require('../../lib/transactions/crypto');
 
 describe('vote.js', function () {
-
-	var vote = lisk.vote;
 
 	it('should be ok', function () {
 		(vote).should.be.ok();
@@ -24,7 +20,7 @@ describe('vote.js', function () {
 
 		var createVote = vote.createVote,
 		    vt = null,
-		    publicKey = lisk.crypto.getKeys('secret').publicKey,
+		    publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		    publicKeys = ['+' + publicKey];
 
 		it('should be ok', function () {
@@ -85,10 +81,10 @@ describe('vote.js', function () {
 			});
 
 			it('should have recipientId string equal to sender', function () {
-				(vt).should.have.property('recipientId').and.be.type('string').and.equal(lisk.crypto.getAddress(publicKey));
+				(vt).should.have.property('recipientId').and.be.type('string').and.equal(cryptoModule.getAddress(publicKey));
 			});
 
-			it('should have amount number eaul to 0', function () {
+			it('should have amount number equal to 0', function () {
 				(vt).should.have.property('amount').and.be.type('number').and.equal(0);
 			});
 
@@ -113,24 +109,24 @@ describe('vote.js', function () {
 			});
 
 			it('should be signed correctly', function () {
-				var result = lisk.crypto.verify(vt);
+				var result = cryptoModule.verify(vt);
 				(result).should.be.ok();
 			});
 
 			it('should be second signed correctly', function () {
-				var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys('second secret').publicKey);
+				var result = cryptoModule.verifySecondSignature(vt, cryptoModule.getKeys('second secret').publicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly now', function () {
 				vt.amount = 100;
-				var result = lisk.crypto.verify(vt);
+				var result = cryptoModule.verify(vt);
 				(result).should.be.not.ok();
 			});
 
 			it('should not be second signed correctly now', function () {
 				vt.amount = 100;
-				var result = lisk.crypto.verifySecondSignature(vt, lisk.crypto.getKeys('second secret').publicKey);
+				var result = cryptoModule.verifySecondSignature(vt, cryptoModule.getKeys('second secret').publicKey);
 				(result).should.be.not.ok();
 			});
 

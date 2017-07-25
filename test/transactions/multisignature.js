@@ -1,12 +1,8 @@
-if (typeof module !== 'undefined' && module.exports) {
-	var slots = require('../../lib/time/slots');
-	var common = require('../common');
-	var lisk = common.lisk;
-}
+var slots = require('../../lib/time/slots');
+var multisignature = require('../../lib/transactions/multisignature');
+var cryptoModule = require('../../lib/transactions/crypto');
 
 describe('multisignature.js', function () {
-
-	var multisignature = lisk.multisignature;
 
 	it('should be ok', function () {
 		(multisignature).should.be.ok();
@@ -128,7 +124,17 @@ describe('multisignature.js', function () {
 	describe('#signTransaction', function () {
 
 		var secret = '123';
-		var transaction = lisk.transaction.createTransaction('58191285901858109L', 1000, 'secret');
+		var transaction = {
+			type: 0,
+			amount: 1000,
+			fee: 10000000,
+			recipientId: '58191285901858109L',
+			timestamp: 35593081,
+			asset: {},
+			senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+			signature: 'cc1dc3ee73022ed7c10bdfff9183d93e71bd503e57078c32b8e6582bd13450fd9f113f95b101a568b9c757f7e739f15ed9cc77ca7dede62c61f358e30f9dc80d',
+			id: '4758205935095999374'
+		};
 		var signTransaction = multisignature.signTransaction(transaction, secret);
 
 		it('should return an object', function () {
@@ -150,7 +156,7 @@ describe('multisignature.js', function () {
 		var secret = 'privateSecret';
 		var secondSecret = 'privateSecondSecret';
 		var requesterPublicKey = 'abc123';
-		var msigTransaction = lisk.multisignature.createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey);
+		var msigTransaction = multisignature.createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey);
 
 		it('should create a multisignature transaction', function () {
 
@@ -171,8 +177,8 @@ describe('multisignature.js', function () {
 
 		it('should create a multisignature transaction without requesterPublicKey and secondSecret', function () {
 
-			var msigTransaction2 = lisk.multisignature.createTransaction(recipientId, amount, secret);
-			var pubKey = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+			var msigTransaction2 = multisignature.createTransaction(recipientId, amount, secret);
+			var pubKey = cryptoModule.getPrivateAndPublicKeyFromSecret(secret).publicKey;
 
 			(msigTransaction2.requesterPublicKey).should.be.equal(pubKey);
 		});

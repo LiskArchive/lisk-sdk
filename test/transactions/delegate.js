@@ -1,13 +1,8 @@
-
-if (typeof module !== 'undefined' && module.exports) {
-	var slots = require('../../lib/time/slots');
-	var common = require('../common');
-	var lisk = common.lisk;
-}
+var slots = require('../../lib/time/slots');
+var delegate = require('../../lib/transactions/delegate');
+var cryptoModule = require('../../lib/transactions/crypto');
 
 describe('delegate.js', function () {
-
-	var delegate = lisk.delegate;
 
 	it('should be ok', function () {
 		(delegate).should.be.ok();
@@ -69,9 +64,14 @@ describe('delegate.js', function () {
 		});
 
 		describe('returned delegate', function () {
-
-			var keys = lisk.crypto.getKeys('secret');
-			var secondKeys = lisk.crypto.getKeys('secret 2');
+			var keys = {
+				publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+				privateKey: '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09'
+			};
+			var secondKeys = {
+				publicKey: '653d60e438792fe89b8d6831e0627277025f48015b972cf6bcf10e6e75b7857f',
+				privateKey: 'ded6c02a4bc1fb712f3b71efcb883ad5b31f4cef6a327b079573143ec9c71fb3653d60e438792fe89b8d6831e0627277025f48015b972cf6bcf10e6e75b7857f'
+			};
 
 			beforeEach(function () {
 				trs = createDelegate('secret', 'delegate', 'secret 2');
@@ -119,24 +119,24 @@ describe('delegate.js', function () {
 			});
 
 			it('should be signed correctly', function () {
-				var result = lisk.crypto.verify(trs, keys.publicKey);
+				var result = cryptoModule.verify(trs, keys.publicKey);
 				(result).should.be.ok();
 			});
 
 			it('should be second signed correctly', function () {
-				var result = lisk.crypto.verifySecondSignature(trs, secondKeys.publicKey);
+				var result = cryptoModule.verifySecondSignature(trs, secondKeys.publicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly now', function () {
 				trs.amount = 100;
-				var result = lisk.crypto.verify(trs, keys.publicKey);
+				var result = cryptoModule.verify(trs, keys.publicKey);
 				(result).should.be.not.ok();
 			});
 
 			it('should not be second signed correctly now', function () {
 				trs.amount = 100;
-				var result = lisk.crypto.verify(trs, secondKeys.publicKey);
+				var result = cryptoModule.verify(trs, secondKeys.publicKey);
 				(result).should.be.not.ok();
 			});
 
