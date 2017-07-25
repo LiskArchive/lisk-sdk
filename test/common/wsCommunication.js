@@ -1,10 +1,11 @@
 'use strict';
 
 var _ = require('lodash');
-var Q = require('q');
-var constants = require('../../helpers/constants');
+var Promise = require('bluebird');
+var PromiseDefer = require('../../helpers/promiseDefer');
 var ClientRPCStub = require('../../api/ws/rpc/wsRPC').ClientRPCStub;
 var ConnectionState = require('../../api/ws/rpc/wsRPC').ConnectionState;
+var System = require('../../modules/system');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var wampClient = new WAMPClient();
@@ -42,8 +43,6 @@ var wsCommunication = {
 		socket.on('error', function (err) {
 			console.log(err);
 		});
-
-		constants.setConst('headers', wsOptions.query);
 	},
 
 	// Get the given path
@@ -51,7 +50,7 @@ var wsCommunication = {
 		if (!this.defaultConnectionState) {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
 			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 9999);
-			constants.setConst('headers', this.defaultSocketPeerHeaders);
+			System.setHeaders(this.defaultSocketPeerHeaders);
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
 		if (includePeer && typeof data === 'object') {
@@ -68,12 +67,12 @@ var wsCommunication = {
 	addPeers: function (numOfPeers, ip, cb) {
 
 		var peersConnectionsDefers = Array.apply(null, new Array(numOfPeers)).map(function () {
-			var socketDefer = Q.defer();
+			var socketDefer = PromiseDefer();
 			this.connect(ip, 5000, socketDefer, node.generatePeerHeaders(ip, node.randomizeSelection(1000) + 4001));
 			return socketDefer;
 		}.bind(this));
 
-		Q.all(peersConnectionsDefers.map(function (peerDefer) {	return peerDefer.promise; }))
+		Promise.all(peersConnectionsDefers.map(function (peerDefer) {	return peerDefer.promise; }))
 			.then(function (results) {
 				return cb(null, results);
 			})
@@ -85,7 +84,7 @@ var wsCommunication = {
 	// Adds peer to local node
 	addPeer: function (ip, port, cb) {
 
-		var socketDefer = Q.defer();
+		var socketDefer = PromiseDefer();
 		this.connect(ip, port, socketDefer);
 
 		socketDefer.promise.then(function () {

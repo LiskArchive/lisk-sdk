@@ -62,12 +62,27 @@ function System (cb, scope) {
 		this.minVersion = __private.minVersion;
 	}
 
-	constants.setConst('headers', __private);
-
 	setImmediate(cb, null, self);
 }
 
 // Public methods
+
+/**
+ * Sets the entire __private variable
+ * @param {object} headers
+ */
+System.setHeaders = function (headers) {
+	__private = headers;
+};
+
+/**
+ * Returns all headers from __private variable
+ * @returns {*} __private
+ */
+System.getHeaders = function () {
+	return __private;
+};
+
 /**
  * Returns private variables object content.
  * @return {Object}
@@ -223,13 +238,6 @@ System.prototype.update = function (cb) {
 		},
 		getHeight: function (seriesCb) {
 			__private.height = modules.blocks.lastBlock.get().height;
-			return setImmediate(seriesCb);
-		},
-		setHeaders: function (seriesCb) {
-			constants.setConst('headers', _.assign(constants.headers || {}, {
-				height: __private.height,
-				broadhash: __private.broadhash
-			}));
 			return setImmediate(seriesCb);
 		}
 	}, function (err) {

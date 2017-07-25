@@ -37,20 +37,31 @@ describe('wsRPC', function () {
 		expect(wsRPC.scClient).to.have.property('connections').to.be.a('object').and.to.be.empty;
 	});
 
-	it('should have wsServer field unset', function () {
-		expect(wsRPC).to.have.property('wsServer').and.to.be.null;
-	});
-
 	describe('setServer', function () {
 
 		before(function () {
 			wsRPC.setServer(null);
 		});
 
-		it('should set wsServer', function () {
-			expect(wsRPC).to.have.property('wsServer').and.to.be.null;
+		it('getter should return throw an error when setting server to null', function () {
+			wsRPC.setServer(null);
+			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+		});
+
+		it('getter should return throw an error when setting server to 0', function () {
+			wsRPC.setServer(0);
+			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+		});
+
+		it('getter should return throw an error when setting server to undefined', function () {
+			wsRPC.setServer(undefined);
+			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+		});
+
+		it('should return server instance after setting it', function () {
 			wsRPC.setServer({name: 'my ws server'});
-			expect(wsRPC).to.have.property('wsServer').and.to.a('object').eql({name: 'my ws server'});
+			var wsRPCServer = wsRPC.getServer();
+			expect(wsRPCServer).to.be.an('object').eql({name: 'my ws server'});
 		});
 
 		after(function () {
@@ -139,7 +150,8 @@ describe('wsRPC', function () {
 			});
 
 			it('should return client stub with rpc methods registered on MasterWAMPServer', function () {
-				wsRPC.wsServer.reassignRPCEndpoints(validRPCEndpoint);
+				var wsServer = wsRPC.getServer();
+				wsServer.reassignRPCEndpoints(validRPCEndpoint);
 				var rpcStub = wsRPC.getClientRPCStub(validIp, validPort);
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 			});
@@ -151,8 +163,9 @@ describe('wsRPC', function () {
 			};
 
 			it('should return client stub with event and rpc methods registered on MasterWAMPServer', function () {
-				wsRPC.wsServer.reassignRPCEndpoints(validRPCEndpoint);
-				wsRPC.wsServer.reassignEventEndpoints(validEventEndpoint);
+				var wsServer = wsRPC.getServer();
+				wsServer.reassignRPCEndpoints(validRPCEndpoint);
+				wsServer.reassignEventEndpoints(validEventEndpoint);
 				var rpcStub = wsRPC.getClientRPCStub(validIp, validPort);
 				expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');

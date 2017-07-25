@@ -49,21 +49,6 @@ function Peers (cb, scope) {
 	};
 	self = this;
 
-	setInterval(function () {
-		this.list({}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(function (p) {
-				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
-			}));
-
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- logic peers ---- ', library.logic.peers.list().map(function (p) {
-				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
-			}));
-
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- consensus ---- ', self.getConsensus());
-		});
-
-	}.bind(this), 5000);
-
 	setImmediate(cb, null, self);
 }
 
@@ -85,8 +70,8 @@ __private.countByFilter = function (filter, cb) {
  * Gets randomly ordered list of peers by filter.
  * @private
  * @param {Object} filter
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} peers
+ * @param {function} [cb=undefined] cb - Callback function (synchronous function if not passed.
+ * @returns {setImmediateCallback|[Peer]} peers
  */
 __private.getByFilter = function (filter, cb) {
 	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
@@ -160,6 +145,9 @@ __private.getByFilter = function (filter, cb) {
 		peers = peers.slice(offset);
 	}
 
+	if (!cb) {
+		return peers;
+	}
 	return setImmediate(cb, null, peers);
 };
 
@@ -317,13 +305,13 @@ Peers.prototype.getConsensus = function (matched, active) {
 		return undefined;
 	}
 
-	active = active || __private.getMatched({state: Peer.STATE.CONNECTED});
-	matched = matched || __private.getMatched({broadhash: constants.headers.broadhash}, active);
+	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED});
+	matched = matched || __private.getMatched({broadhash: modules.system.getBroadhash()}, active);
 
 	active = active.slice(0, constants.maxPeers);
 	matched = matched.slice(0, constants.maxPeers);
 
-	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 1e2;
+	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 100;
 
 	if (isNaN(consensus)) {
 		return 0;
@@ -528,7 +516,7 @@ Peers.prototype.list = function (options, cb) {
 Peers.prototype.onBind = function (scope) {
 	modules = {
 		transport: scope.transport,
-		system: scope.system,
+		system: scope.system
 	};
 };
 
@@ -578,7 +566,7 @@ Peers.prototype.onPeersReady = function () {
 			},
 			updatePeers: function (seriesCb) {
 				var updated = 0;
-				var peers = self.acceptable(library.logic.peers.list());
+				var peers = library.logic.peers.list();
 
 				library.logger.trace('Updating peers', {count: peers.length});
 
@@ -608,7 +596,7 @@ Peers.prototype.onPeersReady = function () {
 		});
 	}
 	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 10000);
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 60000);
 };
 
 /**

@@ -1,6 +1,6 @@
 {
-    "port": 8000,
-    "httpPort": 8001,
+    "port": 8001,
+    "httpPort": 8000,
     "address": "0.0.0.0",
     "version": "0.9.1",
     "minVersion": ">=0.5.0",

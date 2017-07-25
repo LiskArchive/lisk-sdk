@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var fs = require('fs');
-var Q = require('q');
+var Promise = require('bluebird');
 
 var chai = require('chai');
 var expect = require('chai').expect;
@@ -250,7 +250,7 @@ describe('Peers mutual connections', function () {
 	});
 
 	it('should return a list of peer mutually interconnected', function (done) {
-		Q.all(sockets.map(function (socket) {
+		Promise.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
 			var resultsFrom = 0;
@@ -290,7 +290,7 @@ describe('propagation', function () {
 		var nodesBlocks;
 
 		before(function (done) {
-			Q.all(testNodeConfigs.map(function (testNodeConfig) {
+			Promise.all(testNodeConfigs.map(function (testNodeConfig) {
 				return popsicle.get({
 					url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
 					headers: {
@@ -338,7 +338,7 @@ describe('propagation', function () {
 		var nodesTransactions = [];
 
 		before(function (done) {
-			Q.all(sockets.map(function (socket) {
+			Promise.all(sockets.map(function (socket) {
 				return socket.wampSend('blocks');
 			})).then(function (results) {
 				nodesTransactions = results.map(function (res) {

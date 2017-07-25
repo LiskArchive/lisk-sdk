@@ -47,7 +47,7 @@ module.exports = {
 				max: 16
 			}
 		},
-		required: ['port', 'version', 'nethash']
+		required: ['ip', 'port', 'version', 'nethash']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',

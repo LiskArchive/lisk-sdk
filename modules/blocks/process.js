@@ -147,7 +147,8 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var params = { limit: newLimit, offset: offset || 0 };
 
 	library.logger.debug('Loading blocks offset', {limit: limit, offset: offset, verify: verify});
-	// Execute in sequence via dbSequence
+	console.log('LIBRARY DBSEQUENCE ADD');
+	// Execute in sequence via dbSequence]
 	library.dbSequence.add(function (cb) {
 		// Loads full blocks from database
 		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
@@ -352,6 +353,8 @@ Process.prototype.onReceiveBlock = function (block) {
 	var lastBlock;
 
 	// Execute in sequence via sequence
+	console.log('LIBRARY sequence ADD');
+
 	library.sequence.add(function (cb) {
 		// When client is not loaded, is syncing or round is ticking
 		// Do not receive new blocks as client is not ready

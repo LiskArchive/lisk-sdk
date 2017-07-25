@@ -139,10 +139,6 @@ Broadcaster.prototype.enqueue = function (params, options) {
  */
 Broadcaster.prototype.broadcast = function (params, options, cb) {
 	options.data.peer = library.logic.peers.me();
-	if (!options.data.peer) {
-		library.logger.debug('Broadcast stopped- cannot broadcast without data about itself');
-		return setImmediate(cb || function () {}, 'Cannot broadcast without data about itself');
-	}
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
@@ -156,7 +152,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		},
 		function sendToPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
-			if (params.limit === self.config.peerLimit) { peers = peers.slice(0, self.config.broadcastLimit); }
+			if (params.limit === self.config.peerLimit) {
+				peers = peers.slice(0, self.config.broadcastLimit);
+			}
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
 				peer.rpc[options.api](options.data, function (err, result) {
 					if (err) {
