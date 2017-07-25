@@ -46,6 +46,10 @@ var validAccount = {
 	virgin: 1
 };
 
+// TODO:
+// - Add test cases for Accounts constructor
+// - Add test cases for removeTables function
+// - Add test cases for createTables function
 describe('account', function () {
 
 	var account; 
@@ -57,6 +61,7 @@ describe('account', function () {
 			done();
 		}, {});
 	});
+
 	describe('Account', function () {
 
 	});
