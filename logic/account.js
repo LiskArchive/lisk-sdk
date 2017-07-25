@@ -500,7 +500,7 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 			throw 'Invalid public key, must be 64 characters long';
 		}
 
-		if (!/^[a-fA-F0-9]+$/.test(publicKey)) {
+		if (this.scope.schema.validate(publicKey, { format: 'hex' })) {
 			throw 'Invalid public key, must be a hex string';
 		}
 	}

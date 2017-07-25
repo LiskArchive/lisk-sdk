@@ -49,7 +49,7 @@ z_schema.registerFormat('username', function (str) {
 });
 
 z_schema.registerFormat('hex', function (str) {
-	return /^[a-fA-F0-9]*$/.test(str);
+	return /^[a-f0-9]*$/i.test(str);
 });
 
 z_schema.registerFormat('publicKey', function (str) {
