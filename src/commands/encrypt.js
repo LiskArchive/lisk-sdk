@@ -1,5 +1,5 @@
-const cryptoModule = require('../utils/cryptoModule');
-const tablify = require('../utils/tablify');
+import cryptoModule from '../utils/cryptoModule';
+import tablify from '../utils/tablify';
 
 module.exports = function encryptCommand(vorpal) {
 	function encrypt({ message, secret, recipient, options }) {

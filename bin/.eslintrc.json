@@ -1,0 +1,8 @@
+{
+	"env": {
+		"es6": false
+	},
+	"rules": {
+		"no-var": "off"
+	}
+}

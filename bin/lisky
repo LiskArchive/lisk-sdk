@@ -1,3 +1,20 @@
 #!/usr/bin/env node
+var lisky = require('../dist').default;
 
-module.exports = require('../index');
+function exit() {
+	return lisky.exec('exit');
+}
+
+function runCommand() {
+	var command = process.argv
+		.slice(2)
+		.join(' ');
+
+	return lisky
+		.exec(command)
+		.then(exit);
+}
+
+module.exports = process.argv.length > 2
+	? runCommand()
+	: lisky;

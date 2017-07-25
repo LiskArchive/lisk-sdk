@@ -1,7 +1,6 @@
-/* eslint-disable arrow-body-style */
-const Vorpal = require('vorpal');
-const list = require('../../src/commands/list');
-const query = require('../../src/utils/query');
+import Vorpal from 'vorpal';
+import list from '../../src/commands/list';
+import query from '../../src/utils/query';
 
 const createRejectionHandler = restoreFn => (e) => {
 	restoreFn();
@@ -20,6 +19,18 @@ describe('lisky list command palette', () => {
 	afterEach(() => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
+	});
+
+	it('should handle being called with no type', () => {
+		const command = 'list';
+		return vorpal.exec(command)
+			.then(result => (result).should.match(/Missing required argument/));
+	});
+
+	it('should handle being called with no variadic', () => {
+		const command = 'list accounts';
+		return vorpal.exec(command)
+			.then(result => (result).should.match(/Missing required argument/));
 	});
 
 	it('should test command list accounts', () => {
@@ -64,10 +75,8 @@ describe('lisky list command palette', () => {
 			query.isTransactionQuery.restore();
 		});
 
-		it('should have the right parameters with transaction', () => {
-			return vorpal.exec(command)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+		it('should have the right parameters with transaction', () => vorpal.exec(command)
+			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
 
 		it('should have the right parameters with transaction, handling response', () => {
 			stub.resolves({ transactionid: '123' });

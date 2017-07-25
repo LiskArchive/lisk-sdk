@@ -6,6 +6,7 @@ module.exports = function configureGrunt(grunt) {
 		mochaTest: {
 			test: {
 				options: {
+					require: 'babel-register',
 					reporter: 'spec',
 					// Optionally suppress output to standard out (defaults to false)
 					quiet: false,

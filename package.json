@@ -2,19 +2,20 @@
   "name": "lisky",
   "version": "0.1.0",
   "description": "A command line interface for Lisk",
-  "main": "index.js",
-  "bin": {
-    "lisky": "./bin/lisky"
+  "main": "./dist/index.js",
+  "directories": {
+    "bin": "./bin"
   },
   "scripts": {
-    "start": "node index.js",
-    "test": "NODE_ENV=test nyc mocha",
+    "start": "babel-node src/index.js",
+    "test": "NODE_ENV=test nyc mocha --compilers js:babel-register",
     "test:watch": "npm test -- --watch",
     "test:now": "npm test -- --grep @now",
     "test:now:watch": "npm run test:now -- --watch",
-    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
+    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register",
+    "build": "babel src -d dist",
     "prepush": "grunt eslint && npm test",
-    "postinstall": "npm link lisky"
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -34,6 +35,9 @@
   },
   "homepage": "https://github.com/LiskHQ/lisky#readme",
   "devDependencies": {
+    "babel-cli": "=6.24.1",
+    "babel-preset-env": "=1.6.0",
+    "babel-register": "=6.24.1",
     "eslint-config-airbnb-base": "=11.2.0",
     "eslint-config-lisk-base": "^0.1.0",
     "eslint-plugin-import": "=2.2.0",

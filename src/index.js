@@ -1,15 +1,18 @@
-const path = require('path');
-const fse = require('fs-extra');
-const lisky = require('vorpal')();
-const config = require('./config.json');
-const packageJson = require('./package.json');
+import path from 'path';
+import fse from 'fs-extra';
+import vorpal from 'vorpal';
+import config from './../config.json';
+import { version } from '../package.json';
 
-const commandsDir = path.join(__dirname, 'src', 'commands');
+const lisky = vorpal();
+
+const commandsDir = path.join(__dirname, 'commands');
 
 fse.readdirSync(commandsDir).forEach((command) => {
 	const commandPath = path.join(commandsDir, command);
 	// eslint-disable-next-line global-require, import/no-dynamic-require
-	lisky.use(require(commandPath));
+	const commandModule = require(commandPath);
+	lisky.use(commandModule.default);
 });
 
 const logo = `
@@ -20,21 +23,24 @@ const logo = `
 |_|_|___/_|\\_\\\\__, |
               |___/
 `;
-const { version } = packageJson;
+
 const message = `
 Running v${version}.
 Type \`help\` to get started.
 `;
 const intro = `${logo}${message}`;
 
+const isInteractive = process.argv.length > 2;
+
 lisky
 	.delimiter('lisky>')
-	.history('lisky')
-	.log(intro)
-	.show();
+	.history('lisky');
 
+if (!isInteractive) {
+	lisky.log(intro).show();
+}
 
 lisky.find('help').alias('?');
 lisky.find('exit').description(`Exits ${config.name}.`);
 
-module.exports = lisky;
+export default lisky;

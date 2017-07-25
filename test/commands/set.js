@@ -1,5 +1,5 @@
-const Vorpal = require('vorpal');
-const set = require('../../src/commands/set');
+import Vorpal from 'vorpal';
+import set from '../../src/commands/set';
 
 describe('set command', () => {
 	let vorpal;

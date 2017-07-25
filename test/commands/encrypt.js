@@ -1,7 +1,7 @@
-const Vorpal = require('vorpal');
-const encrypt = require('../../src/commands/encrypt');
-const cryptoModule = require('../../src/utils/cryptoModule');
-const tablify = require('../../src/utils/tablify');
+import Vorpal from 'vorpal';
+import encrypt from '../../src/commands/encrypt';
+import cryptoModule from '../../src/utils/cryptoModule';
+import tablify from '../../src/utils/tablify';
 
 describe('lisky encrypt command palette', () => {
 	let vorpal;
