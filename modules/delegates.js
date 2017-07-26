@@ -166,8 +166,9 @@ __private.forge = function (cb) {
 					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 				},
 				checkBroadhash: function (seriesCb) {
-					if (modules.transport.poorConsensus()) {
-						return setImmediate(seriesCb, ['Inadequate broadhash consensus', modules.transport.consensus(), '%'].join(' '));
+					var consensus = modules.peers.getConsensus();
+					if (modules.transport.poorConsensus(consensus)) {
+						return setImmediate(seriesCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
 					} else {
 						return setImmediate(seriesCb);
 					}
@@ -513,13 +514,14 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
  */
 Delegates.prototype.onBind = function (scope) {
 	modules = {
-		loader: scope.loader,
-		rounds: scope.rounds,
 		accounts: scope.accounts,
 		blocks: scope.blocks,
-		transport: scope.transport,
-		transactions: scope.transactions,
 		delegates: scope.delegates,
+		loader: scope.loader,
+		peers: scope.peers,
+		rounds: scope.rounds,
+		transactions: scope.transactions,
+		transport: scope.transport
 	};
 
 	__private.assetTypes[transactionTypes.DELEGATE].bind(

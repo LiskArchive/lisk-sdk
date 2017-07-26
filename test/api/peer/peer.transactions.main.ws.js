@@ -1,89 +1,60 @@
 'use strict';
 
 var crypto = require('crypto');
-var node = require('./../node.js');
+var node = require('../../node.js');
+var http = require('../../common/httpCommunication.js');
+var ws = require('../../common/wsCommunication.js');
 
 var genesisblock = require('../../genesisBlock.json');
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	ws.call('postTransactions', {
 		transaction: transaction
-	}, done);
+	}, done, true);
 }
 
 function getAddress (address, done) {
-	node.get('/api/accounts?address=' + address, done);
+	http.get('/api/accounts?address=' + address, done);
 }
 
-describe('GET /peer/transactions', function () {
-
-	it('using incorrect nethash in headers should fail', function (done) {
-		node.get('/peer/transactions')
-			.set('nethash', 'incorrect')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body.expected).to.equal(node.config.nethash);
-				done();
-			});
-	});
-
-	it('using incompatible version in headers should fail', function (done) {
-		node.get('/peer/transactions')
-			.set('version', '0.1.0a')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
-				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
-				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
-				done();
-			});
-	});
+describe('getTransactions', function () {
 
 	it('using valid headers should be ok', function (done) {
-		node.get('/peer/transactions')
-			.end(function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').to.be.an('array');
-				done();
-			});
+		ws.call('getTransactions', function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactions').to.be.an('array');
+			done();
+		});
+	});
+
+	before(function (done) {
+		var randomAccount = node.randomAccount();
+		var transaction = node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password);
+
+		postTransaction(transaction, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			done(err);
+		});
+	});
+
+	it('should return non empty transaction list after post', function (done) {
+		ws.call('getTransactions', function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactions').to.be.an('array').and.to.be.not.empty;
+			done();
+		});
 	});
 });
 
-describe('POST /peer/transactions', function () {
-
-	it('using incorrect nethash in headers should fail', function (done) {
-		node.post('/peer/transactions')
-			.set('nethash', 'incorrect')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body.expected).to.equal(node.config.nethash);
-				done();
-			});
-	});
-
-	it('using incompatible version in headers should fail', function (done) {
-		node.post('/peer/transactions')
-			.set('version', '0.1.0a')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
-				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
-				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
-				done();
-			});
-	});
+describe('postTransactions', function () {
 
 	it('using valid headers should be ok', function (done) {
 		var account = node.randomAccount();
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 			done();
 		});
 	});
@@ -93,12 +64,12 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
 				done();
 			});
 		});
@@ -109,13 +80,13 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 
 			node.onNewBlock(function (err) {
 				postTransaction(transaction, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('message').to.match(/Transaction is already confirmed: [0-9]+/);
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.match(/Transaction is already confirmed: [0-9]+/);
 					done();
 				});
 			});
@@ -129,12 +100,12 @@ describe('POST /peer/transactions', function () {
 
 		var transaction = node.lisk.transaction.createTransaction(address, 100000000, node.gAccount.password);
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('success').to.be.ok;
 
 			node.onNewBlock(function (err) {
 				var transaction2 = node.lisk.transaction.createTransaction(address.toLowerCase(), 100000000, node.gAccount.password);
 				postTransaction(transaction2, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('success').to.be.ok;
 
 					node.onNewBlock(function (err) {
 						getAddress(address, function (err, res) {
@@ -153,8 +124,8 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction(undefined, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.eql('Missing recipient');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message').to.eql('Missing recipient');
 			done();
 		});
 	});
@@ -163,8 +134,8 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction('0123456789001234567890L', 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.contain('Invalid transaction body');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message').to.contain('Invalid transaction body');
 			done();
 		});
 	});
@@ -173,8 +144,8 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction('1L', -1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -185,8 +156,8 @@ describe('POST /peer/transactions', function () {
 		transaction.id = node.lisk.crypto.getId(transaction);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -195,8 +166,8 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction('1L', 1, 'randomstring');
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 			done();
 		});
 	});
@@ -206,8 +177,8 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 
 			node.onNewBlock(function () {
 				var count = 1;
@@ -215,8 +186,8 @@ describe('POST /peer/transactions', function () {
 
 				node.async.doUntil(function (next) {
 					postTransaction(transaction2, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.not.ok;
-						node.expect(res.body).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 1e-8/);
+						node.expect(res).to.have.property('success').to.be.not.ok;
+						node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 1e-8/);
 						count++;
 						return next();
 					});
@@ -235,8 +206,8 @@ describe('POST /peer/transactions', function () {
 		transaction.id = node.lisk.crypto.getId(transaction);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -246,8 +217,8 @@ describe('POST /peer/transactions', function () {
 		transaction.senderPublicKey = node.randomPassword();
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -257,8 +228,8 @@ describe('POST /peer/transactions', function () {
 		transaction.signature = node.randomPassword();
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -268,8 +239,8 @@ describe('POST /peer/transactions', function () {
 		transaction.blockId = genesisblock.id;
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -279,8 +250,8 @@ describe('POST /peer/transactions', function () {
 			node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -289,8 +260,8 @@ describe('POST /peer/transactions', function () {
 		var transaction = node.lisk.transaction.createTransaction('12L', 1.3, node.gAccount.password);
 
 		postTransaction(transaction, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message');
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message');
 			done();
 		});
 	});
@@ -312,16 +283,11 @@ describe('POST /peer/transactions', function () {
 
 		it('should fail', function (done) {
 			postTransaction(signedTransactionFromGenesis, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').equals('Invalid sender. Can not send from genesis account');
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').equals('Invalid sender. Can not send from genesis account');
 				done();
 			});
 		});
 	});
 
-	describe('using multiple transactions', function () {
-		it('with invalid transaction should fail');
-
-		it('with valid transaction should be ok');
-	});
 });

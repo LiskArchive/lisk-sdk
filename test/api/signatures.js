@@ -1,21 +1,22 @@
 'use strict';
 
-var node = require('./../node.js');
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
 var account3 = node.randomTxAccount();
 
 function putSignature (params, done) {
-	node.put('/api/signatures', params, done);
+	http.put('/api/signatures', params, done);
 }
 
 function putTransaction (params, done) {
-	node.put('/api/transactions', params, done);
+	http.put('/api/transactions', params, done);
 }
 
 function putDelegate (params, done) {
-	node.put('/api/delegates', params, done);
+	http.put('/api/delegates', params, done);
 }
 
 function sendLISK (account, done) {

@@ -1,39 +1,36 @@
 'use strict';
 
 var crypto = require('crypto');
-var node = require('./../node.js');
+var node = require('../../node.js');
+var ws = require('../../common/wsCommunication.js');
 
 var account = node.randomAccount();
-var account2 = node.randomAccount();
-var account3 = node.randomAccount();
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	ws.call('postTransactions', {
 		transaction: transaction
-	}, function (err, res) {
-		done(err, res);
-	});
+	}, done, true);
 }
 
 function sendLISK (params, done) {
 	var transaction = node.lisk.transaction.createTransaction(params.recipientId, params.amount, params.secret);
 
 	postTransaction(transaction, function (err, res) {
-		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res).to.have.property('success').to.be.ok;
 		node.onNewBlock(function (err) {
 			done(err, res);
 		});
 	});
 }
 
-describe('POST /peer/transactions', function () {
+describe('postTransaction', function () {
 
 	describe('enabling second signature', function () {
 
 		it('using undefined transaction', function (done) {
 			postTransaction(undefined, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.contain('Invalid transaction body');
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.contain('Invalid transaction body');
 				done();
 			});
 		});
@@ -44,8 +41,8 @@ describe('POST /peer/transactions', function () {
 			delete transaction.asset;
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.contain('Invalid transaction body');
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.contain('Invalid transaction body');
 				done();
 			});
 		});
@@ -56,8 +53,8 @@ describe('POST /peer/transactions', function () {
 				var transaction = node.lisk.signature.createSignature(node.randomPassword(), node.randomPassword());
 
 				postTransaction(transaction, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
 					done();
 				});
 			});
@@ -78,8 +75,8 @@ describe('POST /peer/transactions', function () {
 				transaction.fee = node.fees.secondPasswordFee;
 
 				postTransaction(transaction, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 					done();
 				});
 			});
@@ -98,7 +95,7 @@ describe('POST /peer/transactions', function () {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, account.secondPassword);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('success').to.be.not.ok;
 				done();
 			});
 		});
@@ -107,8 +104,8 @@ describe('POST /peer/transactions', function () {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, '');
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.equal('Missing sender second signature');
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.equal('Missing sender second signature');
 				done();
 			});
 		});
@@ -119,8 +116,8 @@ describe('POST /peer/transactions', function () {
 			transaction.id = node.lisk.crypto.getId(transaction);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.equal('Failed to verify second signature');
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
 				done();
 			});
 		});
@@ -129,8 +126,8 @@ describe('POST /peer/transactions', function () {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password, account.secondPassword);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 				done();
 			});
 		});

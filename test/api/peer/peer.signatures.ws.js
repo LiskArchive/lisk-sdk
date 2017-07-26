@@ -1,25 +1,27 @@
 'use strict';
 
-var node = require('./../node.js');
+var node = require('../../node.js');
+var http = require('../../common/httpCommunication.js');
+var ws = require('../../common/wsCommunication.js');
 
 var owner = node.randomAccount();
 var coSigner1 = node.randomAccount();
 var coSigner2 = node.randomAccount();
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
+	ws.call('postTransactions', {
 		transaction: transaction
-	}, done);
+	}, done, true);
 }
 
 function postTransactions (transactions, done) {
-	node.post('/peer/transactions', {
+	ws.call('postTransactions', {
 		transactions: transactions
-	}, done);
+	}, done, true);
 }
 
 function postSignature (transaction, signature, done) {
-	node.post('/peer/signatures', {
+	ws.call('postSignatures', {
 		signature: {
 			transaction: transaction.id,
 			signature: signature
@@ -27,47 +29,21 @@ function postSignature (transaction, signature, done) {
 	}, done);
 }
 
-describe('GET /peer/signatures', function () {
-
-	it('using incorrect nethash in headers should fail', function (done) {
-		node.get('/peer/signatures')
-			.set('nethash', 'incorrect')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body.expected).to.equal(node.config.nethash);
-				done();
-			});
-	});
-
-	it('using incompatible version in headers should fail', function (done) {
-		node.get('/peer/signatures')
-			.set('version', '0.1.0a')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
-				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
-				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
-				done();
-			});
-	});
+describe('getSignatures', function () {
 
 	it('using valid headers should be ok', function (done) {
-		node.get('/peer/signatures')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('signatures').that.is.an('array');
-				done();
-			});
+		ws.call('getSignatures', function (err, res) {
+			node.debug('> Response:'.grey, JSON.stringify(res));
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('signatures').that.is.an('array');
+			done();
+		});
 	});
 });
 
-describe('POST /peer/signatures', function () {
+describe('postSignatures', function () {
 
 	var validParams;
-
 	var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password);
 
 	beforeEach(function (done) {
@@ -80,55 +56,27 @@ describe('POST /peer/signatures', function () {
 		done();
 	});
 
-	it('using incorrect nethash in headers should fail', function (done) {
-		node.post('/peer/signatures')
-			.set('nethash', 'incorrect')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body.expected).to.equal(node.config.nethash);
-				done();
-			});
-	});
-
-	it('using incompatible version in headers should fail', function (done) {
-		node.post('/peer/signatures')
-			.set('version', '0.1.0a')
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.eql('Request is made from incompatible version');
-				node.expect(res.body).to.have.property('expected').to.eql('0.0.0a');
-				node.expect(res.body).to.have.property('received').to.eql('0.1.0a');
-				done();
-			});
-	});
-
 	it('using invalid signature schema should fail', function (done) {
 		delete validParams.signature.transaction;
 
-		node.post('/peer/signatures', validParams)
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.equal('Invalid signature body');
-				done();
-			});
+		ws.call('postSignatures', validParams, function (err, res) {
+			node.debug('> Response:'.grey, JSON.stringify(res));
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message').to.equal('Invalid signature body');
+			done();
+		});
 	});
 
 	it('using unprocessable signature should fail', function (done) {
 		validParams.signature.transaction = '1';
 
-		node.post('/peer/signatures', validParams)
-			.end(function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res.body));
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.equal('Error processing signature: Transaction not found');
-				done();
-			});
+		ws.call('postSignatures', validParams, function (err, res) {
+			node.debug('> Response:'.grey, JSON.stringify(res));
+			node.expect(res).to.have.property('success').to.be.not.ok;
+			node.expect(res).to.have.property('message').to.equal('Error processing signature: Transaction not found');
+			done();
+		});
 	});
-
-	it('using processable signature should be ok');
 
 	describe('creating a new multisignature account', function () {
 
@@ -145,7 +93,7 @@ describe('POST /peer/signatures', function () {
 				eachSeriesCb();
 			}, function (err) {
 				postTransactions(transactions, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('success').to.be.ok;
 					node.onNewBlock(function (err) {
 						done();
 					});
@@ -162,7 +110,7 @@ describe('POST /peer/signatures', function () {
 			transaction = node.lisk.multisignature.createMultisignature(owner.password, null, keysgroup, lifetime, min);
 
 			postTransactions([transaction], function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.be.ok;
 				node.onNewBlock(function (err) {
 					done();
 				});
@@ -173,8 +121,8 @@ describe('POST /peer/signatures', function () {
 			var signature = node.lisk.multisignature.signTransaction(transaction, owner.password);
 
 			postSignature(transaction, signature, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('message').to.equal('Error processing signature: Failed to verify signature');
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.equal('Error processing signature: Failed to verify signature');
 				done();
 			});
 		});
@@ -183,7 +131,7 @@ describe('POST /peer/signatures', function () {
 			var signature = node.lisk.multisignature.signTransaction(transaction, coSigner1.password);
 
 			postSignature(transaction, signature, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -191,7 +139,7 @@ describe('POST /peer/signatures', function () {
 		it('using processable signature for coSigner1 should not confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
 				node.onNewBlock(function (err) {
-					node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
 						done();
 					});
@@ -203,14 +151,14 @@ describe('POST /peer/signatures', function () {
 			var signature = node.lisk.multisignature.signTransaction(transaction, coSigner2.password);
 
 			postSignature(transaction, signature, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
 
 		it('using processable signature for coSigner2 should confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+				http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(transaction.id);
@@ -233,7 +181,7 @@ describe('POST /peer/signatures', function () {
 			transaction = node.lisk.multisignature.createTransaction('1L', 1, owner.password);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.be.ok;
 				node.onNewBlock(function (err) {
 					done();
 				});
@@ -244,7 +192,7 @@ describe('POST /peer/signatures', function () {
 			var signature = node.lisk.multisignature.signTransaction(transaction, coSigner1.password);
 
 			postSignature(transaction, signature, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -252,7 +200,7 @@ describe('POST /peer/signatures', function () {
 		it('using processable signature for coSigner1 should not confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
 				node.onNewBlock(function (err) {
-					node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
 						done();
 					});
@@ -264,14 +212,14 @@ describe('POST /peer/signatures', function () {
 			var signature = node.lisk.multisignature.signTransaction(transaction, coSigner2.password);
 
 			postSignature(transaction, signature, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
 
 		it('using processable signature for coSigner2 should confirm the transaction', function (done) {
 			node.onNewBlock(function (err) {
-				node.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+				http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(transaction.id);
@@ -281,9 +229,4 @@ describe('POST /peer/signatures', function () {
 		});
 	});
 
-	describe('using multiple signatures', function () {
-		it('with unprocessable signature should fail');
-
-		it('with processable signature should be ok');
-	});
 });
