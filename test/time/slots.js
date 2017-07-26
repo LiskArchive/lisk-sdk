@@ -63,6 +63,44 @@ describe('slots.js', function () {
 		});
 	});
 
+	describe('#getTimeWithOffset', function () {
+
+		var getTimeWithOffset = slots.getTimeWithOffset;
+		var now = new Date(1464109210000);
+		var clock;
+
+		before(function () {
+			clock = sinon.useFakeTimers(now, 'Date');
+		});
+
+		after(function () {
+			clock.restore();
+		});
+
+		it('should be ok', function () {
+			(getTimeWithOffset).should.be.ok();
+		});
+
+		it('should be a function', function () {
+			(getTimeWithOffset).should.be.type('function');
+		});
+
+		it('should call getTime using the offset', function () {
+			var offset = -3;
+
+			var time = getTimeWithOffset(offset);
+
+			(time).should.be.type('number').and.equal(7);
+		});
+
+		it('should handle undefined offset', function () {
+			var time = getTimeWithOffset();
+
+			(time).should.be.type('number').and.equal(10);
+		});
+
+	});
+
 	describe('#getRealTime', function () {
 
 		var getRealTime = slots.getRealTime;

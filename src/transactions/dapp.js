@@ -32,8 +32,6 @@ var slots       = require('../time/slots.js');
  */
 
 function createDapp (secret, secondSecret, options, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
 	var keys = crypto.getKeys(secret);
 
 	var transaction = {
@@ -42,7 +40,7 @@ function createDapp (secret, secondSecret, options, timeOffset) {
 		fee: constants.fees.dapp,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			dapp: {
 				category: options.category,

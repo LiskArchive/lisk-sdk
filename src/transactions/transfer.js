@@ -33,8 +33,6 @@ var slots       = require('../time/slots.js');
  */
 
 function createInTransfer (dappId, amount, secret, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
 	var keys = crypto.getKeys(secret);
 
 	var transaction = {
@@ -43,7 +41,7 @@ function createInTransfer (dappId, amount, secret, secondSecret, timeOffset) {
 		fee: constants.fees.send,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			inTransfer: {
 				dappId: dappId
@@ -76,8 +74,6 @@ function createInTransfer (dappId, amount, secret, secondSecret, timeOffset) {
  */
 
 function createOutTransfer (dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
 	var keys = crypto.getKeys(secret);
 
 	var transaction = {
@@ -86,7 +82,7 @@ function createOutTransfer (dappId, transactionId, recipientId, amount, secret, 
 		fee: constants.fees.send,
 		recipientId: recipientId,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			outTransfer: {
 				dappId: dappId,
