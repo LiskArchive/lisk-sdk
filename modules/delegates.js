@@ -168,8 +168,9 @@ __private.forge = function (cb) {
 					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
 				},
 				checkBroadhash: function (seriesCb) {
-					if (modules.transport.poorConsensus()) {
-						return setImmediate(seriesCb, ['Inadequate broadhash consensus', modules.transport.consensus(), '%'].join(' '));
+					var consensus = modules.peers.getConsensus();
+					if (modules.transport.poorConsensus(consensus)) {
+						return setImmediate(seriesCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
 					} else {
 						return setImmediate(seriesCb);
 					}
@@ -607,13 +608,14 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
  */
 Delegates.prototype.onBind = function (scope) {
 	modules = {
-		loader: scope.loader,
-		rounds: scope.rounds,
 		accounts: scope.accounts,
 		blocks: scope.blocks,
-		transport: scope.transport,
-		transactions: scope.transactions,
 		delegates: scope.delegates,
+		loader: scope.loader,
+		peers: scope.peers,
+		rounds: scope.rounds,
+		transactions: scope.transactions,
+		transport: scope.transport
 	};
 
 	__private.assetTypes[transactionTypes.DELEGATE].bind(
@@ -933,128 +935,6 @@ Delegates.prototype.shared = {
 					return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
 				});
 			}
-		});
-	},
-
-	addDelegate: function (req, cb) {
-		library.schema.validate(req.body, schema.addDelegate, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
-			var keypair = library.ed.makeKeypair(hash);
-
-			if (req.body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-					return setImmediate(cb, 'Invalid passphrase');
-				}
-			}
-
-			library.balancesSequence.add(function (cb) {
-				if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-					modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						if (!account || !account.publicKey) {
-							return setImmediate(cb, 'Multisignature account not found');
-						}
-
-						if (!account.multisignatures || !account.multisignatures) {
-							return setImmediate(cb, 'Account does not have multisignatures enabled');
-						}
-
-						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-							return setImmediate(cb, 'Account does not belong to multisignature group');
-						}
-
-						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
-							if (err) {
-								return setImmediate(cb, err);
-							}
-
-							if (!requester || !requester.publicKey) {
-								return setImmediate(cb, 'Requester not found');
-							}
-
-							if (requester.secondSignature && !req.body.secondSecret) {
-								return setImmediate(cb, 'Missing requester second passphrase');
-							}
-
-							if (requester.publicKey === account.publicKey) {
-								return setImmediate(cb, 'Invalid requester public key');
-							}
-
-							var secondKeypair = null;
-
-							if (requester.secondSignature) {
-								var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-								secondKeypair = library.ed.makeKeypair(secondHash);
-							}
-
-							var transaction;
-
-							try {
-								transaction = library.logic.transaction.create({
-									type: transactionTypes.DELEGATE,
-									username: req.body.username,
-									sender: account,
-									keypair: keypair,
-									secondKeypair: secondKeypair,
-									requester: keypair
-								});
-							} catch (e) {
-								return setImmediate(cb, e.toString());
-							}
-							modules.transactions.receiveTransactions([transaction], true, cb);
-						});
-					});
-				} else {
-					modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						if (!account || !account.publicKey) {
-							return setImmediate(cb, 'Account not found');
-						}
-
-						if (account.secondSignature && !req.body.secondSecret) {
-							return setImmediate(cb, 'Invalid second passphrase');
-						}
-
-						var secondKeypair = null;
-
-						if (account.secondSignature) {
-							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-							secondKeypair = library.ed.makeKeypair(secondHash);
-						}
-
-						var transaction;
-
-						try {
-							transaction = library.logic.transaction.create({
-								type: transactionTypes.DELEGATE,
-								username: req.body.username,
-								sender: account,
-								keypair: keypair,
-								secondKeypair: secondKeypair
-							});
-						} catch (e) {
-							return setImmediate(cb, e.toString());
-						}
-						modules.transactions.receiveTransactions([transaction], true, cb);
-					});
-				}
-			}, function (err, transaction) {
-				if (err) {
-					return setImmediate(cb, err);
-				} else {
-					return setImmediate(cb, null, {transaction: transaction[0]});
-				}
-			});
 		});
 	}
 };

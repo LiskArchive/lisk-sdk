@@ -1,5 +1,6 @@
 {
-    "port": 4000,
+    "port": 5000,
+    "httpPort": 4000,
     "address": "0.0.0.0",
     "version": "0.0.0a",
     "minVersion": "0.0.0a",
@@ -9,6 +10,7 @@
     "trustProxy": false,
     "topAccounts": false,
     "cacheEnabled": true,
+    "wsWorkers": 1,
     "db": {
         "host": "localhost",
         "port": 5432,
@@ -47,7 +49,7 @@
         "enabled": true,
         "list": [{
             "ip": "127.0.0.1",
-            "port": 9999
+            "port": "5000"
         }],
         "access": {
             "blackList": []
