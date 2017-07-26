@@ -7,8 +7,8 @@ var httpApi = require('../../helpers/httpApi');
  * Binds api with modules and creates common url.
  * - End point: `/api/signatures`
  * - Public API:
+ * 	- post	/
  * 	- get	/fee
- * 	- put	/
  * @memberof module:signatures
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -22,8 +22,8 @@ function SignaturesHttpApi (signaturesModule, app) {
 	var router = new Router();
 
 	router.map(signaturesModule.shared, {
-		'get /fee': 'getFee',
-		'put /': 'addSignature'
+		'post /': 'postSignatures',
+		'get /fee': 'getFee'
 	});
 
 	httpApi.registerEndpoint('/api/signatures', app, router, signaturesModule.isLoaded);

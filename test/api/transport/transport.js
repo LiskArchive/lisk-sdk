@@ -1,10 +1,11 @@
 'use strict';
 
+var _ = require('lodash');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-
 var node = require('../../node');
 var ws = require('../../common/wsCommunication');
 var PromiseDefer = require('../../../helpers/promiseDefer');
+var randomPeer = require('../../common/objectStubs').randomPeer;
 
 
 describe('handshake', function () {
@@ -139,13 +140,175 @@ describe('RPC', function () {
 			});
 	});
 
+	describe('acceptPeer', function () {
+		var validPeer;
+
+		beforeEach(function () {
+			validPeer = _.clone(randomPeer);
+		});
+
+		beforeEach(function (done) {
+			clientSocket.wampSend('removePeer', validPeer)
+				.then(function (err, res) {
+					done();
+				})
+				.catch(function (err) {
+					done();
+				});
+		});
+
+
+		it('should not accept peer without ip', function (done) {
+
+			delete validPeer.ip;
+
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					done('should fail while sending peer without ip');
+				})
+				.catch(function (err) {
+					node.expect(err).to.equal('Failed to accept peer');
+					done();
+				});
+		});
+
+		it('should not accept peer without port', function (done) {
+
+			delete validPeer.port;
+
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					done('should fail while sending peer without port');
+				})
+				.catch(function (err) {
+					node.expect(err).to.equal('Failed to accept peer');
+					done();
+				});
+		});
+
+		it('should not accept peer without height', function (done) {
+
+			delete validPeer.height;
+
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					done('should fail');
+				})
+				.catch(function (err) {
+					node.expect(err).to.equal('No headers information');
+					done();
+				});
+		});
+
+		it('should not accept peer without broadhash', function (done) {
+
+			delete validPeer.broadhash;
+
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					done('should fail');
+				})
+				.catch(function (err) {
+					node.expect(err).to.equal('No headers information');
+					done();
+				});
+		});
+
+		it('should not accept peer without nonce', function (done) {
+
+			delete validPeer.nonce;
+
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					done('should fail');
+				})
+				.catch(function (err) {
+					node.expect(err).to.equal('No headers information');
+					done();
+				});
+		});
+
+		it('should accept valid peer', function (done) {
+
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					node.expect(err).to.be.undefined;
+					done();
+				})
+				.catch(function (err) {
+					done(err);
+				});
+		});
+	});
+
+	describe('removePeer', function () {
+
+		var validPeer;
+
+		beforeEach(function (done) {
+			//insert frozen peer
+			validPeer = _.clone(randomPeer);
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					done();
+				})
+				.catch(function (err) {
+					done('Failed to insert peer before running removal tests');
+				});
+		});
+
+		beforeEach(function () {
+			validPeer = _.clone(randomPeer);
+		});
+
+		it('should not remove peer without ip', function (done) {
+
+			delete validPeer.ip;
+
+			clientSocket.wampSend('removePeer', validPeer)
+				.then(function (err, res) {
+					done('should fail while sending peer without ip');
+				})
+				.catch(function (err) {
+					node.expect(err).to.equal('Failed to remove peer');
+					done();
+				});
+		});
+
+		it('should not remove peer without port', function (done) {
+
+			delete validPeer.port;
+
+			clientSocket.wampSend('removePeer', validPeer)
+				.then(function (err, res) {
+					done('should fail while sending peer without port');
+				})
+				.catch(function (err) {
+					node.expect(err).to.equal('Failed to remove peer');
+					done();
+				});
+		});
+
+		it('should remove valid frozen peer', function (done) {
+
+			clientSocket.wampSend('removePeer', validPeer)
+				.then(function (err, res) {
+					node.expect(err).to.be.undefined;
+					done();
+				})
+				.catch(function (err) {
+					done(err);
+				});
+		});
+	});
+
 	describe('height', function () {
 
 		it('should return height', function (done) {
 			clientSocket.wampSend('height')
 				.then(function (result) {
 					node.expect(result).to.have.property('success').to.be.ok;
-					node.expect(result).to.have.property('height').to.be.a('number');
+					node.expect(result).to.have.property('height').that.is.a('number').at.least(1);
 					done();
 				}).catch(function (err) {
 					done(err);
@@ -159,8 +322,9 @@ describe('RPC', function () {
 			clientSocket.wampSend('status')
 				.then(function (result) {
 					node.expect(result).to.have.property('success').to.be.ok;
-					node.expect(result).to.have.property('height').to.be.a('number');
-					node.expect(result).to.have.property('broadhash').to.be.a('string');
+					node.expect(result).to.have.property('broadhash').that.is.a('string');
+					node.expect(result).to.have.property('nonce').that.is.a('string');
+					node.expect(result).to.have.property('height').that.is.a('number').at.least(1);
 					done();
 				}).catch(function (err) {
 					done(err);
@@ -169,6 +333,34 @@ describe('RPC', function () {
 	});
 
 	describe('list', function () {
+
+		var validPeer;
+
+		beforeEach(function (done) {
+			//insert frozen peer
+			validPeer = _.clone(randomPeer);
+			clientSocket.wampSend('acceptPeer', validPeer)
+				.then(function (err, res) {
+					done();
+				})
+				.catch(function (err) {
+					done('Failed to insert peer before running removal tests');
+				});
+		});
+
+		beforeEach(function () {
+			validPeer = _.clone(randomPeer);
+		});
+
+		it('should return non empty peers list', function (done) {
+			ws.call('list', null, function (err, res) {
+				node.debug('> Response:'.grey, JSON.stringify(res));
+				node.expect(err).to.be.null;
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('peers').to.be.an('array').and.not.empty;
+				done();
+			});
+		});
 
 		it('should return list of peers', function (done) {
 			clientSocket.wampSend('list')
@@ -183,22 +375,20 @@ describe('RPC', function () {
 
 		it('should should work ok with asking for a list multiple times', function (done) {
 
-			var count = 0;
+			var successfulAsks = 0;
 			for (var i = 0; i < 100; i += 1) {
 				clientSocket.wampSend('list')
 					.then(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('peers').to.be.an('array');
-						count += 1;
-						if (count === 99) {
-							return done();
+						successfulAsks += 1;
+						if (successfulAsks === 100) {
+							done();
 						}
 					}).catch(function (err) {
 						done(err);
 					});
 			}
-
-
 		});
 	});
 

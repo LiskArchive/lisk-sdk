@@ -122,32 +122,5 @@ module.exports = {
 			}
 		},
 		required: ['generatorPublicKey']
-	},
-	addDelegate: {
-		id: 'delegates.addDelegate',
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			username: {
-				type: 'string',
-				format: 'username',
-				minLength: 1,
-				maxLength: 20
-			}
-		},
-		required: ['secret']
 	}
 };

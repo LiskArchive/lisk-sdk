@@ -147,16 +147,18 @@ __private.receiveSignatures = function (query, cb) {
  * @private
  * @implements {library.schema.validate}
  * @implements {modules.multisignatures.processSignature}
- * @param {signature} signature
+ * @param {object} query
+ * @param {string} query.signature
+ * @param {object} query.transaction
  * @return {setImmediateCallback} cb | error messages
  */
-__private.receiveSignature = function (signature, cb) {
-	library.schema.validate({signature: signature}, schema.signature, function (err) {
+__private.receiveSignature = function (query, cb) {
+	library.schema.validate({signature: query}, schema.signature, function (err) {
 		if (err) {
-			return setImmediate(cb, 'Invalid signature body');
+			return setImmediate(cb, 'Invalid signature body ' + err[0].message);
 		}
 
-		modules.multisignatures.processSignature(signature, function (err) {
+		modules.multisignatures.processSignature(query, function (err) {
 			if (err) {
 				return setImmediate(cb, 'Error processing signature: ' + err);
 			} else {
@@ -195,6 +197,9 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 			transactions = query.transactions;
 
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				if (!transaction) {
+					return setImmediate(eachSeriesCb, 'Unable to process signature. Signature is undefined.');
+				}
 				transaction.bundled = true;
 
 				__private.receiveTransaction(transaction, peer, extraLogMessage, function (err) {
@@ -240,7 +245,11 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	}
 
 	library.balancesSequence.add(function (cb) {
-		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + library.logic.peers.peersManager.getAddress(peer.nonce));
+		if (!peer) {
+			library.logger.debug('Received transaction ' + transaction.id + ' from public client');
+		} else {
+			library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + library.logic.peers.peersManager.getAddress(peer.nonce));
+		}
 		modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
 			if (err) {
 				library.logger.debug(['Transaction', id].join(' '), err.toString());

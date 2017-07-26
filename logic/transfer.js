@@ -28,18 +28,6 @@ Transfer.prototype.bind = function (accounts, rounds) {
 };
 
 /**
- * Assigns data to transaction recipientId and amount.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-Transfer.prototype.create = function (data, trs) {
-	trs.recipientId = data.recipientId;
-	trs.amount = data.amount;
-
-	return trs;
-};
-/**
  * Returns send fees from constants.
  * @param {transaction} trs
  * @param {account} sender
