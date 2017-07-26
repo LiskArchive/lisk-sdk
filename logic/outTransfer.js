@@ -42,25 +42,6 @@ OutTransfer.prototype.bind = function (accounts, rounds, dapps) {
 };
 
 /**
- * Assigns data to transaction recipientId and amount.
- * Generates outTransfer data into transaction asset.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-OutTransfer.prototype.create = function (data, trs) {
-	trs.recipientId = data.recipientId;
-	trs.amount = data.amount;
-
-	trs.asset.outTransfer = {
-		dappId: data.dappId,
-		transactionId: data.transactionId
-	};
-
-	return trs;
-};
-
-/**
  * Returns send fee from constants.
  * @param {transaction} trs
  * @param {account} sender

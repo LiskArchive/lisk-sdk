@@ -1,6 +1,8 @@
 'use strict';
 
-var node = require('./../node.js');
+var popsicle = require('popsicle');
+var config = require('../../config.json');
+
 
 /**
  * @param {string} table
@@ -21,28 +23,43 @@ function clearDatabaseTable (db, logger, table, cb) {
  * @param {Function} cb
  * @param {Number} [retries=10] retries
  * @param {Number} [timeout=200] timeout
+ * @param {String} [baseUrl='http://localhost:5000'] timeout
  */
-function waitUntilBlockchainReady (cb, retries, timeout) {
+function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 	if (!retries) {
 		retries = 10;
 	}
 	if (!timeout) {
 		timeout = 1000;
 	}
+
+	baseUrl = baseUrl || 'http://' + config.address + ':' + config.httpPort;
 	(function fetchBlockchainStatus () {
-		node.get('/api/loader/status', function (err, res) {
-			node.expect(err).to.not.exist;
-			retries -= 1;
-			if (!res.body.loaded && retries >= 0) {
-				return setTimeout(function () {
-					fetchBlockchainStatus();
-				}, timeout);
-			}
-			else if (res.body.success && res.body.loaded) {
-				return cb();
-			}
-			return cb('Failed to load blockchain');
-		});
+		popsicle.get(baseUrl + '/api/loader/status')
+			.then(function (res) {
+				retries -= 1;
+				res = JSON.parse(res.body);
+				if (!res.loaded && retries >= 0) {
+					return setTimeout(function () {
+						fetchBlockchainStatus();
+					}, timeout);
+				}
+				else if (res.success && res.loaded) {
+					return cb();
+				}
+				return cb('Failed to load blockchain');
+			})
+			.catch(function (err) {
+				retries -= 1;
+				if (retries >= 0) {
+					return setTimeout(function () {
+						fetchBlockchainStatus();
+					}, timeout);
+				} else {
+					return cb('Server is not responding');
+				}
+
+			});
 	})();
 }
 

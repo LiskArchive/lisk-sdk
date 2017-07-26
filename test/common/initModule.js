@@ -6,9 +6,10 @@ var randomString = require('randomstring');
 
 var _ = require('lodash');
 
-var async = require('../node').async;
+var async = require('async');
 var dirname = path.join(__dirname, '..', '..');
 var config = require(path.join(dirname, '/config.json'));
+var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
 var database = require(path.join(dirname, '/helpers', 'database.js'));
 var genesisblock = require(path.join(dirname, '/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
@@ -16,6 +17,7 @@ var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
 var Cache = require('../../modules/cache.js');
 var ed = require('../../helpers/ed');
+var jobsQueue = require('../../helpers/jobsQueue');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
 var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
@@ -24,6 +26,7 @@ var modulesLoader = new function () {
 
 	this.db = null;
 	this.logger = new Logger({ echo: null, errorLevel: config.fileLogLevel, filename: config.logFileName });
+	config.nonce = randomString.generate(16);
 	this.scope = {
 		config: config,
 		genesisblock: { block: genesisblock },
@@ -50,6 +53,11 @@ var modulesLoader = new function () {
 				this.logger.warn('Main queue', current);
 			}
 		}),
+		balancesSequence: new Sequence({
+			onWarning: function (current, limit) {
+				this.logger.warn('Balance queue', current);
+			}
+		})
 	};
 
 	/**
@@ -61,35 +69,35 @@ var modulesLoader = new function () {
 	 */
 	this.initLogic = function (Logic, scope, cb) {
 		switch (Logic.name) {
-		 case 'Account':
-			new Logic(scope.db, scope.schema, scope.logger, cb);
-			break;
-		 case 'Transaction':
-		 	async.series({
-				account: function (cb) {
-					new Account(scope.db, scope.schema, scope.logger, cb);
-				}
-			 }, function (err, result) {
-				 new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
-			 });
-			break;
-		 case 'Block':
-		 	async.waterfall([
-				function (waterCb) {
-					return new Account(scope.db, scope.schema, scope.logger, waterCb);
-				},
-				function (account, waterCb) {
-					return new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, account, scope.logger, waterCb);
-				}
-			 ], function (err, transaction) {
-				 new Logic(scope.ed, scope.schema, transaction, cb);
-			});
-			break;
-		 case 'Peers':
-			new Logic(scope.logger, cb);
-			break;
-		 default:
-		 	console.log('no Logic case initLogic');
+			case 'Account':
+				new Logic(scope.db, scope.schema, scope.logger, cb);
+				break;
+			case 'Transaction':
+				async.series({
+					account: function (cb) {
+						new Account(scope.db, scope.schema, scope.logger, cb);
+					}
+				}, function (err, result) {
+					new Logic(scope.db, scope.ed, scope.schema, scope.genesisblock, result.account, scope.logger, cb);
+				});
+				break;
+			case 'Block':
+				async.waterfall([
+					function (waterCb) {
+						return new Account(scope.db, scope.schema, scope.logger, waterCb);
+					},
+					function (account, waterCb) {
+						return new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, account, scope.logger, waterCb);
+					}
+				], function (err, transaction) {
+					new Logic(scope.ed, scope.schema, transaction, cb);
+				});
+				break;
+			case 'Peers':
+				new Logic(scope.logger, cb);
+				break;
+			default:
+				console.log('no Logic case initLogic');
 		}
 	};
 
@@ -152,6 +160,10 @@ var modulesLoader = new function () {
 		], cb);
 	};
 
+	this.clear = function () {
+		jobsQueue.jobs = {};
+	};
+
 	/**
 	 * Initializes all created Modules in directory
 	 *
@@ -159,6 +171,7 @@ var modulesLoader = new function () {
 	 * @param {object} [scope={}] scope
 	 */
 	this.initAllModules = function (cb, scope) {
+		this.clear();
 		this.initModules([
 			{accounts: require('../../modules/accounts')},
 			{blocks: require('../../modules/blocks')},

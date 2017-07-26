@@ -496,13 +496,11 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 			throw 'Invalid public key, must be a string';
 		}
 		// Check length
-		if (publicKey.length < 64) {
+		if (publicKey.length !== 64) {
 			throw 'Invalid public key, must be 64 characters long';
 		}
-		// Check format
-		try {
-			Buffer.from(publicKey, 'hex');
-		} catch (e) {
+
+		if (!this.scope.schema.validate(publicKey, { format: 'hex' })) {
 			throw 'Invalid public key, must be a hex string';
 		}
 	}
@@ -669,119 +667,119 @@ Account.prototype.merge = function (address, diff, cb) {
 		if (diff[value] !== undefined) {
 			var trueValue = diff[value];
 			switch (self.conv[value]) {
-			case String:
-				update[value] = trueValue;
-				break;
-			case Number:
-				if (isNaN(trueValue) || trueValue === Infinity) {
-					console.log(diff);
-					return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
-				} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
-					update.$inc = update.$inc || {};
-					update.$inc[value] = Math.floor(trueValue);
-					if (value === 'balance') {
-						round.push({
-							query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
-							values: {
-								address: address,
-								amount: trueValue,
-								blockId: diff.blockId,
-								round: diff.round
-							}
-						});
-					}
-				} else if (trueValue < 0) {
-					update.$dec = update.$dec || {};
-					update.$dec[value] = Math.floor(Math.abs(trueValue));
-					// If decrementing u_balance on account
-					if (update.$dec.u_balance) {
+				case String:
+					update[value] = trueValue;
+					break;
+				case Number:
+					if (isNaN(trueValue) || trueValue === Infinity) {
+						console.log(diff);
+						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
+					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
+						update.$inc = update.$inc || {};
+						update.$inc[value] = Math.floor(trueValue);
+						if (value === 'balance') {
+							round.push({
+								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
+								values: {
+									address: address,
+									amount: trueValue,
+									blockId: diff.blockId,
+									round: diff.round
+								}
+							});
+						}
+					} else if (trueValue < 0) {
+						update.$dec = update.$dec || {};
+						update.$dec[value] = Math.floor(Math.abs(trueValue));
+						// If decrementing u_balance on account
+						if (update.$dec.u_balance) {
 						// Remove virginity and ensure marked columns become immutable
-						update.virgin = 0;
-					}
-					if (value === 'balance') {
-						round.push({
-							query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
-							values: {
-								address: address,
-								amount: trueValue,
-								blockId: diff.blockId,
-								round: diff.round
-							}
-						});
-					}
-				}
-				break;
-			case Array:
-				if (Object.prototype.toString.call(trueValue[0]) === '[object Object]') {
-					for (i = 0; i < trueValue.length; i++) {
-						val = trueValue[i];
-						if (val.action === '-') {
-							delete val.action;
-							remove_object[value] = remove_object[value] || [];
-							remove_object[value].push(val);
-						} else if (val.action === '+') {
-							delete val.action;
-							insert_object[value] = insert_object[value] || [];
-							insert_object[value].push(val);
-						} else {
-							delete val.action;
-							insert_object[value] = insert_object[value] || [];
-							insert_object[value].push(val);
+							update.virgin = 0;
+						}
+						if (value === 'balance') {
+							round.push({
+								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
+								values: {
+									address: address,
+									amount: trueValue,
+									blockId: diff.blockId,
+									round: diff.round
+								}
+							});
 						}
 					}
-				} else {
-					for (i = 0; i < trueValue.length; i++) {
-						var math = trueValue[i][0];
-						val = null;
-						if (math === '-') {
-							val = trueValue[i].slice(1);
-							remove[value] = remove[value] || [];
-							remove[value].push(val);
-							if (value === 'delegates') {
-								round.push({
-									query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (-balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-									values: {
-										address: address,
-										delegate: val,
-										blockId: diff.blockId,
-										round: diff.round
-									}
-								});
-							}
-						} else if (math === '+') {
-							val = trueValue[i].slice(1);
-							insert[value] = insert[value] || [];
-							insert[value].push(val);
-							if (value === 'delegates') {
-								round.push({
-									query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-									values: {
-										address: address,
-										delegate: val,
-										blockId: diff.blockId,
-										round: diff.round
-									}
-								});
-							}
-						} else {
+					break;
+				case Array:
+					if (Object.prototype.toString.call(trueValue[0]) === '[object Object]') {
+						for (i = 0; i < trueValue.length; i++) {
 							val = trueValue[i];
-							insert[value] = insert[value] || [];
-							insert[value].push(val);
-							if (value === 'delegates') {
-								round.push({
-									query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-									values: {
-										address: address,
-										delegate: val,
-										blockId: diff.blockId,
-										round: diff.round
-									}
-								});
+							if (val.action === '-') {
+								delete val.action;
+								remove_object[value] = remove_object[value] || [];
+								remove_object[value].push(val);
+							} else if (val.action === '+') {
+								delete val.action;
+								insert_object[value] = insert_object[value] || [];
+								insert_object[value].push(val);
+							} else {
+								delete val.action;
+								insert_object[value] = insert_object[value] || [];
+								insert_object[value].push(val);
+							}
+						}
+					} else {
+						for (i = 0; i < trueValue.length; i++) {
+							var math = trueValue[i][0];
+							val = null;
+							if (math === '-') {
+								val = trueValue[i].slice(1);
+								remove[value] = remove[value] || [];
+								remove[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (-balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
+							} else if (math === '+') {
+								val = trueValue[i].slice(1);
+								insert[value] = insert[value] || [];
+								insert[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
+							} else {
+								val = trueValue[i];
+								insert[value] = insert[value] || [];
+								insert[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
 							}
 						}
 					}
-				}
-				break;
+					break;
 			}
 		}
 	});

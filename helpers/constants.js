@@ -40,7 +40,7 @@
  * @property {number} totalAmount
  * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
  */
-module.exports = {
+var constants = {
 	activeDelegates: 101,
 	addressLength: 208,
 	blockHeaderLength: 248,
@@ -93,3 +93,5 @@ module.exports = {
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
 };
+
+module.exports = constants;
