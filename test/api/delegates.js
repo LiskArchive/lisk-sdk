@@ -771,7 +771,7 @@ describe('GET /api/delegates/forging/status', function () {
 		});
 	});
 
-	it('using disabled publicKey should be ok', function (done) {
+	it('using publicKey should be ok', function (done) {
 		http.get('/api/delegates/forging/status?publicKey=' + testDelegate.publicKey, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('enabled').that.is.a('boolean');
@@ -829,7 +829,7 @@ describe('POST /api/delegates/forging/disable', function () {
 		});
 	});
 
-	it('using invalid secret should fail', function (done) {
+	it('using invalid key should fail', function (done) {
 		http.post('/api/delegates/forging/disable', {
 			publicKey: testDelegate.publicKey,
 			key: 'invalid key'
@@ -882,7 +882,7 @@ describe('POST /api/delegates/forging/enable', function () {
 		});
 	});
 
-	it('using invalid secret should fail', function (done) {
+	it('using invalid key should fail', function (done) {
 		http.post('/api/delegates/forging/enable', {
 			publicKey: testDelegate.publicKey,
 			key: 'invalid key'
