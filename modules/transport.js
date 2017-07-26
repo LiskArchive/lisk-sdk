@@ -198,7 +198,7 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 				if (!transaction) {
-					return setImmediate(eachSeriesCb, 'Cannot receive empty transaction');
+					return setImmediate(eachSeriesCb, 'Unable to process signature. Signature is undefined.');
 				}
 				transaction.bundled = true;
 
