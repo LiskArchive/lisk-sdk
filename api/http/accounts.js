@@ -35,14 +35,6 @@ function AccountsHttpApi (accountsModule, app) {
 		'get /delegates/fee': 'getDelegatesFee'
 	});
 
-	router.map(accountsModule.internal, {
-		'get /count': 'count'
-	});
-
-	if (process.env.DEBUG && process.env.DEBUG.toUpperCase() === 'TRUE') {
-		router.map(accountsModule.internal, {'get /getAllAccounts': 'getAllAccounts'});
-	}
-
 	if (process.env.TOP && process.env.TOP.toUpperCase() === 'TRUE') {
 		router.get('/top', httpApi.middleware.sanitize('query', schema.top, accountsModule.internal.top));
 	}

@@ -496,13 +496,11 @@ Account.prototype.verifyPublicKey = function (publicKey) {
 			throw 'Invalid public key, must be a string';
 		}
 		// Check length
-		if (publicKey.length < 64) {
+		if (publicKey.length !== 64) {
 			throw 'Invalid public key, must be 64 characters long';
 		}
-		// Check format
-		try {
-			Buffer.from(publicKey, 'hex');
-		} catch (e) {
+
+		if (!this.scope.schema.validate(publicKey, { format: 'hex' })) {
 			throw 'Invalid public key, must be a hex string';
 		}
 	}
