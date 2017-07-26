@@ -46,7 +46,7 @@ lisky> help
                                          Types available: account, address, block, delegate, transaction
                                          E.g. get delegate lightcurve
                                          e.g. get block 5510510593472232540
-    list [options] <type> [variadic...]  Get information from <type> with parameters [input, input, ...].
+    list [options] <type> <variadic...>  Get information from <type> with parameters <input, input, ...>.
                                          Types available: accounts, addresses, blocks, delegates, transactions
                                          E.g. list delegates lightcurve tosch
                                          E.g. list blocks 5510510593472232540 16450842638530591789
