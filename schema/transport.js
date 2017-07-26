@@ -9,8 +9,7 @@ module.exports = {
 		properties: {
 			ip: {
 				type: 'string',
-				minimum: 7,
-				maximum: 31
+				format: 'ip'
 			},
 			port: {
 				type: 'integer',

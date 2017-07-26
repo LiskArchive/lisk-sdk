@@ -239,7 +239,7 @@ d.run(function () {
 
 		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
 			var webSocketConfig = {
-				workers: 1,
+				workers: scope.config.wsWorkers,
 				port: scope.config.port,
 				wsEngine: 'uws',
 				appName: 'lisk',

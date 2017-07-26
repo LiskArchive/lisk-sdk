@@ -1,5 +1,6 @@
 'use strict';/*eslint*/
 
+var _  = require('lodash');
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
@@ -10,7 +11,7 @@ var sinon = require('sinon');
 var chai = require('chai');
 var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
-var _  = require('lodash');
+var ws = require('../../common/wsCommunication.js');
 
 var Rounds = require('../../../modules/rounds.js');
 var AccountLogic = require('../../../logic/account.js');
@@ -475,20 +476,18 @@ describe('account', function () {
 		describe('addDelegates (multisignature account)', function () {
 
 			function postSignature (transaction, signature, done) {
-				node.post('/peer/signatures', {
+				ws.call('postSignatures', {
 					signature: {
 						transaction: transaction.id,
 						signature: signature
 					}
-				}, done);
+				}, done, true);
 			}
 
 			function addTransaction (transaction, done) {
-				node.post('/peer/transactions', {
+				ws.call('postTransactions', {
 					transaction: transaction
-				}, function (err, res) {
-					done(err, res.body);
-				});
+				}, done, transaction);
 			}
 
 			var multiAccount = node.randomAccount();
@@ -689,7 +688,7 @@ describe('account', function () {
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
-					expect(res.accounts.map(function (v) { return v.balance; })).to.eql(topAccountsBalance.slice(0, 10));
+					expect(res.accounts.map(function (v) { return v.balance; })).to.equal(topAccountsBalance.slice(0, 10));
 					done();
 				});
 			});
@@ -705,6 +704,8 @@ describe('account', function () {
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
+					console.log(res.accounts.map(function (v) { return v.balance; }));
+					console.log(topAccountsBalance.slice(10, 20));
 					expect(res.accounts.map(function (v) { return v.balance; })).to.eql(topAccountsBalance.slice(10, 20));
 					done();
 				});

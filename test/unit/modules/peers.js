@@ -9,7 +9,6 @@ var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../config.json');
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var Peer = require('../../../logic/peer');
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 

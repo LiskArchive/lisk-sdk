@@ -12,6 +12,8 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var child_process = require('child_process');
 var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockchainReady;
 
+var baseConfig = require('../../test/config.json');
+
 var SYNC_MODE = {
 	RANDOM: 0,
 	ALL_TO_FIRST: 1,
@@ -66,7 +68,13 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 }
 
 function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
+	var secretsInChunk = Math.ceil(baseConfig.forging.secret.length / forgingNodesIndices.length);
+	var secretsChunks = Array.apply(null, new Array(forgingNodesIndices.length)).map(function (val, index) {
+		return baseConfig.forging.secret.slice(index * secretsInChunk, (index + 1) * secretsInChunk);
+	});
+
 	return Array.apply(null, new Array(numOfPeers)).map(function (val, index) {
+		var isForging = forgingNodesIndices.indexOf(index) !== -1;
 		return {
 			ip: '127.0.0.1',
 			port: 5000 + index,
@@ -74,7 +82,8 @@ function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
 			peers: {
 				list: generateNodePeers(numOfPeers, syncMode)
 			},
-			forging: forgingNodesIndices.indexOf(index) !== -1
+			forging: isForging,
+			secrets: isForging ? secretsChunks[index] : []
 		};
 	});
 }
@@ -110,7 +119,13 @@ function generatePM2NodesConfig (testNodeConfigs) {
 		};
 
 		if (!nodeConfig.forging) {
-			nodePM2Config.args += ' -c ./test/integration/config.non-forge.json';
+			nodePM2Config.args += ' -c ./test/integration/configs/config.non-forge.json';
+		} else {
+			var currentNodeConfig = _.clone(baseConfig);
+			currentNodeConfig.forging.force = false;
+			currentNodeConfig.forging.secret = nodeConfig.secrets;
+			fs.writeFileSync(__dirname + '/configs/config.node-' + index + '.json', JSON.stringify(currentNodeConfig, null, 4));
+			nodePM2Config.args += ' -c ./test/integration/configs/config.node-' + index + '.json';
 		}
 		pm2Config.apps.push(nodePM2Config);
 	}
