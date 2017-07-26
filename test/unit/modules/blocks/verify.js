@@ -157,7 +157,7 @@ describe('blocks/verify', function () {
 
 	describe('verifyBlock() for valid block', function () {
 
-		it('should verify a valid block', function (done) {
+		it('should be ok', function (done) {
 			blocks.lastBlock.set(previousBlock);
 			
 			blocksVerify.verifyBlock(validBlock, function (err) {
@@ -166,7 +166,7 @@ describe('blocks/verify', function () {
 			});
 		});
 		
-		it('block with uncommon rewards should pass verification when id in exceptions', function (done) {
+		it('should be ok when block is invalid but block id is excepted for having invalid block reward', function (done) {
 			exceptions.blockRewards.push(blockRewardInvalid.id);
 			
 			blocksVerify.verifyBlock(blockRewardInvalid, function (err) {
@@ -178,9 +178,9 @@ describe('blocks/verify', function () {
 
 	describe('verifyBlock() for invalid block', function () {
 		
-		describe('baseValidations', function () {
+		describe('base validations', function () {
 
-			it('block version should fail when version != 0', function (done) {
+			it('should fail when block version != 0', function (done) {
 				var version = validBlock.version;
 				validBlock.version = 99;
 
@@ -191,7 +191,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('block timestamp should fail when value is less than previous block timestamp', function (done) {
+			it('should fail when block timestamp is less than previous block timestamp', function (done) {
 				var timestamp = validBlock.timestamp;
 				validBlock.timestamp = 32578350;
 
@@ -202,7 +202,7 @@ describe('blocks/verify', function () {
 				});
 			});
 			
-			it('previous block should fail for missed previousBlock field', function (done) {
+			it('should fail when previousBlock property is missing', function (done) {
 				var previousBlock = validBlock.previousBlock;
 				delete validBlock.previousBlock;
 
@@ -213,7 +213,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('previous block should fail for invalid previousBlock value (fork:1)', function (done) {
+			it('should fail when previousBlock value is invalid (fork:1)', function (done) {
 				var prevBlock = validBlock.previousBlock;
 				validBlock.previousBlock = '10937893559311260102';
 
@@ -224,7 +224,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('payload length should fail when is greater than maxPayloadLength constant value', function (done) {
+			it('should fail when payload length greater than maxPayloadLength constant value', function (done) {
 				var payloadLength = validBlock.payloadLength;
 				validBlock.payloadLength = 1024 * 1024 * 2;
 
@@ -235,7 +235,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('transactions check should fail when numberOfTransactions is not transactions length', function (done) {
+			it('should fail when transactions length is not equal to numberOfTransactions property', function (done) {
 				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
 				
 				blocksVerify.verifyBlock(validBlock, function (err) {
@@ -245,7 +245,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('transactions length should fail when is greater than maxTxsPerBlock constant value', function (done) {
+			it('should fail when transactions length greater than maxTxsPerBlock constant value', function (done) {
 				var transactions = validBlock.transactions;
 				validBlock.transactions = new Array(26);
 				validBlock.numberOfTransactions = validBlock.transactions.length;
@@ -257,13 +257,11 @@ describe('blocks/verify', function () {
 					done();
 				});
 			});
-
 		});
 
-		describe('advancedValidations', function () {
-			// transactions
-		
-			it('transactions getBytes() should fail for unknown transaction type', function (done) {
+		describe('transaction validations', function () {
+
+			it('should fail when a transaction is of an unknown type', function (done) {
 				var trsType = validBlock.transactions[0].type;
 				validBlock.transactions[0].type = 555;
 
@@ -274,7 +272,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('transactions check should fail for duplicated transaction', function (done) {
+			it('should fail when a transaction is duplicated', function (done) {
 				var secodTrs = validBlock.transactions[1];
 				validBlock.transactions[1] = validBlock.transactions[0];
 
@@ -285,7 +283,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('payloadHash should fail for invalid payload hash', function (done) {
+			it('should fail when payload hash is invalid', function (done) {
 				var payloadHash = validBlock.payloadHash;
 				validBlock.payloadHash = 'invalidpayloadhash';
 
@@ -296,7 +294,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('calculated trs total ammount should fail for invalid block totalAmount', function (done) {
+			it('should fail when summed transaction amounts do not match totalAmount property', function (done) {
 				var totalAmount = validBlock.totalAmount;
 				validBlock.totalAmount = 99;
 
@@ -307,7 +305,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('calculated trs total fee should fail for invalid block totalFee', function (done) {
+			it('should fail when summed transaction fees do not match totalFee property', function (done) {
 				var totalFee = validBlock.totalFee;
 				validBlock.totalFee = 99;
 
@@ -317,9 +315,11 @@ describe('blocks/verify', function () {
 					done();
 				});
 			});
+		});
 
-			// signature
-			it('block signature should fail when blockSignature is no hex', function (done) {
+		describe('signature validations', function () {
+
+			it('should fail when blockSignature property is not a hex string', function (done) {
 				var blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature = 'invalidblocksignature';
 
@@ -330,7 +330,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('verify block signature should fail for invalid blockSignature hex', function (done) {
+			it('should fail when blockSignature property is an invalid hex string', function (done) {
 				var blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature = 'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
 
@@ -341,7 +341,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('verify block signature should fail when generatorPublicKey is no hex', function (done) {
+			it('should fail when generatorPublicKey property is not a hex string', function (done) {
 				var generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey = 'invalidblocksignature';
 
@@ -352,7 +352,7 @@ describe('blocks/verify', function () {
 				});
 			});		
 
-			it('verify block signature should fail for invalid generatorPublicKey hex', function (done) {
+			it('should fail when generatorPublicKey property is an invalid hex string', function (done) {
 				var generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey = '948b8b509579306694c00db2206ddb1517bfeca2b0dc833ec1c0f81e9644871b';
 
@@ -363,10 +363,10 @@ describe('blocks/verify', function () {
 				});
 			});
 		});
+		
+		describe('setBlockId validations', function () {
 
-		describe('setBlockId and expectedReward', function () {
-			// setBlockId
-			it('should generate valid block id for not number id value', function (done) {
+			it('should reset block id when block id is an invalid alpha-numeric string value', function (done) {
 				var blockId = validBlock.id;
 				validBlock.id = 'invalid-block-id';
 
@@ -379,7 +379,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('should generate valid block id for invalid block id string-number value', function (done) {
+			it('should reset block id when block id is an invalid numeric string value', function (done) {
 				var blockId = validBlock.id;
 				validBlock.id = '11850828211026019526';
 
@@ -392,7 +392,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('should generate valid block id for invalid block id int-number value', function (done) {
+			it('should reset block id when block id is an invalid integer value', function (done) {
 				var blockId = validBlock.id;
 				validBlock.id = 11850828211026019526;
 
@@ -405,7 +405,7 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('should generate valid block id for valid block id int-number value', function (done) {
+			it('should reset block id when block id is a valid integer value', function (done) {
 				var blockId = validBlock.id;
 				validBlock.id = 11850828211026019525;
 
@@ -417,17 +417,18 @@ describe('blocks/verify', function () {
 					done();
 				});
 			});
+		});
 
-			// expectedReward
-			it('calculate expected reward should fail for invalid block reward', function (done) {
+		describe('blockReward validations', function () {
 
+			it('should fail when block reward is invalid', function (done) {
 				exceptions.blockRewards.pop();
+
 				blocksVerify.verifyBlock(blockRewardInvalid, function (err) {
 					expect(err).to.equal(['Invalid block reward:', blockRewardInvalid.reward, 'expected:', validBlock.reward].join(' '));
 					done();
 				});
 			});
 		});
-
 	});
 });

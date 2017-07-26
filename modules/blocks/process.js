@@ -169,7 +169,6 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 				if (verify && block.id !== library.genesisblock.block.id) {
 					async.series({
 						normalizeBlock: function (seriesCb) {
-							// normalizeBlock
 							try {
 								block = library.logic.block.objectNormalize(block);
 							} catch (err) {
@@ -213,7 +212,6 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 						}, false);
 					}
 				}
-
 			}, function (err) {
 				return setImmediate(cb, err, modules.blocks.lastBlock.get());
 			});

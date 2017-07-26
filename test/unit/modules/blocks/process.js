@@ -11,12 +11,14 @@ var loadTables = require('./processTablesData.json');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
 
 describe('blocks/process', function () {
+	
 	var blocksProcess;
 	var blockLogic;
 	var blocks;
 	var blocksVerify;
 	var accounts;
 	var db;
+
 	before(function (done) {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
 			if (err) {
@@ -104,7 +106,7 @@ describe('blocks/process', function () {
 
 	describe('loadBlocksOffset {verify: true} - no errors', function () {
 		
-		it('should load block 2 from database: no transaction', function (done) {
+		it('should load block 2 from database: block without transactions', function (done) {
 			blocks.lastBlock.set(genesisBlock);
 			blocksProcess.loadBlocksOffset(1, 2, true, function (err, loadedBlock) {
 				if (err) {
@@ -132,7 +134,7 @@ describe('blocks/process', function () {
 
 	describe('loadBlocksOffset {verify: true} - block/trs errors', function () {
 		
-		it('should load block 4 from db and return error blockSignature', function (done) {
+		it('should load block 4 from db and return blockSignature error', function (done) {
 			blocksProcess.loadBlocksOffset(1, 4, true, function (err, loadedBlock) {
 				if (err) {
 					expect(err).equal('Failed to verify block signature');
@@ -143,7 +145,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 5 from db and return error invalid payloadHash', function (done) {
+		it('should load block 5 from db and return payloadHash error', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[2]);
 
 			blocksProcess.loadBlocksOffset(1, 5, true, function (err, loadedBlock) {
@@ -156,7 +158,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 6 from db and return error invalid block timestamp', function (done) {
+		it('should load block 6 from db and return block timestamp error', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[3]);
 
 			blocksProcess.loadBlocksOffset(1, 6, true, function (err, loadedBlock) {
@@ -169,7 +171,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 7 from db and return error unknown transaction type', function (done) {
+		it('should load block 7 from db and return unknown transaction type error', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[4]);
 
 			blocksProcess.loadBlocksOffset(1, 7, true, function (err, loadedBlock) {
@@ -182,7 +184,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 8 from db and return error Invalid block version', function (done) {
+		it('should load block 8 from db and return block version error', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[5]);
 
 			blocksProcess.loadBlocksOffset(1, 8, true, function (err, loadedBlock) {
@@ -195,7 +197,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 9 from db and return error Invalid previous block (fork:1)', function (done) {
+		it('should load block 9 from db and return previousBlock error (fork:1)', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[1]);
 
 			blocksProcess.loadBlocksOffset(1, 9, true, function (err, loadedBlock) {
@@ -208,7 +210,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 10 from db and return error error duplicated vote', function (done) {
+		it('should load block 10 from db and return duplicated votes error', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[7]);
 
 			blocksProcess.loadBlocksOffset(1, 10, true, function (err, loadedBlock) {
@@ -220,11 +222,11 @@ describe('blocks/process', function () {
 				done(loadedBlock);
 			});
 		});
-
 	});
 
 	describe('loadBlocksOffset {verify: false} - rerun block/trs errors', function () {
-		it('should clear db for errors', function (done) {
+
+		it('should clear fork_stat db table', function (done) {
 			async.every([
 				'forks_stat'
 			], function (table, seriesCb) {
@@ -237,7 +239,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load and process block 4 from db with blockSignature error', function (done) {
+		it('should load and process block 4 from db with invalid blockSignature', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[1]);
 
 			blocksProcess.loadBlocksOffset(1, 4, false, function (err, loadedBlock) {
@@ -279,7 +281,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load block 7 from db and return error unknown transaction type', function (done) {
+		it('should load block 7 from db and return unknown transaction type error', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[4]);
 
 			blocksProcess.loadBlocksOffset(1, 7, true, function (err, loadedBlock) {
@@ -292,7 +294,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load and process block 8 from db with Invalid block version error', function (done) {
+		it('should load and process block 8 from db with invalid block version', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[5]);
 
 			blocksProcess.loadBlocksOffset(1, 8, false, function (err, loadedBlock) {
@@ -306,7 +308,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load and process block 9 from db with Invalid previous block error (no fork:1)', function (done) {
+		it('should load and process block 9 from db with invalid previousBlock (no fork:1)', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[1]);
 
 			blocksProcess.loadBlocksOffset(1, 9, false, function (err, loadedBlock) {
@@ -320,7 +322,7 @@ describe('blocks/process', function () {
 			});
 		});
 
-		it('should load and process block 10 from db with duplicated vote error', function (done) {
+		it('should load and process block 10 from db with duplicated votes', function (done) {
 			blocks.lastBlock.set(loadTables[0].data[7]);
 
 			blocksProcess.loadBlocksOffset(1, 10, false, function (err, loadedBlock) {
@@ -333,7 +335,6 @@ describe('blocks/process', function () {
 				done();
 			});
 		});
-
 	});
 
 	after(function (done) {
