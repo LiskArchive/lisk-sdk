@@ -1,10 +1,6 @@
 {
-  "extends": ["lisk-base"],
-  "env": {
-    "mocha": true
-  },
-  "globals": {
-    "should": true,
-    "sinon": true
-  }
+	"extends": ["lisk-base"],
+	"globals": {
+		"naclInstance": true
+	}
 }
