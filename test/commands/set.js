@@ -56,8 +56,10 @@ describe('set command', () => {
 	describe('should set json parameter', () => {
 		const setJsonTrueCommand = 'set json true';
 		const setJsonFalseCommand = 'set json false';
+		const invalidValueCommand = 'set json tru';
 		const setJsonTrueResult = 'Successfully set json output to true.';
 		const setJsonFalseResult = 'Successfully set json output to false.';
+		const invalidValueResult = 'Cannot set json to tru.';
 
 		afterEach(() => {
 			delete require.cache[require.resolve(configPath)];
@@ -91,23 +93,48 @@ describe('set command', () => {
 				}),
 			);
 		});
+
+		it('should not set json to non-boolean values', () => {
+			return vorpal.exec(setJsonTrueCommand, () =>
+				vorpal.exec(invalidValueCommand, () => {
+					const config = require(configPath);
+
+					(config).should.have.property('json').be.true();
+					(capturedOutput).should.be.equal(`${setJsonTrueResult}${invalidValueResult}`);
+				}),
+			);
+		});
 	});
 
 	describe('switch testnet and mainnet', () => {
+		const setTestnetTrueCommand = 'set testnet true';
+		const setTestnetFalseCommand = 'set testnet false';
+		const invalidValueCommand = 'set testnet tru';
+		const setTestnetTrueResult = 'Successfully set testnet to true.';
+		const setTestnetFalseResult = 'Successfully set testnet to false.';
+		const invalidValueResult = 'Cannot set testnet to tru.';
+
 		it('should set testnet to true', () => {
-			const command = 'set testnet true';
+			const result = vorpal.execSync(setTestnetTrueCommand);
 
-			const result = vorpal.execSync(command);
-
-			(result).should.be.equal('Successfully set testnet to true.');
+			(result).should.be.equal(setTestnetTrueResult);
 		});
 
 		it('should set testnet to false', () => {
-			const command = 'set testnet false';
+			const result = vorpal.execSync(setTestnetFalseCommand);
 
-			const result = vorpal.execSync(command);
+			(result).should.be.equal(setTestnetFalseResult);
+		});
 
-			(result).should.be.equal('Successfully set testnet to false.');
+		it('should not set testnet to non-boolean values', () => {
+			return vorpal.exec(setTestnetTrueCommand, () =>
+				vorpal.exec(invalidValueCommand, () => {
+					const config = require(configPath);
+
+					(config).should.have.property('liskJS').have.property('testnet').be.true();
+					(capturedOutput).should.be.equal(`${setTestnetTrueResult}${invalidValueResult}`);
+				}),
+			);
 		});
 	});
 });

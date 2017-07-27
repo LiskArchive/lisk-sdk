@@ -1,6 +1,8 @@
 import fse from 'fs-extra';
 import config from '../../config.json';
 
+const checkBoolean = value => ['true', 'false'].includes(value);
+
 const writeConfigToFile = (newConfig) => {
 	const configString = JSON.stringify(newConfig, null, '\t');
 	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
@@ -8,12 +10,18 @@ const writeConfigToFile = (newConfig) => {
 
 export default function setCommand(vorpal) {
 	function setJSON(value) {
+		if (!checkBoolean(value)) {
+			return { message: `Cannot set json to ${value}.` };
+		}
 		config.json = (value === 'true');
 		writeConfigToFile(config);
 		return { message: `Successfully set json output to ${value}.` };
 	}
 
 	function setTestnet(value) {
+		if (!checkBoolean(value)) {
+			return { message: `Cannot set testnet to ${value}.` };
+		}
 		config.liskJS.testnet = (value === 'true');
 		writeConfigToFile(config);
 		return { message: `Successfully set testnet to ${value}.` };
