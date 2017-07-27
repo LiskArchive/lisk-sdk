@@ -143,7 +143,6 @@ __private.syncTimer = function () {
  * Processes each signature from peer.
  * @private
  * @implements {Loader.getNetwork}
- * @implements {modules.transport.getFromPeer}
  * @implements {library.schema.validate}
  * @implements {library.sequence.add}
  * @implements {async.eachSeries}
@@ -165,16 +164,13 @@ __private.loadSignatures = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
-
-			modules.transport.getFromPeer(peer, {
-				api: '/signatures',
-				method: 'GET'
-			}, function (err, res) {
+			peer = library.logic.peers.create(peer);
+			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
 				} else {
-					library.schema.validate(res.body, schema.loadSignatures, function (err) {
-						return setImmediate(waterCb, err, res.body.signatures);
+					library.schema.validate(res, schema.loadSignatures, function (err) {
+						return setImmediate(waterCb, err, res.signatures);
 					});
 				}
 			});
@@ -204,7 +200,6 @@ __private.loadSignatures = function (cb) {
  * Calls processUnconfirmedTransaction for each transaction.
  * @private
  * @implements {Loader.getNetwork}
- * @implements {modules.transport.getFromPeer}
  * @implements {library.schema.validate}
  * @implements {async.eachSeries}
  * @implements {library.logic.transaction.objectNormalize}
@@ -229,20 +224,15 @@ __private.loadTransactions = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
-
-			modules.transport.getFromPeer(peer, {
-				api: '/transactions',
-				method: 'GET'
-			}, function (err, res) {
+			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
 				}
-
-				library.schema.validate(res.body, schema.loadTransactions, function (err) {
+				library.schema.validate(res, schema.loadTransactions, function (err) {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					} else {
-						return setImmediate(waterCb, null, peer, res.body.transactions);
+						return setImmediate(waterCb, null, peer, res.transactions);
 					}
 				});
 			});
@@ -526,6 +516,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 	var errorCount = 0;
 	var loaded = false;
 
+
 	self.getNetwork(function (err, network) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -656,26 +647,26 @@ __private.sync = function (cb) {
  * @private
  * @implements {modules.blocks.lastBlock.get}
  * @implements {library.logic.peers.create}
- * @param {number} heights
+ * @param {array<Peer>} peers
  * @return {Object} {height number, peers array}
  */
-__private.findGoodPeers = function (heights) {
+Loader.prototype.findGoodPeers = function (peers) {
 	var lastBlockHeight = modules.blocks.lastBlock.get().height;
-	library.logger.trace('Good peers - received', {count: heights.length});
+	library.logger.trace('Good peers - received', {count: peers.length});
 
-	heights = heights.filter(function (item) {
+	peers = peers.filter(function (item) {
 		// Removing unreachable peers or heights below last block height
 		return item != null && item.height >= lastBlockHeight;
 	});
 
-	library.logger.trace('Good peers - filtered', {count: heights.length});
+	library.logger.trace('Good peers - filtered', {count: peers.length});
 
 	// No peers found
-	if (heights.length === 0) {
+	if (peers.length === 0) {
 		return {height: 0, peers: []};
 	} else {
 		// Ordering the peers with descending height
-		heights = heights.sort(function (a,b) {
+		peers = peers.sort(function (a,b) {
 			return b.height - a.height;
 		});
 
@@ -687,8 +678,8 @@ __private.findGoodPeers = function (heights) {
 		var aggregation = 2;
 
 		// Histogram calculation, together with histogram maximum
-		for (var i in heights) {
-			var val = parseInt(heights[i].height / aggregation) * aggregation;
+		for (var i in peers) {
+			var val = parseInt(peers[i].height / aggregation) * aggregation;
 			histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
 
 			if (histogram[val] > max) {
@@ -698,7 +689,7 @@ __private.findGoodPeers = function (heights) {
 		}
 
 		// Performing histogram cut of peers too far from histogram maximum
-		var peers = heights.filter(function (item) {
+		peers = peers.filter(function (item) {
 			return item && Math.abs(height - item.height) < aggregation + 1;
 		}).map(function (item) {
 			return library.logic.peers.create(item);
@@ -716,7 +707,7 @@ __private.findGoodPeers = function (heights) {
 // Rationale:
 // - We pick 100 random peers from a random peer (could be unreachable).
 // - Then for each of them we grab the height of their blockchain.
-// - With this list we try to get a peer with sensibly good blockchain height (see __private.findGoodPeers for actual strategy).
+// - With this list we try to get a peer with sensibly good blockchain height (see Loader.prototype.findGoodPeers for actual strategy).
 /**
  * Gets good peers.
  * @implements {modules.blocks.lastBlock.get}
@@ -729,13 +720,12 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.lastBlock.get().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
-
 	modules.peers.list({}, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		__private.network = __private.findGoodPeers(peers);
+		__private.network = self.findGoodPeers(peers);
 
 		if (!__private.network.peers.length) {
 			return setImmediate(cb, 'Failed to find enough good peers');
@@ -882,7 +872,7 @@ Loader.prototype.shared = {
 			blocks: __private.blocksToSync,
 			height: modules.blocks.lastBlock.get().height,
 			broadhash: modules.system.getBroadhash(),
-			consensus: modules.transport.consensus()
+			consensus: modules.peers.getConsensus()
 		});
 	}
 };

@@ -1,13 +1,13 @@
 'use strict';
 
 var node = require('./../node.js');
+var http = require('../common/httpCommunication.js');
+var ws = require('../common/wsCommunication.js');
 var clearDatabaseTable = require('../common/globalBefore').clearDatabaseTable;
 var modulesLoader = require('../common/initModule').modulesLoader;
 
 function postTransaction (transaction, done) {
-	node.post('/peer/transactions', {
-		transaction: transaction
-	}, done);
+	ws.call('postTransactions', { transaction: transaction }, done, true);
 }
 
 before(function (done) {
@@ -26,7 +26,6 @@ before(function (done) {
 	node.async.eachSeries([node.guestbookDapp, node.blockDataDapp], function (dapp, eachSeriesCb) {
 		var transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, dapp);
 		dapp.transactionId = transaction.id;
-
 		postTransaction(transaction, eachSeriesCb);
 	}, done);
 });
@@ -38,7 +37,7 @@ before(function (done) {
 describe('GET /api/dapps/get?id=', function () {
 
 	function getDapp (id, done) {
-		node.get('/api/dapps/get?id=' + id, done);
+		http.get('/api/dapps/get?id=' + id, done);
 	}
 
 	it('using no id should fail', function (done) {
@@ -90,7 +89,7 @@ describe('GET /api/dapps/get?id=', function () {
 describe('GET /api/dapps/categories', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/dapps/categories', function (err, res) {
+		http.get('/api/dapps/categories', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('categories').that.is.an('object');
 			for (var i in node.dappCategories) {
@@ -104,7 +103,7 @@ describe('GET /api/dapps/categories', function () {
 describe('GET /api/dapps/?type=', function () {
 
 	function getDapps (params, done) {
-		node.get('/api/dapps?type=' + params, done);
+		http.get('/api/dapps?type=' + params, done);
 	}
 
 	it('using no type should fail', function (done) {
@@ -163,7 +162,7 @@ describe('GET /api/dapps/?type=', function () {
 describe('GET /api/dapps/?name=', function () {
 
 	function getDapps (params, done) {
-		node.get('/api/dapps?name=' + params, done);
+		http.get('/api/dapps?name=' + params, done);
 	}
 
 	it('using name with length < 1 should fail', function (done) {
@@ -222,7 +221,7 @@ describe('GET /api/dapps/?name=', function () {
 describe('GET /api/dapps/?category=', function () {
 
 	function getDapps (params, done) {
-		node.get('/api/dapps?category=' + params, done);
+		http.get('/api/dapps?category=' + params, done);
 	}
 
 	it('using numeric category should fail', function (done) {
@@ -271,7 +270,7 @@ describe('GET /api/dapps/?category=', function () {
 describe('GET /api/dapps/?link=', function () {
 
 	function getDapps (params, done) {
-		node.get('/api/dapps?link=' + params, done);
+		http.get('/api/dapps?link=' + params, done);
 	}
 
 	it('using numeric link should fail', function (done) {
@@ -329,7 +328,7 @@ describe('GET /api/dapps/?link=', function () {
 describe('GET /api/dapps/?limit=', function () {
 
 	function getDapps (params, done) {
-		node.get('/api/dapps?limit=' + params, done);
+		http.get('/api/dapps?limit=' + params, done);
 	}
 
 	it('using limit == 0 should fail', function (done) {
@@ -378,7 +377,7 @@ describe('GET /api/dapps/?limit=', function () {
 describe('GET /api/dapps/?limit=1&offset=', function () {
 
 	function getDapps (params, done) {
-		node.get('/api/dapps?limit=1&offset=' + params, done);
+		http.get('/api/dapps?limit=1&offset=' + params, done);
 	}
 
 	it('using offset < 0 should fail', function (done) {
@@ -415,7 +414,7 @@ describe('GET /api/dapps/?limit=1&offset=', function () {
 describe('GET /api/dapps/?orderBy=', function () {
 
 	function getDapps (params, done) {
-		node.get('/api/dapps?orderBy=' + params, done);
+		http.get('/api/dapps?orderBy=' + params, done);
 	}
 
 	it('using orderBy == "category:asc" should be ok', function (done) {

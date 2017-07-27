@@ -55,15 +55,13 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 
 	// Broadcast routes
 	self.routes = [{
-		path: '/transactions',
+		path: 'postTransactions',
 		collection: 'transactions',
-		object: 'transaction',
-		method: 'POST'
+		object: 'transaction'
 	}, {
-		path: '/signatures',
+		path: 'postSignatures',
 		collection: 'signatures',
-		object: 'signature',
-		method: 'POST'
+		object: 'signature'
 	}];
 
 	// Broadcaster timer
@@ -134,7 +132,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
 };
 
 /**
- * Gets peers and for each peer create it and broadcast. 
+ * Gets peers and for each peer create it and broadcast.
  * @implements {getPeers}
  * @implements {library.logic.peers.create}
  * @param {Object} params
@@ -143,6 +141,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
  * @return {setImmediateCallback} err | peers
  */
 Broadcaster.prototype.broadcast = function (params, options, cb) {
+	options.data.peer = library.logic.peers.me();
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
@@ -154,20 +153,16 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 				return setImmediate(waterCb, null, params.peers);
 			}
 		},
-		function getFromPeer (peers, waterCb) {
+		function sendToPeer (peers, waterCb) {
 			if (options.data.block) {
 				options.data.block = bson.deserialize(options.data.block);
 			}
 			library.logger.debug('Begin broadcast', options);
-
-			if (params.limit === self.config.peerLimit) { 
+			if (params.limit === self.config.peerLimit) {
 				peers = peers.slice(0, self.config.broadcastLimit);
 			}
-
 			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
-				peer = library.logic.peers.create(peer);
-
-				modules.transport.getFromPeer(peer, options, function (err) {
+				peer.rpc[options.api](options.data, function (err, result) {
 					if (err) {
 						library.logger.debug('Failed to broadcast to peer: ' + peer.string, err);
 					}
@@ -277,7 +272,7 @@ __private.squashQueue = function (broadcasts) {
 			}).filter(Boolean);
 
 			squashed.push({
-				options: { api: route.path, data: data, method: route.method },
+				options: { api: route.path, data: data },
 				immediate: false
 			});
 		}

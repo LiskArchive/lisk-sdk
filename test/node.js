@@ -22,16 +22,18 @@ node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
+var randomString = require('randomstring');
 require('colors');
 
 // Node configuration
-node.baseUrl = 'http://' + node.config.address + ':' + node.config.port;
+node.baseUrl = 'http://' + node.config.address + ':' + node.config.httpPort;
 node.api = node.supertest(node.baseUrl);
 
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
+node.nonce = randomString.generate(16);
 
 // Transaction fees
 node.fees = {
@@ -96,7 +98,7 @@ node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 node.randomDelegateName = function () {
 	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for (var i = 0; i < size; i++) {
 		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -223,53 +225,23 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 	);
 };
 
-// Adds peers to local node
-node.addPeers = function (numOfPeers, ip, cb) {
+node.generatePeerHeaders = function (ip, port) {
+	port = port || 9999;
+	ip = ip || '127.0.0.1';
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var port = 9999; // Frozen peer port
-	var os, version;
-	var i = 0;
+	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
+	var version = node.version;
 
-	node.async.whilst(function () {
-		return i < numOfPeers;
-	}, function (next) {
-		os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
-		version = node.version;
-
-		var request = node.popsicle.get({
-			url: node.baseUrl + '/peer/height',
-			headers: {
-				broadhash: node.config.nethash,
-				height: 1,
-				nethash: node.config.nethash,
-				os: os,
-				ip: ip,
-				port: port,
-				version: version,
-				nonce: 'randomNonce'
-			}
-		});
-
-		request.use(node.popsicle.plugins.parse(['json']));
-
-		request.then(function (res) {
-			if (res.status !== 200) {
-				return next(['Received bad response code', res.status, res.url].join(' '));
-			} else {
-				i++;
-				next();
-			}
-		});
-
-		request.catch(function (err) {
-			return next(err);
-		});
-	}, function (err) {
-		// Wait for peer to be swept to db
-		setTimeout(function () {
-			return cb(err, {os: os, version: version, port: port});
-		}, 3000);
-	});
+	return {
+		broadhash: node.config.nethash,
+		height: 1,
+		nethash: node.config.nethash,
+		os: os,
+		ip: ip,
+		port: port,
+		version: version,
+		nonce: node.nonce
+	};
 };
 
 // Returns a random index for an array
@@ -291,7 +263,7 @@ node.expectedFee = function (amount) {
 node.randomUsername = function () {
 	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
 	var username = '';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for (var i = 0; i < size; i++) {
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -337,6 +309,7 @@ node.randomAccount = function () {
 	account.username = node.randomDelegateName();
 	account.publicKey = node.lisk.crypto.getKeys(account.password).publicKey;
 	account.address = node.lisk.crypto.getAddress(account.publicKey);
+	account.secondPublicKey = node.lisk.crypto.getKeys(account.secondPassword).publicKey;
 
 	return account;
 };
@@ -354,54 +327,6 @@ node.randomTxAccount = function () {
 // Returns a random password
 node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
-};
-
-// Abstract request
-function abstractRequest (options, done) {
-	var request = node.api[options.verb.toLowerCase()](options.path);
-
-	request.set('Accept', 'application/json');
-	request.set('version', node.version);
-	request.set('nethash', node.config.nethash);
-	request.set('ip', '0.0.0.0');
-	request.set('port', node.config.port);
-
-	request.expect('Content-Type', /json/);
-	request.expect(200);
-
-	if (options.params) {
-		request.send(options.params);
-	}
-
-	var verb = options.verb.toUpperCase();
-	node.debug(['> Path:'.grey, verb, options.path].join(' '));
-	if (verb === 'POST' || verb === 'PUT') {
-		node.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
-	}
-
-	if (done) {
-		request.end(function (err, res) {
-			node.debug('> Response:'.grey, JSON.stringify(res.body));
-			done(err, res);
-		});
-	} else {
-		return request;
-	}
-}
-
-// Get the given path
-node.get = function (path, done) {
-	return abstractRequest({ verb: 'GET', path: path, params: null }, done);
-};
-
-// Post to the given path
-node.post = function (path, params, done) {
-	return abstractRequest({ verb: 'POST', path: path, params: params }, done);
-};
-
-// Put to the given path
-node.put = function (path, params, done) {
-	return abstractRequest({ verb: 'PUT', path: path, params: params }, done);
 };
 
 before(function (done) {

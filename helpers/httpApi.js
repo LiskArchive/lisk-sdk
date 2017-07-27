@@ -37,6 +37,7 @@ var middleware = {
 	errorLogger: function (logger, err, req, res, next) {
 		if (!err) { return next(); }
 		logger.error('API error ' + req.url, err.message);
+		console.trace(err);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	},
 

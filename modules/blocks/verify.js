@@ -217,7 +217,7 @@ Verify.prototype.verifyBlock = function (block, cb) {
 		function advancedValidations (seriesCb) {
 			async.parallel({
 				transactions: function (parallelCb) {
-					// Checking if transactions of the block adds up to block values.
+					// Check if transactions within block add up to the correct amounts
 					var totalAmount = 0,
 						totalFee = 0,
 						payloadHash = crypto.createHash('sha256'),
@@ -259,6 +259,7 @@ Verify.prototype.verifyBlock = function (block, cb) {
 				},
 				signature: function (parallelCb) {
 					var valid;
+					
 					try {
 						valid = library.logic.block.verifySignature(block);
 					} catch (e) {

@@ -1,14 +1,12 @@
 'use strict';
 
-var Router = require('../../helpers/router');
-var httpApi = require('../../helpers/httpApi');
 
 /**
  * Binds api with modules and creates common url.
  * - End point: `/api/blocks`
  * - Public API:
- * 	- get	/get
  * 	- get	/
+ * 	- get	/get
  * 	- get	/getBroadhash
  * 	- get	/getEpoch
  * 	- get	/getHeight
@@ -26,6 +24,8 @@ var httpApi = require('../../helpers/httpApi');
  * @param {Object} blocksModule - Module blocks instance.
  * @param {scope} app - Network app.
  */
+var Router = require('../../helpers/router');
+var httpApi = require('../../helpers/httpApi');
 // Constructor
 function BlocksHttpApi (blocksModule, app, logger, cache) {
 
@@ -37,8 +37,8 @@ function BlocksHttpApi (blocksModule, app, logger, cache) {
 	]);
 
 	router.map(blocksModule.shared, {
-		'get /get': 'getBlock',
 		'get /': 'getBlocks',
+		'get /get': 'getBlock',
 		'get /getBroadhash': 'getBroadhash',
 		'get /getEpoch': 'getEpoch',
 		'get /getHeight': 'getHeight',
