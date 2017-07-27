@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var ip = require('ip');
+var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
 /**
  * Creates a peer.
@@ -14,6 +15,15 @@ var ip = require('ip');
  */
 // Constructor
 function Peer (peer) {
+
+	Object.defineProperties(this, {
+		rpc: {
+			get: function () {
+				return wsRPC.getClientRPCStub(this.ip, this.port);
+			}.bind(this)
+		}
+	});
+
 	return this.accept(peer || {});
 }
 
@@ -42,12 +52,14 @@ Peer.prototype.properties = [
 	'height',
 	'clock',
 	'updated',
-	'nonce'
+	'nonce',
+	'httpPort'
 ];
 
 Peer.prototype.immutable = [
 	'ip',
 	'port',
+	'httpPort',
 	'string'
 ];
 
@@ -179,6 +191,7 @@ Peer.prototype.object = function () {
 		}
 	});
 
+	delete copy.rpc;
 	return copy;
 };
 

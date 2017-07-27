@@ -152,18 +152,6 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('create', function () {
-		it('should throw with empty parameters', function () {
-			expect(function () {
-				transfer.create();
-			}).to.throw();
-		});
-
-		it('should be okay with valid parameters', function () {
-			expect(transfer.create(validTransactionData, validTransaction)).to.be.an('object');
-		});
-	});
-
 	describe('calculateFee', function () {
 		it('should return the correct fee', function () {
 			expect(transfer.calculateFee()).to.equal(node.constants.fees.send);

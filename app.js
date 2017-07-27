@@ -24,20 +24,22 @@
  */
 
 var async = require('async');
-var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
+var https = require('https');
+var path = require('path');
+var SocketCluster = require('socketcluster').SocketCluster;
+var util = require('util');
 
 var genesisblock = require('./genesisBlock.json');
-var git = require('./helpers/git.js');
-var https = require('https');
 var Logger = require('./logger.js');
-var packageJson = require('./package.json');
-var path = require('path');
-var program = require('commander');
+var workersController = require('./workersController');
+var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
+
+var AppConfig = require('./helpers/config.js');
+var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
-var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
 
 process.stdin.resume();
@@ -55,57 +57,11 @@ if (typeof gc !== 'undefined') {
 	}, 60000);
 }
 
-program
-	.version(packageJson.version)
-	.option('-c, --config <path>', 'config file path')
-	.option('-p, --port <port>', 'listening port number')
-	.option('-a, --address <ip>', 'listening host name or ip')
-	.option('-x, --peers [peers...]', 'peers list')
-	.option('-l, --log <level>', 'log level')
-	.option('-s, --snapshot <round>', 'verify snapshot')
-	.parse(process.argv);
-
 /**
  * @property {object} - The default list of configuration options. Can be updated by CLI.
  * @default 'config.json'
  */
-var appConfig = require('./helpers/config.js')(program.config);
-
-if (program.port) {
-	appConfig.port = program.port;
-}
-
-if (program.address) {
-	appConfig.address = program.address;
-}
-
-if (program.peers) {
-	if (typeof program.peers === 'string') {
-		appConfig.peers.list = program.peers.split(',').map(function (peer) {
-			peer = peer.split(':');
-			return {
-				ip: peer.shift(),
-				port: peer.shift() || appConfig.port
-			};
-		});
-	} else {
-		appConfig.peers.list = [];
-	}
-}
-
-if (program.log) {
-	appConfig.consoleLogLevel = program.log;
-}
-
-if (program.snapshot) {
-	appConfig.loading.snapshot = Math.abs(
-		Math.floor(program.snapshot)
-	);
-}
-
-if (process.env.NODE_ENV === 'test') {
-	appConfig.coverage = true;
-}
+var appConfig = AppConfig(require('./package.json'));
 
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
@@ -148,7 +104,7 @@ var config = {
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		transport: { http: './api/http/transport.js' }
+		transport: { ws: './api/ws/transport.js' }
 	}
 };
 
@@ -281,6 +237,58 @@ d.run(function () {
 			});
 		}],
 
+		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
+			var webSocketConfig = {
+				workers: scope.config.wsWorkers,
+				port: scope.config.port,
+				wsEngine: 'uws',
+				appName: 'lisk',
+				workerController: workersController.path,
+				perMessageDeflate: false,
+				secretKey: 'liskSecretKey',
+				pingInterval: 5000,
+				// How many milliseconds to wait without receiving a ping
+				// before closing the socket
+				pingTimeout: 60000,
+				// Maximum amount of milliseconds to wait before force-killing
+				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
+				processTermTimeout: 10000,
+				logLevel: 0
+			};
+
+			if (scope.config.ssl.enabled) {
+				extend(webSocketConfig, {
+					protocol: 'https',
+					// This is the same as the object provided to Node.js's https server
+					protocolOptions: {
+						key: fs.readFileSync(scope.config.ssl.options.key),
+						cert: fs.readFileSync(scope.config.ssl.options.cert),
+						ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
+					}
+				});
+			}
+
+			var childProcessOptions = {
+				version: scope.config.version,
+				minVersion: scope.config.minVersion,
+				nethash: scope.config.nethash,
+				port: scope.config.port,
+				nonce: scope.config.nonce
+			};
+
+			var socketCluster = new SocketCluster(webSocketConfig);
+
+			var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+			scope.network.app.rpc = wsRPC.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
+
+			socketCluster.on('ready', function (err, result) {
+				scope.logger.info('Socket Cluster ready for incoming connections');
+				cb();
+			});
+
+		}],
+
 		dbSequence: ['logger', function (scope, cb) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
@@ -323,7 +331,7 @@ d.run(function () {
 			var queryParser = require('express-query-int');
 			var randomString = require('randomstring');
 
-			scope.nonce = randomString.generate(16);
+			scope.config.nonce = randomString.generate(16);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
@@ -474,7 +482,7 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
+		modules: ['network', 'connect', 'webSocket', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
 
 			var tasks = {};
 
@@ -508,7 +516,7 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
-		api: ['modules', 'logger', 'network', function (scope, cb) {
+		api: ['modules', 'logger', 'network', 'webSocket', function (scope, cb) {
 			Object.keys(config.api).forEach(function (moduleName) {
 				Object.keys(config.api[moduleName]).forEach(function (protocol) {
 					var apiEndpointPath = config.api[moduleName][protocol];
@@ -516,7 +524,7 @@ d.run(function () {
 						var ApiEndpoint = require(apiEndpointPath);
 						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
 					} catch (e) {
-						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
+						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e.message);
 					}
 				});
 			});
@@ -541,8 +549,8 @@ d.run(function () {
 		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
 		 */
 		listen: ['ready', function (scope, cb) {
-			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
-				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
+			scope.network.server.listen(scope.config.httpPort, scope.config.address, function (err) {
+				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.httpPort);
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {
