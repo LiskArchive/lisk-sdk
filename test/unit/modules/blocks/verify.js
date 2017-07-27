@@ -236,6 +236,7 @@ describe('blocks/verify', function () {
 	var blocks;
 	var blockLogic;
 	var accounts;
+
 	before(function (done) {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
 			if (err) {
@@ -595,8 +596,7 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		it('should process block 1', function (done) {
-
+		it('should be ok when process block 1', function (done) {
 			blocksVerify.processBlock(block1, true, function (err, result) {
 				if (err) {
 					return done(err);
@@ -619,7 +619,7 @@ describe('blocks/verify', function () {
 
 	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', function () {
 		
-		it('process same block again should fail (checkExists)', function (done) {
+		it('should fail when process block 1 again (checkExists)', function (done) {
 			blocks.lastBlock.set(previousBlock1);
 
 			blocksVerify.processBlock(block1, true, function (err, result) {
@@ -637,6 +637,7 @@ describe('blocks/verify', function () {
 
 		it('should generate block 2 with invalid generator slot', function (done) {
 			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
+			
 			block2 = createBlock(blocks, blockLogic, secret, 33772882, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772882);
@@ -649,62 +650,64 @@ describe('blocks/verify', function () {
 			expect(block2.previousBlock).to.equal(block1.id);
 			done();
 		});
-	
-		it('normalizeBlock should fail when deleted timestamp', function (done) {
-			deleteBlockProperties(block2);
-			var timestamp = block2.timestamp;
-			delete block2.timestamp;
 
-			blocksVerify.processBlock(block2, false, function (err, result) {
-				if (err) {
-					expect(err).equal('Failed to validate block schema: Missing required property: timestamp');
-					block2.timestamp = timestamp;
-					done();
-				}
-			}, true);
+		describe('normalizeBlock validations', function () {
+
+			it('should fail when timestamp property is missing', function (done) {
+				deleteBlockProperties(block2);
+				var timestamp = block2.timestamp;
+				delete block2.timestamp;
+
+				blocksVerify.processBlock(block2, false, function (err, result) {
+					if (err) {
+						expect(err).equal('Failed to validate block schema: Missing required property: timestamp');
+						block2.timestamp = timestamp;
+						done();
+					}
+				}, true);
+			});
+
+			it('should fail when transactions property is missing', function (done) {
+				var transactions = block2.transactions;
+				delete block2.transactions;
+
+				blocksVerify.processBlock(block2, false, function (err, result) {
+					if (err) {
+						expect(err).equal('Failed to validate block schema: Missing required property: transactions');
+						block2.transactions = transactions;
+						done();
+					}
+				}, true);
+			});
+
+			it('should fail when transaction type property is missing', function (done) {
+				var trsType = block2.transactions[0].type;
+				delete block2.transactions[0].type;
+
+				blocksVerify.processBlock(block2, false, function (err, result) {
+					if (err) {
+						expect(err).equal('Unknown transaction type undefined');
+						block2.transactions[0].type = trsType;
+						done();
+					}
+				}, true);
+			});
+
+			it('should fail when transaction timestamp property is missing', function (done) {
+				var trsTimestamp = block2.transactions[0].timestamp;
+				delete block2.transactions[0].timestamp;
+
+				blocksVerify.processBlock(block2, false, function (err, result) {
+					if (err) {
+						expect(err).equal('Failed to validate transaction schema: Missing required property: timestamp');
+						block2.transactions[0].timestamp = trsTimestamp;
+						done();
+					}
+				}, true);
+			});
 		});
 
-		it('normalizeBlock should fail when deleted transactions', function (done) {
-			var transactions = block2.transactions;
-			delete block2.transactions;
-
-			blocksVerify.processBlock(block2, false, function (err, result) {
-				if (err) {
-					expect(err).equal('Failed to validate block schema: Missing required property: transactions');
-					block2.transactions = transactions;
-					done();
-				}
-			}, true);
-		});
-
-		it('normalizeBlock should fail when deleted transaction type', function (done) {
-			var trsType = block2.transactions[0].type;
-			delete block2.transactions[0].type;
-
-			blocksVerify.processBlock(block2, false, function (err, result) {
-				if (err) {
-					expect(err).equal('Unknown transaction type undefined');
-					block2.transactions[0].type = trsType;
-					done();
-				}
-			}, true);
-		});
-
-		it('normalizeBlock should fail when deleted transaction timestamp', function (done) {
-			var trsTimestamp = block2.transactions[0].timestamp;
-			delete block2.transactions[0].timestamp;
-
-			blocksVerify.processBlock(block2, false, function (err, result) {
-				if (err) {
-					expect(err).equal('Failed to validate transaction schema: Missing required property: timestamp');
-					block2.transactions[0].timestamp = trsTimestamp;
-					done();
-				}
-			}, true);
-		});
-
-		it('validateBlockSlot should fail for invalid block generator (fork: 3)', function (done) {
-
+		it('should fail when block generator is invalid (fork:3)', function (done) {
 			blocksVerify.processBlock(block2, false, function (err, result) {
 				if (err) {
 					expect(err).equal('Failed to verify slot: 3377288');
@@ -715,6 +718,7 @@ describe('blocks/verify', function () {
 
 		it('should generate block 2 with valid generator slot and processed trs', function (done) {
 			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
+			
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock1, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772862);
@@ -728,7 +732,7 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		it('checkTransactions should fail when trs is in table (fork: 2)', function (done) {
+		it('should fail when transaction is already confirmed (fork:2)', function (done) {
 			deleteBlockProperties(block2);
 
 			blocksVerify.processBlock(block2, false, function (err, result) {
@@ -744,6 +748,7 @@ describe('blocks/verify', function () {
 
 		it('should generate block 2 with valid generator slot', function (done) {
 			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
+			
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772862);
@@ -757,7 +762,7 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		it('should process block 2', function (done) {
+		it('should be ok when process block 2', function (done) {
 			blocks.lastBlock.set(block1);
 
 			blocksVerify.processBlock(block2, false, function (err, result) {
@@ -773,7 +778,7 @@ describe('blocks/verify', function () {
 			}, true);
 		});
 
-		it('process same block 2 again should fail (checkExists)', function (done) {
+		it('should fail when process block 2 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block1);
 
 			blocksVerify.processBlock(block2, false, function (err, result) {
@@ -786,7 +791,7 @@ describe('blocks/verify', function () {
 	// Sends a block to network, don't save it locally.
 	describe('processBlock() for valid block {broadcast: true, saveBlock: false}', function () {
 
-		it('should generate a new account (user)', function (done) {
+		it('should generate a new account', function (done) {
 			accounts.setAccountAndGet(userAccount.account, function (err, newaccount) {
 				if (err) {
 					return done(err);
@@ -795,15 +800,16 @@ describe('blocks/verify', function () {
 				done();
 			});
 		});
-		it('should generate valid block3', function (done) {
+
+		it('should create block 3', function (done) {
 			var secret = 'flavor type stone episode capable usage save sniff notable liar gas someone';
+			
 			block3 = createBlock(blocks, blockLogic, secret, 33942637, [], block2);
 			expect(block3.version).to.equal(0);
 			done();
 		});
 
-		it('processBlock() should broadcast block3', function (done) {
-
+		it('should be ok when broadcast block 3', function (done) {
 			blocksVerify.processBlock(block3, true, function (err, result) {
 				if (err) {
 					return done(err);
@@ -825,7 +831,7 @@ describe('blocks/verify', function () {
 			}, false);
 		});
 
-		it('processBlock() broadcast block3 again should be ok (checkExists)', function (done) {
+		it('should be ok when broadcast block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
 			
 			blocksVerify.processBlock(block3, true, function (err, result) {
@@ -848,13 +854,12 @@ describe('blocks/verify', function () {
 				done();
 			}, false);
 		});
-
 	});
 
 	// Receives a block from network, don't save it locally.
 	describe('processBlock() for valid block {broadcast: false, saveBlock: false}', function () {
 
-		it('processBlock() should receive block3', function (done) {
+		it('should be ok when receive block 3', function (done) {
 			blocks.lastBlock.set(block2);
 			deleteBlockProperties(block3);
 
@@ -869,7 +874,7 @@ describe('blocks/verify', function () {
 			}, false);
 		});
 
-		it('processBlock() receive block3 again should be ok (checkExists)', function (done) {
+		it('should be ok when receive block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
 			deleteBlockProperties(block3);
 
