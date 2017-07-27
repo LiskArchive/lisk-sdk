@@ -10,25 +10,27 @@ export default function setCommand(vorpal) {
 	function setJSON(value) {
 		config.json = (value === 'true');
 		writeConfigToFile(config);
-		return { message: `Successfully set json output to ${value}` };
+		return { message: `Successfully set json output to ${value}.` };
 	}
 
 	function setTestnet(value) {
 		config.liskJS.testnet = (value === 'true');
 		writeConfigToFile(config);
-		return { message: `Successfully set testnet to ${value}` };
+		return { message: `Successfully set testnet to ${value}.` };
 	}
 
 	vorpal
 		.command('set <variable> <value>')
-		.description('Set configuration <variable> to <value>')
+		.description('Set configuration <variable> to <value>.')
 		.action((userInput, callback) => {
 			const getType = {
 				json: setJSON,
 				testnet: setTestnet,
 			};
 
-			const returnValue = getType[userInput.variable](userInput.value);
+			const returnValue = Object.keys(getType).includes(userInput.variable)
+				? getType[userInput.variable](userInput.value)
+				: { message: 'Unsupported variable name.' };
 			return (callback && typeof callback === 'function') ? callback(returnValue.message) : returnValue.message;
 		});
 }

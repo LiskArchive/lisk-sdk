@@ -47,11 +47,17 @@ describe('set command', () => {
 		});
 	});
 
+	it('should handle unknown config variables', () => {
+		vorpal.exec('set xxx true', () => {
+			(capturedOutput).should.be.equal('Unsupported variable name.');
+		});
+	});
+
 	describe('should set json parameter', () => {
 		const setJsonTrueCommand = 'set json true';
 		const setJsonFalseCommand = 'set json false';
-		const setJsonTrueResult = 'Successfully set json output to true';
-		const setJsonFalseResult = 'Successfully set json output to false';
+		const setJsonTrueResult = 'Successfully set json output to true.';
+		const setJsonFalseResult = 'Successfully set json output to false.';
 
 		afterEach(() => {
 			delete require.cache[require.resolve(configPath)];
@@ -93,7 +99,7 @@ describe('set command', () => {
 
 			const result = vorpal.execSync(command);
 
-			(result).should.be.equal('Successfully set testnet to true');
+			(result).should.be.equal('Successfully set testnet to true.');
 		});
 
 		it('should set testnet to false', () => {
@@ -101,7 +107,7 @@ describe('set command', () => {
 
 			const result = vorpal.execSync(command);
 
-			(result).should.be.equal('Successfully set testnet to false');
+			(result).should.be.equal('Successfully set testnet to false.');
 		});
 	});
 });
