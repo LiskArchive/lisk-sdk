@@ -15,7 +15,7 @@
     "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register",
     "build": "babel src -d dist",
     "prepush": "grunt eslint && npm test",
-    "postinstall": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
