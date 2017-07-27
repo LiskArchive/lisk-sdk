@@ -1,6 +1,6 @@
 {
   "name": "lisky",
-  "json": "false",
+  "json": false,
   "liskJS": {
     "testnet": false
   }
