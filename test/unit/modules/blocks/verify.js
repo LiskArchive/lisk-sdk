@@ -570,7 +570,7 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		it('should generate new account', function (done) {
+		it('should generate account', function (done) {
 			accounts.setAccountAndGet(testAccount.account, function (err, newaccount) {
 				if (err) {
 					return done(err);
@@ -580,7 +580,7 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		it('should create block 1', function (done) {
+		it('should generate block 1', function (done) {
 			var secret = 'famous weapon poverty blast announce observe discover prosper mystery adapt tuna office';
 			
 			block1 = createBlock(blocks, blockLogic, secret, 32578370, transactionsBlock1, previousBlock1);
@@ -791,7 +791,7 @@ describe('blocks/verify', function () {
 	// Sends a block to network, don't save it locally.
 	describe('processBlock() for valid block {broadcast: true, saveBlock: false}', function () {
 
-		it('should generate a new account', function (done) {
+		it('should generate account', function (done) {
 			accounts.setAccountAndGet(userAccount.account, function (err, newaccount) {
 				if (err) {
 					return done(err);
@@ -801,7 +801,7 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		it('should create block 3', function (done) {
+		it('should generate block 3', function (done) {
 			var secret = 'flavor type stone episode capable usage save sniff notable liar gas someone';
 			
 			block3 = createBlock(blocks, blockLogic, secret, 33942637, [], block2);
