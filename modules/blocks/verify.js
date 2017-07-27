@@ -194,19 +194,19 @@ Verify.prototype.verifyBlock = function (block, cb) {
 				},
 				payloadLength: function (parallelCb) {
 					if (block.payloadLength > constants.maxPayloadLength) {
-						error = 'Payload length is too high';
+						error = 'Payload length is too long';
 					}
 					return setImmediate(parallelCb, error);
 				},
 				numberOfTransactions: function (parallelCb) {
 					if (block.transactions.length !== block.numberOfTransactions) {
-						error = 'Invalid number of transactions';
+						error = 'Included transactions do not match block transactions count';
 					}
 					return setImmediate(parallelCb, error);
 				},
 				maxTxsPerBlock: function (parallelCb) {
 					if (block.transactions.length > constants.maxTxsPerBlock) {
-						error = 'Transactions length is too high';
+						error = 'Number of transactions exceeds maximum per block';
 					}
 					return setImmediate(parallelCb, error);
 				}

@@ -348,7 +348,7 @@ describe('blocks/verify', function () {
 				validBlock.payloadLength = 1024 * 1024 * 2;
 
 				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Payload length is too high');
+					expect(err).to.equal('Payload length is too long');
 					validBlock.payloadLength = payloadLength;
 					done();
 				});
@@ -358,7 +358,7 @@ describe('blocks/verify', function () {
 				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
 				
 				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Invalid number of transactions');
+					expect(err).to.equal('Included transactions do not match block transactions count');
 					validBlock.numberOfTransactions = validBlock.transactions.length;
 					done();
 				});
@@ -370,7 +370,7 @@ describe('blocks/verify', function () {
 				validBlock.numberOfTransactions = validBlock.transactions.length;
 				
 				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Transactions length is too high');
+					expect(err).to.equal('Number of transactions exceeds maximum per block');
 					validBlock.transactions = transactions;
 					validBlock.numberOfTransactions = transactions.length;
 					done();
@@ -392,12 +392,12 @@ describe('blocks/verify', function () {
 			});
 
 			it('should fail when a transaction is duplicated', function (done) {
-				var secodTrs = validBlock.transactions[1];
+				var secondTrs = validBlock.transactions[1];
 				validBlock.transactions[1] = validBlock.transactions[0];
 
 				blocksVerify.verifyBlock(validBlock, function (err) {
 					expect(err).to.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
-					validBlock.transactions[1] = secodTrs;
+					validBlock.transactions[1] = secondTrs;
 					done();
 				});
 			});
