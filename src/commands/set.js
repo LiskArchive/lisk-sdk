@@ -1,44 +1,46 @@
 import fse from 'fs-extra';
 import config from '../../config.json';
 
-const checkBoolean = value => ['true', 'false'].includes(value);
-
 const writeConfigToFile = (newConfig) => {
 	const configString = JSON.stringify(newConfig, null, '\t');
 	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
 };
 
-const setJSON = (value) => {
-	if (!checkBoolean(value)) {
-		return `Cannot set json output to ${value}.`;
+const checkBoolean = value => ['true', 'false'].includes(value);
+
+const accessConfigProperty = newValue => (obj, pathComponent, i, path) => {
+	if (i === path.length - 1) {
+		// eslint-disable-next-line no-param-reassign
+		obj[pathComponent] = newValue;
+		return config;
 	}
-	config.json = (value === 'true');
-	writeConfigToFile(config);
-	return `Successfully set json output to ${value}.`;
+	return obj[pathComponent];
 };
 
-const setTestnet = (value) => {
+const setBoolean = (variable, path) => (value) => {
 	if (!checkBoolean(value)) {
-		return `Cannot set testnet to ${value}.`;
+		return `Cannot set ${variable} to ${value}.`;
 	}
-	config.liskJS.testnet = (value === 'true');
+	const newValue = (value === 'true');
+	path.reduce(accessConfigProperty(newValue), config);
+
 	writeConfigToFile(config);
-	return `Successfully set testnet to ${value}.`;
+	return `Successfully set ${variable} to ${value}.`;
 };
 
 const set = ({ variable, value }, callback) => {
-	const handlers = {
-		json: setJSON,
-		testnet: setTestnet,
+	const getType = {
+		json: setBoolean('json output', ['json']),
+		testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 	};
 
-	const returnMessage = Object.keys(handlers).includes(variable)
-		? handlers[variable](value)
+	const returnValue = Object.keys(getType).includes(variable)
+		? getType[variable](value)
 		: 'Unsupported variable name.';
 
 	return (callback && typeof callback === 'function')
-		? callback(returnMessage)
-		: returnMessage;
+		? callback(returnValue)
+		: returnValue;
 };
 
 export default function setCommand(vorpal) {
