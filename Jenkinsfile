@@ -137,7 +137,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Accounts" : {
         node('node-01'){
             sh '''
-            export TEST=test/api/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -146,7 +146,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Blocks" : {
         node('node-01'){
             sh '''
-            export TEST=test/api/blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -155,7 +155,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Delegates" : {
         node('node-01'){
             sh '''
-            export TEST=test/api/delegates.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/delegates.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -164,7 +164,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Dapps" : {
         node('node-01'){
             sh '''
-            export TEST=test/api/dapps.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/dapps.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -173,7 +173,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Loader" : {
         node('node-01'){
             sh '''
-            export TEST=test/api/loader.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/loader.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -182,7 +182,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Multisignatures" : {
         node('node-01'){
             sh '''
-            export TEST=test/api/multisignatures.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/multisignatures.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -191,7 +191,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Transactions" : {
         node('node-01'){
             sh '''
-            export TEST=test/api/transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -200,7 +200,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Transport - Main" : {
         node('node-02'){
             sh '''
-            export TEST=test/api/transport/transport.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/transport/transport.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -209,7 +209,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Transport - Blocks" : {
         node('node-02'){
             sh '''
-            export TEST=test/api/transport/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/transport/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -237,7 +237,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Functional Transport - Peers" : {
         node('node-02'){
             sh '''
-            export TEST=test/api/peers.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/peers.js TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
@@ -295,7 +295,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         "Functional Stress - Transactions" : {
             node('node-04'){
                 sh '''
-                export TEST=test/api/transport/transport.transactions.stress.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+                export TEST=test/functional/transport/transport.transactions.stress.js TEST_TYPE='FUNC' NODE_ENV='TEST'
                 cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
                 npm run jenkins
                 '''

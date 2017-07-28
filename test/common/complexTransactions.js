@@ -5,10 +5,10 @@ var http = require('./httpCommunication');
 
 function sendTransaction (transaction, cb) {
 	http.post('/api/transactions', { transaction: transaction }, function (err, res) {
-		if (res.body.success) {
-			return cb(null, res.body);
+		if (err) {
+			return cb(err);
 		}
-		return cb(res.body);
+		return cb(null, res.body);
 	});
 }
 
