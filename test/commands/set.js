@@ -1,18 +1,26 @@
+/* eslint-disable arrow-body-style, global-require, import/no-dynamic-require */
 import Vorpal from 'vorpal';
 import set from '../../src/commands/set';
 
+const configPath = '../../config.json';
+
 describe('set command', () => {
 	let vorpal;
+	let capturedOutput = '';
 
 	beforeEach(() => {
 		vorpal = new Vorpal();
 		vorpal.use(set);
-		vorpal.pipe(() => '');
+		vorpal.pipe((output) => {
+			capturedOutput += output;
+			return '';
+		});
 	});
 
 	afterEach(() => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
+		capturedOutput = '';
 	});
 
 	describe('should exist', () => {
@@ -31,7 +39,7 @@ describe('set command', () => {
 			(setCommand._name).should.be.equal('set');
 		});
 
-		it('should have 2 require inputs', () => {
+		it('should have 2 required inputs', () => {
 			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args[0].required).should.be.true();
 			// eslint-disable-next-line no-underscore-dangle
@@ -39,30 +47,44 @@ describe('set command', () => {
 		});
 	});
 
-	describe('should set json to true', () => {
+	describe('should set json parameter', () => {
 		const setJsonTrueCommand = 'set json true';
 		const setJsonFalseCommand = 'set json false';
-		const setJsonTrueResult = 'successfully set json output to true';
-		const setJsonFalseResult = 'successfully set json output to false';
+		const setJsonTrueResult = 'Successfully set json output to true';
+		const setJsonFalseResult = 'Successfully set json output to false';
 
-		it('should be set json true and give feedback', () => {
-			const result = vorpal.execSync(setJsonTrueCommand);
-			(result).should.be.equal(setJsonTrueResult);
+		afterEach(() => {
+			delete require.cache[require.resolve(configPath)];
 		});
 
-		it('should be set json back to false and give feedback', () => {
-			const result = vorpal.execSync(setJsonFalseCommand);
-			(result).should.be.equal(setJsonFalseResult);
+		it('should set json to true', () => {
+			return vorpal.exec(setJsonTrueCommand, () => {
+				const config = require(configPath);
+
+				(config).should.have.property('json').be.true();
+				(capturedOutput).should.be.equal(setJsonTrueResult);
+			});
 		});
 
-		it('should be set json back to false and give feedback', () => {
-			const result = vorpal.execSync(setJsonFalseCommand);
-			(result).should.be.equal(setJsonFalseResult);
+		it('should set json to false', () => {
+			return vorpal.exec(setJsonFalseCommand, () => {
+				const config = require(configPath);
+
+				(config).should.have.property('json').be.false();
+				(capturedOutput).should.be.equal(setJsonFalseResult);
+			});
 		});
 
-		it('should be set json back to false and give feedback asynchronous', () => vorpal.exec(setJsonFalseCommand, (result) => {
-			(result).should.be.equal(setJsonFalseResult);
-		}));
+		it('should set json to true and then to false', () => {
+			return vorpal.exec(setJsonTrueCommand, () =>
+				vorpal.exec(setJsonFalseCommand, () => {
+					const config = require(configPath);
+
+					(config).should.have.property('json').be.false();
+					(capturedOutput).should.be.equal(`${setJsonTrueResult}${setJsonFalseResult}`);
+				}),
+			);
+		});
 	});
 
 	describe('switch testnet and mainnet', () => {
@@ -71,7 +93,7 @@ describe('set command', () => {
 
 			const result = vorpal.execSync(command);
 
-			(result).should.be.equal('successfully set testnet to true');
+			(result).should.be.equal('Successfully set testnet to true');
 		});
 
 		it('should set testnet to false', () => {
@@ -79,7 +101,7 @@ describe('set command', () => {
 
 			const result = vorpal.execSync(command);
 
-			(result).should.be.equal('successfully set testnet to false');
+			(result).should.be.equal('Successfully set testnet to false');
 		});
 	});
 });
