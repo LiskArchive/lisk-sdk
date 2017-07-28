@@ -20,7 +20,7 @@ var ed = require('../../helpers/ed');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
-var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
+var Sequence = require('../../helpers/sequence.js');
 
 var modulesLoader = new function () {
 
