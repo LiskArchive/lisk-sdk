@@ -788,13 +788,12 @@ buffer-xor@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/buffer-xor/-/buffer-xor-1.0.3.tgz#26e61ed1422fb70dd42e6e36729ed51d855fe8d9"
 
-buffer@=4.9.1:
-  version "4.9.1"
-  resolved "https://registry.yarnpkg.com/buffer/-/buffer-4.9.1.tgz#6d1bb601b07a4efced97094132093027c95bc298"
+buffer@=5.0.6:
+  version "5.0.6"
+  resolved "https://registry.yarnpkg.com/buffer/-/buffer-5.0.6.tgz#2ea669f7eec0b6eda05b08f8b5ff661b28573588"
   dependencies:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
-    isarray "^1.0.0"
 
 builtin-modules@^1.0.0, builtin-modules@^1.1.1:
   version "1.1.1"
@@ -1650,7 +1649,7 @@ glob-parent@^2.0.0:
   dependencies:
     is-glob "^2.0.0"
 
-glob@7.1.1, glob@^7.0.5, glob@^7.0.6:
+glob@7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.1.tgz#805211df04faaf1c63a3600306cdf5ade50b2ec8"
   dependencies:
@@ -2186,9 +2185,9 @@ istanbul-reports@^1.1.1:
   dependencies:
     handlebars "^4.0.3"
 
-js-nacl@LiskHQ/js-nacl#6dc1417:
+"js-nacl@github:liskhq/js-nacl#6dc1417":
   version "1.2.1"
-  resolved "https://codeload.github.com/LiskHQ/js-nacl/tar.gz/6dc1417"
+  resolved "https://codeload.github.com/liskhq/js-nacl/tar.gz/6dc1417"
 
 js-tokens@^3.0.0:
   version "3.0.2"
@@ -2298,12 +2297,12 @@ levn@^0.3.0, levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lisk-js@=0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/lisk-js/-/lisk-js-0.4.1.tgz#5341d6177f5e62998273411b0a1da88fc1b00284"
+lisk-js@=0.4.4:
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/lisk-js/-/lisk-js-0.4.4.tgz#d12a7d9cd48d32c6513fb5ab5ffaf318403ac1c6"
   dependencies:
     browserify-bignum "=1.3.0-2"
-    buffer "=4.9.1"
+    buffer "=5.0.6"
     bytebuffer "=5.0.1"
     crypto-browserify "=3.11.0"
     ed2curve "=0.2.1"
