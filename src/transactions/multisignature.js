@@ -34,15 +34,13 @@ var slots       = require('../time/slots.js');
  */
 
 function createTransaction (recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
 
 	var transaction = {
 		type: 0,
 		amount: amount,
 		fee: constants.fees.send,
 		recipientId: recipientId,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {}
 	};
 
@@ -93,9 +91,6 @@ function signTransaction (trs, secret) {
  */
 
 function createMultisignature (secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-
 	var keys = crypto.getKeys(secret);
 	var keygroupFees = keysgroup.length + 1;
 
@@ -105,7 +100,7 @@ function createMultisignature (secret, secondSecret, keysgroup, lifetime, min, t
 		fee: (constants.fees.multisignature * keygroupFees),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
+		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			multisignature: {
 				min: min,

@@ -33,34 +33,34 @@ describe('delegate.js', function () {
 			trs = createDelegate('secret', 'delegate', 'secret 2');
 		});
 
-		it('should use time slots to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+		describe('timestamp', function () {
+			var now;
+			var clock;
 
-			trs = createDelegate('secret', 'delegate', null);
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime())).should.be.true();
+			beforeEach(function () {
+				now = new Date();
+				clock = sinon.useFakeTimers(now, 'Date');
+			});
 
-			stub.restore();
-			clock.restore();
-		});
+			afterEach(function () {
+				clock.restore();
+			});
 
-		it('should use time slots with an offset to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var offset = 10e3;
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+			it('should use time slots to get the time for the timestamp', function () {
+				trs = createDelegate('secret', 'delegate', null);
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
 
-			trs = createDelegate('secret', 'delegate', null, offset);
+				clock.restore();
+			});
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', function () {
+				var offset = -10;
 
-			stub.restore();
-			clock.restore();
+				trs = createDelegate('secret', 'delegate', null, offset);
+
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+			});
+
 		});
 
 		describe('returned delegate', function () {

@@ -74,35 +74,32 @@ describe('transfer.js', function () {
 			(inTransferTransactionOneSignature).should.not.have.property('secondSignature');
 		});
 
-		it('should use time slots to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+		describe('timestamp', function () {
+			var now;
+			var clock;
 
-			var trs = createInTransfer(dappId, amount, secret);
+			beforeEach(function () {
+				now = new Date();
+				clock = sinon.useFakeTimers(now, 'Date');
+			});
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime())).should.be.true();
+			afterEach(function () {
+				clock.restore();
+			});
 
-			stub.restore();
-			clock.restore();
-		});
+			it('should use time slots to get the time for the timestamp', function () {
+				var trs = createInTransfer(dappId, amount, secret);
 
-		it('should use time slots with an offset to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var offset = 10e3;
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
+			});
 
-			var trs = createInTransfer(dappId, amount, secret, null, offset);
+			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', function () {
+				var offset = -10;
+				var trs = createInTransfer(dappId, amount, secret, null, offset);
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+			});
 
-			stub.restore();
-			clock.restore();
 		});
 
 	});
@@ -176,35 +173,32 @@ describe('transfer.js', function () {
 			(outTransferTransactionOneSignature).should.not.have.property('secondSignature');
 		});
 
-		it('should use time slots to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+		describe('timestamp', function () {
+			var now;
+			var clock;
 
-			var trs = createOutTransfer(dappId, transactionId, recipientId, amount, secret);
+			beforeEach(function () {
+				now = new Date();
+				clock = sinon.useFakeTimers(now, 'Date');
+			});
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime())).should.be.true();
+			afterEach(function () {
+				clock.restore();
+			});
 
-			stub.restore();
-			clock.restore();
-		});
+			it('should use time slots to get the time for the timestamp', function () {
+				var trs = createOutTransfer(dappId, transactionId, recipientId, amount, secret);
 
-		it('should use time slots with an offset to get the time for the timestamp', function () {
-			var now = new Date();
-			var clock = sinon.useFakeTimers(now, 'Date');
-			var offset = 10e3;
-			var time = 36174862;
-			var stub = sinon.stub(slots, 'getTime').returns(time);
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
+			});
 
-			var trs = createOutTransfer(dappId, transactionId, recipientId, amount, secret, null, offset);
+			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', function () {
+				var offset = -10;
+				var trs = createOutTransfer(dappId, transactionId, recipientId, amount, secret, null, offset);
 
-			(trs).should.have.property('timestamp').and.be.equal(time);
-			(stub.calledWithExactly(now.getTime() - offset)).should.be.true();
+				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+			});
 
-			stub.restore();
-			clock.restore();
 		});
 
 	});

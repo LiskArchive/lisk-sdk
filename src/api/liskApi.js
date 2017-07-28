@@ -154,13 +154,13 @@ function parseResponse (requestType, options, requestSuccess) {
 }
 
 function handleTimestampIsInFutureFailures (requestType, options, result) {
-	if (!result.success && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40e3)) {
+	if (!result.success && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
 		var newOptions = {};
 
 		Object.keys(options).forEach(function (key) {
 			newOptions[key] = options[key];
 		});
-		newOptions.timeOffset = (options.timeOffset || 0) + 10e3;
+		newOptions.timeOffset = (options.timeOffset || 0) + 10;
 
 		return this.sendRequest(requestType, newOptions);
 	}
