@@ -1,0 +1,13 @@
+.babelrc
+.editorconfig
+.eslintignore
+.eslintrc.json
+.gitignore
+Gruntfile.js
+Jenkinsfile
+
+.idea/
+.nyc_output/
+coverage/
+src/
+test/
