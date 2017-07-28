@@ -2,12 +2,12 @@
 import Vorpal from 'vorpal';
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
+import get from '../../src/commands/get';
 
 const configPath = '../../config.json';
 const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
 const initialConfig = JSON.stringify(require(configPath), null, '\t');
 deleteConfigCache();
-
 
 describe('set command', () => {
 	let vorpal;
@@ -63,6 +63,7 @@ describe('set command', () => {
 		const setJsonTrueCommand = 'set json true';
 		const setJsonFalseCommand = 'set json false';
 		const invalidValueCommand = 'set json tru';
+		const getDelegateCommand = 'get delegate lightcurve';
 		const setJsonTrueResult = 'Successfully set json output to true.';
 		const setJsonFalseResult = 'Successfully set json output to false.';
 		const invalidValueResult = 'Cannot set json output to tru.';
@@ -109,6 +110,22 @@ describe('set command', () => {
 					(capturedOutput).should.be.equal(`${setJsonTrueResult}${invalidValueResult}`);
 				}),
 			);
+		});
+
+		it('should have an immediate effect', () => {
+			vorpal.use(get);
+			vorpal.execSync(setJsonTrueCommand);
+
+			return vorpal.exec(getDelegateCommand)
+				.then(() => {
+					(() => JSON.parse(capturedOutput)).should.not.throw();
+					const firstCaptureLength = capturedOutput.length;
+					vorpal.execSync(setJsonFalseCommand);
+					return vorpal.exec(getDelegateCommand)
+						.then(() => {
+							(() => JSON.parse(capturedOutput.slice(firstCaptureLength))).should.throw();
+						});
+				});
 		});
 	});
 
