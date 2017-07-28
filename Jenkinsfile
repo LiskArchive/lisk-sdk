@@ -215,10 +215,20 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
             '''
           }
       },
-      "Functional Transport - Transactions Main" : {
+			"Functional Transport - Transactions" : {
         node('node-02'){
             sh '''
-            export TEST=test/api/transport/transport.transactions.main.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
+            export TEST=test/functional/transport/transport.transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+            npm run jenkins
+            '''
+          }
+      },
+
+      "Functional Transactions - 0 tx" : {
+        node('node-02'){
+            sh '''
+            export TEST=test/functional/transactions/0.tx.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
             npm run jenkins
             '''
