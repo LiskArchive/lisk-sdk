@@ -4,5 +4,8 @@
 	},
 	"globals": {
 		"sinon": true
+	},
+	"rules": {
+		"arrow-body-style": "off"
 	}
 }
