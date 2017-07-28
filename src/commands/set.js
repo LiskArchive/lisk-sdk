@@ -1,5 +1,6 @@
 import fse from 'fs-extra';
 import config from '../../config.json';
+import liskInstance from '../utils/liskInstance';
 
 const writeConfigToFile = (newConfig) => {
 	const configString = JSON.stringify(newConfig, null, '\t');
@@ -21,8 +22,13 @@ const setBoolean = (variable, path) => (value) => {
 	if (!checkBoolean(value)) {
 		return `Cannot set ${variable} to ${value}.`;
 	}
+
 	const newValue = (value === 'true');
 	path.reduce(accessConfigProperty(newValue), config);
+
+	if (variable === 'testnet') {
+		liskInstance.setTestnet(newValue);
+	}
 
 	writeConfigToFile(config);
 	return `Successfully set ${variable} to ${value}.`;

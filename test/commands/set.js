@@ -3,11 +3,29 @@ import Vorpal from 'vorpal';
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import get from '../../src/commands/get';
+import liskInstance from '../../src/utils/liskInstance';
 
 const configPath = '../../config.json';
 const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
-const initialConfig = JSON.stringify(require(configPath), null, '\t');
+const stringifyConfig = config => JSON.stringify(config, null, '\t');
+const writeConfig = (config) => {
+	const configString = typeof config === 'string'
+		? config
+		: stringifyConfig(config);
+	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
+};
+
+const initialConfig = stringifyConfig(require(configPath));
 deleteConfigCache();
+
+const defaultConfig = {
+	name: 'lisky',
+	json: false,
+	liskJS: {
+		testnet: false,
+	},
+};
+writeConfig(defaultConfig);
 
 describe('set command', () => {
 	let vorpal;
@@ -26,7 +44,11 @@ describe('set command', () => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
 		capturedOutput = '';
-		fse.writeFileSync('config.json', `${initialConfig}\n`, 'utf8');
+		writeConfig(defaultConfig);
+	});
+
+	after(() => {
+		writeConfig(initialConfig);
 	});
 
 	describe('should exist', () => {
@@ -136,8 +158,14 @@ describe('set command', () => {
 		const setTestnetTrueResult = 'Successfully set testnet to true.';
 		const setTestnetFalseResult = 'Successfully set testnet to false.';
 		const invalidValueResult = 'Cannot set testnet to tru.';
+		let stub;
+
+		beforeEach(() => {
+			stub = sinon.stub(liskInstance, 'setTestnet');
+		});
 
 		afterEach(() => {
+			stub.restore();
 			deleteConfigCache();
 		});
 
@@ -145,6 +173,7 @@ describe('set command', () => {
 			return vorpal.exec(setTestnetTrueCommand, () => {
 				const config = require(configPath);
 
+				(stub.calledWithExactly(true)).should.be.true();
 				(config).should.have.property('liskJS').have.property('testnet').be.true();
 				(capturedOutput).should.be.equal(setTestnetTrueResult);
 			});
@@ -154,6 +183,7 @@ describe('set command', () => {
 			return vorpal.exec(setTestnetFalseCommand, () => {
 				const config = require(configPath);
 
+				(stub.calledWithExactly(false)).should.be.true();
 				(config).should.have.property('liskJS').have.property('testnet').be.false();
 				(capturedOutput).should.be.equal(setTestnetFalseResult);
 			});
@@ -164,6 +194,7 @@ describe('set command', () => {
 				vorpal.exec(invalidValueCommand, () => {
 					const config = require(configPath);
 
+					(stub.calledWithExactly(true)).should.be.true();
 					(config).should.have.property('liskJS').have.property('testnet').be.true();
 					(capturedOutput).should.be.equal(`${setTestnetTrueResult}${invalidValueResult}`);
 				}),
