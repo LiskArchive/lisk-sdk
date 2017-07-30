@@ -34,7 +34,7 @@ Transfer.prototype.bind = function (accounts, rounds) {
 };
 
 /**
- * Assigns data to transaction recipientId and amount and transfer asset.
+ * Assigns data to transaction recipientId, and amount and transfer asset.
  * @param {Object} data
  * @param {transaction} trs
  * @return {transaction} trs with assigned data
@@ -51,7 +51,7 @@ Transfer.prototype.create = function (data, trs) {
 };
 
 /**
- * Returns send fees from constants for transactions without asset and send fees + data fees if asset exists.
+ * Returns send fees from constants for transactions without asset, and send fees + data fees if asset exists.
  * @param {transaction} trs
  * @param {account} sender
  * @return {number} fee
@@ -210,7 +210,7 @@ Transfer.prototype.schema = {
 };
 
 /**
- * Deletes blockId from transaction, and validates schema if asset exists
+ * Deletes blockId from transaction, and validates schema if asset exists.
  * @param {transaction} trs
  * @return {transaction}
  */
@@ -245,7 +245,7 @@ Transfer.prototype.dbFields = [
 
 
 /**
- * checks if asset exists, if so, returns value otherwise returns null
+ * Checks if asset exists, if so, returns value, otherwise returns null.
  * @param {Object} raw
  * @return {null}
  */
@@ -258,7 +258,7 @@ Transfer.prototype.dbRead = function (raw) {
 };
 
 /**
- * checks if asset exists, if so, returns transfer table promise otherwise returns null
+ * Checks if asset exists, if so, returns transfer table promise, otherwise returns null.
  * @param {transaction} trs
  * @return {Object} {table:signatures, values: publicKey and transaction id} or null.
  */

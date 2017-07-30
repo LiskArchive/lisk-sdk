@@ -651,7 +651,6 @@ Transactions.prototype.shared = {
 				}
 
 				return setImmediate(cb, null, {transaction: transaction});
-
 			});
 		});
 	},

@@ -603,7 +603,6 @@ describe('GET /api/transactions/queued/get?id=', function () {
 	});
 
 	it('using valid id should be ok for transaction with data field', function (done) {
-
 		 function createTransactionWithData (done) {
 			var amountToSend = 123456789;
 			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
@@ -769,7 +768,6 @@ describe('PUT /api/transactions', function () {
 			done();
 		});
 	});
-
 
 	it('using negative amount should fail', function (done) {
 		var amountToSend = -100000000;

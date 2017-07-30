@@ -11,7 +11,6 @@ var constants = require('../../../helpers/constants.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var _ = require('lodash');
 
-
 var AccountLogic = require('../../../logic/account.js');
 var TransactionLogic = require('../../../logic/transaction.js');
 var DelegateModule = require('../../../modules/delegates.js');
@@ -50,7 +49,6 @@ describe('transactions', function () {
 	var signatureAccount = node.randomAccount();
 	var inTansferAccount = node.randomAccount();
 	var dappAccount = node.randomAccount();
-
 
 	function attachAllAssets (transactionLogic, delegatesModule, roundsModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
@@ -168,7 +166,7 @@ describe('transactions', function () {
 	});
 
 	before(function (done) {
-		// transfer lsk to all acounts;
+		// Transfer LSK to all accounts.
 		async.each([voteAccount, multiAccount1, multiAccount2, multiAccount3, delegateAccount, transferAccount, signatureAccount, inTansferAccount, dappAccount], function (account, eachCb) {
 
 			var transferTrs = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
@@ -291,6 +289,7 @@ describe('transactions', function () {
 			it('should get transaction for send transaction id', function (done) {
 				var trsId = transactionsByType[transactionTypes.SEND].transactionId;
 				var trs = transactionsByType[transactionTypes.SEND].transaction;
+
 				getTransactionById(trsId, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
@@ -304,7 +303,6 @@ describe('transactions', function () {
 					expect(res.transaction.signature).to.equal(trs.signature);
 					expect(res.transaction.id).to.equal(trs.id);
 					expect(res.transaction.type).to.equal(trs.type);
-
 					expect(res.transaction.type).to.equal(transactionTypes.SEND);
 					done();
 				});
@@ -313,6 +311,7 @@ describe('transactions', function () {
 			it('should get transaction with singature asset for transaction id', function (done) {
 				var trsId = transactionsByType[transactionTypes.SIGNATURE].transactionId;
 				var trs = transactionsByType[transactionTypes.SIGNATURE].transaction;
+
 				getTransactionById(trsId, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
@@ -321,16 +320,15 @@ describe('transactions', function () {
 					expect(res.transaction.asset.signature.publicKey).to.equal(trs.asset.signature.publicKey);
 					expect(res.transaction.fee).to.equal(trs.fee);
 					expect(res.transaction.type).to.equal(trs.type);
-
 					expect(res.transaction.type).to.equal(transactionTypes.SIGNATURE);
 					done();
 				});
 			});
 
 			it('should get transaction with vote asset for transaction id', function (done) {
-
 				var trsId = transactionsByType[transactionTypes.VOTE].transactionId;
 				var trs = transactionsByType[transactionTypes.VOTE].transaction;
+
 				getTransactionById(trsId, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
@@ -339,16 +337,15 @@ describe('transactions', function () {
 					expect(res.transaction.asset.votes).to.eql(trs.asset.votes);
 					expect(res.transaction.fee).to.equal(trs.fee);
 					expect(res.transaction.type).to.equal(trs.type);
-
 					expect(res.transaction.type).to.equal(transactionTypes.VOTE);
 					done();
 				});
 			});
 
 			it('should get transaction with MULTI asset for transaction id', function (done) {
-
 				var trsId = transactionsByType[transactionTypes.MULTI].transactionId;
 				var trs = transactionsByType[transactionTypes.MULTI].transaction;
+
 				getTransactionById(trsId, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
@@ -359,16 +356,15 @@ describe('transactions', function () {
 					expect(res.transaction.asset.multisignature.keysgroup).to.eql(trs.asset.multisignature.keysgroup);
 					expect(res.transaction.fee).to.equal(trs.fee);
 					expect(res.transaction.type).to.equal(trs.type);
-
 					expect(res.transaction.type).to.equal(transactionTypes.MULTI);
 					done();
 				});
 			});
 
 			it('should get transaction with DAPP asset for transaction id', function (done) {
-
 				var trsId = transactionsByType[transactionTypes.DAPP].transactionId;
 				var trs = transactionsByType[transactionTypes.DAPP].transaction;
+
 				getTransactionById(trsId, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
@@ -380,7 +376,6 @@ describe('transactions', function () {
 					expect(res.transaction.asset.dapp.category).to.equal(trs.asset.dapp.category);
 					expect(res.transaction.asset.dapp.link).to.equal(trs.asset.dapp.link);
 					expect(res.transaction.asset.dapp.type).to.equal(trs.asset.dapp.type);
-
 					expect(res.transaction.type).to.equal(transactionTypes.DAPP);
 					done();
 				});
@@ -389,6 +384,7 @@ describe('transactions', function () {
 			it.skip('should get transaction with intransfer asset for transaction id', function (done) {
 				var trsId = transactionsByType[transactionTypes.IN_TRANSFER].transactionId;
 				var trs = transactionsByType[transactionTypes.IN_TRANSFER].transaction;
+
 				getTransactionById(trsId, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
@@ -397,7 +393,6 @@ describe('transactions', function () {
 					expect(res.transaction.fee).to.equal(trs.fee);
 					expect(res.transaction.type).to.equal(trs.type);
 					expect(res.transaction.asset.inTransfer.dappId).to.equal(trs.asset.inTransfer.dappId);
-
 					expect(res.transaction.type).to.equal(transactionTypes.IN_TRANSFER);
 					done();
 				});

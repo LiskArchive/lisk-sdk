@@ -20,8 +20,9 @@ describe('POST /peer/transactions', function () {
 	}
 
 	before(function (done) {
-		// transfer lsk to all acounts;
+		// Transfer LSK to all accounts.
 		var trs = node.lisk.transaction.createTransaction(account.address, 10000000000000, node.gAccount.password);
+
 		addTransaction(trs, function (err) {
 			expect(err).to.not.exist;
 			node.onNewBlock(done);
@@ -31,6 +32,7 @@ describe('POST /peer/transactions', function () {
 	it('should return error when data field length is greater than 64 characters', function (done) {
 		var data = new Array(65).fill('x').join('');
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
+
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
 			expect(res.success).to.equal(false);
@@ -43,6 +45,7 @@ describe('POST /peer/transactions', function () {
 		var data = 0;
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
 		trs.asset.data = 0;
+
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
 			expect(res.success).to.equal(false);
@@ -55,11 +58,12 @@ describe('POST /peer/transactions', function () {
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password);
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
+
 			var transactionId = res.transactionId;
+
 			node.onNewBlock(function (err) {
 				getTransactionById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.id).to.equal(trs.id);
 					expect(res.transaction.amount).to.equal(trs.amount);
@@ -75,6 +79,7 @@ describe('POST /peer/transactions', function () {
 	it('should return error when data field characters length is equal to 0', function (done) {
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null);
 		trs.asset.data = '';
+
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
 			expect(res.success).to.equal(false);
@@ -86,13 +91,14 @@ describe('POST /peer/transactions', function () {
 	it('should be able to create transaction with 0 value', function (done) {
 		var data = '0';
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
+
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
+
 			var transactionId = res.transactionId;
+
 			node.onNewBlock(function (err) {
 				getTransactionById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.id).to.equal(trs.id);
@@ -111,11 +117,11 @@ describe('POST /peer/transactions', function () {
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
+
 			var transactionId = res.transactionId;
+
 			node.onNewBlock(function (err) {
 				getTransactionById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.id).to.equal(trs.id);
@@ -132,13 +138,12 @@ describe('POST /peer/transactions', function () {
 	it('should create transaction with empty asset when data field is set to undefined', function (done) {
 		var data = undefined;
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
-		trs.asset.data = undefined;
+		trs.asset.data = data;
+
 		addTransaction(trs, function (err, res) { expect(err).to.not.exist;
 			var transactionId = res.transactionId;
 			node.onNewBlock(function (err) {
 				getTransactionById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.id).to.equal(trs.id);
@@ -157,11 +162,11 @@ describe('POST /peer/transactions', function () {
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
+
 			var transactionId = res.transactionId;
+
 			node.onNewBlock(function (err) {
 				getTransactionById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transaction').which.is.an('object');
 					expect(res.transaction.id).to.equal(trs.id);

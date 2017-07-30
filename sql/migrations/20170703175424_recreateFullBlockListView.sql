@@ -1,3 +1,7 @@
+/**
+ * Recreate full_blocks_list, add join for transfer table.
+ */
+
 BEGIN; 
 
 DROP VIEW IF EXISTS full_blocks_list;
