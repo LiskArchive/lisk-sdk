@@ -286,7 +286,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run jenkins
 					'''
 				}
-			},  // End Node-02 Tests
+			}, // End Node-02 Tests
 			"Unit - Helpers" : {
 				node('node-03'){
 					sh '''
