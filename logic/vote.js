@@ -43,20 +43,6 @@ Vote.prototype.bind = function (delegates, rounds) {
 };
 
 /**
- * Sets recipientId with sender address.
- * Creates transaction.asset.votes based on data.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with new data
- */
-Vote.prototype.create = function (data, trs) {
-	trs.recipientId = data.sender.address;
-	trs.asset.votes = data.votes;
-
-	return trs;
-};
-
-/**
  * Obtains constant fee vote.
  * @see {@link module:helpers/constants}
  * @return {number} fee
@@ -358,7 +344,6 @@ Vote.prototype.objectNormalize = function (trs) {
  * @return {null|votes} votes object
  */
 Vote.prototype.dbRead = function (raw) {
-
 	if (!raw.v_votes) {
 		return null;
 	} else {

@@ -152,46 +152,6 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('create', function () {
-		it('should throw with empty parameters', function () {
-			expect(function () {
-				transfer.create();
-			}).to.throw();
-		});
-
-		it('should be okay with valid parameters', function () {
-			expect(transfer.create(validTransactionData, validTransaction)).to.be.an('object');
-		});
-
-		it('should attach data field with transaction object', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			var trs = _.cloneDeep(validTransaction);
-			var data = '綾波レイ';
-			trsData.data = data;
-			expect(transfer.create(trsData, trs)).to.be.an('object');
-			expect(trs).to.have.property('asset');
-			expect(trs.asset.data).to.eql(data);
-		});
-
-		it('should not attach data field when data value is undefined', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			var trs = _.cloneDeep(validTransaction);
-			trsData.data = undefined;
-			expect(transfer.create(trsData, trs)).to.be.an('object');
-			expect(trs).to.have.property('asset');
-			expect(trs.asset).to.eql({});
-		});
-
-		it('should not attach data field when data value is null', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			var trs = _.cloneDeep(validTransaction);
-			trsData.data = null;
-			expect(transfer.create(trsData, trs)).to.be.an('object');
-			expect(trs).to.have.property('asset');
-			expect(trs.asset).to.eql({});
-		});
-	});
-
 	describe('calculateFee', function () {
 		it('should throw for no params', function () {
 			expect(transfer.calculateFee).to.throw();

@@ -6,7 +6,7 @@
   "rules": {
     "semi": "error",
     "no-eq-null": "off",
-    "indent": ["error", "tab", { "flatTernaryExpressions": true }],
+    "indent": ["error", "tab", { "flatTernaryExpressions": true, "SwitchCase": 1 }],
     "eqeqeq": "off",
     "curly": "error",
     "no-undef": "error",

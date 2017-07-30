@@ -181,46 +181,5 @@ module.exports = {
 				maxLength: 22
 			}
 		}
-	},
-	addTransactions: {
-		id: 'transactions.addTransactions',
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			amount: {
-				type: 'integer',
-				minimum: 1,
-				maximum: constants.totalAmount
-			},
-			recipientId: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			data: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 64
-			}
-		},
-		required: ['secret', 'amount', 'recipientId']
 	}
 };

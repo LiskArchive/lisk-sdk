@@ -34,24 +34,7 @@ Transfer.prototype.bind = function (accounts, rounds) {
 };
 
 /**
- * Assigns data to transaction recipientId, and amount and transfer asset.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-Transfer.prototype.create = function (data, trs) {
-	trs.recipientId = data.recipientId;
-	trs.amount = data.amount;
-
-	if (data.data) {
-		trs.asset.data = data.data;
-	}
-
-	return trs;
-};
-
-/**
- * Returns send fees from constants for transactions without asset, and send fees + data fees if asset exists.
+ * Returns send fees from constants.
  * @param {transaction} trs
  * @param {account} sender
  * @return {number} fee

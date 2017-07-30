@@ -9,7 +9,6 @@ var schema = require('../../schema/dapps');
  * - End point: `/api/dapps`
  * - Private API:
  * 	- get	/categories
- *
  * - Sanitized
  * 	- get	/
  * 	- get	/get

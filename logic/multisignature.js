@@ -47,24 +47,6 @@ Multisignature.prototype.bind = function (rounds, accounts) {
 };
 
 /**
- * Creates a multisignature.
- * @param {multisignature} data - Entry information: min, keysgroup, lifetime.
- * @param {transaction} trs - Transaction to add multisignature data.
- * @returns {transaction} trs with new data
- */
-Multisignature.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = 0;
-	trs.asset.multisignature = {
-		min: data.min,
-		keysgroup: data.keysgroup,
-		lifetime: data.lifetime
-	};
-
-	return trs;
-};
-
-/**
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  * @see {@link module:helpers~constants}
  * @param {transaction} trs

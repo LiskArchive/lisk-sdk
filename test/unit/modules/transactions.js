@@ -8,6 +8,7 @@ var async = require('async');
 
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 var constants = require('../../../helpers/constants.js');
+var ws = require('../../common/wsCommunication');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var _ = require('lodash');
 
@@ -84,21 +85,20 @@ describe('transactions', function () {
 		return transactionLogic;
 	}
 
+
+	function postTransaction (transaction, done) {
+		ws.call('postTransactions', {
+			transaction: transaction
+		}, done, true);
+	}
+
 	function postSignature (transaction, signature, done) {
-		node.post('/peer/signatures', {
+		ws.call('postSignatures', {
 			signature: {
 				transaction: transaction.id,
 				signature: signature
 			}
 		}, done);
-	}
-
-	function addTransaction (transaction, done) {
-		node.post('/peer/transactions', {
-			transaction: transaction
-		}, function (err, res) {
-			done(err, res.body);
-		});
 	}
 
 	before(function (done) {
@@ -170,7 +170,7 @@ describe('transactions', function () {
 		async.each([voteAccount, multiAccount1, multiAccount2, multiAccount3, delegateAccount, transferAccount, signatureAccount, inTansferAccount, dappAccount], function (account, eachCb) {
 
 			var transferTrs = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
-			addTransaction(transferTrs, eachCb);
+			postTransaction(transferTrs, eachCb);
 		}, function (err) {
 			expect(err).to.not.exist;
 			node.onNewBlock(done);
@@ -194,15 +194,15 @@ describe('transactions', function () {
 			[transactionTypes.SEND]: function (cb) {
 				var data = 'extra information';
 				var transferTrs = node.lisk.transaction.createTransaction(node.gAccount.address, 112340000, transferAccount.password, null, data);
-				addTransaction(transferTrs, mergeResponseAndTransaction(transferTrs, cb));
+				postTransaction(transferTrs, mergeResponseAndTransaction(transferTrs, cb));
 			},
 			[transactionTypes.SIGNATURE]: function (cb) {
 				var signatureTrs = node.lisk.signature.createSignature(signatureAccount.password, signatureAccount.secondPassword);
-				addTransaction(signatureTrs, mergeResponseAndTransaction(signatureTrs, cb));
+				postTransaction(signatureTrs, mergeResponseAndTransaction(signatureTrs, cb));
 			},
 			[transactionTypes.DELEGATE]: function (cb) {
 				var delegateTrs = node.lisk.delegate.createDelegate(delegateAccount.password, delegateAccount.username);
-				addTransaction(delegateTrs, mergeResponseAndTransaction(delegateTrs, cb));
+				postTransaction(delegateTrs, mergeResponseAndTransaction(delegateTrs, cb));
 			},
 			[transactionTypes.VOTE]: function (cb) {
 				var votes = [
@@ -210,7 +210,7 @@ describe('transactions', function () {
 					'+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
 				];
 				var voteTrs = node.lisk.vote.createVote(voteAccount.password, votes);
-				addTransaction(voteTrs, mergeResponseAndTransaction(voteTrs, cb));
+				postTransaction(voteTrs, mergeResponseAndTransaction(voteTrs, cb));
 			},
 			[transactionTypes.MULTI]: function (cb) {
 				var lifetime = 1;
@@ -221,7 +221,7 @@ describe('transactions', function () {
 				];
 
 				var multiTrs = node.lisk.multisignature.createMultisignature(multiAccount1.password, null, keysgroup, lifetime, min);
-				addTransaction(multiTrs, mergeResponseAndTransaction(multiTrs, function (err, res) {
+				postTransaction(multiTrs, mergeResponseAndTransaction(multiTrs, function (err, res) {
 					var signature1 = node.lisk.multisignature.signTransaction(multiTrs, multiAccount2.password);
 					var signature2 = node.lisk.multisignature.signTransaction(multiTrs, multiAccount3.password);
 					async.each([signature1, signature2], function (signature, eachCb) {
@@ -239,7 +239,7 @@ describe('transactions', function () {
 					link: 'http://www.lisk.io/' + dappName + '.zip',
 				};
 				var dappTrs = node.lisk.dapp.createDapp(dappAccount.password, null, options);
-				addTransaction(dappTrs, mergeResponseAndTransaction(dappTrs, function (err, res) {
+				postTransaction(dappTrs, mergeResponseAndTransaction(dappTrs, function (err, res) {
 					node.onNewBlock(function (err1) {
 						cb(err || err1, res);
 					});
