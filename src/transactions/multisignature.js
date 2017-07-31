@@ -13,13 +13,15 @@
  *
  */
 /**
- * Multisignature module provides functions for creating multisignature group registration transactions, and signing transactions requiring multisignatures.
+ * Multisignature module provides functions for creating multisignature group registration
+ * transactions, and signing transactions requiring multisignatures.
  * @class multisignature
  */
 
-const crypto = require('./crypto.js');
-const constants = require('../constants.js');
-const slots = require('../time/slots.js');
+const crypto = require('./crypto');
+const constants = require('../constants');
+const slots = require('../time/slots');
+const { prepareTransaction } = require('./utils');
 
 /**
  * @method createTransaction
@@ -33,34 +35,24 @@ const slots = require('../time/slots.js');
  * @return {string}
  */
 
-function createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset) {
+function createTransaction(
+	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
+) {
+	const keys = crypto.getKeys(secret);
 
 	const transaction = {
 		type: 0,
 		amount,
 		fee: constants.fees.send,
 		recipientId,
+		senderPublicKey: keys.publicKey,
+		requesterPublicKey: requesterPublicKey || keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {}
+		asset: {},
+		signatures: [],
 	};
 
-	const keys = crypto.getKeys(secret);
-	transaction.senderPublicKey = keys.publicKey;
-
-	transaction.requesterPublicKey = requesterPublicKey || transaction.senderPublicKey;
-
-
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		const secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	transaction.signatures = [];
-
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 /**
@@ -110,15 +102,7 @@ function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, ti
 		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		const secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {

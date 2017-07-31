@@ -26,13 +26,9 @@ function hexToBuffer(hex) {
 
 // TODO: Discuss behaviour and output format
 function useFirstEightBufferEntriesReversed(publicKeyBytes) {
-	const publicKeyTransform = Buffer.alloc(8);
-
-	for (let i = 0; i < 8; i++) {
-		publicKeyTransform[i] = publicKeyBytes[7 - i];
-	}
-
-	return publicKeyTransform;
+	return Buffer.from(publicKeyBytes)
+		.slice(0, 8)
+		.reverse();
 }
 
 function toAddress(buffer) {

@@ -13,13 +13,15 @@
  *
  */
 /**
- * Transfer module provides functions for creating "in" transfer transactions (balance transfers to an individual dapp account).
+ * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
+ * an individual dapp account).
  * @class transfer
  */
 
-const crypto = require('./crypto.js');
-const constants = require('../constants.js');
-const slots = require('../time/slots.js');
+const crypto = require('./crypto');
+const constants = require('../constants');
+const slots = require('../time/slots');
+const { prepareTransaction } = require('./utils');
 
 /**
  * @method createInTransfer
@@ -49,15 +51,7 @@ function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
 		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		const secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 /**
@@ -73,7 +67,9 @@ function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
  * @return {Object}
  */
 
-function createOutTransfer(dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset) {
+function createOutTransfer(
+	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
+) {
 	const keys = crypto.getKeys(secret);
 
 	const transaction = {
@@ -91,14 +87,7 @@ function createOutTransfer(dappId, transactionId, recipientId, amount, secret, s
 		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		const secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {

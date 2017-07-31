@@ -33,7 +33,8 @@ function signMessageWithTwoSecrets(message, secret, secondSecret) {
 	const secondKeypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secondSecret);
 
 	const signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
-	const doubleSignedMessage = naclInstance.crypto_sign(signedMessage, secondKeypairBytes.privateKey);
+	const doubleSignedMessage = naclInstance
+		.crypto_sign(signedMessage, secondKeypairBytes.privateKey);
 
 	const hexSignedMessage = convert.bufferToHex(doubleSignedMessage);
 
@@ -81,7 +82,14 @@ function signAndPrintMessage(message, secret) {
 	const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
 	const outputArray = [
-		signedMessageHeader, messageHeader, plainMessage, pubklicKeyHeader, publicKey, signatureHeader, signedMessage, signatureFooter,
+		signedMessageHeader,
+		messageHeader,
+		plainMessage,
+		pubklicKeyHeader,
+		publicKey,
+		signatureHeader,
+		signedMessage,
+		signatureFooter,
 	];
 
 	return outputArray.join('\n');
@@ -90,15 +98,19 @@ function signAndPrintMessage(message, secret) {
 function printSignedMessage(message, signedMessage, publicKey) {
 	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	const messageHeader = '-----MESSAGE-----';
-	const plainMessage = message;
 	const publicKeyHeader = '-----PUBLIC KEY-----';
-	const printPublicKey = publicKey;
 	const signatureHeader = '-----SIGNATURE-----';
-	const printSignedMessage = signedMessage;
 	const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
 	const outputArray = [
-		signedMessageHeader, messageHeader, plainMessage, publicKeyHeader, printPublicKey, signatureHeader, printSignedMessage, signatureFooter,
+		signedMessageHeader,
+		messageHeader,
+		message,
+		publicKeyHeader,
+		publicKey,
+		signatureHeader,
+		signedMessage,
+		signatureFooter,
 	];
 
 	return outputArray.join('\n');
@@ -132,11 +144,14 @@ function convertPrivateKeyEd2Curve(privateKey) {
 
 function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 	const senderPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKey);
 	const recipientPublicKeyBytes = convert.hexToBuffer(recipientPublicKey);
-	var message = naclInstance.encode_utf8(message);
+	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
+	const utf8Message = naclInstance.encode_utf8(message);
 
 	const nonce = naclInstance.crypto_box_random_nonce();
-	const packet = naclInstance.crypto_box(message, nonce, convertPublicKeyEd2Curve(recipientPublicKeyBytes), convertPrivateKeyEd2Curve(senderPrivateKey));
+	const packet = naclInstance
+		.crypto_box(utf8Message, nonce, convertedPublicKey, convertedPrivateKey);
 
 	const nonceHex = convert.bufferToHex(nonce);
 	const encryptedMessage = convert.bufferToHex(packet);
@@ -149,11 +164,14 @@ function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 
 function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
 	const recipientPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	const convertedPrivateKey = convertPrivateKeyEd2Curve(recipientPrivateKey);
 	const senderPublicKeyBytes = convert.hexToBuffer(senderPublicKey);
+	const convertedPublicKey = convertPublicKeyEd2Curve(senderPublicKeyBytes);
 	const packetBytes = convert.hexToBuffer(packet);
 	const nonceBytes = convert.hexToBuffer(nonce);
 
-	const decoded = naclInstance.crypto_box_open(packetBytes, nonceBytes, convertPublicKeyEd2Curve(senderPublicKeyBytes), convertPrivateKeyEd2Curve(recipientPrivateKey));
+	const decoded = naclInstance
+		.crypto_box_open(packetBytes, nonceBytes, convertedPublicKey, convertedPrivateKey);
 
 	return naclInstance.decode_utf8(decoded);
 }

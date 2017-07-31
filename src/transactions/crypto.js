@@ -13,7 +13,8 @@
  *
  */
 /**
- * Crypto module provides functions for byte/fee calculation, hash/address/id/keypair generation, plus signing and verifying of transactions.
+ * Crypto module provides functions for byte/fee calculation, hash/address/id/keypair generation,
+ * plus signing and verifying of transactions.
  * @class crypto
  */
 
@@ -243,13 +244,8 @@ function createTransactionBuffer(transaction, options) {
 			DATA: 64,
 		};
 
-		let totalBytes = 0;
-
-		for (const key in typeSizes) {
-			if (typeSizes.hasOwnProperty(key)) {
-				totalBytes += typeSizes[key];
-			}
-		}
+		const totalBytes = Object.values(typeSizes)
+			.reduce((sum, typeSize) => sum + typeSize, 0);
 
 		return new ByteBuffer(totalBytes + assetSize, true);
 	}
@@ -276,11 +272,11 @@ function createTransactionBuffer(transaction, options) {
 			let recipient = transaction.recipientId.slice(0, -1);
 			recipient = bignum(recipient).toBuffer({ size: 8 });
 
-			for (var i = 0; i < 8; i++) {
+			for (let i = 0; i < 8; i++) {
 				transactionBuffer.writeByte(recipient[i] || 0);
 			}
 		} else {
-			for (var i = 0; i < 8; i++) {
+			for (let i = 0; i < 8; i++) {
 				transactionBuffer.writeByte(0);
 			}
 		}
@@ -288,13 +284,13 @@ function createTransactionBuffer(transaction, options) {
 
 		if (transaction.data) {
 			const dataBuffer = Buffer.from(transaction.data);
-			for (i = 0; i < dataBuffer.length; i++) {
+			for (let i = 0; i < dataBuffer.length; i++) {
 				transactionBuffer.writeByte(dataBuffer[i]);
 			}
 		}
 
 		if (assetSize > 0) {
-			for (var i = 0; i < assetSize; i++) {
+			for (let i = 0; i < assetSize; i++) {
 				transactionBuffer.writeByte(assetBytes[i]);
 			}
 		}
@@ -313,7 +309,7 @@ function createTransactionBuffer(transaction, options) {
 		const arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
 		const buffer = [];
 
-		for (var i = 0; i < arrayBuffer.length; i++) {
+		for (let i = 0; i < arrayBuffer.length; i++) {
 			buffer[i] = arrayBuffer[i];
 		}
 
@@ -326,7 +322,9 @@ function createTransactionBuffer(transaction, options) {
 	const assetBytes = transactionAssetSizeBuffer.assetBytes;
 
 	const emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
-	const assignedTransactionBuffer = assignTransactionBuffer(emptyTransactionBuffer, assetSize, assetBytes);
+	const assignedTransactionBuffer = assignTransactionBuffer(
+		emptyTransactionBuffer, assetSize, assetBytes,
+	);
 
 	return assignedTransactionBuffer;
 }
@@ -394,11 +392,6 @@ function getFee(transaction) {
 function sign(transaction, keys) {
 	const hash = getHash(transaction);
 	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-
-	if (!transaction.signature) {
-		transaction.signature = Buffer.from(signature).toString('hex');
-	}
-
 	return Buffer.from(signature).toString('hex');
 }
 
@@ -413,7 +406,7 @@ function sign(transaction, keys) {
 function secondSign(transaction, keys) {
 	const hash = getHash(transaction);
 	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-	transaction.signSignature = Buffer.from(signature).toString('hex');
+	return Buffer.from(signature).toString('hex');
 }
 
 /**
@@ -457,7 +450,8 @@ function verify(transaction) {
 
 	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
 	const senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
-	const res = naclInstance.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
+	const res = naclInstance
+		.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
 
 	return res;
 }

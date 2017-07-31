@@ -1,4 +1,4 @@
-const crypto = require('./crypto.js');
+const crypto = require('./crypto');
 
 const secondSignTransaction = (transactionObject, secondSecret) => {
 	const secondKeys = crypto.getKeys(secondSecret);
@@ -7,7 +7,7 @@ const secondSignTransaction = (transactionObject, secondSecret) => {
 	});
 };
 
-const processTransaction = (transaction, keys, secondSecret) => {
+const prepareTransaction = (transaction, keys, secondSecret) => {
 	const singleSignedTransaction = Object.assign({}, transaction, {
 		signature: crypto.sign(transaction, keys),
 	});
@@ -24,5 +24,5 @@ const processTransaction = (transaction, keys, secondSecret) => {
 };
 
 module.exports = {
-	processTransaction,
+	prepareTransaction,
 };

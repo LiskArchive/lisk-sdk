@@ -17,9 +17,10 @@
  * @class signature
  */
 
-const crypto = require('./crypto.js');
-const constants = require('../constants.js');
-const slots = require('../time/slots.js');
+const crypto = require('./crypto');
+const constants = require('../constants');
+const slots = require('../time/slots');
+const { prepareTransaction } = require('./utils');
 
 /**
  * @method newSignature
@@ -63,10 +64,7 @@ function createSignature(secret, secondSecret, timeOffset) {
 		},
 	};
 
-	crypto.sign(transaction, keys);
-	transaction.id = crypto.getId(transaction);
-
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
