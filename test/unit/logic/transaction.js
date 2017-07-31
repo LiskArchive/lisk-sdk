@@ -132,7 +132,7 @@ describe('transaction', function () {
 	var transactionLogic;
 	var accountModule;
 
-	var attachTransferAsset = function (transactionLogic, accountLogic, rounds, done) {
+	var attachTransferAsset = function (transactionLogic, accountLogic, done) {
 		modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
 			var transfer = new Transfer();
 			transfer.bind(__accountModule);
