@@ -187,6 +187,19 @@ describe('Rounds-related SQL triggers', function () {
 				// Init with empty function
 				cb(null, {io: {sockets: {emit: function () {}}}});
 			},
+			webSocket: ['config', 'logger', 'network', function (scope, cb) {
+				// Init with empty functions
+				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+				var dummySocketCluster = {on: function () {}};
+				var dummyWAMPServer = new MasterWAMPServer(dummySocketCluster, {});
+				var wsRPC = require('../../../api/ws/rpc/wsRPC.js').wsRPC;
+
+				wsRPC.setServer(dummyWAMPServer);
+				wsRPC.getServer().registerRPCEndpoints({status: function () {}});
+
+				cb();
+			}],
 			logger: function (cb) {
 				cb(null, logger);
 			},
@@ -416,8 +429,6 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	describe('round', function () {
-		var transactions = [];
-
 		function addTransaction (transaction, cb) {
 			node.debug('	Add transaction ID: ' + transaction.id);
 			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
@@ -573,6 +584,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		it('should forge block with 1 TRANSFER transaction to random account, update mem_accounts (native) and delegates (trigger block_insert_delete) tables', function () {
+			var transactions = [];
 			var tx = node.lisk.transaction.createTransaction(
 				node.randomAccount().address,
 				node.randomNumber(100000000, 1000000000),
