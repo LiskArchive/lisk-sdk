@@ -1,5 +1,8 @@
-module.exports = function (grunt) {
-	require('load-grunt-tasks')(grunt);
+/* eslint-disable import/no-extraneous-dependencies */
+const loadGruntTasks = require('load-grunt-tasks');
+
+module.exports = function configureGrunt(grunt) {
+	loadGruntTasks(grunt);
 
 	grunt.initConfig({
 		eslint: {
