@@ -91,10 +91,10 @@ function selectNode() {
 		let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 		if (this.testnet) peers = this.defaultTestnetPeers;
 
-		for (let x = 0; x < peers.length; x++) {
-			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) break;
+		peers.forEach(() => {
+			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) return;
 			currentRandomPeer = getRandomPeer.call(this);
-		}
+		});
 	}
 
 	return currentRandomPeer;
@@ -138,7 +138,8 @@ function checkReDial() {
 			} else {
 				reconnect = false;
 			}
-		// No nethash set, we can take the usual approach, just when there are not-banned peers, take one
+		// No nethash set, we can take the usual approach:
+		// just when there are not-banned peers, take one
 		} else {
 			reconnect = (peers.length !== this.bannedPeers.length);
 		}
@@ -157,11 +158,12 @@ function checkReDial() {
  */
 
 function checkOptions(options) {
-	Object.keys(options).forEach((optionKey) => {
-		if (options[optionKey] === undefined || options[optionKey] !== options[optionKey]) {
-			throw { message: `parameter value "${optionKey}" should not be ${options[optionKey]}` };
-		}
-	});
+	Object.entries(options)
+		.forEach(([key, value]) => {
+			if (value === undefined || Number.isNaN(value)) {
+				throw new Error(`parameter value "${key}" should not be ${value}`);
+			}
+		});
 
 	return options;
 }
@@ -196,6 +198,38 @@ function checkRequest(requestType, options) {
 	return this.parseOfflineRequests(requestType, options).requestMethod;
 }
 
+function transformGETRequest(baseRequestObject, requestType, options) {
+	const requestMethod = 'GET';
+	const requestUrlBase = `${getFullUrl.call(this)}/api/${requestType}`;
+	const requestUrl = Object.keys(options).length
+		? requestUrlBase + serialiseHttpData.call(this, options, requestMethod)
+		: requestUrlBase;
+	const requestParams = options;
+	return Object.assign({}, baseRequestObject, {
+		requestMethod,
+		requestUrl,
+		requestParams,
+	});
+}
+
+function transformPUTOrPOSTRequest(baseRequestObject, requestType, options) {
+	const transformRequest = this
+		.parseOfflineRequests(requestType, options)
+		.checkOfflineRequestBefore();
+
+	return (transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures')
+		? Object.assign({}, {
+			requestUrl: `${getFullUrl.call(this)}/peer/${transformRequest.requestUrl}`,
+			nethash: this.nethash,
+			requestMethod: 'POST',
+			requestParams: transformRequest.params,
+		})
+		: Object.assign({}, baseRequestObject, {
+			requestUrl: `${getFullUrl.call(this)}/api/${transformRequest.requestUrl}`,
+			requestMethod: transformRequest.requestMethod,
+			requestParams: options,
+		});
+}
 
 /**
  * @method changeRequest
@@ -207,46 +241,22 @@ function checkRequest(requestType, options) {
  */
 
 function changeRequest(requestType, options) {
-	const returnValue = {
+	const defaultRequestObject = {
 		requestMethod: '',
 		requestUrl: '',
 		nethash: '',
 		requestParams: '',
 	};
 
-	const that = this;
 	switch (checkRequest.call(this, requestType, options)) {
 	case 'GET':
-		returnValue.requestMethod = 'GET';
-		returnValue.requestUrl = `${getFullUrl.call(this)}/api/${requestType}`;
-
-		if (Object.keys(options).length > 0) {
-			returnValue.requestUrl += serialiseHttpData.call(that, options, returnValue.requestMethod);
-		}
-
-		returnValue.requestParams = options;
-		break;
+		return transformGETRequest.call(this, defaultRequestObject, requestType, options);
 	case 'PUT':
 	case 'POST':
-		var transformRequest = this.parseOfflineRequests(requestType, options).checkOfflineRequestBefore();
-
-		if (transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures') {
-			returnValue.requestUrl = `${getFullUrl.call(this)}/peer/${transformRequest.requestUrl}`;
-
-			returnValue.nethash = that.nethash;
-			returnValue.requestMethod = 'POST';
-			returnValue.requestParams = transformRequest.params;
-		} else {
-			returnValue.requestUrl = `${getFullUrl.call(this)}/api/${transformRequest.requestUrl}`;
-			returnValue.requestMethod = transformRequest.requestMethod;
-			returnValue.requestParams = options;
-		}
-		break;
+		return transformPUTOrPOSTRequest.call(this, defaultRequestObject, requestType, options);
 	default:
-		break;
+		return defaultRequestObject;
 	}
-
-	return returnValue;
 }
 
 /**

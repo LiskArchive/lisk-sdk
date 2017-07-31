@@ -24,7 +24,8 @@ LiskJS.transfer = require('../transactions/transfer');
 LiskJS.vote = require('../transactions/vote');
 
 /**
- * ParseOfflineRequest module provides automatic routing of new transaction requests which can be signed locally, and then broadcast without any passphrases being transmitted.
+ * ParseOfflineRequest module provides automatic routing of new transaction requests which can be
+ * signed locally, and then broadcast without any passphrases being transmitted.
  *
  * @method ParseOfflineRequest
  * @param requestType
@@ -52,14 +53,15 @@ function ParseOfflineRequest(requestType, options) {
  * @return string
  */
 
-ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
-	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
-		if (options && !options.hasOwnProperty('secret')) {
-			requestType = 'getTransactions';
-		}
-	}
-
-	return requestType;
+ParseOfflineRequest.prototype.checkDoubleNamedAPI = function checkDoubleNamedAPI(
+	requestType, options,
+) {
+	return (
+		(requestType === 'transactions' || requestType === 'accounts/delegates')
+		&& options && !options.secret
+	)
+		? 'getTransactions'
+		: requestType;
 };
 
 /**
@@ -68,8 +70,8 @@ ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, optio
  * @return string
  */
 
-ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
-	requestType = this.checkDoubleNamedAPI(requestType, this.options);
+ParseOfflineRequest.prototype.httpGETPUTorPOST = function httpGETPUTorPOST(providedRequestType) {
+	const requestType = this.checkDoubleNamedAPI(providedRequestType, this.options);
 
 	let requestMethod;
 	const requestIdentification = {
@@ -105,21 +107,23 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
  * @return {object}
  */
 
-ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
-	if (this.options && this.options.hasOwnProperty('secret')) {
-		const accountKeys = LiskJS.crypto.getKeys(this.options.secret);
-		var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
-	}
+ParseOfflineRequest.prototype.checkOfflineRequestBefore = function checkOfflineRequestBefore() {
+	const accountKeys = this.options.secret
+		? LiskJS.crypto.getKeys(this.options.secret)
+		: {};
+	const accountAddress = accountKeys.publicKey
+		? LiskJS.crypto.getAddress(accountKeys.publicKey)
+		: '';
 
 	const OfflineRequestThis = this;
 	const requestIdentification = {
-		'accounts/open': function () {
+		'accounts/open': function getAccountsOpen() {
 			return {
 				requestMethod: 'GET',
 				requestUrl: `accounts?address=${accountAddress}`,
 			};
 		},
-		'accounts/generatePublicKey': function () {
+		'accounts/generatePublicKey': function getAccountsGeneratePublicKey() {
 			return {
 				requestMethod: 'GET',
 				requestUrl: `accounts?address=${accountAddress}`,
@@ -131,8 +135,11 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'dapps/uninstall': 'POST',
 		'dapps/launch': 'POST',
 		'dapps/stop': 'POST',
-		'multisignatures/sign': function () {
-			const transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options.transaction, OfflineRequestThis.options.secret);
+		'multisignatures/sign': function postMultisignaturesSign() {
+			const transaction = LiskJS.multisignature.signTransaction(
+				OfflineRequestThis.options.transaction,
+				OfflineRequestThis.options.secret,
+			);
 
 			return {
 				requestMethod: 'POST',
@@ -140,8 +147,13 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				params: { signature: transaction },
 			};
 		},
-		'accounts/delegates': function () {
-			const transaction = LiskJS.vote.createVote(OfflineRequestThis.options.secret, OfflineRequestThis.options.delegates, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
+		'accounts/delegates': function postAccountsDelegates() {
+			const transaction = LiskJS.vote.createVote(
+				OfflineRequestThis.options.secret,
+				OfflineRequestThis.options.delegates,
+				OfflineRequestThis.options.secondSecret,
+				OfflineRequestThis.options.timeOffset,
+			);
 
 			return {
 				requestMethod: 'POST',
@@ -150,7 +162,13 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 			};
 		},
 		transactions() {
-			const transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options.recipientId, OfflineRequestThis.options.amount, OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
+			const transaction = LiskJS.transaction.createTransaction(
+				OfflineRequestThis.options.recipientId,
+				OfflineRequestThis.options.amount,
+				OfflineRequestThis.options.secret,
+				OfflineRequestThis.options.secondSecret,
+				OfflineRequestThis.options.timeOffset,
+			);
 
 			return {
 				requestMethod: 'POST',
@@ -159,7 +177,11 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 			};
 		},
 		signatures() {
-			const transaction = LiskJS.signature.createSignature(OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
+			const transaction = LiskJS.signature.createSignature(
+				OfflineRequestThis.options.secret,
+				OfflineRequestThis.options.secondSecret,
+				OfflineRequestThis.options.timeOffset,
+			);
 
 			return {
 				requestMethod: 'POST',
@@ -168,7 +190,12 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 			};
 		},
 		delegates() {
-			const transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options.secret, OfflineRequestThis.options.username, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
+			const transaction = LiskJS.delegate.createDelegate(
+				OfflineRequestThis.options.secret,
+				OfflineRequestThis.options.username,
+				OfflineRequestThis.options.secondSecret,
+				OfflineRequestThis.options.timeOffset,
+			);
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
@@ -197,7 +224,14 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 			};
 		},
 		multisignatures() {
-			const transaction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.keysgroup, OfflineRequestThis.options.lifetime, OfflineRequestThis.options.min, OfflineRequestThis.options.timeOffset);
+			const transaction = LiskJS.multisignature.createMultisignature(
+				OfflineRequestThis.options.secret,
+				OfflineRequestThis.options.secondSecret,
+				OfflineRequestThis.options.keysgroup,
+				OfflineRequestThis.options.lifetime,
+				OfflineRequestThis.options.min,
+				OfflineRequestThis.options.timeOffset,
+			);
 
 			return {
 				requestMethod: 'POST',
@@ -217,15 +251,15 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
  * @return {object}
  */
 
-ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) {
-	if (this.options.secret) {
-		var accountKeys = LiskJS.crypto.getKeys(this.options.secret);
-		var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
-	}
+ParseOfflineRequest.prototype.transactionOutputAfter = function transactionOutputAfter(
+	requestAnswer,
+) {
+	const accountKeys = LiskJS.crypto.getKeys(this.options.secret);
+	const accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
 
 	let transformAnswer;
 	const requestIdentification = {
-		'accounts/open': function () {
+		'accounts/open': function transformAccountsOpen() {
 			if (requestAnswer.error === 'Account not found') {
 				transformAnswer = {
 					success: 'true',
@@ -238,7 +272,7 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 						secondSignature: '0',
 						secondPublicKey: null,
 						multisignatures: null,
-						u_multisignatures: null,
+						u_multisignatures: null, // eslint-disable-line camelcase
 					},
 				};
 			} else {
@@ -247,52 +281,52 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 
 			return transformAnswer;
 		},
-		'accounts/generatePublicKey': function () {
+		'accounts/generatePublicKey': function transformAccountsGeneratePublicKey() {
 			return {
 				success: 'true',
 				publicKey: accountKeys.publicKey,
 			};
 		},
-		'delegates/forging/enable': function () {
+		'delegates/forging/enable': function transformDelegatesForgingEnable() {
 			return {
 				success: 'false',
 				error: 'Forging not available via offlineRequest',
 			};
 		},
-		'delegates/forging/disable': function () {
+		'delegates/forging/disable': function transformDelegatesForgingDisable() {
 			return {
 				success: 'false',
 				error: 'Forging not available via offlineRequest',
 			};
 		},
-		'dapps/install': function () {
+		'dapps/install': function transformDappsInstall() {
 			return {
 				success: 'false',
 				error: 'Install dapp not available via offlineRequest',
 			};
 		},
-		'dapps/uninstall': function () {
+		'dapps/uninstall': function transformDappsUninstall() {
 			return {
 				success: 'false',
 				error: 'Uninstall dapp not available via offlineRequest',
 			};
 		},
-		'dapps/launch': function () {
+		'dapps/launch': function transformDappsLaunch() {
 			return {
 				success: 'false',
 				error: 'Launch dapp not available via offlineRequest',
 			};
 		},
-		'dapps/stop': function () {
+		'dapps/stop': function transformDappsStop() {
 			return {
 				success: 'false',
 				error: 'Stop dapp not available via offlineRequest',
 			};
 		},
-		'multisignatures/sign': function () {
+		'multisignatures/sign': function transformMultisignaturesSign() {
 			return requestAnswer;
 		},
-		'accounts/delegates': function () {
+		'accounts/delegates': function transformAccountsDelegates() {
 			return requestAnswer;
 		},
 		transactions() {
