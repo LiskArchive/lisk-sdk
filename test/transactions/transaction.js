@@ -219,7 +219,7 @@ describe('transaction.js', function () {
 
 		describe('returned transaction', function () {
 			it('should contain data field with string value', function () {
-				(trs.data).should.be.type('string');
+				(trs.asset.data).should.be.type('string');
 			});
 		});
 
@@ -241,7 +241,7 @@ describe('transaction.js', function () {
 
 		describe('returned transaction', function () {
 			it('should conatain data field with string value', function () {
-				(trs.data).should.be.type('string');
+				(trs.asset.data).should.be.type('string');
 			});
 		});
 
