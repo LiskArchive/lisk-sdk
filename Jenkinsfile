@@ -233,15 +233,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},  // End Node-02 Tests
-			"Unit - Helpers" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/helpers TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
-				}
-			},
 			"Unit - Modules" : {
 				node('node-03'){
 					sh '''
@@ -272,6 +263,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run jenkins
 
 					export TEST=test/unit/sql/rounds.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					npm run jenkins
+					'''
+				}
+			},
+			"Unit - Helpers" : {
+				node('node-03'){
+					sh '''
+					export TEST=test/unit/helpers TEST_TYPE='UNIT' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
 					'''
 				}
