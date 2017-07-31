@@ -17,6 +17,7 @@
  * plus signing and verifying of transactions.
  * @class crypto
  */
+/* eslint-disable no-plusplus */
 
 const crypto = require('crypto-browserify');
 const constants = require('../constants.js');
