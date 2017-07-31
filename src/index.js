@@ -4,8 +4,20 @@
  * @main lisk
  */
 import naclFactory from 'js-nacl';
+import buffer from 'buffer';
+import crypto from './transactions/crypto';
+import dapp from './transactions/dapp';
+import delegate from './transactions/delegate';
+import multisignature from './transactions/multisignature';
+import signature from './transactions/signature';
+import transaction from './transactions/transaction';
+import transfer from './transactions/transfer';
+import vote from './transactions/vote';
+import api from './api/liskApi';
+import slots from './time/slots';
+import mnemonic from './utils/mnemonic';
 
-global.Buffer = global.Buffer || require('buffer').Buffer;
+global.Buffer = global.Buffer || buffer.Buffer;
 
 global.naclFactory = naclFactory;
 
@@ -15,17 +27,17 @@ naclFactory.instantiate((nacl) => {
 });
 
 const lisk = {
-	crypto: require('./transactions/crypto.js'),
-	dapp: require('./transactions/dapp.js'),
-	delegate: require('./transactions/delegate.js'),
-	multisignature: require('./transactions/multisignature.js'),
-	signature: require('./transactions/signature.js'),
-	transaction: require('./transactions/transaction.js'),
-	transfer: require('./transactions/transfer'),
-	vote: require('./transactions/vote.js'),
-	api: require('./api/liskApi'),
-	slots: require('./time/slots'),
-	mnemonic: require('./utils/mnemonic.js'),
+	crypto,
+	dapp,
+	delegate,
+	multisignature,
+	signature,
+	transaction,
+	transfer,
+	vote,
+	api,
+	slots,
+	mnemonic,
 };
 
 module.exports = lisk;
