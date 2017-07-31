@@ -74,9 +74,9 @@ function getTime(time) {
 * @return {number}
 */
 
-function getTimeWithOffset (offset) {
-	var now = new Date().getTime();
-	var time = offset
+function getTimeWithOffset(offset) {
+	const now = new Date().getTime();
+	const time = offset
 		? now + (offset * 1000)
 		: now;
 	return getTime(time);
