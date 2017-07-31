@@ -264,8 +264,14 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Unit - SQL" : {
 				node('node-03'){
 					sh '''
-					export TEST=test/unit/sql TEST_TYPE='UNIT' NODE_ENV='TEST'
+					export TEST=test/unit/sql/blockRewards.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+
+					export TEST=test/unit/sql/delegatesList.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					npm run jenkins
+
+					export TEST=test/unit/sql/rounds.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
 					'''
 				}
