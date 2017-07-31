@@ -72,16 +72,18 @@ function entropyChecksum(entropy) {
 
 function generate() {
 	const entropy = crypto.randomBytes(16);
-	let bin = '';
-	const mnemonic = [];
-	for (var i = 0; i < entropy.length; i++) {
-		bin += (`00000000${entropy[i].toString(2)}`).slice(-8);
-	}
-	bin += entropyChecksum(entropy);
-	for (i = 0; i < bin.length / 11; i++) {
-		const wi = parseInt(bin.slice(i * 11, (i + 1) * 11), 2);
-		mnemonic.push(wordList[wi]);
-	}
+	const bin = Array.from(entropy)
+		.map(byte => `00000000${byte.toString(2)}`.slice(-8))
+		.join('');
+	const checksum = entropyChecksum(entropy);
+	const binWithChecksum = `${bin}${checksum}`;
+	const mnemonic = new Array(Math.ceil((binWithChecksum.length) / 11))
+		.fill()
+		.map((_, i) => {
+			const slice = binWithChecksum.slice(i * 11, (i + 1) * 11);
+			const wordIndex = parseInt(slice, 2);
+			return wordList[wordIndex];
+		});
 	return mnemonic.join(' ');
 }
 
@@ -94,23 +96,22 @@ function generate() {
 
 function isValid(mnemonic) {
 	const words = mnemonic.split(' ');
-	let bin = '';
-	if (words.length !== 12) {
+	if (words.length !== 12 || words.some(w => !wordList.includes(w))) {
 		return false;
 	}
-	for (var i = 0; i < words.length; i++) {
-		const ind = wordList.indexOf(words[i]);
-		if (ind < 0) return false;
-		bin += (`00000000000${ind.toString(2)}`).slice(-11);
-	}
+	const bin = words
+		.map(word => `00000000000${wordList.indexOf(word).toString(2)}`.slice(-11))
+		.join('');
 
-	const cs = bin.length / 33;
-	const hashBits = bin.slice(-cs);
-	const nonhashBits = bin.slice(0, bin.length - cs);
-	const buf = Buffer.alloc(nonhashBits.length / 8);
-	for (i = 0; i < nonhashBits.length / 8; i++) {
-		buf.writeUInt8(parseInt(bin.slice(i * 8, (i + 1) * 8), 2), i);
-	}
+	const checksumLength = bin.length / 33;
+	const hashBits = bin.slice(-checksumLength);
+	const nonhashBits = bin.slice(0, bin.length - checksumLength);
+	const buf = Buffer.from(new Array(nonhashBits.length / 8)
+		.fill()
+		.map((_, i) => {
+			const slice = bin.slice(i * 8, (i + 1) * 8);
+			return parseInt(slice, 2);
+		}));
 	const expectedHashBits = entropyChecksum(buf);
 	return expectedHashBits === hashBits;
 }
