@@ -565,8 +565,11 @@ describe('Rounds-related SQL triggers', function () {
 		}
 
 		before(function () {
-			// Set delegates module as loaded to allow manual forging
-			rewiredModules.delegates.__set__('__private.loaded', true);
+			return new Promise(function (resolve) {
+				// Set delegates module as loaded to allow manual forging
+				rewiredModules.delegates.__set__('__private.loaded', true);
+				setTimeout(resolve, 1000);
+			});
 		});
 
 		it('should load all secrets of 101 delegates and set modules.delegates.__private.keypairs (native)', function (done) {
