@@ -24,7 +24,7 @@ function getTransactions (transactions, cb) {
 	});
 }
 
-describe('getTransactions via websockets', function () {
+describe('getTransactions', function () {
 
 	it('should return valid response', function (done) {
 		ws.call('getTransactions', function (err, res) {
@@ -54,7 +54,7 @@ describe('getTransactions via websockets', function () {
 	});
 });
 
-describe('postTransactions via websockets', function () {
+describe('postTransactions', function () {
 
 	var goodTransactions = [];
 
