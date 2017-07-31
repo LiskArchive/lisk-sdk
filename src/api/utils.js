@@ -3,19 +3,32 @@ module.exports = {
  * @method trimObj
  * @param obj
  *
- * @return trimmed string
+ * @return trimmed object
  */
 	trimObj: function trimObj(obj) {
-		if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
+		const isArray = Array.isArray(obj);
+		if (!isArray && typeof obj !== 'object') {
+			return Number.isInteger(obj)
+				? obj.toString()
+				: obj;
+		}
 
-		return Object.keys(obj).reduce((acc, key) => {
-			acc[key.trim()] = typeof obj[key] === 'string'
-				? obj[key].trim()
-				: Number.isInteger(obj[key])
-					? obj[key].toString()
-					: trimObj(obj[key]);
-			return acc;
-		}, Array.isArray(obj) ? [] : {});
+		const trim = value => (
+			typeof value === 'string'
+				? value.trim()
+				: trimObj(value)
+		);
+
+		return isArray
+			? obj.map(trim)
+			: Object.entries(obj)
+				.reduce((accumulator, [key, value]) => {
+					const trimmedKey = trim(key);
+					const trimmedValue = trim(value);
+					return Object.assign({}, accumulator, {
+						[trimmedKey]: trimmedValue,
+					});
+				}, {});
 	},
 	/**
 	 * @method toQueryString
@@ -24,13 +37,11 @@ module.exports = {
 	 * @return query string
 	 */
 	toQueryString(obj) {
-		const parts = [];
-
-		for (const i in obj) {
-			if (obj.hasOwnProperty(i)) {
-				parts.push(`${encodeURIComponent(i)}=${encodeURI(obj[i])}`);
-			}
-		}
+		const parts = Object.entries(obj)
+			.reduce((accumulator, [key, value]) => [
+				...accumulator,
+				`${encodeURIComponent(key)}=${encodeURI(value)}`,
+			], []);
 
 		return parts.join('&');
 	},
