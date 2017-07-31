@@ -23,14 +23,14 @@ __private.assetTypes = {};
  * @memberof module:dapps
  * @class
  * @classdesc Main dapps methods.
- * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  * @todo apply node pattern for callbacks: callback always at the end.
  * @todo add 'use strict';
  */
 // Constructor
-function DApps (cb, scope) {
+function DApps (scope, cb) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,

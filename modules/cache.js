@@ -10,10 +10,10 @@ var cacheEnabled;
 /**
  * Cache module
  * @constructor
- * @param {Function} cb
  * @param {Object} scope
+ * @param {Function} cb
  */
-function Cache (cb, scope) {
+function Cache (scope, cb) {
 	self = this;
 	client = scope.cache.client;
 	logger = scope.logger;

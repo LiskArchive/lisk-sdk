@@ -11,11 +11,11 @@ __private.loaded = false;
 /**
  * @class
  * @classdesc Main Crypto methods.
- * @param {setImmediateCallback} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {setImmediateCallback} cb - Callback function.
  */
 // Constructor
-function Crypto (cb, scope) {
+function Crypto (scope, cb) {
 	self = this;
 
 	setImmediate(cb, null, self);

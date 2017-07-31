@@ -28,12 +28,12 @@ __private.retries = 5;
  * @memberof module:loader
  * @class
  * @classdesc Main Loader methods.
- * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Loader (cb, scope) {
+function Loader (scope, cb) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,

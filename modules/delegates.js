@@ -36,7 +36,7 @@ __private.tmpKeypairs = {};
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Delegates (cb, scope) {
+function Delegates (scope, cb) {
 	library = {
 		logger: scope.logger,
 		sequence: scope.sequence,

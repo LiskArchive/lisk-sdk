@@ -22,12 +22,12 @@ var modules, library, self, __private = {};
  * @memberof module:peers
  * @class
  * @classdesc Main peers methods.
- * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Peers (cb, scope) {
+function Peers (scope, cb) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,

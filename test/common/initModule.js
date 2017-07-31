@@ -109,7 +109,7 @@ var modulesLoader = new function () {
 	 * @param {Function} cb
 	 */
 	this.initModule = function (Module, scope, cb) {
-		return new Module(cb, scope);
+		return new Module(scope, cb);
 	};
 
 	/**
