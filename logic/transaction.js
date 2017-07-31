@@ -58,54 +58,6 @@ function Transaction (db, ed, schema, genesisblock, account, logger, cb) {
 
 // Public methods
 /**
- * Creates transaction:
- * - Analyzes data types
- * - calls `create` based on data type (see privateTypes)
- * - calls `calculateFee` based on data type (see privateTypes)
- * - creates signatures
- * @see privateTypes
- * @implements {sign}
- * @implements {getId}
- * @param {Object} data
- * @return {transaction} trs
- */
-Transaction.prototype.create = function (data) {
-	if (!__private.types[data.type]) {
-		throw 'Unknown transaction type ' + data.type;
-	}
-
-	if (!data.sender) {
-		throw 'Invalid sender';
-	}
-
-	if (!data.keypair) {
-		throw 'Invalid keypair';
-	}
-
-	var trs = {
-		type: data.type,
-		amount: 0,
-		senderPublicKey: data.sender.publicKey,
-		requesterPublicKey: data.requester ? data.requester.publicKey.toString('hex') : null,
-		timestamp: slots.getTime(),
-		asset: {}
-	};
-
-	trs = __private.types[trs.type].create.call(this, data, trs);
-	trs.signature = this.sign(data.keypair, trs);
-
-	if (data.sender.secondSignature && data.secondKeypair) {
-		trs.signSignature = this.sign(data.secondKeypair, trs);
-	}
-
-	trs.id = this.getId(trs);
-
-	trs.fee = __private.types[trs.type].calculateFee.call(this, trs, data.sender) || false;
-
-	return trs;
-};
-
-/**
  * Sets private type based on type id after instance object validation.
  * @param {number} typeId
  * @param {Object} instance
@@ -113,7 +65,7 @@ Transaction.prototype.create = function (data) {
  * @throws {string} Invalid instance interface if validations are wrong
  */
 Transaction.prototype.attachAssetType = function (typeId, instance) {
-	if (instance && typeof instance.create === 'function' && typeof instance.getBytes === 'function' &&
+	if (instance && typeof instance.getBytes === 'function' &&
 		typeof instance.calculateFee === 'function' && typeof instance.verify === 'function' &&
 		typeof instance.objectNormalize === 'function' && typeof instance.dbRead === 'function' &&
 		typeof instance.apply === 'function' && typeof instance.undo === 'function' &&
@@ -485,7 +437,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	if (trs.requesterPublicKey) {
 		multisignatures.push(trs.senderPublicKey);
 
-		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
+		if (!Array.isArray(sender.multisignatures) || sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
 			return setImmediate(cb, 'Account does not belong to multisignature group');
 		}
 	}
@@ -1058,6 +1010,9 @@ Transaction.prototype.schema = {
  * @throws {string} error message
  */
 Transaction.prototype.objectNormalize = function (trs) {
+	if (_.isEmpty(trs)) {
+		throw 'Empty trs passed';
+	}
 	if (!__private.types[trs.type]) {
 		throw 'Unknown transaction type ' + trs.type;
 	}

@@ -27,16 +27,16 @@ JsonSchema.validate = Validator.validate;
 JsonSchema.addRule('type', {
 	validate : function (accept, value) {
 		switch (accept) {
-		case 'array':
-			return Array.isArray(value);
-		case 'object':
-			return typeof value === 'object' && value !== null;
-		case 'null':
-			return value === null;
-		case 'integer':
-			return typeof value === 'number';
-		default:
-			return typeof value === accept;
+			case 'array':
+				return Array.isArray(value);
+			case 'object':
+				return typeof value === 'object' && value !== null;
+			case 'null':
+				return value === null;
+			case 'integer':
+				return typeof value === 'number';
+			default:
+				return typeof value === accept;
 		}
 	}
 });

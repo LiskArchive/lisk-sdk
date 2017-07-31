@@ -30,27 +30,6 @@ Delegate.prototype.bind = function (accounts) {
 };
 
 /**
- * Creates a delegate.
- * @param {Object} data - Entry information: username, publicKey.
- * @param {transaction} trs - Transaction to assign the delegate.
- * @returns {Object} trs with new data
- */
-Delegate.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = 0;
-	trs.asset.delegate = {
-		username: data.username,
-		publicKey: data.sender.publicKey
-	};
-
-	if (trs.asset.delegate.username) {
-		trs.asset.delegate.username = trs.asset.delegate.username.toLowerCase().trim();
-	}
-
-	return trs;
-};
-
-/**
  * Obtains constant fee delegate.
  * @see {@link module:helpers/constants}
  * @returns {number} constants.fees.delegate
