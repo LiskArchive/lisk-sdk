@@ -13,7 +13,7 @@
     "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
     "build": "babel src --out-dir dist",
     "prepush": "grunt eslint && npm test",
-    "postinstall": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
