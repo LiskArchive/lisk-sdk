@@ -6,7 +6,7 @@
  * @type object
  */
 
-const fixedPoint = Math.pow(10, 8);
+const fixedPoint = 10 ** 8;
 
 const sendFee = 0.1 * fixedPoint;
 const signatureFee = 5 * fixedPoint;
