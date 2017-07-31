@@ -124,7 +124,12 @@ describe('Lisk.api()', () => {
 
 	describe('#selectNode', () => {
 		it('should return the node from initial settings when set', () => {
-			const LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: true, randomPeer: false });
+			const LiskUrlInit = liskApi({
+				port: testPort,
+				node: localNode,
+				ssl: true,
+				randomPeer: false,
+			});
 
 			(privateApi.selectNode.call(LiskUrlInit)).should.be.equal(localNode);
 		});
@@ -182,7 +187,7 @@ describe('Lisk.api()', () => {
 		};
 
 		const trimmedObj = {
-			my_Obj: 'myval',
+			my_Obj: 'myval', // eslint-disable-line camelcase
 		};
 
 		it('should not be equal before trim', () => {
@@ -200,9 +205,9 @@ describe('Lisk.api()', () => {
 				myObj: 2,
 			};
 
-			const trimmedObj = utils.trimObj(obj);
-			(trimmedObj).should.be.ok();
-			(trimmedObj).should.be.eql({ myObj: '2' });
+			const trimmedObjWithNumberValue = utils.trimObj(obj);
+			(trimmedObjWithNumberValue).should.be.ok();
+			(trimmedObjWithNumberValue).should.be.eql({ myObj: '2' });
 		});
 	});
 
@@ -277,108 +282,130 @@ describe('Lisk.api()', () => {
 	});
 
 	describe('#checkRequest', () => {
-		it('should identify GET requests', () => {
-			var requestType = 'api/loader/status';
-			var options = '';
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+		describe('should identify GET requests', () => {
+			it('api/loader/status', () => {
+				const requestType = 'api/loader/status';
+				const options = '';
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('GET');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('GET');
+			});
 
-			var requestType = 'api/loader/status/sync';
-			var options = '';
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+			it('api/loader/status/sync', () => {
+				const requestType = 'api/loader/status/sync';
+				const options = '';
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('GET');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('GET');
+			});
 
-			var requestType = 'api/loader/status/ping';
-			var options = '';
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+			it('api/loader/status/ping', () => {
+				const requestType = 'api/loader/status/ping';
+				const options = '';
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('GET');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('GET');
+			});
 
-			var requestType = 'api/transactions';
-			var options = { blockId: '123', senderId: '123' };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+			it('api/transactions', () => {
+				const requestType = 'api/transactions';
+				const options = { blockId: '123', senderId: '123' };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('GET');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('GET');
+			});
 		});
 
-		it('should identify POST requests', () => {
-			var requestType = 'accounts/generatePublicKey';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+		describe('should identify POST requests', () => {
+			it('accounts/generatePublicKey', () => {
+				const requestType = 'accounts/generatePublicKey';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('POST');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('POST');
+			});
+			it('accounts/open', () => {
+				const requestType = 'accounts/open';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			var requestType = 'accounts/open';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('POST');
+			});
+			it('multisignatures/sign', () => {
+				const requestType = 'multisignatures/sign';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('POST');
-
-			var requestType = 'multisignatures/sign';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('POST');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('POST');
+			});
 		});
 
-		it('should identify PUT requests', () => {
-			var requestType = 'accounts/delegates';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+		describe('should identify PUT requests', () => {
+			it('accounts/delegates', () => {
+				const requestType = 'accounts/delegates';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('PUT');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('PUT');
+			});
 
-			var requestType = 'signatures';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+			it('signatures', () => {
+				const requestType = 'signatures';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('PUT');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('PUT');
+			});
 
-			var requestType = 'transactions';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+			it('transactions', () => {
+				const requestType = 'transactions';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('PUT');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('PUT');
+			});
 		});
 
-		it('should identify NOACTION requests', () => {
-			var requestType = 'delegates/forging/enable';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+		describe('should identify NOACTION requests', () => {
+			it('enable forging', () => {
+				const requestType = 'delegates/forging/enable';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('NOACTION');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('NOACTION');
+			});
 
-			var requestType = 'dapps/uninstall';
-			var options = { secret: defaultSecret };
-			var checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
+			it('uninstall dapp', () => {
+				const requestType = 'dapps/uninstall';
+				const options = { secret: defaultSecret };
+				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
 
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.equal('NOACTION');
+				(checkRequestAnswer).should.be.ok();
+				(checkRequestAnswer).should.be.equal('NOACTION');
+			});
 		});
 	});
 
 	describe('#checkOptions', () => {
 		it('should not accept falsy options like undefined', () => {
-			(function () {
+			(function sendRequestWithUndefinedLimit() {
 				liskApi().sendRequest('delegates/', { limit: undefined }, () => {});
 			}).should.throw('parameter value "limit" should not be undefined');
 		});
 
 		it('should not accept falsy options like NaN', () => {
-			(function () {
+			(function sendRequestWithNaNLimit() {
 				liskApi().sendRequest('delegates/', { limit: NaN }, () => {});
 			}).should.throw('parameter value "limit" should not be NaN');
 		});
@@ -388,8 +415,8 @@ describe('Lisk.api()', () => {
 		it('should give the correct parameters for GET requests', () => {
 			const requestType = 'transactions';
 			const options = { blockId: '123', senderId: '123' };
-			const LSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+			const thisLSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
 
 			const output = {
 				nethash: '',
@@ -408,8 +435,8 @@ describe('Lisk.api()', () => {
 		it('should give the correct parameters for GET requests with parameters', () => {
 			const requestType = 'delegates/search/';
 			const options = { q: 'oliver' };
-			const LSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+			const thisLSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
 
 			const output = {
 				nethash: '',
@@ -427,8 +454,8 @@ describe('Lisk.api()', () => {
 		it('should give the correct parameters for NOACTION requests', () => {
 			const requestType = 'delegates/forging/enable';
 			const options = { secret: defaultSecret };
-			const LSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+			const thisLSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
 
 			const output = {
 				nethash: '',
@@ -444,8 +471,8 @@ describe('Lisk.api()', () => {
 		it('should give the correct parameters for POST requests', () => {
 			const requestType = 'accounts/open';
 			const options = { secret: defaultSecret };
-			const LSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+			const thisLSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
 
 			const output = {
 				nethash: '',
@@ -461,8 +488,8 @@ describe('Lisk.api()', () => {
 		it('should give the correct parameters for PUT requests', () => {
 			const requestType = 'signatures';
 			const options = { secret: defaultSecret, secondSecret: defaultSecondSecret };
-			const LSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(LSK, requestType, options);
+			const thisLSK = liskApi({ node: localNode });
+			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.String();
@@ -850,7 +877,7 @@ describe('Lisk.api()', () => {
 					secondSignature: 1,
 					secondPublicKey: 'b823d706cec22383f9f10bb5095a66ed909d9224da0707168dad9d1c9cdef29c',
 					multisignatures: [],
-					u_multisignatures: [],
+					u_multisignatures: [], // eslint-disable-line camelcase
 				},
 			},
 		};
@@ -927,8 +954,8 @@ describe('Lisk.api()', () => {
 
 	describe('#checkReDial', () => {
 		it('should check if all the peers are already banned', () => {
-			const LSK = liskApi();
-			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
+			const thisLSK = liskApi();
+			(privateApi.checkReDial.call(thisLSK)).should.be.equal(true);
 		});
 
 		it('should be able to get a new node when current one is not reachable', () => liskApi({ node: externalNode, randomPeer: true }).sendRequest('blocks/getHeight', {}, (result) => {
@@ -1096,7 +1123,7 @@ describe('Lisk.api()', () => {
 	describe('#broadcastSignedTransaction', () => {
 		it('should be able to broadcast a finished and signed transaction', () => {
 			const LSKAPI = liskApi({ testnet: true });
-			const amount = 0.001 * Math.pow(10, 8);
+			const amount = 0.001 * (10 ** 8);
 			const transaction = transactionModule.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
 
 			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {

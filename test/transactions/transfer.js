@@ -109,7 +109,9 @@ describe('transfer.js', () => {
 		const secret = 'secret';
 		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 		const secondSecret = 'secondSecret';
-		const outTransferTransaction = createOutTransfer(dappId, transactionId, recipientId, amount, secret, secondSecret);
+		const outTransferTransaction = createOutTransfer(
+			dappId, transactionId, recipientId, amount, secret, secondSecret,
+		);
 
 		it('should be a function', () => {
 			(createOutTransfer).should.be.type('function');
@@ -164,7 +166,9 @@ describe('transfer.js', () => {
 		});
 
 		it('should create an out transfer dapp transaction with just one signature', () => {
-			const outTransferTransactionOneSignature = createOutTransfer(dappId, transactionId, recipientId, amount, secret);
+			const outTransferTransactionOneSignature = createOutTransfer(
+				dappId, transactionId, recipientId, amount, secret,
+			);
 			(outTransferTransactionOneSignature).should.have.property('signature').be.ok();
 			(outTransferTransactionOneSignature).should.not.have.property('secondSignature');
 		});
@@ -189,7 +193,9 @@ describe('transfer.js', () => {
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
 				const offset = -10;
-				const trs = createOutTransfer(dappId, transactionId, recipientId, amount, secret, null, offset);
+				const trs = createOutTransfer(
+					dappId, transactionId, recipientId, amount, secret, null, offset,
+				);
 
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});

@@ -71,7 +71,8 @@ describe('multisignature.js', () => {
 		it('should contain asset with multisignature and the inserted parameters', () => {
 			(createMultisig2.asset.multisignature.min).should.be.equal(minimumSignatures2);
 			(createMultisig2.asset.multisignature.lifetime).should.be.equal(requestLifeTime2);
-			(createMultisig2.asset.multisignature.keysgroup).should.be.equal(multiSignaturePublicKeyArray2);
+			(createMultisig2.asset.multisignature.keysgroup)
+				.should.be.equal(multiSignaturePublicKeyArray2);
 		});
 
 		it('should contain secondSignature', () => {
@@ -141,7 +142,8 @@ describe('multisignature.js', () => {
 		const secret = 'privateSecret';
 		const secondSecret = 'privateSecondSecret';
 		const requesterPublicKey = 'abc123';
-		const msigTransaction = multisignature.createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey);
+		const msigTransaction = multisignature
+			.createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey);
 
 		it('should create a multisignature transaction', () => {
 			(msigTransaction.signatures).should.be.ok();
@@ -183,7 +185,8 @@ describe('multisignature.js', () => {
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
 				const offset = -10;
 
-				const trs = multisignature.createTransaction(recipientId, amount, secret, null, null, offset);
+				const trs = multisignature
+					.createTransaction(recipientId, amount, secret, null, null, offset);
 
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});

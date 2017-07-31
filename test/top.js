@@ -1,10 +1,9 @@
 function importTest(name, path) {
 	describe(name, () => {
+		// eslint-disable-next-line global-require, import/no-dynamic-require
 		require(path);
 	});
 }
-
-// var common = require('./common');
 
 describe('top', () => {
 	importTest('transactions Crypto ', './transactions/crypto.js');

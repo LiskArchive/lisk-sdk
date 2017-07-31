@@ -73,7 +73,8 @@ describe('crypto/index.js', () => {
 		});
 
 		it('should create the same privateKey as the unraw function', () => {
-			(newCrypto.bufferToHex(Buffer.from(keypair2.privateKey))).should.be.equal(keypair1.privateKey);
+			(newCrypto.bufferToHex(Buffer.from(keypair2.privateKey)))
+				.should.be.equal(keypair1.privateKey);
 		});
 	});
 
@@ -124,15 +125,15 @@ describe('crypto/index.js', () => {
 
 		it('should detect invalid publicKeys', () => {
 			const invalidPublicKey = `${keypair.publicKey}ERROR`;
-			(function () {
+			(function verifyMessageWithInvalidPublicKey() {
 				newCrypto.verifyMessageWithPublicKey(signedMessage, invalidPublicKey);
 			}).should.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect not verifiable signature', () => {
-			const signedMessage = `${newCrypto.signMessageWithSecret(message, secret)}ERROR`;
-			(function () {
-				newCrypto.verifyMessageWithPublicKey(signedMessage, publicKey);
+			const invalidSignedMessage = `${newCrypto.signMessageWithSecret(message, secret)}ERROR`;
+			(function verifyInvalidMessageWithPublicKey() {
+				newCrypto.verifyMessageWithPublicKey(invalidSignedMessage, publicKey);
 			}).should.throw('Invalid signature publicKey combination, cannot verify message');
 		});
 	});
@@ -143,7 +144,8 @@ describe('crypto/index.js', () => {
 			const secret = '123';
 			const keypair = newCrypto.getPrivateAndPublicKeyFromSecret(secret);
 			const signedMessage = newCrypto.signMessageWithSecret(message, secret);
-			const printedMessage = newCrypto.printSignedMessage(message, signedMessage, keypair.publicKey);
+			const printedMessage = newCrypto
+				.printSignedMessage(message, signedMessage, keypair.publicKey);
 
 			const signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\n' +
 				'-----MESSAGE-----\n' +

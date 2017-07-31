@@ -4,8 +4,8 @@ import naclFactory from 'js-nacl';
 
 process.env.NODE_ENV = 'test';
 
-should.use((should, Assertion) => {
-	Assertion.add('hexString', function () {
+should.use((_, Assertion) => {
+	Assertion.add('hexString', function hexString() {
 		this.params = {
 			operator: 'to be hex string',
 		};

@@ -107,8 +107,6 @@ describe('ParseOfflineRequests', () => {
 			const checkRequestRouting = liskApi().parseOfflineRequests('dapps', options);
 
 			(checkRequestRouting.requestMethod).should.be.equal('PUT');
-			// (checkRequestRouting.checkOfflineRequestBefore().requestMethod).should.be.equal('POST');
-			// (checkRequestRouting.checkOfflineRequestBefore().requestUrl).should.be.equal('transactions');
 			(checkRequestRouting.checkOfflineRequestBefore().params).should.be.ok();
 		});
 
@@ -134,8 +132,6 @@ describe('ParseOfflineRequests', () => {
 	});
 
 	describe('#transactionOutputAfter', () => {
-		const LSK = liskApi();
-
 		it('should calculate crypto for accounts/open instead of using the API', () => {
 			const transformAnswer = {
 				success: 'true',
@@ -148,7 +144,7 @@ describe('ParseOfflineRequests', () => {
 					secondSignature: '0',
 					secondPublicKey: null,
 					multisignatures: null,
-					u_multisignatures: null,
+					u_multisignatures: null, // eslint-disable-line camelcase
 				},
 			};
 
