@@ -43,10 +43,10 @@ function createTransaction(recipientId, amount, secret, secondSecret, data, time
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {}
+		asset: {},
 	};
 
-	if(data && data.length > 0) {
+	if (data && data.length > 0) {
 		transaction.asset.data = data;
 	}
 

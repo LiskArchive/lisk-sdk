@@ -284,7 +284,7 @@ function createTransactionBuffer(transaction, options) {
 
 		if (transaction.asset.data) {
 			const dataBuffer = Buffer.from(transaction.asset.data);
-			for (i = 0; i < dataBuffer.length; i++) {
+			for (let i = 0; i < dataBuffer.length; i++) {
 				transactionBuffer.writeByte(dataBuffer[i]);
 			}
 		}

@@ -206,8 +206,8 @@ describe('transaction.js', () => {
 			(trs).should.be.ok();
 		});
 
-		describe('returned transaction', function () {
-			it('should contain data field with string value', function () {
+		describe('returned transaction', () => {
+			it('should contain data field with string value', () => {
 				(trs.asset.data).should.be.type('string');
 			});
 		});
@@ -227,8 +227,8 @@ describe('transaction.js', () => {
 			(trs).should.be.ok();
 		});
 
-		describe('returned transaction', function () {
-			it('should conatain data field with string value', function () {
+		describe('returned transaction', () => {
+			it('should conatain data field with string value', () => {
 				(trs.asset.data).should.be.type('string');
 			});
 		});
