@@ -36,17 +36,18 @@ import { prepareTransaction } from './utils';
 
 function createTransaction(recipientId, amount, secret, secondSecret, data, timeOffset) {
 	const keys = crypto.getKeys(secret);
+	const fee = data ? (constants.fees.send + constants.fees.data) : constants.fees.send;
 	const transaction = {
 		type: 0,
 		amount,
-		fee: constants.fees.send,
+		fee,
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {},
 	};
 
-	if (data && data.length > 0) {
+	if (data && data.length > 0 && data.length < 65) {
 		transaction.asset.data = data;
 	}
 
