@@ -152,7 +152,7 @@ Round.prototype.truncateBlocks = function () {
 Round.prototype.restoreRoundSnapshot = function () {
 	this.scope.library.logger.debug('Restoring mem_round snapshot...');
 	return this.t.none(sql.restoreRoundSnapshot);
-}
+};
 
 /**
  * Calls sql restoreVotesSnapshot - restores snapshoted mem_accounts.votes
@@ -162,7 +162,7 @@ Round.prototype.restoreRoundSnapshot = function () {
 Round.prototype.restoreVotesSnapshot = function () {
 	this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
 	return this.t.none(sql.restoreVotesSnapshot);
-}
+};
 
 /**
  * For each delegate calls mergeAccountAndGet and creates an address array
