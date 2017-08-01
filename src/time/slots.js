@@ -20,7 +20,7 @@
  * @return Date UTC 04/24/2016 5:00 pm
  */
 
-function beginEpochTime () {
+function beginEpochTime() {
 	return new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 }
 
@@ -30,12 +30,10 @@ function beginEpochTime () {
  * @return {number} (time - beginEpochTime) in seconds
  */
 
-function getEpochTime (time) {
-	if (time === undefined) {
-		time = (new Date()).getTime();
-	}
-	var d = beginEpochTime();
-	var t = d.getTime();
+function getEpochTime(givenTime) {
+	const time = givenTime || new Date().getTime();
+	const d = beginEpochTime();
+	const t = d.getTime();
 	return Math.floor((time - t) / 1000);
 }
 
@@ -55,8 +53,8 @@ function getEpochTime (time) {
  * @type Number
  */
 
-var interval = 10,
-	delegates = 11;
+const interval = 10;
+const delegates = 11;
 
 /**
  * @method getTime
@@ -64,7 +62,7 @@ var interval = 10,
  * @return {number}
  */
 
-function getTime (time) {
+function getTime(time) {
 	return getEpochTime(time);
 }
 
@@ -74,9 +72,9 @@ function getTime (time) {
 * @return {number}
 */
 
-function getTimeWithOffset (offset) {
-	var now = new Date().getTime();
-	var time = offset
+function getTimeWithOffset(offset) {
+	const now = new Date().getTime();
+	const time = offset
 		? now + (offset * 1000)
 		: now;
 	return getTime(time);
@@ -88,13 +86,11 @@ function getTimeWithOffset (offset) {
  * @return {number}
  */
 
-function getRealTime (epochTime) {
-	if (epochTime === undefined) {
-		epochTime = getTime();
-	}
-	var d = beginEpochTime();
-	var t = Math.floor(d.getTime() / 1000) * 1000;
-	return t + epochTime * 1000;
+function getRealTime(givenTime) {
+	const epochTime = givenTime || getTime();
+	const d = beginEpochTime();
+	const t = Math.floor(d.getTime() / 1000) * 1000;
+	return t + (epochTime * 1000);
 }
 
 /**
@@ -103,11 +99,8 @@ function getRealTime (epochTime) {
  * @return {number}
  */
 
-function getSlotNumber (epochTime) {
-	if (epochTime === undefined) {
-		epochTime = getTime();
-	}
-
+function getSlotNumber(givenTime) {
+	const epochTime = givenTime || getTime();
 	return Math.floor(epochTime / interval);
 }
 
@@ -117,7 +110,7 @@ function getSlotNumber (epochTime) {
  * @return {number}
  */
 
-function getSlotTime (slot) {
+function getSlotTime(slot) {
 	return slot * interval;
 }
 
@@ -126,8 +119,8 @@ function getSlotTime (slot) {
  * @return {number}
  */
 
-function getNextSlot () {
-	var slot = getSlotNumber();
+function getNextSlot() {
+	const slot = getSlotNumber();
 
 	return slot + 1;
 }
@@ -137,18 +130,18 @@ function getNextSlot () {
  * @return {number}
  */
 
-function getLastSlot (nextSlot) {
+function getLastSlot(nextSlot) {
 	return nextSlot + delegates;
 }
 
 module.exports = {
-	interval: interval,
-	delegates: delegates,
-	getTime: getTime,
-	getTimeWithOffset: getTimeWithOffset,
-	getRealTime: getRealTime,
-	getSlotNumber: getSlotNumber,
-	getSlotTime: getSlotTime,
-	getNextSlot: getNextSlot,
-	getLastSlot: getLastSlot
+	interval,
+	delegates,
+	getTime,
+	getTimeWithOffset,
+	getRealTime,
+	getSlotNumber,
+	getSlotTime,
+	getNextSlot,
+	getLastSlot,
 };

@@ -13,13 +13,14 @@
  *
  */
 /**
- * Transfer module provides functions for creating "in" transfer transactions (balance transfers to an individual dapp account).
+ * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
+ * an individual dapp account).
  * @class transfer
  */
-
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+import crypto from './crypto';
+import constants from '../constants';
+import slots from '../time/slots';
+import { prepareTransaction } from './utils';
 
 /**
  * @method createInTransfer
@@ -32,32 +33,24 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createInTransfer (dappId, amount, secret, secondSecret, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
+	const keys = crypto.getKeys(secret);
 
-	var transaction = {
+	const transaction = {
 		type: 6,
-		amount: amount,
+		amount,
 		fee: constants.fees.send,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			inTransfer: {
-				dappId: dappId
-			}
-		}
+				dappId,
+			},
+		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 /**
@@ -73,35 +66,30 @@ function createInTransfer (dappId, amount, secret, secondSecret, timeOffset) {
  * @return {Object}
  */
 
-function createOutTransfer (dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createOutTransfer(
+	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
+) {
+	const keys = crypto.getKeys(secret);
 
-	var transaction = {
+	const transaction = {
 		type: 7,
-		amount: amount,
+		amount,
 		fee: constants.fees.send,
-		recipientId: recipientId,
+		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			outTransfer: {
-				dappId: dappId,
-				transactionId: transactionId,
+				dappId,
+				transactionId,
 			},
 		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createInTransfer: createInTransfer,
-	createOutTransfer: createOutTransfer
+	createInTransfer,
+	createOutTransfer,
 };

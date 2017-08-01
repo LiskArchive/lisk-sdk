@@ -1,37 +1,35 @@
 import cryptoModule from '../../src/transactions/crypto';
 
-describe('crypto.js', function () {
-
-	it('should be ok', function () {
+describe('crypto.js', () => {
+	it('should be ok', () => {
 		(cryptoModule).should.be.ok();
 	});
 
-	it('should be object', function () {
+	it('should be object', () => {
 		(cryptoModule).should.be.type('object');
 	});
 
-	it('should has properties', function () {
-		var properties = ['getBytes', 'getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
-		properties.forEach(function (property) {
+	it('should has properties', () => {
+		const properties = ['getBytes', 'getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
+		properties.forEach((property) => {
 			(cryptoModule).should.have.property(property);
 		});
 	});
 
-	describe('#getBytes', function () {
+	describe('#getBytes', () => {
+		const getBytes = cryptoModule.getBytes;
+		let bytes = null;
 
-		var getBytes = cryptoModule.getBytes;
-		var bytes = null;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(getBytes).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(getBytes).should.be.type('function');
 		});
 
-		it('should return Buffer of simply transaction and buffer most be 117 length', function () {
-			var transaction = {
+		it('should return Buffer of simply transaction and buffer most be 117 length', () => {
+			const transaction = {
 				type: 0,
 				amount: 1000,
 				recipientId: '58191285901858109L',
@@ -39,7 +37,7 @@ describe('crypto.js', function () {
 				asset: {},
 				senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
-				id: '13987348420913138422'
+				id: '13987348420913138422',
 			};
 
 			bytes = getBytes(transaction);
@@ -48,8 +46,8 @@ describe('crypto.js', function () {
 			(bytes.length).should.be.equal(117);
 		});
 
-		it('should return Buffer of transaction with second signature and buffer most be 181 length', function () {
-			var transaction = {
+		it('should return Buffer of transaction with second signature and buffer most be 181 length', () => {
+			const transaction = {
 				type: 0,
 				amount: 1000,
 				recipientId: '58191285901858109L',
@@ -58,7 +56,7 @@ describe('crypto.js', function () {
 				senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 				signSignature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
-				id: '13987348420913138422'
+				id: '13987348420913138422',
 			};
 
 			bytes = getBytes(transaction);
@@ -68,20 +66,19 @@ describe('crypto.js', function () {
 		});
 	});
 
-	describe('#getHash', function () {
+	describe('#getHash', () => {
+		const getHash = cryptoModule.getHash;
 
-		var getHash = cryptoModule.getHash;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(getHash).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(getHash).should.be.type('function');
 		});
 
-		it('should return Buffer and Buffer most be 32 bytes length', function () {
-			var transaction = {
+		it('should return Buffer and Buffer most be 32 bytes length', () => {
+			const transaction = {
 				type: 0,
 				amount: 1000,
 				recipientId: '58191285901858109L',
@@ -89,123 +86,118 @@ describe('crypto.js', function () {
 				asset: {},
 				senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
-				id: '13987348420913138422'
+				id: '13987348420913138422',
 			};
 
-			var result = getHash(transaction);
+			const result = getHash(transaction);
 			(result).should.be.ok();
 			(result).should.be.type('object');
 			(result.length).should.be.equal(32);
 		});
 	});
 
-	describe('#getId', function () {
+	describe('#getId', () => {
+		const getId = cryptoModule.getId;
 
-		var getId = cryptoModule.getId;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(getId).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(getId).should.be.type('function');
 		});
 
-		it('should return string id and be equal to 13987348420913138422', function () {
-			var transaction = {
+		it('should return string id and be equal to 13987348420913138422', () => {
+			const transaction = {
 				type: 0,
 				amount: 1000,
 				recipientId: '58191285901858109L',
 				timestamp: 141738,
 				asset: {},
 				senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a'
+				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 			};
 
-			var id = getId(transaction);
+			const id = getId(transaction);
 			(id).should.be.type('string').and.equal('13987348420913138422');
 		});
 	});
 
-	describe('#getFee', function () {
+	describe('#getFee', () => {
+		const getFee = cryptoModule.getFee;
 
-		var getFee = cryptoModule.getFee;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(getFee).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(getFee).should.be.type('function');
 		});
 
-		it('should return number', function () {
-			var fee = getFee({amount: 100000, type: 0});
+		it('should return number', () => {
+			const fee = getFee({ amount: 100000, type: 0 });
 			(fee).should.be.type('number');
 			(fee).should.be.not.NaN();
 		});
 
-		it('should return 10000000', function () {
-			var fee = getFee({amount: 100000, type: 0});
+		it('should return 10000000', () => {
+			const fee = getFee({ amount: 100000, type: 0 });
 			(fee).should.be.type('number').and.equal(10000000);
 		});
 
-		it('should return 500000000', function () {
-			var fee = getFee({type: 1});
+		it('should return 500000000', () => {
+			const fee = getFee({ type: 1 });
 			(fee).should.be.type('number').and.equal(500000000);
 		});
 
-		it('should be equal 2500000000', function () {
-			var fee = getFee({type: 2});
+		it('should be equal 2500000000', () => {
+			const fee = getFee({ type: 2 });
 			(fee).should.be.type('number').and.equal(2500000000);
 		});
 
-		it('should be equal 100000000', function () {
-			var fee = getFee({type: 3});
+		it('should be equal 100000000', () => {
+			const fee = getFee({ type: 3 });
 			(fee).should.be.type('number').and.equal(100000000);
 		});
 	});
 
-	describe('#sign', function () {
+	describe('#sign', () => {
+		const sign = cryptoModule.sign;
 
-		var sign = cryptoModule.sign;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(sign).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(sign).should.be.type('function');
 		});
 	});
 
-	describe('#secondSign', function () {
+	describe('#secondSign', () => {
+		const secondSign = cryptoModule.secondSign;
 
-		var secondSign = cryptoModule.secondSign;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(secondSign).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(secondSign).should.be.type('function');
 		});
 	});
 
-	describe('#getKeys', function () {
+	describe('#getKeys', () => {
+		const getKeys = cryptoModule.getKeys;
 
-		var getKeys = cryptoModule.getKeys;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(getKeys).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(getKeys).should.be.type('function');
 		});
 
-		it('should return two keys in hex', function () {
-			var keys = getKeys('secret');
+		it('should return two keys in hex', () => {
+			const keys = getKeys('secret');
 
 			(keys).should.be.ok();
 			(keys).should.be.type('object');
@@ -214,21 +206,20 @@ describe('crypto.js', function () {
 		});
 	});
 
-	describe('#getAddress', function () {
+	describe('#getAddress', () => {
+		const getAddress = cryptoModule.getAddress;
 
-		var getAddress = cryptoModule.getAddress;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(getAddress).should.be.ok();
 		});
 
-		it('should be a function', function () {
+		it('should be a function', () => {
 			(getAddress).should.be.type('function');
 		});
 
-		it('should generate address by publicKey', function () {
-			var keys = cryptoModule.getKeys('secret');
-			var address = getAddress(keys.publicKey);
+		it('should generate address by publicKey', () => {
+			const keys = cryptoModule.getKeys('secret');
+			const address = getAddress(keys.publicKey);
 
 			(address).should.be.ok();
 			(address).should.be.type('string');
@@ -236,28 +227,26 @@ describe('crypto.js', function () {
 		});
 	});
 
-	describe('#verify', function () {
+	describe('#verify', () => {
+		const verify = cryptoModule.verify;
 
-		var verify = cryptoModule.verify;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(verify).should.be.ok();
 		});
 
-		it('should be function', function () {
+		it('should be function', () => {
 			(verify).should.be.type('function');
 		});
 	});
 
-	describe('#verifySecondSignature', function () {
+	describe('#verifySecondSignature', () => {
+		const verifySecondSignature = cryptoModule.verifySecondSignature;
 
-		var verifySecondSignature = cryptoModule.verifySecondSignature;
-
-		it('should be ok', function () {
+		it('should be ok', () => {
 			(verifySecondSignature).should.be.ok();
 		});
 
-		it('should be function', function () {
+		it('should be function', () => {
 			(verifySecondSignature).should.be.type('function');
 		});
 	});

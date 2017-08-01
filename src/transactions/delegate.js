@@ -16,10 +16,10 @@
  * Delegate module provides functions to create delegate registration transactions.
  * @class delegate
  */
-
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+import crypto from './crypto';
+import constants from '../constants';
+import slots from '../time/slots';
+import { prepareTransaction } from './utils';
 
 /**
  * @method createDapp
@@ -31,10 +31,10 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createDelegate (secret, username, secondSecret, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createDelegate(secret, username, secondSecret, timeOffset) {
+	const keys = crypto.getKeys(secret);
 
-	var transaction = {
+	const transaction = {
 		type: 2,
 		amount: 0,
 		fee: constants.fees.delegate,
@@ -43,23 +43,15 @@ function createDelegate (secret, username, secondSecret, timeOffset) {
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
 			delegate: {
-				username: username,
-				publicKey: keys.publicKey
-			}
-		}
+				username,
+				publicKey: keys.publicKey,
+			},
+		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createDelegate: createDelegate
+	createDelegate,
 };
