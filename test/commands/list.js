@@ -1,131 +1,148 @@
-import Vorpal from 'vorpal';
 import list from '../../src/commands/list';
 import query from '../../src/utils/query';
+import { setUpVorpalWithCommand } from './utils';
+
+const tablify = require('../../src/utils/tablify');
 
 const createRejectionHandler = restoreFn => (e) => {
 	restoreFn();
 	throw e;
 };
 
+const testCommandCallsQueryMethodWithValues = (
+	vorpal, command, queryMethodName, values,
+) => {
+	const stub = sinon.stub(query, queryMethodName);
+	const { restore } = stub;
+
+	return vorpal.exec(command)
+		.then(() => values.forEach(value =>
+			(stub.calledWithExactly(value))
+				.should.be.equal(true)),
+		)
+		.then(restore, createRejectionHandler(restore));
+};
+
 describe('lisky list command palette', () => {
+	const addresses = ['13133549779353512613L', '13133549779353512613L'];
+	const blockIds = ['3641049113933914102', '5650160629533476718'];
+	const delegateNames = ['lightcurve', 'tosch'];
+	const transactionIds = ['16388447461355055139', '14735719251498448056'];
+
+	const noTypeCommand = 'list';
+	const noVariadicCommand = 'list accounts';
+	const invalidTypeCommand = `list xxx ${addresses.join(' ')}`;
+	const accountsCommand = `list accounts ${addresses.join(' ')}`;
+	const addressesCommand = `list addresses ${addresses.join(' ')}`;
+	const blocksCommand = `list blocks ${blockIds.join(' ')}`;
+	const delegatesCommand = `list delegates ${delegateNames.join(' ')}`;
+	const transactionsCommand = `list transactions ${transactionIds.join(' ')}`;
+
+	const missingRequiredArgumentRegex = /Missing required argument/;
+	const unknownVariableRegex = /Unsupported type\./;
+
 	let vorpal;
+	let capturedOutput = [];
 
 	beforeEach(() => {
-		vorpal = new Vorpal();
-		vorpal.use(list);
-		vorpal.pipe(() => '');
+		vorpal = setUpVorpalWithCommand(list, capturedOutput);
 	});
 
 	afterEach(() => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
+		capturedOutput = [];
 	});
 
 	it('should handle being called with no type', () => {
-		const command = 'list';
-		return vorpal.exec(command)
-			.then(result => (result).should.match(/Missing required argument/));
+		return vorpal.exec(noTypeCommand)
+			.then(result => (result).should.match(missingRequiredArgumentRegex));
 	});
 
 	it('should handle being called with no variadic', () => {
-		const command = 'list accounts';
-		return vorpal.exec(command)
-			.then(result => (result).should.match(/Missing required argument/));
+		return vorpal.exec(noVariadicCommand)
+			.then(result => (result).should.match(missingRequiredArgumentRegex));
 	});
 
-	it('should test command list accounts', () => {
-		sinon.stub(query, 'isAccountQuery');
-		const restore = query.isAccountQuery.restore;
-
-		const command = 'list accounts 13133549779353512613L 13133549779353512613L';
-		return vorpal.exec(command)
-			.then(() => (query.isAccountQuery.called).should.be.equal(true))
-			.then(restore, createRejectionHandler(restore));
+	it('should handle unknown type names', () => {
+		return vorpal.exec(invalidTypeCommand)
+			.then(() => (capturedOutput[0]).should.match(unknownVariableRegex));
 	});
 
-	it('should have the right parameters with block', () => {
-		sinon.stub(query, 'isBlockQuery');
-		const restore = query.isBlockQuery.restore;
-
-		const command = 'list blocks 3641049113933914102 5650160629533476718';
-		return vorpal.exec(command)
-			.then(() => (query.isBlockQuery.called).should.be.equal(true))
-			.then(restore, createRejectionHandler(restore));
+	it('should list accounts by address', () => {
+		return testCommandCallsQueryMethodWithValues(vorpal, accountsCommand, 'isAccountQuery', addresses);
 	});
 
-	it('should have the right parameters with delegate', () => {
-		sinon.stub(query, 'isDelegateQuery');
-		const restore = query.isDelegateQuery.restore;
-
-		const command = 'list delegates lightcurve tosch';
-		return vorpal.exec(command)
-			.then(() => (query.isDelegateQuery.called).should.be.equal(true))
-			.then(restore, createRejectionHandler(restore));
+	it('should list addresses', () => {
+		return testCommandCallsQueryMethodWithValues(vorpal, addressesCommand, 'isAccountQuery', addresses);
 	});
 
-	describe('list transactions', () => {
-		let stub;
-		const command = 'list transactions 16388447461355055139 14735719251498448056';
+	it('should list blocks by id', () => {
+		return testCommandCallsQueryMethodWithValues(vorpal, blocksCommand, 'isBlockQuery', blockIds);
+	});
 
-		beforeEach(() => {
-			stub = sinon.stub(query, 'isTransactionQuery');
-		});
+	it('should list delegates by name', () => {
+		return testCommandCallsQueryMethodWithValues(vorpal, delegatesCommand, 'isDelegateQuery', delegateNames);
+	});
 
-		afterEach(() => {
-			query.isTransactionQuery.restore();
-		});
-
-		it('should have the right parameters with transaction', () => vorpal.exec(command)
-			.then(() => (query.isTransactionQuery.called).should.be.equal(true)));
-
-		it('should have the right parameters with transaction, handling response', () => {
-			stub.resolves({ transactionid: '123' });
-
-			return vorpal.exec(command)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
-
-		it('should have the right parameters with transaction, handling error from http', () => {
-			stub.resolves({ error: 'transaction not found' });
-
-			return vorpal.exec(command)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
+	it('list transactions by id', () => {
+		return testCommandCallsQueryMethodWithValues(vorpal, transactionsCommand, 'isTransactionQuery', transactionIds);
 	});
 
 	describe('options', () => {
-		let stub;
-		const transactionsCommand = 'list transactions 16388447461355055139 14735719251498448056';
 		const jsonCommand = `${transactionsCommand} -j`;
 		const noJsonCommand = `${transactionsCommand} --no-json`;
+		const transaction = {
+			one: 'two',
+		};
+		let stub;
 
 		beforeEach(() => {
-			stub = sinon.stub(query, 'isTransactionQuery');
+			stub = sinon.stub(query, 'isTransactionQuery').resolves({ transaction });
 		});
 
 		afterEach(() => {
-			query.isTransactionQuery.restore();
+			stub.restore();
 		});
 
-		it('should print json output', () => {
-			stub.resolves({ transactionId: '123' });
+		describe('json output true', () => {
+			it('should stringify JSON', () => {
+				const spy = sinon.spy(JSON, 'stringify');
+				const { restore } = spy;
+				return vorpal.exec(jsonCommand)
+					.then(() => {
+						(spy.calledWithExactly(transaction)).should.be.true();
+					})
+					.then(restore, createRejectionHandler(restore));
+			});
 
-			return vorpal.exec(jsonCommand)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
+			it('should print json output', () => {
+				return vorpal.exec(jsonCommand)
+					.then(() => {
+						(capturedOutput[0]).should.be.type('string');
+						(JSON.parse.bind(null, capturedOutput[0])).should.not.throw();
+					});
+			});
 		});
 
-		it('should print no-json output', () => {
-			stub.resolves({ transactionId: '123' });
+		describe('json output false', () => {
+			it('should use tablify', () => {
+				const spy = sinon.spy(tablify, 'default');
+				const { restore } = spy;
+				return vorpal.exec(noJsonCommand)
+					.then(() => {
+						(spy.calledWithExactly(transaction)).should.be.true();
+					})
+					.then(restore, createRejectionHandler(restore));
+			});
 
-			return vorpal.exec(noJsonCommand)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
-		});
-
-		it('should print json, handling error from http', () => {
-			stub.resolves({ error: 'transaction not found' });
-
-			return vorpal.exec(jsonCommand)
-				.then(() => (query.isTransactionQuery.called).should.be.equal(true));
+			it('should print tablified output', () => {
+				return vorpal.exec(noJsonCommand)
+					.then(() => {
+						(capturedOutput[0]).should.be.type('string');
+						(JSON.parse.bind(null, capturedOutput[0])).should.throw(/Unexpected token/);
+					});
+			});
 		});
 	});
 });

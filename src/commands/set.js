@@ -9,7 +9,7 @@ const writeConfigToFile = (newConfig) => {
 
 const checkBoolean = value => ['true', 'false'].includes(value);
 
-const accessConfigProperty = newValue => (obj, pathComponent, i, path) => {
+const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	if (i === path.length - 1) {
 		// eslint-disable-next-line no-param-reassign
 		obj[pathComponent] = newValue;
@@ -24,7 +24,7 @@ const setBoolean = (variable, path) => (value) => {
 	}
 
 	const newValue = (value === 'true');
-	path.reduce(accessConfigProperty(newValue), config);
+	path.reduce(setNestedConfigProperty(newValue), config);
 
 	if (variable === 'testnet') {
 		liskInstance.setTestnet(newValue);

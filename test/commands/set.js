@@ -1,9 +1,9 @@
-/* eslint-disable arrow-body-style, global-require, import/no-dynamic-require */
-import Vorpal from 'vorpal';
+/* eslint-disable global-require, import/no-dynamic-require */
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import get from '../../src/commands/get';
 import liskInstance from '../../src/utils/liskInstance';
+import { setUpVorpalWithCommand } from './utils';
 
 const configPath = '../../config.json';
 const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
@@ -25,25 +25,23 @@ const defaultConfig = {
 		testnet: false,
 	},
 };
-writeConfig(defaultConfig);
 
 describe('set command', () => {
 	let vorpal;
-	let capturedOutput = '';
+	let capturedOutput = [];
+
+	before(() => {
+		writeConfig(defaultConfig);
+	});
 
 	beforeEach(() => {
-		vorpal = new Vorpal();
-		vorpal.use(set);
-		vorpal.pipe((output) => {
-			capturedOutput += output;
-			return '';
-		});
+		vorpal = setUpVorpalWithCommand(set, capturedOutput);
 	});
 
 	afterEach(() => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
-		capturedOutput = '';
+		capturedOutput = [];
 		writeConfig(defaultConfig);
 	});
 
@@ -52,32 +50,30 @@ describe('set command', () => {
 	});
 
 	describe('should exist', () => {
-		let setCommand;
-		// eslint-disable-next-line no-underscore-dangle
+		/* eslint-disable no-underscore-dangle */
 		const filterCommand = vorpalCommand => vorpalCommand._name === 'set';
+		let setCommand;
 
 		beforeEach(() => {
 			setCommand = vorpal.commands.filter(filterCommand)[0];
 		});
 
 		it('should be available', () => {
-			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args).should.be.length(2);
-			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._name).should.be.equal('set');
 		});
 
 		it('should have 2 required inputs', () => {
-			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args[0].required).should.be.true();
-			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args[1].required).should.be.true();
 		});
+		/* eslint-enable */
 	});
 
 	it('should handle unknown config variables', () => {
-		vorpal.exec('set xxx true', () => {
-			(capturedOutput).should.be.equal('Unsupported variable name.');
+		const invalidVariableCommand = 'set xxx true';
+		vorpal.exec(invalidVariableCommand, () => {
+			(capturedOutput).should.be.eql(['Unsupported variable name.']);
 		});
 	});
 
@@ -90,6 +86,8 @@ describe('set command', () => {
 		const setJsonFalseResult = 'Successfully set json output to false.';
 		const invalidValueResult = 'Cannot set json output to tru.';
 
+		const jsonProperty = 'json';
+
 		afterEach(() => {
 			deleteConfigCache();
 		});
@@ -98,8 +96,8 @@ describe('set command', () => {
 			return vorpal.exec(setJsonTrueCommand, () => {
 				const config = require(configPath);
 
-				(config).should.have.property('json').be.true();
-				(capturedOutput).should.be.equal(setJsonTrueResult);
+				(config).should.have.property(jsonProperty).be.true();
+				(capturedOutput).should.be.eql([setJsonTrueResult]);
 			});
 		});
 
@@ -107,8 +105,8 @@ describe('set command', () => {
 			return vorpal.exec(setJsonFalseCommand, () => {
 				const config = require(configPath);
 
-				(config).should.have.property('json').be.false();
-				(capturedOutput).should.be.equal(setJsonFalseResult);
+				(config).should.have.property(jsonProperty).be.false();
+				(capturedOutput).should.be.eql([setJsonFalseResult]);
 			});
 		});
 
@@ -117,8 +115,8 @@ describe('set command', () => {
 				vorpal.exec(setJsonFalseCommand, () => {
 					const config = require(configPath);
 
-					(config).should.have.property('json').be.false();
-					(capturedOutput).should.be.equal(`${setJsonTrueResult}${setJsonFalseResult}`);
+					(config).should.have.property(jsonProperty).be.false();
+					(capturedOutput).should.be.eql([setJsonTrueResult, setJsonFalseResult]);
 				}),
 			);
 		});
@@ -128,8 +126,8 @@ describe('set command', () => {
 				vorpal.exec(invalidValueCommand, () => {
 					const config = require(configPath);
 
-					(config).should.have.property('json').be.true();
-					(capturedOutput).should.be.equal(`${setJsonTrueResult}${invalidValueResult}`);
+					(config).should.have.property(jsonProperty).be.true();
+					(capturedOutput).should.be.eql([setJsonTrueResult, invalidValueResult]);
 				}),
 			);
 		});
@@ -141,11 +139,10 @@ describe('set command', () => {
 			return vorpal.exec(getDelegateCommand)
 				.then(() => {
 					(() => JSON.parse(capturedOutput)).should.not.throw();
-					const firstCaptureLength = capturedOutput.length;
 					vorpal.execSync(setJsonFalseCommand);
 					return vorpal.exec(getDelegateCommand)
 						.then(() => {
-							(() => JSON.parse(capturedOutput.slice(firstCaptureLength))).should.throw();
+							(() => JSON.parse(capturedOutput[1])).should.throw();
 						});
 				});
 		});
@@ -158,6 +155,9 @@ describe('set command', () => {
 		const setTestnetTrueResult = 'Successfully set testnet to true.';
 		const setTestnetFalseResult = 'Successfully set testnet to false.';
 		const invalidValueResult = 'Cannot set testnet to tru.';
+
+		const testnetProperties = ['liskJS', 'testnet'];
+
 		let stub;
 
 		beforeEach(() => {
@@ -174,8 +174,11 @@ describe('set command', () => {
 				const config = require(configPath);
 
 				(stub.calledWithExactly(true)).should.be.true();
-				(config).should.have.property('liskJS').have.property('testnet').be.true();
-				(capturedOutput).should.be.equal(setTestnetTrueResult);
+				(config)
+					.should.have.property(testnetProperties[0])
+					.have.property(testnetProperties[1])
+					.be.true();
+				(capturedOutput).should.be.eql([setTestnetTrueResult]);
 			});
 		});
 
@@ -184,8 +187,11 @@ describe('set command', () => {
 				const config = require(configPath);
 
 				(stub.calledWithExactly(false)).should.be.true();
-				(config).should.have.property('liskJS').have.property('testnet').be.false();
-				(capturedOutput).should.be.equal(setTestnetFalseResult);
+				(config)
+					.should.have.property(testnetProperties[0])
+					.have.property(testnetProperties[1])
+					.be.false();
+				(capturedOutput).should.be.eql([setTestnetFalseResult]);
 			});
 		});
 
@@ -195,8 +201,11 @@ describe('set command', () => {
 					const config = require(configPath);
 
 					(stub.calledWithExactly(true)).should.be.true();
-					(config).should.have.property('liskJS').have.property('testnet').be.true();
-					(capturedOutput).should.be.equal(`${setTestnetTrueResult}${invalidValueResult}`);
+					(config)
+						.should.have.property(testnetProperties[0])
+						.have.property(testnetProperties[1])
+						.be.true();
+					(capturedOutput).should.be.eql([setTestnetTrueResult, invalidValueResult]);
 				}),
 			);
 		});
