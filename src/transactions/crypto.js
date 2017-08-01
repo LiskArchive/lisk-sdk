@@ -288,8 +288,8 @@ function createTransactionBuffer (transaction, options) {
 		}
 		transactionBuffer.writeLong(transaction.amount);
 
-		if (transaction.data) {
-			var dataBuffer = Buffer.from(transaction.data);
+		if (transaction.asset.data) {
+			var dataBuffer = Buffer.from(transaction.asset.data);
 			for (i = 0; i < dataBuffer.length; i++) {
 				transactionBuffer.writeByte(dataBuffer[i]);
 			}
