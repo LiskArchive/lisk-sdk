@@ -16,10 +16,10 @@
  * Dapp module provides functions used to create dapp registration transactions.
  * @class dapp
  */
-
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+import crypto from './crypto';
+import constants from '../constants';
+import slots from '../time/slots';
+import { prepareTransaction } from './utils';
 
 /**
  * @method createDapp
@@ -31,10 +31,10 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createDapp (secret, secondSecret, options, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createDapp(secret, secondSecret, options, timeOffset) {
+	const keys = crypto.getKeys(secret);
 
-	var transaction = {
+	const transaction = {
 		type: 5,
 		amount: 0,
 		fee: constants.fees.dapp,
@@ -49,22 +49,14 @@ function createDapp (secret, secondSecret, options, timeOffset) {
 				tags: options.tags,
 				type: options.type,
 				link: options.link,
-				icon: options.icon
-			}
-		}
+				icon: options.icon,
+			},
+		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createDapp: createDapp
+	createDapp,
 };

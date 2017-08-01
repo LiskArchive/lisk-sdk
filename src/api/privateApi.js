@@ -1,5 +1,5 @@
-var utils = require('./utils');
-var popsicle = require('popsicle');
+import * as popsicle from 'popsicle';
+import utils from './utils';
 
 /**
  * @method netHashOptions
@@ -7,26 +7,26 @@ var popsicle = require('popsicle');
  * @private
  */
 
-function netHashOptions () {
+function netHashOptions() {
 	return {
 		testnet: {
 			'Content-Type': 'application/json',
-			'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': this.port
+			nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			broadhash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			os: 'lisk-js-api',
+			version: '1.0.0',
+			minVersion: '>=0.5.0',
+			port: this.port,
 		},
 		mainnet: {
 			'Content-Type': 'application/json',
-			'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': this.port
-		}
+			nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			os: 'lisk-js-api',
+			version: '1.0.0',
+			minVersion: '>=0.5.0',
+			port: this.port,
+		},
 	};
 }
 
@@ -36,12 +36,11 @@ function netHashOptions () {
  * @private
  */
 
-function getURLPrefix  () {
+function getURLPrefix() {
 	if (this.ssl) {
 		return 'https';
-	} else {
-		return 'http';
 	}
+	return 'http';
 }
 
 /**
@@ -50,14 +49,14 @@ function getURLPrefix  () {
  * @private
  */
 
-function getFullUrl () {
-	var nodeUrl = this.currentPeer;
+function getFullUrl() {
+	let nodeUrl = this.currentPeer;
 
 	if (this.port) {
-		nodeUrl += ':'+this.port;
+		nodeUrl += `:${this.port}`;
 	}
 
-	return getURLPrefix.call(this) + '://' + nodeUrl;
+	return `${getURLPrefix.call(this)}://${nodeUrl}`;
 }
 
 /**
@@ -66,11 +65,11 @@ function getFullUrl () {
  * @private
  */
 
-function getRandomPeer () {
-	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+function getRandomPeer() {
+	let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 	if (this.testnet) peers = this.defaultTestnetPeers;
 
-	var getRandomNumberForPeer = Math.floor((Math.random() * peers.length));
+	const getRandomNumberForPeer = Math.floor((Math.random() * peers.length));
 	return peers[getRandomNumberForPeer];
 }
 
@@ -80,8 +79,8 @@ function getRandomPeer () {
  * @private
  */
 
-function selectNode () {
-	var currentRandomPeer;
+function selectNode() {
+	let currentRandomPeer;
 
 	if (this.options.node) {
 		currentRandomPeer = this.currentPeer;
@@ -89,13 +88,13 @@ function selectNode () {
 
 	if (this.randomPeer) {
 		currentRandomPeer = getRandomPeer.call(this);
-		var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+		let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 		if (this.testnet) peers = this.defaultTestnetPeers;
 
-		for (var x = 0; x< peers.length; x++) {
-			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) break;
+		peers.forEach(() => {
+			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) return;
 			currentRandomPeer = getRandomPeer.call(this);
-		}
+		});
 	}
 
 	return currentRandomPeer;
@@ -106,7 +105,7 @@ function selectNode () {
  * @private
  */
 
-function banNode () {
+function banNode() {
 	if (this.bannedPeers.indexOf(this.currentPeer) === -1) this.bannedPeers.push(this.currentPeer);
 	selectNode.call(this);
 }
@@ -117,11 +116,11 @@ function banNode () {
  * @private
  */
 
-function checkReDial () {
-	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+function checkReDial() {
+	let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
 	if (this.testnet) peers = this.defaultTestnetPeers;
 
-	var reconnect = true;
+	let reconnect = true;
 
 	// RandomPeer discovery explicitly set
 	if (this.randomPeer === true) {
@@ -139,7 +138,8 @@ function checkReDial () {
 			} else {
 				reconnect = false;
 			}
-		// No nethash set, we can take the usual approach, just when there are not-banned peers, take one
+		// No nethash set, we can take the usual approach:
+		// just when there are not-banned peers, take one
 		} else {
 			reconnect = (peers.length !== this.bannedPeers.length);
 		}
@@ -157,12 +157,13 @@ function checkReDial () {
  * @private
  */
 
-function checkOptions (options) {
-	Object.keys(options).forEach(function (optionKey) {
-		if (options[optionKey] === undefined || options[optionKey] !== options[optionKey]) {
-			throw { message: 'parameter value "'+optionKey+'" should not be '+ options[optionKey]  };
-		}
-	});
+function checkOptions(options) {
+	Object.entries(options)
+		.forEach(([key, value]) => {
+			if (value === undefined || Number.isNaN(value)) {
+				throw new Error(`parameter value "${key}" should not be ${value}`);
+			}
+		});
 
 	return options;
 }
@@ -174,14 +175,14 @@ function checkOptions (options) {
  * @return serialisedData string
  */
 
-function serialiseHttpData (data) {
-	var serialised;
+function serialiseHttpData(data) {
+	let serialised;
 
 	serialised = utils.trimObj(data);
 	serialised = utils.toQueryString(serialised);
 	serialised = encodeURI(serialised);
 
-	return '?'+serialised;
+	return `?${serialised}`;
 }
 
 /**
@@ -193,10 +194,42 @@ function serialiseHttpData (data) {
  * @return method string
  */
 
-function checkRequest (requestType, options) {
+function checkRequest(requestType, options) {
 	return this.parseOfflineRequests(requestType, options).requestMethod;
 }
 
+function transformGETRequest(baseRequestObject, requestType, options) {
+	const requestMethod = 'GET';
+	const requestUrlBase = `${getFullUrl.call(this)}/api/${requestType}`;
+	const requestUrl = Object.keys(options).length
+		? requestUrlBase + serialiseHttpData.call(this, options, requestMethod)
+		: requestUrlBase;
+	const requestParams = options;
+	return Object.assign({}, baseRequestObject, {
+		requestMethod,
+		requestUrl,
+		requestParams,
+	});
+}
+
+function transformPUTOrPOSTRequest(baseRequestObject, requestType, options) {
+	const transformRequest = this
+		.parseOfflineRequests(requestType, options)
+		.checkOfflineRequestBefore();
+
+	return (transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures')
+		? Object.assign({}, {
+			requestUrl: `${getFullUrl.call(this)}/peer/${transformRequest.requestUrl}`,
+			nethash: this.nethash,
+			requestMethod: 'POST',
+			requestParams: transformRequest.params,
+		})
+		: Object.assign({}, baseRequestObject, {
+			requestUrl: `${getFullUrl.call(this)}/api/${transformRequest.requestUrl}`,
+			requestMethod: transformRequest.requestMethod,
+			requestParams: options,
+		});
+}
 
 /**
  * @method changeRequest
@@ -207,47 +240,23 @@ function checkRequest (requestType, options) {
  * @return httpRequest object
  */
 
-function changeRequest (requestType, options) {
-	var returnValue = {
+function changeRequest(requestType, options) {
+	const defaultRequestObject = {
 		requestMethod: '',
 		requestUrl: '',
 		nethash: '',
-		requestParams: ''
+		requestParams: '',
 	};
 
-	var that = this;
-	switch(checkRequest.call(this, requestType, options)) {
+	switch (checkRequest.call(this, requestType, options)) {
 	case 'GET':
-		returnValue.requestMethod = 'GET';
-		returnValue.requestUrl = getFullUrl.call(this) + '/api/' + requestType;
-
-		if (Object.keys(options).length > 0) {
-			returnValue.requestUrl = returnValue.requestUrl + serialiseHttpData.call(that, options, returnValue.requestMethod);
-		}
-
-		returnValue.requestParams = options;
-		break;
+		return transformGETRequest.call(this, defaultRequestObject, requestType, options);
 	case 'PUT':
 	case 'POST':
-		var transformRequest = this.parseOfflineRequests(requestType, options).checkOfflineRequestBefore();
-
-		if (transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures') {
-			returnValue.requestUrl = getFullUrl.call(this)  + '/peer/'+ transformRequest.requestUrl;
-
-			returnValue.nethash = that.nethash;
-			returnValue.requestMethod = 'POST';
-			returnValue.requestParams = transformRequest.params;
-		} else {
-			returnValue.requestUrl = getFullUrl.call(this)  + '/api/'+ transformRequest.requestUrl;
-			returnValue.requestMethod = transformRequest.requestMethod;
-			returnValue.requestParams = options;
-		}
-		break;
+		return transformPUTOrPOSTRequest.call(this, defaultRequestObject, requestType, options);
 	default:
-		break;
+		return defaultRequestObject;
 	}
-
-	return returnValue;
 }
 
 /**
@@ -258,12 +267,12 @@ function changeRequest (requestType, options) {
  * @return APIcall Promise
  */
 
-function doPopsicleRequest (requestValue) {
+function doPopsicleRequest(requestValue) {
 	return popsicle.request({
 		method: requestValue.requestMethod,
 		url: requestValue.requestUrl,
 		headers: requestValue.nethash,
-		body: requestValue.requestMethod !== 'GET' ? requestValue.requestParams : ''
+		body: requestValue.requestMethod !== 'GET' ? requestValue.requestParams : '',
 	}).use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
 
@@ -276,29 +285,28 @@ function doPopsicleRequest (requestValue) {
  * @return APIcall Promise
  */
 
-function sendRequestPromise (requestType, options) {
+function sendRequestPromise(requestType, options) {
 	if (checkRequest.call(this, requestType, options) !== 'NOACTION') {
-		var requestValues = changeRequest.call(this, requestType, options);
+		const requestValues = changeRequest.call(this, requestType, options);
 		return doPopsicleRequest.call(this, requestValues);
-	} else {
-		return new Promise(function (resolve) {
-			resolve({ done: 'done'});
-		});
 	}
+	return new Promise(((resolve) => {
+		resolve({ done: 'done' });
+	}));
 }
 
 module.exports = {
-	netHashOptions: netHashOptions,
-	getFullUrl: getFullUrl,
-	getURLPrefix: getURLPrefix,
-	selectNode: selectNode,
-	getRandomPeer: getRandomPeer,
-	banNode: banNode,
-	checkReDial: checkReDial,
-	checkOptions: checkOptions,
-	sendRequestPromise: sendRequestPromise,
-	doPopsicleRequest: doPopsicleRequest,
-	changeRequest: changeRequest,
-	checkRequest: checkRequest,
-	serialiseHttpData: serialiseHttpData,
+	netHashOptions,
+	getFullUrl,
+	getURLPrefix,
+	selectNode,
+	getRandomPeer,
+	banNode,
+	checkReDial,
+	checkOptions,
+	sendRequestPromise,
+	doPopsicleRequest,
+	changeRequest,
+	checkRequest,
+	serialiseHttpData,
 };

@@ -16,10 +16,10 @@
  * Transaction module provides functions for creating balance transfer transactions.
  * @class transaction
  */
-
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+import crypto from './crypto';
+import constants from '../constants';
+import slots from '../time/slots';
+import { prepareTransaction } from './utils';
 
 /**
  * @method createTransaction
@@ -33,18 +33,15 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createTransaction (recipientId, amount, secret, secondSecret, data, timeOffset) {
 
-	var fee = constants.fees.send;
-	if(data && data.length > 0) {
-		fee = constants.fees.send + constants.fees.data;
-	}
-
-	var transaction = {
+function createTransaction(recipientId, amount, secret, secondSecret, data, timeOffset) {
+	const keys = crypto.getKeys(secret);
+	const transaction = {
 		type: 0,
-		amount: amount,
+		amount,
 		fee: constants.fees.send,
-		recipientId: recipientId,
+		recipientId,
+		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {}
 	};
@@ -53,20 +50,9 @@ function createTransaction (recipientId, amount, secret, secondSecret, data, tim
 		transaction.asset.data = data;
 	}
 
-	var keys = crypto.getKeys(secret);
-	transaction.senderPublicKey = keys.publicKey;
-
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createTransaction: createTransaction
+	createTransaction,
 };

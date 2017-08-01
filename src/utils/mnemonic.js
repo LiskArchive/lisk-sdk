@@ -27,11 +27,10 @@
  * Mnemonic module provide functions for generation bip39 mnemonic
  * @class mnemonic
  */
-
-var bignum = require('browserify-bignum');
-var crypto = require('crypto-browserify');
-var wordList = require('./words.js');
-var Buffer = require('buffer/').Buffer;
+import bignum from 'browserify-bignum';
+import crypto from 'crypto-browserify';
+import { Buffer } from 'buffer';
+import wordList from './words';
 
 /**
  * @method entropyToSha256
@@ -51,17 +50,17 @@ function entropyToSha256(entropy) {
  */
 
 function entropyChecksum(entropy) {
-	var hash = entropyToSha256(entropy);
-	var bits = entropy.length * 8;
-	var cs = bits / 32;
-	var hashbits = bignum.fromBuffer(hash).toString(2);
+	const hash = entropyToSha256(entropy);
+	const bits = entropy.length * 8;
+	const cs = bits / 32;
+	let hashbits = bignum.fromBuffer(hash).toString(2);
 	// zero pad the hash bits
 	while (hashbits.length % 256 !== 0) {
-		hashbits = '0' + hashbits;
+		hashbits = `0${hashbits}`;
 	}
-	var checksum = hashbits.slice(0, cs);
+	const checksum = hashbits.slice(0, cs);
 	return checksum;
-};
+}
 
 /**
  *
@@ -71,19 +70,21 @@ function entropyChecksum(entropy) {
  */
 
 function generate() {
-	var entropy = crypto.randomBytes(16);
-	var bin = '';
-	var mnemonic = [];
-	for (var i = 0; i < entropy.length; i++) {
-		bin = bin + ('00000000' + entropy[i].toString(2)).slice(-8);
-	}
-	bin = bin + entropyChecksum(entropy);
-	for (i = 0; i < bin.length / 11; i++) {
-		var wi = parseInt(bin.slice(i * 11, (i + 1) * 11), 2);
-		mnemonic.push(wordList[wi]);
-	}
+	const entropy = crypto.randomBytes(16);
+	const bin = Array.from(entropy)
+		.map(byte => `00000000${byte.toString(2)}`.slice(-8))
+		.join('');
+	const checksum = entropyChecksum(entropy);
+	const binWithChecksum = `${bin}${checksum}`;
+	const mnemonic = new Array(Math.ceil((binWithChecksum.length) / 11))
+		.fill()
+		.map((_, i) => {
+			const slice = binWithChecksum.slice(i * 11, (i + 1) * 11);
+			const wordIndex = parseInt(slice, 2);
+			return wordList[wordIndex];
+		});
 	return mnemonic.join(' ');
-};
+}
 
 /**
  * @method isValid
@@ -93,29 +94,28 @@ function generate() {
  */
 
 function isValid(mnemonic) {
-	var words = mnemonic.split(' ');
-	var bin = '';
-	if (words.length !== 12) {
+	const words = mnemonic.split(' ');
+	if (words.length !== 12 || words.some(w => !wordList.includes(w))) {
 		return false;
 	}
-	for (var i = 0; i < words.length; i++) {
-		var ind = wordList.indexOf(words[i]);
-		if (ind < 0) return false;
-		bin = bin + ('00000000000' + ind.toString(2)).slice(-11);
-	}
+	const bin = words
+		.map(word => `00000000000${wordList.indexOf(word).toString(2)}`.slice(-11))
+		.join('');
 
-	var cs = bin.length / 33;
-	var hashBits = bin.slice(-cs);
-	var nonhashBits = bin.slice(0, bin.length - cs);
-	var buf = Buffer.alloc(nonhashBits.length / 8);
-	for (i = 0; i < nonhashBits.length / 8; i++) {
-		buf.writeUInt8(parseInt(bin.slice(i * 8, (i + 1) * 8), 2), i);
-	}
-	var expectedHashBits = entropyChecksum(buf);
+	const checksumLength = bin.length / 33;
+	const hashBits = bin.slice(-checksumLength);
+	const nonhashBits = bin.slice(0, bin.length - checksumLength);
+	const buf = Buffer.from(new Array(nonhashBits.length / 8)
+		.fill()
+		.map((_, i) => {
+			const slice = bin.slice(i * 8, (i + 1) * 8);
+			return parseInt(slice, 2);
+		}));
+	const expectedHashBits = entropyChecksum(buf);
 	return expectedHashBits === hashBits;
-};
+}
 
 module.exports = {
-	generate: generate,
-	isValid: isValid,
+	generate,
+	isValid,
 };

@@ -16,10 +16,10 @@
  * Vote module provides functions for creating vote transactions.
  * @class vote
  */
-
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+import crypto from './crypto';
+import constants from '../constants';
+import slots from '../time/slots';
+import { prepareTransaction } from './utils';
 
 /**
  * @method createVote
@@ -31,10 +31,10 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createVote (secret, delegates, secondSecret, timeOffset) {
-	var keys = crypto.getKeys(secret);
+function createVote(secret, delegates, secondSecret, timeOffset) {
+	const keys = crypto.getKeys(secret);
 
-	var transaction = {
+	const transaction = {
 		type: 3,
 		amount: 0,
 		fee: constants.fees.vote,
@@ -42,22 +42,13 @@ function createVote (secret, delegates, secondSecret, timeOffset) {
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			votes: delegates
-		}
+			votes: delegates,
+		},
 	};
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-
-	return transaction;
+	return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createVote: createVote
+	createVote,
 };
