@@ -65,7 +65,7 @@ describe('set command', () => {
 		const invalidValueCommand = 'set json tru';
 		const setJsonTrueResult = 'Successfully set json output to true.';
 		const setJsonFalseResult = 'Successfully set json output to false.';
-		const invalidValueResult = 'Cannot set json to tru.';
+		const invalidValueResult = 'Cannot set json output to tru.';
 
 		afterEach(() => {
 			deleteConfigCache();
