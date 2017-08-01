@@ -1,8 +1,13 @@
 /* eslint-disable arrow-body-style, global-require, import/no-dynamic-require */
 import Vorpal from 'vorpal';
+import fse from 'fs-extra';
 import set from '../../src/commands/set';
 
 const configPath = '../../config.json';
+const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
+const initialConfig = JSON.stringify(require(configPath), null, '\t');
+deleteConfigCache();
+
 
 describe('set command', () => {
 	let vorpal;
@@ -21,6 +26,7 @@ describe('set command', () => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
 		capturedOutput = '';
+		fse.writeFileSync('config.json', `${initialConfig}\n`, 'utf8');
 	});
 
 	describe('should exist', () => {
@@ -62,7 +68,7 @@ describe('set command', () => {
 		const invalidValueResult = 'Cannot set json to tru.';
 
 		afterEach(() => {
-			delete require.cache[require.resolve(configPath)];
+			deleteConfigCache();
 		});
 
 		it('should set json to true', () => {
@@ -114,16 +120,26 @@ describe('set command', () => {
 		const setTestnetFalseResult = 'Successfully set testnet to false.';
 		const invalidValueResult = 'Cannot set testnet to tru.';
 
-		it('should set testnet to true', () => {
-			const result = vorpal.execSync(setTestnetTrueCommand);
+		afterEach(() => {
+			deleteConfigCache();
+		});
 
-			(result).should.be.equal(setTestnetTrueResult);
+		it('should set testnet to true', () => {
+			return vorpal.exec(setTestnetTrueCommand, () => {
+				const config = require(configPath);
+
+				(config).should.have.property('liskJS').have.property('testnet').be.true();
+				(capturedOutput).should.be.equal(setTestnetTrueResult);
+			});
 		});
 
 		it('should set testnet to false', () => {
-			const result = vorpal.execSync(setTestnetFalseCommand);
+			return vorpal.exec(setTestnetFalseCommand, () => {
+				const config = require(configPath);
 
-			(result).should.be.equal(setTestnetFalseResult);
+				(config).should.have.property('liskJS').have.property('testnet').be.false();
+				(capturedOutput).should.be.equal(setTestnetFalseResult);
+			});
 		});
 
 		it('should not set testnet to non-boolean values', () => {
