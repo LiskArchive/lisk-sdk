@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-const ed2curve = require('ed2curve');
-const convert = require('./convert');
-const keys = require('./keys');
+import ed2curve from 'ed2curve';
+import convert from './convert';
+import keys from './keys';
 
 function signMessageWithSecret(message, secret) {
 	const msgBytes = naclInstance.encode_utf8(message);

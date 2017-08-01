@@ -27,11 +27,10 @@
  * Mnemonic module provide functions for generation bip39 mnemonic
  * @class mnemonic
  */
-
-const bignum = require('browserify-bignum');
-const crypto = require('crypto-browserify');
-const wordList = require('./words.js');
-const Buffer = require('buffer/').Buffer;
+import bignum from 'browserify-bignum';
+import crypto from 'crypto-browserify';
+import { Buffer } from 'buffer';
+import wordList from './words';
 
 /**
  * @method entropyToSha256

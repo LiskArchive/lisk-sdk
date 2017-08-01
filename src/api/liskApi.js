@@ -39,13 +39,15 @@
  * @class lisk.api()
  * @main lisk
  */
+import parseOfflineRequest from './parseTransaction';
+import privateApi from './privateApi';
+import config from '../../config.json';
+import { extend } from './utils';
+import cryptoModule from '../transactions/crypto';
 
-const LiskJS = {};
-LiskJS.crypto = require('../transactions/crypto');
-const parseOfflineRequest = require('./parseTransaction');
-const privateApi = require('./privateApi');
-const config = require('../../config.json');
-const extend = require('./utils').extend;
+const LiskJS = {
+	crypto: cryptoModule,
+};
 
 function LiskAPI(providedOptions = {}) {
 	if (!(this instanceof LiskAPI)) {

@@ -18,12 +18,11 @@
  * @class crypto
  */
 /* eslint-disable no-plusplus */
-
-const crypto = require('crypto-browserify');
-const constants = require('../constants.js');
-
-const ByteBuffer = require('bytebuffer');
-const bignum = require('browserify-bignum');
+import crypto from 'crypto-browserify';
+import ByteBuffer from 'bytebuffer';
+import bignum from 'browserify-bignum';
+import constants from '../constants';
+import cryptoModule from './crypto/index';
 
 /**
  * @method getTransactionBytes
@@ -517,8 +516,6 @@ function getAddress(publicKey) {
 	const address = `${bignum.fromBuffer(temp).toString()}L`;
 	return address;
 }
-
-const cryptoModule = require('./crypto/index');
 
 module.exports = {
 	getBytes,

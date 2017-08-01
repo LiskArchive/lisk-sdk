@@ -12,16 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptoModule from '../transactions/crypto';
+import dapp from '../transactions/dapp';
+import multisignature from '../transactions/multisignature';
+import signatureModule from '../transactions/signature';
+import delegate from '../transactions/delegate';
+import transactionModule from '../transactions/transaction';
+import transfer from '../transactions/transfer';
+import vote from '../transactions/vote';
 
-const LiskJS = {};
-LiskJS.crypto = require('../transactions/crypto');
-LiskJS.dapp = require('../transactions/dapp');
-LiskJS.multisignature = require('../transactions/multisignature');
-LiskJS.signature = require('../transactions/signature');
-LiskJS.delegate = require('../transactions/delegate');
-LiskJS.transaction = require('../transactions/transaction');
-LiskJS.transfer = require('../transactions/transfer');
-LiskJS.vote = require('../transactions/vote');
+const LiskJS = {
+	crypto: cryptoModule,
+	dapp,
+	multisignature,
+	signature: signatureModule,
+	delegate,
+	transaction: transactionModule,
+	transfer,
+	vote,
+};
 
 /**
  * ParseOfflineRequest module provides automatic routing of new transaction requests which can be
@@ -136,7 +145,7 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function checkOfflineR
 		'dapps/launch': 'POST',
 		'dapps/stop': 'POST',
 		'multisignatures/sign': function postMultisignaturesSign() {
-			const transaction = LiskJS.multisignature.signTransaction(
+			const signature = LiskJS.multisignature.signTransaction(
 				OfflineRequestThis.options.transaction,
 				OfflineRequestThis.options.secret,
 			);
@@ -144,7 +153,7 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function checkOfflineR
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'signatures',
-				params: { signature: transaction },
+				params: { signature },
 			};
 		},
 		'accounts/delegates': function postAccountsDelegates() {

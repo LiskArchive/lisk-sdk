@@ -16,11 +16,10 @@
  * Vote module provides functions for creating vote transactions.
  * @class vote
  */
-
-const crypto = require('./crypto');
-const constants = require('../constants');
-const slots = require('../time/slots');
-const { prepareTransaction } = require('./utils');
+import crypto from './crypto';
+import constants from '../constants';
+import slots from '../time/slots';
+import { prepareTransaction } from './utils';
 
 /**
  * @method createVote

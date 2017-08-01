@@ -1,5 +1,5 @@
-const utils = require('./utils');
-const popsicle = require('popsicle');
+import * as popsicle from 'popsicle';
+import utils from './utils';
 
 /**
  * @method netHashOptions

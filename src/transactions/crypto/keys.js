@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-const Buffer = require('buffer/').Buffer;
-const bignum = require('browserify-bignum');
-
-const hash = require('./hash');
-const convert = require('./convert');
+import { Buffer } from 'buffer';
+import bignum from 'browserify-bignum';
+import hash from './hash';
+import convert from './convert';
 
 function getPrivateAndPublicKeyFromSecret(secret) {
 	const sha256Hash = hash.getSha256Hash(secret, 'utf8');

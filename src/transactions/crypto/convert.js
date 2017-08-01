@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-const Buffer = require('buffer/').Buffer;
-const bignum = require('browserify-bignum');
+import { Buffer } from 'buffer';
+import bignum from 'browserify-bignum';
 
 function bufferToHex(buffer) {
 	return naclInstance.to_hex(buffer);

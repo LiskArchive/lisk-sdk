@@ -1,7 +1,7 @@
-const convert = require('./convert');
-const sign = require('./sign');
-const keys = require('./keys');
-const hash = require('./hash');
+import convert from './convert';
+import sign from './sign';
+import keys from './keys';
+import hash from './hash';
 
 module.exports = {
 	bufferToHex: convert.bufferToHex,
