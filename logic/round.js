@@ -145,6 +145,26 @@ Round.prototype.truncateBlocks = function () {
 };
 
 /**
+ * Calls sql restoreRoundSnapshot - restores snapshoted mem_round table
+ * - performed only when rollback last block of round
+ * @return {function} Promise
+ */
+Round.prototype.restoreRoundSnapshot = function () {
+	this.scope.library.logger.debug('Restoring mem_round snapshot...');
+	return this.t.none(sql.restoreRoundSnapshot);
+}
+
+/**
+ * Calls sql restoreVotesSnapshot - restores snapshoted mem_accounts.votes
+ * - performed only when rollback last block of round
+ * @return {function} Promise
+ */
+Round.prototype.restoreVotesSnapshot = function () {
+	this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
+	return this.t.none(sql.restoreVotesSnapshot);
+}
+
+/**
  * For each delegate calls mergeAccountAndGet and creates an address array
  * @implements {helpers.RoundChanges}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -228,6 +248,38 @@ Round.prototype.land = function () {
 		.then(this.applyRound.bind(this))
 		.then(this.updateVotes.bind(this))
 		.then(this.flushRound.bind(this))
+		.then(function () {
+			return this.t;
+		}.bind(this));
+};
+
+/**
+ * Calls:
+ * - updateVotes
+ * - updateMissedBlocks
+ * - flushRound
+ * - applyRound
+ * - updateVotes
+ * - flushRound
+ * - restoreRoundSnapshot
+ * - restoreVotesSnapshot
+ * @implements {updateVotes}
+ * @implements {updateMissedBlocks}
+ * @implements {flushRound}
+ * @implements {applyRound}
+ * @implements {restoreRoundSnapshot}
+ * @implements {restoreVotesSnapshot}
+ * @return {function} call result
+ */
+Round.prototype.landBackward = function () {
+	return this.updateVotes()
+		.then(this.updateMissedBlocks.bind(this))
+		.then(this.flushRound.bind(this))
+		.then(this.applyRound.bind(this))
+		.then(this.updateVotes.bind(this))
+		.then(this.flushRound.bind(this))
+		.then(this.restoreRoundSnapshot.bind(this))
+		.then(this.restoreVotesSnapshot.bind(this))
 		.then(function () {
 			return this.t;
 		}.bind(this));

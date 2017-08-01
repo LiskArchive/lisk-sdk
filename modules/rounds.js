@@ -121,7 +121,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
-				return promised.land().then(function () {
+				return promised.landBackward().then(function () {
 					return promised.markBlockId();
 				});
 			} else {
@@ -256,6 +256,30 @@ Rounds.prototype.tick = function (block, done) {
 				library.logger.error(err.stack);
 				return setImmediate(cb, err);
 			});
+		},
+		function (cb) {
+			// Check if we are one block before last block of round, if yes - perform round snapshot
+			if ((block.height+1) % slots.delegates === 0) {
+				library.logger.debug('Performing round snapshot...');
+
+				library.db.tx(function (t) {
+					return t.batch([
+						t.none(sql.clearRoundSnapshot),
+						t.none(sql.performRoundSnapshot),
+						t.none(sql.clearVotesSnapshot),
+						t.none(sql.performVotesSnapshot)
+					]);
+				}).then(function () {
+					library.logger.trace('Round snapshot done');
+					return setImmediate(cb);
+				}).catch(function (err) {
+					library.logger.error('Round snapshot failed', err);
+					return setImmediate(cb, err);
+				});
+			} else {
+				return setImmediate(cb);
+			}
+
 		}
 	], function (err) {
 		// Stop round ticking
