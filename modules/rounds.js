@@ -121,7 +121,7 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 
 		return promised.mergeBlockGenerator().then(function () {
 			if (scope.finishRound) {
-				return promised.landBackward().then(function () {
+				return promised.backwardLand().then(function () {
 					return promised.markBlockId();
 				});
 			} else {

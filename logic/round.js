@@ -271,7 +271,7 @@ Round.prototype.land = function () {
  * @implements {restoreVotesSnapshot}
  * @return {function} call result
  */
-Round.prototype.landBackward = function () {
+Round.prototype.backwardLand = function () {
 	return this.updateVotes()
 		.then(this.updateMissedBlocks.bind(this))
 		.then(this.flushRound.bind(this))
