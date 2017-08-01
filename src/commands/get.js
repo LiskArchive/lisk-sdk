@@ -1,13 +1,9 @@
 import config from '../../config.json';
-import tablify from '../utils/tablify';
 import query from '../utils/query';
-
-const getTableString = result => tablify(result).toString();
-
-const printResult = (printFn, vorpal, type, result) => {
-	const message = result.error ? result : result[type];
-	vorpal.log(printFn(message));
-};
+import {
+	getTableString,
+	printResult,
+} from '../utils/print';
 
 const processResult = (shouldUseJsonOutput, vorpal, type, result) => {
 	const printFn = shouldUseJsonOutput ? JSON.stringify : getTableString;
