@@ -47,12 +47,12 @@ const privateApi = require('./privateApi');
 const config = require('../../config.json');
 const extend = require('./utils').extend;
 
-function LiskAPI(providedOptions) {
+function LiskAPI(providedOptions = {}) {
 	if (!(this instanceof LiskAPI)) {
 		return new LiskAPI(providedOptions);
 	}
 
-	const options = extend(config.options, (providedOptions || {}));
+	const options = extend(config.options, providedOptions);
 	const getDefaultPort = () => {
 		if (options.testnet) return 7000;
 		if (options.ssl) return 443;
@@ -355,10 +355,8 @@ LiskAPI.prototype.getBlock = function getBlock(block, callback) {
  */
 
 LiskAPI.prototype.listTransactions = function listTransactions(
-	address, providedLimit, providedOffset, callback,
+	address, limit = '20', offset = '0', callback,
 ) {
-	const offset = providedOffset || '0';
-	const limit = providedLimit || '20';
 	this.sendRequest('transactions', { senderId: address, recipientId: address, limit, offset, orderBy: 'timestamp:desc' }, result => callback(result));
 };
 
