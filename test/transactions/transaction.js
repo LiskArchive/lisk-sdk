@@ -192,6 +192,23 @@ describe('transaction.js', () => {
 		});
 	});
 
+	describe('#createTransaction with data', () => {
+		const createTransaction = transaction.createTransaction;
+		let trs = null;
+
+		it('should create transaction with data', () => {
+			trs = createTransaction('58191285901858109L', 1000, 'secret', '', 'data');
+			(trs).should.be.ok();
+			(trs.fee).should.be.equal(20000000);
+		});
+
+		it('should create transaction with invalid data', () => {
+			(function () {
+				trs = createTransaction('58191285901858109L', 1000, 'secret', '', '\xFF\xFE\x00\x00utf32le string');
+			}).should.throw('invalid encoding UTF-32LE in transaction data');
+		});
+	});
+
 	describe('#createTransaction with secondSignature and data', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
