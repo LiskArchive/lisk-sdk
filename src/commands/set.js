@@ -35,13 +35,13 @@ const setBoolean = (variable, path) => (value) => {
 };
 
 const set = ({ variable, value }, callback) => {
-	const getType = {
+	const handlers = {
 		json: setBoolean('json output', ['json']),
 		testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 	};
 
-	const returnValue = Object.keys(getType).includes(variable)
-		? getType[variable](value)
+	const returnValue = Object.keys(handlers).includes(variable)
+		? handlers[variable](value)
 		: 'Unsupported variable name.';
 
 	return (callback && typeof callback === 'function')
