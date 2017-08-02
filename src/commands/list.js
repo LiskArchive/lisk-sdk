@@ -7,6 +7,8 @@ import {
 import {
 	COMMAND_TYPES,
 	SINGULARS,
+} from '../utils/constants';
+import {
 	deAlias,
 	shouldUseJsonOutput,
 } from '../utils/helpers';

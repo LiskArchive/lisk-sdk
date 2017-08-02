@@ -1,11 +1,11 @@
 import config from '../../config.json';
 import query from '../utils/query';
+import { COMMAND_TYPES } from '../utils/constants';
 import {
 	getTableString,
 	printResult,
 } from '../utils/print';
 import {
-	COMMAND_TYPES,
 	deAlias,
 	shouldUseJsonOutput,
 } from '../utils/helpers';

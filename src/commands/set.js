@@ -1,6 +1,7 @@
 import fse from 'fs-extra';
 import config from '../../config.json';
 import liskInstance from '../utils/liskInstance';
+import { CONFIG_VARIABLES } from '../utils/constants';
 
 const writeConfigToFile = (newConfig) => {
 	const configString = JSON.stringify(newConfig, null, '\t');
@@ -34,13 +35,13 @@ const setBoolean = (variable, path) => (value) => {
 	return `Successfully set ${variable} to ${value}.`;
 };
 
-const set = vorpal => ({ variable, value }) => {
-	const handlers = {
-		json: setBoolean('json output', ['json']),
-		testnet: setBoolean('testnet', ['liskJS', 'testnet']),
-	};
+const handlers = {
+	json: setBoolean('json output', ['json']),
+	testnet: setBoolean('testnet', ['liskJS', 'testnet']),
+};
 
-	const returnValue = Object.keys(handlers).includes(variable)
+const set = vorpal => ({ variable, value }) => {
+	const returnValue = CONFIG_VARIABLES.includes(variable)
 		? handlers[variable](value)
 		: 'Unsupported variable name.';
 
@@ -51,5 +52,6 @@ export default function setCommand(vorpal) {
 	vorpal
 		.command('set <variable> <value>')
 		.description('Set configuration <variable> to <value>.')
+		.autocomplete(CONFIG_VARIABLES)
 		.action(set(vorpal));
 }
