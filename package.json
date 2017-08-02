@@ -28,7 +28,6 @@
     "crypto-browserify": "=3.11.0",
     "ed2curve": "=0.2.1",
     "js-nacl": "LiskHQ/js-nacl#6dc1417",
-    "jschardet": "=1.5.0",
     "popsicle": "=9.1.0"
   },
   "devDependencies": {

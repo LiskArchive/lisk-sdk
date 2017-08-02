@@ -192,7 +192,7 @@ describe('transaction.js', () => {
 		});
 	});
 
-	describe('#createTransaction with data', () => {
+	describe('#createTransaction with data @now', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
 
@@ -204,8 +204,8 @@ describe('transaction.js', () => {
 
 		it('should create transaction with invalid data', () => {
 			(() => {
-				trs = createTransaction('58191285901858109L', 1000, 'secret', '', '\xFF\xFE\x00\x00utf32le string');
-			}).should.throw('invalid encoding UTF-32LE in transaction data');
+				trs = createTransaction('58191285901858109L', 1000, 'secret', '', Buffer.from('hello'));
+			}).should.throw('invalid encoding in transaction data');
 		});
 	});
 

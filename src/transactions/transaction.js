@@ -49,8 +49,7 @@ function createTransaction(recipientId, amount, secret, secondSecret, data, time
 	};
 
 	if (data && data.length > 0) {
-		const encoding = jschardet.detect(data).encoding;
-		if (encoding !== 'ascii' && encoding !== 'UTF-8') throw new Error(`invalid encoding ${encoding} in transaction data`);
+		if (data !== data.toString('utf8')) throw new Error(`invalid encoding in transaction data`);
 		transaction.asset.data = data;
 	}
 
