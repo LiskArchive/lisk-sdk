@@ -25,7 +25,7 @@ module.exports = {
 		vote: voteFee,
 		multisignature: multisignatureFee,
 		dapp: dappFee,
-		data: dataFee
+		data: dataFee,
 	},
 	fee: {
 		0: sendFee,

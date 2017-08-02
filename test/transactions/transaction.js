@@ -137,6 +137,7 @@ describe('transaction.js', () => {
 		it('should create transaction with second signature and data', () => {
 			trs = createTransaction('58191285901858109L', 1000, 'secret', secondSecret, 'data');
 			(trs).should.be.ok();
+			(trs.fee).should.be.equal(20000000);
 		});
 
 		describe('returned transaction', () => {
