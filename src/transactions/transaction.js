@@ -16,7 +16,6 @@
  * Transaction module provides functions for creating balance transfer transactions.
  * @class transaction
  */
-import jschardet from 'jschardet';
 import crypto from './crypto';
 import constants from '../constants';
 import slots from '../time/slots';
@@ -49,7 +48,7 @@ function createTransaction(recipientId, amount, secret, secondSecret, data, time
 	};
 
 	if (data && data.length > 0) {
-		if (data !== data.toString('utf8')) throw new Error(`invalid encoding in transaction data`);
+		if (data !== data.toString('utf8')) throw new Error('invalid encoding in transaction data');
 		transaction.asset.data = data;
 	}
 
