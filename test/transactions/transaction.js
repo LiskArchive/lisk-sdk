@@ -109,7 +109,7 @@ describe('transaction.js', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
 		const secondSecret = 'second secret';
-	
+
 		it('should be a function', () => {
 			(createTransaction).should.be.type('function');
 		});
