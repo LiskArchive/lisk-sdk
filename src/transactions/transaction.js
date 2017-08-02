@@ -47,7 +47,7 @@ function createTransaction(recipientId, amount, secret, secondSecret, data, time
 		asset: {},
 	};
 
-	if (data && data.length > 0 && data.length < 65) {
+	if (data && data.length > 0) {
 		transaction.asset.data = data;
 	}
 
