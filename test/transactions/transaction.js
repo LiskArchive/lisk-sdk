@@ -203,7 +203,7 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction with invalid data', () => {
-			(function () {
+			(() => {
 				trs = createTransaction('58191285901858109L', 1000, 'secret', '', '\xFF\xFE\x00\x00utf32le string');
 			}).should.throw('invalid encoding UTF-32LE in transaction data');
 		});
