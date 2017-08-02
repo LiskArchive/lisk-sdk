@@ -7,14 +7,13 @@ var node = require('../../node.js');
 var http = require('../../common/httpCommunication.js');
 var sendTransaction = require('../../common/complexTransactions.js').sendTransaction;
 
-function getTransactions (transactions, cb) {
-	http.get('/api/transactions', function (err, res) {
+function getTransaction (transaction, cb) {
+	http.get('/api/transactions/get?id='+transaction, function (err, res) {
 		if (err) {
 			return cb(err);
 		}
-		node.expect(res.body).to.have.property('success').to.be.ok;
-		node.expect(res.body).to.have.property('transactions').to.be.an('array');
-		cb(null, res.body.transactions);
+		node.expect(res.body).to.have.property('success');
+		cb(null, res.body);
 	});
 }
 
@@ -25,27 +24,125 @@ describe('postTransactions type 0', function () {
 
 	describe('schema', function () {
 
-		it('sending null transaction should return schema check error', function (done) {
+		var transaction;
+
+		beforeEach(function () {
+			transaction = node.randomTx();
+		});
+
+		it('using null transaction should fail', function (done) {
 			sendTransaction(null, function (err, res) {
-				node.expect(res).to.have.property('success').not.to.be.ok;
+				node.expect(res).to.have.property('success').to.not.be.ok;
 				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
 				done();
 			}, true);
-			badTransactions.push(null);
 		});
 
-		it('sending empty transaction should return schema check error', function (done) {
+		it('using empty transaction should fail', function (done) {
 			sendTransaction({}, function (err, res) {
 				node.expect(res).to.have.property('success').not.to.be.ok;
 				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
 				done();
 			}, true);
-			badTransactions.push({});
+		});
+
+		it('using undefined transaction should fail', function (done) {
+			sendTransaction(null, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
+				done();
+			}, true);
+		});
+
+		it('using empty array should fail', function (done) {
+			sendTransaction([], function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
+				done();
+			}, true);
+		});
+
+		it('using NOT defined type should fail', function (done) {
+			transaction.type = 100;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Unknown transaction type/);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using null type should fail', function (done) {
+			transaction.type = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Unknown transaction type null');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using undefined type should fail', function (done) {
+			transaction.type = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Unknown transaction type/);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT integer type should fail', function (done) {
+			transaction.type = '1';
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type/);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using null amount should fail', function (done) {
+			transaction.amount = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				// TODO
+				node.expect(res).to.have.property('message').to.equal('Failed to get transaction id');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using undefined amount should fail', function (done) {
+			transaction.amount = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				// TODO
+				node.expect(res).to.have.property('message').to.equal('Failed to get transaction id');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT integer amount should fail', function (done) {
+			transaction.amount = 'string';
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type string');
+				done();
+			}, true);
+			badTransactions.push(transaction);
 		});
 
 		it('using negative amount should fail', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, -1, node.gAccount.password);
+			transaction.amount = -1;
 
 			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
@@ -56,8 +153,7 @@ describe('postTransactions type 0', function () {
 		});
 
 		it('using float amount should fail', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1.2, node.gAccount.password);
+			transaction.amount = 1.2;
 
 			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
@@ -67,8 +163,367 @@ describe('postTransactions type 0', function () {
 			badTransactions.push(transaction);
 		});
 
+		it('using positive overflown amount should fail', function (done) {
+			transaction.amount = 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.have.string('Invalid transaction body - Failed to validate transaction schema: Value 1.2982318129391238e+99 is greater than maximum 10000000000000000');
+				done();
+			});
+			badTransactions.push(transaction);
+		});
+
+		it('using null fee should fail', function (done) {
+			transaction.fee = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction fee');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using undefined fee should fail', function (done) {
+			transaction.fee = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction fee');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT integer fee should fail', function (done) {
+			transaction.fee = 'string';
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				// TODO
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type string');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using negative fee should fail', function (done) {
+			transaction.fee = -1;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum/);
+				done();
+			});
+			badTransactions.push(transaction);
+		});
+
+		it('using float fee should fail', function (done) {
+			transaction.fee = 1.2;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number/);
+				done();
+			});
+			badTransactions.push(transaction);
+		});
+
+		it('using positive overflown fee should fail', function (done) {
+			transaction.fee = 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.have.string('Invalid transaction body - Failed to validate transaction schema: Value 1.2982318129391238e+99 is greater than maximum 10000000000000000');
+				done();
+			});
+			badTransactions.push(transaction);
+		});
+
+		it('using null recipientId should fail', function (done) {
+			transaction.recipientId = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				// TODO
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction id');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using undefined recipientId should fail', function (done) {
+			transaction.recipientId = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				// TODO
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction id');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT string recipientId should fail', function (done) {
+			transaction.recipientId = 1;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Expected type string but found type /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT allowed string recipientId should fail', function (done) {
+			transaction.recipientId = '15738697512051092602'; //Address without L invalid
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format address: /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using string recipientId smaller than expected recipientId should fail', function (done) {
+			transaction.recipientId = '';
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too short /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using string recipientId bigger than expected recipientId should fail', function (done) {
+			transaction.recipientId = '15738697512051091121324260215738697512051092602L'; //more characters than allowed
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too long /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using null timestamp should fail', function (done) {
+			transaction.timestamp = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: timestamp');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using undefined timestamp should fail', function (done) {
+			transaction.timestamp = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: timestamp');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT integer timestamp should fail', function (done) {
+			transaction.timestamp = 'string';
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type/);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using negative timestamp should fail', function (done) {
+			transaction.timestamp = -1;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.be.equal('Invalid transaction id');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using positive overflown timestamp should fail', function (done) {
+			transaction.timestamp = 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.be.equal('Invalid transaction id');
+				done();
+			});
+			badTransactions.push(transaction);
+		});
+
+		it('using null senderPublicKey should fail', function (done) {
+			transaction.senderPublicKey = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: senderPublicKey');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using undefined senderPublicKey should fail', function (done) {
+			transaction.senderPublicKey = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: senderPublicKey');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT string senderPublicKey should fail', function (done) {
+			transaction.senderPublicKey = 1;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Expected type string but found type /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT allowed string senderPublicKey should fail', function (done) {
+			transaction.senderPublicKey = '15738697512051092602'; //Address without L
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format publicKey: /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using null signature should fail', function (done) {
+			transaction.signature = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: signature');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using undefined signature should fail', function (done) {
+			transaction.signature = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: signature');
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT string signature should fail', function (done) {
+			transaction.signature = 1;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Expected type string but found type /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using NOT allowed string senderPublicKey should fail', function (done) {
+			transaction.signature = 'wrong signature';
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format signature: /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+
+		it('using null id should be OK', function (done) {
+			transaction.id = null;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').to.not.null;
+				transaction.id = res.transactionId;
+				done();
+			}, true);
+			goodTransactions.push(transaction);
+		});
+
+		it('using undefined id should be OK', function (done) {
+			transaction.id = undefined;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').to.not.null;
+				transaction.id = res.transactionId;
+				done();
+			}, true);
+			goodTransactions.push(transaction);
+		});
+
+		it('using NOT string id should fail', function (done) {
+			transaction.id = 1;
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Expected type string but found type /);
+				done();
+			}, true);
+		});
+
+		it('using NOT allowed string id should fail', function (done) {
+			transaction.id = 'a'; //The string id should just contain number chars
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format id: /);
+				done();
+			}, true);
+		});
+
+		it('using string id smaller than expected recipientId should fail', function (done) {
+			transaction.id = '';
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too short /);
+				done();
+			}, true);
+		});
+
+		it('using string id bigger than expected recipientId should fail', function (done) {
+			transaction.id = '123546547586796785743212346457568769785746352'; //30 characters
+
+			sendTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.not.be.ok;
+				node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too long /);
+				done();
+			}, true);
+			badTransactions.push(transaction);
+		});
+	});
+
+	describe('processing', function () {
+
+		var account = node.randomAccount();
+		var goodTransaction = node.randomTx();
+
 		it('using zero amount should fail', function (done) {
-			var account = node.randomAccount();
 			var transaction = node.lisk.transaction.createTransaction(account.address, 0, node.gAccount.password);
 
 			sendTransaction(transaction, function (err, res) {
@@ -79,48 +534,8 @@ describe('postTransactions type 0', function () {
 			badTransactions.push(transaction);
 		});
 
-		it('using valid transaction should be ok', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
-
-			sendTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				done();
-			});
-			goodTransactions.push(transaction);
-		});
-
-		it('using positive overflown amount should fail', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203, node.gAccount.password);
-
-			sendTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.have.string('Invalid transaction body - Failed to validate transaction schema: Value 1.2982318129391238e+99 is greater than maximum 10000000000000000');
-				done();
-			});
-			badTransactions.push(transaction);
-		});
-
-		it('using negative overflown amount should fail', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203, node.gAccount.password);
-
-			sendTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.have.string('Invalid transaction body - Failed to validate transaction schema: Value -1.2982318129391238e+99 is less than minimum 0');
-				done();
-			});
-			badTransactions.push(transaction);
-		});
-	});
-
-	describe('processing', function () {
-
-		it('when sender has no funds should fail', function (done) {
-			var noFundsAccount = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction('1L', 1, noFundsAccount.password);
+		it('when sender has NO funds should fail', function (done) {
+			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
 
 			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
@@ -131,41 +546,12 @@ describe('postTransactions type 0', function () {
 		});
 
 		it('using entire balance should fail', function (done) {
-			var account = node.randomAccount();
-			var transaction2 = node.lisk.transaction.createTransaction(account.address, Math.floor(node.gAccount.balance), node.gAccount.password);
+			var transaction = node.lisk.transaction.createTransaction(account.address, Math.floor(node.gAccount.balance), node.gAccount.password);
 
-			sendTransaction(transaction2, function (err, res) {
+			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('message').to.match(/^Account does not have enough LSK:/);
 				done();
-			});
-			badTransactions.push(transaction2);
-		});
-
-		it('when sender has funds should be ok', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
-
-			sendTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				done();
-			});
-			goodTransactions.push(transaction);
-		});
-
-		it('using already processed transaction should fail', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
-
-			sendTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				sendTransaction(transaction, function (err, res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
-					done();
-				});
 			});
 			badTransactions.push(transaction);
 		});
@@ -191,6 +577,33 @@ describe('postTransactions type 0', function () {
 			});
 			badTransactions.push(signedTransactionFromGenesis);
 		});
+
+		it('when sender has funds should be OK', function (done) {
+			sendTransaction(goodTransaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').to.equal(goodTransaction.id);
+				done();
+			});
+			goodTransactions.push(goodTransaction);
+		});
+
+		it('using already processed transaction should fail', function (done) {
+			sendTransaction(goodTransaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
+				done();
+			});
+		});
+
+		it('well processed transactions should have NOT been confirmed before new block', function (done) {
+			for (var tx in goodTransactions){
+				getTransaction(goodTransactions[tx].id, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('error').equal('Transaction not found');
+				});
+			}
+			done();
+		});
 	});
 
 	describe('confirmation', function () {
@@ -202,29 +615,23 @@ describe('postTransactions type 0', function () {
 		});
 
 		it('bad and malformed transactions should NOT have been confirmed', function (done) {
-			getTransactions(badTransactions, function (err, transactionsReceived) {
-				var badTransactionIds = badTransactions.map(function (badTransaction) {
-					return _.get(badTransaction, 'id', null);
-				}).filter(function (transactionId) {
-					return !!transactionId;
+			for (var tx in badTransactions){
+				getTransaction(badTransactions[tx].id, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('error').equal('Transaction not found');
 				});
-
-				node.expect(_.intersection(_.map(transactionsReceived, 'id'), badTransactionIds)).to.have.lengthOf(0);
-				done();
-			});
+			}
+			done();
 		});
 
 		it('well processed transactions should have been confirmed', function (done) {
-			getTransactions(goodTransactions, function (err, transactionsReceived) {
-				var goodTransactionIds = goodTransactions.map(function (goodTransaction) {
-					return _.get(goodTransaction, 'id', null);
-				}).filter(function (transactionId) {
-					return !!transactionId;
+			for (var tx in goodTransactions){
+				getTransaction(goodTransactions[tx].id, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transaction').to.have.property('id').equal(goodTransactions[tx].id);
 				});
-
-				node.expect(_.intersection(_.map(transactionsReceived, 'id'), goodTransactionIds)).to.not.have.lengthOf(goodTransactions);
-				done();
-			});
+			}
+			done();
 		});
 	});
 });

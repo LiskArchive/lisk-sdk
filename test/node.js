@@ -324,6 +324,12 @@ node.randomTxAccount = function () {
 	});
 };
 
+// Returns an random basic transaction to send 1 LSK from genesis account to a random account
+node.randomTx = function () {
+	var randomAccount = node.randomAccount();
+	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password);;
+};
+
 // Returns a random password
 node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
