@@ -109,11 +109,7 @@ describe('transaction.js', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
 		const secondSecret = 'second secret';
-		const keys = {
-			publicKey: '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-			privateKey: '9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-		};
-
+	
 		it('should be a function', () => {
 			(createTransaction).should.be.type('function');
 		});
@@ -122,7 +118,6 @@ describe('transaction.js', () => {
 			trs = createTransaction('58191285901858109L', 1000, 'secret', secondSecret);
 			(trs).should.be.ok();
 		});
-
 	});
 
 	describe('#createTransaction with secondSignature and data', () => {
