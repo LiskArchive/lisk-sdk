@@ -12,7 +12,7 @@ const writeConfig = (config) => {
 	const configString = typeof config === 'string'
 		? config
 		: stringifyConfig(config);
-	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
+	fse.writeFile('config.json', `${configString}\n`, 'utf8');
 };
 
 const initialConfig = stringifyConfig(require(configPath));
@@ -31,7 +31,7 @@ describe('set command', () => {
 	let capturedOutput = [];
 
 	before(() => {
-		writeConfig(defaultConfig);
+		return writeConfig(defaultConfig);
 	});
 
 	beforeEach(() => {
@@ -42,11 +42,11 @@ describe('set command', () => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
 		capturedOutput = [];
-		writeConfig(defaultConfig);
+		return writeConfig(defaultConfig);
 	});
 
 	after(() => {
-		writeConfig(initialConfig);
+		return writeConfig(initialConfig);
 	});
 
 	describe('should exist', () => {
@@ -72,7 +72,7 @@ describe('set command', () => {
 
 	it('should handle unknown config variables', () => {
 		const invalidVariableCommand = 'set xxx true';
-		vorpal.exec(invalidVariableCommand, () => {
+		return vorpal.exec(invalidVariableCommand, () => {
 			(capturedOutput).should.be.eql(['Unsupported variable name.']);
 		});
 	});
@@ -134,16 +134,16 @@ describe('set command', () => {
 
 		it('should have an immediate effect', () => {
 			vorpal.use(get);
-			vorpal.execSync(setJsonTrueCommand);
 
-			return vorpal.exec(getDelegateCommand)
+			return vorpal.exec(setJsonTrueCommand)
+				.then(() => vorpal.exec(getDelegateCommand))
 				.then(() => {
-					(() => JSON.parse(capturedOutput)).should.not.throw();
-					vorpal.execSync(setJsonFalseCommand);
-					return vorpal.exec(getDelegateCommand)
-						.then(() => {
-							(() => JSON.parse(capturedOutput[1])).should.throw();
-						});
+					(() => JSON.parse(capturedOutput[1])).should.not.throw();
+					return vorpal.exec(setJsonFalseCommand);
+				})
+				.then(() => vorpal.exec(getDelegateCommand))
+				.then(() => {
+					(() => JSON.parse(capturedOutput[3])).should.throw();
 				});
 		});
 	});
