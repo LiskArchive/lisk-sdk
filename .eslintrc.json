@@ -1,11 +1,5 @@
 {
 	"extends": [
 		"lisk-base"
-	],
-	"env": {
-		"mocha": true
-	},
-	"globals": {
-		"sinon": true
-	}
+	]
 }

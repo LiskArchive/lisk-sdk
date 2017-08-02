@@ -9,7 +9,7 @@ const writeConfigToFile = (newConfig) => {
 
 const checkBoolean = value => ['true', 'false'].includes(value);
 
-const accessConfigProperty = newValue => (obj, pathComponent, i, path) => {
+const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	if (i === path.length - 1) {
 		// eslint-disable-next-line no-param-reassign
 		obj[pathComponent] = newValue;
@@ -24,7 +24,7 @@ const setBoolean = (variable, path) => (value) => {
 	}
 
 	const newValue = (value === 'true');
-	path.reduce(accessConfigProperty(newValue), config);
+	path.reduce(setNestedConfigProperty(newValue), config);
 
 	if (variable === 'testnet') {
 		liskInstance.setTestnet(newValue);
@@ -35,13 +35,13 @@ const setBoolean = (variable, path) => (value) => {
 };
 
 const set = ({ variable, value }, callback) => {
-	const getType = {
+	const handlers = {
 		json: setBoolean('json output', ['json']),
 		testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 	};
 
-	const returnValue = Object.keys(getType).includes(variable)
-		? getType[variable](value)
+	const returnValue = Object.keys(handlers).includes(variable)
+		? handlers[variable](value)
 		: 'Unsupported variable name.';
 
 	return (callback && typeof callback === 'function')

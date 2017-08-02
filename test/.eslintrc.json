@@ -1,0 +1,11 @@
+{
+	"env": {
+		"mocha": true
+	},
+	"globals": {
+		"sinon": true
+	},
+	"rules": {
+		"arrow-body-style": "off"
+	}
+}
