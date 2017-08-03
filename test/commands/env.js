@@ -1,10 +1,32 @@
 import Vorpal from 'vorpal';
+import fse from 'fs-extra';
+import set from '../../src/commands/set';
 import env from '../../src/commands/env';
 import config from '../../config.json';
 
+const configPath = '../../config.json';
+const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
+const stringifyConfig = config => JSON.stringify(config, null, '\t');
+const writeConfig = (config) => {
+	const configString = typeof config === 'string'
+		? config
+		: stringifyConfig(config);
+	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
+};
+
+const initialConfig = stringifyConfig(require(configPath));
+
+const defaultConfig = {
+	name: 'lisky',
+	json: false,
+	liskJS: {
+		testnet: false,
+	},
+};
+
 describe('env command', () => {
 	let envCommand;
-	let capturedOutput = '';
+	let capturedOutput = [];
 	let vorpal;
 	// eslint-disable-next-line no-underscore-dangle
 	const filterCommand = vorpalCommand => vorpalCommand._name === 'env';
@@ -12,6 +34,7 @@ describe('env command', () => {
 	beforeEach(() => {
 		vorpal = new Vorpal();
 		vorpal.use(env);
+		vorpal.use(set);
 		vorpal.pipe((output) => {
 			capturedOutput += output;
 			return '';
@@ -22,7 +45,7 @@ describe('env command', () => {
 	afterEach(() => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
-		capturedOutput = '';
+		capturedOutput = [];
 	});
 
 	it('should be available', () => {
@@ -33,7 +56,41 @@ describe('env command', () => {
 	});
 
 	it('should print config file', () => {
-		vorpal.exec('env');
-		(capturedOutput).should.be.eql(JSON.stringify(config));
+		return vorpal.exec('env').then(() => {
+			(capturedOutput).should.be.eql(JSON.stringify(config, null, '\t'));
+		});
+
+	});
+
+	describe('should change config file and print updated info', () => {
+		const setJsonTrueCommand = 'set json true';
+
+		before(() => {
+			writeConfig(defaultConfig);
+		});
+
+		after(() => {
+			writeConfig(initialConfig);
+		});
+
+		it('should print updated config file after change', () => {
+
+			vorpal.execSync(setJsonTrueCommand);
+
+			const expectedUpdatedConfig = {
+				name: 'lisky',
+				json: true,
+				liskJS: {
+					testnet: false,
+				},
+			};
+
+			return vorpal.exec('env').then(() => {
+					console.log(capturedOutput);
+					(capturedOutput).should.be.eql(JSON.stringify(expectedUpdatedConfig, null, '\t'));
+				});
+
+		});
+
 	});
 });
