@@ -8,7 +8,7 @@ const writeConfig = (config) => {
 	const configString = typeof config === 'string'
 		? config
 		: stringifyConfig(config);
-	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
+	fse.writeFile('config.json', `${configString}\n`, 'utf8');
 };
 
 const initialConfig = stringifyConfig(require('../../config.json'));
@@ -22,10 +22,10 @@ const defaultConfig = {
 };
 
 describe('env command', () => {
+	/* eslint-disable no-underscore-dangle */
 	let envCommand;
 	let capturedOutput = [];
 	let vorpal;
-	// eslint-disable-next-line no-underscore-dangle
 	const filterCommand = vorpalCommand => vorpalCommand._name === 'env';
 
 	beforeEach(() => {
@@ -40,27 +40,26 @@ describe('env command', () => {
 	});
 
 	it('should be available', () => {
-		// eslint-disable-next-line no-underscore-dangle
 		(envCommand._args).should.be.length(0);
-		// eslint-disable-next-line no-underscore-dangle
 		(envCommand._name).should.be.equal('env');
 	});
 
 	it('should print config file', () => {
 		return vorpal.exec('env').then(() => {
-			(capturedOutput).should.be.eql([initialConfig]);
+			(capturedOutput).should.be.eql([JSON.stringify(defaultConfig, null, '\t')]);
 		});
 	});
+	/* eslint-enable */
 
 	describe('should change config file and print updated info', () => {
 		const setJsonTrueCommand = 'set json true';
 
 		before(() => {
-			writeConfig(defaultConfig);
+			return writeConfig(defaultConfig);
 		});
 
 		after(() => {
-			writeConfig(initialConfig);
+			return writeConfig(initialConfig);
 		});
 
 		it('should print updated config file after change', () => {
@@ -75,8 +74,8 @@ describe('env command', () => {
 			};
 
 			return vorpal.exec(setJsonTrueCommand).then(() => {
-				vorpal.exec('env').then(() => {
-					(capturedOutput).should.be.eql([JSON.stringify(expectedUpdatedConfig, null, '\t')]);
+				return vorpal.exec('env').then(() => {
+					(capturedOutput[1]).should.be.eql(JSON.stringify(expectedUpdatedConfig, null, '\t'));
 				});
 			});
 		});
