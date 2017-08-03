@@ -23,7 +23,12 @@ const handlers = {
 
 const processResults = (useJsonOutput, vorpal, type, results) => {
 	const printFn = useJsonOutput ? JSON.stringify : getTableString;
-	results.forEach(printResult.bind(null, printFn, vorpal, type));
+	const resultsToPrint = results.map(result => (
+		result.error
+			? result
+			: result[type]
+	));
+	printResult(printFn, vorpal, resultsToPrint);
 	return results;
 };
 

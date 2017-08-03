@@ -30,9 +30,9 @@ describe('print utils', () => {
 
 		it('should log results', () => {
 			const result = { lisk: 'JS' };
-			const printFn = a => a + a;
+			const printFn = obj => obj.lisk + obj.lisk;
 
-			printResult(printFn, vorpal, 'lisk', result);
+			printResult(printFn, vorpal, result);
 
 			(stub.calledWithExactly('JSJS')).should.be.true();
 		});
@@ -41,7 +41,7 @@ describe('print utils', () => {
 			const result = { error: 'oh no' };
 			const printFn = a => `${a.error} 123`;
 
-			printResult(printFn, vorpal, null, result);
+			printResult(printFn, vorpal, result);
 
 			(stub.calledWithExactly('oh no 123')).should.be.true();
 		});

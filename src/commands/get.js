@@ -20,7 +20,8 @@ const handlers = {
 
 const processResult = (useJsonOutput, vorpal, type, result) => {
 	const printFn = useJsonOutput ? JSON.stringify : getTableString;
-	printResult(printFn, vorpal, type, result);
+	const resultToPrint = result.error ? result : result[type];
+	printResult(printFn, vorpal, resultToPrint);
 	return result;
 };
 
