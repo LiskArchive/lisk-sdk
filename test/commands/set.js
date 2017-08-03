@@ -12,7 +12,7 @@ const writeConfig = (config) => {
 	const configString = typeof config === 'string'
 		? config
 		: stringifyConfig(config);
-	fse.writeFile('config.json', `${configString}\n`, 'utf8');
+	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
 };
 
 const initialConfig = stringifyConfig(require(configPath));
@@ -31,7 +31,7 @@ describe('set command', () => {
 	let capturedOutput = [];
 
 	before(() => {
-		return writeConfig(defaultConfig);
+		writeConfig(defaultConfig);
 	});
 
 	beforeEach(() => {
@@ -42,11 +42,11 @@ describe('set command', () => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
 		capturedOutput = [];
-		return writeConfig(defaultConfig);
+		writeConfig(defaultConfig);
 	});
 
 	after(() => {
-		return writeConfig(initialConfig);
+		writeConfig(initialConfig);
 	});
 
 	describe('should exist', () => {

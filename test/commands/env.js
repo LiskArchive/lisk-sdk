@@ -8,7 +8,7 @@ const writeConfig = (config) => {
 	const configString = typeof config === 'string'
 		? config
 		: stringifyConfig(config);
-	return fse.writeFile('config.json', `${configString}\n`, 'utf8');
+	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
 };
 
 const initialConfig = stringifyConfig(require('../../config.json'));
@@ -40,7 +40,7 @@ describe('env command', () => {
 	});
 
 	after(() => {
-		return writeConfig(initialConfig);
+		writeConfig(initialConfig);
 	});
 
 	it('should be available', () => {
@@ -54,7 +54,7 @@ describe('env command', () => {
 		const envCommandString = 'env';
 
 		beforeEach(() => {
-			return writeConfig(defaultConfig);
+			writeConfig(defaultConfig);
 		});
 
 		it('should print config file', () => {
