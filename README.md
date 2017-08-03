@@ -70,8 +70,18 @@ $ npm run test
 
 # Documentation
 
-If you want to know all the details on this project, as a [user](https://docs.lisk.io/v1.1/docs/user-documentation) and [developer](https://docs.lisk.io/v1.1/docs/developer-documentation), we have more comprehensive documentation on our Readme site.
-
+- [Introduction](https://docs.lisk.io/v1.3/docs/lisky-introduction)
+- [Pre-Installation](https://docs.lisk.io/v1.3/docs/lisky-pre-installation)
+- [Installation](https://docs.lisk.io/v1.3/docs/lisky-installation)
+    - [Install-from-NPM](https://docs.lisk.io/v1.3/docs/lisky-installation-npm)
+    - [Install-from-Source](https://docs.lisk.io/v1.3/docs/lisky-installation-source)
+- [Upgrading](https://docs.lisk.io/v1.3/docs/lisky-upgrading)
+    - [Upgrading-from-NPM](https://docs.lisk.io/v1.3/docs/lisky-upgrading-npm)
+    - [Upgrading-from-Source](https://docs.lisk.io/v1.3/docs/lisky-upgrading-source)
+- [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage)
+    - [Configuration](https://docs.lisk.io/v1.3/docs/lisky-configuration)
+    - [Usage](https://docs.lisk.io/v1.3/docs/lisky-start-usage)
+    - [Commands](https://docs.lisk.io/v1.3/docs/lisky-usage-commands)
 
 # Get involved
 
