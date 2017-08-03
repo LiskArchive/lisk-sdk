@@ -8,7 +8,7 @@ const writeConfig = (config) => {
 	const configString = typeof config === 'string'
 		? config
 		: stringifyConfig(config);
-	fse.writeFile('config.json', `${configString}\n`, 'utf8');
+	return fse.writeFile('config.json', `${configString}\n`, 'utf8');
 };
 
 const initialConfig = stringifyConfig(require('../../config.json'));
@@ -39,27 +39,28 @@ describe('env command', () => {
 		capturedOutput = [];
 	});
 
+	after(() => {
+		return writeConfig(initialConfig);
+	});
+
 	it('should be available', () => {
 		(envCommand._args).should.be.length(0);
 		(envCommand._name).should.be.equal('env');
 	});
-
-	it('should print config file', () => {
-		return vorpal.exec('env').then(() => {
-			(capturedOutput).should.be.eql([JSON.stringify(defaultConfig, null, '\t')]);
-		});
-	});
 	/* eslint-enable */
 
-	describe('should change config file and print updated info', () => {
+	describe('output env', () => {
 		const setJsonTrueCommand = 'set json true';
+		const envCommandString = 'env';
 
-		before(() => {
+		beforeEach(() => {
 			return writeConfig(defaultConfig);
 		});
 
-		after(() => {
-			return writeConfig(initialConfig);
+		it('should print config file', () => {
+			return vorpal.exec(envCommandString).then(() => {
+				(capturedOutput).should.be.eql([stringifyConfig(defaultConfig)]);
+			});
 		});
 
 		it('should print updated config file after change', () => {
@@ -74,8 +75,8 @@ describe('env command', () => {
 			};
 
 			return vorpal.exec(setJsonTrueCommand).then(() => {
-				return vorpal.exec('env').then(() => {
-					(capturedOutput[1]).should.be.eql(JSON.stringify(expectedUpdatedConfig, null, '\t'));
+				return vorpal.exec(envCommandString).then(() => {
+					(capturedOutput[1]).should.be.eql(stringifyConfig(expectedUpdatedConfig));
 				});
 			});
 		});
