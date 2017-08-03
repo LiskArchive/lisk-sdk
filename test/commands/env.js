@@ -86,6 +86,9 @@ describe('env command', () => {
 				json: true,
 				liskJS: {
 					testnet: false,
+					node: '',
+					port: '',
+					ssl: false,
 				},
 			};
 
