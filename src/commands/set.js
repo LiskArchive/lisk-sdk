@@ -34,7 +34,7 @@ const setBoolean = (variable, path) => (value) => {
 	return `Successfully set ${variable} to ${value}.`;
 };
 
-const set = ({ variable, value }, callback) => {
+const set = vorpal => ({ variable, value }) => {
 	const handlers = {
 		json: setBoolean('json output', ['json']),
 		testnet: setBoolean('testnet', ['liskJS', 'testnet']),
@@ -44,14 +44,12 @@ const set = ({ variable, value }, callback) => {
 		? handlers[variable](value)
 		: 'Unsupported variable name.';
 
-	return (callback && typeof callback === 'function')
-		? callback(returnValue)
-		: returnValue;
+	return Promise.resolve(vorpal.log(returnValue));
 };
 
 export default function setCommand(vorpal) {
 	vorpal
 		.command('set <variable> <value>')
 		.description('Set configuration <variable> to <value>.')
-		.action(set);
+		.action(set(vorpal));
 }
