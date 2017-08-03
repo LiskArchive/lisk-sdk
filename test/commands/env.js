@@ -65,7 +65,6 @@ describe('env command', () => {
 
 		it('should print updated config file after change', () => {
 			vorpal.use(set);
-			vorpal.execSync(setJsonTrueCommand);
 
 			const expectedUpdatedConfig = {
 				name: 'lisky',
@@ -75,8 +74,10 @@ describe('env command', () => {
 				},
 			};
 
-			return vorpal.exec('env').then(() => {
-				(capturedOutput).should.be.eql([JSON.stringify(expectedUpdatedConfig, null, '\t')]);
+			return vorpal.exec(setJsonTrueCommand).then(() => {
+				vorpal.exec('env').then(() => {
+					(capturedOutput).should.be.eql([JSON.stringify(expectedUpdatedConfig, null, '\t')]);
+				})
 			});
 		});
 	});
