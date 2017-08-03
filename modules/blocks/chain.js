@@ -499,11 +499,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
  * @throws {string} Error description
  */
 Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
-	try {
-		library.bus.message('newBlock', reducedBlock, broadcast);
-	} catch (e) {
-		throw 'reduced newBlock broadcast message error: ' + e;
-	}
+	library.bus.message('newBlock', reducedBlock, broadcast);
 	library.logger.debug(['reducedBlock', reducedBlock.id, 'broadcasted correctly'].join(' '));
 };
 
