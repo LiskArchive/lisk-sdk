@@ -1,7 +1,7 @@
-import Vorpal from 'vorpal';
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import env from '../../src/commands/env';
+import { setUpVorpalWithCommand } from './utils';
 
 const stringifyConfig = config => JSON.stringify(config, null, '\t');
 const writeConfig = (config) => {
@@ -29,13 +29,7 @@ describe('env command', () => {
 	const filterCommand = vorpalCommand => vorpalCommand._name === 'env';
 
 	beforeEach(() => {
-		vorpal = new Vorpal();
-		vorpal.use(env);
-		vorpal.use(set);
-		vorpal.pipe((output) => {
-			capturedOutput += output;
-			return '';
-		});
+		vorpal = setUpVorpalWithCommand(env, capturedOutput);
 		envCommand = vorpal.commands.filter(filterCommand)[0];
 	});
 
@@ -54,7 +48,7 @@ describe('env command', () => {
 
 	it('should print config file', () => {
 		return vorpal.exec('env').then(() => {
-			(capturedOutput).should.be.eql(initialConfig);
+			(capturedOutput).should.be.eql([initialConfig]);
 		});
 	});
 
@@ -70,6 +64,7 @@ describe('env command', () => {
 		});
 
 		it('should print updated config file after change', () => {
+			vorpal.use(set);
 			vorpal.execSync(setJsonTrueCommand);
 
 			const expectedUpdatedConfig = {
@@ -81,7 +76,7 @@ describe('env command', () => {
 			};
 
 			return vorpal.exec('env').then(() => {
-				(capturedOutput).should.be.eql(JSON.stringify(expectedUpdatedConfig, null, '\t'));
+				(capturedOutput).should.be.eql([JSON.stringify(expectedUpdatedConfig, null, '\t')]);
 			});
 		});
 	});
