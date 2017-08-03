@@ -77,7 +77,7 @@ describe('env command', () => {
 			return vorpal.exec(setJsonTrueCommand).then(() => {
 				vorpal.exec('env').then(() => {
 					(capturedOutput).should.be.eql([JSON.stringify(expectedUpdatedConfig, null, '\t')]);
-				})
+				});
 			});
 		});
 	});
