@@ -126,9 +126,7 @@ module.exports = {
 				type: 'object'
 			},
 			authKey: {
-				type: 'string',
-				minimum: 64,
-				max: 64
+				type: 'string'
 			}
 		},
 		required: ['authKey', 'peer']
@@ -140,11 +138,6 @@ module.exports = {
 			data: {
 				type: 'object',
 				properties: {
-					port: {
-						type: 'integer',
-						minimum: 1,
-						maximum: 65535
-					},
 					nethash: {
 						type: 'string',
 						maxLength: 64
@@ -158,12 +151,10 @@ module.exports = {
 						minimum: 1
 					},
 					nonce: {
-						type: 'string',
-						minimum: 16,
-						max: 16
+						type: 'string'
 					}
 				},
-				required: ['nonce', 'port', 'nethash', 'broadhash']
+				required: ['nonce']
 			},
 			socketId: {
 				type: 'string'
@@ -172,6 +163,6 @@ module.exports = {
 				type: 'number'
 			}
 		},
-		required: ['socketId', 'workerId', 'data']
+		required: ['socketId', 'data']
 	}
 };

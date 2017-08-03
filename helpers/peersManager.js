@@ -10,7 +10,7 @@ function PeersManager () {
 PeersManager.prototype.add = function (peer) {
 	// 1. do not add peers without address
 	// 2. prevent changing address by the peer with same nonce
-	if (!peer.string || this.nonceToAddressMap[peer.nonce] && peer.string !== this.nonceToAddressMap[peer.nonce]) {
+	if (!peer || !peer.string || this.nonceToAddressMap[peer.nonce] && peer.string !== this.nonceToAddressMap[peer.nonce]) {
 		return false;
 	}
 	if (this.peers[peer.string]) {
@@ -25,6 +25,9 @@ PeersManager.prototype.add = function (peer) {
 };
 
 PeersManager.prototype.remove = function (peer) {
+	if (!peer || !this.peers[peer.string]) {
+		return false;
+	}
 	this.nonceToAddressMap[peer.nonce] = null;
 	delete this.nonceToAddressMap[peer.nonce];
 
@@ -33,6 +36,8 @@ PeersManager.prototype.remove = function (peer) {
 
 	this.peers[peer.string] = null;
 	delete this.peers[peer.string];
+
+	return true;
 };
 
 PeersManager.prototype.update = function (peer) {
@@ -50,6 +55,7 @@ PeersManager.prototype.update = function (peer) {
 		delete this.peers[oldAddress];
 	}
 	this.add(peer);
+	return true;
 };
 
 PeersManager.prototype.getAll = function () {

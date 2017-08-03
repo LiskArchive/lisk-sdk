@@ -47,6 +47,9 @@ ConnectionsTable.prototype.add = function (nonce, connectionId) {
  * @param {string} nonce
  */
 ConnectionsTable.prototype.remove = function (nonce) {
+	if (!nonce) {
+		throw 'Cannot remove connection table entry without nonce';
+	}
 	var connectionId = this.getConnectionId(nonce);
 	this.nonceToConnectionIdMap[nonce] = null;
 	delete this.nonceToConnectionIdMap[nonce];

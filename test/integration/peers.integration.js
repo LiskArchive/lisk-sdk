@@ -356,7 +356,6 @@ describe('forging', function () {
 		Promise.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
-			console.log(results);
 			expect(results.some(function (singlePeerPeers) {
 				return singlePeerPeers.peers.some(function (peer) {
 					return peer.height > 1;
