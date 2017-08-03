@@ -2,10 +2,7 @@ import Vorpal from 'vorpal';
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import env from '../../src/commands/env';
-import config from '../../config.json';
 
-const configPath = '../../config.json';
-const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
 const stringifyConfig = config => JSON.stringify(config, null, '\t');
 const writeConfig = (config) => {
 	const configString = typeof config === 'string'
@@ -14,7 +11,7 @@ const writeConfig = (config) => {
 	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
 };
 
-const initialConfig = stringifyConfig(require(configPath));
+const initialConfig = stringifyConfig(require('../../config.json'));
 
 const defaultConfig = {
 	name: 'lisky',
@@ -57,9 +54,8 @@ describe('env command', () => {
 
 	it('should print config file', () => {
 		return vorpal.exec('env').then(() => {
-			(capturedOutput).should.be.eql(JSON.stringify(config, null, '\t'));
+			(capturedOutput).should.be.eql(initialConfig);
 		});
-
 	});
 
 	describe('should change config file and print updated info', () => {
@@ -74,7 +70,6 @@ describe('env command', () => {
 		});
 
 		it('should print updated config file after change', () => {
-
 			vorpal.execSync(setJsonTrueCommand);
 
 			const expectedUpdatedConfig = {
@@ -86,11 +81,8 @@ describe('env command', () => {
 			};
 
 			return vorpal.exec('env').then(() => {
-					console.log(capturedOutput);
-					(capturedOutput).should.be.eql(JSON.stringify(expectedUpdatedConfig, null, '\t'));
-				});
-
+				(capturedOutput).should.be.eql(JSON.stringify(expectedUpdatedConfig, null, '\t'));
+			});
 		});
-
 	});
 });
