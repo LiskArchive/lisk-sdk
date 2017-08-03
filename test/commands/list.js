@@ -55,6 +55,7 @@ describe('lisky list command palette', () => {
 
 	const missingRequiredArgumentRegex = /Missing required argument/;
 	const unknownVariableRegex = /Unsupported type\./;
+	const error = 'Something went wrong.';
 
 	let vorpal;
 	let capturedOutput = [];
@@ -84,6 +85,16 @@ describe('lisky list command palette', () => {
 			.then(() => (capturedOutput[0]).should.match(unknownVariableRegex));
 	});
 
+	it('should handle errors', () => {
+		const { restore } = sinon.stub(query, 'isTransactionQuery').resolves({ error });
+		return vorpal.exec(transactionsCommand)
+			.then(() => {
+				(capturedOutput[0]).should.match(/error/);
+				(capturedOutput[0]).should.match(new RegExp(error));
+			})
+			.then(restore, createRejectionHandler(restore));
+	});
+
 	it('should list accounts by address', () => {
 		return testCommandCallsQueryMethodWithValues(vorpal, accountsCommand, 'isAccountQuery', addresses);
 	});
@@ -109,6 +120,8 @@ describe('lisky list command palette', () => {
 		const noJsonCommand = `${transactionsCommand} --no-json`;
 		const transaction = {
 			one: 'two',
+			three: 'four',
+			five: 'six',
 		};
 		let stub;
 
@@ -126,7 +139,7 @@ describe('lisky list command palette', () => {
 				const { restore } = spy;
 				return vorpal.exec(jsonCommand)
 					.then(() => {
-						(spy.calledWithExactly(transaction)).should.be.true();
+						(spy.calledWithExactly([transaction, transaction])).should.be.true();
 					})
 					.then(restore, createRejectionHandler(restore));
 			});
@@ -134,8 +147,15 @@ describe('lisky list command palette', () => {
 			it('should print json output', () => {
 				return vorpal.exec(jsonCommand)
 					.then(() => {
-						(capturedOutput[0]).should.be.type('string');
-						(JSON.parse.bind(null, capturedOutput[0])).should.not.throw();
+						const output = capturedOutput[0];
+						(output).should.be.type('string');
+						(JSON.parse.bind(null, output)).should.not.throw();
+
+						const outputJSON = JSON.parse(output);
+						(outputJSON).should.have.property('length').be.equal(2);
+						outputJSON.forEach(printedTransaction =>
+							(printedTransaction).should.eql(transaction),
+						);
 					});
 			});
 		});
@@ -146,7 +166,7 @@ describe('lisky list command palette', () => {
 				const { restore } = spy;
 				return vorpal.exec(noJsonCommand)
 					.then(() => {
-						(spy.calledWithExactly(transaction)).should.be.true();
+						(spy.calledWithExactly([transaction, transaction])).should.be.true();
 					})
 					.then(restore, createRejectionHandler(restore));
 			});

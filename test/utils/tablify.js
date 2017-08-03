@@ -18,13 +18,13 @@ import tablify from '../../src/utils/tablify';
 describe('#tablify', () => {
 	it('should create a table from an object', () => {
 		const data = {
-			one: 'two',
-			three: 'four',
+			head1: 'one',
+			head2: 'two',
 		};
 		const table = tablify(data);
 
-		(table).should.have.property('0').eql({ one: 'two' });
-		(table).should.have.property('1').eql({ three: 'four' });
+		(table).should.have.property('options').have.property('head').eql(Object.keys(data));
+		(table).should.have.property('0').eql(Object.values(data));
 	});
 
 	it('should create a table from an empty object', () => {
@@ -32,5 +32,45 @@ describe('#tablify', () => {
 		const table = tablify(data);
 
 		(table).should.not.have.property('0');
+	});
+
+	it('should create a table from an array of objects', () => {
+		const data = [
+			{
+				head1: 'one',
+				head2: 'two',
+			},
+			{
+				head1: 'three',
+				head2: 'four',
+			},
+		];
+		const table = tablify(data);
+
+		(table).should.have.property('options').have.property('head').eql(Object.keys(data[0]));
+		(table).should.have.property('0').eql(Object.values(data[0]));
+		(table).should.have.property('1').eql(Object.values(data[1]));
+	});
+
+	it('should create a table from an array of objects with different keys', () => {
+		// const nullField = '-';
+		const data = [
+			{
+				head1: 'one',
+				head2: 'two',
+			},
+			{
+				head1: 'three',
+				head3: 'four',
+				head4: 'five',
+				head5: 'six',
+			},
+		];
+
+		const table = tablify(data);
+
+		(table).should.have.property('options').have.property('head').eql(['head1', 'head2', 'head3', 'head4', 'head5']);
+		(table).should.have.property('0').eql(['one', 'two', undefined, undefined, undefined]);
+		(table).should.have.property('1').eql(['three', undefined, 'four', 'five', 'six']);
 	});
 });
