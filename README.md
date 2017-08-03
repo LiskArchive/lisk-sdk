@@ -79,8 +79,8 @@ $ npm run test
     - [Upgrading-from-NPM](https://docs.lisk.io/v1.3/docs/lisky-upgrading-npm)
     - [Upgrading-from-Source](https://docs.lisk.io/v1.3/docs/lisky-upgrading-source)
 - [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage)
-    - [Configuration](https://docs.lisk.io/v1.3/docs/lisky-configuration)
-    - [Usage](https://docs.lisk.io/v1.3/docs/lisky-start-usage)
+    - [Configuration](https://docs.lisk.io/v1.3/docs/lisky-usage-configuration)
+    - [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage-interactive-and-noninteractive)
     - [Commands](https://docs.lisk.io/v1.3/docs/lisky-usage-commands)
 
 # Get involved
