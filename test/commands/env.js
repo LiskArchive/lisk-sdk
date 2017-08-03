@@ -33,6 +33,9 @@ const defaultConfig = {
 	json: false,
 	liskJS: {
 		testnet: false,
+		node: '',
+		port: '',
+		ssl: false,
 	},
 };
 
