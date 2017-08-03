@@ -394,7 +394,7 @@ d.run(function () {
 					var topic = args.shift();
 					var eventName = 'on' + changeCase.pascalCase(topic);
 
-					// executes the each module onBind function
+					// Iterate over modules and execute event functions (on*)
 					modules.forEach(function (module) {
 						if (typeof(module[eventName]) === 'function') {
 							module[eventName].apply(module[eventName], args);
@@ -537,7 +537,9 @@ d.run(function () {
 		}],
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
+			// Fire onBind event in every module
 			scope.bus.message('bind', scope.modules);
+
 			scope.logic.transaction.bindModules(scope.modules);
 			scope.logic.peers.bindModules(scope.modules);
 			cb();

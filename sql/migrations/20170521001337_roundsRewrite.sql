@@ -302,7 +302,7 @@ CREATE CONSTRAINT TRIGGER block_delete
 -- Replace function for deleting round rewards when last block of round is deleted
 CREATE OR REPLACE FUNCTION round_rewards_delete() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
-		-- Update 'delagate' table with round rewards
+		-- Update 'delegates' table with round rewards
 		WITH r AS (SELECT pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = (CEIL(OLD.height / 101::float)::int) GROUP BY pk)
 		UPDATE delegates SET rewards = delegates.rewards-r.rewards, fees = delegates.fees-r.fees FROM r WHERE delegates.pk = r.pk;
 
@@ -351,7 +351,7 @@ CREATE OR REPLACE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGS
 			-- Sort fees by block height
 			ORDER BY round.height ASC;
 
-		-- Update 'delagate' table with round rewards
+		-- Update 'delegates' table with round rewards
 		WITH r AS (SELECT pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = (CEIL(NEW.height / 101::float)::int) GROUP BY pk)
 		UPDATE delegates SET rewards = delegates.rewards+r.rewards, fees = delegates.fees+r.fees FROM r WHERE delegates.pk = r.pk;
 

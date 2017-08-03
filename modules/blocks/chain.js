@@ -544,7 +544,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 				}
 
 				// Delete last block from blockchain
-				// WARNING: Db_WRITE
+				// WARNING: DB_WRITE
 				self.deleteBlock(oldLastBlock.id, function (err) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent

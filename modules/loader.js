@@ -301,7 +301,7 @@ __private.loadTransactions = function (cb) {
  * @implements {modules.blocks.deleteAfterBlock}
  * @implements {modules.blocks.loadLastBlock}
  * @emits exit
- * @throws {string} When fails to match genesis block with database or rounds exceptions doesn't match database
+ * @throws {string} On failure to match genesis block with database, or when rounds exceptions do not match database
  */
 __private.loadBlockChain = function () {
 	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;

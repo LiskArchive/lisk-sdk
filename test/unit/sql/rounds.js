@@ -17,6 +17,8 @@ var bignum   = require('../../../helpers/bignum.js');
 describe('Rounds-related SQL triggers', function () {
 	var db, logger, library, rewiredModules = {}, modules = [];
 	var mem_state, delegates_state, round_blocks = [];
+	var round_transactions = [];
+	var delegatesList;
 
 	function normalizeMemAccounts (mem_accounts) {
 		var accounts = {};
@@ -240,7 +242,7 @@ describe('Rounds-related SQL triggers', function () {
 						var topic = args.shift();
 						var eventName = 'on' + changeCase.pascalCase(topic);
 
-						// executes the each module onBind function
+						// Iterate over modules and execute event functions (on*)
 						modules.forEach(function (module) {
 							if (typeof(module[eventName]) === 'function') {
 								module[eventName].apply(module[eventName], args);
@@ -321,7 +323,9 @@ describe('Rounds-related SQL triggers', function () {
 				});
 			}],
 			ready: ['modules', 'bus', 'logic', function (scope, cb) {
+				// Fire onBind event in every module
 				scope.bus.message('bind', scope.modules);
+
 				scope.logic.transaction.bindModules(scope.modules);
 				scope.logic.peers.bindModules(scope.modules);
 				cb();
@@ -335,7 +339,7 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	describe('genesisBlock', function () {
-		var genesisBlock, delegatesList;
+		var genesisBlock;
 		var genesisAccount;
 		var genesisAccounts;
 
@@ -429,11 +433,21 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	describe('round', function () {
+		var round_mem_acc, round_delegates;
+
+		before(function () {
+			// Copy initial round states for later comparison
+			round_mem_acc = _.clone(mem_state);
+			round_delegates = _.clone(delegates_state);
+		})
+
 		function addTransaction (transaction, cb) {
 			node.debug('	Add transaction ID: ' + transaction.id);
 			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 			// See: modules.transport.__private.receiveTransaction
 			transaction = library.logic.transaction.objectNormalize(transaction);
+			// Add transaction to round_transactions
+			round_transactions.push(transaction);
 			library.balancesSequence.add(function (sequenceCb) {
 				library.modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
 					if (err) {
@@ -473,12 +487,7 @@ describe('Rounds-related SQL triggers', function () {
 		function tickAndValidate (transactions) {
 			var last_block = library.modules.blocks.lastBlock.get();
 
-			return new Promise(function (resolve, reject) {
-				addTransactionsAndForge(transactions, function(err) {
-					if (err) { reject(err); }
-					resolve();
-				})
-			})
+			return Promise.promisify(addTransactionsAndForge)(transactions)
 				.then(function () {
 					var new_block = library.modules.blocks.lastBlock.get();
 					expect(new_block.id).to.not.equal(last_block.id);
@@ -494,7 +503,7 @@ describe('Rounds-related SQL triggers', function () {
 				.then(function () {
 					var expected_delegates_state = expectedDelegatesState();
 					expect(delegates_state).to.deep.equal(expected_delegates_state);
-				})
+				});
 		}
 
 		function expectedMemState (transactions) {
@@ -646,21 +655,16 @@ describe('Rounds-related SQL triggers', function () {
 			var round = 1;
 			var expectedRewards;
 
-			return getBlocks(round)
-				.then(function (blocks) {
-					expectedRewards = getExpectedRoundRewards(blocks);
-				})
-				.then(function () {
-					return getRoundRewards(round);
-				})
-				.then(function (rewards) {
-					expect(rewards).to.deep.equal(expectedRewards);
-				})
-				.then(function () {
-					return getDelegates();
-				})
-				.reduce(function (delegates, d) {
+			return Promise.join(getBlocks(round), getRoundRewards(round), getDelegates(), function (blocks, rewards, delegates) {
+				// Get expected rewards for round (native)
+				expectedRewards = getExpectedRoundRewards(blocks);
+				// Rewards from database table rounds_rewards should match native rewards
+				expect(rewards).to.deep.equal(expectedRewards);
+
+				
+				return Promise.reduce(delegates, function (delegates, d) {
 					if (d.fees > 0 || d.rewards > 0) {
+						// Normalize database data
 						delegates[d.pk] = {
 							pk: d.pk,
 							fees: Number(d.fees),
@@ -672,6 +676,51 @@ describe('Rounds-related SQL triggers', function () {
 				.then(function (delegates) {
 					expect(delegates).to.deep.equal(expectedRewards);
 				});
+			});
+		});
+
+		it('delegates list should be different than one generated at the beginning of round 1', function () {
+			var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+			expect(tmpDelegatesList).to.not.deep.equal(delegatesList);
+		});
+
+		describe('Delete last block of round 1, block contain 1 transaction type SEND', function () {
+			var round = 1;
+			//var last_block = library.modules.blocks.lastBlock.get();
+
+			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', function () {
+				return Promise.promisify(library.modules.blocks.chain.deleteLastBlock)().then(function () {
+					return getRoundRewards(round);
+				}).then(function (rewards) {
+					expect(rewards).to.deep.equal({});
+				});
+			});
+
+			it('delegates table should be equal to one generated at the beginning of round 1 with updated blocks_forged_cnt', function () {
+				return Promise.join(getDelegates(), getBlocks(round), function (delegates, blocks) {
+					// Apply blocks_forged_cnt to round_delegates
+					_.each(blocks, function (block) {
+						round_delegates[block.generatorPublicKey.toString('hex')].blocks_forged_cnt += 1;
+					});
+					expect(delegates_state).to.deep.equal(round_delegates);
+				});
+			});
+
+			it('mem_accounts table should not contain changes from transaction included in deleted block', function () {
+				return getMemAccounts()
+					.then(function (accounts) {
+						var last_transaction = round_transactions[round_transactions.length - 1];
+						last_transaction.amount = -last_transaction.amount;
+						last_transaction.fees = -last_transaction.fee;
+						var expected_mem_state = expectedMemState([last_transaction]);
+						expect(accounts).to.deep.equal(expected_mem_state);
+					});
+			});
+
+			it('delegates list should be equal to one generated at the beginning of round 1', function () {
+				var newDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				expect(newDelegatesList).to.deep.equal(delegatesList);
+			});
 		});
 	});
 });
