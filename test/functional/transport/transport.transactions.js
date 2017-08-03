@@ -2,10 +2,14 @@
 
 var _ = require('lodash');
 var crypto = require('crypto');
+var Promise = require('bluebird');
 
 var node = require('../../node.js');
 var ws = require('../../common/wsCommunication.js');
-var http = require('../../common/httpCommunication.js');
+var getTransaction = require('../../common/complexTransactions.js').getTransaction;
+var getTransactionPromisify = Promise.promisify(getTransaction);
+var getUnconfirmedTransaction = require('../../common/complexTransactions.js').getUnconfirmedTransaction;
+var getUnconfirmedTransactionPromisify = Promise.promisify(getUnconfirmedTransaction);
 
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', {
@@ -13,101 +17,82 @@ function postTransaction (transaction, done) {
 	}, done, true);
 }
 
-function getTransactions (transactions, cb) {
-	http.get('/api/transactions', function (err, res) {
-		if (err) {
-			return cb(err);
-		}
-		node.expect(res.body).to.have.property('success').to.be.ok;
-		node.expect(res.body).to.have.property('transactions').to.be.an('array');
-		cb(null, res.body.transactions);
-	});
-}
+describe('Basic Transactions via websockets', function () {
 
-describe('getTransactions', function () {
-
-	it('should return valid response', function (done) {
-		ws.call('getTransactions', function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
-			node.expect(res).to.have.property('transactions').to.be.an('array');
-			done();
-		});
-	});
-
-	before(function (done) {
-
-		var randomAccount = node.randomAccount();
-		var transaction = node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password);
-
-		postTransaction(transaction, function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
-			done(err);
-		});
-	});
-
-	it('should return non empty transaction list after post', function (done) {
-		ws.call('getTransactions', function (err, res) {
-			node.expect(res).to.have.property('success').to.be.ok;
-			node.expect(res).to.have.property('transactions').to.be.an('array').and.to.be.not.empty;
-			done();
-		});
-	});
-});
-
-describe('postTransactions', function () {
-
+	var transaction;
 	var goodTransactions = [];
+	var badTransactions = [];
+	var account = node.randomAccount();
+
+	beforeEach(function () {
+		transaction = node.randomTx();
+	});
 
 	describe('schema', function () {
-
-		it('using valid transaction should be ok', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
-
-			postTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				done();
-			});
-
-			goodTransactions.push(transaction);
-		});
 	});
 
 	describe('processing', function () {
 
-		it('when sender has funds should be ok', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password);
+		it('when sender has NO funds should fail', function (done) {
+			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
 
+			postTransaction(transaction, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
+				badTransactions.push(transaction);
+				done();
+			});
+		});
+
+		it('when sender has funds should be OK', function (done) {
 			postTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				goodTransactions.push(transaction);
 				done();
 			});
+		});
 
-			goodTransactions.push(transaction);
+		it('good transactions should NOT be confirmed before new block', function () {
+			return Promise.map(goodTransactions, function (tx){
+				return getTransactionPromisify(tx.id).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('error').equal('Transaction not found');
+				});
+			});
 		});
 	});
 
 	describe('confirmation', function () {
 
 		before(function (done) {
-			node.onNewBlock(function () {
-				done();
+			node.onNewBlock(done);
+		});
+
+		it('bad transactions should NOT be confirmed', function () {
+			return Promise.map(badTransactions, function (tx){
+				return getTransactionPromisify(tx.id).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('error').equal('Transaction not found');
+				});
 			});
 		});
 
-		it('well processed transactions should have been confirmed', function (done) {
-			getTransactions(goodTransactions, function (err, transactionsReceived) {
-				var goodTransactionIds = goodTransactions.map(function (goodTransaction) {
-					return _.get(goodTransaction, 'id', null);
-				}).filter(function (transactionId) {
-					return !!transactionId;
+		it('good transactions should NOT be unconfirmed', function () {
+			return Promise.map(goodTransactions, function (tx){
+				return getUnconfirmedTransactionPromisify(tx.id).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('error').equal('Transaction not found');
 				});
+			});
+		});
 
-				node.expect(_.intersection(_.map(transactionsReceived, 'id'), goodTransactionIds)).to.not.have.lengthOf(goodTransactions);
-				done();
+		it('good transactions should be confirmed', function () {
+			return Promise.map(goodTransactions, function (tx){
+				return getTransactionPromisify(tx.id).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transaction').to.have.property('id').equal(tx.id);
+				});
 			});
 		});
 	});

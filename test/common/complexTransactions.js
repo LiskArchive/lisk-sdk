@@ -1,7 +1,29 @@
 'use strict';
 
 var lisk = require('lisk-js');
+
+var node = require('../node.js');
 var http = require('./httpCommunication');
+
+function getTransaction (transaction, cb) {
+	http.get('/api/transactions/get?id='+transaction, function (err, res) {
+		if (err) {
+			return cb(err);
+		}
+		node.expect(res.body).to.have.property('success');
+		cb(null, res.body);
+	});
+}
+
+function getUnconfirmedTransaction (transaction, cb) {
+	http.get('/api/transactions/unconfirmed/get?id='+transaction, function (err, res) {
+		if (err) {
+			return cb(err);
+		}
+		node.expect(res.body).to.have.property('success');
+		cb(null, res.body);
+	});
+}
 
 function sendTransaction (transaction, cb) {
 	http.post('/api/transactions', { transaction: transaction }, function (err, res) {
@@ -26,6 +48,8 @@ function sendLISK (params, cb) {
 }
 
 module.exports = {
+	getTransaction: getTransaction,
+	getUnconfirmedTransaction: getUnconfirmedTransaction,
 	sendSignature: sendSignature,
 	sendTransaction: sendTransaction,
 	sendLISK: sendLISK
