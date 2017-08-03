@@ -51,6 +51,17 @@ var wsRPC = {
 			this.clientsConnectionsMap[address] = connectionState;
 		}
 		return connectionState.stub;
+	},
+
+	/**
+	 * @throws {Error} thrown if wsServer haven't been initialized before
+	 * @returns {MasterWAMPServer} wsServer
+	 */
+	getServerAuthKey: function () {
+		if (!wsServer) {
+			throw new Error('WS server haven\'t been initialized!');
+		}
+		return wsServer.socketCluster.options.authKey;
 	}
 };
 
@@ -154,7 +165,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 	return function (procedureName) {
 		/**
-		 * @param {object} data [data={}] argument passed to procedure
+		 * @param {Object} data [data={}] argument passed to procedure
 		 * @param {function} cb [cb=function(){}] cb
 		 */
 		return function (data, cb) {
@@ -181,8 +192,17 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 	};
 };
 
+var remoteAction = function () {
+	throw new Error('On slave function invoked on the master process');
+};
+
+var slaveRPCStub = {
+	updateMyself: remoteAction
+};
+
 module.exports = {
 	wsRPC: wsRPC,
 	ConnectionState: ConnectionState,
-	ClientRPCStub: ClientRPCStub
+	ClientRPCStub: ClientRPCStub,
+	slaveRPCStub: slaveRPCStub
 };

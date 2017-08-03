@@ -36,7 +36,7 @@ function System (cb, scope) {
 		db: scope.db,
 		config: {
 			version: scope.config.version,
-			port: scope.config.port,
+			port: +scope.config.port,
 			nethash: scope.config.nethash,
 			minVersion: scope.config.minVersion,
 			nonce: scope.config.nonce
@@ -47,7 +47,7 @@ function System (cb, scope) {
 
 	__private.os = os.platform() + os.release();
 	__private.version = library.config.version;
-	__private.port = library.config.port;
+	__private.port = +library.config.port;
 	__private.httpPort = library.config.httpPort;
 	__private.height = 1;
 	__private.nethash = library.config.nethash;

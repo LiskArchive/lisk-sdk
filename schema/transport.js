@@ -117,5 +117,61 @@ module.exports = {
 			}
 		},
 		required: ['signature']
+	},
+	internalAccess: {
+		id: 'transport.internalAccess',
+		type: 'object',
+		properties: {
+			peer: {
+				type: 'object'
+			},
+			authKey: {
+				type: 'string',
+				minimum: 64,
+				max: 64
+			}
+		},
+		required: ['authKey', 'peer']
+	},
+	update: {
+		id: 'transport.update',
+		type: 'object',
+		properties: {
+			data: {
+				type: 'object',
+				properties: {
+					port: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 65535
+					},
+					nethash: {
+						type: 'string',
+						maxLength: 64
+					},
+					broadhash: {
+						type: 'string',
+						format: 'hex'
+					},
+					height: {
+						type: 'integer',
+						minimum: 1
+					},
+					nonce: {
+						type: 'string',
+						minimum: 16,
+						max: 16
+					}
+				},
+				required: ['nonce', 'port', 'nethash', 'broadhash']
+			},
+			socketId: {
+				type: 'string'
+			},
+			workerId: {
+				type: 'number'
+			}
+		},
+		required: ['socketId', 'workerId', 'data']
 	}
 };

@@ -694,7 +694,7 @@ Transactions.prototype.shared = {
 	},
 
 	postTransactions: function (req, cb) {
-		return modules.transport.internal.postTransactions(req.body, cb);
+		return modules.transport.shared.postTransactions(req.body, cb);
 	}
 };
 

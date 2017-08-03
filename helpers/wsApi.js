@@ -75,6 +75,10 @@ var extractHeaders = function (request) {
 	headers.ip = request.remoteAddress.split(':').pop();
 	headers.port = parseInt(headers.port);
 
+	if (!headers.nonce || headers.nonce.length !== 16) {
+		throw new Error('Received empty or wrong nonce');
+	}
+
 	return headers;
 };
 

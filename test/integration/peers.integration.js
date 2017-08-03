@@ -37,7 +37,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 		case SYNC_MODE.RANDOM:
 			var peersList = [];
 
-			if (typeof syncModeArgs.PROBABILITY !== 'number') {
+			if (typeof syncModeArgs.RANDOM.PROBABILITY !== 'number') {
 				throw new Error('Probability parameter not specified to random sync mode');
 			}
 			var isPickedWithProbability = function (n) {
@@ -45,13 +45,14 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 			};
 
 			return Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
-				if (isPickedWithProbability(syncModeArgs.PROBABILITY)) {
+				if (isPickedWithProbability(syncModeArgs.RANDOM.PROBABILITY)) {
 					peersList.push({
 						ip: '127.0.0.1',
 						port: 5000 + index
 					});
 				}
 			});
+			return peersList;
 			break;
 
 		case SYNC_MODE.ALL_TO_FIRST:
@@ -148,7 +149,7 @@ var monitorWSClient = {
 		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
 		height: 1,
 		version: '0.0.0a',
-		nonce: 'ABCD'
+		nonce: '0123456789ABCDEF'
 	}
 };
 
@@ -290,7 +291,81 @@ describe('Peers mutual connections', function () {
 		}).catch(function (err) {
 			done(err);
 		});
+	});
+});
 
+describe('forging', function () {
+
+	function getNetworkStatus (cb) {
+		Promise.all(sockets.map(function (socket) {
+			return socket.wampSend('status');
+		})).then(function (results) {
+			var maxHeight = 1;
+			var heightsSum = 0;
+			results.forEach(function (result) {
+				expect(result).to.have.property('success').to.be.ok;
+				expect(result).to.have.property('height').to.be.a('number');
+				if (result.height > maxHeight) {
+					maxHeight = result.height;
+				}
+				heightsSum += result.height;
+			});
+			return cb(null, {
+				height: maxHeight,
+				averageHeight: heightsSum / results.length
+			});
+
+		}).catch(function (err) {
+			cb(err);
+		});
+	}
+
+	before(function (done) {
+		//expecting some blocks forge after 30 sec
+		var timesToCheckNetworkStatus = 30;
+		var timesNetworkStatusChecked = 0;
+		var checkNetworkStatusInterval = 1000;
+
+		var checkingInterval = setInterval(function () {
+			getNetworkStatus(function (err, res) {
+				timesNetworkStatusChecked += 1;
+				if (err) {
+					clearInterval(checkingInterval);
+					return done(err);
+				}
+				console.log('Second: ' + parseInt(checkNetworkStatusInterval * timesNetworkStatusChecked / 1000),
+					'network status: height - ' + res.height, 'average height - ' + res.averageHeight );
+				if (timesNetworkStatusChecked === timesToCheckNetworkStatus) {
+					clearInterval(checkingInterval);
+					return done(null, res);
+				}
+			});
+		}, checkNetworkStatusInterval);
+	});
+
+	it('network should have height > 1 after 30 seconds', function (done) {
+		getNetworkStatus(function (err, res) {
+			expect(err).to.be.null;
+			expect(res.height).to.be.above(1);
+			expect(res.averageHeight).to.be.above(1);
+			done();
+		});
+	});
+
+	it('have different peers heights propagated correctly on peers lists', function (done) {
+		Promise.all(sockets.map(function (socket) {
+			return socket.wampSend('list');
+		})).then(function (results) {
+			console.log(results);
+			expect(results.some(function (singlePeerPeers) {
+				return singlePeerPeers.peers.some(function (peer) {
+					return peer.height > 1;
+				});
+			}));
+			done();
+		}).catch(function (err) {
+			done(err);
+		});
 	});
 });
 
