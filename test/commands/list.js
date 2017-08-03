@@ -40,6 +40,7 @@ describe('lisky list command palette', () => {
 
 	const missingRequiredArgumentRegex = /Missing required argument/;
 	const unknownVariableRegex = /Unsupported type\./;
+	const error = 'Something went wrong.';
 
 	let vorpal;
 	let capturedOutput = [];
@@ -67,6 +68,16 @@ describe('lisky list command palette', () => {
 	it('should handle unknown type names', () => {
 		return vorpal.exec(invalidTypeCommand)
 			.then(() => (capturedOutput[0]).should.match(unknownVariableRegex));
+	});
+
+	it('should handle errors', () => {
+		const { restore } = sinon.stub(query, 'isTransactionQuery').resolves({ error });
+		return vorpal.exec(transactionsCommand)
+			.then(() => {
+				(capturedOutput[0]).should.match(/error/);
+				(capturedOutput[0]).should.match(new RegExp(error));
+			})
+			.then(restore, createRejectionHandler(restore));
 	});
 
 	it('should list accounts by address', () => {
