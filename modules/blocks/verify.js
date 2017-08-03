@@ -116,6 +116,12 @@ __private.addBlockProperties = function (block) {
 	if (block.payloadLength === undefined) {
 		block.payloadLength = 0;
 	}
+	if (block.reward === undefined) {
+		block.reward = 0;
+	}
+	if (block.transactions === undefined) {
+		block.transactions = [];
+	}
 	return block;
 };
 
@@ -142,6 +148,12 @@ __private.deleteBlockProperties = function (block) {
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
+	}
+	if (reducedBlock.reward === 0) {
+		delete reducedBlock.reward;
+	}
+	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
+		delete reducedBlock.transactions;
 	}
 	delete reducedBlock.id;
 	return reducedBlock;

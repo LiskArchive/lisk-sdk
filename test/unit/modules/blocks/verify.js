@@ -214,7 +214,7 @@ function deleteBlockProperties (block) {
 		delete block.version;
 	}
 	// verifyBlock ensures numberOfTransactions is transactions.length
-	if (block.numberOfTransactions === block.transactions.length) {
+if (typeof(block.numberOfTransactions) === 'number') {
 		delete block.numberOfTransactions;
 	}
 	if (block.totalAmount === 0) {
@@ -225,6 +225,12 @@ function deleteBlockProperties (block) {
 	}
 	if (block.payloadLength === 0) {
 		delete block.payloadLength;
+	}
+	if (block.reward === 0) {
+		delete block.reward;
+	}
+	if (block.transactions && block.transactions.length === 0) {
+		delete block.transactions;
 	}
 	delete block.id;
 	return;
@@ -673,7 +679,7 @@ describe('blocks/verify', function () {
 
 				blocksVerify.processBlock(block2, false, function (err, result) {
 					if (err) {
-						expect(err).equal('Failed to validate block schema: Missing required property: transactions');
+						expect(err).equal('Included transactions do not match block transactions count');
 						block2.transactions = transactions;
 						done();
 					}
@@ -823,6 +829,8 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].totalAmount).to.be.undefined;
 				expect(onMessage[1].totalFee).to.be.undefined;
 				expect(onMessage[1].payloadLength).to.be.undefined;
+				expect(onMessage[1].reward).to.be.undefined;
+				expect(onMessage[1].transactions).to.be.undefined;
 				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.be.undefined; // transactionsSaved
@@ -847,6 +855,8 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].totalAmount).to.be.undefined;
 				expect(onMessage[1].totalFee).to.be.undefined;
 				expect(onMessage[1].payloadLength).to.be.undefined;
+				expect(onMessage[1].reward).to.be.undefined;
+				expect(onMessage[1].transactions).to.be.undefined;
 				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.be.undefined; // transactionsSaved
