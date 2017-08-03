@@ -5,7 +5,6 @@ export default function envCommand(vorpal) {
 		.command('env')
 		.description('Print environmental configuration')
 		.action((args, callback) => {
-			vorpal.log(JSON.stringify(config));
-			callback();
+			vorpal.log(JSON.stringify(config, null, '\t'));
 		});
 }
