@@ -214,7 +214,7 @@ function deleteBlockProperties (block) {
 		delete block.version;
 	}
 	// verifyBlock ensures numberOfTransactions is transactions.length
-if (typeof(block.numberOfTransactions) === 'number') {
+	if (typeof(block.numberOfTransactions) === 'number') {
 		delete block.numberOfTransactions;
 	}
 	if (block.totalAmount === 0) {
