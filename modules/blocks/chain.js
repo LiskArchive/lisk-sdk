@@ -496,7 +496,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
  * Broadcast reduced block to increase network performance.
  * @param {Object} reducedBlock reduced block
  * @param {boolean} broadcast Indicator that block needs to be broadcasted
- * @throws {string} Error description
  */
 Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
 	library.bus.message('newBlock', reducedBlock, broadcast);
