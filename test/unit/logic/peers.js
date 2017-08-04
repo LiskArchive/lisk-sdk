@@ -105,7 +105,7 @@ describe('peers', function () {
 			});
 		});
 
-		it('should should not contain rpc when normalized', function () {
+		it('should not contain rpc when normalized', function () {
 			peers.upsert(randomPeer);
 			peers.list(true).forEach(function (peer) {
 				expect(peer).not.to.have.property('rpc');

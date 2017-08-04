@@ -561,13 +561,16 @@ Transport.prototype.shared = {
 	},
 
 	getTransactions: function (query, cb) {
+		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE --- GET TRANASCTION---- ', query);
 		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
 		return setImmediate(cb, null, {success: true, transactions: transactions});
 	},
 
 	postTransactions: function (query, cb) {
+		console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE --- POST TRANASCTION---- ', query);
 		if (query.transactions) {
 			__private.receiveTransactions(query, query.peer, query.extraLogMessage, function (err) {
+				console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE --- RECEIVE TRANSACTION CALLBACK ---- ', query);
 				if (err) {
 					return setImmediate(cb, null, {success: false, message: err});
 				} else {
@@ -576,6 +579,7 @@ Transport.prototype.shared = {
 			});
 		} else {
 			__private.receiveTransaction(query.transaction, query.peer, query.extraLogMessage, function (err, id) {
+				console.log('\x1b[36m%s\x1b[0m', 'TRANSPORT MODULE --- RECEIVE TRANSACTIONS CALLBACK---- ', query);
 				if (err) {
 					return setImmediate(cb, null, {success: false,  message: err});
 				} else {

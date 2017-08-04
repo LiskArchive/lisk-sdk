@@ -25,6 +25,7 @@ var middleware = {
 					return setImmediate(cb, {
 						success: false,
 						error: error,
+						message: error.toString(),
 						code: 'EHEADERS'
 					}, peer);
 				}

@@ -120,8 +120,6 @@ describe('handshake', function () {
 				return done(err);
 			});
 	});
-
-
 });
 
 describe('RPC', function () {
@@ -303,30 +301,8 @@ describe('RPC', function () {
 
 		var validPeer;
 
-		beforeEach(function (done) {
-			//ask about anything before asking for a peer's list to appear on it
-			validPeer = _.clone(randomPeer);
-			clientSocket.wampSend('status', validPeer)
-				.then(function (err, res) {
-					done();
-				})
-				.catch(function (err) {
-					done('Failed to insert peer before running removal tests');
-				});
-		});
-
 		beforeEach(function () {
 			validPeer = _.clone(randomPeer);
-		});
-
-		it('should return non empty peers list', function (done) {
-			ws.call('list', null, function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res));
-				node.expect(err).to.be.null;
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('peers').to.be.an('array').and.not.empty;
-				done();
-			});
 		});
 
 		it('should return list of peers', function (done) {
@@ -340,7 +316,7 @@ describe('RPC', function () {
 				});
 		});
 
-		it('should should work ok with asking for a list multiple times', function (done) {
+		it('should work ok with asking for a list multiple times', function (done) {
 
 			var successfulAsks = 0;
 			for (var i = 0; i < 100; i += 1) {
