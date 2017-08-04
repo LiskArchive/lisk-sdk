@@ -32,11 +32,12 @@ PeersUpdateRules.prototype.internal = {
 	 * @throws {Error} if peer.nonce or connectionId is undefined/null/0
 	 * @throws {Error} if peer registered connection before
 	 * @throws {Error} if peer doesn't have nonce, height or broadhash fields
+	 * @throws {Error} if error is being returned from main process
 	 * @param {Object} peer
 	 * @param {string} connectionId
-	 * @param {function} cb
+	 * @return {Void}
 	 */
-	insert: function (peer, connectionId, cb) {
+	insert: function (peer, connectionId) {
 		if (!peer || !peer.nonce) {
 			throw new Error('Cannot insert peer without nonce');
 		}
@@ -47,7 +48,12 @@ PeersUpdateRules.prototype.internal = {
 			throw new Error('Connection id ' + connectionId + ' is already assigned');
 		}
 		connectionsTable.add(peer.nonce, connectionId);
-		self.sendInternally('acceptPeer', peer, cb);
+		self.sendInternally('acceptPeer', peer, function (err) {
+			if (err) {
+				connectionsTable.remove(peer.nonce);
+				throw new Error(err);
+			}
+		});
 	},
 
 	/**
@@ -55,11 +61,12 @@ PeersUpdateRules.prototype.internal = {
 	 * @throws {Error} if peer.nonce is undefined/null/0
 	 * @throws {Error} if peer doesn't have connection registered
 	 * @throws {Error} if peer.nonce is different than assigned to given connection id
+	 * @throws {Error} if error is being returned from main process
 	 * @param {Object} peer
 	 * @param {string} connectionId
-	 * @param {function} cb
+	 * @return {Void}
 	 */
-	remove: function (peer, connectionId, cb) {
+	remove: function (peer, connectionId) {
 		if (!peer || !peer.nonce) {
 			throw new Error('Cannot remove peer without nonce');
 		}
@@ -71,10 +78,9 @@ PeersUpdateRules.prototype.internal = {
 		}
 		self.sendInternally('removePeer', peer, function (err) {
 			if (err) {
-				return cb(err);
+				throw new Error(err);
 			}
 			connectionsTable.remove(peer.nonce);
-			return cb();
 		});
 	}
 };

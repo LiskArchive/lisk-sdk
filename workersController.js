@@ -97,11 +97,7 @@ module.exports.run = function (worker) {
 		function updatePeerConnection (socket, updateAction) {
 			try {
 				var headers = extractHeaders(socket.request);
-				updateAction(new Peer(headers).object(), socket.id, function (err) {
-					if (err) {
-						throw err;
-					}
-				});
+				updateAction(new Peer(headers).object(), socket.id);
 			} catch (ex) {
 				scope.logger.error('Workers controller -- update action failure' + ex);
 			}
