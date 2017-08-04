@@ -451,6 +451,7 @@ describe('Rounds-related SQL triggers', function () {
 	describe('round', function () {
 		var round_mem_acc, round_delegates;
 		var deleteLastBlockPromise;
+		var outsider_pk = '948b8b509579306694c00833ec1c0f81e964487db2206ddb1517bfeca2b0dc1b';
 
 		before(function () {
 			// Copy initial round states for later comparison
@@ -694,7 +695,7 @@ describe('Rounds-related SQL triggers', function () {
 				// Rewards from database table rounds_rewards should match native rewards
 				expect(rewards).to.deep.equal(expectedRewards);
 
-				
+				expect(delegates_state[outsider_pk].blocks_missed_cnt).to.equal(1);
 				return Promise.reduce(delegates, function (delegates, d) {
 					if (d.fees > 0 || d.rewards > 0) {
 						// Normalize database data
@@ -719,7 +720,6 @@ describe('Rounds-related SQL triggers', function () {
 
 		describe('Delete last block of round 1, block contain 1 transaction type SEND', function () {
 			var round = 1;
-			//var last_block = library.modules.blocks.lastBlock.get();
 
 			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', function () {
 				return deleteLastBlockPromise().then(function () {
@@ -813,6 +813,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('forger of last block of previous round should have voters_balance and voters_cnt 0', function () {
 				return getDelegates()
 					.then(function () {
+						expect(delegates_state[outsider_pk].blocks_missed_cnt).to.equal(1);
 						var delegate = delegates_state[last_block_forger];
 						expect(delegate.voters_balance).to.equal(0);
 						expect(delegate.voters_cnt).to.equal(0);
@@ -830,6 +831,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('expected forger of last block of round should have proper votes again', function () {
 				return getDelegates()
 					.then(function () {
+						expect(delegates_state[outsider_pk].blocks_missed_cnt).to.equal(0);
 						var delegate = delegates_state[last_block_forger];
 						expect(delegate.voters_balance).to.equal(10000000000000000);
 						expect(delegate.voters_cnt).to.equal(1);
@@ -908,6 +910,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('forger of last block of previous round should have voters_balance and voters_cnt 0', function () {
 				return getDelegates()
 					.then(function () {
+						expect(delegates_state[outsider_pk].blocks_missed_cnt).to.equal(1);
 						var delegate = delegates_state[last_block_forger];
 						expect(delegate.voters_balance).to.equal(0);
 						expect(delegate.voters_cnt).to.equal(0);
@@ -934,6 +937,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('expected forger of last block of round should have proper votes again', function () {
 				return getDelegates()
 					.then(function () {
+						expect(delegates_state[outsider_pk].blocks_missed_cnt).to.equal(0);
 						var delegate = delegates_state[last_block_forger];
 						expect(delegate.voters_balance).to.equal(10000000000000000);
 						expect(delegate.voters_cnt).to.equal(1);
