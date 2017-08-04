@@ -51,7 +51,12 @@ describe('transaction.js', () => {
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
 				const offset = -10;
 
-				trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, null, null, offset);
+				trs = createTransaction(testRecipientAddress,
+					testAmountThousand,
+					testSecret,
+					null,
+					null,
+					offset);
 
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});
@@ -124,7 +129,10 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction without second signature', () => {
-			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, testSecondSecret);
+			trs = createTransaction(testRecipientAddress,
+				testAmountThousand,
+				testSecret,
+				testSecondSecret);
 			(trs).should.be.ok();
 		});
 
@@ -227,7 +235,11 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(testRecipientAddress, testAmount, testSecret, testSecondSecret, testData);
+			trs = createTransaction(testRecipientAddress,
+				testAmount,
+				testSecret,
+				testSecondSecret,
+				testData);
 			(trs).should.be.ok();
 		});
 
@@ -250,7 +262,11 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, testSecondSecret, testData);
+			trs = createTransaction(testRecipientAddress,
+				testAmountThousand,
+				testSecret,
+				testSecondSecret,
+				testData);
 			(trs).should.be.ok();
 		});
 
