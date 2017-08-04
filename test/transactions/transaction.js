@@ -4,9 +4,9 @@ import cryptoModule from '../../src/transactions/crypto';
 
 describe('transaction.js', () => {
 	const testRecipientAddress = '58191285901858109L';
-	const testSecret = 'secret';
 	const testData = 'data';
-	const secondSecret = 'second secret';
+	const testSecret = 'secret';
+	const testSecondSecret = 'second secret';
 
 	it('should be object', () => {
 		(transaction).should.be.type('object');
@@ -123,7 +123,7 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction without second signature', () => {
-			trs = createTransaction(testRecipientAddress, 1000, testSecret, secondSecret);
+			trs = createTransaction(testRecipientAddress, 1000, testSecret, testSecondSecret);
 			(trs).should.be.ok();
 		});
 
@@ -226,7 +226,7 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(testRecipientAddress, testAmount, testSecret, secondSecret, testData);
+			trs = createTransaction(testRecipientAddress, testAmount, testSecret, testSecondSecret, testData);
 			(trs).should.be.ok();
 		});
 
@@ -249,7 +249,7 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(testRecipientAddress, testAmount, testSecret, secondSecret, testData);
+			trs = createTransaction(testRecipientAddress, testAmount, testSecret, testSecondSecret, testData);
 			(trs).should.be.ok();
 		});
 
