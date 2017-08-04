@@ -198,9 +198,15 @@ function parseResponse(requestType, options, requestSuccess) {
   return parser.requestMethod === 'GET' ? requestSuccess.body : parser.transactionOutputAfter(requestSuccess.body);
 }
 
+<<<<<<< HEAD
 function handleTimestampIsInFutureFailures(requestType, options, result) {
   if (!result.success && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
     var newOptions = {};
+=======
+function handleTimestampIsInFutureFailures (requestType, options, result) {
+	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40e3)) {
+		var newOptions = {};
+>>>>>>> development
 
     Object.keys(options).forEach(function (key) {
       newOptions[key] = options[key];

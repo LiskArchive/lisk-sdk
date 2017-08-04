@@ -168,7 +168,7 @@ function parseResponse(requestType, options, requestSuccess) {
 }
 
 function handleTimestampIsInFutureFailures(requestType, options, result) {
-	if (!result.success && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
+	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
 		const newOptions = {};
 
 		Object.keys(options).forEach((key) => {
