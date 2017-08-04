@@ -220,7 +220,7 @@ describe('transaction.js', () => {
 		it('should create transaction with invalid data', () => {
 			(() => {
 				trs = createTransaction(testRecipientAddress, testAmount, testSecret, '', Buffer.from('hello'));
-			}).should.throw('invalid encoding in transaction data');
+			}).should.throw('Invalid encoding in transaction data.');
 		});
 	});
 
