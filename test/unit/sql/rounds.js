@@ -424,27 +424,27 @@ describe('Rounds-related SQL triggers', function () {
 			})
 		});
 
-		it('transactions of genesis block should be applied to mem_accounts (native)', function (done) {
+		it('transactions of genesis block should be applied to mem_accounts (native)', function () {
 			// Wait 10 seconds for proper initialisation
-			setTimeout(function () {
-				getMemAccounts().then(function (accounts) {
-					// Number of returned accounts should be equal to number of unique accounts in genesis block
-					expect(Object.keys(accounts).length).to.equal(genesisAccounts.length);
+			return Promise.delay(10000).then(function () {
+				return getMemAccounts();
+			}).then(function (accounts) {
+				// Number of returned accounts should be equal to number of unique accounts in genesis block
+				expect(Object.keys(accounts).length).to.equal(genesisAccounts.length);
 
-					_.each(accounts, function (account) {
-						if (account.address === genesisAccount) {
-							// Genesis account should have negative balance
-							expect(account.balance).to.be.below(0);
-						} else if (account.isDelegate) {
-							// Delegates accounts should have balances of 0
-							expect(account.balance).to.be.equal(0);
-						} else {
-							// Other accounts (with funds) should have positive balance
-							expect(account.balance).to.be.above(0);
-						}
-					});
-				}).then(done).catch(done);
-			}, 10000);
+				_.each(accounts, function (account) {
+					if (account.address === genesisAccount) {
+						// Genesis account should have negative balance
+						expect(account.balance).to.be.below(0);
+					} else if (account.isDelegate) {
+						// Delegates accounts should have balances of 0
+						expect(account.balance).to.be.equal(0);
+					} else {
+						// Other accounts (with funds) should have positive balance
+						expect(account.balance).to.be.above(0);
+					}
+				});
+			});
 		});
 	});
 
@@ -612,10 +612,9 @@ describe('Rounds-related SQL triggers', function () {
 		}
 
 		before(function () {
-			return new Promise(function (resolve) {
+			return Promise.delay(1000).then(function () {
 				// Set delegates module as loaded to allow manual forging
 				rewiredModules.delegates.__set__('__private.loaded', true);
-				setTimeout(resolve, 1000);
 			});
 		});
 
@@ -821,7 +820,7 @@ describe('Rounds-related SQL triggers', function () {
 			});
 
 			it('delete last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
-				return deleteLastBlockPromise()
+				return deleteLastBlockPromise().delay(20)
 					.then(function () {
 						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
 						expect(tmpDelegatesList).to.deep.equal(delegatesList);
@@ -925,7 +924,7 @@ describe('Rounds-related SQL triggers', function () {
 			});
 
 			it('delete last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
-				return deleteLastBlockPromise()
+				return deleteLastBlockPromise().delay(20)
 					.then(function () {
 						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
 						expect(tmpDelegatesList).to.deep.equal(delegatesList);
