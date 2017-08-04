@@ -47,6 +47,14 @@ describe('Rounds-related SQL triggers', function () {
 		return delegates;
 	}
 
+	afterEach(function () {
+		// Perform validation of mem_accounts balances against blockchain after every test
+		return validateMemBalances()
+			.then(function (results) {
+				expect(results.length).to.equal(0);
+			});
+	});
+
 	function getMemAccounts () {
 		return db.query('SELECT * FROM mem_accounts').then(function (rows) {
 			rows = normalizeMemAccounts(rows);
@@ -70,6 +78,12 @@ describe('Rounds-related SQL triggers', function () {
 
 	function getBlocks (round) {
 		return db.query('SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} AND height > 1 ORDER BY height ASC', {round: round}).then(function (rows) {
+			return rows;
+		});
+	}
+
+	function validateMemBalances () {
+		return db.query('SELECT * FROM validateMemBalances()').then(function (rows) {
 			return rows;
 		});
 	}
