@@ -62,6 +62,12 @@ describe('Rounds-related SQL triggers', function () {
 		});
 	}
 
+	function getFullBlock(height) {
+		return db.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {height: height}).then(function (rows) {
+			return rows;
+		});
+	}
+
 	function getBlocks (round) {
 		return db.query('SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} AND height > 1 ORDER BY height ASC', {round: round}).then(function (rows) {
 			return rows;
@@ -404,10 +410,9 @@ describe('Rounds-related SQL triggers', function () {
 			})
 		});
 
-		it('should apply transactions of genesis block to mem_accounts (native)', function (done) {
-			library.modules.blocks.chain.applyGenesisBlock(genesisBlock, function (err) {
-				if (err) { done(err); }
-
+		it('transactions of genesis block should be applied to mem_accounts (native)', function (done) {
+			// Wait 10 seconds for proper initialisation
+			setTimeout(function () {
 				getMemAccounts().then(function (accounts) {
 					// Number of returned accounts should be equal to number of unique accounts in genesis block
 					expect(Object.keys(accounts).length).to.equal(genesisAccounts.length);
@@ -425,17 +430,20 @@ describe('Rounds-related SQL triggers', function () {
 						}
 					});
 				}).then(done).catch(done);
-			})
+			}, 10000);
 		});
 	});
 
 	describe('round', function () {
 		var round_mem_acc, round_delegates;
+		var deleteLastBlockPromise;
 
 		before(function () {
 			// Copy initial round states for later comparison
 			round_mem_acc = _.clone(mem_state);
 			round_delegates = _.clone(delegates_state);
+
+			deleteLastBlockPromise = Promise.promisify(library.modules.blocks.chain.deleteLastBlock);
 		})
 
 		function addTransaction (transaction, cb) {
@@ -461,7 +469,7 @@ describe('Rounds-related SQL triggers', function () {
 
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
-			return delegatesList[(slot + offset) % slots.delegates];
+			return rewiredModules.delegates.__get__('__private.delegatesList')[(slot + offset) % slots.delegates];
 		}
 
 		function forge (cb) {
@@ -701,7 +709,7 @@ describe('Rounds-related SQL triggers', function () {
 			//var last_block = library.modules.blocks.lastBlock.get();
 
 			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', function () {
-				return Promise.promisify(library.modules.blocks.chain.deleteLastBlock)().then(function () {
+				return deleteLastBlockPromise().then(function () {
 					return getRoundRewards(round);
 				}).then(function (rewards) {
 					expect(rewards).to.deep.equal({});
@@ -732,6 +740,87 @@ describe('Rounds-related SQL triggers', function () {
 			it('delegates list should be equal to one generated at the beginning of round 1', function () {
 				var newDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
 				expect(newDelegatesList).to.deep.equal(delegatesList);
+			});
+		});
+
+		describe('Round rollback (table delegates) when forger of last block of round is unvoted', function() {
+			var last_block_forger;
+
+			before(function () {
+				// Set last block forger
+				last_block_forger = getNextForger();
+				// Delete one block more
+				return deleteLastBlockPromise();
+			});
+
+			it('we should be on height 99 after delete one more block', function () {
+				var last_block = library.modules.blocks.lastBlock.get();
+				expect(last_block.height).to.equal(99);
+			});
+
+			it('expected forger of last block of round should have proper votes', function () {
+				return getDelegates()
+					.then(function () {
+						var delegate = delegates_state[last_block_forger];
+						expect(delegate.voters_balance).to.equal(10000000000000000);
+						expect(delegate.voters_cnt).to.equal(1);
+					});
+			});
+
+			it('should unvote expected forger of last block of round', function () {
+				var transactions = [];
+				var tx = node.lisk.vote.createVote(
+					node.gAccount.password,
+					['-' + last_block_forger]
+				);
+				transactions.push(tx);
+
+				return tickAndValidate(transactions)
+					.then(function () {
+						var last_block = library.modules.blocks.lastBlock.get();
+						return getFullBlock(last_block.height);
+					})
+					.then(function (rows) {
+						// Normalize blocks
+						var blocks = library.modules.blocks.utils.readDbRows(rows);
+						expect(blocks[0].transactions[0].asset.votes[0]).to.equal('-' + last_block_forger);
+					});
+			});
+
+			it('finish round, delegates list should be different than one generated at the beginning of round 1', function () {
+				var transactions = [];
+
+				return tickAndValidate(transactions)
+					.then(function () {
+						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+						expect(tmpDelegatesList).to.not.deep.equal(delegatesList);
+					});
+			});
+
+			it('forger of last block of previous round should have voters_balance and voters_cnt 0', function () {
+				return getDelegates()
+					.then(function () {
+						var delegate = delegates_state[last_block_forger];
+						expect(delegate.voters_balance).to.equal(0);
+						expect(delegate.voters_cnt).to.equal(0);
+					});
+			});
+
+			it('delete last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
+				return deleteLastBlockPromise()
+					.then(function () {
+						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+						expect(tmpDelegatesList).to.deep.equal(delegatesList);
+					});
+			});
+
+			it('expected forger of last block of round should have proper votes again', function () {
+				return getDelegates()
+					.then(function () {
+						var delegate = delegates_state[last_block_forger];
+						expect(delegate.voters_balance).to.equal(10000000000000000);
+						expect(delegate.voters_cnt).to.equal(1);
+					});
 			});
 		});
 	});
