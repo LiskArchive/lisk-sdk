@@ -7,6 +7,7 @@ describe('transaction.js', () => {
 	const testData = 'data';
 	const testSecret = 'secret';
 	const testSecondSecret = 'second secret';
+	const testAmountThousand = 1000;
 
 	it('should be object', () => {
 		(transaction).should.be.type('object');
@@ -25,7 +26,7 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction without second signature', () => {
-			trs = createTransaction(testRecipientAddress, 1000, testSecret);
+			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret);
 			(trs).should.be.ok();
 		});
 
@@ -42,7 +43,7 @@ describe('transaction.js', () => {
 			});
 
 			it('should use time slots to get the time for the timestamp', () => {
-				trs = createTransaction(testRecipientAddress, 1000, testSecret);
+				trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret);
 
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
 			});
@@ -50,7 +51,7 @@ describe('transaction.js', () => {
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
 				const offset = -10;
 
-				trs = createTransaction(testRecipientAddress, 1000, testSecret, null, null, offset);
+				trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, null, null, offset);
 
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});
@@ -82,7 +83,7 @@ describe('transaction.js', () => {
 			});
 
 			it('should have amount as number and equal to 1000', () => {
-				(trs).should.have.property('amount').and.be.type('number').and.equal(1000);
+				(trs).should.have.property('amount').and.be.type('number').and.equal(testAmountThousand);
 			});
 
 			it('should have empty asset object', () => {
@@ -123,7 +124,7 @@ describe('transaction.js', () => {
 		});
 
 		it('should create transaction without second signature', () => {
-			trs = createTransaction(testRecipientAddress, 1000, testSecret, testSecondSecret);
+			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, testSecondSecret);
 			(trs).should.be.ok();
 		});
 
@@ -153,7 +154,7 @@ describe('transaction.js', () => {
 			});
 
 			it('should have amount as number and equal to 1000', () => {
-				(trs).should.have.property('amount').and.be.type('number').and.equal(1000);
+				(trs).should.have.property('amount').and.be.type('number').and.equal(testAmountThousand);
 			});
 
 			it('should have empty asset object', () => {
@@ -242,14 +243,14 @@ describe('transaction.js', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
 		const feeWithData = 20000000;
-		const testAmount = 1000;
+
 
 		it('should be a function', () => {
 			(createTransaction).should.be.type('function');
 		});
 
 		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(testRecipientAddress, testAmount, testSecret, testSecondSecret, testData);
+			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, testSecondSecret, testData);
 			(trs).should.be.ok();
 		});
 
