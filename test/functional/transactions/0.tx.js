@@ -1,20 +1,12 @@
 'use strict';
 
-var _ = require('lodash');
-var crypto = require('crypto');
-var Promise = require('bluebird');
-var BigNumber = require('../../../helpers/bignum.js');
+var BigNumber = require('../../../helpers/bignum');
 
-var node = require('../../node.js');
-var sendTransaction = require('../../common/complexTransactions.js').sendTransaction;
-var getTransaction = require('../../common/complexTransactions.js').getTransaction;
-var getUnconfirmedTransaction = require('../../common/complexTransactions.js').getUnconfirmedTransaction;
-
-var getTransactionPromise = Promise.promisify(getTransaction);
-var getUnconfirmedTransactionPromise = Promise.promisify(getUnconfirmedTransaction);
-var onNewBlockPromise = Promise.promisify(node.onNewBlock);
-
+var node = require('../../node');
+var shared = require('./shared');
 var constants = require('../../../helpers/constants');
+
+var sendTransaction = require('../../common/complexTransactions').sendTransaction;
 
 describe('POST /api/transactions (type 0)', function () {
 
@@ -241,7 +233,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum/);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0');
 					badTransactions.push(transaction);
 					done();
 				});
@@ -252,7 +244,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number/);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number');
 					badTransactions.push(transaction);
 					done();
 				});
@@ -263,7 +255,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number/);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number');
 					badTransactions.push(transaction);
 					done();
 				});
@@ -356,7 +348,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum/);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0');
 					done();
 					badTransactions.push(transaction);
 				});
@@ -367,7 +359,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number/);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number');
 					badTransactions.push(transaction);
 					done();
 				});
@@ -378,7 +370,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number/);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type number');
 					badTransactions.push(transaction);
 					done();
 				});
@@ -476,33 +468,44 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 
 			it('using string with bad format should fail', function (done) {
-				transaction.recipientId = '15738697512051092602'; //Address without L invalid
+				transaction.recipientId = '15738697512051092602.L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format address: /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format address: '+transaction.recipientId);
 					badTransactions.push(transaction);
 					done();
 				}, true);
 			});
 
-			it('using string smaller than expected should fail', function (done) {
+			it('using address without letter L at the end should fail', function (done) {
+				transaction.recipientId = '15738697512051092602';
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format address: '+transaction.recipientId);
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('using string shorter than expected should fail', function (done) {
 				transaction.recipientId = '';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too short /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: String is too short (0 chars), minimum 1');
 					badTransactions.push(transaction);
 					done();
 				}, true);
 			});
 
-			it('using string with well format but bigger than expected should fail', function (done) {
-				transaction.recipientId = Array(22+1).join('1')+'L'; //more characters than allowed
+			it('using string with good format but larger than expected should fail', function (done) {
+				transaction.recipientId = Array(22+1).join('1')+'L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too long /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: String is too long (23 chars), maximum 22');
 					badTransactions.push(transaction);
 					done();
 				}, true);
@@ -691,11 +694,22 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 
 			it('using string with bad format should fail', function (done) {
-				transaction.senderPublicKey = '15738697512051092602'; //Address without L
+				transaction.senderPublicKey = '15738697512051092602.L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format publicKey: /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format publicKey: '+transaction.senderPublicKey);
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('using address without letter L at the end should fail', function (done) {
+				transaction.senderPublicKey = '15738697512051092602';
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format publicKey: '+transaction.senderPublicKey);
 					badTransactions.push(transaction);
 					done();
 				}, true);
@@ -786,7 +800,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format signature: /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format signature: '+transaction.signature);
 					badTransactions.push(transaction);
 					done();
 				}, true);
@@ -876,27 +890,27 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: Object didn't pass validation for format id: /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format id: '+transaction.id);
 					done();
 				}, true);
 			});
 
-			it('using string smaller than expected recipientId should fail', function (done) {
+			it('using string shorter than expected recipientId should fail', function (done) {
 				transaction.id = '';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too short /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: String is too short (0 chars), minimum 1');
 					done();
 				}, true);
 			});
 
-			it('using string bigger than expected recipientId should fail', function (done) {
-				transaction.recipientId = Array(22+1).join('1')+'L'; //more characters than allowed
+			it('using string larger than expected recipientId should fail', function (done) {
+				transaction.recipientId = Array(22+1).join('1')+'L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.match(/^Invalid transaction body - Failed to validate transaction schema: String is too long /);
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: String is too long (23 chars), maximum 22');
 					done();
 				}, true);
 			});
@@ -913,7 +927,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.match(/Invalid transaction amount/);
+				node.expect(res).to.have.property('message').to.equal('Invalid transaction amount');
 				badTransactions.push(transaction);
 				done();
 			});
@@ -924,7 +938,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.match(/Account does not have enough LSK: [0-9]+L balance: 0/);
+				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: '+account.address+' balance: 0');
 				badTransactions.push(transaction);
 				done();
 			});
@@ -935,7 +949,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.match(/^Account does not have enough LSK:/);
+				node.expect(res).to.have.property('message').to.match(/^Account does not have enough LSK: [0-9]+L balance: /);
 				badTransactions.push(transaction);
 				done();
 			});
@@ -975,52 +989,14 @@ describe('POST /api/transactions (type 0)', function () {
 		it('sending transaction with same ID twice should fail', function (done) {
 			sendTransaction(goodTransaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.match(/Transaction is already processed: [0-9]+/);
+				node.expect(res).to.have.property('message').to.equal('Transaction is already processed: '+goodTransaction.id);
 				done();
-			});
-		});
-
-		it('good transactions should NOT be confirmed before new block', function () {
-			return Promise.map(goodTransactions, function (tx){
-				return getTransactionPromise(tx.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
-				});
 			});
 		});
 	});
 
 	describe('confirmation', function () {
 
-		before(function (done) {
-			node.onNewBlock(done);
-		});
-
-		it('bad transactions should NOT be confirmed', function () {
-			return Promise.map(badTransactions, function (tx){
-				return getTransactionPromise(tx.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
-				});
-			});
-		});
-
-		it('good transactions should NOT be UNconfirmed', function () {
-			return Promise.map(goodTransactions, function (tx){
-				return getUnconfirmedTransactionPromise(tx.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
-				});
-			});
-		});
-
-		it('good transactions should be confirmed', function () {
-			return Promise.map(goodTransactions, function (tx){
-				return getTransactionPromise(tx.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transaction').to.have.property('id').equal(tx.id);
-				});
-			});
-		});
+		shared.confirmationPhase(goodTransactions, badTransactions);
 	});
 });
