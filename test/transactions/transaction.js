@@ -3,11 +3,17 @@ import transaction from '../../src/transactions/transaction';
 import cryptoModule from '../../src/transactions/crypto';
 
 describe('transaction.js', () => {
+	const fixedPoint = 10 ** 8;
 	const testRecipientAddress = '58191285901858109L';
 	const testData = 'data';
 	const testSecret = 'secret';
 	const testSecondSecret = 'second secret';
 	const testAmountThousand = 1000;
+	const feeWithData = 0.2 * fixedPoint;
+	const keys = {
+		publicKey: '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
+		privateKey: '9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
+	};
 
 	it('should be object', () => {
 		(transaction).should.be.type('object');
@@ -51,12 +57,14 @@ describe('transaction.js', () => {
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
 				const offset = -10;
 
-				trs = createTransaction(testRecipientAddress,
+				trs = createTransaction(
+					testRecipientAddress,
 					testAmountThousand,
 					testSecret,
 					null,
 					null,
-					offset);
+					offset
+				);
 
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
 			});
@@ -119,20 +127,18 @@ describe('transaction.js', () => {
 	describe('#createTransaction with second secret', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
-		const keys = {
-			publicKey: '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-			privateKey: '9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-		};
 
 		it('should be a function', () => {
 			(createTransaction).should.be.type('function');
 		});
 
 		it('should create transaction without second signature', () => {
-			trs = createTransaction(testRecipientAddress,
+			trs = createTransaction(
+				testRecipientAddress,
 				testAmountThousand,
 				testSecret,
-				testSecondSecret);
+				testSecondSecret
+			);
 			(trs).should.be.ok();
 		});
 
@@ -208,38 +214,36 @@ describe('transaction.js', () => {
 	describe('#createTransaction with data', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
-		const feeWithData = 20000000;
-		const testAmount = 1000;
-
+		
 		it('should create transaction with data', () => {
-			trs = createTransaction(testRecipientAddress, testAmount, testSecret, '', testData);
+			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, '', testData);
 			(trs).should.be.ok();
 			(trs.fee).should.be.equal(feeWithData);
 		});
 
 		it('should create transaction with invalid data', () => {
 			(() => {
-				trs = createTransaction(testRecipientAddress, testAmount, testSecret, '', Buffer.from('hello'));
-			}).should.throw('Invalid encoding in transaction data.');
+				trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, '', Buffer.from('hello'));
+			}).should.throw('Invalid encoding in transaction data. Data must be utf-8 encoded.');
 		});
 	});
 
 	describe('#createTransaction with secondSignature and data', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
-		const feeWithData = 20000000;
-
 
 		it('should be a function', () => {
 			(createTransaction).should.be.type('function');
 		});
 
 		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(testRecipientAddress,
+			trs = createTransaction(
+				testRecipientAddress,
 				testAmountThousand,
 				testSecret,
 				testSecondSecret,
-				testData);
+				testData
+			);
 			(trs).should.be.ok();
 		});
 
