@@ -63,7 +63,7 @@ describe('transaction.js', () => {
 					testSecret,
 					null,
 					null,
-					offset
+					offset,
 				);
 
 				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
@@ -137,7 +137,7 @@ describe('transaction.js', () => {
 				testRecipientAddress,
 				testAmountThousand,
 				testSecret,
-				testSecondSecret
+				testSecondSecret,
 			);
 			(trs).should.be.ok();
 		});
@@ -214,7 +214,7 @@ describe('transaction.js', () => {
 	describe('#createTransaction with data', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
-		
+
 		it('should create transaction with data', () => {
 			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, '', testData);
 			(trs).should.be.ok();
@@ -242,7 +242,7 @@ describe('transaction.js', () => {
 				testAmountThousand,
 				testSecret,
 				testSecondSecret,
-				testData
+				testData,
 			);
 			(trs).should.be.ok();
 		});
