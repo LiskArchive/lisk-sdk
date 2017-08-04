@@ -35,16 +35,21 @@ import { prepareTransaction } from './utils';
 
 function createTransaction(recipientId, amount, secret, secondSecret, data, timeOffset) {
 	const keys = crypto.getKeys(secret);
+	const fee = data ? (constants.fees.send + constants.fees.data) : constants.fees.send;
 	const transaction = {
 		type: 0,
 		amount,
-		fee: constants.fees.send,
+		fee,
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {},
-		data,
 	};
+
+	if (data && data.length > 0) {
+		if (data !== data.toString('utf8')) throw new Error('Invalid encoding in transaction data. Data must be utf-8 encoded.');
+		transaction.asset.data = data;
+	}
 
 	return prepareTransaction(transaction, keys, secondSecret);
 }

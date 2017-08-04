@@ -9,6 +9,7 @@
 const fixedPoint = 10 ** 8;
 
 const sendFee = 0.1 * fixedPoint;
+const dataFee = 0.1 * fixedPoint;
 const signatureFee = 5 * fixedPoint;
 const delegateFee = 25 * fixedPoint;
 const voteFee = 1 * fixedPoint;
@@ -24,6 +25,7 @@ module.exports = {
 		vote: voteFee,
 		multisignature: multisignatureFee,
 		dapp: dappFee,
+		data: dataFee,
 	},
 	fee: {
 		0: sendFee,

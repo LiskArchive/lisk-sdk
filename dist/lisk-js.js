@@ -27,39 +27,8 @@ module.exports={
 }
 
 },{}],2:[function(require,module,exports){
-(function (global){
-/**
- * Index module comprising all submodules of lisk-js.
- * @module lisk
- * @main lisk
- */
+'use strict';
 
-global.Buffer = global.Buffer || require('buffer').Buffer;
-global.naclFactory = require('js-nacl');
-
-global.naclInstance;
-naclFactory.instantiate(function (nacl) {
-	naclInstance = nacl;
-});
-
-lisk = {
-	crypto : require('./lib/transactions/crypto.js'),
-	dapp: require('./lib/transactions/dapp.js'),
-	delegate : require('./lib/transactions/delegate.js'),
-	multisignature : require('./lib/transactions/multisignature.js'),
-	signature : require('./lib/transactions/signature.js'),
-	transaction : require('./lib/transactions/transaction.js'),
-	transfer: require('./lib/transactions/transfer'),
-	vote : require('./lib/transactions/vote.js'),
-	api: require('./lib/api/liskApi'),
-	slots: require('./lib/time/slots'),
-	mnemonic: require('./lib/utils/mnemonic.js'),
-};
-
-module.exports = lisk;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/api/liskApi":3,"./lib/time/slots":8,"./lib/transactions/crypto.js":9,"./lib/transactions/dapp.js":15,"./lib/transactions/delegate.js":16,"./lib/transactions/multisignature.js":17,"./lib/transactions/signature.js":18,"./lib/transactions/transaction.js":19,"./lib/transactions/transfer":20,"./lib/transactions/vote.js":21,"./lib/utils/mnemonic.js":22,"buffer":69,"js-nacl":131}],3:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -76,7 +45,8 @@ module.exports = lisk;
  */
 
 /**
- * LiskAPI module provides functions for interfacing with the Lisk network. Providing mechanisms for:
+ * LiskAPI module provides functions for interfacing with the Lisk network.
+ * Providing mechanisms for:
  *
  * - Retrieval of blockchain data: accounts, blocks, transactions.
  * - Enhancing Lisk security by local signing of transactions and immediate network transmission.
@@ -90,7 +60,7 @@ module.exports = lisk;
  *         testnet: true,
  *         port: '7000',
  *         bannedPeers: [],
- * 		   peers: [],
+ *         peers: [],
  *         nethash: ''
  *     };
  *
@@ -108,31 +78,40 @@ var privateApi = require('./privateApi');
 var config = require('../../config.json');
 var extend = require('./utils').extend;
 
-function LiskAPI (options) {
-	if (!(this instanceof LiskAPI)) {
-		return new LiskAPI(options);
-	}
+function LiskAPI() {
+  var providedOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-	options = extend(config.options, (options || {}));
+  if (!(this instanceof LiskAPI)) {
+    return new LiskAPI(providedOptions);
+  }
 
-	this.defaultPeers = options.peers || config.peers.mainnet;
+  var options = extend(config.options, providedOptions);
+  var getDefaultPort = function getDefaultPort() {
+    if (options.testnet) return 7000;
+    if (options.ssl) return 443;
+    return 8000;
+  };
 
-	this.defaultSSLPeers = this.defaultPeers;
+  this.defaultPeers = options.peers || config.peers.mainnet;
 
-	this.defaultTestnetPeers = options.peers || config.peers.testnet;
+  this.defaultSSLPeers = this.defaultPeers;
 
-	this.options = options;
-	this.ssl = options.ssl;
-	// Random peer can be set by settings with randomPeer: true | false
-	// Random peer is automatically enabled when no options.node has been entered. Else will be set to false
-	// If the desired behaviour is to have an own node and automatic peer discovery, randomPeer should be set to true explicitly
-	this.randomPeer = (typeof options.randomPeer === 'boolean') ? options.randomPeer : !(options.node);
-	this.testnet = options.testnet;
-	this.bannedPeers = options.bannedPeers;
-	this.currentPeer = options.node || privateApi.selectNode.call(this);
-	this.port = (options.port === '' || options.port) ? options.port : (options.testnet ? 7000 : (options.ssl ? 443 : 8000));
-	this.parseOfflineRequests = parseOfflineRequest;
-	this.nethash = this.getNethash(options.nethash);
+  this.defaultTestnetPeers = options.peers || config.peers.testnet;
+
+  this.options = options;
+  this.ssl = options.ssl;
+  // Random peer can be set by settings with randomPeer: true | false
+  // Random peer is automatically enabled when no options.node has been entered. Else will be set
+  // to false.
+  // If the desired behaviour is to have an own node and automatic peer discovery, randomPeer
+  // should be set to true explicitly
+  this.randomPeer = typeof options.randomPeer === 'boolean' ? options.randomPeer : !options.node;
+  this.testnet = options.testnet;
+  this.bannedPeers = options.bannedPeers;
+  this.currentPeer = options.node || privateApi.selectNode.call(this);
+  this.port = options.port === '' || options.port ? options.port : getDefaultPort(options);
+  this.parseOfflineRequests = parseOfflineRequest;
+  this.nethash = this.getNethash(options.nethash);
 }
 
 /**
@@ -141,15 +120,15 @@ function LiskAPI (options) {
  * @public
  */
 
-LiskAPI.prototype.getNethash = function (providedNethash) {
-	var NetHash = (this.testnet) ? privateApi.netHashOptions.call(this).testnet : privateApi.netHashOptions.call(this).mainnet;
+LiskAPI.prototype.getNethash = function getNethash(providedNethash) {
+  var NetHash = this.testnet ? privateApi.netHashOptions.call(this).testnet : privateApi.netHashOptions.call(this).mainnet;
 
-	if (providedNethash) {
-		NetHash.nethash = providedNethash;
-		NetHash.version = '0.0.0a';
-	}
+  if (providedNethash) {
+    NetHash.nethash = providedNethash;
+    NetHash.version = '0.0.0a';
+  }
 
-	return NetHash;
+  return NetHash;
 };
 
 /**
@@ -157,12 +136,18 @@ LiskAPI.prototype.getNethash = function (providedNethash) {
  * @return {object}
  */
 
-LiskAPI.prototype.listPeers = function () {
-	return {
-		official: this.defaultPeers.map(function (node) { return {node: node};}),
-		ssl: this.defaultSSLPeers.map(function (node) { return {node: node, ssl: true};}),
-		testnet: this.defaultTestnetPeers.map(function (node) { return {node: node, testnet: true};}),
-	};
+LiskAPI.prototype.listPeers = function listPeers() {
+  return {
+    official: this.defaultPeers.map(function (node) {
+      return { node: node };
+    }),
+    ssl: this.defaultSSLPeers.map(function (node) {
+      return { node: node, ssl: true };
+    }),
+    testnet: this.defaultTestnetPeers.map(function (node) {
+      return { node: node, testnet: true };
+    })
+  };
 };
 
 /**
@@ -171,9 +156,9 @@ LiskAPI.prototype.listPeers = function () {
  * @return {object}
  */
 
-LiskAPI.prototype.setNode = function (node) {
-	this.currentPeer = node || privateApi.selectNode.call(this);
-	return this.currentPeer;
+LiskAPI.prototype.setNode = function setNode(node) {
+  this.currentPeer = node || privateApi.selectNode.call(this);
+  return this.currentPeer;
 };
 
 /**
@@ -181,18 +166,18 @@ LiskAPI.prototype.setNode = function (node) {
  * @param testnet boolean
  */
 
-LiskAPI.prototype.setTestnet = function (testnet) {
-	if (this.testnet !== testnet) {
-		this.testnet = testnet;
-		this.bannedPeers = [];
-		this.port = 7000;
-		privateApi.selectNode.call(this);
-	} else {
-		this.testnet = false;
-		this.bannedPeers = [];
-		this.port = 8000;
-		privateApi.selectNode.call(this);
-	}
+LiskAPI.prototype.setTestnet = function setTestnet(testnet) {
+  if (this.testnet !== testnet) {
+    this.testnet = testnet;
+    this.bannedPeers = [];
+    this.port = 7000;
+    privateApi.selectNode.call(this);
+  } else {
+    this.testnet = false;
+    this.bannedPeers = [];
+    this.port = 8000;
+    privateApi.selectNode.call(this);
+  }
 };
 
 /**
@@ -200,59 +185,56 @@ LiskAPI.prototype.setTestnet = function (testnet) {
  * @param ssl boolean
  */
 
-LiskAPI.prototype.setSSL = function (ssl) {
-	if (this.ssl !== ssl) {
-		this.ssl = ssl;
-		this.bannedPeers = [];
-		privateApi.selectNode.call(this);
-	}
+LiskAPI.prototype.setSSL = function setSSL(ssl) {
+  if (this.ssl !== ssl) {
+    this.ssl = ssl;
+    this.bannedPeers = [];
+    privateApi.selectNode.call(this);
+  }
 };
 
-function parseResponse (requestType, options, requestSuccess) {
-	var parser = parseOfflineRequest(requestType, options);
-	return parser.requestMethod === 'GET'
-		? requestSuccess.body
-		: parser.transactionOutputAfter(requestSuccess.body);
+function parseResponse(requestType, options, requestSuccess) {
+  var parser = parseOfflineRequest(requestType, options);
+  return parser.requestMethod === 'GET' ? requestSuccess.body : parser.transactionOutputAfter(requestSuccess.body);
 }
 
-function handleTimestampIsInFutureFailures (requestType, options, result) {
-	if (!result.success && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40e3)) {
-		var newOptions = {};
+function handleTimestampIsInFutureFailures(requestType, options, result) {
+  if (!result.success && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
+    var newOptions = {};
 
-		Object.keys(options).forEach(function (key) {
-			newOptions[key] = options[key];
-		});
-		newOptions.timeOffset = (options.timeOffset || 0) + 10e3;
+    Object.keys(options).forEach(function (key) {
+      newOptions[key] = options[key];
+    });
+    newOptions.timeOffset = (options.timeOffset || 0) + 10;
 
-		return this.sendRequest(requestType, newOptions);
-	}
-	return Promise.resolve(result);
+    return this.sendRequest(requestType, newOptions);
+  }
+  return Promise.resolve(result);
 }
 
-function handleSendRequestFailures (requestType, options, error) {
-	var that = this;
-	if (privateApi.checkReDial.call(that)) {
-		return new Promise(function (resolve, reject) {
-			setTimeout(function () {
-				privateApi.banNode.call(that);
-				that.setNode();
-				that.sendRequest(requestType, options)
-					.then(resolve, reject);
-			}, 1000);
-		});
-	}
-	return Promise.resolve({
-		success: false,
-		error: error,
-		message: 'could not create http request to any of the given peers'
-	});
+function handleSendRequestFailures(requestType, options, error) {
+  var that = this;
+  if (privateApi.checkReDial.call(that)) {
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        privateApi.banNode.call(that);
+        that.setNode();
+        that.sendRequest(requestType, options).then(resolve, reject);
+      }, 1000);
+    });
+  }
+  return Promise.resolve({
+    success: false,
+    error: error,
+    message: 'could not create http request to any of the given peers'
+  });
 }
 
-function optionallyCallCallback (callback, result) {
-	if (callback && (typeof callback === 'function')) {
-		callback(result);
-	}
-	return result;
+function optionallyCallCallback(callback, result) {
+  if (callback && typeof callback === 'function') {
+    callback(result);
+  }
+  return result;
 }
 
 /**
@@ -264,15 +246,11 @@ function optionallyCallCallback (callback, result) {
  * @return APIanswer Object
  */
 
-LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
-	callback = callback || options;
-	options = typeof options !== 'function' && typeof options !== 'undefined' ? privateApi.checkOptions.call(this, options) : {};
+LiskAPI.prototype.sendRequest = function sendRequest(requestType, optionsOrCallback, callbackIfOptions) {
+  var callback = callbackIfOptions || optionsOrCallback;
+  var options = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? privateApi.checkOptions.call(this, optionsOrCallback) : {};
 
-	return privateApi.sendRequestPromise.call(this, requestType, options)
-		.then(parseResponse.bind(this, requestType, options))
-		.then(handleTimestampIsInFutureFailures.bind(this, requestType, options))
-		.catch(handleSendRequestFailures.bind(this, requestType, options))
-		.then(optionallyCallCallback.bind(this, callback));
+  return privateApi.sendRequestPromise.call(this, requestType, options).then(parseResponse.bind(this, requestType, options)).then(handleTimestampIsInFutureFailures.bind(this, requestType, options)).catch(handleSendRequestFailures.bind(this, requestType, options)).then(optionallyCallCallback.bind(this, callback));
 };
 
 /**
@@ -282,14 +260,14 @@ LiskAPI.prototype.sendRequest = function (requestType, options, callback) {
  * @return keys object
  */
 
-LiskAPI.prototype.getAddressFromSecret = function (secret) {
-	var accountKeys = LiskJS.crypto.getKeys(secret);
-	var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
+LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
+  var accountKeys = LiskJS.crypto.getKeys(secret);
+  var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
 
-	return {
-		address: accountAddress,
-		publicKey: accountKeys.publicKey
-	};
+  return {
+    address: accountAddress,
+    publicKey: accountKeys.publicKey
+  };
 };
 
 /**
@@ -300,10 +278,10 @@ LiskAPI.prototype.getAddressFromSecret = function (secret) {
  * @return API object
  */
 
-LiskAPI.prototype.getAccount = function (address, callback) {
-	return this.sendRequest('accounts', { address: address }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.getAccount = function getAccount(address, callback) {
+  return this.sendRequest('accounts', { address: address }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -314,10 +292,10 @@ LiskAPI.prototype.getAccount = function (address, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.generateAccount = function (secret, callback) {
-	var keys = LiskJS.crypto.getPrivateAndPublicKeyFromSecret(secret);
-	callback(keys);
-	return this;
+LiskAPI.prototype.generateAccount = function generateAccount(secret, callback) {
+  var keys = LiskJS.crypto.getPrivateAndPublicKeyFromSecret(secret);
+  callback(keys);
+  return this;
 };
 
 /**
@@ -328,10 +306,10 @@ LiskAPI.prototype.generateAccount = function (secret, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.listActiveDelegates = function (limit, callback) {
-	this.sendRequest('delegates/', { limit: limit}, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.listActiveDelegates = function listActiveDelegates(limit, callback) {
+  this.sendRequest('delegates/', { limit: limit }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -342,12 +320,12 @@ LiskAPI.prototype.listActiveDelegates = function (limit, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.listStandbyDelegates = function (limit, callback) {
-	var standByOffset = 101;
+LiskAPI.prototype.listStandbyDelegates = function listStandbyDelegates(limit, callback) {
+  var standByOffset = 101;
 
-	this.sendRequest('delegates/', { limit: limit, orderBy: 'rate:asc', offset: standByOffset}, function (result) {
-		return callback(result);
-	});
+  this.sendRequest('delegates/', { limit: limit, orderBy: 'rate:asc', offset: standByOffset }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -358,10 +336,10 @@ LiskAPI.prototype.listStandbyDelegates = function (limit, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.searchDelegateByUsername = function (username, callback) {
-	this.sendRequest('delegates/search/', { q: username }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.searchDelegateByUsername = function searchDelegateByUsername(username, callback) {
+  this.sendRequest('delegates/search/', { q: username }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -372,10 +350,10 @@ LiskAPI.prototype.searchDelegateByUsername = function (username, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.listBlocks = function (amount, callback) {
-	this.sendRequest('blocks', { limit: amount }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.listBlocks = function listBlocks(amount, callback) {
+  this.sendRequest('blocks', { limit: amount }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -386,10 +364,10 @@ LiskAPI.prototype.listBlocks = function (amount, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.listForgedBlocks = function (publicKey, callback) {
-	this.sendRequest('blocks', { generatorPublicKey: publicKey }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.listForgedBlocks = function listForgedBlocks(publicKey, callback) {
+  this.sendRequest('blocks', { generatorPublicKey: publicKey }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -400,10 +378,10 @@ LiskAPI.prototype.listForgedBlocks = function (publicKey, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.getBlock = function (block, callback) {
-	this.sendRequest('blocks', { height: block }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.getBlock = function getBlock(block, callback) {
+  this.sendRequest('blocks', { height: block }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -416,12 +394,14 @@ LiskAPI.prototype.getBlock = function (block, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.listTransactions = function (address, limit, offset, callback) {
-	offset = offset || '0';
-	limit = limit || '20';
-	this.sendRequest('transactions', { senderId: address, recipientId: address, limit: limit, offset: offset, orderBy: 'timestamp:desc' }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.listTransactions = function listTransactions(address) {
+  var limit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '20';
+  var offset = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '0';
+  var callback = arguments[3];
+
+  this.sendRequest('transactions', { senderId: address, recipientId: address, limit: limit, offset: offset, orderBy: 'timestamp:desc' }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -432,10 +412,10 @@ LiskAPI.prototype.listTransactions = function (address, limit, offset, callback)
  * @return API object
  */
 
-LiskAPI.prototype.getTransaction = function (transactionId, callback) {
-	this.sendRequest('transactions/get', { id: transactionId }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.getTransaction = function getTransaction(transactionId, callback) {
+  this.sendRequest('transactions/get', { id: transactionId }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -446,10 +426,10 @@ LiskAPI.prototype.getTransaction = function (transactionId, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.listVotes = function (address, callback) {
-	this.sendRequest('accounts/delegates', { address: address }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.listVotes = function listVotes(address, callback) {
+  this.sendRequest('accounts/delegates', { address: address }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -460,10 +440,10 @@ LiskAPI.prototype.listVotes = function (address, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.listVoters = function (publicKey, callback) {
-	this.sendRequest('delegates/voters', { publicKey: publicKey }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.listVoters = function listVoters(publicKey, callback) {
+  this.sendRequest('delegates/voters', { publicKey: publicKey }, function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -477,10 +457,10 @@ LiskAPI.prototype.listVoters = function (publicKey, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, callback) {
-	this.sendRequest('transactions', { recipientId: recipient, amount: amount, secret: secret, secondSecret: secondSecret }, function (response) {
-		return callback(response);
-	});
+LiskAPI.prototype.sendLSK = function sendLSK(recipient, amount, secret, secondSecret, callback) {
+  this.sendRequest('transactions', { recipientId: recipient, amount: amount, secret: secret, secondSecret: secondSecret }, function (response) {
+    return callback(response);
+  });
 };
 
 /**
@@ -490,10 +470,10 @@ LiskAPI.prototype.sendLSK = function (recipient, amount, secret, secondSecret, c
  * @return API object
  */
 
-LiskAPI.prototype.listMultisignatureTransactions = function (callback) {
-	this.sendRequest('transactions/multisignatures', function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.listMultisignatureTransactions = function listMultisignatureTransactions(callback) {
+  this.sendRequest('transactions/multisignatures', function (result) {
+    return callback(result);
+  });
 };
 
 /**
@@ -504,30 +484,29 @@ LiskAPI.prototype.listMultisignatureTransactions = function (callback) {
  * @return API object
  */
 
-LiskAPI.prototype.getMultisignatureTransaction = function (transactionId, callback) {
-	this.sendRequest('transactions/multisignatures/get', { id: transactionId }, function (result) {
-		return callback(result);
-	});
+LiskAPI.prototype.getMultisignatureTransaction = function getMultisignatureTransaction(transactionId, callback) {
+  this.sendRequest('transactions/multisignatures/get', { id: transactionId }, function (result) {
+    return callback(result);
+  });
 };
 
-LiskAPI.prototype.broadcastSignedTransaction = function (transaction, callback) {
+LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransaction(transaction, callback) {
+  var request = {
+    requestMethod: 'POST',
+    requestUrl: privateApi.getFullUrl.call(this) + '/peer/transactions',
+    nethash: this.nethash,
+    requestParams: { transaction: transaction }
+  };
 
-	var request = {
-		requestMethod: 'POST',
-		requestUrl: privateApi.getFullUrl.call(this) + '/peer/' + 'transactions',
-		nethash: this.nethash,
-		requestParams: { transaction }
-	};
-
-	privateApi.doPopsicleRequest.call(this, request).then(function (result) {
-		return callback(result.body);
-	});
-
+  privateApi.doPopsicleRequest.call(this, request).then(function (result) {
+    return callback(result.body);
+  });
 };
 
 module.exports = LiskAPI;
+},{"../../config.json":1,"../transactions/crypto":9,"./parseTransaction":3,"./privateApi":4,"./utils":5}],3:[function(require,module,exports){
+'use strict';
 
-},{"../../config.json":1,"../transactions/crypto":9,"./parseTransaction":4,"./privateApi":5,"./utils":6}],4:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -554,7 +533,8 @@ LiskJS.transfer = require('../transactions/transfer');
 LiskJS.vote = require('../transactions/vote');
 
 /**
- * ParseOfflineRequest module provides automatic routing of new transaction requests which can be signed locally, and then broadcast without any passphrases being transmitted.
+ * ParseOfflineRequest module provides automatic routing of new transaction requests which can be
+ * signed locally, and then broadcast without any passphrases being transmitted.
  *
  * @method ParseOfflineRequest
  * @param requestType
@@ -562,7 +542,7 @@ LiskJS.vote = require('../transactions/vote');
  * @main lisk
  */
 
-function ParseOfflineRequest (requestType, options) {
+function ParseOfflineRequest(requestType, options) {
 	if (!(this instanceof ParseOfflineRequest)) {
 		return new ParseOfflineRequest(requestType, options);
 	}
@@ -582,14 +562,8 @@ function ParseOfflineRequest (requestType, options) {
  * @return string
  */
 
-ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, options) {
-	if (requestType === 'transactions' || requestType === 'accounts/delegates') {
-		if (options && !options.hasOwnProperty('secret')) {
-			requestType = 'getTransactions';
-		}
-	}
-
-	return requestType;
+ParseOfflineRequest.prototype.checkDoubleNamedAPI = function checkDoubleNamedAPI(requestType, options) {
+	return (requestType === 'transactions' || requestType === 'accounts/delegates') && options && !options.secret ? 'getTransactions' : requestType;
 };
 
 /**
@@ -598,11 +572,11 @@ ParseOfflineRequest.prototype.checkDoubleNamedAPI = function (requestType, optio
  * @return string
  */
 
-ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
-	requestType = this.checkDoubleNamedAPI(requestType, this.options);
+ParseOfflineRequest.prototype.httpGETPUTorPOST = function httpGETPUTorPOST(providedRequestType) {
+	var requestType = this.checkDoubleNamedAPI(providedRequestType, this.options);
 
-	var requestMethod;
-	var requestIdentification =  {
+	var requestMethod = void 0;
+	var requestIdentification = {
 		'accounts/open': 'POST',
 		'accounts/generatePublicKey': 'POST',
 		'delegates/forging/enable': 'NOACTION',
@@ -613,11 +587,11 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
 		'dapps/stop': 'NOACTION',
 		'multisignatures/sign': 'POST',
 		'accounts/delegates': 'PUT',
-		'transactions': 'PUT',
-		'signatures': 'PUT',
-		'delegates': 'PUT',
-		'dapps': 'PUT',
-		'multisignatures': 'POST'
+		transactions: 'PUT',
+		signatures: 'PUT',
+		delegates: 'PUT',
+		dapps: 'PUT',
+		multisignatures: 'POST'
 	};
 
 	if (!requestIdentification[requestType]) {
@@ -635,24 +609,22 @@ ParseOfflineRequest.prototype.httpGETPUTorPOST = function (requestType) {
  * @return {object}
  */
 
-ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
-	if (this.options && this.options.hasOwnProperty('secret')) {
-		var accountKeys = LiskJS.crypto.getKeys(this.options['secret']);
-		var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
-	}
+ParseOfflineRequest.prototype.checkOfflineRequestBefore = function checkOfflineRequestBefore() {
+	var accountKeys = this.options.secret ? LiskJS.crypto.getKeys(this.options.secret) : {};
+	var accountAddress = accountKeys.publicKey ? LiskJS.crypto.getAddress(accountKeys.publicKey) : '';
 
 	var OfflineRequestThis = this;
-	var requestIdentification =  {
-		'accounts/open': function () {
+	var requestIdentification = {
+		'accounts/open': function getAccountsOpen() {
 			return {
 				requestMethod: 'GET',
-				requestUrl: 'accounts?address='+accountAddress
+				requestUrl: 'accounts?address=' + accountAddress
 			};
 		},
-		'accounts/generatePublicKey': function () {
+		'accounts/generatePublicKey': function getAccountsGeneratePublicKey() {
 			return {
 				requestMethod: 'GET',
-				requestUrl: 'accounts?address='+accountAddress
+				requestUrl: 'accounts?address=' + accountAddress
 			};
 		},
 		'delegates/forging/enable': 'POST',
@@ -661,8 +633,8 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 		'dapps/uninstall': 'POST',
 		'dapps/launch': 'POST',
 		'dapps/stop': 'POST',
-		'multisignatures/sign': function () {
-			var transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options['transaction'], OfflineRequestThis.options['secret']);
+		'multisignatures/sign': function postMultisignaturesSign() {
+			var transaction = LiskJS.multisignature.signTransaction(OfflineRequestThis.options.transaction, OfflineRequestThis.options.secret);
 
 			return {
 				requestMethod: 'POST',
@@ -670,8 +642,8 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				params: { signature: transaction }
 			};
 		},
-		'accounts/delegates': function () {
-			var transaction = LiskJS.vote.createVote(OfflineRequestThis.options['secret'], OfflineRequestThis.options['delegates'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+		'accounts/delegates': function postAccountsDelegates() {
+			var transaction = LiskJS.vote.createVote(OfflineRequestThis.options.secret, OfflineRequestThis.options.delegates, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
@@ -679,8 +651,8 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				params: { transaction: transaction }
 			};
 		},
-		'transactions': function () {
-			var transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options['recipientId'], OfflineRequestThis.options['amount'], OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+		transactions: function transactions() {
+			var transaction = LiskJS.transaction.createTransaction(OfflineRequestThis.options.recipientId, OfflineRequestThis.options.amount, OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
@@ -688,8 +660,8 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				params: { transaction: transaction }
 			};
 		},
-		'signatures': function () {
-			var transaction = LiskJS.signature.createSignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+		signatures: function signatures() {
+			var transaction = LiskJS.signature.createSignature(OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
@@ -697,25 +669,25 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				params: { transaction: transaction }
 			};
 		},
-		'delegates': function () {
-			var transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options['secret'], OfflineRequestThis.options['username'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['timeOffset']);
+		delegates: function delegates() {
+			var transaction = LiskJS.delegate.createDelegate(OfflineRequestThis.options.secret, OfflineRequestThis.options.username, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.timeOffset);
 			return {
 				requestMethod: 'POST',
 				requestUrl: 'transactions',
 				params: { transaction: transaction }
 			};
 		},
-		'dapps': function () {
+		dapps: function dapps() {
 			var DappOptions = {
-				category: OfflineRequestThis.options['category'],
-				name: OfflineRequestThis.options['name'],
-				description: OfflineRequestThis.options['description'],
-				tags: OfflineRequestThis.options['tags'],
-				type: OfflineRequestThis.options['type'],
-				link: OfflineRequestThis.options['link'],
-				icon: OfflineRequestThis.options['icon'],
-				secret: OfflineRequestThis.options['secret'],
-				secondSecret: OfflineRequestThis.options['secondSecret']
+				category: OfflineRequestThis.options.category,
+				name: OfflineRequestThis.options.name,
+				description: OfflineRequestThis.options.description,
+				tags: OfflineRequestThis.options.tags,
+				type: OfflineRequestThis.options.type,
+				link: OfflineRequestThis.options.link,
+				icon: OfflineRequestThis.options.icon,
+				secret: OfflineRequestThis.options.secret,
+				secondSecret: OfflineRequestThis.options.secondSecret
 			};
 
 			var transaction = LiskJS.dapp.createDapp(DappOptions);
@@ -726,8 +698,8 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
 				params: { transaction: transaction }
 			};
 		},
-		'multisignatures': function () {
-			var transaction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options['secret'], OfflineRequestThis.options['secondSecret'], OfflineRequestThis.options['keysgroup'], OfflineRequestThis.options['lifetime'], OfflineRequestThis.options['min'], OfflineRequestThis.options['timeOffset']);
+		multisignatures: function multisignatures() {
+			var transaction = LiskJS.multisignature.createMultisignature(OfflineRequestThis.options.secret, OfflineRequestThis.options.secondSecret, OfflineRequestThis.options.keysgroup, OfflineRequestThis.options.lifetime, OfflineRequestThis.options.min, OfflineRequestThis.options.timeOffset);
 
 			return {
 				requestMethod: 'POST',
@@ -747,28 +719,26 @@ ParseOfflineRequest.prototype.checkOfflineRequestBefore = function () {
  * @return {object}
  */
 
-ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) {
-	if (this.options['secret']) {
-		var accountKeys = LiskJS.crypto.getKeys(this.options['secret']);
-		var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
-	}
+ParseOfflineRequest.prototype.transactionOutputAfter = function transactionOutputAfter(requestAnswer) {
+	var accountKeys = LiskJS.crypto.getKeys(this.options.secret);
+	var accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
 
-	var transformAnswer;
-	var requestIdentification =  {
-		'accounts/open': function () {
+	var transformAnswer = void 0;
+	var requestIdentification = {
+		'accounts/open': function transformAccountsOpen() {
 			if (requestAnswer.error === 'Account not found') {
 				transformAnswer = {
 					success: 'true',
-					'account': {
-						'address': accountAddress,
-						'unconfirmedBalance': '0',
-						'balance': '0',
-						'publicKey': accountKeys.publicKey,
-						'unconfirmedSignature': '0',
-						'secondSignature': '0',
-						'secondPublicKey': null,
-						'multisignatures': null,
-						'u_multisignatures': null
+					account: {
+						address: accountAddress,
+						unconfirmedBalance: '0',
+						balance: '0',
+						publicKey: accountKeys.publicKey,
+						unconfirmedSignature: '0',
+						secondSignature: '0',
+						secondPublicKey: null,
+						multisignatures: null,
+						u_multisignatures: null // eslint-disable-line camelcase
 					}
 				};
 			} else {
@@ -777,67 +747,67 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 
 			return transformAnswer;
 		},
-		'accounts/generatePublicKey': function () {
+		'accounts/generatePublicKey': function transformAccountsGeneratePublicKey() {
 			return {
-				'success': 'true',
-				'publicKey': accountKeys.publicKey
+				success: 'true',
+				publicKey: accountKeys.publicKey
 			};
 		},
-		'delegates/forging/enable': function () {
+		'delegates/forging/enable': function transformDelegatesForgingEnable() {
 			return {
-				'success': 'false',
-				'error': 'Forging not available via offlineRequest'
+				success: 'false',
+				error: 'Forging not available via offlineRequest'
 			};
 		},
-		'delegates/forging/disable': function () {
+		'delegates/forging/disable': function transformDelegatesForgingDisable() {
 			return {
-				'success': 'false',
-				'error': 'Forging not available via offlineRequest'
+				success: 'false',
+				error: 'Forging not available via offlineRequest'
 			};
 		},
-		'dapps/install': function () {
+		'dapps/install': function transformDappsInstall() {
 			return {
-				'success': 'false',
-				'error': 'Install dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Install dapp not available via offlineRequest'
 			};
 		},
-		'dapps/uninstall': function () {
+		'dapps/uninstall': function transformDappsUninstall() {
 			return {
-				'success': 'false',
-				'error': 'Uninstall dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Uninstall dapp not available via offlineRequest'
 			};
 		},
-		'dapps/launch': function () {
+		'dapps/launch': function transformDappsLaunch() {
 			return {
-				'success': 'false',
-				'error': 'Launch dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Launch dapp not available via offlineRequest'
 			};
 		},
-		'dapps/stop': function () {
+		'dapps/stop': function transformDappsStop() {
 			return {
-				'success': 'false',
-				'error': 'Stop dapp not available via offlineRequest'
+				success: 'false',
+				error: 'Stop dapp not available via offlineRequest'
 			};
 		},
-		'multisignatures/sign': function () {
+		'multisignatures/sign': function transformMultisignaturesSign() {
 			return requestAnswer;
 		},
-		'accounts/delegates': function () {
+		'accounts/delegates': function transformAccountsDelegates() {
 			return requestAnswer;
 		},
-		'transactions': function () {
+		transactions: function transactions() {
 			return requestAnswer;
 		},
-		'signatures': function () {
+		signatures: function signatures() {
 			return requestAnswer;
 		},
-		'delegates': function () {
+		delegates: function delegates() {
 			return requestAnswer;
 		},
-		'dapps': function () {
+		dapps: function dapps() {
 			return requestAnswer;
 		},
-		'multisignatures': function () {
+		multisignatures: function multisignatures() {
 			return requestAnswer;
 		}
 	};
@@ -846,8 +816,11 @@ ParseOfflineRequest.prototype.transactionOutputAfter = function (requestAnswer) 
 };
 
 module.exports = ParseOfflineRequest;
+},{"../transactions/crypto":9,"../transactions/dapp":15,"../transactions/delegate":16,"../transactions/multisignature":17,"../transactions/signature":18,"../transactions/transaction":19,"../transactions/transfer":20,"../transactions/vote":22}],4:[function(require,module,exports){
+'use strict';
 
-},{"../transactions/crypto":9,"../transactions/dapp":15,"../transactions/delegate":16,"../transactions/multisignature":17,"../transactions/signature":18,"../transactions/transaction":19,"../transactions/transfer":20,"../transactions/vote":21}],5:[function(require,module,exports){
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var utils = require('./utils');
 var popsicle = require('popsicle');
 
@@ -857,25 +830,25 @@ var popsicle = require('popsicle');
  * @private
  */
 
-function netHashOptions () {
+function netHashOptions() {
 	return {
 		testnet: {
 			'Content-Type': 'application/json',
-			'nethash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'broadhash': 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': this.port
+			nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			broadhash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			os: 'lisk-js-api',
+			version: '1.0.0',
+			minVersion: '>=0.5.0',
+			port: this.port
 		},
 		mainnet: {
 			'Content-Type': 'application/json',
-			'nethash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'broadhash': 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			'os': 'lisk-js-api',
-			'version': '1.0.0',
-			'minVersion': '>=0.5.0',
-			'port': this.port
+			nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			os: 'lisk-js-api',
+			version: '1.0.0',
+			minVersion: '>=0.5.0',
+			port: this.port
 		}
 	};
 }
@@ -886,12 +859,11 @@ function netHashOptions () {
  * @private
  */
 
-function getURLPrefix  () {
+function getURLPrefix() {
 	if (this.ssl) {
 		return 'https';
-	} else {
-		return 'http';
 	}
+	return 'http';
 }
 
 /**
@@ -900,11 +872,11 @@ function getURLPrefix  () {
  * @private
  */
 
-function getFullUrl () {
+function getFullUrl() {
 	var nodeUrl = this.currentPeer;
 
 	if (this.port) {
-		nodeUrl += ':'+this.port;
+		nodeUrl += ':' + this.port;
 	}
 
 	return getURLPrefix.call(this) + '://' + nodeUrl;
@@ -916,11 +888,11 @@ function getFullUrl () {
  * @private
  */
 
-function getRandomPeer () {
-	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+function getRandomPeer() {
+	var peers = this.ssl ? this.defaultSSLPeers : this.defaultPeers;
 	if (this.testnet) peers = this.defaultTestnetPeers;
 
-	var getRandomNumberForPeer = Math.floor((Math.random() * peers.length));
+	var getRandomNumberForPeer = Math.floor(Math.random() * peers.length);
 	return peers[getRandomNumberForPeer];
 }
 
@@ -930,8 +902,10 @@ function getRandomPeer () {
  * @private
  */
 
-function selectNode () {
-	var currentRandomPeer;
+function selectNode() {
+	var _this = this;
+
+	var currentRandomPeer = void 0;
 
 	if (this.options.node) {
 		currentRandomPeer = this.currentPeer;
@@ -939,13 +913,13 @@ function selectNode () {
 
 	if (this.randomPeer) {
 		currentRandomPeer = getRandomPeer.call(this);
-		var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+		var peers = this.ssl ? this.defaultSSLPeers : this.defaultPeers;
 		if (this.testnet) peers = this.defaultTestnetPeers;
 
-		for (var x = 0; x< peers.length; x++) {
-			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) break;
-			currentRandomPeer = getRandomPeer.call(this);
-		}
+		peers.forEach(function () {
+			if (_this.bannedPeers.indexOf(currentRandomPeer) === -1) return;
+			currentRandomPeer = getRandomPeer.call(_this);
+		});
 	}
 
 	return currentRandomPeer;
@@ -956,7 +930,7 @@ function selectNode () {
  * @private
  */
 
-function banNode () {
+function banNode() {
 	if (this.bannedPeers.indexOf(this.currentPeer) === -1) this.bannedPeers.push(this.currentPeer);
 	selectNode.call(this);
 }
@@ -967,8 +941,8 @@ function banNode () {
  * @private
  */
 
-function checkReDial () {
-	var peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+function checkReDial() {
+	var peers = this.ssl ? this.defaultSSLPeers : this.defaultPeers;
 	if (this.testnet) peers = this.defaultTestnetPeers;
 
 	var reconnect = true;
@@ -981,19 +955,20 @@ function checkReDial () {
 			if (this.options.nethash === netHashOptions.call(this).testnet.nethash) {
 				this.setTestnet(true);
 				reconnect = true;
-			// Nethash is equal to mainnet nethash, we can proceed to get mainnet peers
+				// Nethash is equal to mainnet nethash, we can proceed to get mainnet peers
 			} else if (this.options.nethash === netHashOptions.call(this).mainnet.nethash) {
 				this.setTestnet(false);
 				reconnect = true;
-			// Nethash is neither mainnet nor testnet, do not proceed to get peers
+				// Nethash is neither mainnet nor testnet, do not proceed to get peers
 			} else {
 				reconnect = false;
 			}
-		// No nethash set, we can take the usual approach, just when there are not-banned peers, take one
+			// No nethash set, we can take the usual approach:
+			// just when there are not-banned peers, take one
 		} else {
-			reconnect = (peers.length !== this.bannedPeers.length);
+			reconnect = peers.length !== this.bannedPeers.length;
 		}
-	// RandomPeer is not explicitly set, no peer discovery
+		// RandomPeer is not explicitly set, no peer discovery
 	} else {
 		reconnect = false;
 	}
@@ -1007,10 +982,14 @@ function checkReDial () {
  * @private
  */
 
-function checkOptions (options) {
-	Object.keys(options).forEach(function (optionKey) {
-		if (options[optionKey] === undefined || options[optionKey] !== options[optionKey]) {
-			throw { message: 'parameter value "'+optionKey+'" should not be '+ options[optionKey]  };
+function checkOptions(options) {
+	Object.entries(options).forEach(function (_ref) {
+		var _ref2 = _slicedToArray(_ref, 2),
+		    key = _ref2[0],
+		    value = _ref2[1];
+
+		if (value === undefined || Number.isNaN(value)) {
+			throw new Error('parameter value "' + key + '" should not be ' + value);
 		}
 	});
 
@@ -1024,14 +1003,14 @@ function checkOptions (options) {
  * @return serialisedData string
  */
 
-function serialiseHttpData (data) {
-	var serialised;
+function serialiseHttpData(data) {
+	var serialised = void 0;
 
 	serialised = utils.trimObj(data);
 	serialised = utils.toQueryString(serialised);
 	serialised = encodeURI(serialised);
 
-	return '?'+serialised;
+	return '?' + serialised;
 }
 
 /**
@@ -1043,10 +1022,36 @@ function serialiseHttpData (data) {
  * @return method string
  */
 
-function checkRequest (requestType, options) {
+function checkRequest(requestType, options) {
 	return this.parseOfflineRequests(requestType, options).requestMethod;
 }
 
+function transformGETRequest(baseRequestObject, requestType, options) {
+	var requestMethod = 'GET';
+	var requestUrlBase = getFullUrl.call(this) + '/api/' + requestType;
+	var requestUrl = Object.keys(options).length ? requestUrlBase + serialiseHttpData.call(this, options, requestMethod) : requestUrlBase;
+	var requestParams = options;
+	return Object.assign({}, baseRequestObject, {
+		requestMethod: requestMethod,
+		requestUrl: requestUrl,
+		requestParams: requestParams
+	});
+}
+
+function transformPUTOrPOSTRequest(baseRequestObject, requestType, options) {
+	var transformRequest = this.parseOfflineRequests(requestType, options).checkOfflineRequestBefore();
+
+	return transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures' ? Object.assign({}, {
+		requestUrl: getFullUrl.call(this) + '/peer/' + transformRequest.requestUrl,
+		nethash: this.nethash,
+		requestMethod: 'POST',
+		requestParams: transformRequest.params
+	}) : Object.assign({}, baseRequestObject, {
+		requestUrl: getFullUrl.call(this) + '/api/' + transformRequest.requestUrl,
+		requestMethod: transformRequest.requestMethod,
+		requestParams: options
+	});
+}
 
 /**
  * @method changeRequest
@@ -1057,47 +1062,23 @@ function checkRequest (requestType, options) {
  * @return httpRequest object
  */
 
-function changeRequest (requestType, options) {
-	var returnValue = {
+function changeRequest(requestType, options) {
+	var defaultRequestObject = {
 		requestMethod: '',
 		requestUrl: '',
 		nethash: '',
 		requestParams: ''
 	};
 
-	var that = this;
-	switch(checkRequest.call(this, requestType, options)) {
-	case 'GET':
-		returnValue.requestMethod = 'GET';
-		returnValue.requestUrl = getFullUrl.call(this) + '/api/' + requestType;
-
-		if (Object.keys(options).length > 0) {
-			returnValue.requestUrl = returnValue.requestUrl + serialiseHttpData.call(that, options, returnValue.requestMethod);
-		}
-
-		returnValue.requestParams = options;
-		break;
-	case 'PUT':
-	case 'POST':
-		var transformRequest = this.parseOfflineRequests(requestType, options).checkOfflineRequestBefore();
-
-		if (transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures') {
-			returnValue.requestUrl = getFullUrl.call(this)  + '/peer/'+ transformRequest.requestUrl;
-
-			returnValue.nethash = that.nethash;
-			returnValue.requestMethod = 'POST';
-			returnValue.requestParams = transformRequest.params;
-		} else {
-			returnValue.requestUrl = getFullUrl.call(this)  + '/api/'+ transformRequest.requestUrl;
-			returnValue.requestMethod = transformRequest.requestMethod;
-			returnValue.requestParams = options;
-		}
-		break;
-	default:
-		break;
+	switch (checkRequest.call(this, requestType, options)) {
+		case 'GET':
+			return transformGETRequest.call(this, defaultRequestObject, requestType, options);
+		case 'PUT':
+		case 'POST':
+			return transformPUTOrPOSTRequest.call(this, defaultRequestObject, requestType, options);
+		default:
+			return defaultRequestObject;
 	}
-
-	return returnValue;
 }
 
 /**
@@ -1108,7 +1089,7 @@ function changeRequest (requestType, options) {
  * @return APIcall Promise
  */
 
-function doPopsicleRequest (requestValue) {
+function doPopsicleRequest(requestValue) {
 	return popsicle.request({
 		method: requestValue.requestMethod,
 		url: requestValue.requestUrl,
@@ -1126,15 +1107,14 @@ function doPopsicleRequest (requestValue) {
  * @return APIcall Promise
  */
 
-function sendRequestPromise (requestType, options) {
+function sendRequestPromise(requestType, options) {
 	if (checkRequest.call(this, requestType, options) !== 'NOACTION') {
 		var requestValues = changeRequest.call(this, requestType, options);
 		return doPopsicleRequest.call(this, requestValues);
-	} else {
-		return new Promise(function (resolve) {
-			resolve({ done: 'done'});
-		});
 	}
+	return new Promise(function (resolve) {
+		resolve({ done: 'done' });
+	});
 }
 
 module.exports = {
@@ -1150,64 +1130,85 @@ module.exports = {
 	doPopsicleRequest: doPopsicleRequest,
 	changeRequest: changeRequest,
 	checkRequest: checkRequest,
-	serialiseHttpData: serialiseHttpData,
+	serialiseHttpData: serialiseHttpData
 };
+},{"./utils":5,"popsicle":154}],5:[function(require,module,exports){
+'use strict';
 
-},{"./utils":6,"popsicle":153}],6:[function(require,module,exports){
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 module.exports = {
-/**
- * @method trimObj
- * @param obj
- *
- * @return trimmed string
- */
+	/**
+  * @method trimObj
+  * @param obj
+  *
+  * @return trimmed object
+  */
 	trimObj: function trimObj(obj) {
-		if (!Array.isArray(obj) && typeof obj !== 'object') return obj;
-
-		return Object.keys(obj).reduce(function(acc, key) {
-			acc[key.trim()] = typeof obj[key] === 'string'
-				? obj[key].trim()
-				: Number.isInteger(obj[key])
-					? obj[key].toString()
-					: trimObj(obj[key]);
-			return acc;
-		}, Array.isArray(obj) ? [] : {});
-	},
-/**
- * @method toQueryString
- * @param obj
- *
- * @return query string
- */
-	toQueryString: function(obj) {
-		var parts = [];
-
-		for (var i in obj) {
-			if (obj.hasOwnProperty(i)) {
-				parts.push(encodeURIComponent(i) + '=' + encodeURI(obj[i]));
-			}
+		var isArray = Array.isArray(obj);
+		if (!isArray && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
+			return Number.isInteger(obj) ? obj.toString() : obj;
 		}
+
+		var trim = function trim(value) {
+			return typeof value === 'string' ? value.trim() : trimObj(value);
+		};
+
+		return isArray ? obj.map(trim) : Object.entries(obj).reduce(function (accumulator, _ref) {
+			var _ref2 = _slicedToArray(_ref, 2),
+			    key = _ref2[0],
+			    value = _ref2[1];
+
+			var trimmedKey = trim(key);
+			var trimmedValue = trim(value);
+			return Object.assign({}, accumulator, _defineProperty({}, trimmedKey, trimmedValue));
+		}, {});
+	},
+	/**
+  * @method toQueryString
+  * @param obj
+  *
+  * @return query string
+  */
+	toQueryString: function toQueryString(obj) {
+		var parts = Object.entries(obj).reduce(function (accumulator, _ref3) {
+			var _ref4 = _slicedToArray(_ref3, 2),
+			    key = _ref4[0],
+			    value = _ref4[1];
+
+			return [].concat(_toConsumableArray(accumulator), [encodeURIComponent(key) + '=' + encodeURI(value)]);
+		}, []);
 
 		return parts.join('&');
 	},
 
-/**
- * Extend a JavaScript object with the key/value pairs of another.
- * @method extend
- * @param obj
- * @param src
- *
- * @return obj Object
- */
-	extend: function(obj, src) {
+
+	/**
+  * Extend a JavaScript object with the key/value pairs of another.
+  * @method extend
+  * @param obj
+  * @param src
+  *
+  * @return obj Object
+  */
+	extend: function extend(obj, src) {
 		// clone settings
 		var cloneObj = JSON.parse(JSON.stringify(obj));
-    	Object.keys(src).forEach(function(key) { cloneObj[key] = src[key]; });
-    	return cloneObj;
+		Object.keys(src).forEach(function (key) {
+			cloneObj[key] = src[key];
+		});
+		return cloneObj;
 	}
 };
+},{}],6:[function(require,module,exports){
+"use strict";
 
-},{}],7:[function(require,module,exports){
 /**
  * `constants` are the objects containing information about the fee size for different tranasctions.
  *
@@ -1233,7 +1234,7 @@ module.exports = {
 		delegate: delegateFee,
 		vote: voteFee,
 		multisignature: multisignatureFee,
-		dapp: dappFee,
+		dapp: dappFee
 	},
 	fee: {
 		0: sendFee,
@@ -1241,11 +1242,100 @@ module.exports = {
 		2: delegateFee,
 		3: voteFee,
 		4: multisignatureFee,
-		5: dappFee,
+		5: dappFee
 	}
 };
+},{}],7:[function(require,module,exports){
+(function (global){
+'use strict';
 
-},{}],8:[function(require,module,exports){
+var _jsNacl = require('js-nacl');
+
+var _jsNacl2 = _interopRequireDefault(_jsNacl);
+
+var _buffer = require('buffer');
+
+var _buffer2 = _interopRequireDefault(_buffer);
+
+var _crypto = require('./transactions/crypto');
+
+var _crypto2 = _interopRequireDefault(_crypto);
+
+var _dapp = require('./transactions/dapp');
+
+var _dapp2 = _interopRequireDefault(_dapp);
+
+var _delegate = require('./transactions/delegate');
+
+var _delegate2 = _interopRequireDefault(_delegate);
+
+var _multisignature = require('./transactions/multisignature');
+
+var _multisignature2 = _interopRequireDefault(_multisignature);
+
+var _signature = require('./transactions/signature');
+
+var _signature2 = _interopRequireDefault(_signature);
+
+var _transaction = require('./transactions/transaction');
+
+var _transaction2 = _interopRequireDefault(_transaction);
+
+var _transfer = require('./transactions/transfer');
+
+var _transfer2 = _interopRequireDefault(_transfer);
+
+var _vote = require('./transactions/vote');
+
+var _vote2 = _interopRequireDefault(_vote);
+
+var _liskApi = require('./api/liskApi');
+
+var _liskApi2 = _interopRequireDefault(_liskApi);
+
+var _slots = require('./time/slots');
+
+var _slots2 = _interopRequireDefault(_slots);
+
+var _mnemonic = require('./utils/mnemonic');
+
+var _mnemonic2 = _interopRequireDefault(_mnemonic);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+global.Buffer = global.Buffer || _buffer2.default.Buffer; /**
+                                                           * Index module comprising all submodules of lisk-js.
+                                                           * @module lisk
+                                                           * @main lisk
+                                                           */
+
+
+global.naclFactory = _jsNacl2.default;
+
+global.naclInstance = null;
+_jsNacl2.default.instantiate(function (nacl) {
+	naclInstance = nacl;
+});
+
+var lisk = {
+	crypto: _crypto2.default,
+	dapp: _dapp2.default,
+	delegate: _delegate2.default,
+	multisignature: _multisignature2.default,
+	signature: _signature2.default,
+	transaction: _transaction2.default,
+	transfer: _transfer2.default,
+	vote: _vote2.default,
+	api: _liskApi2.default,
+	slots: _slots2.default,
+	mnemonic: _mnemonic2.default
+};
+
+module.exports = lisk;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./api/liskApi":2,"./time/slots":8,"./transactions/crypto":9,"./transactions/dapp":15,"./transactions/delegate":16,"./transactions/multisignature":17,"./transactions/signature":18,"./transactions/transaction":19,"./transactions/transfer":20,"./transactions/vote":22,"./utils/mnemonic":23,"buffer":70,"js-nacl":132}],8:[function(require,module,exports){
+"use strict";
+
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -1268,8 +1358,8 @@ module.exports = {
  * @return Date UTC 04/24/2016 5:00 pm
  */
 
-function beginEpochTime () {
-	return new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
+function beginEpochTime() {
+  return new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 }
 
 /**
@@ -1278,13 +1368,11 @@ function beginEpochTime () {
  * @return {number} (time - beginEpochTime) in seconds
  */
 
-function getEpochTime (time) {
-	if (time === undefined) {
-		time = (new Date()).getTime();
-	}
-	var d = beginEpochTime();
-	var t = d.getTime();
-	return Math.floor((time - t) / 1000);
+function getEpochTime(givenTime) {
+  var time = givenTime || new Date().getTime();
+  var d = beginEpochTime();
+  var t = d.getTime();
+  return Math.floor((time - t) / 1000);
 }
 
 /**
@@ -1303,8 +1391,8 @@ function getEpochTime (time) {
  * @type Number
  */
 
-var interval = 10,
-	delegates = 11;
+var interval = 10;
+var delegates = 11;
 
 /**
  * @method getTime
@@ -1312,8 +1400,20 @@ var interval = 10,
  * @return {number}
  */
 
-function getTime (time) {
-	return getEpochTime(time);
+function getTime(time) {
+  return getEpochTime(time);
+}
+
+/**
+* @method getTimeWithOffset
+* @param offset
+* @return {number}
+*/
+
+function getTimeWithOffset(offset) {
+  var now = new Date().getTime();
+  var time = offset ? now + offset * 1000 : now;
+  return getTime(time);
 }
 
 /**
@@ -1322,13 +1422,11 @@ function getTime (time) {
  * @return {number}
  */
 
-function getRealTime (epochTime) {
-	if (epochTime === undefined) {
-		epochTime = getTime();
-	}
-	var d = beginEpochTime();
-	var t = Math.floor(d.getTime() / 1000) * 1000;
-	return t + epochTime * 1000;
+function getRealTime(givenTime) {
+  var epochTime = givenTime || getTime();
+  var d = beginEpochTime();
+  var t = Math.floor(d.getTime() / 1000) * 1000;
+  return t + epochTime * 1000;
 }
 
 /**
@@ -1337,12 +1435,9 @@ function getRealTime (epochTime) {
  * @return {number}
  */
 
-function getSlotNumber (epochTime) {
-	if (epochTime === undefined) {
-		epochTime = getTime();
-	}
-
-	return Math.floor(epochTime / interval);
+function getSlotNumber(givenTime) {
+  var epochTime = givenTime || getTime();
+  return Math.floor(epochTime / interval);
 }
 
 /**
@@ -1351,8 +1446,8 @@ function getSlotNumber (epochTime) {
  * @return {number}
  */
 
-function getSlotTime (slot) {
-	return slot * interval;
+function getSlotTime(slot) {
+  return slot * interval;
 }
 
 /**
@@ -1360,10 +1455,10 @@ function getSlotTime (slot) {
  * @return {number}
  */
 
-function getNextSlot () {
-	var slot = getSlotNumber();
+function getNextSlot() {
+  var slot = getSlotNumber();
 
-	return slot + 1;
+  return slot + 1;
 }
 
 /**
@@ -1371,23 +1466,25 @@ function getNextSlot () {
  * @return {number}
  */
 
-function getLastSlot (nextSlot) {
-	return nextSlot + delegates;
+function getLastSlot(nextSlot) {
+  return nextSlot + delegates;
 }
 
 module.exports = {
-	interval: interval,
-	delegates: delegates,
-	getTime: getTime,
-	getRealTime: getRealTime,
-	getSlotNumber: getSlotNumber,
-	getSlotTime: getSlotTime,
-	getNextSlot: getNextSlot,
-	getLastSlot: getLastSlot
+  interval: interval,
+  delegates: delegates,
+  getTime: getTime,
+  getTimeWithOffset: getTimeWithOffset,
+  getRealTime: getRealTime,
+  getSlotNumber: getSlotNumber,
+  getSlotTime: getSlotTime,
+  getNextSlot: getNextSlot,
+  getLastSlot: getLastSlot
 };
-
 },{}],9:[function(require,module,exports){
 (function (Buffer){
+'use strict';
+
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -1403,9 +1500,11 @@ module.exports = {
  *
  */
 /**
- * Crypto module provides functions for byte/fee calculation, hash/address/id/keypair generation, plus signing and verifying of transactions.
+ * Crypto module provides functions for byte/fee calculation, hash/address/id/keypair generation,
+ * plus signing and verifying of transactions.
  * @class crypto
  */
+/* eslint-disable no-plusplus */
 
 var crypto = require('crypto-browserify');
 var constants = require('../constants.js');
@@ -1419,14 +1518,13 @@ var bignum = require('browserify-bignum');
  * @return {object}
  */
 
-function getTransactionBytes (transaction) {
-
+function getTransactionBytes(transaction) {
 	/**
-	 * @method isSendTransaction
-	 * @return {object}
-	 */
+  * @method isSendTransaction
+  * @return {object}
+  */
 
-	function isSendTransaction () {
+	function isSendTransaction() {
 		return {
 			assetBytes: null,
 			assetSize: 0
@@ -1434,11 +1532,11 @@ function getTransactionBytes (transaction) {
 	}
 
 	/**
-	 * @method isSignatureTransaction
-	 * @return {object}
-	 */
+  * @method isSignatureTransaction
+  * @return {object}
+  */
 
-	function isSignatureTransaction () {
+	function isSignatureTransaction() {
 		var bb = new ByteBuffer(32, true);
 		var publicKey = transaction.asset.signature.publicKey;
 		var publicKeyBuffer = Buffer.from(publicKey, 'hex');
@@ -1457,11 +1555,11 @@ function getTransactionBytes (transaction) {
 	}
 
 	/**
-	 * @method isDelegateTransaction
-	 * @return {object}
-	 */
+  * @method isDelegateTransaction
+  * @return {object}
+  */
 
-	function isDelegateTransaction () {
+	function isDelegateTransaction() {
 		return {
 			assetBytes: Buffer.from(transaction.asset.delegate.username),
 			assetSize: Buffer.from(transaction.asset.delegate.username).length
@@ -1469,25 +1567,25 @@ function getTransactionBytes (transaction) {
 	}
 
 	/**
-	 * @method isVoteTransaction
-	 * @return {object}
-	 */
+  * @method isVoteTransaction
+  * @return {object}
+  */
 
-	function isVoteTransaction () {
-		var voteTransactionBytes = (Buffer.from(transaction.asset.votes.join('')) || null);
+	function isVoteTransaction() {
+		var voteTransactionBytes = Buffer.from(transaction.asset.votes.join('')) || null;
 
 		return {
 			assetBytes: voteTransactionBytes,
-			assetSize: (voteTransactionBytes.length || 0)
+			assetSize: voteTransactionBytes.length || 0
 		};
 	}
 
 	/**
-	 * @method isMultisignatureTransaction
-	 * @return {object}
-	 */
+  * @method isMultisignatureTransaction
+  * @return {object}
+  */
 
-	function isMultisignatureTransaction () {
+	function isMultisignatureTransaction() {
 		var MINSIGNATURES = 1;
 		var LIFETIME = 1;
 		var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
@@ -1510,11 +1608,11 @@ function getTransactionBytes (transaction) {
 	}
 
 	/**
-	 * @method isDappTransaction
-	 * @return {object}
-	 */
+  * @method isDappTransaction
+  * @return {object}
+  */
 
-	function isDappTransaction () {
+	function isDappTransaction() {
 		var dapp = transaction.asset.dapp;
 		var buf = Buffer.from(dapp.name);
 
@@ -1550,11 +1648,11 @@ function getTransactionBytes (transaction) {
 	}
 
 	/**
-	 * @method isDappInTransferTransaction
-	 * @return {object}
-	 */
+  * @method isDappInTransferTransaction
+  * @return {object}
+  */
 
-	function isDappInTransferTransaction () {
+	function isDappInTransferTransaction() {
 		var buf = Buffer.from(transaction.asset.inTransfer.dappId);
 
 		return {
@@ -1564,11 +1662,11 @@ function getTransactionBytes (transaction) {
 	}
 
 	/**
-	 * @method isDappOutTransferTransaction
-	 * @return {object}
-	 */
+  * @method isDappOutTransferTransaction
+  * @return {object}
+  */
 
-	function isDappOutTransferTransaction () {
+	function isDappOutTransferTransaction() {
 		var dappBuf = Buffer.from(transaction.asset.outTransfer.dappId);
 		var transactionBuf = Buffer.from(transaction.asset.outTransfer.transactionId);
 		var buf = Buffer.concat([dappBuf, transactionBuf]);
@@ -1580,21 +1678,21 @@ function getTransactionBytes (transaction) {
 	}
 
 	/**
-	 * `transactionType` describes the available transaction types.
-	 *
-	 * @property transactionType
-	 * @type object
-	 */
+  * `transactionType` describes the available transaction types.
+  *
+  * @property transactionType
+  * @type object
+  */
 
 	var transactionType = {
-		'0': isSendTransaction,
-		'1': isSignatureTransaction,
-		'2': isDelegateTransaction,
-		'3': isVoteTransaction,
-		'4': isMultisignatureTransaction,
-		'5': isDappTransaction,
-		'6': isDappInTransferTransaction,
-		'7': isDappOutTransferTransaction,
+		0: isSendTransaction,
+		1: isSignatureTransaction,
+		2: isDelegateTransaction,
+		3: isVoteTransaction,
+		4: isMultisignatureTransaction,
+		5: isDappTransaction,
+		6: isDappInTransferTransaction,
+		7: isDappOutTransferTransaction
 	};
 
 	return transactionType[transaction.type]();
@@ -1607,23 +1705,22 @@ function getTransactionBytes (transaction) {
  * @return {buffer}
  */
 
-function createTransactionBuffer (transaction, options) {
-	function assignHexToTransactionBytes (partTransactionBuffer, hexValue) {
+function createTransactionBuffer(transaction, options) {
+	function assignHexToTransactionBytes(partTransactionBuffer, hexValue) {
 		var hexBuffer = Buffer.from(hexValue, 'hex');
 		for (var i = 0; i < hexBuffer.length; i++) {
 			partTransactionBuffer.writeByte(hexBuffer[i]);
 		}
 		return partTransactionBuffer;
-
 	}
 
 	/**
-	 * @method createEmptyTransactionBuffer
-	 * @param assetSize number
-	 * @return {buffer}
-	 */
+  * @method createEmptyTransactionBuffer
+  * @param assetSize number
+  * @return {buffer}
+  */
 
-	function createEmptyTransactionBuffer (assetSize) {
+	function createEmptyTransactionBuffer(assetSize) {
 		var typeSizes = {
 			TRANSACTION_TYPE: 1,
 			TIMESTAMP: 4,
@@ -1631,29 +1728,26 @@ function createTransactionBuffer (transaction, options) {
 			RECIPIENT_ID: 8,
 			AMOUNT: 8,
 			SIGNATURE_TRANSACTION: 64,
-			SECOND_SIGNATURE_TRANSACTION: 64
+			SECOND_SIGNATURE_TRANSACTION: 64,
+			DATA: 64
 		};
 
-		var totalBytes = 0;
-
-		for (var key in typeSizes) {
-			if (typeSizes.hasOwnProperty(key)) {
-				totalBytes += typeSizes[key];
-			}
-		}
+		var totalBytes = Object.values(typeSizes).reduce(function (sum, typeSize) {
+			return sum + typeSize;
+		}, 0);
 
 		return new ByteBuffer(totalBytes + assetSize, true);
 	}
 
 	/**
-	 * @method assignTransactionBuffer
-	 * @param transactionBuffer buffer
-	 * @param assetSize number
-	 * @param assetBytes number
-	 * @return {buffer}
-	 */
+  * @method assignTransactionBuffer
+  * @param transactionBuffer buffer
+  * @param assetSize number
+  * @param assetBytes number
+  * @return {buffer}
+  */
 
-	function assignTransactionBuffer (transactionBuffer, assetSize, assetBytes) {
+	function assignTransactionBuffer(transactionBuffer, assetSize, assetBytes) {
 		transactionBuffer.writeInt8(transaction.type);
 		transactionBuffer.writeInt(transaction.timestamp);
 
@@ -1665,25 +1759,32 @@ function createTransactionBuffer (transaction, options) {
 
 		if (transaction.recipientId) {
 			var recipient = transaction.recipientId.slice(0, -1);
-			recipient = bignum(recipient).toBuffer({size: 8});
+			recipient = bignum(recipient).toBuffer({ size: 8 });
 
 			for (var i = 0; i < 8; i++) {
 				transactionBuffer.writeByte(recipient[i] || 0);
 			}
 		} else {
-			for (var i = 0; i < 8; i++) {
+			for (var _i = 0; _i < 8; _i++) {
 				transactionBuffer.writeByte(0);
 			}
 		}
 		transactionBuffer.writeLong(transaction.amount);
 
-		if (assetSize > 0) {
-			for (var i = 0; i < assetSize; i++) {
-				transactionBuffer.writeByte(assetBytes[i]);
+		if (transaction.data) {
+			var dataBuffer = Buffer.from(transaction.data);
+			for (var _i2 = 0; _i2 < dataBuffer.length; _i2++) {
+				transactionBuffer.writeByte(dataBuffer[_i2]);
 			}
 		}
 
-		if(options !== 'multisignature') {
+		if (assetSize > 0) {
+			for (var _i3 = 0; _i3 < assetSize; _i3++) {
+				transactionBuffer.writeByte(assetBytes[_i3]);
+			}
+		}
+
+		if (options !== 'multisignature') {
 			if (transaction.signature) {
 				assignHexToTransactionBytes(transactionBuffer, transaction.signature);
 			}
@@ -1697,8 +1798,8 @@ function createTransactionBuffer (transaction, options) {
 		var arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
 		var buffer = [];
 
-		for (var i = 0; i < arrayBuffer.length; i++) {
-			buffer[i] = arrayBuffer[i];
+		for (var _i4 = 0; _i4 < arrayBuffer.length; _i4++) {
+			buffer[_i4] = arrayBuffer[_i4];
 		}
 
 		return Buffer.from(buffer);
@@ -1722,7 +1823,7 @@ function createTransactionBuffer (transaction, options) {
  * @return {buffer}
  */
 
-function getBytes (transaction, options) {
+function getBytes(transaction, options) {
 	return createTransactionBuffer(transaction, options);
 }
 
@@ -1733,7 +1834,7 @@ function getBytes (transaction, options) {
  * @return {string}
  */
 
-function getId (transaction) {
+function getId(transaction) {
 	var hash = crypto.createHash('sha256').update(getBytes(transaction).toString('hex'), 'hex').digest();
 	var temp = Buffer.alloc(8);
 	for (var i = 0; i < 8; i++) {
@@ -1751,7 +1852,7 @@ function getId (transaction) {
  * @return {string}
  */
 
-function getHash (transaction) {
+function getHash(transaction) {
 	var bytes = getBytes(transaction);
 	return crypto.createHash('sha256').update(bytes).digest();
 }
@@ -1763,7 +1864,7 @@ function getHash (transaction) {
  * @return {number}
  */
 
-function getFee (transaction) {
+function getFee(transaction) {
 	return constants.fee[transaction.type];
 }
 
@@ -1775,14 +1876,9 @@ function getFee (transaction) {
  * @return {string}
  */
 
-function sign (transaction, keys) {
+function sign(transaction, keys) {
 	var hash = getHash(transaction);
 	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-
-	if (!transaction.signature) {
-		transaction.signature = Buffer.from(signature).toString('hex');
-	}
-
 	return Buffer.from(signature).toString('hex');
 }
 
@@ -1794,10 +1890,10 @@ function sign (transaction, keys) {
  * @return {string}
  */
 
-function secondSign (transaction, keys) {
+function secondSign(transaction, keys) {
 	var hash = getHash(transaction);
 	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-	transaction.signSignature = Buffer.from(signature).toString('hex');
+	return Buffer.from(signature).toString('hex');
 }
 
 /**
@@ -1808,7 +1904,7 @@ function secondSign (transaction, keys) {
  * @return {string}
  */
 
-function multiSign (transaction, keys) {
+function multiSign(transaction, keys) {
 	var bytes = getBytes(transaction, 'multisignature');
 	var hash = crypto.createHash('sha256').update(bytes).digest();
 	var signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
@@ -1823,7 +1919,7 @@ function multiSign (transaction, keys) {
  * @return {boolean}
  */
 
-function verify (transaction) {
+function verify(transaction) {
 	var remove = 64;
 
 	if (transaction.signSignature) {
@@ -1854,7 +1950,7 @@ function verify (transaction) {
  * @return {boolean}
  */
 
-function verifySecondSignature (transaction, publicKey) {
+function verifySecondSignature(transaction, publicKey) {
 	var bytes = getBytes(transaction);
 	var data2 = Buffer.alloc(bytes.length - 64);
 
@@ -1878,13 +1974,13 @@ function verifySecondSignature (transaction, publicKey) {
  * @return {object}
  */
 
-function getKeys (secret) {
+function getKeys(secret) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
 	var keypair = naclInstance.crypto_sign_keypair_from_seed(hash);
 
 	return {
-		publicKey : Buffer.from(keypair.signPk).toString('hex'),
-		privateKey : Buffer.from(keypair.signSk).toString('hex')
+		publicKey: Buffer.from(keypair.signPk).toString('hex'),
+		privateKey: Buffer.from(keypair.signSk).toString('hex')
 	};
 }
 
@@ -1895,7 +1991,7 @@ function getKeys (secret) {
  * @return {hex publicKey}
  */
 
-function getAddress (publicKey) {
+function getAddress(publicKey) {
 	var publicKeyHash = crypto.createHash('sha256').update(publicKey.toString('hex'), 'hex').digest();
 	var temp = Buffer.alloc(8);
 
@@ -1937,11 +2033,14 @@ module.exports = {
 	decryptMessageWithSecret: cryptoModule.decryptMessageWithSecret,
 	convertPublicKeyEd2Curve: cryptoModule.convertPublicKeyEd2Curve,
 	convertPrivateKeyEd2Curve: cryptoModule.convertPrivateKeyEd2Curve,
-	toAddress: cryptoModule.toAddress
+	toAddress: cryptoModule.toAddress,
+	signMessageWithTwoSecrets: cryptoModule.signMessageWithTwoSecrets,
+	verifyMessageWithTwoPublicKeys: cryptoModule.verifyMessageWithTwoPublicKeys
 };
-
 }).call(this,require("buffer").Buffer)
-},{"../constants.js":7,"./crypto/index":12,"browserify-bignum":57,"buffer":69,"bytebuffer":73,"crypto-browserify":82}],10:[function(require,module,exports){
+},{"../constants.js":6,"./crypto/index":12,"browserify-bignum":58,"buffer":70,"bytebuffer":74,"crypto-browserify":83}],10:[function(require,module,exports){
+'use strict';
+
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -1960,37 +2059,32 @@ module.exports = {
 var Buffer = require('buffer/').Buffer;
 var bignum = require('browserify-bignum');
 
-function bufferToHex (buffer) {
-	return naclInstance.to_hex(buffer);
+function bufferToHex(buffer) {
+  return naclInstance.to_hex(buffer);
 }
 
-function hexToBuffer (hex) {
-	return naclInstance.from_hex(hex);
+function hexToBuffer(hex) {
+  return naclInstance.from_hex(hex);
 }
 
 // TODO: Discuss behaviour and output format
-function useFirstEightBufferEntriesReversed (publicKeyBytes) {
-	var publicKeyTransform = Buffer.alloc(8);
-
-	for (var i = 0; i < 8; i++) {
-		publicKeyTransform[i] = publicKeyBytes[7 - i];
-	}
-
-	return publicKeyTransform;
+function useFirstEightBufferEntriesReversed(publicKeyBytes) {
+  return Buffer.from(publicKeyBytes).slice(0, 8).reverse();
 }
 
-function toAddress (buffer) {
-	return bignum.fromBuffer(buffer).toString() + 'L';
+function toAddress(buffer) {
+  return bignum.fromBuffer(buffer).toString() + 'L';
 }
 
 module.exports = {
-	bufferToHex: bufferToHex,
-	hexToBuffer: hexToBuffer,
-	useFirstEightBufferEntriesReversed: useFirstEightBufferEntriesReversed,
-	toAddress: toAddress
+  bufferToHex: bufferToHex,
+  hexToBuffer: hexToBuffer,
+  useFirstEightBufferEntriesReversed: useFirstEightBufferEntriesReversed,
+  toAddress: toAddress
 };
+},{"browserify-bignum":58,"buffer/":73}],11:[function(require,module,exports){
+'use strict';
 
-},{"browserify-bignum":57,"buffer/":72}],11:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2006,26 +2100,19 @@ module.exports = {
  *
  */
 
-// var crypto = require('crypto-browserify');
-// var convert = require('./convert');
-
 // TODO: Discuss behaviour with format and hashing
-function getSha256Hash (stringToSign, format) {
-	if(!format || format === 'utf8') {
-		stringToSign = naclInstance.encode_utf8(stringToSign);
-	} else {
-		stringToSign = naclInstance.from_hex(stringToSign);
-	}
+function getSha256Hash(stringToSign, format) {
+  var encodedString = !format || format === 'utf8' ? naclInstance.encode_utf8(stringToSign) : naclInstance.from_hex(stringToSign);
 
-	return naclInstance.crypto_hash_sha256(stringToSign);
-	// return crypto.createHash('sha256').update(stringToSign, format).digest();
+  return naclInstance.crypto_hash_sha256(encodedString);
 }
 
 module.exports = {
-	getSha256Hash: getSha256Hash
+  getSha256Hash: getSha256Hash
 };
-
 },{}],12:[function(require,module,exports){
+'use strict';
+
 var convert = require('./convert');
 var sign = require('./sign');
 var keys = require('./keys');
@@ -2047,10 +2134,13 @@ module.exports = {
 	getRawPrivateAndPublicKeyFromSecret: keys.getRawPrivateAndPublicKeyFromSecret,
 	getAddressFromPublicKey: keys.getAddressFromPublicKey,
 	getSha256Hash: hash.getSha256Hash,
-	toAddress: convert.toAddress
+	toAddress: convert.toAddress,
+	signMessageWithTwoSecrets: sign.signMessageWithTwoSecrets,
+	verifyMessageWithTwoPublicKeys: sign.verifyMessageWithTwoPublicKeys
 };
-
 },{"./convert":10,"./hash":11,"./keys":13,"./sign":14}],13:[function(require,module,exports){
+'use strict';
+
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2072,7 +2162,7 @@ var bignum = require('browserify-bignum');
 var hash = require('./hash');
 var convert = require('./convert');
 
-function getPrivateAndPublicKeyFromSecret (secret) {
+function getPrivateAndPublicKeyFromSecret(secret) {
 	var sha256Hash = hash.getSha256Hash(secret, 'utf8');
 	var keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
@@ -2082,7 +2172,7 @@ function getPrivateAndPublicKeyFromSecret (secret) {
 	};
 }
 
-function getRawPrivateAndPublicKeyFromSecret (secret) {
+function getRawPrivateAndPublicKeyFromSecret(secret) {
 	var sha256Hash = hash.getSha256Hash(secret, 'utf8');
 	var keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
@@ -2092,7 +2182,7 @@ function getRawPrivateAndPublicKeyFromSecret (secret) {
 	};
 }
 
-function getAddressFromPublicKey (publicKey) {
+function getAddressFromPublicKey(publicKey) {
 	var publicKeyHash = hash.getSha256Hash(publicKey, 'hex');
 
 	var publicKeyTransform = convert.useFirstEightBufferEntriesReversed(publicKeyHash);
@@ -2107,8 +2197,9 @@ module.exports = {
 	getRawPrivateAndPublicKeyFromSecret: getRawPrivateAndPublicKeyFromSecret,
 	getAddressFromPublicKey: getAddressFromPublicKey
 };
+},{"./convert":10,"./hash":11,"browserify-bignum":58,"buffer/":73}],14:[function(require,module,exports){
+'use strict';
 
-},{"./convert":10,"./hash":11,"browserify-bignum":57,"buffer/":72}],14:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2128,17 +2219,59 @@ var ed2curve = require('ed2curve');
 var convert = require('./convert');
 var keys = require('./keys');
 
-function signMessageWithSecret (message, secret) {
-	var msg = naclInstance.encode_utf8(message);
-	var keypair = keys.getRawPrivateAndPublicKeyFromSecret(secret);
+function signMessageWithSecret(message, secret) {
+	var msgBytes = naclInstance.encode_utf8(message);
+	var keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
 
-	var signedMessage = naclInstance.crypto_sign(msg, keypair.privateKey);
+	var signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
 	var hexSignedMessage = convert.bufferToHex(signedMessage);
 
 	return hexSignedMessage;
 }
 
-function signAndPrintMessage (message, secret) {
+function signMessageWithTwoSecrets(message, secret, secondSecret) {
+	var msgBytes = naclInstance.encode_utf8(message);
+	var keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
+	var secondKeypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secondSecret);
+
+	var signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
+	var doubleSignedMessage = naclInstance.crypto_sign(signedMessage, secondKeypairBytes.privateKey);
+
+	var hexSignedMessage = convert.bufferToHex(doubleSignedMessage);
+
+	return hexSignedMessage;
+}
+
+function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondPublicKey) {
+	var signedMessageBytes = convert.hexToBuffer(signedMessage);
+	var publicKeyBytes = convert.hexToBuffer(publicKey);
+	var secondPublicKeyBytes = convert.hexToBuffer(secondPublicKey);
+
+	if (publicKeyBytes.length !== 32) {
+		throw new Error('Invalid first publicKey, expected 32-byte publicKey');
+	}
+
+	if (secondPublicKeyBytes.length !== 32) {
+		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
+	}
+
+	// Give appropriate error messages from crypto_sign_open
+	var openSignature = naclInstance.crypto_sign_open(signedMessageBytes, secondPublicKeyBytes);
+
+	if (openSignature) {
+		var openSecondSignature = naclInstance.crypto_sign_open(openSignature, publicKeyBytes);
+
+		if (openSecondSignature) {
+			// Returns original message
+			return naclInstance.decode_utf8(openSecondSignature);
+		}
+		throw new Error('Invalid signature second publicKey, cannot verify message');
+	} else {
+		throw new Error('Invalid signature primary publicKey, cannot verify message');
+	}
+}
+
+function signAndPrintMessage(message, secret) {
 	var signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	var messageHeader = '-----MESSAGE-----';
 	var plainMessage = message;
@@ -2148,31 +2281,24 @@ function signAndPrintMessage (message, secret) {
 	var signedMessage = signMessageWithSecret(message, secret);
 	var signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
-	var outputArray = [
-		signedMessageHeader, messageHeader, plainMessage, pubklicKeyHeader, publicKey, signatureHeader, signedMessage, signatureFooter
-	];
+	var outputArray = [signedMessageHeader, messageHeader, plainMessage, pubklicKeyHeader, publicKey, signatureHeader, signedMessage, signatureFooter];
 
 	return outputArray.join('\n');
 }
 
-function printSignedMessage (message, signedMessage, publicKey) {
+function printSignedMessage(message, signedMessage, publicKey) {
 	var signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	var messageHeader = '-----MESSAGE-----';
-	var plainMessage = message;
 	var publicKeyHeader = '-----PUBLIC KEY-----';
-	var printPublicKey = publicKey;
 	var signatureHeader = '-----SIGNATURE-----';
-	var printSignedMessage = signedMessage;
 	var signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
-	var outputArray = [
-		signedMessageHeader, messageHeader, plainMessage, publicKeyHeader, printPublicKey, signatureHeader, printSignedMessage, signatureFooter
-	];
+	var outputArray = [signedMessageHeader, messageHeader, message, publicKeyHeader, publicKey, signatureHeader, signedMessage, signatureFooter];
 
 	return outputArray.join('\n');
 }
 
-function verifyMessageWithPublicKey (signedMessage, publicKey) {
+function verifyMessageWithPublicKey(signedMessage, publicKey) {
 	var signedMessageBytes = convert.hexToBuffer(signedMessage);
 	var publicKeyBytes = convert.hexToBuffer(publicKey);
 
@@ -2186,26 +2312,27 @@ function verifyMessageWithPublicKey (signedMessage, publicKey) {
 	if (openSignature) {
 		// Returns original message
 		return naclInstance.decode_utf8(openSignature);
-	} else {
-		throw new Error('Invalid signature publicKey combination, cannot verify message');
 	}
+	throw new Error('Invalid signature publicKey combination, cannot verify message');
 }
 
-function convertPublicKeyEd2Curve (publicKey) {
+function convertPublicKeyEd2Curve(publicKey) {
 	return ed2curve.convertPublicKey(publicKey);
 }
 
-function convertPrivateKeyEd2Curve (privateKey) {
+function convertPrivateKeyEd2Curve(privateKey) {
 	return ed2curve.convertSecretKey(privateKey);
 }
 
-function encryptMessageWithSecret (message, secret, recipientPublicKey) {
+function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 	var senderPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	var convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKey);
 	var recipientPublicKeyBytes = convert.hexToBuffer(recipientPublicKey);
-	var message = naclInstance.encode_utf8(message);
+	var convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
+	var utf8Message = naclInstance.encode_utf8(message);
 
 	var nonce = naclInstance.crypto_box_random_nonce();
-	var packet = naclInstance.crypto_box(message, nonce, convertPublicKeyEd2Curve(recipientPublicKeyBytes), convertPrivateKeyEd2Curve(senderPrivateKey));
+	var packet = naclInstance.crypto_box(utf8Message, nonce, convertedPublicKey, convertedPrivateKey);
 
 	var nonceHex = convert.bufferToHex(nonce);
 	var encryptedMessage = convert.bufferToHex(packet);
@@ -2216,13 +2343,15 @@ function encryptMessageWithSecret (message, secret, recipientPublicKey) {
 	};
 }
 
-function decryptMessageWithSecret (packet, nonce, secret, senderPublicKey) {
+function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
 	var recipientPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	var convertedPrivateKey = convertPrivateKeyEd2Curve(recipientPrivateKey);
 	var senderPublicKeyBytes = convert.hexToBuffer(senderPublicKey);
+	var convertedPublicKey = convertPublicKeyEd2Curve(senderPublicKeyBytes);
 	var packetBytes = convert.hexToBuffer(packet);
 	var nonceBytes = convert.hexToBuffer(nonce);
 
-	var decoded = naclInstance.crypto_box_open(packetBytes, nonceBytes, convertPublicKeyEd2Curve(senderPublicKeyBytes), convertPrivateKeyEd2Curve(recipientPrivateKey));
+	var decoded = naclInstance.crypto_box_open(packetBytes, nonceBytes, convertedPublicKey, convertedPrivateKey);
 
 	return naclInstance.decode_utf8(decoded);
 }
@@ -2235,10 +2364,13 @@ module.exports = {
 	encryptMessageWithSecret: encryptMessageWithSecret,
 	decryptMessageWithSecret: decryptMessageWithSecret,
 	convertPublicKeyEd2Curve: convertPublicKeyEd2Curve,
-	convertPrivateKeyEd2Curve: convertPrivateKeyEd2Curve
+	convertPrivateKeyEd2Curve: convertPrivateKeyEd2Curve,
+	signMessageWithTwoSecrets: signMessageWithTwoSecrets,
+	verifyMessageWithTwoPublicKeys: verifyMessageWithTwoPublicKeys
 };
+},{"./convert":10,"./keys":13,"ed2curve":94}],15:[function(require,module,exports){
+'use strict';
 
-},{"./convert":10,"./keys":13,"ed2curve":93}],15:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2258,9 +2390,12 @@ module.exports = {
  * @class dapp
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+var crypto = require('./crypto');
+var constants = require('../constants');
+var slots = require('../time/slots');
+
+var _require = require('./utils'),
+    prepareTransaction = _require.prepareTransaction;
 
 /**
  * @method createDapp
@@ -2272,47 +2407,38 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createDapp (secret, secondSecret, options, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-	var keys = crypto.getKeys(secret);
+function createDapp(secret, secondSecret, options, timeOffset) {
+  var keys = crypto.getKeys(secret);
 
-	var transaction = {
-		type: 5,
-		amount: 0,
-		fee: constants.fees.dapp,
-		recipientId: null,
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
-		asset: {
-			dapp: {
-				category: options.category,
-				name: options.name,
-				description: options.description,
-				tags: options.tags,
-				type: options.type,
-				link: options.link,
-				icon: options.icon
-			}
-		}
-	};
+  var transaction = {
+    type: 5,
+    amount: 0,
+    fee: constants.fees.dapp,
+    recipientId: null,
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {
+      dapp: {
+        category: options.category,
+        name: options.name,
+        description: options.description,
+        tags: options.tags,
+        type: options.type,
+        link: options.link,
+        icon: options.icon
+      }
+    }
+  };
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createDapp: createDapp
+  createDapp: createDapp
 };
+},{"../constants":6,"../time/slots":8,"./crypto":9,"./utils":21}],16:[function(require,module,exports){
+'use strict';
 
-},{"../constants.js":7,"../time/slots.js":8,"./crypto.js":9}],16:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2332,9 +2458,12 @@ module.exports = {
  * @class delegate
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+var crypto = require('./crypto');
+var constants = require('../constants');
+var slots = require('../time/slots');
+
+var _require = require('./utils'),
+    prepareTransaction = _require.prepareTransaction;
 
 /**
  * @method createDapp
@@ -2346,42 +2475,33 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createDelegate (secret, username, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-	var keys = crypto.getKeys(secret);
+function createDelegate(secret, username, secondSecret, timeOffset) {
+  var keys = crypto.getKeys(secret);
 
-	var transaction = {
-		type: 2,
-		amount: 0,
-		fee: constants.fees.delegate,
-		recipientId: null,
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
-		asset: {
-			delegate: {
-				username: username,
-				publicKey: keys.publicKey
-			}
-		}
-	};
+  var transaction = {
+    type: 2,
+    amount: 0,
+    fee: constants.fees.delegate,
+    recipientId: null,
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {
+      delegate: {
+        username: username,
+        publicKey: keys.publicKey
+      }
+    }
+  };
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createDelegate: createDelegate
+  createDelegate: createDelegate
 };
+},{"../constants":6,"../time/slots":8,"./crypto":9,"./utils":21}],17:[function(require,module,exports){
+'use strict';
 
-},{"../constants.js":7,"../time/slots.js":8,"./crypto.js":9}],17:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2397,13 +2517,17 @@ module.exports = {
  *
  */
 /**
- * Multisignature module provides functions for creating multisignature group registration transactions, and signing transactions requiring multisignatures.
+ * Multisignature module provides functions for creating multisignature group registration
+ * transactions, and signing transactions requiring multisignatures.
  * @class multisignature
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+var crypto = require('./crypto');
+var constants = require('../constants');
+var slots = require('../time/slots');
+
+var _require = require('./utils'),
+    prepareTransaction = _require.prepareTransaction;
 
 /**
  * @method createTransaction
@@ -2417,36 +2541,22 @@ var slots       = require('../time/slots.js');
  * @return {string}
  */
 
-function createTransaction (recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
+function createTransaction(recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset) {
+  var keys = crypto.getKeys(secret);
 
-	var transaction = {
-		type: 0,
-		amount: amount,
-		fee: constants.fees.send,
-		recipientId: recipientId,
-		timestamp: slots.getTime(time),
-		asset: {}
-	};
+  var transaction = {
+    type: 0,
+    amount: amount,
+    fee: constants.fees.send,
+    recipientId: recipientId,
+    senderPublicKey: keys.publicKey,
+    requesterPublicKey: requesterPublicKey || keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {},
+    signatures: []
+  };
 
-	var keys = crypto.getKeys(secret);
-	transaction.senderPublicKey = keys.publicKey;
-
-	transaction.requesterPublicKey = requesterPublicKey || transaction.senderPublicKey;
-
-
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	transaction.signatures = [];
-
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 /**
@@ -2457,11 +2567,11 @@ function createTransaction (recipientId, amount, secret, secondSecret, requester
  * @return {string}
  */
 
-function signTransaction (trs, secret) {
-	var keys = crypto.getKeys(secret);
-	var signature = crypto.multiSign(trs, keys);
+function signTransaction(trs, secret) {
+  var keys = crypto.getKeys(secret);
+  var signature = crypto.multiSign(trs, keys);
 
-	return signature;
+  return signature;
 }
 
 /**
@@ -2476,47 +2586,37 @@ function signTransaction (trs, secret) {
  * @return {Object}
  */
 
-function createMultisignature (secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
+function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
+  var keys = crypto.getKeys(secret);
+  var keygroupFees = keysgroup.length + 1;
 
-	var keys = crypto.getKeys(secret);
-	var keygroupFees = keysgroup.length + 1;
+  var transaction = {
+    type: 4,
+    amount: 0,
+    fee: constants.fees.multisignature * keygroupFees,
+    recipientId: null,
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {
+      multisignature: {
+        min: min,
+        lifetime: lifetime,
+        keysgroup: keysgroup
+      }
+    }
+  };
 
-	var transaction = {
-		type: 4,
-		amount: 0,
-		fee: (constants.fees.multisignature * keygroupFees),
-		recipientId: null,
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
-		asset: {
-			multisignature: {
-				min: min,
-				lifetime: lifetime,
-				keysgroup: keysgroup
-			}
-		}
-	};
-
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	signTransaction: signTransaction,
-	createMultisignature: createMultisignature,
-	createTransaction: createTransaction
+  signTransaction: signTransaction,
+  createMultisignature: createMultisignature,
+  createTransaction: createTransaction
 };
+},{"../constants":6,"../time/slots":8,"./crypto":9,"./utils":21}],18:[function(require,module,exports){
+'use strict';
 
-},{"../constants.js":7,"../time/slots.js":8,"./crypto.js":9}],18:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2536,9 +2636,12 @@ module.exports = {
  * @class signature
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+var crypto = require('./crypto');
+var constants = require('../constants');
+var slots = require('../time/slots');
+
+var _require = require('./utils'),
+    prepareTransaction = _require.prepareTransaction;
 
 /**
  * @method newSignature
@@ -2547,14 +2650,14 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function newSignature (secondSecret) {
-	var keys = crypto.getKeys(secondSecret);
+function newSignature(secondSecret) {
+  var keys = crypto.getKeys(secondSecret);
 
-	var signature = {
-		publicKey: keys.publicKey
-	};
+  var signature = {
+    publicKey: keys.publicKey
+  };
 
-	return signature;
+  return signature;
 }
 
 /**
@@ -2566,35 +2669,31 @@ function newSignature (secondSecret) {
  * @return {Object}
  */
 
-function createSignature (secret, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-	var keys = crypto.getKeys(secret);
+function createSignature(secret, secondSecret, timeOffset) {
+  var keys = crypto.getKeys(secret);
 
-	var signature = newSignature(secondSecret);
-	var transaction = {
-		type: 1,
-		amount: 0,
-		fee: constants.fees.signature,
-		recipientId: null,
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
-		asset: {
-			signature: signature
-		}
-	};
+  var signature = newSignature(secondSecret);
+  var transaction = {
+    type: 1,
+    amount: 0,
+    fee: constants.fees.signature,
+    recipientId: null,
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {
+      signature: signature
+    }
+  };
 
-	crypto.sign(transaction, keys);
-	transaction.id = crypto.getId(transaction);
-
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createSignature: createSignature
+  createSignature: createSignature
 };
+},{"../constants":6,"../time/slots":8,"./crypto":9,"./utils":21}],19:[function(require,module,exports){
+'use strict';
 
-},{"../constants.js":7,"../time/slots.js":8,"./crypto.js":9}],19:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2614,9 +2713,12 @@ module.exports = {
  * @class transaction
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+var crypto = require('./crypto');
+var constants = require('../constants');
+var slots = require('../time/slots');
+
+var _require = require('./utils'),
+    prepareTransaction = _require.prepareTransaction;
 
 /**
  * @method createTransaction
@@ -2624,42 +2726,34 @@ var slots       = require('../time/slots.js');
  * @param amount
  * @param secret
  * @param secondSecret
+ * @param data
  * @param timeOffset
  *
  * @return {Object}
  */
 
-function createTransaction (recipientId, amount, secret, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-	var transaction = {
-		type: 0,
-		amount: amount,
-		fee: constants.fees.send,
-		recipientId: recipientId,
-		timestamp: slots.getTime(time),
-		asset: {}
-	};
+function createTransaction(recipientId, amount, secret, secondSecret, data, timeOffset) {
+  var keys = crypto.getKeys(secret);
+  var transaction = {
+    type: 0,
+    amount: amount,
+    fee: constants.fees.send,
+    recipientId: recipientId,
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {},
+    data: data
+  };
 
-	var keys = crypto.getKeys(secret);
-	transaction.senderPublicKey = keys.publicKey;
-
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createTransaction: createTransaction
+  createTransaction: createTransaction
 };
+},{"../constants":6,"../time/slots":8,"./crypto":9,"./utils":21}],20:[function(require,module,exports){
+'use strict';
 
-},{"../constants.js":7,"../time/slots.js":8,"./crypto.js":9}],20:[function(require,module,exports){
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2675,13 +2769,17 @@ module.exports = {
  *
  */
 /**
- * Transfer module provides functions for creating "in" transfer transactions (balance transfers to an individual dapp account).
+ * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
+ * an individual dapp account).
  * @class transfer
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+var crypto = require('./crypto');
+var constants = require('../constants');
+var slots = require('../time/slots');
+
+var _require = require('./utils'),
+    prepareTransaction = _require.prepareTransaction;
 
 /**
  * @method createInTransfer
@@ -2694,34 +2792,24 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createInTransfer (dappId, amount, secret, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-	var keys = crypto.getKeys(secret);
+function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
+  var keys = crypto.getKeys(secret);
 
-	var transaction = {
-		type: 6,
-		amount: amount,
-		fee: constants.fees.send,
-		recipientId: null,
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
-		asset: {
-			inTransfer: {
-				dappId: dappId
-			}
-		}
-	};
+  var transaction = {
+    type: 6,
+    amount: amount,
+    fee: constants.fees.send,
+    recipientId: null,
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {
+      inTransfer: {
+        dappId: dappId
+      }
+    }
+  };
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 /**
@@ -2737,42 +2825,63 @@ function createInTransfer (dappId, amount, secret, secondSecret, timeOffset) {
  * @return {Object}
  */
 
-function createOutTransfer (dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-	var keys = crypto.getKeys(secret);
+function createOutTransfer(dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset) {
+  var keys = crypto.getKeys(secret);
 
-	var transaction = {
-		type: 7,
-		amount: amount,
-		fee: constants.fees.send,
-		recipientId: recipientId,
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
-		asset: {
-			outTransfer: {
-				dappId: dappId,
-				transactionId: transactionId,
-			},
-		},
-	};
+  var transaction = {
+    type: 7,
+    amount: amount,
+    fee: constants.fees.send,
+    recipientId: recipientId,
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {
+      outTransfer: {
+        dappId: dappId,
+        transactionId: transactionId
+      }
+    }
+  };
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createInTransfer: createInTransfer,
-	createOutTransfer: createOutTransfer
+  createInTransfer: createInTransfer,
+  createOutTransfer: createOutTransfer
+};
+},{"../constants":6,"../time/slots":8,"./crypto":9,"./utils":21}],21:[function(require,module,exports){
+'use strict';
+
+var crypto = require('./crypto');
+
+var secondSignTransaction = function secondSignTransaction(transactionObject, secondSecret) {
+	var secondKeys = crypto.getKeys(secondSecret);
+	return Object.assign({}, transactionObject, {
+		signSignature: crypto.secondSign(transactionObject, secondKeys)
+	});
 };
 
-},{"../constants.js":7,"../time/slots.js":8,"./crypto.js":9}],21:[function(require,module,exports){
+var prepareTransaction = function prepareTransaction(transaction, keys, secondSecret) {
+	var singleSignedTransaction = Object.assign({}, transaction, {
+		signature: crypto.sign(transaction, keys)
+	});
+
+	var signedTransaction = secondSecret ? secondSignTransaction(singleSignedTransaction, secondSecret) : singleSignedTransaction;
+
+	var transactionWithId = Object.assign({}, signedTransaction, {
+		id: crypto.getId(signedTransaction)
+	});
+
+	return transactionWithId;
+};
+
+module.exports = {
+	prepareTransaction: prepareTransaction
+};
+},{"./crypto":9}],22:[function(require,module,exports){
+'use strict';
+
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -2792,9 +2901,12 @@ module.exports = {
  * @class vote
  */
 
-var crypto      = require('./crypto.js');
-var constants   = require('../constants.js');
-var slots       = require('../time/slots.js');
+var crypto = require('./crypto');
+var constants = require('../constants');
+var slots = require('../time/slots');
+
+var _require = require('./utils'),
+    prepareTransaction = _require.prepareTransaction;
 
 /**
  * @method createVote
@@ -2806,40 +2918,30 @@ var slots       = require('../time/slots.js');
  * @return {Object}
  */
 
-function createVote (secret, delegates, secondSecret, timeOffset) {
-	var now = new Date().getTime();
-	var time = timeOffset ? now - timeOffset : now;
-	var keys = crypto.getKeys(secret);
+function createVote(secret, delegates, secondSecret, timeOffset) {
+  var keys = crypto.getKeys(secret);
 
-	var transaction = {
-		type: 3,
-		amount: 0,
-		fee: constants.fees.vote,
-		recipientId: crypto.getAddress(keys.publicKey),
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTime(time),
-		asset: {
-			votes: delegates
-		}
-	};
+  var transaction = {
+    type: 3,
+    amount: 0,
+    fee: constants.fees.vote,
+    recipientId: crypto.getAddress(keys.publicKey),
+    senderPublicKey: keys.publicKey,
+    timestamp: slots.getTimeWithOffset(timeOffset),
+    asset: {
+      votes: delegates
+    }
+  };
 
-	crypto.sign(transaction, keys);
-
-	if (secondSecret) {
-		var secondKeys = crypto.getKeys(secondSecret);
-		crypto.secondSign(transaction, secondKeys);
-	}
-
-	transaction.id = crypto.getId(transaction);
-
-	return transaction;
+  return prepareTransaction(transaction, keys, secondSecret);
 }
 
 module.exports = {
-	createVote: createVote
+  createVote: createVote
 };
+},{"../constants":6,"../time/slots":8,"./crypto":9,"./utils":21}],23:[function(require,module,exports){
+'use strict';
 
-},{"../constants.js":7,"../time/slots.js":8,"./crypto.js":9}],22:[function(require,module,exports){
 /*
  * Original mnemonic implementation from https://github.com/bitpay/bitcore-mnemonic
  *
@@ -2876,59 +2978,6 @@ var wordList = require('./words.js');
 var Buffer = require('buffer/').Buffer;
 
 /**
- * @method generateEmptyBytes
- * @param length number
- * @return {Array<number>}
- * @private
- */
-
-function generateEmptyBytes(length) {
-	return Array.apply(null, Array(length)).map(x => 0); //eslint-disable-line
-};
-
-/**
- * @method prependZero
- * @param {string} str
- * @return string
- * @private
- */
-
-function prependZero(str) {
-	return str.length < 2 ? '0' + str : str;
-}
-
-/**
- * @method randomByte
- * @return string
- * @private
- */
-
-function randomByte() {
-	return crypto.randomBytes(1)[0].toString(16);
-}
-
-/**
- * @method generateSeed
- * @return {Array<string>}
- * @private
- */
-
-function generateSeed() {
-	return generateEmptyBytes(16).map(randomByte).map(prependZero);
-}
-
-/**
- * @method seedToHex
- * @param {Array<string>} seed
- * @returns {Buffer}
- * @private
- */
-
-function seedToHex(seed) {
-	return Buffer.from(seed.join(''), 'hex');
-}
-
-/**
  * @method entropyToSha256
  * @param {Buffer} entropy
  * @returns {Buffer}
@@ -2936,7 +2985,7 @@ function seedToHex(seed) {
  */
 
 function entropyToSha256(entropy) {
-	return crypto.createHash('sha256').update(entropy).digest();
+  return crypto.createHash('sha256').update(entropy).digest();
 }
 
 /**
@@ -2946,17 +2995,17 @@ function entropyToSha256(entropy) {
  */
 
 function entropyChecksum(entropy) {
-	var hash = entropyToSha256(entropy);
-	var bits = entropy.length * 8;
-	var cs = bits / 32;
-	var hashbits = bignum(hash.toString('hex'), 16).toString(2);
-	// zero pad the hash bits
-	while (hashbits.length % 256 !== 0) {
-		hashbits = '0' + hashbits;
-	}
-	var checksum = hashbits.slice(0, cs);
-	return checksum;
-};
+  var hash = entropyToSha256(entropy);
+  var bits = entropy.length * 8;
+  var cs = bits / 32;
+  var hashbits = bignum.fromBuffer(hash).toString(2);
+  // zero pad the hash bits
+  while (hashbits.length % 256 !== 0) {
+    hashbits = '0' + hashbits;
+  }
+  var checksum = hashbits.slice(0, cs);
+  return checksum;
+}
 
 /**
  *
@@ -2966,19 +3015,19 @@ function entropyChecksum(entropy) {
  */
 
 function generate() {
-	var entropy = seedToHex(generateSeed());
-	var bin = '';
-	var mnemonic = [];
-	for (var i = 0; i < entropy.length; i++) {
-		bin = bin + ('00000000' + entropy[i].toString(2)).slice(-8);
-	}
-	bin = bin + entropyChecksum(entropy);
-	for (i = 0; i < bin.length / 11; i++) {
-		var wi = parseInt(bin.slice(i * 11, (i + 1) * 11), 2);
-		mnemonic.push(wordList[wi]);
-	}
-	return mnemonic.join(' ');
-};
+  var entropy = crypto.randomBytes(16);
+  var bin = Array.from(entropy).map(function (byte) {
+    return ('00000000' + byte.toString(2)).slice(-8);
+  }).join('');
+  var checksum = entropyChecksum(entropy);
+  var binWithChecksum = '' + bin + checksum;
+  var mnemonic = new Array(Math.ceil(binWithChecksum.length / 11)).fill().map(function (_, i) {
+    var slice = binWithChecksum.slice(i * 11, (i + 1) * 11);
+    var wordIndex = parseInt(slice, 2);
+    return wordList[wordIndex];
+  });
+  return mnemonic.join(' ');
+}
 
 /**
  * @method isValid
@@ -2988,2087 +3037,36 @@ function generate() {
  */
 
 function isValid(mnemonic) {
-	var words = mnemonic.split(' ');
-	var bin = '';
-	if (words.length !== 12) {
-		return false;
-	}
-	for (var i = 0; i < words.length; i++) {
-		var ind = wordList.indexOf(words[i]);
-		if (ind < 0) return false;
-		bin = bin + ('00000000000' + ind.toString(2)).slice(-11);
-	}
+  var words = mnemonic.split(' ');
+  if (words.length !== 12 || words.some(function (w) {
+    return !wordList.includes(w);
+  })) {
+    return false;
+  }
+  var bin = words.map(function (word) {
+    return ('00000000000' + wordList.indexOf(word).toString(2)).slice(-11);
+  }).join('');
 
-	var cs = bin.length / 33;
-	var hashBits = bin.slice(-cs);
-	var nonhashBits = bin.slice(0, bin.length - cs);
-	var buf = Buffer.alloc(nonhashBits.length / 8);
-	for (i = 0; i < nonhashBits.length / 8; i++) {
-		buf.writeUInt8(parseInt(bin.slice(i * 8, (i + 1) * 8), 2), i);
-	}
-	var expectedHashBits = entropyChecksum(buf);
-	return expectedHashBits === hashBits;
-};
+  var checksumLength = bin.length / 33;
+  var hashBits = bin.slice(-checksumLength);
+  var nonhashBits = bin.slice(0, bin.length - checksumLength);
+  var buf = Buffer.from(new Array(nonhashBits.length / 8).fill().map(function (_, i) {
+    var slice = bin.slice(i * 8, (i + 1) * 8);
+    return parseInt(slice, 2);
+  }));
+  var expectedHashBits = entropyChecksum(buf);
+  return expectedHashBits === hashBits;
+}
 
 module.exports = {
-	generate: generate,
-	isValid: isValid,
+  generate: generate,
+  isValid: isValid
 };
+},{"./words.js":24,"browserify-bignum":58,"buffer/":73,"crypto-browserify":83}],24:[function(require,module,exports){
+'use strict';
 
-},{"./words.js":23,"browserify-bignum":57,"buffer/":72,"crypto-browserify":82}],23:[function(require,module,exports){
-
-module.exports = [
-	'abandon',
-	'ability',
-	'able',
-	'about',
-	'above',
-	'absent',
-	'absorb',
-	'abstract',
-	'absurd',
-	'abuse',
-	'access',
-	'accident',
-	'account',
-	'accuse',
-	'achieve',
-	'acid',
-	'acoustic',
-	'acquire',
-	'across',
-	'act',
-	'action',
-	'actor',
-	'actress',
-	'actual',
-	'adapt',
-	'add',
-	'addict',
-	'address',
-	'adjust',
-	'admit',
-	'adult',
-	'advance',
-	'advice',
-	'aerobic',
-	'affair',
-	'afford',
-	'afraid',
-	'again',
-	'age',
-	'agent',
-	'agree',
-	'ahead',
-	'aim',
-	'air',
-	'airport',
-	'aisle',
-	'alarm',
-	'album',
-	'alcohol',
-	'alert',
-	'alien',
-	'all',
-	'alley',
-	'allow',
-	'almost',
-	'alone',
-	'alpha',
-	'already',
-	'also',
-	'alter',
-	'always',
-	'amateur',
-	'amazing',
-	'among',
-	'amount',
-	'amused',
-	'analyst',
-	'anchor',
-	'ancient',
-	'anger',
-	'angle',
-	'angry',
-	'animal',
-	'ankle',
-	'announce',
-	'annual',
-	'another',
-	'answer',
-	'antenna',
-	'antique',
-	'anxiety',
-	'any',
-	'apart',
-	'apology',
-	'appear',
-	'apple',
-	'approve',
-	'april',
-	'arch',
-	'arctic',
-	'area',
-	'arena',
-	'argue',
-	'arm',
-	'armed',
-	'armor',
-	'army',
-	'around',
-	'arrange',
-	'arrest',
-	'arrive',
-	'arrow',
-	'art',
-	'artefact',
-	'artist',
-	'artwork',
-	'ask',
-	'aspect',
-	'assault',
-	'asset',
-	'assist',
-	'assume',
-	'asthma',
-	'athlete',
-	'atom',
-	'attack',
-	'attend',
-	'attitude',
-	'attract',
-	'auction',
-	'audit',
-	'august',
-	'aunt',
-	'author',
-	'auto',
-	'autumn',
-	'average',
-	'avocado',
-	'avoid',
-	'awake',
-	'aware',
-	'away',
-	'awesome',
-	'awful',
-	'awkward',
-	'axis',
-	'baby',
-	'bachelor',
-	'bacon',
-	'badge',
-	'bag',
-	'balance',
-	'balcony',
-	'ball',
-	'bamboo',
-	'banana',
-	'banner',
-	'bar',
-	'barely',
-	'bargain',
-	'barrel',
-	'base',
-	'basic',
-	'basket',
-	'battle',
-	'beach',
-	'bean',
-	'beauty',
-	'because',
-	'become',
-	'beef',
-	'before',
-	'begin',
-	'behave',
-	'behind',
-	'believe',
-	'below',
-	'belt',
-	'bench',
-	'benefit',
-	'best',
-	'betray',
-	'better',
-	'between',
-	'beyond',
-	'bicycle',
-	'bid',
-	'bike',
-	'bind',
-	'biology',
-	'bird',
-	'birth',
-	'bitter',
-	'black',
-	'blade',
-	'blame',
-	'blanket',
-	'blast',
-	'bleak',
-	'bless',
-	'blind',
-	'blood',
-	'blossom',
-	'blouse',
-	'blue',
-	'blur',
-	'blush',
-	'board',
-	'boat',
-	'body',
-	'boil',
-	'bomb',
-	'bone',
-	'bonus',
-	'book',
-	'boost',
-	'border',
-	'boring',
-	'borrow',
-	'boss',
-	'bottom',
-	'bounce',
-	'box',
-	'boy',
-	'bracket',
-	'brain',
-	'brand',
-	'brass',
-	'brave',
-	'bread',
-	'breeze',
-	'brick',
-	'bridge',
-	'brief',
-	'bright',
-	'bring',
-	'brisk',
-	'broccoli',
-	'broken',
-	'bronze',
-	'broom',
-	'brother',
-	'brown',
-	'brush',
-	'bubble',
-	'buddy',
-	'budget',
-	'buffalo',
-	'build',
-	'bulb',
-	'bulk',
-	'bullet',
-	'bundle',
-	'bunker',
-	'burden',
-	'burger',
-	'burst',
-	'bus',
-	'business',
-	'busy',
-	'butter',
-	'buyer',
-	'buzz',
-	'cabbage',
-	'cabin',
-	'cable',
-	'cactus',
-	'cage',
-	'cake',
-	'call',
-	'calm',
-	'camera',
-	'camp',
-	'can',
-	'canal',
-	'cancel',
-	'candy',
-	'cannon',
-	'canoe',
-	'canvas',
-	'canyon',
-	'capable',
-	'capital',
-	'captain',
-	'car',
-	'carbon',
-	'card',
-	'cargo',
-	'carpet',
-	'carry',
-	'cart',
-	'case',
-	'cash',
-	'casino',
-	'castle',
-	'casual',
-	'cat',
-	'catalog',
-	'catch',
-	'category',
-	'cattle',
-	'caught',
-	'cause',
-	'caution',
-	'cave',
-	'ceiling',
-	'celery',
-	'cement',
-	'census',
-	'century',
-	'cereal',
-	'certain',
-	'chair',
-	'chalk',
-	'champion',
-	'change',
-	'chaos',
-	'chapter',
-	'charge',
-	'chase',
-	'chat',
-	'cheap',
-	'check',
-	'cheese',
-	'chef',
-	'cherry',
-	'chest',
-	'chicken',
-	'chief',
-	'child',
-	'chimney',
-	'choice',
-	'choose',
-	'chronic',
-	'chuckle',
-	'chunk',
-	'churn',
-	'cigar',
-	'cinnamon',
-	'circle',
-	'citizen',
-	'city',
-	'civil',
-	'claim',
-	'clap',
-	'clarify',
-	'claw',
-	'clay',
-	'clean',
-	'clerk',
-	'clever',
-	'click',
-	'client',
-	'cliff',
-	'climb',
-	'clinic',
-	'clip',
-	'clock',
-	'clog',
-	'close',
-	'cloth',
-	'cloud',
-	'clown',
-	'club',
-	'clump',
-	'cluster',
-	'clutch',
-	'coach',
-	'coast',
-	'coconut',
-	'code',
-	'coffee',
-	'coil',
-	'coin',
-	'collect',
-	'color',
-	'column',
-	'combine',
-	'come',
-	'comfort',
-	'comic',
-	'common',
-	'company',
-	'concert',
-	'conduct',
-	'confirm',
-	'congress',
-	'connect',
-	'consider',
-	'control',
-	'convince',
-	'cook',
-	'cool',
-	'copper',
-	'copy',
-	'coral',
-	'core',
-	'corn',
-	'correct',
-	'cost',
-	'cotton',
-	'couch',
-	'country',
-	'couple',
-	'course',
-	'cousin',
-	'cover',
-	'coyote',
-	'crack',
-	'cradle',
-	'craft',
-	'cram',
-	'crane',
-	'crash',
-	'crater',
-	'crawl',
-	'crazy',
-	'cream',
-	'credit',
-	'creek',
-	'crew',
-	'cricket',
-	'crime',
-	'crisp',
-	'critic',
-	'crop',
-	'cross',
-	'crouch',
-	'crowd',
-	'crucial',
-	'cruel',
-	'cruise',
-	'crumble',
-	'crunch',
-	'crush',
-	'cry',
-	'crystal',
-	'cube',
-	'culture',
-	'cup',
-	'cupboard',
-	'curious',
-	'current',
-	'curtain',
-	'curve',
-	'cushion',
-	'custom',
-	'cute',
-	'cycle',
-	'dad',
-	'damage',
-	'damp',
-	'dance',
-	'danger',
-	'daring',
-	'dash',
-	'daughter',
-	'dawn',
-	'day',
-	'deal',
-	'debate',
-	'debris',
-	'decade',
-	'december',
-	'decide',
-	'decline',
-	'decorate',
-	'decrease',
-	'deer',
-	'defense',
-	'define',
-	'defy',
-	'degree',
-	'delay',
-	'deliver',
-	'demand',
-	'demise',
-	'denial',
-	'dentist',
-	'deny',
-	'depart',
-	'depend',
-	'deposit',
-	'depth',
-	'deputy',
-	'derive',
-	'describe',
-	'desert',
-	'design',
-	'desk',
-	'despair',
-	'destroy',
-	'detail',
-	'detect',
-	'develop',
-	'device',
-	'devote',
-	'diagram',
-	'dial',
-	'diamond',
-	'diary',
-	'dice',
-	'diesel',
-	'diet',
-	'differ',
-	'digital',
-	'dignity',
-	'dilemma',
-	'dinner',
-	'dinosaur',
-	'direct',
-	'dirt',
-	'disagree',
-	'discover',
-	'disease',
-	'dish',
-	'dismiss',
-	'disorder',
-	'display',
-	'distance',
-	'divert',
-	'divide',
-	'divorce',
-	'dizzy',
-	'doctor',
-	'document',
-	'dog',
-	'doll',
-	'dolphin',
-	'domain',
-	'donate',
-	'donkey',
-	'donor',
-	'door',
-	'dose',
-	'double',
-	'dove',
-	'draft',
-	'dragon',
-	'drama',
-	'drastic',
-	'draw',
-	'dream',
-	'dress',
-	'drift',
-	'drill',
-	'drink',
-	'drip',
-	'drive',
-	'drop',
-	'drum',
-	'dry',
-	'duck',
-	'dumb',
-	'dune',
-	'during',
-	'dust',
-	'dutch',
-	'duty',
-	'dwarf',
-	'dynamic',
-	'eager',
-	'eagle',
-	'early',
-	'earn',
-	'earth',
-	'easily',
-	'east',
-	'easy',
-	'echo',
-	'ecology',
-	'economy',
-	'edge',
-	'edit',
-	'educate',
-	'effort',
-	'egg',
-	'eight',
-	'either',
-	'elbow',
-	'elder',
-	'electric',
-	'elegant',
-	'element',
-	'elephant',
-	'elevator',
-	'elite',
-	'else',
-	'embark',
-	'embody',
-	'embrace',
-	'emerge',
-	'emotion',
-	'employ',
-	'empower',
-	'empty',
-	'enable',
-	'enact',
-	'end',
-	'endless',
-	'endorse',
-	'enemy',
-	'energy',
-	'enforce',
-	'engage',
-	'engine',
-	'enhance',
-	'enjoy',
-	'enlist',
-	'enough',
-	'enrich',
-	'enroll',
-	'ensure',
-	'enter',
-	'entire',
-	'entry',
-	'envelope',
-	'episode',
-	'equal',
-	'equip',
-	'era',
-	'erase',
-	'erode',
-	'erosion',
-	'error',
-	'erupt',
-	'escape',
-	'essay',
-	'essence',
-	'estate',
-	'eternal',
-	'ethics',
-	'evidence',
-	'evil',
-	'evoke',
-	'evolve',
-	'exact',
-	'example',
-	'excess',
-	'exchange',
-	'excite',
-	'exclude',
-	'excuse',
-	'execute',
-	'exercise',
-	'exhaust',
-	'exhibit',
-	'exile',
-	'exist',
-	'exit',
-	'exotic',
-	'expand',
-	'expect',
-	'expire',
-	'explain',
-	'expose',
-	'express',
-	'extend',
-	'extra',
-	'eye',
-	'eyebrow',
-	'fabric',
-	'face',
-	'faculty',
-	'fade',
-	'faint',
-	'faith',
-	'fall',
-	'false',
-	'fame',
-	'family',
-	'famous',
-	'fan',
-	'fancy',
-	'fantasy',
-	'farm',
-	'fashion',
-	'fat',
-	'fatal',
-	'father',
-	'fatigue',
-	'fault',
-	'favorite',
-	'feature',
-	'february',
-	'federal',
-	'fee',
-	'feed',
-	'feel',
-	'female',
-	'fence',
-	'festival',
-	'fetch',
-	'fever',
-	'few',
-	'fiber',
-	'fiction',
-	'field',
-	'figure',
-	'file',
-	'film',
-	'filter',
-	'final',
-	'find',
-	'fine',
-	'finger',
-	'finish',
-	'fire',
-	'firm',
-	'first',
-	'fiscal',
-	'fish',
-	'fit',
-	'fitness',
-	'fix',
-	'flag',
-	'flame',
-	'flash',
-	'flat',
-	'flavor',
-	'flee',
-	'flight',
-	'flip',
-	'float',
-	'flock',
-	'floor',
-	'flower',
-	'fluid',
-	'flush',
-	'fly',
-	'foam',
-	'focus',
-	'fog',
-	'foil',
-	'fold',
-	'follow',
-	'food',
-	'foot',
-	'force',
-	'forest',
-	'forget',
-	'fork',
-	'fortune',
-	'forum',
-	'forward',
-	'fossil',
-	'foster',
-	'found',
-	'fox',
-	'fragile',
-	'frame',
-	'frequent',
-	'fresh',
-	'friend',
-	'fringe',
-	'frog',
-	'front',
-	'frost',
-	'frown',
-	'frozen',
-	'fruit',
-	'fuel',
-	'fun',
-	'funny',
-	'furnace',
-	'fury',
-	'future',
-	'gadget',
-	'gain',
-	'galaxy',
-	'gallery',
-	'game',
-	'gap',
-	'garage',
-	'garbage',
-	'garden',
-	'garlic',
-	'garment',
-	'gas',
-	'gasp',
-	'gate',
-	'gather',
-	'gauge',
-	'gaze',
-	'general',
-	'genius',
-	'genre',
-	'gentle',
-	'genuine',
-	'gesture',
-	'ghost',
-	'giant',
-	'gift',
-	'giggle',
-	'ginger',
-	'giraffe',
-	'girl',
-	'give',
-	'glad',
-	'glance',
-	'glare',
-	'glass',
-	'glide',
-	'glimpse',
-	'globe',
-	'gloom',
-	'glory',
-	'glove',
-	'glow',
-	'glue',
-	'goat',
-	'goddess',
-	'gold',
-	'good',
-	'goose',
-	'gorilla',
-	'gospel',
-	'gossip',
-	'govern',
-	'gown',
-	'grab',
-	'grace',
-	'grain',
-	'grant',
-	'grape',
-	'grass',
-	'gravity',
-	'great',
-	'green',
-	'grid',
-	'grief',
-	'grit',
-	'grocery',
-	'group',
-	'grow',
-	'grunt',
-	'guard',
-	'guess',
-	'guide',
-	'guilt',
-	'guitar',
-	'gun',
-	'gym',
-	'habit',
-	'hair',
-	'half',
-	'hammer',
-	'hamster',
-	'hand',
-	'happy',
-	'harbor',
-	'hard',
-	'harsh',
-	'harvest',
-	'hat',
-	'have',
-	'hawk',
-	'hazard',
-	'head',
-	'health',
-	'heart',
-	'heavy',
-	'hedgehog',
-	'height',
-	'hello',
-	'helmet',
-	'help',
-	'hen',
-	'hero',
-	'hidden',
-	'high',
-	'hill',
-	'hint',
-	'hip',
-	'hire',
-	'history',
-	'hobby',
-	'hockey',
-	'hold',
-	'hole',
-	'holiday',
-	'hollow',
-	'home',
-	'honey',
-	'hood',
-	'hope',
-	'horn',
-	'horror',
-	'horse',
-	'hospital',
-	'host',
-	'hotel',
-	'hour',
-	'hover',
-	'hub',
-	'huge',
-	'human',
-	'humble',
-	'humor',
-	'hundred',
-	'hungry',
-	'hunt',
-	'hurdle',
-	'hurry',
-	'hurt',
-	'husband',
-	'hybrid',
-	'ice',
-	'icon',
-	'idea',
-	'identify',
-	'idle',
-	'ignore',
-	'ill',
-	'illegal',
-	'illness',
-	'image',
-	'imitate',
-	'immense',
-	'immune',
-	'impact',
-	'impose',
-	'improve',
-	'impulse',
-	'inch',
-	'include',
-	'income',
-	'increase',
-	'index',
-	'indicate',
-	'indoor',
-	'industry',
-	'infant',
-	'inflict',
-	'inform',
-	'inhale',
-	'inherit',
-	'initial',
-	'inject',
-	'injury',
-	'inmate',
-	'inner',
-	'innocent',
-	'input',
-	'inquiry',
-	'insane',
-	'insect',
-	'inside',
-	'inspire',
-	'install',
-	'intact',
-	'interest',
-	'into',
-	'invest',
-	'invite',
-	'involve',
-	'iron',
-	'island',
-	'isolate',
-	'issue',
-	'item',
-	'ivory',
-	'jacket',
-	'jaguar',
-	'jar',
-	'jazz',
-	'jealous',
-	'jeans',
-	'jelly',
-	'jewel',
-	'job',
-	'join',
-	'joke',
-	'journey',
-	'joy',
-	'judge',
-	'juice',
-	'jump',
-	'jungle',
-	'junior',
-	'junk',
-	'just',
-	'kangaroo',
-	'keen',
-	'keep',
-	'ketchup',
-	'key',
-	'kick',
-	'kid',
-	'kidney',
-	'kind',
-	'kingdom',
-	'kiss',
-	'kit',
-	'kitchen',
-	'kite',
-	'kitten',
-	'kiwi',
-	'knee',
-	'knife',
-	'knock',
-	'know',
-	'lab',
-	'label',
-	'labor',
-	'ladder',
-	'lady',
-	'lake',
-	'lamp',
-	'language',
-	'laptop',
-	'large',
-	'later',
-	'latin',
-	'laugh',
-	'laundry',
-	'lava',
-	'law',
-	'lawn',
-	'lawsuit',
-	'layer',
-	'lazy',
-	'leader',
-	'leaf',
-	'learn',
-	'leave',
-	'lecture',
-	'left',
-	'leg',
-	'legal',
-	'legend',
-	'leisure',
-	'lemon',
-	'lend',
-	'length',
-	'lens',
-	'leopard',
-	'lesson',
-	'letter',
-	'level',
-	'liar',
-	'liberty',
-	'library',
-	'license',
-	'life',
-	'lift',
-	'light',
-	'like',
-	'limb',
-	'limit',
-	'link',
-	'lion',
-	'liquid',
-	'list',
-	'little',
-	'live',
-	'lizard',
-	'load',
-	'loan',
-	'lobster',
-	'local',
-	'lock',
-	'logic',
-	'lonely',
-	'long',
-	'loop',
-	'lottery',
-	'loud',
-	'lounge',
-	'love',
-	'loyal',
-	'lucky',
-	'luggage',
-	'lumber',
-	'lunar',
-	'lunch',
-	'luxury',
-	'lyrics',
-	'machine',
-	'mad',
-	'magic',
-	'magnet',
-	'maid',
-	'mail',
-	'main',
-	'major',
-	'make',
-	'mammal',
-	'man',
-	'manage',
-	'mandate',
-	'mango',
-	'mansion',
-	'manual',
-	'maple',
-	'marble',
-	'march',
-	'margin',
-	'marine',
-	'market',
-	'marriage',
-	'mask',
-	'mass',
-	'master',
-	'match',
-	'material',
-	'math',
-	'matrix',
-	'matter',
-	'maximum',
-	'maze',
-	'meadow',
-	'mean',
-	'measure',
-	'meat',
-	'mechanic',
-	'medal',
-	'media',
-	'melody',
-	'melt',
-	'member',
-	'memory',
-	'mention',
-	'menu',
-	'mercy',
-	'merge',
-	'merit',
-	'merry',
-	'mesh',
-	'message',
-	'metal',
-	'method',
-	'middle',
-	'midnight',
-	'milk',
-	'million',
-	'mimic',
-	'mind',
-	'minimum',
-	'minor',
-	'minute',
-	'miracle',
-	'mirror',
-	'misery',
-	'miss',
-	'mistake',
-	'mix',
-	'mixed',
-	'mixture',
-	'mobile',
-	'model',
-	'modify',
-	'mom',
-	'moment',
-	'monitor',
-	'monkey',
-	'monster',
-	'month',
-	'moon',
-	'moral',
-	'more',
-	'morning',
-	'mosquito',
-	'mother',
-	'motion',
-	'motor',
-	'mountain',
-	'mouse',
-	'move',
-	'movie',
-	'much',
-	'muffin',
-	'mule',
-	'multiply',
-	'muscle',
-	'museum',
-	'mushroom',
-	'music',
-	'must',
-	'mutual',
-	'myself',
-	'mystery',
-	'myth',
-	'naive',
-	'name',
-	'napkin',
-	'narrow',
-	'nasty',
-	'nation',
-	'nature',
-	'near',
-	'neck',
-	'need',
-	'negative',
-	'neglect',
-	'neither',
-	'nephew',
-	'nerve',
-	'nest',
-	'net',
-	'network',
-	'neutral',
-	'never',
-	'news',
-	'next',
-	'nice',
-	'night',
-	'noble',
-	'noise',
-	'nominee',
-	'noodle',
-	'normal',
-	'north',
-	'nose',
-	'notable',
-	'note',
-	'nothing',
-	'notice',
-	'novel',
-	'now',
-	'nuclear',
-	'number',
-	'nurse',
-	'nut',
-	'oak',
-	'obey',
-	'object',
-	'oblige',
-	'obscure',
-	'observe',
-	'obtain',
-	'obvious',
-	'occur',
-	'ocean',
-	'october',
-	'odor',
-	'off',
-	'offer',
-	'office',
-	'often',
-	'oil',
-	'okay',
-	'old',
-	'olive',
-	'olympic',
-	'omit',
-	'once',
-	'one',
-	'onion',
-	'online',
-	'only',
-	'open',
-	'opera',
-	'opinion',
-	'oppose',
-	'option',
-	'orange',
-	'orbit',
-	'orchard',
-	'order',
-	'ordinary',
-	'organ',
-	'orient',
-	'original',
-	'orphan',
-	'ostrich',
-	'other',
-	'outdoor',
-	'outer',
-	'output',
-	'outside',
-	'oval',
-	'oven',
-	'over',
-	'own',
-	'owner',
-	'oxygen',
-	'oyster',
-	'ozone',
-	'pact',
-	'paddle',
-	'page',
-	'pair',
-	'palace',
-	'palm',
-	'panda',
-	'panel',
-	'panic',
-	'panther',
-	'paper',
-	'parade',
-	'parent',
-	'park',
-	'parrot',
-	'party',
-	'pass',
-	'patch',
-	'path',
-	'patient',
-	'patrol',
-	'pattern',
-	'pause',
-	'pave',
-	'payment',
-	'peace',
-	'peanut',
-	'pear',
-	'peasant',
-	'pelican',
-	'pen',
-	'penalty',
-	'pencil',
-	'people',
-	'pepper',
-	'perfect',
-	'permit',
-	'person',
-	'pet',
-	'phone',
-	'photo',
-	'phrase',
-	'physical',
-	'piano',
-	'picnic',
-	'picture',
-	'piece',
-	'pig',
-	'pigeon',
-	'pill',
-	'pilot',
-	'pink',
-	'pioneer',
-	'pipe',
-	'pistol',
-	'pitch',
-	'pizza',
-	'place',
-	'planet',
-	'plastic',
-	'plate',
-	'play',
-	'please',
-	'pledge',
-	'pluck',
-	'plug',
-	'plunge',
-	'poem',
-	'poet',
-	'point',
-	'polar',
-	'pole',
-	'police',
-	'pond',
-	'pony',
-	'pool',
-	'popular',
-	'portion',
-	'position',
-	'possible',
-	'post',
-	'potato',
-	'pottery',
-	'poverty',
-	'powder',
-	'power',
-	'practice',
-	'praise',
-	'predict',
-	'prefer',
-	'prepare',
-	'present',
-	'pretty',
-	'prevent',
-	'price',
-	'pride',
-	'primary',
-	'print',
-	'priority',
-	'prison',
-	'private',
-	'prize',
-	'problem',
-	'process',
-	'produce',
-	'profit',
-	'program',
-	'project',
-	'promote',
-	'proof',
-	'property',
-	'prosper',
-	'protect',
-	'proud',
-	'provide',
-	'public',
-	'pudding',
-	'pull',
-	'pulp',
-	'pulse',
-	'pumpkin',
-	'punch',
-	'pupil',
-	'puppy',
-	'purchase',
-	'purity',
-	'purpose',
-	'purse',
-	'push',
-	'put',
-	'puzzle',
-	'pyramid',
-	'quality',
-	'quantum',
-	'quarter',
-	'question',
-	'quick',
-	'quit',
-	'quiz',
-	'quote',
-	'rabbit',
-	'raccoon',
-	'race',
-	'rack',
-	'radar',
-	'radio',
-	'rail',
-	'rain',
-	'raise',
-	'rally',
-	'ramp',
-	'ranch',
-	'random',
-	'range',
-	'rapid',
-	'rare',
-	'rate',
-	'rather',
-	'raven',
-	'raw',
-	'razor',
-	'ready',
-	'real',
-	'reason',
-	'rebel',
-	'rebuild',
-	'recall',
-	'receive',
-	'recipe',
-	'record',
-	'recycle',
-	'reduce',
-	'reflect',
-	'reform',
-	'refuse',
-	'region',
-	'regret',
-	'regular',
-	'reject',
-	'relax',
-	'release',
-	'relief',
-	'rely',
-	'remain',
-	'remember',
-	'remind',
-	'remove',
-	'render',
-	'renew',
-	'rent',
-	'reopen',
-	'repair',
-	'repeat',
-	'replace',
-	'report',
-	'require',
-	'rescue',
-	'resemble',
-	'resist',
-	'resource',
-	'response',
-	'result',
-	'retire',
-	'retreat',
-	'return',
-	'reunion',
-	'reveal',
-	'review',
-	'reward',
-	'rhythm',
-	'rib',
-	'ribbon',
-	'rice',
-	'rich',
-	'ride',
-	'ridge',
-	'rifle',
-	'right',
-	'rigid',
-	'ring',
-	'riot',
-	'ripple',
-	'risk',
-	'ritual',
-	'rival',
-	'river',
-	'road',
-	'roast',
-	'robot',
-	'robust',
-	'rocket',
-	'romance',
-	'roof',
-	'rookie',
-	'room',
-	'rose',
-	'rotate',
-	'rough',
-	'round',
-	'route',
-	'royal',
-	'rubber',
-	'rude',
-	'rug',
-	'rule',
-	'run',
-	'runway',
-	'rural',
-	'sad',
-	'saddle',
-	'sadness',
-	'safe',
-	'sail',
-	'salad',
-	'salmon',
-	'salon',
-	'salt',
-	'salute',
-	'same',
-	'sample',
-	'sand',
-	'satisfy',
-	'satoshi',
-	'sauce',
-	'sausage',
-	'save',
-	'say',
-	'scale',
-	'scan',
-	'scare',
-	'scatter',
-	'scene',
-	'scheme',
-	'school',
-	'science',
-	'scissors',
-	'scorpion',
-	'scout',
-	'scrap',
-	'screen',
-	'script',
-	'scrub',
-	'sea',
-	'search',
-	'season',
-	'seat',
-	'second',
-	'secret',
-	'section',
-	'security',
-	'seed',
-	'seek',
-	'segment',
-	'select',
-	'sell',
-	'seminar',
-	'senior',
-	'sense',
-	'sentence',
-	'series',
-	'service',
-	'session',
-	'settle',
-	'setup',
-	'seven',
-	'shadow',
-	'shaft',
-	'shallow',
-	'share',
-	'shed',
-	'shell',
-	'sheriff',
-	'shield',
-	'shift',
-	'shine',
-	'ship',
-	'shiver',
-	'shock',
-	'shoe',
-	'shoot',
-	'shop',
-	'short',
-	'shoulder',
-	'shove',
-	'shrimp',
-	'shrug',
-	'shuffle',
-	'shy',
-	'sibling',
-	'sick',
-	'side',
-	'siege',
-	'sight',
-	'sign',
-	'silent',
-	'silk',
-	'silly',
-	'silver',
-	'similar',
-	'simple',
-	'since',
-	'sing',
-	'siren',
-	'sister',
-	'situate',
-	'six',
-	'size',
-	'skate',
-	'sketch',
-	'ski',
-	'skill',
-	'skin',
-	'skirt',
-	'skull',
-	'slab',
-	'slam',
-	'sleep',
-	'slender',
-	'slice',
-	'slide',
-	'slight',
-	'slim',
-	'slogan',
-	'slot',
-	'slow',
-	'slush',
-	'small',
-	'smart',
-	'smile',
-	'smoke',
-	'smooth',
-	'snack',
-	'snake',
-	'snap',
-	'sniff',
-	'snow',
-	'soap',
-	'soccer',
-	'social',
-	'sock',
-	'soda',
-	'soft',
-	'solar',
-	'soldier',
-	'solid',
-	'solution',
-	'solve',
-	'someone',
-	'song',
-	'soon',
-	'sorry',
-	'sort',
-	'soul',
-	'sound',
-	'soup',
-	'source',
-	'south',
-	'space',
-	'spare',
-	'spatial',
-	'spawn',
-	'speak',
-	'special',
-	'speed',
-	'spell',
-	'spend',
-	'sphere',
-	'spice',
-	'spider',
-	'spike',
-	'spin',
-	'spirit',
-	'split',
-	'spoil',
-	'sponsor',
-	'spoon',
-	'sport',
-	'spot',
-	'spray',
-	'spread',
-	'spring',
-	'spy',
-	'square',
-	'squeeze',
-	'squirrel',
-	'stable',
-	'stadium',
-	'staff',
-	'stage',
-	'stairs',
-	'stamp',
-	'stand',
-	'start',
-	'state',
-	'stay',
-	'steak',
-	'steel',
-	'stem',
-	'step',
-	'stereo',
-	'stick',
-	'still',
-	'sting',
-	'stock',
-	'stomach',
-	'stone',
-	'stool',
-	'story',
-	'stove',
-	'strategy',
-	'street',
-	'strike',
-	'strong',
-	'struggle',
-	'student',
-	'stuff',
-	'stumble',
-	'style',
-	'subject',
-	'submit',
-	'subway',
-	'success',
-	'such',
-	'sudden',
-	'suffer',
-	'sugar',
-	'suggest',
-	'suit',
-	'summer',
-	'sun',
-	'sunny',
-	'sunset',
-	'super',
-	'supply',
-	'supreme',
-	'sure',
-	'surface',
-	'surge',
-	'surprise',
-	'surround',
-	'survey',
-	'suspect',
-	'sustain',
-	'swallow',
-	'swamp',
-	'swap',
-	'swarm',
-	'swear',
-	'sweet',
-	'swift',
-	'swim',
-	'swing',
-	'switch',
-	'sword',
-	'symbol',
-	'symptom',
-	'syrup',
-	'system',
-	'table',
-	'tackle',
-	'tag',
-	'tail',
-	'talent',
-	'talk',
-	'tank',
-	'tape',
-	'target',
-	'task',
-	'taste',
-	'tattoo',
-	'taxi',
-	'teach',
-	'team',
-	'tell',
-	'ten',
-	'tenant',
-	'tennis',
-	'tent',
-	'term',
-	'test',
-	'text',
-	'thank',
-	'that',
-	'theme',
-	'then',
-	'theory',
-	'there',
-	'they',
-	'thing',
-	'this',
-	'thought',
-	'three',
-	'thrive',
-	'throw',
-	'thumb',
-	'thunder',
-	'ticket',
-	'tide',
-	'tiger',
-	'tilt',
-	'timber',
-	'time',
-	'tiny',
-	'tip',
-	'tired',
-	'tissue',
-	'title',
-	'toast',
-	'tobacco',
-	'today',
-	'toddler',
-	'toe',
-	'together',
-	'toilet',
-	'token',
-	'tomato',
-	'tomorrow',
-	'tone',
-	'tongue',
-	'tonight',
-	'tool',
-	'tooth',
-	'top',
-	'topic',
-	'topple',
-	'torch',
-	'tornado',
-	'tortoise',
-	'toss',
-	'total',
-	'tourist',
-	'toward',
-	'tower',
-	'town',
-	'toy',
-	'track',
-	'trade',
-	'traffic',
-	'tragic',
-	'train',
-	'transfer',
-	'trap',
-	'trash',
-	'travel',
-	'tray',
-	'treat',
-	'tree',
-	'trend',
-	'trial',
-	'tribe',
-	'trick',
-	'trigger',
-	'trim',
-	'trip',
-	'trophy',
-	'trouble',
-	'truck',
-	'true',
-	'truly',
-	'trumpet',
-	'trust',
-	'truth',
-	'try',
-	'tube',
-	'tuition',
-	'tumble',
-	'tuna',
-	'tunnel',
-	'turkey',
-	'turn',
-	'turtle',
-	'twelve',
-	'twenty',
-	'twice',
-	'twin',
-	'twist',
-	'two',
-	'type',
-	'typical',
-	'ugly',
-	'umbrella',
-	'unable',
-	'unaware',
-	'uncle',
-	'uncover',
-	'under',
-	'undo',
-	'unfair',
-	'unfold',
-	'unhappy',
-	'uniform',
-	'unique',
-	'unit',
-	'universe',
-	'unknown',
-	'unlock',
-	'until',
-	'unusual',
-	'unveil',
-	'update',
-	'upgrade',
-	'uphold',
-	'upon',
-	'upper',
-	'upset',
-	'urban',
-	'urge',
-	'usage',
-	'use',
-	'used',
-	'useful',
-	'useless',
-	'usual',
-	'utility',
-	'vacant',
-	'vacuum',
-	'vague',
-	'valid',
-	'valley',
-	'valve',
-	'van',
-	'vanish',
-	'vapor',
-	'various',
-	'vast',
-	'vault',
-	'vehicle',
-	'velvet',
-	'vendor',
-	'venture',
-	'venue',
-	'verb',
-	'verify',
-	'version',
-	'very',
-	'vessel',
-	'veteran',
-	'viable',
-	'vibrant',
-	'vicious',
-	'victory',
-	'video',
-	'view',
-	'village',
-	'vintage',
-	'violin',
-	'virtual',
-	'virus',
-	'visa',
-	'visit',
-	'visual',
-	'vital',
-	'vivid',
-	'vocal',
-	'voice',
-	'void',
-	'volcano',
-	'volume',
-	'vote',
-	'voyage',
-	'wage',
-	'wagon',
-	'wait',
-	'walk',
-	'wall',
-	'walnut',
-	'want',
-	'warfare',
-	'warm',
-	'warrior',
-	'wash',
-	'wasp',
-	'waste',
-	'water',
-	'wave',
-	'way',
-	'wealth',
-	'weapon',
-	'wear',
-	'weasel',
-	'weather',
-	'web',
-	'wedding',
-	'weekend',
-	'weird',
-	'welcome',
-	'west',
-	'wet',
-	'whale',
-	'what',
-	'wheat',
-	'wheel',
-	'when',
-	'where',
-	'whip',
-	'whisper',
-	'wide',
-	'width',
-	'wife',
-	'wild',
-	'will',
-	'win',
-	'window',
-	'wine',
-	'wing',
-	'wink',
-	'winner',
-	'winter',
-	'wire',
-	'wisdom',
-	'wise',
-	'wish',
-	'witness',
-	'wolf',
-	'woman',
-	'wonder',
-	'wood',
-	'wool',
-	'word',
-	'work',
-	'world',
-	'worry',
-	'worth',
-	'wrap',
-	'wreck',
-	'wrestle',
-	'wrist',
-	'write',
-	'wrong',
-	'yard',
-	'year',
-	'yellow',
-	'you',
-	'young',
-	'youth',
-	'zebra',
-	'zero',
-	'zone',
-	'zoo',
-];
-
-},{}],24:[function(require,module,exports){
+module.exports = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident', 'account', 'accuse', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual', 'adapt', 'add', 'addict', 'address', 'adjust', 'admit', 'adult', 'advance', 'advice', 'aerobic', 'affair', 'afford', 'afraid', 'again', 'age', 'agent', 'agree', 'ahead', 'aim', 'air', 'airport', 'aisle', 'alarm', 'album', 'alcohol', 'alert', 'alien', 'all', 'alley', 'allow', 'almost', 'alone', 'alpha', 'already', 'also', 'alter', 'always', 'amateur', 'amazing', 'among', 'amount', 'amused', 'analyst', 'anchor', 'ancient', 'anger', 'angle', 'angry', 'animal', 'ankle', 'announce', 'annual', 'another', 'answer', 'antenna', 'antique', 'anxiety', 'any', 'apart', 'apology', 'appear', 'apple', 'approve', 'april', 'arch', 'arctic', 'area', 'arena', 'argue', 'arm', 'armed', 'armor', 'army', 'around', 'arrange', 'arrest', 'arrive', 'arrow', 'art', 'artefact', 'artist', 'artwork', 'ask', 'aspect', 'assault', 'asset', 'assist', 'assume', 'asthma', 'athlete', 'atom', 'attack', 'attend', 'attitude', 'attract', 'auction', 'audit', 'august', 'aunt', 'author', 'auto', 'autumn', 'average', 'avocado', 'avoid', 'awake', 'aware', 'away', 'awesome', 'awful', 'awkward', 'axis', 'baby', 'bachelor', 'bacon', 'badge', 'bag', 'balance', 'balcony', 'ball', 'bamboo', 'banana', 'banner', 'bar', 'barely', 'bargain', 'barrel', 'base', 'basic', 'basket', 'battle', 'beach', 'bean', 'beauty', 'because', 'become', 'beef', 'before', 'begin', 'behave', 'behind', 'believe', 'below', 'belt', 'bench', 'benefit', 'best', 'betray', 'better', 'between', 'beyond', 'bicycle', 'bid', 'bike', 'bind', 'biology', 'bird', 'birth', 'bitter', 'black', 'blade', 'blame', 'blanket', 'blast', 'bleak', 'bless', 'blind', 'blood', 'blossom', 'blouse', 'blue', 'blur', 'blush', 'board', 'boat', 'body', 'boil', 'bomb', 'bone', 'bonus', 'book', 'boost', 'border', 'boring', 'borrow', 'boss', 'bottom', 'bounce', 'box', 'boy', 'bracket', 'brain', 'brand', 'brass', 'brave', 'bread', 'breeze', 'brick', 'bridge', 'brief', 'bright', 'bring', 'brisk', 'broccoli', 'broken', 'bronze', 'broom', 'brother', 'brown', 'brush', 'bubble', 'buddy', 'budget', 'buffalo', 'build', 'bulb', 'bulk', 'bullet', 'bundle', 'bunker', 'burden', 'burger', 'burst', 'bus', 'business', 'busy', 'butter', 'buyer', 'buzz', 'cabbage', 'cabin', 'cable', 'cactus', 'cage', 'cake', 'call', 'calm', 'camera', 'camp', 'can', 'canal', 'cancel', 'candy', 'cannon', 'canoe', 'canvas', 'canyon', 'capable', 'capital', 'captain', 'car', 'carbon', 'card', 'cargo', 'carpet', 'carry', 'cart', 'case', 'cash', 'casino', 'castle', 'casual', 'cat', 'catalog', 'catch', 'category', 'cattle', 'caught', 'cause', 'caution', 'cave', 'ceiling', 'celery', 'cement', 'census', 'century', 'cereal', 'certain', 'chair', 'chalk', 'champion', 'change', 'chaos', 'chapter', 'charge', 'chase', 'chat', 'cheap', 'check', 'cheese', 'chef', 'cherry', 'chest', 'chicken', 'chief', 'child', 'chimney', 'choice', 'choose', 'chronic', 'chuckle', 'chunk', 'churn', 'cigar', 'cinnamon', 'circle', 'citizen', 'city', 'civil', 'claim', 'clap', 'clarify', 'claw', 'clay', 'clean', 'clerk', 'clever', 'click', 'client', 'cliff', 'climb', 'clinic', 'clip', 'clock', 'clog', 'close', 'cloth', 'cloud', 'clown', 'club', 'clump', 'cluster', 'clutch', 'coach', 'coast', 'coconut', 'code', 'coffee', 'coil', 'coin', 'collect', 'color', 'column', 'combine', 'come', 'comfort', 'comic', 'common', 'company', 'concert', 'conduct', 'confirm', 'congress', 'connect', 'consider', 'control', 'convince', 'cook', 'cool', 'copper', 'copy', 'coral', 'core', 'corn', 'correct', 'cost', 'cotton', 'couch', 'country', 'couple', 'course', 'cousin', 'cover', 'coyote', 'crack', 'cradle', 'craft', 'cram', 'crane', 'crash', 'crater', 'crawl', 'crazy', 'cream', 'credit', 'creek', 'crew', 'cricket', 'crime', 'crisp', 'critic', 'crop', 'cross', 'crouch', 'crowd', 'crucial', 'cruel', 'cruise', 'crumble', 'crunch', 'crush', 'cry', 'crystal', 'cube', 'culture', 'cup', 'cupboard', 'curious', 'current', 'curtain', 'curve', 'cushion', 'custom', 'cute', 'cycle', 'dad', 'damage', 'damp', 'dance', 'danger', 'daring', 'dash', 'daughter', 'dawn', 'day', 'deal', 'debate', 'debris', 'decade', 'december', 'decide', 'decline', 'decorate', 'decrease', 'deer', 'defense', 'define', 'defy', 'degree', 'delay', 'deliver', 'demand', 'demise', 'denial', 'dentist', 'deny', 'depart', 'depend', 'deposit', 'depth', 'deputy', 'derive', 'describe', 'desert', 'design', 'desk', 'despair', 'destroy', 'detail', 'detect', 'develop', 'device', 'devote', 'diagram', 'dial', 'diamond', 'diary', 'dice', 'diesel', 'diet', 'differ', 'digital', 'dignity', 'dilemma', 'dinner', 'dinosaur', 'direct', 'dirt', 'disagree', 'discover', 'disease', 'dish', 'dismiss', 'disorder', 'display', 'distance', 'divert', 'divide', 'divorce', 'dizzy', 'doctor', 'document', 'dog', 'doll', 'dolphin', 'domain', 'donate', 'donkey', 'donor', 'door', 'dose', 'double', 'dove', 'draft', 'dragon', 'drama', 'drastic', 'draw', 'dream', 'dress', 'drift', 'drill', 'drink', 'drip', 'drive', 'drop', 'drum', 'dry', 'duck', 'dumb', 'dune', 'during', 'dust', 'dutch', 'duty', 'dwarf', 'dynamic', 'eager', 'eagle', 'early', 'earn', 'earth', 'easily', 'east', 'easy', 'echo', 'ecology', 'economy', 'edge', 'edit', 'educate', 'effort', 'egg', 'eight', 'either', 'elbow', 'elder', 'electric', 'elegant', 'element', 'elephant', 'elevator', 'elite', 'else', 'embark', 'embody', 'embrace', 'emerge', 'emotion', 'employ', 'empower', 'empty', 'enable', 'enact', 'end', 'endless', 'endorse', 'enemy', 'energy', 'enforce', 'engage', 'engine', 'enhance', 'enjoy', 'enlist', 'enough', 'enrich', 'enroll', 'ensure', 'enter', 'entire', 'entry', 'envelope', 'episode', 'equal', 'equip', 'era', 'erase', 'erode', 'erosion', 'error', 'erupt', 'escape', 'essay', 'essence', 'estate', 'eternal', 'ethics', 'evidence', 'evil', 'evoke', 'evolve', 'exact', 'example', 'excess', 'exchange', 'excite', 'exclude', 'excuse', 'execute', 'exercise', 'exhaust', 'exhibit', 'exile', 'exist', 'exit', 'exotic', 'expand', 'expect', 'expire', 'explain', 'expose', 'express', 'extend', 'extra', 'eye', 'eyebrow', 'fabric', 'face', 'faculty', 'fade', 'faint', 'faith', 'fall', 'false', 'fame', 'family', 'famous', 'fan', 'fancy', 'fantasy', 'farm', 'fashion', 'fat', 'fatal', 'father', 'fatigue', 'fault', 'favorite', 'feature', 'february', 'federal', 'fee', 'feed', 'feel', 'female', 'fence', 'festival', 'fetch', 'fever', 'few', 'fiber', 'fiction', 'field', 'figure', 'file', 'film', 'filter', 'final', 'find', 'fine', 'finger', 'finish', 'fire', 'firm', 'first', 'fiscal', 'fish', 'fit', 'fitness', 'fix', 'flag', 'flame', 'flash', 'flat', 'flavor', 'flee', 'flight', 'flip', 'float', 'flock', 'floor', 'flower', 'fluid', 'flush', 'fly', 'foam', 'focus', 'fog', 'foil', 'fold', 'follow', 'food', 'foot', 'force', 'forest', 'forget', 'fork', 'fortune', 'forum', 'forward', 'fossil', 'foster', 'found', 'fox', 'fragile', 'frame', 'frequent', 'fresh', 'friend', 'fringe', 'frog', 'front', 'frost', 'frown', 'frozen', 'fruit', 'fuel', 'fun', 'funny', 'furnace', 'fury', 'future', 'gadget', 'gain', 'galaxy', 'gallery', 'game', 'gap', 'garage', 'garbage', 'garden', 'garlic', 'garment', 'gas', 'gasp', 'gate', 'gather', 'gauge', 'gaze', 'general', 'genius', 'genre', 'gentle', 'genuine', 'gesture', 'ghost', 'giant', 'gift', 'giggle', 'ginger', 'giraffe', 'girl', 'give', 'glad', 'glance', 'glare', 'glass', 'glide', 'glimpse', 'globe', 'gloom', 'glory', 'glove', 'glow', 'glue', 'goat', 'goddess', 'gold', 'good', 'goose', 'gorilla', 'gospel', 'gossip', 'govern', 'gown', 'grab', 'grace', 'grain', 'grant', 'grape', 'grass', 'gravity', 'great', 'green', 'grid', 'grief', 'grit', 'grocery', 'group', 'grow', 'grunt', 'guard', 'guess', 'guide', 'guilt', 'guitar', 'gun', 'gym', 'habit', 'hair', 'half', 'hammer', 'hamster', 'hand', 'happy', 'harbor', 'hard', 'harsh', 'harvest', 'hat', 'have', 'hawk', 'hazard', 'head', 'health', 'heart', 'heavy', 'hedgehog', 'height', 'hello', 'helmet', 'help', 'hen', 'hero', 'hidden', 'high', 'hill', 'hint', 'hip', 'hire', 'history', 'hobby', 'hockey', 'hold', 'hole', 'holiday', 'hollow', 'home', 'honey', 'hood', 'hope', 'horn', 'horror', 'horse', 'hospital', 'host', 'hotel', 'hour', 'hover', 'hub', 'huge', 'human', 'humble', 'humor', 'hundred', 'hungry', 'hunt', 'hurdle', 'hurry', 'hurt', 'husband', 'hybrid', 'ice', 'icon', 'idea', 'identify', 'idle', 'ignore', 'ill', 'illegal', 'illness', 'image', 'imitate', 'immense', 'immune', 'impact', 'impose', 'improve', 'impulse', 'inch', 'include', 'income', 'increase', 'index', 'indicate', 'indoor', 'industry', 'infant', 'inflict', 'inform', 'inhale', 'inherit', 'initial', 'inject', 'injury', 'inmate', 'inner', 'innocent', 'input', 'inquiry', 'insane', 'insect', 'inside', 'inspire', 'install', 'intact', 'interest', 'into', 'invest', 'invite', 'involve', 'iron', 'island', 'isolate', 'issue', 'item', 'ivory', 'jacket', 'jaguar', 'jar', 'jazz', 'jealous', 'jeans', 'jelly', 'jewel', 'job', 'join', 'joke', 'journey', 'joy', 'judge', 'juice', 'jump', 'jungle', 'junior', 'junk', 'just', 'kangaroo', 'keen', 'keep', 'ketchup', 'key', 'kick', 'kid', 'kidney', 'kind', 'kingdom', 'kiss', 'kit', 'kitchen', 'kite', 'kitten', 'kiwi', 'knee', 'knife', 'knock', 'know', 'lab', 'label', 'labor', 'ladder', 'lady', 'lake', 'lamp', 'language', 'laptop', 'large', 'later', 'latin', 'laugh', 'laundry', 'lava', 'law', 'lawn', 'lawsuit', 'layer', 'lazy', 'leader', 'leaf', 'learn', 'leave', 'lecture', 'left', 'leg', 'legal', 'legend', 'leisure', 'lemon', 'lend', 'length', 'lens', 'leopard', 'lesson', 'letter', 'level', 'liar', 'liberty', 'library', 'license', 'life', 'lift', 'light', 'like', 'limb', 'limit', 'link', 'lion', 'liquid', 'list', 'little', 'live', 'lizard', 'load', 'loan', 'lobster', 'local', 'lock', 'logic', 'lonely', 'long', 'loop', 'lottery', 'loud', 'lounge', 'love', 'loyal', 'lucky', 'luggage', 'lumber', 'lunar', 'lunch', 'luxury', 'lyrics', 'machine', 'mad', 'magic', 'magnet', 'maid', 'mail', 'main', 'major', 'make', 'mammal', 'man', 'manage', 'mandate', 'mango', 'mansion', 'manual', 'maple', 'marble', 'march', 'margin', 'marine', 'market', 'marriage', 'mask', 'mass', 'master', 'match', 'material', 'math', 'matrix', 'matter', 'maximum', 'maze', 'meadow', 'mean', 'measure', 'meat', 'mechanic', 'medal', 'media', 'melody', 'melt', 'member', 'memory', 'mention', 'menu', 'mercy', 'merge', 'merit', 'merry', 'mesh', 'message', 'metal', 'method', 'middle', 'midnight', 'milk', 'million', 'mimic', 'mind', 'minimum', 'minor', 'minute', 'miracle', 'mirror', 'misery', 'miss', 'mistake', 'mix', 'mixed', 'mixture', 'mobile', 'model', 'modify', 'mom', 'moment', 'monitor', 'monkey', 'monster', 'month', 'moon', 'moral', 'more', 'morning', 'mosquito', 'mother', 'motion', 'motor', 'mountain', 'mouse', 'move', 'movie', 'much', 'muffin', 'mule', 'multiply', 'muscle', 'museum', 'mushroom', 'music', 'must', 'mutual', 'myself', 'mystery', 'myth', 'naive', 'name', 'napkin', 'narrow', 'nasty', 'nation', 'nature', 'near', 'neck', 'need', 'negative', 'neglect', 'neither', 'nephew', 'nerve', 'nest', 'net', 'network', 'neutral', 'never', 'news', 'next', 'nice', 'night', 'noble', 'noise', 'nominee', 'noodle', 'normal', 'north', 'nose', 'notable', 'note', 'nothing', 'notice', 'novel', 'now', 'nuclear', 'number', 'nurse', 'nut', 'oak', 'obey', 'object', 'oblige', 'obscure', 'observe', 'obtain', 'obvious', 'occur', 'ocean', 'october', 'odor', 'off', 'offer', 'office', 'often', 'oil', 'okay', 'old', 'olive', 'olympic', 'omit', 'once', 'one', 'onion', 'online', 'only', 'open', 'opera', 'opinion', 'oppose', 'option', 'orange', 'orbit', 'orchard', 'order', 'ordinary', 'organ', 'orient', 'original', 'orphan', 'ostrich', 'other', 'outdoor', 'outer', 'output', 'outside', 'oval', 'oven', 'over', 'own', 'owner', 'oxygen', 'oyster', 'ozone', 'pact', 'paddle', 'page', 'pair', 'palace', 'palm', 'panda', 'panel', 'panic', 'panther', 'paper', 'parade', 'parent', 'park', 'parrot', 'party', 'pass', 'patch', 'path', 'patient', 'patrol', 'pattern', 'pause', 'pave', 'payment', 'peace', 'peanut', 'pear', 'peasant', 'pelican', 'pen', 'penalty', 'pencil', 'people', 'pepper', 'perfect', 'permit', 'person', 'pet', 'phone', 'photo', 'phrase', 'physical', 'piano', 'picnic', 'picture', 'piece', 'pig', 'pigeon', 'pill', 'pilot', 'pink', 'pioneer', 'pipe', 'pistol', 'pitch', 'pizza', 'place', 'planet', 'plastic', 'plate', 'play', 'please', 'pledge', 'pluck', 'plug', 'plunge', 'poem', 'poet', 'point', 'polar', 'pole', 'police', 'pond', 'pony', 'pool', 'popular', 'portion', 'position', 'possible', 'post', 'potato', 'pottery', 'poverty', 'powder', 'power', 'practice', 'praise', 'predict', 'prefer', 'prepare', 'present', 'pretty', 'prevent', 'price', 'pride', 'primary', 'print', 'priority', 'prison', 'private', 'prize', 'problem', 'process', 'produce', 'profit', 'program', 'project', 'promote', 'proof', 'property', 'prosper', 'protect', 'proud', 'provide', 'public', 'pudding', 'pull', 'pulp', 'pulse', 'pumpkin', 'punch', 'pupil', 'puppy', 'purchase', 'purity', 'purpose', 'purse', 'push', 'put', 'puzzle', 'pyramid', 'quality', 'quantum', 'quarter', 'question', 'quick', 'quit', 'quiz', 'quote', 'rabbit', 'raccoon', 'race', 'rack', 'radar', 'radio', 'rail', 'rain', 'raise', 'rally', 'ramp', 'ranch', 'random', 'range', 'rapid', 'rare', 'rate', 'rather', 'raven', 'raw', 'razor', 'ready', 'real', 'reason', 'rebel', 'rebuild', 'recall', 'receive', 'recipe', 'record', 'recycle', 'reduce', 'reflect', 'reform', 'refuse', 'region', 'regret', 'regular', 'reject', 'relax', 'release', 'relief', 'rely', 'remain', 'remember', 'remind', 'remove', 'render', 'renew', 'rent', 'reopen', 'repair', 'repeat', 'replace', 'report', 'require', 'rescue', 'resemble', 'resist', 'resource', 'response', 'result', 'retire', 'retreat', 'return', 'reunion', 'reveal', 'review', 'reward', 'rhythm', 'rib', 'ribbon', 'rice', 'rich', 'ride', 'ridge', 'rifle', 'right', 'rigid', 'ring', 'riot', 'ripple', 'risk', 'ritual', 'rival', 'river', 'road', 'roast', 'robot', 'robust', 'rocket', 'romance', 'roof', 'rookie', 'room', 'rose', 'rotate', 'rough', 'round', 'route', 'royal', 'rubber', 'rude', 'rug', 'rule', 'run', 'runway', 'rural', 'sad', 'saddle', 'sadness', 'safe', 'sail', 'salad', 'salmon', 'salon', 'salt', 'salute', 'same', 'sample', 'sand', 'satisfy', 'satoshi', 'sauce', 'sausage', 'save', 'say', 'scale', 'scan', 'scare', 'scatter', 'scene', 'scheme', 'school', 'science', 'scissors', 'scorpion', 'scout', 'scrap', 'screen', 'script', 'scrub', 'sea', 'search', 'season', 'seat', 'second', 'secret', 'section', 'security', 'seed', 'seek', 'segment', 'select', 'sell', 'seminar', 'senior', 'sense', 'sentence', 'series', 'service', 'session', 'settle', 'setup', 'seven', 'shadow', 'shaft', 'shallow', 'share', 'shed', 'shell', 'sheriff', 'shield', 'shift', 'shine', 'ship', 'shiver', 'shock', 'shoe', 'shoot', 'shop', 'short', 'shoulder', 'shove', 'shrimp', 'shrug', 'shuffle', 'shy', 'sibling', 'sick', 'side', 'siege', 'sight', 'sign', 'silent', 'silk', 'silly', 'silver', 'similar', 'simple', 'since', 'sing', 'siren', 'sister', 'situate', 'six', 'size', 'skate', 'sketch', 'ski', 'skill', 'skin', 'skirt', 'skull', 'slab', 'slam', 'sleep', 'slender', 'slice', 'slide', 'slight', 'slim', 'slogan', 'slot', 'slow', 'slush', 'small', 'smart', 'smile', 'smoke', 'smooth', 'snack', 'snake', 'snap', 'sniff', 'snow', 'soap', 'soccer', 'social', 'sock', 'soda', 'soft', 'solar', 'soldier', 'solid', 'solution', 'solve', 'someone', 'song', 'soon', 'sorry', 'sort', 'soul', 'sound', 'soup', 'source', 'south', 'space', 'spare', 'spatial', 'spawn', 'speak', 'special', 'speed', 'spell', 'spend', 'sphere', 'spice', 'spider', 'spike', 'spin', 'spirit', 'split', 'spoil', 'sponsor', 'spoon', 'sport', 'spot', 'spray', 'spread', 'spring', 'spy', 'square', 'squeeze', 'squirrel', 'stable', 'stadium', 'staff', 'stage', 'stairs', 'stamp', 'stand', 'start', 'state', 'stay', 'steak', 'steel', 'stem', 'step', 'stereo', 'stick', 'still', 'sting', 'stock', 'stomach', 'stone', 'stool', 'story', 'stove', 'strategy', 'street', 'strike', 'strong', 'struggle', 'student', 'stuff', 'stumble', 'style', 'subject', 'submit', 'subway', 'success', 'such', 'sudden', 'suffer', 'sugar', 'suggest', 'suit', 'summer', 'sun', 'sunny', 'sunset', 'super', 'supply', 'supreme', 'sure', 'surface', 'surge', 'surprise', 'surround', 'survey', 'suspect', 'sustain', 'swallow', 'swamp', 'swap', 'swarm', 'swear', 'sweet', 'swift', 'swim', 'swing', 'switch', 'sword', 'symbol', 'symptom', 'syrup', 'system', 'table', 'tackle', 'tag', 'tail', 'talent', 'talk', 'tank', 'tape', 'target', 'task', 'taste', 'tattoo', 'taxi', 'teach', 'team', 'tell', 'ten', 'tenant', 'tennis', 'tent', 'term', 'test', 'text', 'thank', 'that', 'theme', 'then', 'theory', 'there', 'they', 'thing', 'this', 'thought', 'three', 'thrive', 'throw', 'thumb', 'thunder', 'ticket', 'tide', 'tiger', 'tilt', 'timber', 'time', 'tiny', 'tip', 'tired', 'tissue', 'title', 'toast', 'tobacco', 'today', 'toddler', 'toe', 'together', 'toilet', 'token', 'tomato', 'tomorrow', 'tone', 'tongue', 'tonight', 'tool', 'tooth', 'top', 'topic', 'topple', 'torch', 'tornado', 'tortoise', 'toss', 'total', 'tourist', 'toward', 'tower', 'town', 'toy', 'track', 'trade', 'traffic', 'tragic', 'train', 'transfer', 'trap', 'trash', 'travel', 'tray', 'treat', 'tree', 'trend', 'trial', 'tribe', 'trick', 'trigger', 'trim', 'trip', 'trophy', 'trouble', 'truck', 'true', 'truly', 'trumpet', 'trust', 'truth', 'try', 'tube', 'tuition', 'tumble', 'tuna', 'tunnel', 'turkey', 'turn', 'turtle', 'twelve', 'twenty', 'twice', 'twin', 'twist', 'two', 'type', 'typical', 'ugly', 'umbrella', 'unable', 'unaware', 'uncle', 'uncover', 'under', 'undo', 'unfair', 'unfold', 'unhappy', 'uniform', 'unique', 'unit', 'universe', 'unknown', 'unlock', 'until', 'unusual', 'unveil', 'update', 'upgrade', 'uphold', 'upon', 'upper', 'upset', 'urban', 'urge', 'usage', 'use', 'used', 'useful', 'useless', 'usual', 'utility', 'vacant', 'vacuum', 'vague', 'valid', 'valley', 'valve', 'van', 'vanish', 'vapor', 'various', 'vast', 'vault', 'vehicle', 'velvet', 'vendor', 'venture', 'venue', 'verb', 'verify', 'version', 'very', 'vessel', 'veteran', 'viable', 'vibrant', 'vicious', 'victory', 'video', 'view', 'village', 'vintage', 'violin', 'virtual', 'virus', 'visa', 'visit', 'visual', 'vital', 'vivid', 'vocal', 'voice', 'void', 'volcano', 'volume', 'vote', 'voyage', 'wage', 'wagon', 'wait', 'walk', 'wall', 'walnut', 'want', 'warfare', 'warm', 'warrior', 'wash', 'wasp', 'waste', 'water', 'wave', 'way', 'wealth', 'weapon', 'wear', 'weasel', 'weather', 'web', 'wedding', 'weekend', 'weird', 'welcome', 'west', 'wet', 'whale', 'what', 'wheat', 'wheel', 'when', 'where', 'whip', 'whisper', 'wide', 'width', 'wife', 'wild', 'will', 'win', 'window', 'wine', 'wing', 'wink', 'winner', 'winter', 'wire', 'wisdom', 'wise', 'wish', 'witness', 'wolf', 'woman', 'wonder', 'wood', 'wool', 'word', 'work', 'world', 'worry', 'worth', 'wrap', 'wreck', 'wrestle', 'wrist', 'write', 'wrong', 'yard', 'year', 'yellow', 'you', 'young', 'youth', 'zebra', 'zero', 'zone', 'zoo'];
+},{}],25:[function(require,module,exports){
 var asn1 = exports;
 
 asn1.bignum = require('bn.js');
@@ -5079,7 +3077,7 @@ asn1.constants = require('./asn1/constants');
 asn1.decoders = require('./asn1/decoders');
 asn1.encoders = require('./asn1/encoders');
 
-},{"./asn1/api":25,"./asn1/base":27,"./asn1/constants":31,"./asn1/decoders":33,"./asn1/encoders":36,"bn.js":39}],25:[function(require,module,exports){
+},{"./asn1/api":26,"./asn1/base":28,"./asn1/constants":32,"./asn1/decoders":34,"./asn1/encoders":37,"bn.js":40}],26:[function(require,module,exports){
 var asn1 = require('../asn1');
 var inherits = require('inherits');
 
@@ -5142,7 +3140,7 @@ Entity.prototype.encode = function encode(data, enc, /* internal */ reporter) {
   return this._getEncoder(enc).encode(data, reporter);
 };
 
-},{"../asn1":24,"inherits":128,"vm":205}],26:[function(require,module,exports){
+},{"../asn1":25,"inherits":129,"vm":206}],27:[function(require,module,exports){
 var inherits = require('inherits');
 var Reporter = require('../base').Reporter;
 var Buffer = require('buffer').Buffer;
@@ -5260,7 +3258,7 @@ EncoderBuffer.prototype.join = function join(out, offset) {
   return out;
 };
 
-},{"../base":27,"buffer":69,"inherits":128}],27:[function(require,module,exports){
+},{"../base":28,"buffer":70,"inherits":129}],28:[function(require,module,exports){
 var base = exports;
 
 base.Reporter = require('./reporter').Reporter;
@@ -5268,7 +3266,7 @@ base.DecoderBuffer = require('./buffer').DecoderBuffer;
 base.EncoderBuffer = require('./buffer').EncoderBuffer;
 base.Node = require('./node');
 
-},{"./buffer":26,"./node":28,"./reporter":29}],28:[function(require,module,exports){
+},{"./buffer":27,"./node":29,"./reporter":30}],29:[function(require,module,exports){
 var Reporter = require('../base').Reporter;
 var EncoderBuffer = require('../base').EncoderBuffer;
 var DecoderBuffer = require('../base').DecoderBuffer;
@@ -5904,7 +3902,7 @@ Node.prototype._isPrintstr = function isPrintstr(str) {
   return /^[A-Za-z0-9 '\(\)\+,\-\.\/:=\?]*$/.test(str);
 };
 
-},{"../base":27,"minimalistic-assert":136}],29:[function(require,module,exports){
+},{"../base":28,"minimalistic-assert":137}],30:[function(require,module,exports){
 var inherits = require('inherits');
 
 function Reporter(options) {
@@ -6027,7 +4025,7 @@ ReporterError.prototype.rethrow = function rethrow(msg) {
   return this;
 };
 
-},{"inherits":128}],30:[function(require,module,exports){
+},{"inherits":129}],31:[function(require,module,exports){
 var constants = require('../constants');
 
 exports.tagClass = {
@@ -6071,7 +4069,7 @@ exports.tag = {
 };
 exports.tagByName = constants._reverse(exports.tag);
 
-},{"../constants":31}],31:[function(require,module,exports){
+},{"../constants":32}],32:[function(require,module,exports){
 var constants = exports;
 
 // Helper
@@ -6092,7 +4090,7 @@ constants._reverse = function reverse(map) {
 
 constants.der = require('./der');
 
-},{"./der":30}],32:[function(require,module,exports){
+},{"./der":31}],33:[function(require,module,exports){
 var inherits = require('inherits');
 
 var asn1 = require('../../asn1');
@@ -6418,13 +4416,13 @@ function derDecodeLen(buf, primitive, fail) {
   return len;
 }
 
-},{"../../asn1":24,"inherits":128}],33:[function(require,module,exports){
+},{"../../asn1":25,"inherits":129}],34:[function(require,module,exports){
 var decoders = exports;
 
 decoders.der = require('./der');
 decoders.pem = require('./pem');
 
-},{"./der":32,"./pem":34}],34:[function(require,module,exports){
+},{"./der":33,"./pem":35}],35:[function(require,module,exports){
 var inherits = require('inherits');
 var Buffer = require('buffer').Buffer;
 
@@ -6475,7 +4473,7 @@ PEMDecoder.prototype.decode = function decode(data, options) {
   return DERDecoder.prototype.decode.call(this, input, options);
 };
 
-},{"./der":32,"buffer":69,"inherits":128}],35:[function(require,module,exports){
+},{"./der":33,"buffer":70,"inherits":129}],36:[function(require,module,exports){
 var inherits = require('inherits');
 var Buffer = require('buffer').Buffer;
 
@@ -6772,13 +4770,13 @@ function encodeTag(tag, primitive, cls, reporter) {
   return res;
 }
 
-},{"../../asn1":24,"buffer":69,"inherits":128}],36:[function(require,module,exports){
+},{"../../asn1":25,"buffer":70,"inherits":129}],37:[function(require,module,exports){
 var encoders = exports;
 
 encoders.der = require('./der');
 encoders.pem = require('./pem');
 
-},{"./der":35,"./pem":37}],37:[function(require,module,exports){
+},{"./der":36,"./pem":38}],38:[function(require,module,exports){
 var inherits = require('inherits');
 
 var DEREncoder = require('./der');
@@ -6801,7 +4799,7 @@ PEMEncoder.prototype.encode = function encode(data, options) {
   return out.join('\n');
 };
 
-},{"./der":35,"inherits":128}],38:[function(require,module,exports){
+},{"./der":36,"inherits":129}],39:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -6917,7 +4915,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -10347,7 +8345,7 @@ function fromByteArray (uint8) {
   };
 })(typeof module === 'undefined' || module, this);
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 var r;
 
 module.exports = function rand(len) {
@@ -10414,9 +8412,9 @@ if (typeof self === 'object') {
   }
 }
 
-},{"crypto":41}],41:[function(require,module,exports){
+},{"crypto":42}],42:[function(require,module,exports){
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (Buffer){
 // based on the aes implimentation in triple sec
 // https://github.com/keybase/triplesec
@@ -10597,7 +8595,7 @@ AES.prototype._doCryptBlock = function (M, keySchedule, SUB_MIX, SBOX) {
 exports.AES = AES
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],43:[function(require,module,exports){
+},{"buffer":70}],44:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -10698,7 +8696,7 @@ function xorTest (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":42,"./ghash":47,"buffer":69,"buffer-xor":71,"cipher-base":74,"inherits":128}],44:[function(require,module,exports){
+},{"./aes":43,"./ghash":48,"buffer":70,"buffer-xor":72,"cipher-base":75,"inherits":129}],45:[function(require,module,exports){
 var ciphers = require('./encrypter')
 exports.createCipher = exports.Cipher = ciphers.createCipher
 exports.createCipheriv = exports.Cipheriv = ciphers.createCipheriv
@@ -10711,7 +8709,7 @@ function getCiphers () {
 }
 exports.listCiphers = exports.getCiphers = getCiphers
 
-},{"./decrypter":45,"./encrypter":46,"./modes":48}],45:[function(require,module,exports){
+},{"./decrypter":46,"./encrypter":47,"./modes":49}],46:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -10852,7 +8850,7 @@ exports.createDecipher = createDecipher
 exports.createDecipheriv = createDecipheriv
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":42,"./authCipher":43,"./modes":48,"./modes/cbc":49,"./modes/cfb":50,"./modes/cfb1":51,"./modes/cfb8":52,"./modes/ctr":53,"./modes/ecb":54,"./modes/ofb":55,"./streamCipher":56,"buffer":69,"cipher-base":74,"evp_bytestokey":111,"inherits":128}],46:[function(require,module,exports){
+},{"./aes":43,"./authCipher":44,"./modes":49,"./modes/cbc":50,"./modes/cfb":51,"./modes/cfb1":52,"./modes/cfb8":53,"./modes/ctr":54,"./modes/ecb":55,"./modes/ofb":56,"./streamCipher":57,"buffer":70,"cipher-base":75,"evp_bytestokey":112,"inherits":129}],47:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -10978,7 +8976,7 @@ exports.createCipheriv = createCipheriv
 exports.createCipher = createCipher
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":42,"./authCipher":43,"./modes":48,"./modes/cbc":49,"./modes/cfb":50,"./modes/cfb1":51,"./modes/cfb8":52,"./modes/ctr":53,"./modes/ecb":54,"./modes/ofb":55,"./streamCipher":56,"buffer":69,"cipher-base":74,"evp_bytestokey":111,"inherits":128}],47:[function(require,module,exports){
+},{"./aes":43,"./authCipher":44,"./modes":49,"./modes/cbc":50,"./modes/cfb":51,"./modes/cfb1":52,"./modes/cfb8":53,"./modes/ctr":54,"./modes/ecb":55,"./modes/ofb":56,"./streamCipher":57,"buffer":70,"cipher-base":75,"evp_bytestokey":112,"inherits":129}],48:[function(require,module,exports){
 (function (Buffer){
 var zeros = new Buffer(16)
 zeros.fill(0)
@@ -11080,7 +9078,7 @@ function xor (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],48:[function(require,module,exports){
+},{"buffer":70}],49:[function(require,module,exports){
 exports['aes-128-ecb'] = {
   cipher: 'AES',
   key: 128,
@@ -11253,7 +9251,7 @@ exports['aes-256-gcm'] = {
   type: 'auth'
 }
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 var xor = require('buffer-xor')
 
 exports.encrypt = function (self, block) {
@@ -11272,7 +9270,7 @@ exports.decrypt = function (self, block) {
   return xor(out, pad)
 }
 
-},{"buffer-xor":71}],50:[function(require,module,exports){
+},{"buffer-xor":72}],51:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -11307,7 +9305,7 @@ function encryptStart (self, data, decrypt) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"buffer-xor":71}],51:[function(require,module,exports){
+},{"buffer":70,"buffer-xor":72}],52:[function(require,module,exports){
 (function (Buffer){
 function encryptByte (self, byteParam, decrypt) {
   var pad
@@ -11345,7 +9343,7 @@ function shiftIn (buffer, value) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],52:[function(require,module,exports){
+},{"buffer":70}],53:[function(require,module,exports){
 (function (Buffer){
 function encryptByte (self, byteParam, decrypt) {
   var pad = self._cipher.encryptBlock(self._prev)
@@ -11364,7 +9362,7 @@ exports.encrypt = function (self, chunk, decrypt) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],53:[function(require,module,exports){
+},{"buffer":70}],54:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -11399,7 +9397,7 @@ exports.encrypt = function (self, chunk) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"buffer-xor":71}],54:[function(require,module,exports){
+},{"buffer":70,"buffer-xor":72}],55:[function(require,module,exports){
 exports.encrypt = function (self, block) {
   return self._cipher.encryptBlock(block)
 }
@@ -11407,7 +9405,7 @@ exports.decrypt = function (self, block) {
   return self._cipher.decryptBlock(block)
 }
 
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -11427,7 +9425,7 @@ exports.encrypt = function (self, chunk) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"buffer-xor":71}],56:[function(require,module,exports){
+},{"buffer":70,"buffer-xor":72}],57:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -11456,7 +9454,7 @@ StreamCipher.prototype._final = function () {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":42,"buffer":69,"cipher-base":74,"inherits":128}],57:[function(require,module,exports){
+},{"./aes":43,"buffer":70,"cipher-base":75,"inherits":129}],58:[function(require,module,exports){
 (function (Buffer){
 /* bignumber.js v1.3.0 https://github.com/MikeMcl/bignumber.js/LICENCE */
 
@@ -13574,7 +11572,7 @@ P['valueOf'] = function () {
 module.exports = BigNumber;
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],58:[function(require,module,exports){
+},{"buffer":70}],59:[function(require,module,exports){
 var ebtk = require('evp_bytestokey')
 var aes = require('browserify-aes/browser')
 var DES = require('browserify-des')
@@ -13649,7 +11647,7 @@ function getCiphers () {
 }
 exports.listCiphers = exports.getCiphers = getCiphers
 
-},{"browserify-aes/browser":44,"browserify-aes/modes":48,"browserify-des":59,"browserify-des/modes":60,"evp_bytestokey":111}],59:[function(require,module,exports){
+},{"browserify-aes/browser":45,"browserify-aes/modes":49,"browserify-des":60,"browserify-des/modes":61,"evp_bytestokey":112}],60:[function(require,module,exports){
 (function (Buffer){
 var CipherBase = require('cipher-base')
 var des = require('des.js')
@@ -13696,7 +11694,7 @@ DES.prototype._final = function () {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"cipher-base":74,"des.js":83,"inherits":128}],60:[function(require,module,exports){
+},{"buffer":70,"cipher-base":75,"des.js":84,"inherits":129}],61:[function(require,module,exports){
 exports['des-ecb'] = {
   key: 8,
   iv: 0
@@ -13722,7 +11720,7 @@ exports['des-ede'] = {
   iv: 0
 }
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 (function (Buffer){
 var bn = require('bn.js');
 var randomBytes = require('randombytes');
@@ -13766,10 +11764,10 @@ function getr(priv) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bn.js":39,"buffer":69,"randombytes":175}],62:[function(require,module,exports){
+},{"bn.js":40,"buffer":70,"randombytes":176}],63:[function(require,module,exports){
 module.exports = require('./browser/algorithms.json')
 
-},{"./browser/algorithms.json":63}],63:[function(require,module,exports){
+},{"./browser/algorithms.json":64}],64:[function(require,module,exports){
 module.exports={
   "sha224WithRSAEncryption": {
     "sign": "rsa",
@@ -13923,7 +11921,7 @@ module.exports={
   }
 }
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 module.exports={
   "1.3.132.0.10": "secp256k1",
   "1.3.132.0.33": "p224",
@@ -13933,7 +11931,7 @@ module.exports={
   "1.3.132.0.35": "p521"
 }
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 (function (Buffer){
 var createHash = require('create-hash')
 var stream = require('stream')
@@ -14028,7 +12026,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./algorithms.json":63,"./sign":66,"./verify":67,"buffer":69,"create-hash":77,"inherits":128,"stream":199}],66:[function(require,module,exports){
+},{"./algorithms.json":64,"./sign":67,"./verify":68,"buffer":70,"create-hash":78,"inherits":129,"stream":200}],67:[function(require,module,exports){
 (function (Buffer){
 // much of this based on https://github.com/indutny/self-signed/blob/gh-pages/lib/rsa.js
 var createHmac = require('create-hmac')
@@ -14177,7 +12175,7 @@ module.exports.getKey = getKey
 module.exports.makeKey = makeKey
 
 }).call(this,require("buffer").Buffer)
-},{"./curves.json":64,"bn.js":39,"browserify-rsa":61,"buffer":69,"create-hmac":80,"elliptic":94,"parse-asn1":142}],67:[function(require,module,exports){
+},{"./curves.json":65,"bn.js":40,"browserify-rsa":62,"buffer":70,"create-hmac":81,"elliptic":95,"parse-asn1":143}],68:[function(require,module,exports){
 (function (Buffer){
 // much of this based on https://github.com/indutny/self-signed/blob/gh-pages/lib/rsa.js
 var BN = require('bn.js')
@@ -14264,9 +12262,9 @@ function checkValue (b, q) {
 module.exports = verify
 
 }).call(this,require("buffer").Buffer)
-},{"./curves.json":64,"bn.js":39,"buffer":69,"elliptic":94,"parse-asn1":142}],68:[function(require,module,exports){
-arguments[4][41][0].apply(exports,arguments)
-},{"dup":41}],69:[function(require,module,exports){
+},{"./curves.json":65,"bn.js":40,"buffer":70,"elliptic":95,"parse-asn1":143}],69:[function(require,module,exports){
+arguments[4][42][0].apply(exports,arguments)
+},{"dup":42}],70:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -16059,7 +14057,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":38,"ieee754":126,"isarray":130}],70:[function(require,module,exports){
+},{"base64-js":39,"ieee754":127,"isarray":131}],71:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -16282,7 +14280,7 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":69}],71:[function(require,module,exports){
+},{"buffer":70}],72:[function(require,module,exports){
 (function (Buffer){
 module.exports = function xor (a, b) {
   var length = Math.min(a.length, b.length)
@@ -16296,7 +14294,7 @@ module.exports = function xor (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],72:[function(require,module,exports){
+},{"buffer":70}],73:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -18004,7 +16002,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":38,"ieee754":126}],73:[function(require,module,exports){
+},{"base64-js":39,"ieee754":127}],74:[function(require,module,exports){
 /*
  Copyright 2013-2014 Daniel Wirtz <dcode@dcode.io>
 
@@ -21752,7 +19750,7 @@ function numberIsNaN (obj) {
     return ByteBuffer;
 });
 
-},{"long":132}],74:[function(require,module,exports){
+},{"long":133}],75:[function(require,module,exports){
 var Buffer = require('safe-buffer').Buffer
 var Transform = require('stream').Transform
 var StringDecoder = require('string_decoder').StringDecoder
@@ -21853,7 +19851,7 @@ CipherBase.prototype._toString = function (value, enc, fin) {
 
 module.exports = CipherBase
 
-},{"inherits":128,"safe-buffer":190,"stream":199,"string_decoder":70}],75:[function(require,module,exports){
+},{"inherits":129,"safe-buffer":191,"stream":200,"string_decoder":71}],76:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -21964,7 +19962,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":129}],76:[function(require,module,exports){
+},{"../../is-buffer/index.js":130}],77:[function(require,module,exports){
 (function (Buffer){
 var elliptic = require('elliptic');
 var BN = require('bn.js');
@@ -22090,7 +20088,7 @@ function formatReturnValue(bn, enc, len) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bn.js":39,"buffer":69,"elliptic":94}],77:[function(require,module,exports){
+},{"bn.js":40,"buffer":70,"elliptic":95}],78:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 var inherits = require('inherits')
@@ -22146,7 +20144,7 @@ module.exports = function createHash (alg) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./md5":79,"buffer":69,"cipher-base":74,"inherits":128,"ripemd160":189,"sha.js":192}],78:[function(require,module,exports){
+},{"./md5":80,"buffer":70,"cipher-base":75,"inherits":129,"ripemd160":190,"sha.js":193}],79:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 var intSize = 4
@@ -22180,7 +20178,7 @@ module.exports = function hash (buf, fn) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],79:[function(require,module,exports){
+},{"buffer":70}],80:[function(require,module,exports){
 'use strict'
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -22333,7 +20331,7 @@ module.exports = function md5 (buf) {
   return makeHash(buf, core_md5)
 }
 
-},{"./make-hash":78}],80:[function(require,module,exports){
+},{"./make-hash":79}],81:[function(require,module,exports){
 'use strict'
 var inherits = require('inherits')
 var Legacy = require('./legacy')
@@ -22397,7 +20395,7 @@ module.exports = function createHmac (alg, key) {
   return new Hmac(alg, key)
 }
 
-},{"./legacy":81,"cipher-base":74,"create-hash/md5":79,"inherits":128,"ripemd160":189,"safe-buffer":190,"sha.js":192}],81:[function(require,module,exports){
+},{"./legacy":82,"cipher-base":75,"create-hash/md5":80,"inherits":129,"ripemd160":190,"safe-buffer":191,"sha.js":193}],82:[function(require,module,exports){
 'use strict'
 var inherits = require('inherits')
 var Buffer = require('safe-buffer').Buffer
@@ -22445,7 +20443,7 @@ Hmac.prototype._final = function () {
 }
 module.exports = Hmac
 
-},{"cipher-base":74,"inherits":128,"safe-buffer":190}],82:[function(require,module,exports){
+},{"cipher-base":75,"inherits":129,"safe-buffer":191}],83:[function(require,module,exports){
 'use strict'
 
 exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = require('randombytes')
@@ -22524,7 +20522,7 @@ var publicEncrypt = require('public-encrypt')
   }
 })
 
-},{"browserify-cipher":58,"browserify-sign":65,"browserify-sign/algos":62,"create-ecdh":76,"create-hash":77,"create-hmac":80,"diffie-hellman":89,"pbkdf2":144,"public-encrypt":165,"randombytes":175}],83:[function(require,module,exports){
+},{"browserify-cipher":59,"browserify-sign":66,"browserify-sign/algos":63,"create-ecdh":77,"create-hash":78,"create-hmac":81,"diffie-hellman":90,"pbkdf2":145,"public-encrypt":166,"randombytes":176}],84:[function(require,module,exports){
 'use strict';
 
 exports.utils = require('./des/utils');
@@ -22533,7 +20531,7 @@ exports.DES = require('./des/des');
 exports.CBC = require('./des/cbc');
 exports.EDE = require('./des/ede');
 
-},{"./des/cbc":84,"./des/cipher":85,"./des/des":86,"./des/ede":87,"./des/utils":88}],84:[function(require,module,exports){
+},{"./des/cbc":85,"./des/cipher":86,"./des/des":87,"./des/ede":88,"./des/utils":89}],85:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -22600,7 +20598,7 @@ proto._update = function _update(inp, inOff, out, outOff) {
   }
 };
 
-},{"inherits":128,"minimalistic-assert":136}],85:[function(require,module,exports){
+},{"inherits":129,"minimalistic-assert":137}],86:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -22743,7 +20741,7 @@ Cipher.prototype._finalDecrypt = function _finalDecrypt() {
   return this._unpad(out);
 };
 
-},{"minimalistic-assert":136}],86:[function(require,module,exports){
+},{"minimalistic-assert":137}],87:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -22888,7 +20886,7 @@ DES.prototype._decrypt = function _decrypt(state, lStart, rStart, out, off) {
   utils.rip(l, r, out, off);
 };
 
-},{"../des":83,"inherits":128,"minimalistic-assert":136}],87:[function(require,module,exports){
+},{"../des":84,"inherits":129,"minimalistic-assert":137}],88:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -22945,7 +20943,7 @@ EDE.prototype._update = function _update(inp, inOff, out, outOff) {
 EDE.prototype._pad = DES.prototype._pad;
 EDE.prototype._unpad = DES.prototype._unpad;
 
-},{"../des":83,"inherits":128,"minimalistic-assert":136}],88:[function(require,module,exports){
+},{"../des":84,"inherits":129,"minimalistic-assert":137}],89:[function(require,module,exports){
 'use strict';
 
 exports.readUInt32BE = function readUInt32BE(bytes, off) {
@@ -23203,7 +21201,7 @@ exports.padSplit = function padSplit(num, size, group) {
   return out.join(' ');
 };
 
-},{}],89:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 (function (Buffer){
 var generatePrime = require('./lib/generatePrime')
 var primes = require('./lib/primes.json')
@@ -23249,7 +21247,7 @@ exports.DiffieHellmanGroup = exports.createDiffieHellmanGroup = exports.getDiffi
 exports.createDiffieHellman = exports.DiffieHellman = createDiffieHellman
 
 }).call(this,require("buffer").Buffer)
-},{"./lib/dh":90,"./lib/generatePrime":91,"./lib/primes.json":92,"buffer":69}],90:[function(require,module,exports){
+},{"./lib/dh":91,"./lib/generatePrime":92,"./lib/primes.json":93,"buffer":70}],91:[function(require,module,exports){
 (function (Buffer){
 var BN = require('bn.js');
 var MillerRabin = require('miller-rabin');
@@ -23417,7 +21415,7 @@ function formatReturnValue(bn, enc) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./generatePrime":91,"bn.js":39,"buffer":69,"miller-rabin":135,"randombytes":175}],91:[function(require,module,exports){
+},{"./generatePrime":92,"bn.js":40,"buffer":70,"miller-rabin":136,"randombytes":176}],92:[function(require,module,exports){
 var randomBytes = require('randombytes');
 module.exports = findPrime;
 findPrime.simpleSieve = simpleSieve;
@@ -23524,7 +21522,7 @@ function findPrime(bits, gen) {
 
 }
 
-},{"bn.js":39,"miller-rabin":135,"randombytes":175}],92:[function(require,module,exports){
+},{"bn.js":40,"miller-rabin":136,"randombytes":176}],93:[function(require,module,exports){
 module.exports={
     "modp1": {
         "gen": "02",
@@ -23559,7 +21557,7 @@ module.exports={
         "prime": "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c55df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa051015728e5a8aaac42dad33170d04507a33a85521abdf1cba64ecfb850458dbef0a8aea71575d060c7db3970f85a6e1e4c7abf5ae8cdb0933d71e8c94e04a25619dcee3d2261ad2ee6bf12ffa06d98a0864d87602733ec86a64521f2b18177b200cbbe117577a615d6c770988c0bad946e208e24fa074e5ab3143db5bfce0fd108e4b82d120a92108011a723c12a787e6d788719a10bdba5b2699c327186af4e23c1a946834b6150bda2583e9ca2ad44ce8dbbbc2db04de8ef92e8efc141fbecaa6287c59474e6bc05d99b2964fa090c3a2233ba186515be7ed1f612970cee2d7afb81bdd762170481cd0069127d5b05aa993b4ea988d8fddc186ffb7dc90a6c08f4df435c93402849236c3fab4d27c7026c1d4dcb2602646dec9751e763dba37bdf8ff9406ad9e530ee5db382f413001aeb06a53ed9027d831179727b0865a8918da3edbebcf9b14ed44ce6cbaced4bb1bdb7f1447e6cc254b332051512bd7af426fb8f401378cd2bf5983ca01c64b92ecf032ea15d1721d03f482d7ce6e74fef6d55e702f46980c82b5a84031900b1c9e59e7c97fbec7e8f323a97a7e36cc88be0f1d45b7ff585ac54bd407b22b4154aacc8f6d7ebf48e1d814cc5ed20f8037e0a79715eef29be32806a1d58bb7c5da76f550aa3d8a1fbff0eb19ccb1a313d55cda56c9ec2ef29632387fe8d76e3c0468043e8f663f4860ee12bf2d5b0b7474d6e694f91e6dbe115974a3926f12fee5e438777cb6a932df8cd8bec4d073b931ba3bc832b68d9dd300741fa7bf8afc47ed2576f6936ba424663aab639c5ae4f5683423b4742bf1c978238f16cbe39d652de3fdb8befc848ad922222e04a4037c0713eb57a81a23f0c73473fc646cea306b4bcbc8862f8385ddfa9d4b7fa2c087e879683303ed5bdd3a062b3cf5b3a278a66d2a13f83f44f82ddf310ee074ab6a364597e899a0255dc164f31cc50846851df9ab48195ded7ea1b1d510bd7ee74d73faf36bc31ecfa268359046f4eb879f924009438b481c6cd7889a002ed5ee382bc9190da6fc026e479558e4475677e9aa9e3050e2765694dfc81f56e880b96e7160c980dd98edd3dfffffffffffffffff"
     }
 }
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 /*
  * ed2curve: convert Ed25519 signing key pair into Curve25519
  * key pair suitable for Diffie-Hellman key exchange.
@@ -23819,7 +21817,7 @@ module.exports={
 
 }));
 
-},{"tweetnacl/nacl-fast":201}],94:[function(require,module,exports){
+},{"tweetnacl/nacl-fast":202}],95:[function(require,module,exports){
 'use strict';
 
 var elliptic = exports;
@@ -23834,7 +21832,7 @@ elliptic.curves = require('./elliptic/curves');
 elliptic.ec = require('./elliptic/ec');
 elliptic.eddsa = require('./elliptic/eddsa');
 
-},{"../package.json":109,"./elliptic/curve":97,"./elliptic/curves":100,"./elliptic/ec":101,"./elliptic/eddsa":104,"./elliptic/utils":108,"brorand":40}],95:[function(require,module,exports){
+},{"../package.json":110,"./elliptic/curve":98,"./elliptic/curves":101,"./elliptic/ec":102,"./elliptic/eddsa":105,"./elliptic/utils":109,"brorand":41}],96:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -24211,7 +22209,7 @@ BasePoint.prototype.dblp = function dblp(k) {
   return r;
 };
 
-},{"../../elliptic":94,"bn.js":39}],96:[function(require,module,exports){
+},{"../../elliptic":95,"bn.js":40}],97:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -24646,7 +22644,7 @@ Point.prototype.eqXToP = function eqXToP(x) {
 Point.prototype.toP = Point.prototype.normalize;
 Point.prototype.mixedAdd = Point.prototype.add;
 
-},{"../../elliptic":94,"../curve":97,"bn.js":39,"inherits":128}],97:[function(require,module,exports){
+},{"../../elliptic":95,"../curve":98,"bn.js":40,"inherits":129}],98:[function(require,module,exports){
 'use strict';
 
 var curve = exports;
@@ -24656,7 +22654,7 @@ curve.short = require('./short');
 curve.mont = require('./mont');
 curve.edwards = require('./edwards');
 
-},{"./base":95,"./edwards":96,"./mont":98,"./short":99}],98:[function(require,module,exports){
+},{"./base":96,"./edwards":97,"./mont":99,"./short":100}],99:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -24838,7 +22836,7 @@ Point.prototype.getX = function getX() {
   return this.x.fromRed();
 };
 
-},{"../../elliptic":94,"../curve":97,"bn.js":39,"inherits":128}],99:[function(require,module,exports){
+},{"../../elliptic":95,"../curve":98,"bn.js":40,"inherits":129}],100:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -25778,7 +23776,7 @@ JPoint.prototype.isInfinity = function isInfinity() {
   return this.z.cmpn(0) === 0;
 };
 
-},{"../../elliptic":94,"../curve":97,"bn.js":39,"inherits":128}],100:[function(require,module,exports){
+},{"../../elliptic":95,"../curve":98,"bn.js":40,"inherits":129}],101:[function(require,module,exports){
 'use strict';
 
 var curves = exports;
@@ -25985,7 +23983,7 @@ defineCurve('secp256k1', {
   ]
 });
 
-},{"../elliptic":94,"./precomputed/secp256k1":107,"hash.js":113}],101:[function(require,module,exports){
+},{"../elliptic":95,"./precomputed/secp256k1":108,"hash.js":114}],102:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -26227,7 +24225,7 @@ EC.prototype.getKeyRecoveryParam = function(e, signature, Q, enc) {
   throw new Error('Unable to find valid recovery factor');
 };
 
-},{"../../elliptic":94,"./key":102,"./signature":103,"bn.js":39,"hmac-drbg":125}],102:[function(require,module,exports){
+},{"../../elliptic":95,"./key":103,"./signature":104,"bn.js":40,"hmac-drbg":126}],103:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -26348,7 +24346,7 @@ KeyPair.prototype.inspect = function inspect() {
          ' pub: ' + (this.pub && this.pub.inspect()) + ' >';
 };
 
-},{"../../elliptic":94,"bn.js":39}],103:[function(require,module,exports){
+},{"../../elliptic":95,"bn.js":40}],104:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -26485,7 +24483,7 @@ Signature.prototype.toDER = function toDER(enc) {
   return utils.encode(res, enc);
 };
 
-},{"../../elliptic":94,"bn.js":39}],104:[function(require,module,exports){
+},{"../../elliptic":95,"bn.js":40}],105:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -26605,7 +24603,7 @@ EDDSA.prototype.isPoint = function isPoint(val) {
   return val instanceof this.pointClass;
 };
 
-},{"../../elliptic":94,"./key":105,"./signature":106,"hash.js":113}],105:[function(require,module,exports){
+},{"../../elliptic":95,"./key":106,"./signature":107,"hash.js":114}],106:[function(require,module,exports){
 'use strict';
 
 var elliptic = require('../../elliptic');
@@ -26703,7 +24701,7 @@ KeyPair.prototype.getPublic = function getPublic(enc) {
 
 module.exports = KeyPair;
 
-},{"../../elliptic":94}],106:[function(require,module,exports){
+},{"../../elliptic":95}],107:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -26771,7 +24769,7 @@ Signature.prototype.toHex = function toHex() {
 
 module.exports = Signature;
 
-},{"../../elliptic":94,"bn.js":39}],107:[function(require,module,exports){
+},{"../../elliptic":95,"bn.js":40}],108:[function(require,module,exports){
 module.exports = {
   doubles: {
     step: 4,
@@ -27553,7 +25551,7 @@ module.exports = {
   }
 };
 
-},{}],108:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -27675,32 +25673,37 @@ function intFromLE(bytes) {
 utils.intFromLE = intFromLE;
 
 
-},{"bn.js":39,"minimalistic-assert":136,"minimalistic-crypto-utils":137}],109:[function(require,module,exports){
+},{"bn.js":40,"minimalistic-assert":137,"minimalistic-crypto-utils":138}],110:[function(require,module,exports){
 module.exports={
-  "_from": "elliptic@^6.0.0",
+  "_args": [
+    [
+      "elliptic@6.4.0",
+      "/Users/tobias/GitHub/lisk-js"
+    ]
+  ],
+  "_from": "elliptic@6.4.0",
   "_id": "elliptic@6.4.0",
   "_inBundle": false,
   "_integrity": "sha1-ysmvh2LIWDYYcAPI3+GT5eLq5d8=",
   "_location": "/elliptic",
   "_phantomChildren": {},
   "_requested": {
-    "type": "range",
+    "type": "version",
     "registry": true,
-    "raw": "elliptic@^6.0.0",
+    "raw": "elliptic@6.4.0",
     "name": "elliptic",
     "escapedName": "elliptic",
-    "rawSpec": "^6.0.0",
+    "rawSpec": "6.4.0",
     "saveSpec": null,
-    "fetchSpec": "^6.0.0"
+    "fetchSpec": "6.4.0"
   },
   "_requiredBy": [
     "/browserify-sign",
     "/create-ecdh"
   ],
   "_resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz",
-  "_shasum": "cac9af8762c85836187003c8dfe193e5e2eae5df",
-  "_spec": "elliptic@^6.0.0",
-  "_where": "/Users/will/Code/lisk/lisk-js/node_modules/browserify-sign",
+  "_spec": "6.4.0",
+  "_where": "/Users/tobias/GitHub/lisk-js",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
@@ -27708,7 +25711,6 @@ module.exports={
   "bugs": {
     "url": "https://github.com/indutny/elliptic/issues"
   },
-  "bundleDependencies": false,
   "dependencies": {
     "bn.js": "^4.4.0",
     "brorand": "^1.0.1",
@@ -27718,7 +25720,6 @@ module.exports={
     "minimalistic-assert": "^1.0.0",
     "minimalistic-crypto-utils": "^1.0.0"
   },
-  "deprecated": false,
   "description": "EC cryptography",
   "devDependencies": {
     "brfs": "^1.4.3",
@@ -27764,7 +25765,7 @@ module.exports={
   "version": "6.4.0"
 }
 
-},{}],110:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -28068,7 +26069,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],111:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 (function (Buffer){
 var md5 = require('create-hash/md5')
 module.exports = EVP_BytesToKey
@@ -28140,7 +26141,7 @@ function EVP_BytesToKey (password, salt, keyLen, ivLen) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"create-hash/md5":79}],112:[function(require,module,exports){
+},{"buffer":70,"create-hash/md5":80}],113:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 var Transform = require('stream').Transform
@@ -28227,7 +26228,7 @@ HashBase.prototype._digest = function () {
 module.exports = HashBase
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"inherits":128,"stream":199}],113:[function(require,module,exports){
+},{"buffer":70,"inherits":129,"stream":200}],114:[function(require,module,exports){
 var hash = exports;
 
 hash.utils = require('./hash/utils');
@@ -28244,7 +26245,7 @@ hash.sha384 = hash.sha.sha384;
 hash.sha512 = hash.sha.sha512;
 hash.ripemd160 = hash.ripemd.ripemd160;
 
-},{"./hash/common":114,"./hash/hmac":115,"./hash/ripemd":116,"./hash/sha":117,"./hash/utils":124}],114:[function(require,module,exports){
+},{"./hash/common":115,"./hash/hmac":116,"./hash/ripemd":117,"./hash/sha":118,"./hash/utils":125}],115:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -28338,7 +26339,7 @@ BlockHash.prototype._pad = function pad() {
   return res;
 };
 
-},{"./utils":124,"minimalistic-assert":136}],115:[function(require,module,exports){
+},{"./utils":125,"minimalistic-assert":137}],116:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -28387,7 +26388,7 @@ Hmac.prototype.digest = function digest(enc) {
   return this.outer.digest(enc);
 };
 
-},{"./utils":124,"minimalistic-assert":136}],116:[function(require,module,exports){
+},{"./utils":125,"minimalistic-assert":137}],117:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -28535,7 +26536,7 @@ var sh = [
   8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11
 ];
 
-},{"./common":114,"./utils":124}],117:[function(require,module,exports){
+},{"./common":115,"./utils":125}],118:[function(require,module,exports){
 'use strict';
 
 exports.sha1 = require('./sha/1');
@@ -28544,7 +26545,7 @@ exports.sha256 = require('./sha/256');
 exports.sha384 = require('./sha/384');
 exports.sha512 = require('./sha/512');
 
-},{"./sha/1":118,"./sha/224":119,"./sha/256":120,"./sha/384":121,"./sha/512":122}],118:[function(require,module,exports){
+},{"./sha/1":119,"./sha/224":120,"./sha/256":121,"./sha/384":122,"./sha/512":123}],119:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -28620,7 +26621,7 @@ SHA1.prototype._digest = function digest(enc) {
     return utils.split32(this.h, 'big');
 };
 
-},{"../common":114,"../utils":124,"./common":123}],119:[function(require,module,exports){
+},{"../common":115,"../utils":125,"./common":124}],120:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -28652,7 +26653,7 @@ SHA224.prototype._digest = function digest(enc) {
 };
 
 
-},{"../utils":124,"./256":120}],120:[function(require,module,exports){
+},{"../utils":125,"./256":121}],121:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -28759,7 +26760,7 @@ SHA256.prototype._digest = function digest(enc) {
     return utils.split32(this.h, 'big');
 };
 
-},{"../common":114,"../utils":124,"./common":123,"minimalistic-assert":136}],121:[function(require,module,exports){
+},{"../common":115,"../utils":125,"./common":124,"minimalistic-assert":137}],122:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -28796,7 +26797,7 @@ SHA384.prototype._digest = function digest(enc) {
     return utils.split32(this.h.slice(0, 12), 'big');
 };
 
-},{"../utils":124,"./512":122}],122:[function(require,module,exports){
+},{"../utils":125,"./512":123}],123:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -29128,7 +27129,7 @@ function g1_512_lo(xh, xl) {
   return r;
 }
 
-},{"../common":114,"../utils":124,"minimalistic-assert":136}],123:[function(require,module,exports){
+},{"../common":115,"../utils":125,"minimalistic-assert":137}],124:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -29179,7 +27180,7 @@ function g1_256(x) {
 }
 exports.g1_256 = g1_256;
 
-},{"../utils":124}],124:[function(require,module,exports){
+},{"../utils":125}],125:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -29434,7 +27435,7 @@ function shr64_lo(ah, al, num) {
 }
 exports.shr64_lo = shr64_lo;
 
-},{"inherits":128,"minimalistic-assert":136}],125:[function(require,module,exports){
+},{"inherits":129,"minimalistic-assert":137}],126:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -29549,7 +27550,7 @@ HmacDRBG.prototype.generate = function generate(len, enc, add, addEnc) {
   return utils.encode(res, enc);
 };
 
-},{"hash.js":113,"minimalistic-assert":136,"minimalistic-crypto-utils":137}],126:[function(require,module,exports){
+},{"hash.js":114,"minimalistic-assert":137,"minimalistic-crypto-utils":138}],127:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -29635,7 +27636,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],127:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -29646,7 +27647,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],128:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -29671,7 +27672,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],129:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -29694,14 +27695,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],130:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],131:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 (function (process,__dirname){
 var nacl_factory = {
   instantiate: function (on_ready, optionsOpt) {
@@ -30297,7 +28298,7 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 }).call(this,require('_process'),"/node_modules/js-nacl/lib")
-},{"_process":164,"crypto":82,"fs":68,"path":143}],132:[function(require,module,exports){
+},{"_process":165,"crypto":83,"fs":69,"path":144}],133:[function(require,module,exports){
 /*
  Copyright 2013 Daniel Wirtz <dcode@dcode.io>
  Copyright 2009 The Closure Library Authors. All Rights Reserved.
@@ -31508,7 +29509,7 @@ if (typeof module !== 'undefined' && module.exports) {
     return Long;
 });
 
-},{}],133:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -31537,7 +29538,7 @@ var makeErrorCause;
 })(makeErrorCause || (makeErrorCause = {}));
 module.exports = makeErrorCause;
 
-},{"make-error":134}],134:[function(require,module,exports){
+},{"make-error":135}],135:[function(require,module,exports){
 // ISC @ Julien Fontanet
 
 'use strict'
@@ -31681,7 +29682,7 @@ function makeError (constructor, super_) {
 exports = module.exports = makeError
 exports.BaseError = BaseError
 
-},{}],135:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 var bn = require('bn.js');
 var brorand = require('brorand');
 
@@ -31796,7 +29797,7 @@ MillerRabin.prototype.getDivisor = function getDivisor(n, k) {
   return false;
 };
 
-},{"bn.js":39,"brorand":40}],136:[function(require,module,exports){
+},{"bn.js":40,"brorand":41}],137:[function(require,module,exports){
 module.exports = assert;
 
 function assert(val, msg) {
@@ -31809,7 +29810,7 @@ assert.equal = function assertEqual(l, r, msg) {
     throw new Error(msg || ('Assertion failed: ' + l + ' != ' + r));
 };
 
-},{}],137:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -31869,7 +29870,7 @@ utils.encode = function encode(arr, enc) {
     return arr;
 };
 
-},{}],138:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.2": "aes-128-cbc",
 "2.16.840.1.101.3.4.1.3": "aes-128-ofb",
@@ -31883,7 +29884,7 @@ module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.43": "aes-256-ofb",
 "2.16.840.1.101.3.4.1.44": "aes-256-cfb"
 }
-},{}],139:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 // from https://github.com/indutny/self-signed/blob/gh-pages/lib/asn1.js
 // Fedor, you are amazing.
 'use strict'
@@ -32007,7 +30008,7 @@ exports.signature = asn1.define('signature', function () {
   )
 })
 
-},{"./certificate":140,"asn1.js":24}],140:[function(require,module,exports){
+},{"./certificate":141,"asn1.js":25}],141:[function(require,module,exports){
 // from https://github.com/Rantanen/node-dtls/blob/25a7dc861bda38cfeac93a723500eea4f0ac2e86/Certificate.js
 // thanks to @Rantanen
 
@@ -32097,7 +30098,7 @@ var X509Certificate = asn.define('X509Certificate', function () {
 
 module.exports = X509Certificate
 
-},{"asn1.js":24}],141:[function(require,module,exports){
+},{"asn1.js":25}],142:[function(require,module,exports){
 (function (Buffer){
 // adapted from https://github.com/apatil/pemstrip
 var findProc = /Proc-Type: 4,ENCRYPTED\n\r?DEK-Info: AES-((?:128)|(?:192)|(?:256))-CBC,([0-9A-H]+)\n\r?\n\r?([0-9A-z\n\r\+\/\=]+)\n\r?/m
@@ -32131,7 +30132,7 @@ module.exports = function (okey, password) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"browserify-aes":44,"buffer":69,"evp_bytestokey":111}],142:[function(require,module,exports){
+},{"browserify-aes":45,"buffer":70,"evp_bytestokey":112}],143:[function(require,module,exports){
 (function (Buffer){
 var asn1 = require('./asn1')
 var aesid = require('./aesid.json')
@@ -32241,7 +30242,7 @@ function decrypt (data, password) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aesid.json":138,"./asn1":139,"./fixProc":141,"browserify-aes":44,"buffer":69,"pbkdf2":144}],143:[function(require,module,exports){
+},{"./aesid.json":139,"./asn1":140,"./fixProc":142,"browserify-aes":45,"buffer":70,"pbkdf2":145}],144:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -32469,13 +30470,13 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":164}],144:[function(require,module,exports){
+},{"_process":165}],145:[function(require,module,exports){
 
 exports.pbkdf2 = require('./lib/async')
 
 exports.pbkdf2Sync = require('./lib/sync')
 
-},{"./lib/async":145,"./lib/sync":148}],145:[function(require,module,exports){
+},{"./lib/async":146,"./lib/sync":149}],146:[function(require,module,exports){
 (function (process,global){
 var checkParameters = require('./precondition')
 var defaultEncoding = require('./default-encoding')
@@ -32577,7 +30578,7 @@ module.exports = function (password, salt, iterations, keylen, digest, callback)
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./default-encoding":146,"./precondition":147,"./sync":148,"_process":164,"safe-buffer":190}],146:[function(require,module,exports){
+},{"./default-encoding":147,"./precondition":148,"./sync":149,"_process":165,"safe-buffer":191}],147:[function(require,module,exports){
 (function (process){
 var defaultEncoding
 /* istanbul ignore next */
@@ -32591,7 +30592,7 @@ if (process.browser) {
 module.exports = defaultEncoding
 
 }).call(this,require('_process'))
-},{"_process":164}],147:[function(require,module,exports){
+},{"_process":165}],148:[function(require,module,exports){
 var MAX_ALLOC = Math.pow(2, 30) - 1 // default in iojs
 module.exports = function (iterations, keylen) {
   if (typeof iterations !== 'number') {
@@ -32611,7 +30612,7 @@ module.exports = function (iterations, keylen) {
   }
 }
 
-},{}],148:[function(require,module,exports){
+},{}],149:[function(require,module,exports){
 var md5 = require('create-hash/md5')
 var rmd160 = require('ripemd160')
 var sha = require('sha.js')
@@ -32715,7 +30716,7 @@ module.exports = function (password, salt, iterations, keylen, digest) {
   return DK
 }
 
-},{"./default-encoding":146,"./precondition":147,"create-hash/md5":79,"ripemd160":189,"safe-buffer":190,"sha.js":192}],149:[function(require,module,exports){
+},{"./default-encoding":147,"./precondition":148,"create-hash/md5":80,"ripemd160":190,"safe-buffer":191,"sha.js":193}],150:[function(require,module,exports){
 "use strict";
 var url_1 = require("url");
 var querystring_1 = require("querystring");
@@ -32877,7 +30878,7 @@ var Base = (function () {
 }());
 exports.Base = Base;
 
-},{"./support":162,"querystring":174,"url":202}],150:[function(require,module,exports){
+},{"./support":163,"querystring":175,"url":203}],151:[function(require,module,exports){
 "use strict";
 var response_1 = require("./response");
 var index_1 = require("./plugins/index");
@@ -32982,11 +30983,11 @@ function parseToRawHeaders(headers) {
     return rawHeaders;
 }
 
-},{"./plugins/index":157,"./response":161}],151:[function(require,module,exports){
+},{"./plugins/index":158,"./response":162}],152:[function(require,module,exports){
 "use strict";
 module.exports = FormData;
 
-},{}],152:[function(require,module,exports){
+},{}],153:[function(require,module,exports){
 "use strict";
 var CookieJar = (function () {
     function CookieJar() {
@@ -32996,7 +30997,7 @@ var CookieJar = (function () {
 }());
 exports.CookieJar = CookieJar;
 
-},{}],153:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -33039,7 +31040,7 @@ __export(require("./response"));
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.request;
 
-},{"./base":149,"./error":154,"./form":155,"./index":150,"./jar":156,"./plugins/index":157,"./request":160,"./response":161,"form-data":151}],154:[function(require,module,exports){
+},{"./base":150,"./error":155,"./form":156,"./index":151,"./jar":157,"./plugins/index":158,"./request":161,"./response":162,"form-data":152}],155:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -33061,7 +31062,7 @@ var PopsicleError = (function (_super) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = PopsicleError;
 
-},{"make-error-cause":133}],155:[function(require,module,exports){
+},{"make-error-cause":134}],156:[function(require,module,exports){
 "use strict";
 var FormData = require("form-data");
 function form(obj) {
@@ -33076,7 +31077,7 @@ function form(obj) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = form;
 
-},{"form-data":151}],156:[function(require,module,exports){
+},{"form-data":152}],157:[function(require,module,exports){
 "use strict";
 var tough_cookie_1 = require("tough-cookie");
 function cookieJar(store) {
@@ -33085,14 +31086,14 @@ function cookieJar(store) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = cookieJar;
 
-},{"tough-cookie":152}],157:[function(require,module,exports){
+},{"tough-cookie":153}],158:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 __export(require("./common"));
 
-},{"./common":158}],158:[function(require,module,exports){
+},{"./common":159}],159:[function(require,module,exports){
 "use strict";
 var FormData = require("form-data");
 var querystring_1 = require("querystring");
@@ -33194,7 +31195,7 @@ function parse(type, strict) {
 }
 exports.parse = parse;
 
-},{"../form":155,"./is-host/index":159,"form-data":151,"querystring":174}],159:[function(require,module,exports){
+},{"../form":156,"./is-host/index":160,"form-data":152,"querystring":175}],160:[function(require,module,exports){
 "use strict";
 function isHostObject(object) {
     var str = Object.prototype.toString.call(object);
@@ -33211,7 +31212,7 @@ function isHostObject(object) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = isHostObject;
 
-},{}],160:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -33450,7 +31451,7 @@ function exec(req) {
     return dispatch(0);
 }
 
-},{"./base":149,"./error":154,"./support":162}],161:[function(require,module,exports){
+},{"./base":150,"./error":155,"./support":163}],162:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -33483,7 +31484,7 @@ var Response = (function (_super) {
 }(base_1.Base));
 exports.Response = Response;
 
-},{"./base":149}],162:[function(require,module,exports){
+},{"./base":150}],163:[function(require,module,exports){
 "use strict";
 function splice(arr, start, count) {
     if (count === void 0) { count = 1; }
@@ -33494,7 +31495,7 @@ function splice(arr, start, count) {
 }
 exports.splice = splice;
 
-},{}],163:[function(require,module,exports){
+},{}],164:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -33541,7 +31542,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 }
 
 }).call(this,require('_process'))
-},{"_process":164}],164:[function(require,module,exports){
+},{"_process":165}],165:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -33727,7 +31728,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],165:[function(require,module,exports){
+},{}],166:[function(require,module,exports){
 exports.publicEncrypt = require('./publicEncrypt');
 exports.privateDecrypt = require('./privateDecrypt');
 
@@ -33738,7 +31739,7 @@ exports.privateEncrypt = function privateEncrypt(key, buf) {
 exports.publicDecrypt = function publicDecrypt(key, buf) {
   return exports.privateDecrypt(key, buf, true);
 };
-},{"./privateDecrypt":167,"./publicEncrypt":168}],166:[function(require,module,exports){
+},{"./privateDecrypt":168,"./publicEncrypt":169}],167:[function(require,module,exports){
 (function (Buffer){
 var createHash = require('create-hash');
 module.exports = function (seed, len) {
@@ -33757,7 +31758,7 @@ function i2ops(c) {
   return out;
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"create-hash":77}],167:[function(require,module,exports){
+},{"buffer":70,"create-hash":78}],168:[function(require,module,exports){
 (function (Buffer){
 var parseKeys = require('parse-asn1');
 var mgf = require('./mgf');
@@ -33868,7 +31869,7 @@ function compare(a, b){
   return dif;
 }
 }).call(this,require("buffer").Buffer)
-},{"./mgf":166,"./withPublic":169,"./xor":170,"bn.js":39,"browserify-rsa":61,"buffer":69,"create-hash":77,"parse-asn1":142}],168:[function(require,module,exports){
+},{"./mgf":167,"./withPublic":170,"./xor":171,"bn.js":40,"browserify-rsa":62,"buffer":70,"create-hash":78,"parse-asn1":143}],169:[function(require,module,exports){
 (function (Buffer){
 var parseKeys = require('parse-asn1');
 var randomBytes = require('randombytes');
@@ -33966,7 +31967,7 @@ function nonZero(len, crypto) {
   return out;
 }
 }).call(this,require("buffer").Buffer)
-},{"./mgf":166,"./withPublic":169,"./xor":170,"bn.js":39,"browserify-rsa":61,"buffer":69,"create-hash":77,"parse-asn1":142,"randombytes":175}],169:[function(require,module,exports){
+},{"./mgf":167,"./withPublic":170,"./xor":171,"bn.js":40,"browserify-rsa":62,"buffer":70,"create-hash":78,"parse-asn1":143,"randombytes":176}],170:[function(require,module,exports){
 (function (Buffer){
 var bn = require('bn.js');
 function withPublic(paddedMsg, key) {
@@ -33979,7 +31980,7 @@ function withPublic(paddedMsg, key) {
 
 module.exports = withPublic;
 }).call(this,require("buffer").Buffer)
-},{"bn.js":39,"buffer":69}],170:[function(require,module,exports){
+},{"bn.js":40,"buffer":70}],171:[function(require,module,exports){
 module.exports = function xor(a, b) {
   var len = a.length;
   var i = -1;
@@ -33988,7 +31989,7 @@ module.exports = function xor(a, b) {
   }
   return a
 };
-},{}],171:[function(require,module,exports){
+},{}],172:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -34525,7 +32526,7 @@ module.exports = function xor(a, b) {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],172:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -34611,7 +32612,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],173:[function(require,module,exports){
+},{}],174:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -34698,13 +32699,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],174:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":172,"./encode":173}],175:[function(require,module,exports){
+},{"./decode":173,"./encode":174}],176:[function(require,module,exports){
 (function (process,global){
 'use strict'
 
@@ -34746,10 +32747,10 @@ function randomBytes (size, cb) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":164,"safe-buffer":190}],176:[function(require,module,exports){
+},{"_process":165,"safe-buffer":191}],177:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":177}],177:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":178}],178:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -34874,7 +32875,7 @@ function forEach(xs, f) {
     f(xs[i], i);
   }
 }
-},{"./_stream_readable":179,"./_stream_writable":181,"core-util-is":75,"inherits":128,"process-nextick-args":163}],178:[function(require,module,exports){
+},{"./_stream_readable":180,"./_stream_writable":182,"core-util-is":76,"inherits":129,"process-nextick-args":164}],179:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -34922,7 +32923,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":180,"core-util-is":75,"inherits":128}],179:[function(require,module,exports){
+},{"./_stream_transform":181,"core-util-is":76,"inherits":129}],180:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -35932,7 +33933,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":177,"./internal/streams/BufferList":182,"./internal/streams/destroy":183,"./internal/streams/stream":184,"_process":164,"core-util-is":75,"events":110,"inherits":128,"isarray":130,"process-nextick-args":163,"safe-buffer":190,"string_decoder/":200,"util":41}],180:[function(require,module,exports){
+},{"./_stream_duplex":178,"./internal/streams/BufferList":183,"./internal/streams/destroy":184,"./internal/streams/stream":185,"_process":165,"core-util-is":76,"events":111,"inherits":129,"isarray":131,"process-nextick-args":164,"safe-buffer":191,"string_decoder/":201,"util":42}],181:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -36147,7 +34148,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":177,"core-util-is":75,"inherits":128}],181:[function(require,module,exports){
+},{"./_stream_duplex":178,"core-util-is":76,"inherits":129}],182:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -36814,7 +34815,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":177,"./internal/streams/destroy":183,"./internal/streams/stream":184,"_process":164,"core-util-is":75,"inherits":128,"process-nextick-args":163,"safe-buffer":190,"util-deprecate":204}],182:[function(require,module,exports){
+},{"./_stream_duplex":178,"./internal/streams/destroy":184,"./internal/streams/stream":185,"_process":165,"core-util-is":76,"inherits":129,"process-nextick-args":164,"safe-buffer":191,"util-deprecate":205}],183:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -36889,7 +34890,7 @@ module.exports = function () {
 
   return BufferList;
 }();
-},{"safe-buffer":190}],183:[function(require,module,exports){
+},{"safe-buffer":191}],184:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -36962,13 +34963,13 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":163}],184:[function(require,module,exports){
+},{"process-nextick-args":164}],185:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":110}],185:[function(require,module,exports){
+},{"events":111}],186:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":186}],186:[function(require,module,exports){
+},{"./readable":187}],187:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -36977,13 +34978,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":177,"./lib/_stream_passthrough.js":178,"./lib/_stream_readable.js":179,"./lib/_stream_transform.js":180,"./lib/_stream_writable.js":181}],187:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":178,"./lib/_stream_passthrough.js":179,"./lib/_stream_readable.js":180,"./lib/_stream_transform.js":181,"./lib/_stream_writable.js":182}],188:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":186}],188:[function(require,module,exports){
+},{"./readable":187}],189:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":181}],189:[function(require,module,exports){
+},{"./lib/_stream_writable.js":182}],190:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 var inherits = require('inherits')
@@ -37278,7 +35279,7 @@ function fn5 (a, b, c, d, e, m, k, s) {
 module.exports = RIPEMD160
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69,"hash-base":112,"inherits":128}],190:[function(require,module,exports){
+},{"buffer":70,"hash-base":113,"inherits":129}],191:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -37342,7 +35343,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":69}],191:[function(require,module,exports){
+},{"buffer":70}],192:[function(require,module,exports){
 (function (Buffer){
 // prototype class for hash functions
 function Hash (blockSize, finalSize) {
@@ -37415,7 +35416,7 @@ Hash.prototype._update = function () {
 module.exports = Hash
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],192:[function(require,module,exports){
+},{"buffer":70}],193:[function(require,module,exports){
 var exports = module.exports = function SHA (algorithm) {
   algorithm = algorithm.toLowerCase()
 
@@ -37432,7 +35433,7 @@ exports.sha256 = require('./sha256')
 exports.sha384 = require('./sha384')
 exports.sha512 = require('./sha512')
 
-},{"./sha":193,"./sha1":194,"./sha224":195,"./sha256":196,"./sha384":197,"./sha512":198}],193:[function(require,module,exports){
+},{"./sha":194,"./sha1":195,"./sha224":196,"./sha256":197,"./sha384":198,"./sha512":199}],194:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-0, as defined
@@ -37529,7 +35530,7 @@ Sha.prototype._hash = function () {
 module.exports = Sha
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":191,"buffer":69,"inherits":128}],194:[function(require,module,exports){
+},{"./hash":192,"buffer":70,"inherits":129}],195:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
@@ -37631,7 +35632,7 @@ Sha1.prototype._hash = function () {
 module.exports = Sha1
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":191,"buffer":69,"inherits":128}],195:[function(require,module,exports){
+},{"./hash":192,"buffer":70,"inherits":129}],196:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -37687,7 +35688,7 @@ Sha224.prototype._hash = function () {
 module.exports = Sha224
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":191,"./sha256":196,"buffer":69,"inherits":128}],196:[function(require,module,exports){
+},{"./hash":192,"./sha256":197,"buffer":70,"inherits":129}],197:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -37825,7 +35826,7 @@ Sha256.prototype._hash = function () {
 module.exports = Sha256
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":191,"buffer":69,"inherits":128}],197:[function(require,module,exports){
+},{"./hash":192,"buffer":70,"inherits":129}],198:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var SHA512 = require('./sha512')
@@ -37885,7 +35886,7 @@ Sha384.prototype._hash = function () {
 module.exports = Sha384
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":191,"./sha512":198,"buffer":69,"inherits":128}],198:[function(require,module,exports){
+},{"./hash":192,"./sha512":199,"buffer":70,"inherits":129}],199:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var Hash = require('./hash')
@@ -38148,7 +36149,7 @@ Sha512.prototype._hash = function () {
 module.exports = Sha512
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":191,"buffer":69,"inherits":128}],199:[function(require,module,exports){
+},{"./hash":192,"buffer":70,"inherits":129}],200:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -38277,7 +36278,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":110,"inherits":128,"readable-stream/duplex.js":176,"readable-stream/passthrough.js":185,"readable-stream/readable.js":186,"readable-stream/transform.js":187,"readable-stream/writable.js":188}],200:[function(require,module,exports){
+},{"events":111,"inherits":129,"readable-stream/duplex.js":177,"readable-stream/passthrough.js":186,"readable-stream/readable.js":187,"readable-stream/transform.js":188,"readable-stream/writable.js":189}],201:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('safe-buffer').Buffer;
@@ -38550,7 +36551,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":190}],201:[function(require,module,exports){
+},{"safe-buffer":191}],202:[function(require,module,exports){
 (function(nacl) {
 'use strict';
 
@@ -40940,7 +38941,7 @@ nacl.setPRNG = function(fn) {
 
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.nacl = self.nacl || {}));
 
-},{"crypto":41}],202:[function(require,module,exports){
+},{"crypto":42}],203:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -41674,7 +39675,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":203,"punycode":171,"querystring":174}],203:[function(require,module,exports){
+},{"./util":204,"punycode":172,"querystring":175}],204:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -41692,7 +39693,7 @@ module.exports = {
   }
 };
 
-},{}],204:[function(require,module,exports){
+},{}],205:[function(require,module,exports){
 (function (global){
 
 /**
@@ -41763,7 +39764,7 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],205:[function(require,module,exports){
+},{}],206:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -41903,5 +39904,5 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":127}]},{},[2])(2)
+},{"indexof":128}]},{},[7])(7)
 });
