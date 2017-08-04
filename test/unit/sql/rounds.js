@@ -18,7 +18,7 @@ describe('Rounds-related SQL triggers', function () {
 	var db, logger, library, rewiredModules = {}, modules = [];
 	var mem_state, delegates_state, round_blocks = [];
 	var round_transactions = [];
-	var delegatesList;
+	var delegatesList, keypairs;
 
 	function normalizeMemAccounts (mem_accounts) {
 		var accounts = {};
@@ -143,9 +143,6 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	before(function (done) {
-		// Set block time to 1 second, so we can forge valid block every second
-		slots.interval = 1;
-
 		logger = {
 			trace: sinon.spy(),
 			debug: sinon.spy(),
@@ -459,13 +456,32 @@ describe('Rounds-related SQL triggers', function () {
 			}, cb);
 		}
 
+		function getNextForger(offset) {
+			offset = !offset ? 1 : offset;
+
+			var last_block = library.modules.blocks.lastBlock.get();
+			var slot = slots.getSlotNumber(last_block.timestamp);
+			return delegatesList[(slot + offset) % slots.delegates];
+		}
+
 		function forge (cb) {
 			var transactionPool = rewiredModules.transactions.__get__('__private.transactionPool');
-			var forge = rewiredModules.delegates.__get__('__private.forge');
 
 			async.series([
 				transactionPool.fillPool,
-				forge,
+				function (seriesCb) {
+					var last_block = library.modules.blocks.lastBlock.get();
+					var slot = slots.getSlotNumber(last_block.timestamp) + 1;
+					var delegate = getNextForger();
+					var keypair = keypairs[delegate];
+					node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+					library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
+						if (err) { return seriesCb(err); }
+						last_block = library.modules.blocks.lastBlock.get();
+						node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+						return seriesCb(err);
+					});
+				}
 			], function (err) {
 				cb(err);
 			});
@@ -584,7 +600,7 @@ describe('Rounds-related SQL triggers', function () {
 		it('should load all secrets of 101 delegates and set modules.delegates.__private.keypairs (native)', function (done) {
 			var loadDelegates = rewiredModules.delegates.__get__('__private.loadDelegates');
 			loadDelegates(function (err) {
-				var keypairs = rewiredModules.delegates.__get__('__private.keypairs');
+				keypairs = rewiredModules.delegates.__get__('__private.keypairs');
 				expect(Object.keys(keypairs).length).to.equal(config.forging.secret.length);
 				_.each(keypairs, function (keypair, pk) {
 					expect(keypair.publicKey).to.be.instanceOf(Buffer);
@@ -641,11 +657,7 @@ describe('Rounds-related SQL triggers', function () {
 				}
 				node.debug('	Processing block ' + blocks_processed + ' of ' + blocks_cnt + ' with ' + transactions.length + ' transactions');
 
-				// We need to wait 1 second between forge because of block time
-				setTimeout(function () {
-					tickAndValidate(transactions).then(untilCb).catch(untilCb);
-				}, 1000);
-				
+				tickAndValidate(transactions).then(untilCb).catch(untilCb);
 			}, function (err) {
 				return err || blocks_processed >= blocks_cnt;
 			}, done);
