@@ -52,14 +52,14 @@ CREATE TABLE IF NOT EXISTS "votes_details"(
 	"voter_address" VARCHAR(22) NOT NULL,
 	"type" VARCHAR(3) NOT NULL,
 	"timestamp" INT NOT NULL,
-	"round" INT NOT NULL,
+	"height" INT NOT NULL,
 	"delegate_pk" BYTEA REFERENCES delegates(pk) ON DELETE CASCADE
 );
 
 -- Populate 'votes_details' table from blockchain ('votes', 'trs', 'blocks')
 INSERT INTO votes_details
-SELECT r.tx_id, r.voter_address, (CASE WHEN substring(vote, 1, 1) = '+' THEN 'add' ELSE 'rem' END) AS type, r.timestamp, r.round, DECODE(substring(vote, 2), 'hex') AS delegate_pk FROM (
-	SELECT v."transactionId" AS tx_id, t."senderId" AS voter_address, b.timestamp AS timestamp, CEIL(b.height / 101::float)::int AS round, regexp_split_to_table(v.votes, ',') AS vote
+SELECT r.tx_id, r.voter_address, (CASE WHEN substring(vote, 1, 1) = '+' THEN 'add' ELSE 'rem' END) AS type, r.timestamp, r.height, DECODE(substring(vote, 2), 'hex') AS delegate_pk FROM (
+	SELECT v."transactionId" AS tx_id, t."senderId" AS voter_address, b.timestamp AS timestamp, b.height, regexp_split_to_table(v.votes, ',') AS vote
 	FROM votes v, trs t, blocks b WHERE v."transactionId" = t.id AND b.id = t."blockId"
 ) AS r ORDER BY r.timestamp ASC;
 
@@ -67,8 +67,8 @@ SELECT r.tx_id, r.voter_address, (CASE WHEN substring(vote, 1, 1) = '+' THEN 'ad
 CREATE FUNCTION vote_insert() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
 		INSERT INTO votes_details
-		SELECT r.tx_id, r.voter_address, (CASE WHEN substring(vote, 1, 1) = '+' THEN 'add' ELSE 'rem' END) AS type, r.timestamp, r.round, DECODE(substring(vote, 2), 'hex') AS delegate_pk FROM (
-			SELECT v."transactionId" AS tx_id, t."senderId" AS voter_address, b.timestamp AS timestamp, CEIL(b.height / 101::float)::int AS round, regexp_split_to_table(v.votes, ',') AS vote
+		SELECT r.tx_id, r.voter_address, (CASE WHEN substring(vote, 1, 1) = '+' THEN 'add' ELSE 'rem' END) AS type, r.timestamp, r.height, DECODE(substring(vote, 2), 'hex') AS delegate_pk FROM (
+			SELECT v."transactionId" AS tx_id, t."senderId" AS voter_address, b.timestamp AS timestamp, b.height, regexp_split_to_table(v.votes, ',') AS vote
 			FROM votes v, trs t, blocks b WHERE v."transactionId" = NEW."transactionId" AND v."transactionId" = t.id AND b.id = t."blockId"
 		) AS r ORDER BY r.timestamp ASC;
 	RETURN NULL;
@@ -83,7 +83,7 @@ CREATE TRIGGER vote_insert
 -- Create indexes on 'votes_details'
 CREATE INDEX votes_details_voter_address ON votes_details(voter_address);
 CREATE INDEX votes_details_type          ON votes_details(type);
-CREATE INDEX votes_details_round         ON votes_details(round);
+CREATE INDEX votes_details_height        ON votes_details(height);
 CREATE INDEX votes_details_sort          ON votes_details(voter_address ASC, timestamp DESC);
 CREATE INDEX votes_details_dpk           ON votes_details(delegate_pk);
 
@@ -92,13 +92,13 @@ CREATE FUNCTION delegates_voters_cnt_update() RETURNS TABLE(updated INT) LANGUAG
 	BEGIN
 		RETURN QUERY
 			WITH
-			last_round AS (SELECT CEIL(height / 101::float)::int AS round FROM blocks WHERE height % 101 = 0 OR height = 1 ORDER BY height DESC LIMIT 1),
+			last_round AS (SELECT (CASE WHEN height < 101 THEN 1 ELSE height END) AS height FROM blocks WHERE height % 101 = 0 OR height = 1 ORDER BY height DESC LIMIT 1),
 			updated AS (UPDATE delegates SET voters_cnt = cnt FROM
 			(SELECT
 				d.pk,
 				(SELECT COUNT(1) AS cnt FROM
 					(SELECT DISTINCT ON (voter_address) voter_address, delegate_pk, type FROM votes_details
-						WHERE delegate_pk = d.pk AND round <= (SELECT round FROM last_round)
+						WHERE delegate_pk = d.pk AND height <= (SELECT height FROM last_round)
 						ORDER BY voter_address, timestamp DESC
 					) v WHERE type = 'add'
 				) FROM delegates d
@@ -113,7 +113,8 @@ SELECT delegates_voters_cnt_update();
 CREATE FUNCTION delegates_voters_balance_update() RETURNS TABLE(updated INT) LANGUAGE PLPGSQL AS $$
 	BEGIN
 		RETURN QUERY
-			WITH last_round AS (SELECT height, CEIL(height / 101::float)::int AS round FROM blocks WHERE height % 101 = 0 OR height = 1 ORDER BY height DESC LIMIT 1),
+			WITH
+			last_round AS (SELECT (CASE WHEN height < 101 THEN 1 ELSE height END) AS height FROM blocks WHERE height % 101 = 0 OR height = 1 ORDER BY height DESC LIMIT 1),
 			current_round_txs AS (SELECT t.id FROM trs t LEFT JOIN blocks b ON b.id = t."blockId" WHERE b.height > (SELECT height FROM last_round)),
 			voters AS (SELECT DISTINCT ON (voter_address) voter_address FROM votes_details),
 			balances AS (
@@ -134,7 +135,7 @@ CREATE FUNCTION delegates_voters_balance_update() RETURNS TABLE(updated INT) LAN
 				(SELECT COALESCE(SUM(balance), 0) AS balance FROM accounts WHERE address IN 
 					(SELECT v.voter_address FROM
 						(SELECT DISTINCT ON (voter_address) voter_address, type FROM votes_details
-							WHERE delegate_pk = d.pk AND round <= (SELECT round FROM last_round)
+							WHERE delegate_pk = d.pk AND height <= (SELECT height FROM last_round)
 							ORDER BY voter_address, timestamp DESC
 						) v
 						WHERE v.type = 'add'
