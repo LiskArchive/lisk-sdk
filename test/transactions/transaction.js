@@ -228,33 +228,6 @@ describe('transaction.js', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
 		const feeWithData = 20000000;
-		const testAmount = 1000;
-
-		it('should be a function', () => {
-			(createTransaction).should.be.type('function');
-		});
-
-		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(testRecipientAddress,
-				testAmount,
-				testSecret,
-				testSecondSecret,
-				testData);
-			(trs).should.be.ok();
-		});
-
-		describe('returned transaction', () => {
-			it('should contain data field with string value', () => {
-				(trs.asset.data).should.be.type('string');
-				(trs.fee).should.be.equal(feeWithData);
-			});
-		});
-	});
-
-	describe('#createTransaction with secondSignature and data', () => {
-		const createTransaction = transaction.createTransaction;
-		let trs = null;
-		const feeWithData = 20000000;
 
 
 		it('should be a function', () => {
