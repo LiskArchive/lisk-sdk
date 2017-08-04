@@ -205,7 +205,7 @@ describe('transaction.js', () => {
 		});
 	});
 
-	describe('#createTransaction with data @now', () => {
+	describe('#createTransaction with data', () => {
 		const createTransaction = transaction.createTransaction;
 		let trs = null;
 		const feeWithData = 20000000;
