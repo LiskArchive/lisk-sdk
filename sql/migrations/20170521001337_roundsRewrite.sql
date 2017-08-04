@@ -268,9 +268,21 @@ CREATE CONSTRAINT TRIGGER block_insert_delete
 -- Create function 'delegates_update_on_block' for updating 'delegates' table data
 CREATE FUNCTION delegates_update_on_block() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 	BEGIN
+		-- Update outsiders of round
+		IF (TG_OP = 'INSERT') AND (NEW.height != 1) THEN
+			PERFORM outsiders_update();
+		END IF;
+
 		PERFORM delegates_voters_cnt_update();
 		PERFORM delegates_voters_balance_update();
 		PERFORM delegates_rank_update();
+
+		-- Rollback outsiders of round
+		IF (TG_OP = 'DELETE') THEN
+			-- Pass public key of delegate who forged deleted block
+			PERFORM outsiders_rollback(ENCODE(OLD."generatorPublicKey", 'hex'));
+		END IF;
+
 		-- Perform notification to backend that round changed
 		IF (TG_OP = 'INSERT') THEN
 			-- Last block of round inserted - round is closed here and processing is done
@@ -361,6 +373,42 @@ CREATE OR REPLACE FUNCTION round_rewards_insert() RETURNS TRIGGER LANGUAGE PLPGS
 		UPDATE mem_accounts SET balance = mem_accounts.balance+r.rewards+r.fees, u_balance = mem_accounts.u_balance+r.rewards+r.fees FROM r WHERE mem_accounts."publicKey" = r.pk;
 
 	RETURN NULL;
+END $$;
+
+-- Create function for updating blocks_missed_cnt (outsiders of round)
+CREATE OR REPLACE FUNCTION outsiders_update() RETURNS TABLE(updated INT) LANGUAGE PLPGSQL AS $$
+	BEGIN
+		RETURN QUERY
+		WITH
+			-- Calculate round from highest block
+			last_round AS (SELECT CEIL(height / 101::float)::int AS round FROM blocks ORDER BY height DESC LIMIT 1),
+			-- Increase delegates.blocks_missed_cnt
+			updated AS (UPDATE delegates d SET blocks_missed_cnt = blocks_missed_cnt+1 WHERE ENCODE(d.pk, 'hex') IN (
+				-- Delegates who are on list and did not forged a block during round are treatment as round outsiders
+				SELECT outsider FROM UNNEST(getDelegatesList()) outsider WHERE outsider NOT IN (
+					SELECT ENCODE(b."generatorPublicKey", 'hex') FROM blocks b WHERE CEIL(b.height / 101::float)::int = (SELECT round FROM last_round)
+				)
+			) RETURNING 1
+		)
+		SELECT COUNT(1)::INT FROM updated;
+END $$;
+
+-- Create function for rollback blocks_missed_cnt (outsiders of round) in case of delete last block of round
+CREATE OR REPLACE FUNCTION outsiders_rollback(last_block_forger text) RETURNS TABLE(updated INT) LANGUAGE PLPGSQL AS $$
+	BEGIN
+		RETURN QUERY
+		WITH
+			-- Calculate round from highest block
+			last_round AS (SELECT CEIL(height / 101::float)::int AS round FROM blocks ORDER BY height DESC LIMIT 1),
+			-- Decrease delegates.blocks_missed_cnt
+			updated AS (UPDATE delegates d SET blocks_missed_cnt = blocks_missed_cnt-1 WHERE ENCODE(d.pk, 'hex') IN (
+				-- Delegates who are on list and did not forged a block during round are treatment as round outsiders
+				SELECT outsider FROM UNNEST(getDelegatesList()) outsider WHERE outsider NOT IN (
+					SELECT ENCODE(b."generatorPublicKey", 'hex') FROM blocks b WHERE CEIL(b.height / 101::float)::int = (SELECT round FROM last_round)
+				) AND outsider <> last_block_forger -- Forger of deleted block cannot be outsider
+			) RETURNING 1
+		)
+		SELECT COUNT(1)::INT FROM updated;
 END $$;
 
 -- Drop mem_round table
