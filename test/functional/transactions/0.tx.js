@@ -378,7 +378,6 @@ describe('POST /api/transactions (type 0)', function () {
 
 			it('using more than maximum should fail', function (done) {
 				transaction.fee = Number(new BigNumber(constants.totalAmount)+ 1);
-				console.log(transaction.fee);
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.have.string('Invalid transaction body - Failed to validate transaction schema: Value '+transaction.fee+' is greater than maximum 10000000000000000');
@@ -501,7 +500,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 
 			it('using string with good format but larger than expected should fail', function (done) {
-				transaction.recipientId = Array(22+1).join('1')+'L';
+				transaction.recipientId = Array(22).fill('1').join('')+'L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -906,7 +905,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 
 			it('using string larger than expected recipientId should fail', function (done) {
-				transaction.recipientId = Array(22+1).join('1')+'L';
+				transaction.recipientId = Array(22).fill('1').join('')+'L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
