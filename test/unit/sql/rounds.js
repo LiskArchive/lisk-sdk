@@ -837,5 +837,118 @@ describe('Rounds-related SQL triggers', function () {
 					});
 			});
 		});
+
+		describe('Round rollback (table delegates) when forger of last block of round is replaced in last block of round', function() {
+			var last_block_forger, tmp_account;
+
+			before(function () {
+				// Set last block forger
+				last_block_forger = getNextForger();
+				// Delete two blocks more
+				return deleteLastBlockPromise()
+					.then(function () {
+						return deleteLastBlockPromise();
+					})
+					.then(function () {
+						// Fund random account
+						var transactions = [];
+						tmp_account = node.randomAccount();
+						var tx = node.lisk.transaction.createTransaction(tmp_account.address, 5000000000, node.gAccount.password);
+						transactions.push(tx);
+						return tickAndValidate(transactions);
+					})
+					.then(function () {
+						// Register random delegate
+						var transactions = [];
+						var tx = node.lisk.delegate.createDelegate(tmp_account.password, 'my_little_delegate');
+						transactions.push(tx);
+						return tickAndValidate(transactions);
+					});
+			});
+
+			it('we should be on height 100', function () {
+				var last_block = library.modules.blocks.lastBlock.get();
+				expect(last_block.height).to.equal(100);
+			});
+
+			it('finish round, should unvote expected forger of last block of round and vote new delegate', function () {
+				var transactions = [];
+				var tx = node.lisk.vote.createVote(
+					node.gAccount.password,
+					['-' + last_block_forger, '+' + tmp_account.publicKey]
+				);
+				transactions.push(tx);
+
+				return tickAndValidate(transactions)
+					.then(function () {
+						var last_block = library.modules.blocks.lastBlock.get();
+						return getFullBlock(last_block.height);
+					})
+					.then(function (rows) {
+						// Normalize blocks
+						var blocks = library.modules.blocks.utils.readDbRows(rows);
+						expect(blocks[0].transactions[0].asset.votes).to.deep.equal(['-' + last_block_forger, '+' + tmp_account.publicKey]);
+					});
+			});
+
+			it('delegates list should be different than one generated at the beginning of round 1', function () {
+				var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				expect(tmpDelegatesList).to.not.deep.equal(delegatesList);
+			});
+
+			it('unvoted delegate should not be on list', function () {
+				var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				expect(tmpDelegatesList).to.not.contain(last_block_forger);
+			});
+
+			it('delegate who replaced unvoted one should be on list', function () {
+				var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				expect(tmpDelegatesList).to.contain(tmp_account.publicKey);
+			});
+
+			it('forger of last block of previous round should have voters_balance and voters_cnt 0', function () {
+				return getDelegates()
+					.then(function () {
+						var delegate = delegates_state[last_block_forger];
+						expect(delegate.voters_balance).to.equal(0);
+						expect(delegate.voters_cnt).to.equal(0);
+					});
+			});
+
+			it('delegate who replaced last block forger should have proper votes', function () {
+				return getDelegates()
+					.then(function () {
+						var delegate = delegates_state[tmp_account.publicKey];
+						expect(delegate.voters_balance).to.be.above(0);
+						expect(delegate.voters_cnt).to.equal(1);
+					});
+			});
+
+			it('delete last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
+				return deleteLastBlockPromise()
+					.then(function () {
+						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+						expect(tmpDelegatesList).to.deep.equal(delegatesList);
+					});
+			});
+
+			it('expected forger of last block of round should have proper votes again', function () {
+				return getDelegates()
+					.then(function () {
+						var delegate = delegates_state[last_block_forger];
+						expect(delegate.voters_balance).to.equal(10000000000000000);
+						expect(delegate.voters_cnt).to.equal(1);
+					});
+			});
+
+			it('delegate who replaced last block forger should have voters_balance and voters_cnt 0', function () {
+				return getDelegates()
+					.then(function () {
+						var delegate = delegates_state[tmp_account.publicKey];
+						expect(delegate.voters_balance).to.equal(0);
+						expect(delegate.voters_cnt).to.equal(0);
+					});
+			});
+		});
 	});
 });
