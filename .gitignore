@@ -7,4 +7,5 @@ yuidoc
 test/.coverage-unit
 coveralls
 coverage/
-dist/
+dist-browser/
+dist-node/
