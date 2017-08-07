@@ -164,7 +164,6 @@ __private.loadSignatures = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
-			peer = library.logic.peers.create(peer);
 			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
 					return setImmediate(waterCb, err);
@@ -720,7 +719,7 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.lastBlock.get().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
-	modules.peers.list({}, function (err, peers) {
+	modules.peers.list({normalized: false}, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}

@@ -147,7 +147,7 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var params = { limit: newLimit, offset: offset || 0 };
 
 	library.logger.debug('Loading blocks offset', {limit: limit, offset: offset, verify: verify});
-	// Execute in sequence via dbSequence]
+	// Execute in sequence via dbSequence
 	library.dbSequence.add(function (cb) {
 		// Loads full blocks from database
 		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
