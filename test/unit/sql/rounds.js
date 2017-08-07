@@ -1,18 +1,21 @@
 'use strict';
 
-var _      = require('lodash');
-var async  = require('async');
-var chai   = require('chai');
-var expect = require('chai').expect;
-var rewire = require('rewire');
-var sinon  = require('sinon');
+// Utils
+var _       = require('lodash');
+var async   = require('async');
+var chai    = require('chai');
+var expect  = require('chai').expect;
 var Promise = require('bluebird');
+var rewire  = require('rewire');
+var sinon   = require('sinon');
 
-var config   = require('../../../config.json');
-var node     = require('../../node.js');
-var Sequence = require('../../../helpers/sequence.js');
-var slots    = require('../../../helpers/slots.js');
-var bignum   = require('../../../helpers/bignum.js');
+// Application specific
+var bignum    = require('../../../helpers/bignum.js');
+var config    = require('../../../config.json');
+var constants = require('../../../helpers/constants');
+var node      = require('../../node.js');
+var Sequence  = require('../../../helpers/sequence.js');
+var slots     = require('../../../helpers/slots.js');
 
 describe('Rounds-related SQL triggers', function () {
 	var db, logger, library, rewiredModules = {}, modules = [];
@@ -109,10 +112,14 @@ describe('Rounds-related SQL triggers', function () {
 			return new bignum(fees).plus(block.totalFee);
 		}, 0);
 
+		var rewardsTotal = _.reduce(blocks, function (reward, block) {
+			return new bignum(reward).plus(block.reward);
+		}, 0);
+
 		var feesPerDelegate = new bignum(feesTotal.toPrecision(15)).dividedBy(slots.delegates).floor();
 		var feesRemaining   = new bignum(feesTotal.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates));
 
-		node.debug('	Total fees: ' + feesTotal.toString() + ' Fees per delegates: ' + feesPerDelegate.toString() + ' Remaining fees: ' + feesRemaining);
+		node.debug('	Total fees: ' + feesTotal.toString() + ' Fees per delegates: ' + feesPerDelegate.toString() + ' Remaining fees: ' + feesRemaining + 'Total rewards: ' + rewardsTotal);
 		
 		_.each(blocks, function (block, index) {
 			var pk = block.generatorPublicKey.toString('hex');
@@ -163,6 +170,9 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	before(function (done) {
+		// Force rewards start at 150-th block
+		constants.rewards.offset = 150;
+
 		logger = {
 			trace: sinon.spy(),
 			debug: sinon.spy(),
@@ -951,6 +961,102 @@ describe('Rounds-related SQL triggers', function () {
 						expect(delegate.voters_balance).to.equal(0);
 						expect(delegate.voters_cnt).to.equal(0);
 					});
+			});
+		});
+
+		describe('Rounds rewards consistency - round 2', function() {
+			var expected_reward;
+			var round;
+
+			before(function (done) {
+				// Set expected reward per block as first milestone
+				expected_reward = constants.rewards.milestones[0];
+				// Get height of last block
+				var current_height = library.modules.blocks.lastBlock.get().height;
+				// Calculate how many block to forge before rewards start
+				var blocks_to_forge = constants.rewards.offset - current_height - 1; // 1 before rewards start, co we can check
+				var blocks_processed = 0;
+
+				async.doUntil(function (untilCb) {
+					++blocks_processed;
+					node.debug('	Processing block ' + blocks_processed + ' of ' + blocks_to_forge);
+
+					tickAndValidate([]).then(untilCb).catch(untilCb);
+				}, function (err) {
+					return err || blocks_processed >= blocks_to_forge;
+				}, done);
+			});
+
+			it('block just before rewards start should have reward 0', function () {
+				var last_block = library.modules.blocks.lastBlock.get();
+				expect(last_block.reward).to.equal(0);
+			});
+
+			it('all blocks from now until round end should have proper rewards (' + expected_reward + ')', function (done) {
+				var blocks_processed = 0;
+				var last_block;
+
+				// Forge blocks until end of a round
+				async.doUntil(function (untilCb) {
+					++blocks_processed;
+					node.debug('	Processing block ' + blocks_processed);
+
+					tickAndValidate([]).then(function () {
+						last_block = library.modules.blocks.lastBlock.get();
+						// All blocks from now should have proper rewards
+						expect(last_block.reward).to.equal(expected_reward);
+						untilCb();
+					}).catch(untilCb);
+				}, function (err) {
+					return err || last_block.height % 101 === 0;
+				}, done);
+			});
+
+			it('rewards from table rounds_rewards should match rewards from blockchian', function () {
+				var last_block = library.modules.blocks.lastBlock.get();
+				round = slots.calcRound(last_block.height);
+
+				return Promise.join(getBlocks(round), getRoundRewards(round), getDelegates(), function (blocks, rewards) {
+					// Get expected rewards for round (native)
+					var expectedRewards = getExpectedRoundRewards(blocks);
+					// Rewards from database table rounds_rewards should match native rewards
+					expect(rewards).to.deep.equal(expectedRewards);
+				});
+			});
+
+			it('rewards from table delegates should match rewards from blockchain', function () {
+				var blocks_rewards, delegates_rewards;
+				return Promise.join(getBlocks(round), getDelegates(), function (blocks, delegates) {
+					return Promise.reduce(delegates, function (delegates, d) {
+						// Skip delegates who not forged
+						if (d.blocks_forged_cnt) {
+							delegates[d.pk] = {
+								pk: d.pk,
+								rewards: Number(d.rewards)
+							}
+						}
+						return delegates;
+					}, {})
+					.then(function (delegates) {
+						delegates_rewards = delegates;
+						return Promise.reduce(blocks, function (blocks, b) {
+							var pk;
+							pk = b.generatorPublicKey.toString('hex');
+							if (blocks[pk]) {
+								blocks.rewards += Number(b.reward);
+							} else {
+								blocks[pk] = {
+									pk: pk,
+									rewards: Number(b.reward)
+								}
+							}
+							return blocks;
+						}, {})
+						.then (function (blocks) {
+							expect(delegates_rewards).to.deep.equal(blocks);
+						});
+					});
+				});
 			});
 		});
 	});
