@@ -94,7 +94,7 @@ describe('account', function () {
 			}).to.throw('Invalid public key, must be 64 characters long');
 		});
 
-		it.skip('should throw if parameter is not a hex string', function () {
+		it('should throw if parameter is not a hex string', function () {
 			expect(function () {
 				account.verifyPublicKey('c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az');
 			}).to.throw('Invalid public key, must be a hex string');
@@ -176,21 +176,35 @@ describe('account', function () {
 		});
 
 		it('should ignore limit if its < 1', function (done) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {
+					username: v.username
+				};
+			});
+
 			account.getAll({
-				limit: 0
-			}, function (err, res) {
+				limit: 0,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts);
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});
 
 		it('should ignore offset if its < 1', function (done) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {
+					username: v.username
+				};
+			});
+
 			account.getAll({
-				offset: 0
-			}, function (err, res) {
+				offset: 0,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts);
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});
@@ -251,18 +265,37 @@ describe('account', function () {
 			});
 		});
 
-		it('should fetch results with limit of 50', function (done) {
-			account.getAll({limit: 50}, function (err, res) {
+		it('should fetch results with limit of 49', function (done) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {
+					username: v.username
+				};
+			}).slice(0, 50);
+
+			account.getAll({
+				limit: 50,
+				offset: 0,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts.slice(0, 50));
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});
 
 		it('should ignore limit when its value is negative', function (done) {
-			account.getAll({limit: -50}, function (err, res) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {
+					username: v.username
+				};
+			});
+
+			account.getAll({
+				limit: -50,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts);
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});
