@@ -125,7 +125,6 @@ describe('vote', function () {
 			},
 			transactionLogic: ['accountLogic', function (result, cb) {
 				modulesLoader.initLogicWithDb(TransactionLogic, function (err, __transaction) {
-					__transaction.bindModules(result);
 					cb(err, __transaction);
 				}, {
 					ed: require('../../../helpers/ed'),
