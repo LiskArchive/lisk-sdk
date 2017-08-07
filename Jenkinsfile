@@ -248,7 +248,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
                 export TEST=test/unit/modules/blocks.js TEST_TYPE='UNIT' NODE_ENV='TEST'
                 cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
                 npm run jenkins
->>>>>>> upstream/1.0.0
 
                 export TEST=test/unit/modules/cache.js TEST_TYPE='UNIT' NODE_ENV='TEST'
                 npm run jenkins
