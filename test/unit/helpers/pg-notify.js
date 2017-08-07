@@ -211,7 +211,7 @@ describe('helpers/pg-notify', function () {
 			});
 		});
 
-		it('should reconnect successfully if it\'s possible', function (done) {
+		it('should reconnect successfully if possible', function (done) {
 			// Spy private functions
 			var setListeners = pg_notify.__get__('setListeners');
 			var connection = pg_notify.__get__('connection');
