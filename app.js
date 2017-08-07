@@ -540,7 +540,6 @@ d.run(function () {
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope.modules);
 
-			scope.logic.transaction.bindModules(scope.modules);
 			scope.logic.peers.bindModules(scope.modules);
 			cb();
 		}],

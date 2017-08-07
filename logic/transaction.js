@@ -11,7 +11,7 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
 // Private fields
-var self, modules, __private = {};
+var self, __private = {};
 
 /**
  * @typedef {Object} privateTypes
@@ -1083,15 +1083,6 @@ Transaction.prototype.dbRead = function (raw) {
 
 		return tx;
 	}
-};
-
-// Events
-/**
- * Binds input parameters to private variables modules.
- * @param {Object} __modules
- */
-Transaction.prototype.bindModules = function (__modules) {
-	this.scope.logger.trace('Logic/Transaction->bindModules');
 };
 
 // Export
