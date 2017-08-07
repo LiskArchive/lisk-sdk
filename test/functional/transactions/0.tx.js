@@ -93,6 +93,17 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
+			it('deleting the key should fail', function (done) {
+				delete transaction.type;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Unknown transaction type undefined');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
 			it('using undefined should fail', function (done) {
 				transaction.type = undefined;
 
@@ -164,6 +175,17 @@ describe('POST /api/transactions (type 0)', function () {
 
 			it('using null should fail', function (done) {
 				transaction.amount = null;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Failed to get transaction id');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('deleting the key should fail', function (done) {
+				delete transaction.amount;
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -286,6 +308,17 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
+			it('deleting the key should fail', function (done) {
+				delete transaction.fee;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction fee');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
 			it('using undefined should fail', function (done) {
 				transaction.fee = undefined;
 
@@ -391,6 +424,17 @@ describe('POST /api/transactions (type 0)', function () {
 
 			it('using null should fail', function (done) {
 				transaction.recipientId = null;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction id');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('deleting the key should fail', function (done) {
+				delete transaction.recipientId;
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -524,6 +568,17 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
+			it('deleting the key should fail', function (done) {
+				delete transaction.timestamp;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: timestamp');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
 			it('using undefined should fail', function (done) {
 				transaction.timestamp = undefined;
 
@@ -617,6 +672,17 @@ describe('POST /api/transactions (type 0)', function () {
 
 			it('using null should fail', function (done) {
 				transaction.senderPublicKey = null;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: senderPublicKey');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('deleting the key should fail', function (done) {
+				delete transaction.senderPublicKey;
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -728,6 +794,17 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
+			it('deleting the key should fail', function (done) {
+				delete transaction.signature;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Missing required property: signature');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
 			it('using undefined should fail', function (done) {
 				transaction.signature = undefined;
 
@@ -810,6 +887,18 @@ describe('POST /api/transactions (type 0)', function () {
 
 			it('using null should be OK', function (done) {
 				transaction.id = null;
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.not.null;
+					transaction.id = res.transactionId;
+					goodTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('deleting the key should fail', function (done) {
+				delete transaction.id;
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.ok;
