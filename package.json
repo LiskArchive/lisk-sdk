@@ -4,7 +4,7 @@
   "description": "JavaScript library for sending Lisk transactions from the client or server",
   "main": "./dist/index.js",
   "scripts": {
-    "test": "nyc mocha",
+    "test": "nyc mocha test/**/*.js",
     "test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"npm run test\" --initial",
     "test:now": "npm run test -- --grep @now",
     "test:now:watch": "chokidar \"./(src|test)/**/*.js\" -c \"npm run test:now\" --initial",
