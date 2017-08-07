@@ -434,7 +434,7 @@ describe('Rounds-related SQL triggers', function () {
 			})
 		});
 
-		it('transactions of genesis block should be applied to mem_accounts (native)', function () {
+		it('should apply genesis block transactions to mem_accounts (native)', function () {
 			// Wait 10 seconds for proper initialisation
 			return Promise.delay(10000).then(function () {
 				return getMemAccounts();
@@ -723,7 +723,7 @@ describe('Rounds-related SQL triggers', function () {
 			});
 		});
 
-		it('delegates list should be different than one generated at the beginning of round 1', function () {
+		it('should generate a different delegate list than one generated at the beginning of round 1', function () {
 			var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
 			expect(tmpDelegatesList).to.not.deep.equal(delegatesList);
 		});
@@ -776,7 +776,7 @@ describe('Rounds-related SQL triggers', function () {
 				return deleteLastBlockPromise();
 			});
 
-			it('we should be on height 99 after delete one more block', function () {
+			it('last block height should be at height 99 after deleting one more block', function () {
 				var last_block = library.modules.blocks.lastBlock.get();
 				expect(last_block.height).to.equal(99);
 			});
@@ -810,7 +810,7 @@ describe('Rounds-related SQL triggers', function () {
 					});
 			});
 
-			it('finish round, delegates list should be different than one generated at the beginning of round 1', function () {
+			it('after finishing round, delegates list should be different than one generated at the beginning of round 1', function () {
 				var transactions = [];
 
 				return tickAndValidate(transactions)
@@ -830,7 +830,7 @@ describe('Rounds-related SQL triggers', function () {
 					});
 			});
 
-			it('delete last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
+			it('after deleting last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
 				return deleteLastBlockPromise().delay(20)
 					.then(function () {
 						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
@@ -877,12 +877,12 @@ describe('Rounds-related SQL triggers', function () {
 					});
 			});
 
-			it('we should be on height 100', function () {
+			it('last block height should be at height 100', function () {
 				var last_block = library.modules.blocks.lastBlock.get();
 				expect(last_block.height).to.equal(100);
 			});
 
-			it('finish round, should unvote expected forger of last block of round and vote new delegate', function () {
+			it('after finishing round, should unvote expected forger of last block of round and vote new delegate', function () {
 				var transactions = [];
 				var tx = node.lisk.vote.createVote(
 					node.gAccount.password,
@@ -936,7 +936,7 @@ describe('Rounds-related SQL triggers', function () {
 					});
 			});
 
-			it('delete last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
+			it('after deleting last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
 				return deleteLastBlockPromise().delay(20)
 					.then(function () {
 						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
@@ -974,7 +974,7 @@ describe('Rounds-related SQL triggers', function () {
 				// Get height of last block
 				var current_height = library.modules.blocks.lastBlock.get().height;
 				// Calculate how many block to forge before rewards start
-				var blocks_to_forge = constants.rewards.offset - current_height - 1; // 1 before rewards start, co we can check
+				var blocks_to_forge = constants.rewards.offset - current_height - 1; // 1 block before rewards start, so we can check
 				var blocks_processed = 0;
 
 				async.doUntil(function (untilCb) {
@@ -987,7 +987,7 @@ describe('Rounds-related SQL triggers', function () {
 				}, done);
 			});
 
-			it('block just before rewards start should have reward 0', function () {
+			it('block just before rewards start should have 0 reward', function () {
 				var last_block = library.modules.blocks.lastBlock.get();
 				expect(last_block.reward).to.equal(0);
 			});
