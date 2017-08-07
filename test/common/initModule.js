@@ -20,6 +20,7 @@ var ed = require('../../helpers/ed');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
+var Sequence = require('../../helpers/sequence.js');
 
 var modulesLoader = new function () {
 
@@ -31,13 +32,27 @@ var modulesLoader = new function () {
 		genesisblock: { block: genesisblock },
 		logger: this.logger,
 		network: {
-			app: express()
+			app: express(),
+			io: {
+				sockets: express()
+			}
 		},
 		schema: new z_schema(),
 		ed: ed,
 		bus: {
 			message: function () {}
 		},
+		nonce: randomString.generate(16),
+		dbSequence: new Sequence({
+			onWarning: function (current, limit) {
+				this.logger.warn('DB queue', current);
+			}
+		}),
+		sequence: new Sequence({
+			onWarning: function (current, limit) {
+				this.logger.warn('Main queue', current);
+			}
+		}),
 		balancesSequence: new Sequence({
 			onWarning: function (current, limit) {
 				this.logger.warn('Balance queue', current);
