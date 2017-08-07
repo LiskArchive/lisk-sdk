@@ -746,7 +746,7 @@ Delegates.prototype.shared = {
 
 		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
 			if (__private.delegatesList[(currentSlot + i) % slots.delegates]) {
-				nextForgers.push (__private.delegatesList[(currentSlot + i) % slots.delegates]);
+				nextForgers.push(__private.delegatesList[(currentSlot + i) % slots.delegates]);
 			}
 		}
 
