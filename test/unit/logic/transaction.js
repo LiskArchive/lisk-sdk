@@ -165,63 +165,9 @@ describe('transaction', function () {
 				});
 			}]
 		}, function (err, result) {
-<<<<<<< HEAD
-			transaction = result.transaction;
-			transaction.bindModules(result);
-			attachTransferAsset(transaction, result.accountLogic, result.rounds, done); 
-		});
-	});
-
-	describe('create', function () {
-
-		it('should throw an error with no param', function () {
-			expect(transaction.create).to.throw();
-		});
-
-		it('should throw an error when sender is not set', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			delete trsData.sender;
-			expect(function () {
-				transaction.create(transaction, trsData);
-			}).to.throw();
-		});
-
-		it('should throw an error when keypair is not set', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			delete trsData.keypair;
-
-			expect(function () {
-				transaction.create(transaction, trsData);
-			}).to.throw();
-		});
-
-		it('should create a transaction with data property', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			trsData.data = 'abc';
-			var trs = transaction.create(trsData);
-
-			expect(trs).to.be.an('object');
-			expect(trs.asset.data).to.equal('abc');
-		});
-
-		it('should create a transaction without data property', function () {
-			expect(transaction.create(validTransactionData)).to.be.an('object');
-		});
-
-		it('should return transaction fee based on trs type and data field', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			trsData.data = 'abc';
-
-			expect(transaction.create(trsData).fee).to.equal(20000000);
-		});
-
-		it('should return transaction fee based on trs type', function () {
-			expect(transaction.create(validTransactionData).fee).to.equal(10000000);
-=======
 			transactionLogic = result.transactionLogic;
 			transactionLogic.bindModules(result);
 			attachTransferAsset(transactionLogic, result.accountLogic, result.rounds, done); 
->>>>>>> upstream/1.0.0
 		});
 	});
 
@@ -231,11 +177,7 @@ describe('transaction', function () {
 			var appliedLogic;
 			appliedLogic = transactionLogic.attachAssetType(transactionTypes.VOTE, new Vote());
 			expect(appliedLogic).to.be.an.instanceof(Vote);
-<<<<<<< HEAD
 			appliedLogic = transaction.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
-=======
-			appliedLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new Transfer());
->>>>>>> upstream/1.0.0
 			expect(appliedLogic).to.be.an.instanceof(Transfer);
 			appliedLogic = transactionLogic.attachAssetType(transactionTypes.DELEGATE, new Delegate());
 			expect(appliedLogic).to.be.an.instanceof(Delegate);
@@ -274,8 +216,8 @@ describe('transaction', function () {
 		});
 
 		it('should update signature when data is changed', function () {
-			var originalSignature = validTransaction.signature;
-			var trs = _.cloneDeep(validTransaction);
+			var originalSignature = transaction.signature;
+			var trs = _.cloneDeep(transaction);
 			trs.data = '123';
 
 			expect(transaction.sign(senderKeypair, trs)).to.be.a('string').which.is.not.equal(originalSignature);
@@ -307,12 +249,8 @@ describe('transaction', function () {
 			var id = transaction.id;
 			var trs = _.cloneDeep(transaction);
 			trs.amount = 4000;
-<<<<<<< HEAD
 
-			expect(transaction.getId(trs)).to.not.equal(id);
-=======
 			expect(transactionLogic.getId(trs)).to.not.equal(id);
->>>>>>> upstream/1.0.0
 		});
 	});
 
@@ -325,24 +263,16 @@ describe('transaction', function () {
 		it('should return hash for trs', function () {
 			var trs = transaction;
 			var expectedHash = '5164ef55fccefddf72360ea6e05f19eed7c8d2653c5069df4db899c47246dd2f';
-<<<<<<< HEAD
 
-			expect(transaction.getHash(trs).toString('hex')).to.be.a('string').which.is.equal(expectedHash);
-=======
 			expect(transactionLogic.getHash(trs).toString('hex')).to.be.a('string').which.is.equal(expectedHash);
->>>>>>> upstream/1.0.0
 		});
 
 		it('should update hash if a field is trs value changes', function () {
 			var originalTrsHash = '5164ef55fccefddf72360ea6e05f19eed7c8d2653c5069df4db899c47246dd2f';
 			var trs = _.cloneDeep(transaction);
 			trs.amount = 4000;
-<<<<<<< HEAD
 
-			expect(transaction.getHash(trs).toString('hex')).to.not.equal(originalTrsHash);
-=======
 			expect(transactionLogic.getHash(trs).toString('hex')).to.not.equal(originalTrsHash);
->>>>>>> upstream/1.0.0
 		});
 	});
 
@@ -352,59 +282,23 @@ describe('transaction', function () {
 			expect(transactionLogic.getBytes).to.throw();
 		});
 
-<<<<<<< HEAD
 		it('should return same result when called multiple times (without data field)', function () {
-			var firstCalculation = transaction.getBytes(validTransaction);
-			var secondCalculation = transaction.getBytes(validTransaction);
+			var firstCalculation = transaction.getBytes(transaction);
+			var secondCalculation = transaction.getBytes(transaction);
 
-			expect(firstCalculation.equals(secondCalculation)).to.be.ok;
-		});
-
-		it('should return same result when called multiple times (with data field)', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			trsData.data = '123';
-			var transactionWithData = transaction.create(trsData);
-			var firstCalculation = transaction.getBytes(transactionWithData);
-			var secondCalculation = transaction.getBytes(transactionWithData);
-
-=======
-		it('should return same result when called multiple times', function () {
-			var firstCalculation = transactionLogic.getBytes(transaction);
-			var secondCalculation = transactionLogic.getBytes(transaction);
->>>>>>> upstream/1.0.0
 			expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
 
 		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
-<<<<<<< HEAD
-			var trsBytesFromLogic = transaction.getBytes(validTransaction);
-			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(validTransaction);
-
-			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
-		});
-
-		it('should return same result of getBytes using /logic/transaction and lisk-js package (with data field)', function () {
-			var trsData = _.cloneDeep(validTransactionData);
-			trsData.data = '123';
-			var trs = transaction.create(trsData);
-			var trsBytesFromLogic = transaction.getBytes(trs);
-			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(trs);
-
-			expect(trsBytesFromLogic.length).to.equal(trsBytesFromLiskJs.length);
-=======
 			var trsBytesFromLogic = transactionLogic.getBytes(transaction);
 			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(transaction);
->>>>>>> upstream/1.0.0
+
 			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
 		});
 
 		it('should skip signature, second signature for getting bytes', function () {
-<<<<<<< HEAD
-			var trsBytes = transaction.getBytes(validTransaction, true);
-
-=======
 			var trsBytes = transactionLogic.getBytes(transaction, true);
->>>>>>> upstream/1.0.0
+
 			expect(trsBytes.length).to.equal(53);
 		});
 	});
@@ -426,25 +320,11 @@ describe('transaction', function () {
 		});
 
 		it('should return false when sender not provided', function () {
-<<<<<<< HEAD
-			var trs = validTransaction;
-
-			expect(transaction.ready(trs)).to.equal(false);
+			expect(transactionLogic.ready(transaction)).to.equal(false);
 		});
 
 		it('should return true for valid trs and sender', function () {
-			var trs = validTransaction;
-
-			expect(transaction.ready(trs, validSender)).to.equal(true);
-=======
-			var trs = transaction;
-			expect(transactionLogic.ready(trs)).to.equal(false);
-		});
-
-		it('should return true for valid trs and sender', function () {
-			var trs = transaction;
-			expect(transactionLogic.ready(trs, sender)).to.equal(true);
->>>>>>> upstream/1.0.0
+			expect(transactionLogic.ready(transaction, sender)).to.equal(true);
 		});
 	});
 
@@ -478,14 +358,9 @@ describe('transaction', function () {
 		});
 
 		it('should not return error when trs is not confirmed', function (done) {
-<<<<<<< HEAD
-			var trs = transaction.create(validTransactionData);
-
-			transaction.checkConfirmed(trs, function (err) {
-=======
 			var trs = node.lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret);
+
 			transactionLogic.checkConfirmed(trs, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.not.exist;
 				done();
 			});
@@ -495,12 +370,8 @@ describe('transaction', function () {
 			var dummyConfirmedTrs = {
 				id: '1465651642158264047'
 			};
-<<<<<<< HEAD
 
-			transaction.checkConfirmed(dummyConfirmedTrs, function (err) {
-=======
 			transactionLogic.checkConfirmed(dummyConfirmedTrs, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.include('Transaction is already confirmed');
 				done();
 			});
@@ -516,12 +387,8 @@ describe('transaction', function () {
 		it('should return error when sender has insufficiant balance', function () {
 			var amount =  '9850458911801509';
 			var balanceKey = 'balance';
-<<<<<<< HEAD
-			var res = transaction.checkBalance(amount, balanceKey, validTransaction, validSender);
-
-=======
 			var res = transactionLogic.checkBalance(amount, balanceKey, transaction, sender);
->>>>>>> upstream/1.0.0
+
 			expect(res.exceeded).to.equal(true);
 			expect(res.error).to.include('Account does not have enough LSK:');
 		});
@@ -529,24 +396,16 @@ describe('transaction', function () {
 		it('should be okay if insufficient balance from genesis account', function () {
 			var amount =  '999823366072900';
 			var balanceKey = 'balance';
-<<<<<<< HEAD
-			var res = transaction.checkBalance(amount, balanceKey, genesisTrs, validSender);
-
-=======
 			var res = transactionLogic.checkBalance(amount, balanceKey, genesisTrs, sender);
->>>>>>> upstream/1.0.0
+
 			expect(res.exceeded).to.equal(false);
 			expect(res.error).to.not.exist;
 		});
 
 		it('should be okay if sender has sufficient balance', function () {
 			var balanceKey = 'balance';
-<<<<<<< HEAD
-			var res = transaction.checkBalance(validTransaction.amount, balanceKey, validTransaction, validSender);
-
-=======
 			var res = transactionLogic.checkBalance(transaction.amount, balanceKey, transaction, sender);
->>>>>>> upstream/1.0.0
+
 			expect(res.exceeded).to.equal(false);
 			expect(res.error).to.not.exist;
 		});
@@ -568,12 +427,8 @@ describe('transaction', function () {
 		it('should return error if generated id is different from id supplied of trs', function (done) {
 			var trs = _.cloneDeep(transaction);
 			trs.id = 'invalid trs id';
-<<<<<<< HEAD
 
-			transaction.process(trs, validSender, function (err, res) {
-=======
 			transactionLogic.process(trs, sender, function (err, res) {
->>>>>>> upstream/1.0.0
 				expect(err).to.equal('Invalid transaction id');
 				done();
 			});
@@ -583,12 +438,8 @@ describe('transaction', function () {
 			var trs = {
 				type: 0
 			};
-<<<<<<< HEAD
 
-			transaction.process(trs, validSender, function (err, res) {
-=======
 			transactionLogic.process(trs, sender, function (err, res) {
->>>>>>> upstream/1.0.0
 				expect(err).to.equal('Failed to get transaction id');
 				done();
 			});
@@ -607,17 +458,10 @@ describe('transaction', function () {
 	describe('verify', function () {
 
 		function createAndProcess (trsData, sender, cb) {
-<<<<<<< HEAD
-			var trs = transaction.create(trsData);
-
-			transaction.process(trs, sender, function (err, __trs) {
-=======
 			var trs = node.lisk.transaction.createTransaction(trsData.recipientId, trsData.amount, trsData.secret, trsData.secondSecret);
-			transactionLogic.process(trs, sender, function (err, __trs) {
->>>>>>> upstream/1.0.0
-				expect(err).to.not.exist;
-				expect(__trs).to.be.an('object');
-				cb(__trs);
+
+			transactionLogic.process(trs, sender, function (err, trs) {
+				cb(err, trs);
 			});
 		}
 
@@ -713,14 +557,9 @@ describe('transaction', function () {
 			vs.multisignatures = [node.eAccount.publicKey];
 			trs.requesterPublicKey = validKeypair.publicKey.toString('hex');
 			delete trs.signature;
-<<<<<<< HEAD
-			trs.signature = transaction.sign(validKeypair, trs);
-
-			transaction.verify(trs, vs, {}, function (err) {
-=======
 			trs.signature = transactionLogic.sign(validKeypair, trs);
+
 			transactionLogic.verify(trs, vs, {}, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.equal('Account does not belong to multisignature group');
 				done();
 			});
@@ -729,14 +568,9 @@ describe('transaction', function () {
 		it('should return error when signature is not correct', function (done) {
 			var trs = _.cloneDeep(transaction);
 			// valid keypair is a different account
-<<<<<<< HEAD
-			trs.signature = transaction.sign(validKeypair, trs);
-
-			transaction.verify(trs, validSender, {}, function (err) {
-=======
 			trs.signature = transactionLogic.sign(validKeypair, trs);
+
 			transactionLogic.verify(trs, sender, {}, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.equal('Failed to verify signature');
 				done();
 			});
@@ -747,16 +581,10 @@ describe('transaction', function () {
 			var vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete trs.signature;
-<<<<<<< HEAD
-			trs.signatures = Array(2).fill(transaction.sign(validKeypair, trs));
-			trs.signature = transaction.sign(senderKeypair, trs);
-
-			transaction.verify(trs, vs, {}, function (err) {
-=======
 			trs.signatures = Array(2).fill(transactionLogic.sign(validKeypair, trs));
 			trs.signature = transactionLogic.sign(senderKeypair, trs);
+
 			transactionLogic.verify(trs, vs, {}, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.equal('Encountered duplicate signature in transaction');
 				done();
 			});
@@ -769,16 +597,10 @@ describe('transaction', function () {
 			trs.requesterPublicKey = validKeypair.publicKey.toString('hex');
 			delete trs.signature;
 			// using validKeypair as opposed to senderKeypair
-<<<<<<< HEAD
-			trs.signatures = [transaction.sign(validKeypair, trs)];
-			trs.signature = transaction.sign(validKeypair, trs);
-
-			transaction.verify(trs, vs, {}, function (err) {
-=======
 			trs.signatures = [transactionLogic.sign(validKeypair, trs)];
 			trs.signature = transactionLogic.sign(validKeypair, trs);
+
 			transactionLogic.verify(trs, vs, {}, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.equal('Failed to verify multisignature');
 				done();
 			});
@@ -789,16 +611,10 @@ describe('transaction', function () {
 			var vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete trs.signature;
-<<<<<<< HEAD
-			trs.signature = transaction.sign(senderKeypair, trs);
-			trs.signatures = [transaction.multisign(validKeypair, trs)];
-
-			transaction.verify(trs, vs, {}, function (err) {
-=======
 			trs.signature = transactionLogic.sign(senderKeypair, trs);
 			trs.signatures = [transactionLogic.multisign(validKeypair, trs)];
+
 			transactionLogic.verify(trs, vs, {}, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.not.exist;
 				done();
 			});
@@ -808,19 +624,12 @@ describe('transaction', function () {
 			var vs = _.cloneDeep(sender);
 			vs.secondPublicKey = validKeypair.publicKey.toString('hex');
 			vs.secondSignature = 1;
-<<<<<<< HEAD
-			var trsData = _.cloneDeep(validTransactionData);
-			trsData.sender = vs;
-			trsData.secondKeypair = validKeypair;
-
-			createAndProcess(trsData, validSender, function (trs) {
-=======
 
 			var trsData = _.cloneDeep(transactionData);
 			trsData.secret = senderPassword;
 			trsData.secondSecret = validPassword;
-			createAndProcess(trsData, vs, function (trs) {
->>>>>>> upstream/1.0.0
+
+			createAndProcess(trsData, vs, function (err, trs) {
 				trs.signSignature = '7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
 				transactionLogic.verify(trs, vs, function (err) {
 					expect(err).to.equal('Failed to verify second signature');
@@ -830,21 +639,6 @@ describe('transaction', function () {
 		});
 		
 		it('should be okay for valid second signature', function (done) {
-<<<<<<< HEAD
-			var sender = _.cloneDeep(validSender);
-			sender.secondPublicKey = validKeypair.publicKey.toString('hex');
-			sender.secondSignature = 1;
-			var trsData = _.cloneDeep(validTransactionData);
-			trsData.sender = sender;
-			trsData.secondKeypair = validKeypair;
-
-			createAndProcess(trsData, validSender, function (trs) {
-				transaction.verify(trs, validSender, {}, function (err) {
-					transaction.verify(trs, sender, function (err) {
-						expect(err).to.not.exist;
-						done();
-					});
-=======
 			var vs = _.cloneDeep(sender);
 			vs.secondPublicKey = validKeypair.publicKey.toString('hex');
 			vs.secondSignature = 1;
@@ -852,11 +646,11 @@ describe('transaction', function () {
 			var trsData = _.cloneDeep(transactionData);
 			trsData.secret = senderPassword;
 			trsData.secondSecret = validPassword;
-			createAndProcess(trsData, vs, function (trs) {
+
+			createAndProcess(trsData, vs, function (err, trs) {
 				transactionLogic.verify(trs, vs, {}, function (err) {
 					expect(err).to.not.exist;
 					done();
->>>>>>> upstream/1.0.0
 				});
 			});
 		});
@@ -864,25 +658,21 @@ describe('transaction', function () {
 		it('should throw return error transaction fee is incorrect', function (done) {
 			var trs = _.cloneDeep(transaction);
 			trs.fee = -100;
-<<<<<<< HEAD
 
-			transaction.verify(trs, validSender, {}, function (err) {
-=======
 			transactionLogic.verify(trs, sender, {}, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.include('Invalid transaction fee');
 				done();
 			});
 		});
 
 		it('should verify transaction with correct fee (with data field)', function (done) {
-			var trs = _.cloneDeep(validTransaction);
+			var trs = _.cloneDeep(transaction);
 			trs.asset = {data: '123'};
 			trs.fee += 10000000;
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
 
-			transaction.verify(trs, validSender, {}, function (err) {
+			transaction.verify(trs, sender, {}, function (err) {
 				expect(err).to.not.exist;
 				done();
 			});
@@ -898,14 +688,9 @@ describe('transaction', function () {
 		it('should return error when transaction amount is invalid', function (done) {
 			var trsData = _.cloneDeep(transactionData);
 			trsData.amount = node.constants.totalAmount + 10;
-<<<<<<< HEAD
 
-			createAndProcess(trsData, validSender, function (trs) {
-				transaction.verify(trs, validSender, {}, function (err) {
-=======
-			createAndProcess(trsData, sender, function (trs) {
+			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
->>>>>>> upstream/1.0.0
 					expect(err).to.include('Invalid transaction amount');
 					done();
 				});
@@ -915,14 +700,9 @@ describe('transaction', function () {
 		it('should return error when account balance is less than transaction amount', function (done) {
 			var trsData = _.cloneDeep(transactionData);
 			trsData.amount = node.constants.totalAmount;
-<<<<<<< HEAD
 
-			createAndProcess(trsData, validSender, function (trs) {
-				transaction.verify(trs, validSender, {}, function (err) {
-=======
-			createAndProcess(trsData, sender, function (trs) {
+			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
->>>>>>> upstream/1.0.0
 					expect(err).to.include('Account does not have enough LSK:');
 					done();
 				});
@@ -933,14 +713,10 @@ describe('transaction', function () {
 			var trs = _.cloneDeep(transaction);
 			trs.timestamp = slots.getTime() + 100;
 			delete trs.signature;
-<<<<<<< HEAD
-			trs.signature = transaction.sign(senderKeypair, trs);
 
-			transaction.verify(trs, validSender, {}, function (err) {
-=======
 			trs.signature = transactionLogic.sign(senderKeypair, trs);
+
 			transactionLogic.verify(trs, sender, {}, function (err) {
->>>>>>> upstream/1.0.0
 				expect(err).to.include('Invalid transaction timestamp');
 				done();
 			});
@@ -968,38 +744,20 @@ describe('transaction', function () {
 			var trs = _.cloneDeep(transaction);
 			// change trs value
 			trs.amount = 1001;
-<<<<<<< HEAD
 
-			expect(transaction.verifySignature(trs, validSender.publicKey, trs.signature)).to.equal(false);
-		});
-
-		it('should return false if signature not provided', function () {
-			var trs = validTransaction;
-
-			expect(transaction.verifySignature(trs, validSender.publicKey, null)).to.equal(false);
-		});
-
-		it('should return valid signature for correct trs', function () {
-			var trs = validTransaction;
-
-			expect(transaction.verifySignature(trs, validSender.publicKey, trs.signature)).to.equal(true);
-=======
 			expect(transactionLogic.verifySignature(trs, sender.publicKey, trs.signature)).to.equal(false);
 		});
 
 		it('should return false if signature not provided', function () {
-			var trs = transaction;
-			expect(transactionLogic.verifySignature(trs, sender.publicKey, null)).to.equal(false);
+			expect(transactionLogic.verifySignature(transaction, sender.publicKey, null)).to.equal(false);
 		});
 
 		it('should return valid signature for correct trs', function () {
-			var trs = transaction;
-			expect(transactionLogic.verifySignature(trs, sender.publicKey, trs.signature)).to.equal(true);
->>>>>>> upstream/1.0.0
+			expect(transactionLogic.verifySignature(transaction, sender.publicKey, transaction.signature)).to.equal(true);
 		});
 
 		it('should throw if public key is invalid', function () {
-			var trs = transaction;
+			var trs = _.cloneDeep(transaction);
 			var invalidPublicKey = '123123123';
 
 			expect(function () {
@@ -1015,14 +773,9 @@ describe('transaction', function () {
 		});
 
 		it('should verify the second signature correctly', function () {
-<<<<<<< HEAD
-			var signature = transaction.sign(validKeypair, validTransaction);
-
-			expect(transaction.verifySecondSignature(validTransaction, validKeypair.publicKey.toString('hex'), signature)).to.equal(true);
-=======
 			var signature = transactionLogic.sign(validKeypair, transaction);
+
 			expect(transactionLogic.verifySecondSignature(transaction, validKeypair.publicKey.toString('hex'), signature)).to.equal(true);
->>>>>>> upstream/1.0.0
 		});
 	});
 
@@ -1035,12 +788,8 @@ describe('transaction', function () {
 		it('should return when sender public is different', function () {
 			var trsBytes = transactionLogic.getBytes(transaction);
 			var invalidPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9';
-<<<<<<< HEAD
 
-			expect(transaction.verifyBytes(trsBytes, invalidPublicKey, validTransaction.signature)).to.equal(false);
-=======
 			expect(transactionLogic.verifyBytes(trsBytes, invalidPublicKey, transaction.signature)).to.equal(false);
->>>>>>> upstream/1.0.0
 		});
 
 		it('should throw when publickey is not in the right format', function () {
@@ -1053,14 +802,9 @@ describe('transaction', function () {
 		});
 
 		it('should be okay for valid bytes', function () {
-<<<<<<< HEAD
-			var trsBytes = transaction.getBytes(validTransaction, true, true);
-			var res = transaction.verifyBytes(trsBytes, validTransaction.senderPublicKey, validTransaction.signature);
-
-=======
 			var trsBytes = transactionLogic.getBytes(transaction, true, true);
 			var res = transactionLogic.verifyBytes(trsBytes, transaction.senderPublicKey, transaction.signature);
->>>>>>> upstream/1.0.0
+
 			expect(res).to.equal(true);
 		});
 	});
@@ -1080,14 +824,7 @@ describe('transaction', function () {
 		});
 
 		it('should be okay with valid params', function (done) {
-<<<<<<< HEAD
-			var trs = validUnconfirmedTrs;
-
-			transaction.apply(trs, dummyBlock, validSender, done);
-=======
-			var trs = unconfirmedTrs;
-			transactionLogic.apply(trs, dummyBlock, sender, done);
->>>>>>> upstream/1.0.0
+			transactionLogic.apply(unconfirmedTrs, dummyBlock, sender, done);
 		});
 
 		it('should return error on if balance is low', function (done) {
@@ -1105,14 +842,9 @@ describe('transaction', function () {
 				var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
-<<<<<<< HEAD
-				transaction.apply(validTransaction, dummyBlock, validSender, function (err) {
-					accountModule.getAccount({publicKey: validTransaction.senderPublicKey}, function (err, accountAfter) {
-=======
 				transactionLogic.apply(transaction, dummyBlock, sender, function (err) {
 					accountModule.getAccount({publicKey: transaction.senderPublicKey}, function (err, accountAfter) {
 						expect(err).to.not.exist;
->>>>>>> upstream/1.0.0
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 
 						expect(err).to.not.exist;
@@ -1139,7 +871,6 @@ describe('transaction', function () {
 		});
 
 		it('should not update sender balance when transaction is invalid', function (done) {
-
 			var trs = _.cloneDeep(transaction);
 			var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 			delete trs.recipientId;
@@ -1249,26 +980,22 @@ describe('transaction', function () {
 			var trs = _.cloneDeep(transaction);
 			var vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+
 			delete trs.signature;
-<<<<<<< HEAD
-			trs.signature = transaction.sign(senderKeypair, trs);
-			trs.signatures = [transaction.multisign(validKeypair, trs)];
-			var savePromise = transaction.dbSave(trs);
-=======
 			trs.signature = transactionLogic.sign(senderKeypair, trs);
 			trs.signatures = [transactionLogic.multisign(validKeypair, trs)];
+
 			var savePromise = transactionLogic.dbSave(trs);
-			expect(savePromise).to.be.an('Array');
-			expect(savePromise).to.have.length(1);
->>>>>>> upstream/1.0.0
 			var trsValues = savePromise[0].values;
 
+			expect(savePromise).to.be.an('Array');
+			expect(savePromise).to.have.length(1);
 			expect(savePromise).to.be.an('Array');
 			expect(trsValues).to.have.property('signatures').which.is.equal(trs.signatures.join(','));
 		});
 
 		it('should return response for valid parameters with data field', function () {
-			var trs = _.cloneDeep(validTransaction);
+			var trs = _.cloneDeep(transaction);
 			trs.asset = {data : '123'};
 			var savePromise = transaction.dbSave(trs);
 
@@ -1308,6 +1035,7 @@ describe('transaction', function () {
 	});
 
 	describe('afterSave', function () {
+
 		it('should throw an error with no param', function () {
 			expect(transactionLogic.afterSave).to.throw();
 		});
@@ -1318,6 +1046,7 @@ describe('transaction', function () {
 	});
 
 	describe('objectNormalize', function () {
+
 		it('should throw an error with no param', function () {
 			expect(transactionLogic.objectNormalize).to.throw();
 		});
@@ -1325,12 +1054,8 @@ describe('transaction', function () {
 		it('should remove keys with null or undefined attribute', function () {
 			var trs = _.cloneDeep(transaction);
 			trs.amount = null;
-<<<<<<< HEAD
 
-			expect(_.keys(transaction.objectNormalize(trs))).to.not.include('amount');
-=======
 			expect(_.keys(transactionLogic.objectNormalize(trs))).to.not.include('amount');
->>>>>>> upstream/1.0.0
 		});
 
 		it('should not remove any keys with valid entries', function () {
@@ -1338,7 +1063,7 @@ describe('transaction', function () {
 		});
 
 		it('should not remove data field after normalization', function () {
-			var trs = _.cloneDeep(validTransaction);
+			var trs = _.cloneDeep(transaction);
 			trs.asset= {
 				data: '123'
 			};
@@ -1365,7 +1090,7 @@ describe('transaction', function () {
 		});
 
 		it('should return transaction object with data field', function () {
-			var rawTrs = _.cloneDeep(rawValidTransaction);
+			var rawTrs = _.cloneDeep(rawTransaction);
 			var trs = transaction.dbRead(rawTrs);
 
 			expect(trs).to.be.an('object');
@@ -1375,18 +1100,14 @@ describe('transaction', function () {
 		it('should return null if id field is not present', function () {
 			var rawTrs = _.cloneDeep(rawTransaction);
 			delete rawTrs.t_id;
-<<<<<<< HEAD
-			var trs = transaction.dbRead(rawTrs);
 
-=======
 			var trs = transactionLogic.dbRead(rawTrs);
->>>>>>> upstream/1.0.0
+
 			expect(trs).to.be.a('null');
 		});
 
 		it('should return transaction object with correct fields', function () {
-			var rawTrs = _.cloneDeep(rawTransaction);
-			var trs = transactionLogic.dbRead(rawTrs);
+			var trs = transactionLogic.dbRead(rawTransaction);
 			var expectedKeys = [
 				'id',
 				'height',
@@ -1409,7 +1130,7 @@ describe('transaction', function () {
 
 			expect(trs).to.be.an('object');
 			expect(trs).to.have.keys(expectedKeys);
-			expect(trs.asset).to.have.property('data').which.is.equal(rawValidTransaction.tf_data);
+			expect(trs.asset).to.have.property('data').which.is.equal(rawTransaction.tf_data);
 		});
 	});
 });
