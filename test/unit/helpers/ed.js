@@ -26,11 +26,11 @@ describe('ed', function () {
 			expect(keys).to.have.a.property('publicKey');
 		});
 
-		it('publicKey should have be a Buffer type', function () {
+		it('should create a publicKey as a Buffer type', function () {
 			expect(Buffer.isBuffer(keys.publicKey)).to.be.ok;
 		});
 
-		it('privateKey should have be a Buffer type', function () {
+		it('should create a privateKey should have be a Buffer type', function () {
 			expect(Buffer.isBuffer(keys.privateKey)).to.be.ok;
 		});
 
@@ -51,6 +51,11 @@ describe('ed', function () {
 
 		it('should create signature as Buffer from data as Buffer and privateKey', function () {
 			var signature = ed.sign(Buffer.from(JSON.stringify(messageToSign)), keys.privateKey);
+			expect(Buffer.isBuffer(signature)).to.be.ok;
+		});
+
+		it('should create signature as Buffer from data as Buffer and a privateKey after Buffer.from function applied on it', function () {
+			var signature = ed.sign(Buffer.from(JSON.stringify(messageToSign)),  Buffer.from(keys.privateKey, 'hex'));
 			expect(Buffer.isBuffer(signature)).to.be.ok;
 		});
 

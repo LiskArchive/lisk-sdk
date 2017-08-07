@@ -193,7 +193,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 };
 
 var remoteAction = function () {
-	throw new Error('On slave function invoked on the master process');
+	throw new Error('Function invoked on a master instead of slave process');
 };
 
 var slaveRPCStub = {

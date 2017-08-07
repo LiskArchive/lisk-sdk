@@ -343,7 +343,7 @@ describe('forging', function () {
 		}, checkNetworkStatusInterval);
 	});
 
-	it('network should have height > 1 after 30 seconds', function (done) {
+	it('network should have network height > 1 after 30 seconds', function (done) {
 		getNetworkStatus(function (err, res) {
 			expect(err).to.be.null;
 			expect(res.height).to.be.above(1);
@@ -352,7 +352,7 @@ describe('forging', function () {
 		});
 	});
 
-	it('have different peers heights propagated correctly on peers lists', function (done) {
+	it('should have different peers heights propagated correctly on peers lists', function (done) {
 		Promise.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
