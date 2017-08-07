@@ -173,7 +173,7 @@ describe('peers', function () {
 			removeAll(done);
 		});
 
-		it('should list empty peers list when no peers were insterted before', function (done) {
+		it('should list empty peers list when no peers were inserted before', function (done) {
 			peers.list({}, function (err, __peers) {
 				expect(__peers).to.be.an('array').and.to.have.lengthOf(0);
 				done();
