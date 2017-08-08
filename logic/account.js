@@ -409,7 +409,6 @@ function Account (db, schema, logger, cb) {
 /**
  * Creates memory tables related to accounts:
  * - mem_accounts
- * - mem_round
  * - mem_accounts2delegates
  * - mem_accounts2u_delegates
  * - mem_accounts2multisignatures
@@ -430,7 +429,6 @@ Account.prototype.createTables = function (cb) {
 
 /**
  * Deletes the contents of these tables:
- * - mem_round
  * - mem_accounts2delegates
  * - mem_accounts2u_delegates
  * - mem_accounts2multisignatures
@@ -442,7 +440,6 @@ Account.prototype.removeTables = function (cb) {
 	var sqles = [], sql;
 
 	[this.table,
-		'mem_round',
 		'mem_accounts2delegates',
 		'mem_accounts2u_delegates',
 		'mem_accounts2multisignatures',
@@ -645,15 +642,13 @@ Account.prototype.set = function (address, fields, cb) {
 
 /**
  * Updates account from mem_account with diff data belonging to an editable field.
- * Inserts into mem_round "address", "amount", "delegate", "blockId", "round"
- * based on field balance or delegates.
  * @param {address} address
  * @param {Object} diff - Must contains only mem_account editable fields.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
 Account.prototype.merge = function (address, diff, cb) {
-	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
+	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {};
 
 	// Verify public key
 	this.verifyPublicKey(diff.publicKey);
@@ -677,35 +672,13 @@ Account.prototype.merge = function (address, diff, cb) {
 					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
 						update.$inc[value] = Math.floor(trueValue);
-						if (value === 'balance') {
-							round.push({
-								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
-								values: {
-									address: address,
-									amount: trueValue,
-									blockId: diff.blockId,
-									round: diff.round
-								}
-							});
-						}
 					} else if (trueValue < 0) {
 						update.$dec = update.$dec || {};
 						update.$dec[value] = Math.floor(Math.abs(trueValue));
 						// If decrementing u_balance on account
 						if (update.$dec.u_balance) {
-						// Remove virginity and ensure marked columns become immutable
+							// Remove virginity and ensure marked columns become immutable
 							update.virgin = 0;
-						}
-						if (value === 'balance') {
-							round.push({
-								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
-								values: {
-									address: address,
-									amount: trueValue,
-									blockId: diff.blockId,
-									round: diff.round
-								}
-							});
 						}
 					}
 					break;
@@ -735,47 +708,14 @@ Account.prototype.merge = function (address, diff, cb) {
 								val = trueValue[i].slice(1);
 								remove[value] = remove[value] || [];
 								remove[value].push(val);
-								if (value === 'delegates') {
-									round.push({
-										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (-balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-										values: {
-											address: address,
-											delegate: val,
-											blockId: diff.blockId,
-											round: diff.round
-										}
-									});
-								}
 							} else if (math === '+') {
 								val = trueValue[i].slice(1);
 								insert[value] = insert[value] || [];
 								insert[value].push(val);
-								if (value === 'delegates') {
-									round.push({
-										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-										values: {
-											address: address,
-											delegate: val,
-											blockId: diff.blockId,
-											round: diff.round
-										}
-									});
-								}
 							} else {
 								val = trueValue[i];
 								insert[value] = insert[value] || [];
 								insert[value].push(val);
-								if (value === 'delegates') {
-									round.push({
-										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-										values: {
-											address: address,
-											delegate: val,
-											blockId: diff.blockId,
-											round: diff.round
-										}
-									});
-								}
 							}
 						}
 					}
@@ -865,7 +805,7 @@ Account.prototype.merge = function (address, diff, cb) {
 		}
 	}
 
-	var queries = sqles.concat(round).map(function (sql) {
+	var queries = sqles.map(function (sql) {
 		return pgp.as.format(sql.query, sql.values);
 	}).join('');
 

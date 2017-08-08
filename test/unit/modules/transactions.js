@@ -53,13 +53,13 @@ describe('transactions', function () {
 	var dappAccount = node.randomAccount();
 
 
-	function attachAllAssets (transactionLogic, delegatesModule, roundsModule, accountsModule) {
+	function attachAllAssets (transactionLogic, delegatesModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
-		sendLogic.bind(accountsModule, /* rounds */ null);
+		sendLogic.bind(accountsModule);
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
 
 		var voteLogic = transactionLogic.attachAssetType(transactionTypes.VOTE, new VoteLogic(modulesLoader.logger, modulesLoader.scope.schema));
-		voteLogic.bind(delegatesModule, /* rounds */ null);
+		voteLogic.bind(delegatesModule);
 		expect(voteLogic).to.be.an.instanceof(VoteLogic);
 
 		var delegateLogic = transactionLogic.attachAssetType(transactionTypes.DELEGATE, new DelegateLogic(modulesLoader.scope.schema));
@@ -71,18 +71,18 @@ describe('transactions', function () {
 		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
 		var multiLogic = transactionLogic.attachAssetType(transactionTypes.MULTI, new MultisignatureLogic(modulesLoader.scope.schema, modulesLoader.scope.network, transactionLogic, modulesLoader.logger));
-		multiLogic.bind(/* rounds */ null, delegatesModule);
+		multiLogic.bind(accountsModule);
 		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
 		var dappLogic = transactionLogic.attachAssetType(transactionTypes.DAPP, new DappLogic(modulesLoader.db, modulesLoader.logger, modulesLoader.scope.schema, modulesLoader.scope.network));
 		expect(dappLogic).to.be.an.instanceof(DappLogic);
 
 		var inTransferLogic = transactionLogic.attachAssetType(transactionTypes.IN_TRANSFER, new InTransferLogic(modulesLoader.db, modulesLoader.scope.schema));
-		inTransferLogic.bind(accountsModule, /* rounds */ null, /* sharedApi */ null);
+		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
 		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
 
 		var outTransfer = transactionLogic.attachAssetType(transactionTypes.OUT_TRANSFER, new OutTransferLogic(modulesLoader.db, modulesLoader.scope.schema, modulesLoader.logger));
-		outTransfer.bind(accountsModule, /* rounds */ null, /* sharedApi */ null);
+		outTransfer.bind(accountsModule, /* sharedApi */ null);
 		expect(outTransfer).to.be.an.instanceof(OutTransferLogic);
 		return transactionLogic;
 	}
@@ -161,7 +161,7 @@ describe('transactions', function () {
 					loader: result.loaderModule
 				});
 
-				attachAllAssets(result.transactionLogic, result.delegateModule, /*rounds*/null, result.accountsModule);
+				attachAllAssets(result.transactionLogic, result.delegateModule, result.accountsModule);
 				done();
 			});
 		});

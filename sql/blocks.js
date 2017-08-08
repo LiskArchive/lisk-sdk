@@ -30,19 +30,11 @@ var BlocksSql = {
       'WITH',
       'delegate AS (SELECT',
         '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE(${generatorPublicKey}, \'hex\') LIMIT 1),',
-      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards FROM blocks WHERE "generatorPublicKey" = DECODE(${generatorPublicKey}, \'hex\')',
-          (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
-          (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
-      '),',
-      'fees AS (SELECT SUM(fees) AS fees FROM rounds_fees WHERE "publicKey" = DECODE(${generatorPublicKey}, \'hex\')',
+      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE pk = DECODE(${generatorPublicKey}, \'hex\')',
           (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
           (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       ')',
-      'SELECT',
-        '(SELECT * FROM delegate) AS delegate,',
-        '(SELECT count FROM rewards) AS count,',
-        '(SELECT fees FROM fees) AS fees,',
-        '(SELECT rewards FROM rewards) AS rewards'
+      'SELECT (SELECT * FROM delegate) AS delegate, * FROM rewards'
     ].filter(Boolean).join(' ');
   },
 

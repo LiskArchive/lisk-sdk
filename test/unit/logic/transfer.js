@@ -14,7 +14,6 @@ var transactionTypes = require('../../../helpers/transactionTypes');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var TransactionLogic = require('../../../logic/transaction.js');
 var Transfer = require('../../../logic/transfer.js');
-var Rounds = require('../../../modules/rounds.js');
 var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 var DelegateModule = require('../../../modules/delegates.js');
@@ -101,15 +100,11 @@ describe('transfer', function () {
 
 	before(function (done) {
 		async.auto({
-			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
-			},
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb, {});
 			},
-			transactionLogic: ['rounds', 'accountLogic', function (result, cb) {
+			transactionLogic: ['accountLogic', function (result, cb) {
 				modulesLoader.initLogicWithDb(TransactionLogic, function (err, __transaction) {
-					__transaction.bindModules(result.rounds);
 					cb(err, __transaction);
 				}, {
 					ed: require('../../../helpers/ed'),
@@ -128,10 +123,9 @@ describe('transfer', function () {
 			expect(err).to.not.exist;
 			transfer = new Transfer();
 			transferBindings = {
-				account: result.accountModule,
-				rounds: result.rounds
+				account: result.accountModule
 			};
-			transfer.bind(result.accountModule, result.rounds);
+			transfer.bind(result.accountModule);
 			transaction = result.transactionLogic;
 			transaction.attachAssetType(transactionTypes.SEND, transfer);
 			accountModule = result.accountModule;
@@ -143,12 +137,12 @@ describe('transfer', function () {
 	describe('bind', function () {
 		it('should be okay with correct params', function () {
 			expect(function () {
-				transfer.bind(transferBindings.account, transferBindings.rounds);
+				transfer.bind(transferBindings.account);
 			}).to.not.throw();
 		});
 
 		after(function () {
-			transfer.bind(transferBindings.account, transferBindings.rounds);
+			transfer.bind(transferBindings.account);
 		});
 	});
 

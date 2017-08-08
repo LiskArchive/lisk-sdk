@@ -198,13 +198,11 @@ DApps.prototype.onBind = function (scope) {
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
 		scope.accounts,
-		scope.rounds,
 		shared
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
 		scope.accounts,
-		scope.rounds,
 		scope.dapps
 	);
 };

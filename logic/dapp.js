@@ -241,6 +241,9 @@ DApp.prototype.getBytes = function (trs) {
  * @return {setImmediateCallback} cb
  */
 DApp.prototype.apply = function (trs, block, sender, cb) {
+	delete __private.unconfirmedNames[trs.asset.dapp.name];
+	delete __private.unconfirmedLinks[trs.asset.dapp.link];
+	
 	return setImmediate(cb);
 };
 

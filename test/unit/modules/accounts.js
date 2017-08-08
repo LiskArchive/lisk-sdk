@@ -13,7 +13,6 @@ var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
 var ws = require('../../common/wsCommunication.js');
 
-var Rounds = require('../../../modules/rounds.js');
 var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 var TransactionLogic = require('../../../logic/transaction.js');
@@ -62,9 +61,6 @@ describe('account', function () {
 
 	before(function (done) {
 		async.auto({
-			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope,cb);
-			},
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
 			},

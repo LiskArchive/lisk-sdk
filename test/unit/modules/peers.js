@@ -8,6 +8,7 @@ var _  = require('lodash');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../config.json');
+var Peer = require('../../../logic/peer');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
@@ -23,7 +24,7 @@ describe('peers', function () {
 	var peers, modules, NONCE;
 
 	function getPeers (cb) {
-		peers.list({}, function (err, __peers) {
+		peers.list({normalized: false}, function (err, __peers) {
 			expect(err).to.not.exist;
 			expect(__peers).to.be.an('array');
 			return cb(err, __peers);
@@ -162,6 +163,52 @@ describe('peers', function () {
 					expect(peersAddresses.indexOf(secondPeer.ip + ':' + secondPeer.port) !== -1).to.be.ok;
 					done();
 				});
+			});
+		});
+	});
+
+	describe('list', function () {
+
+		beforeEach(function (done) {
+			removeAll(done);
+		});
+
+		it('should list empty peers list when no peers were inserted before', function (done) {
+			peers.list({}, function (err, __peers) {
+				expect(__peers).to.be.an('array').and.to.have.lengthOf(0);
+				done();
+			});
+		});
+
+		it('should list the inserted peer after insert', function (done) {
+			peers.update(randomPeer);
+			peers.list({}, function (err, __peers) {
+				expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
+				done();
+			});
+		});
+
+		it('should list the inserted peer as Peer instance with normalized parameter set to false', function (done) {
+			peers.update(randomPeer);
+			peers.list({normalized: false}, function (err, __peers) {
+				expect(__peers[0]).to.be.an.instanceof(Peer);
+				done();
+			});
+		});
+
+		it('should list the inserted peer as object with normalized parameter set to true', function (done) {
+			peers.update(randomPeer);
+			peers.list({normalized: true}, function (err, __peers) {
+				expect(__peers[0]).to.be.an.instanceof(Object);
+				done();
+			});
+		});
+
+		it('should list the inserted peer as object without set normalized parameter', function (done) {
+			peers.update(randomPeer);
+			peers.list({}, function (err, __peers) {
+				expect(__peers[0]).to.be.an.instanceof(Object);
+				done();
 			});
 		});
 	});

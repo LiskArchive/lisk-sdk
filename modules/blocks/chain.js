@@ -58,6 +58,7 @@ Chain.prototype.saveGenesisBlock = function (cb) {
 		if (!blockId) {
 			// If there is no block with genesis ID - save to database
 			// WARNING: DB_WRITE
+			// FIXME: This will fail if we already have genesis block in database, but with different ID
 			self.saveBlock(library.genesisblock.block, function (err) {
 				return setImmediate(cb, err);
 			});
@@ -273,9 +274,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 		} else {
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
-			// Tick round
-			// WARNING: DB_WRITE
-			modules.rounds.tick(block, cb);
+			return cb();
 		}
 	});
 };
@@ -456,13 +455,11 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
 
-					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(block, seriesCb);
+					return seriesCb();
 				});
 			} else {
-
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(block, seriesCb);
+				library.bus.message('newBlock', block, broadcast);
+				return seriesCb();
 			}
 		},
 		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
@@ -553,28 +550,17 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					return process.exit(0);
 				}
 
-				// Perform backward tick on rounds
+				// Delete last block from blockchain
 				// WARNING: DB_WRITE
-				modules.rounds.backwardTick(oldLastBlock, previousBlock, function (err) {
+				self.deleteBlock(oldLastBlock.id, function (err) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
-						library.logger.error('Failed to perform backwards tick', err);
+						library.logger.error('Failed to delete block', err);
 
 						return process.exit(0);
 					}
 
-					// Delete last block from blockchain
-					// WARNING: Db_WRITE
-					self.deleteBlock(oldLastBlock.id, function (err) {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to delete block', err);
-
-							return process.exit(0);
-						}
-
-						return setImmediate(cb, null, previousBlock);
-					});
+					return setImmediate(cb, null, previousBlock);
 				});
 			});
 		});
@@ -638,7 +624,6 @@ Chain.prototype.recoverChain = function (cb) {
  * Handle modules initialization:
  * - accounts
  * - blocks
- * - rounds
  * - transactions
  * @param {modules} scope Exposed modules
  */
@@ -647,7 +632,6 @@ Chain.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
 		blocks: scope.blocks,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 	};
 

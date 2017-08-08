@@ -1,7 +1,8 @@
 require('./helpers/RPC');
-require('./helpers/RoundChanges');
 require('./helpers/request-limiter.js');
 require('./helpers/wsApi');
+require('./helpers/jobs-queue.js');
+require('./helpers/pg-notify.js');
 
 require('./logic/blockReward.js');
 require('./logic/peer');
@@ -14,7 +15,7 @@ require('./modules/blocks.js');
 require('./modules/cache.js');
 require('./modules/loader.js');
 require('./modules/peers.js');
-require('./modules/rounds.js');
 
 require('./sql/blockRewards.js');
-
+require('./sql/delegatesList.js');
+require('./sql/rounds.js');
