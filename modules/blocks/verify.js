@@ -7,6 +7,9 @@ var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
 var exceptions = require('../../helpers/exceptions.js');
+var BSON = require('bson');
+
+var bson = new BSON();
 
 var modules, library, self, __private = {};
 
@@ -88,8 +91,76 @@ __private.checkTransaction = function (block, transaction, cb) {
 };
 
 /**
+ * Adds default properties to block.
+ * @private
+ * @param {Object} block Block object reduced
+ * @return {Object} Block object completed
+ */
+__private.addBlockProperties = function (block) {
+	if (block.version === undefined) {
+		block.version = 0;
+	}
+	if (block.numberOfTransactions === undefined) {
+		if (block.transactions === undefined) {
+			block.numberOfTransactions = 0;
+		} else {
+			block.numberOfTransactions = block.transactions.length;
+		}
+	}
+	if (block.totalAmount === undefined) {
+		block.totalAmount = 0;
+	}
+	if (block.totalFee === undefined) {
+		block.totalFee = 0;
+	}
+	if (block.payloadLength === undefined) {
+		block.payloadLength = 0;
+	}
+	if (block.reward === undefined) {
+		block.reward = 0;
+	}
+	if (block.transactions === undefined) {
+		block.transactions = [];
+	}
+	return block;
+};
+
+/**
+ * Deletes default properties from block.
+ * @private
+ * @param {Object} block Block object completed
+ * @return {Object} Block object reduced
+ */
+__private.deleteBlockProperties = function (block) {
+	var reducedBlock = JSON.parse(JSON.stringify(block));
+	if (reducedBlock.version === 0) {
+		delete reducedBlock.version;
+	}
+	// verifyBlock ensures numberOfTransactions is transactions.length
+	if (typeof(reducedBlock.numberOfTransactions) === 'number') {
+		delete reducedBlock.numberOfTransactions;
+	}
+	if (reducedBlock.totalAmount === 0) {
+		delete reducedBlock.totalAmount;
+	}
+	if (reducedBlock.totalFee === 0) {
+		delete reducedBlock.totalFee;
+	}
+	if (reducedBlock.payloadLength === 0) {
+		delete reducedBlock.payloadLength;
+	}
+	if (reducedBlock.reward === 0) {
+		delete reducedBlock.reward;
+	}
+	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
+		delete reducedBlock.transactions;
+	}
+	delete reducedBlock.id;
+	return reducedBlock;
+};
+
+/**
  * Verify block and return all possible errors related to block
- * 
  * @public
  * @method verifyBlock
  * @param  {Object}  block Full block
@@ -266,11 +337,37 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 	}
 
 	async.series({
+		addBlockProperties: function (seriesCb) {
+			if (!broadcast) {
+				try {
+					// set default properties
+					block = __private.addBlockProperties(block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+			}
+
+			return setImmediate(seriesCb);
+		},
 		normalizeBlock: function (seriesCb) {
 			try {
 				block = library.logic.block.objectNormalize(block);
 			} catch (err) {
 				return setImmediate(seriesCb, err);
+			}
+
+			return setImmediate(seriesCb);
+		},
+		deleteBlockProperties: function (seriesCb) {
+			if (broadcast) {
+				try {
+					// delete default properties
+					var blockReduced = __private.deleteBlockProperties(block);
+					var serializedBlockReduced = bson.serialize(blockReduced);
+					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, broadcast);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
 			}
 
 			return setImmediate(seriesCb);
@@ -328,7 +425,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			// * Block and transactions have valid values (signatures, block slots, etc...)
 			// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
 			// We thus update the database with the transactions values, save the block and tick it.
-			modules.blocks.chain.applyBlock(block, broadcast, cb, saveBlock);
+			modules.blocks.chain.applyBlock(block, saveBlock, cb);
 		}
 	});
 };
