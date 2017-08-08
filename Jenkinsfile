@@ -57,6 +57,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					initBuild()
 				}
 			},
+            "Build Node-05" : {
+				node('node-05'){
+					initBuild()
+				}
+			},
 			"Initialize Master Workspace" : {
 				node('master-01'){
 					sh '''
@@ -95,6 +100,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-04'){
 					buildDependency()
 				}
+			},
+            "Build Dependencies Node-05" : {
+				node('node-05'){
+					buildDependency()
+				}
 			}
 		)
 	}
@@ -119,6 +129,13 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Start Lisk Node-04" : {
 				node('node-04'){
 					startLisk()
+				}
+			},
+            "Copy configuration files Node-05" : {
+				node('node-05'){
+                    sh '''#!/bin/bash
+				    cp test/config.json test/genesisBlock.json .
+					'''
 				}
 			}
 		)
@@ -308,8 +325,17 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			}
-		) // End Parallel
+		)
 	}
+
+    stage ('Integration Tests') {
+        node('node-05'){
+            sh '''
+            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+            npm run test-integration
+            '''
+        }
+    }
 
 	stage ('Gather Coverage') {
 		parallel(
@@ -403,6 +429,13 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-04'){
 					sh '''
 					pkill -f app.js -9
+					'''
+				}
+			},
+            "Cleanup Node-05" : {
+				node('node-04'){
+					sh '''
+					node_modules/.bin/pm2 delete all
 					'''
 				}
 			},
