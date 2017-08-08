@@ -491,7 +491,8 @@ Transport.prototype.internal = {
 	postBlock: function (query, cb) {
 		query = query || {};
 		try {
-			var block = library.logic.block.objectNormalize(query.block);
+			var block = modules.blocks.verify.addBlockProperties(query.block);
+			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
 			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 

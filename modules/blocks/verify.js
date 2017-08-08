@@ -92,11 +92,10 @@ __private.checkTransaction = function (block, transaction, cb) {
 
 /**
  * Adds default properties to block.
- * @private
  * @param {Object} block Block object reduced
  * @return {Object} Block object completed
  */
-__private.addBlockProperties = function (block) {
+Verify.prototype.addBlockProperties = function (block) {
 	if (block.version === undefined) {
 		block.version = 0;
 	}
@@ -341,7 +340,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			if (!broadcast) {
 				try {
 					// set default properties
-					block = __private.addBlockProperties(block);
+					block = self.addBlockProperties(block);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
