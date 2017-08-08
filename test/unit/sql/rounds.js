@@ -18,7 +18,7 @@ var Sequence  = require('../../../helpers/sequence.js');
 var slots     = require('../../../helpers/slots.js');
 
 describe('Rounds-related SQL triggers', function () {
-	var db, logger, library, rewiredModules = {}, modules = [];
+	var library;
 	var mem_state, delegates_state, round_blocks = [];
 	var round_transactions = [];
 	var delegatesList, keypairs;
@@ -59,7 +59,7 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	function getMemAccounts () {
-		return db.query('SELECT * FROM mem_accounts').then(function (rows) {
+		return library.db.query('SELECT * FROM mem_accounts').then(function (rows) {
 			rows = normalizeMemAccounts(rows);
 			mem_state = rows;
 			return rows;
@@ -67,32 +67,32 @@ describe('Rounds-related SQL triggers', function () {
 	}
 
 	function getDelegates (normalize) {
-		return db.query('SELECT * FROM delegates').then(function (rows) {
+		return library.db.query('SELECT * FROM delegates').then(function (rows) {
 			delegates_state = normalizeDelegates(rows);
 			return rows;
 		});
 	}
 
 	function getFullBlock(height) {
-		return db.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {height: height}).then(function (rows) {
+		return library.db.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {height: height}).then(function (rows) {
 			return rows;
 		});
 	}
 
 	function getBlocks (round) {
-		return db.query('SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} AND height > 1 ORDER BY height ASC', {round: round}).then(function (rows) {
+		return library.db.query('SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} AND height > 1 ORDER BY height ASC', {round: round}).then(function (rows) {
 			return rows;
 		});
 	}
 
 	function validateMemBalances () {
-		return db.query('SELECT * FROM validateMemBalances()').then(function (rows) {
+		return library.db.query('SELECT * FROM validateMemBalances()').then(function (rows) {
 			return rows;
 		});
 	}
 
 	function getRoundRewards (round) {
-		return db.query('SELECT ENCODE(pk, \'hex\') AS pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = ${round} GROUP BY pk', {round: round}).then(function (rows) {
+		return library.db.query('SELECT ENCODE(pk, \'hex\') AS pk, SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = ${round} GROUP BY pk', {round: round}).then(function (rows) {
 			var rewards = {};
 			_.each(rows, function (row) {
 				rewards[row.pk] = {
@@ -149,219 +149,10 @@ describe('Rounds-related SQL triggers', function () {
 	};
 
 	before(function (done) {
-		// Init dummy connection with database - valid, used for tests here
-		var options = {
-		    promiseLib: Promise
-		};
-		var pgp = require('pg-promise')(options);
-		config.db.user = config.db.user || process.env.USER;
-		db = pgp(config.db);
-
-		// Clear tables
-		db.task(function (t) {
-			return t.batch([
-				t.none('DELETE FROM blocks WHERE height > 1'),
-				t.none('DELETE FROM blocks'),
-				t.none('DELETE FROM mem_accounts')
-			]);
-		}).then(function () {
-			done();
-		}).catch(done);
-	});
-
-	before(function (done) {
-		// Force rewards start at 150-th block
-		constants.rewards.offset = 150;
-
-		logger = {
-			trace: sinon.spy(),
-			debug: sinon.spy(),
-			info:  sinon.spy(),
-			log:   sinon.spy(),
-			warn:  sinon.spy(),
-			error: sinon.spy()
-		};
-
-		var modulesInit = {
-			accounts: '../../../modules/accounts.js',
-			transactions: '../../../modules/transactions.js',
-			blocks: '../../../modules/blocks.js',
-			signatures: '../../../modules/signatures.js',
-			transport: '../../../modules/transport.js',
-			loader: '../../../modules/loader.js',
-			system: '../../../modules/system.js',
-			peers: '../../../modules/peers.js',
-			delegates: '../../../modules/delegates.js',
-			multisignatures: '../../../modules/multisignatures.js',
-			dapps: '../../../modules/dapps.js',
-			crypto: '../../../modules/crypto.js',
-			// cache: '../../../modules/cache.js'
-		};
-
-		// Init limited application layer
-		async.auto({
-			config: function (cb) {
-				cb(null, config);
-			},
-			genesisblock: function (cb) {
-				var genesisblock = require('../../../genesisBlock.json');
-				cb(null, {block: genesisblock});
-			},
-
-			schema: function (cb) {
-				var z_schema = require('../../../helpers/z_schema.js');
-				cb(null, new z_schema());
-			},
-			network: function (cb) {
-				// Init with empty function
-				cb(null, {io: {sockets: {emit: function () {}}}});
-			},
-			webSocket: ['config', 'logger', 'network', function (scope, cb) {
-				// Init with empty functions
-				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-
-				var dummySocketCluster = {on: function () {}};
-				var dummyWAMPServer = new MasterWAMPServer(dummySocketCluster, {});
-				var wsRPC = require('../../../api/ws/rpc/wsRPC.js').wsRPC;
-
-				wsRPC.setServer(dummyWAMPServer);
-				wsRPC.getServer().registerRPCEndpoints({status: function () {}});
-
-				cb();
-			}],
-			logger: function (cb) {
-				cb(null, logger);
-			},
-			dbSequence: ['logger', function (scope, cb) {
-				var sequence = new Sequence({
-					onWarning: function (current, limit) {
-						scope.logger.warn('DB queue', current);
-					}
-				});
-				cb(null, sequence);
-			}],
-			sequence: ['logger', function (scope, cb) {
-				var sequence = new Sequence({
-					onWarning: function (current, limit) {
-						scope.logger.warn('Main queue', current);
-					}
-				});
-				cb(null, sequence);
-			}],
-			balancesSequence: ['logger', function (scope, cb) {
-				var sequence = new Sequence({
-					onWarning: function (current, limit) {
-						scope.logger.warn('Balance queue', current);
-					}
-				});
-				cb(null, sequence);
-			}],
-			ed: function (cb) {
-				cb(null, require('../../../helpers/ed.js'));
-			},
-
-			bus: ['ed', function (scope, cb) {
-				var changeCase = require('change-case');
-				var bus = function () {
-					this.message = function () {
-						var args = [];
-						Array.prototype.push.apply(args, arguments);
-						var topic = args.shift();
-						var eventName = 'on' + changeCase.pascalCase(topic);
-
-						// Iterate over modules and execute event functions (on*)
-						modules.forEach(function (module) {
-							if (typeof(module[eventName]) === 'function') {
-								module[eventName].apply(module[eventName], args);
-							}
-							if (module.submodules) {
-								async.each(module.submodules, function (submodule) {
-									if (submodule && typeof(submodule[eventName]) === 'function') {
-										submodule[eventName].apply(submodule[eventName], args);
-									}
-								});
-							}
-						});
-					};
-				};
-				cb(null, new bus());
-			}],
-			db: function (cb) {
-				cb(null, db);
-			},
-			pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
-				var pg_notify = require('../../../helpers/pg-notify.js');
-				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
-			}],
-			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
-				var Transaction = require('../../../logic/transaction.js');
-				var Block = require('../../../logic/block.js');
-				var Account = require('../../../logic/account.js');
-				var Peers = require('../../../logic/peers.js');
-
-				async.auto({
-					bus: function (cb) {
-						cb(null, scope.bus);
-					},
-					db: function (cb) {
-						cb(null, scope.db);
-					},
-					ed: function (cb) {
-						cb(null, scope.ed);
-					},
-					logger: function (cb) {
-						cb(null, scope.logger);
-					},
-					schema: function (cb) {
-						cb(null, scope.schema);
-					},
-					genesisblock: function (cb) {
-						cb(null, {
-							block: scope.genesisblock.block
-						});
-					},
-					account: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'logger', function (scope, cb) {
-						new Account(scope.db, scope.schema, scope.logger, cb);
-					}],
-					transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
-						new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
-					}],
-					block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
-						new Block(scope.ed, scope.schema, scope.transaction, cb);
-					}],
-					peers: ['logger', function (scope, cb) {
-						new Peers(scope.logger, cb);
-					}]
-				}, cb);
-			}],
-			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
-				var tasks = {};
-				Object.keys(modulesInit).forEach(function (name) {
-					tasks[name] = function (cb) {
-						var Instance = rewire(modulesInit[name]);
-						rewiredModules[name] = Instance;
-						var obj = new rewiredModules[name](cb, scope);
-						modules.push(obj);
-					};
-				});
-
-				async.parallel(tasks, function (err, results) {
-					cb(err, results);
-				});
-			}],
-			ready: ['modules', 'bus', 'logic', function (scope, cb) {
-				// Fire onBind event in every module
-				scope.bus.message('bind', scope.modules);
-
-				scope.logic.peers.bindModules(scope.modules);
-				cb();
-			}]
-		}, function (err, scope) {
+		node.initApplication(function (scope) {
 			library = scope;
-			// Overwrite onBlockchainReady function to prevent automatic forging
-			library.modules.delegates.onBlockchainReady = function () {};
-			done(err);
-		});
+			done();
+		})
 	});
 
 	describe('genesisBlock', function () {
@@ -392,7 +183,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		it('should load genesis block with transactions into database (native)', function (done) {
-			db.query('SELECT * FROM full_blocks_list WHERE b_height = 1').then(function (rows) {
+			library.db.query('SELECT * FROM full_blocks_list WHERE b_height = 1').then(function (rows) {
 				genesisBlock = library.modules.blocks.utils.readDbRows(rows)[0];
 				expect(genesisBlock.id).to.equal(library.genesisblock.block.id);
 				expect(genesisBlock.transactions.length).to.equal(library.genesisblock.block.transactions.length);
@@ -424,7 +215,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		it('should populate modules.delegates.__private.delegatesList with 101 public keys (pg-notify)', function () {
-			delegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+			delegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 			expect(delegatesList.length).to.equal(101);
 			_.each(delegatesList, function (pk) {
 				// Search for that pk in genesis block
@@ -434,7 +225,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		it('modules.delegates.__private.delegatesList should be equal with one generated with Lisk-Core 0.9.3', function () {
-			delegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+			delegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 
 			// Results from Lisk-Core version 0.9.3
 			var expectedDelegatesOrder = [
@@ -604,11 +395,11 @@ describe('Rounds-related SQL triggers', function () {
 
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
-			return rewiredModules.delegates.__get__('__private.delegatesList')[(slot + offset) % slots.delegates];
+			return library.rewiredModules.delegates.__get__('__private.delegatesList')[(slot + offset) % slots.delegates];
 		}
 
 		function forge (cb) {
-			var transactionPool = rewiredModules.transactions.__get__('__private.transactionPool');
+			var transactionPool = library.rewiredModules.transactions.__get__('__private.transactionPool');
 
 			async.series([
 				transactionPool.fillPool,
@@ -735,14 +526,14 @@ describe('Rounds-related SQL triggers', function () {
 		before(function () {
 			return Promise.delay(1000).then(function () {
 				// Set delegates module as loaded to allow manual forging
-				rewiredModules.delegates.__set__('__private.loaded', true);
+				library.rewiredModules.delegates.__set__('__private.loaded', true);
 			});
 		});
 
 		it('should load all secrets of 101 delegates and set modules.delegates.__private.keypairs (native)', function (done) {
-			var loadDelegates = rewiredModules.delegates.__get__('__private.loadDelegates');
+			var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
 			loadDelegates(function (err) {
-				keypairs = rewiredModules.delegates.__get__('__private.keypairs');
+				keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
 				expect(Object.keys(keypairs).length).to.equal(config.forging.secret.length);
 				_.each(keypairs, function (keypair, pk) {
 					expect(keypair.publicKey).to.be.instanceOf(Buffer);
@@ -834,7 +625,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		it('should generate a different delegate list than one generated at the beginning of round 1', function () {
-			var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+			var tmpDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 			expect(tmpDelegatesList).to.not.deep.equal(delegatesList);
 		});
 
@@ -871,7 +662,7 @@ describe('Rounds-related SQL triggers', function () {
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', function () {
-				var newDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				var newDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 				expect(newDelegatesList).to.deep.equal(delegatesList);
 			});
 		});
@@ -925,7 +716,7 @@ describe('Rounds-related SQL triggers', function () {
 
 				return tickAndValidate(transactions)
 					.then(function () {
-						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+						var tmpDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 						expect(tmpDelegatesList).to.not.deep.equal(delegatesList);
 					});
 			});
@@ -943,7 +734,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('after deleting last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
 				return deleteLastBlockPromise().delay(20)
 					.then(function () {
-						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+						var tmpDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 						expect(tmpDelegatesList).to.deep.equal(delegatesList);
 					});
 			});
@@ -1013,17 +804,17 @@ describe('Rounds-related SQL triggers', function () {
 			});
 
 			it('delegates list should be different than one generated at the beginning of round 1', function () {
-				var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				var tmpDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 				expect(tmpDelegatesList).to.not.deep.equal(delegatesList);
 			});
 
 			it('unvoted delegate should not be on list', function () {
-				var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				var tmpDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 				expect(tmpDelegatesList).to.not.contain(last_block_forger);
 			});
 
 			it('delegate who replaced unvoted one should be on list', function () {
-				var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+				var tmpDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 				expect(tmpDelegatesList).to.contain(tmp_account.publicKey);
 			});
 
@@ -1049,7 +840,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('after deleting last block of round, delegates list should be equal to one generated at the beginning of round 1', function () {
 				return deleteLastBlockPromise().delay(20)
 					.then(function () {
-						var tmpDelegatesList = rewiredModules.delegates.__get__('__private.delegatesList');
+						var tmpDelegatesList = library.rewiredModules.delegates.__get__('__private.delegatesList');
 						expect(tmpDelegatesList).to.deep.equal(delegatesList);
 					});
 			});
