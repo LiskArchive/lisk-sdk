@@ -958,9 +958,11 @@ describe('Lisk.api()', () => {
 			(privateApi.checkReDial.call(thisLSK)).should.be.equal(true);
 		});
 
-		it('should be able to get a new node when current one is not reachable', () => liskApi({ node: externalNode, randomPeer: true }).sendRequest('blocks/getHeight', {}, (result) => {
-			(result).should.be.type('object');
-		}));
+		it('should be able to get a new node when current one is not reachable', () => {
+			return liskApi({ node: externalNode, randomPeer: true }).sendRequest('blocks/getHeight', {}, (result) => {
+				(result).should.be.type('object');
+			});
+		});
 
 		it('should recognize that now all the peers are banned for mainnet', () => {
 			const thisLSK = liskApi();
@@ -1030,20 +1032,26 @@ describe('Lisk.api()', () => {
 	});
 
 	describe('#sendRequest with promise', () => {
-		it('should be able to use sendRequest as a promise for GET', () => liskApi().sendRequest('blocks/getHeight', {}).then((result) => {
-			(result).should.be.type('object');
-			(result.success).should.be.equal(true);
-			(result.height).should.be.type('number');
-		}));
+		it('should be able to use sendRequest as a promise for GET', () => {
+			return liskApi().sendRequest('blocks/getHeight', {}).then((result) => {
+				(result).should.be.type('object');
+				(result.success).should.be.equal(true);
+				(result.height).should.be.type('number');
+			});
+		});
 
-		it('should route the request accordingly when request method is POST but GET can be used', () => liskApi().sendRequest('accounts/open', { secret: defaultSecret }).then((result) => {
-			(result).should.be.type('object');
-			(result.account).should.be.ok();
-		}));
+		it('should route the request accordingly when request method is POST but GET can be used', () => {
+			return liskApi().sendRequest('accounts/open', { secret: defaultSecret }).then((result) => {
+				(result).should.be.type('object');
+				(result.account).should.be.ok();
+			});
+		});
 
-		it('should respond with error when API call is disabled', () => liskApi().sendRequest('delegates/forging/enable', { secret: defaultSecret }).then((result) => {
-			(result.error).should.be.equal('Forging not available via offlineRequest');
-		}));
+		it('should respond with error when API call is disabled', () => {
+			return liskApi().sendRequest('delegates/forging/enable', { secret: defaultSecret }).then((result) => {
+				(result.error).should.be.equal('Forging not available via offlineRequest');
+			});
+		});
 
 		it('should be able to use sendRequest as a promise for POST', () => {
 			const options = {
@@ -1107,17 +1115,21 @@ describe('Lisk.api()', () => {
 	});
 
 	describe('#listMultisignatureTransactions', () => {
-		it('should list all current not signed multisignature transactions', () => liskApi().listMultisignatureTransactions((result) => {
-			(result).should.be.ok();
-			(result).should.be.type('object');
-		}));
+		it('should list all current not signed multisignature transactions', () => {
+			return liskApi().listMultisignatureTransactions((result) => {
+				(result).should.be.ok();
+				(result).should.be.type('object');
+			});
+		});
 	});
 
 	describe('#getMultisignatureTransaction', () => {
-		it('should get a multisignature transaction by id', () => liskApi().getMultisignatureTransaction('123', (result) => {
-			(result).should.be.ok();
-			(result).should.be.type('object');
-		}));
+		it('should get a multisignature transaction by id', () => {
+			return liskApi().getMultisignatureTransaction('123', (result) => {
+				(result).should.be.ok();
+				(result).should.be.type('object');
+			});
+		});
 	});
 
 	describe('#broadcastSignedTransaction', () => {
