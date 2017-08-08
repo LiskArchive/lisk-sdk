@@ -177,7 +177,7 @@ describe('transaction', function () {
 			var appliedLogic;
 			appliedLogic = transactionLogic.attachAssetType(transactionTypes.VOTE, new Vote());
 			expect(appliedLogic).to.be.an.instanceof(Vote);
-			appliedLogic = transaction.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
+			appliedLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
 			expect(appliedLogic).to.be.an.instanceof(Transfer);
 			appliedLogic = transactionLogic.attachAssetType(transactionTypes.DELEGATE, new Delegate());
 			expect(appliedLogic).to.be.an.instanceof(Delegate);
@@ -283,8 +283,8 @@ describe('transaction', function () {
 		});
 
 		it('should return same result when called multiple times (without data field)', function () {
-			var firstCalculation = transaction.getBytes(transaction);
-			var secondCalculation = transaction.getBytes(transaction);
+			var firstCalculation = transactionLogic.getBytes(transaction);
+			var secondCalculation = transactionLogic.getBytes(transaction);
 
 			expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
@@ -670,9 +670,9 @@ describe('transaction', function () {
 			trs.asset = {data: '123'};
 			trs.fee += 10000000;
 			delete trs.signature;
-			trs.signature = transaction.sign(senderKeypair, trs);
+			trs.signature = transactionLogic.sign(senderKeypair, trs);
 
-			transaction.verify(trs, sender, {}, function (err) {
+			transactionLogic.verify(trs, sender, {}, function (err) {
 				expect(err).to.not.exist;
 				done();
 			});
@@ -997,7 +997,7 @@ describe('transaction', function () {
 		it('should return response for valid parameters with data field', function () {
 			var trs = _.cloneDeep(transaction);
 			trs.asset = {data : '123'};
-			var savePromise = transaction.dbSave(trs);
+			var savePromise = transactionLogic.dbSave(trs);
 
 			expect(savePromise).to.be.an('Array');
 			expect(savePromise).to.have.length(2);
@@ -1067,7 +1067,7 @@ describe('transaction', function () {
 			trs.asset= {
 				data: '123'
 			};
-			var normalizedTrs = transaction.objectNormalize(trs);
+			var normalizedTrs = transactionLogic.objectNormalize(trs);
 
 			expect(normalizedTrs).to.have.property('asset').which.is.eql(trs.asset);
 		});
@@ -1091,7 +1091,7 @@ describe('transaction', function () {
 
 		it('should return transaction object with data field', function () {
 			var rawTrs = _.cloneDeep(rawTransaction);
-			var trs = transaction.dbRead(rawTrs);
+			var trs = transactionLogic.dbRead(rawTrs);
 
 			expect(trs).to.be.an('object');
 			expect(trs.asset).to.have.property('data');
