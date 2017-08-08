@@ -88,7 +88,6 @@ var config = {
 		system: './modules/system.js',
 		peers: './modules/peers.js',
 		delegates: './modules/delegates.js',
-		rounds: './modules/rounds.js',
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
@@ -395,7 +394,7 @@ d.run(function () {
 					var topic = args.shift();
 					var eventName = 'on' + changeCase.pascalCase(topic);
 
-					// executes the each module onBind function
+					// Iterate over modules and execute event functions (on*)
 					modules.forEach(function (module) {
 						if (typeof(module[eventName]) === 'function') {
 							module[eventName].apply(module[eventName], args);
@@ -416,6 +415,10 @@ d.run(function () {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
+		pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
+			var pg_notify = require('./helpers/pg-notify.js');
+			pg_notify.init(scope.db, scope.bus, scope.logger, cb);
+		}],
 		/**
 		 * It tries to connect with redis server based on config. provided in config.json file
 		 * @param {function} cb
@@ -534,8 +537,9 @@ d.run(function () {
 		}],
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
+			// Fire onBind event in every module
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules);
+
 			scope.logic.peers.bindModules(scope.modules);
 			cb();
 		}],

@@ -5,6 +5,7 @@ var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var Diff = require('../helpers/diff.js');
 var exceptions = require('../helpers/exceptions.js');
+var slots = require('../helpers/slots.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -36,13 +37,11 @@ function Multisignature (schema, network, transaction, logger) {
 // Public methods
 /**
  * Binds input parameters to private variable modules
- * @param {Rounds} rounds
  * @param {Accounts} accounts
  */
-Multisignature.prototype.bind = function (rounds, accounts) {
+Multisignature.prototype.bind = function (accounts) {
 	modules = {
-		rounds: rounds,
-		accounts: accounts,
+		accounts: accounts
 	};
 };
 
@@ -220,7 +219,7 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 		multimin: trs.asset.multisignature.min,
 		multilifetime: trs.asset.multisignature.lifetime,
 		blockId: block.id,
-		round: modules.rounds.calc(block.height)
+		round: slots.calcRound(block.height)
 	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -261,7 +260,7 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 		multimin: -trs.asset.multisignature.min,
 		multilifetime: -trs.asset.multisignature.lifetime,
 		blockId: block.id,
-		round: modules.rounds.calc(block.height)
+		round: slots.calcRound(block.height)
 	}, function (err) {
 		return setImmediate(cb, err);
 	});

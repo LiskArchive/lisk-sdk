@@ -24,6 +24,7 @@ __private.loaded = false;
 __private.blockReward = new BlockReward();
 __private.keypairs = {};
 __private.tmpKeypairs = {};
+__private.delegatesList = [];
 
 /**
  * Initializes library with scope content and generates a Delegate instance.
@@ -69,29 +70,7 @@ function Delegates (cb, scope) {
 	);
 
 	setImmediate(cb, null, self);
-}
-
-// Private methods
-/**
- * Gets delegate public keys sorted by vote descending.
- * @private
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback}
- */
-__private.getKeysSortByVote = function (cb) {
-	modules.accounts.getAccounts({
-		isDelegate: 1,
-		sort: {'vote': -1, 'publicKey': 1},
-		limit: slots.delegates
-	}, ['publicKey'], function (err, rows) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		return setImmediate(cb, null, rows.map(function (el) {
-			return el.publicKey;
-		}));
-	});
-};
+}	
 
 /**
  * Gets slot time and keypair.
@@ -102,25 +81,19 @@ __private.getKeysSortByVote = function (cb) {
  * @returns {setImmediateCallback} error | cb | object {time, keypair}.
  */
 __private.getBlockSlotData = function (slot, height, cb) {
-	self.generateDelegateList(height, function (err, activeDelegates) {
-		if (err) {
-			return setImmediate(cb, err);
+	var currentSlot = slot;
+	var lastSlot = slots.getLastSlot(currentSlot);
+
+	for (; currentSlot < lastSlot; currentSlot += 1) {
+		var delegate_pos = currentSlot % slots.delegates;
+		var delegate_id = __private.delegatesList[delegate_pos];
+
+		if (delegate_id && __private.keypairs[delegate_id]) {
+			return setImmediate(cb, null, {time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegate_id]});
 		}
+	}
 
-		var currentSlot = slot;
-		var lastSlot = slots.getLastSlot(currentSlot);
-
-		for (; currentSlot < lastSlot; currentSlot += 1) {
-			var delegate_pos = currentSlot % slots.delegates;
-			var delegate_id = activeDelegates[delegate_pos];
-
-			if (delegate_id && __private.keypairs[delegate_id]) {
-				return setImmediate(cb, null, {time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegate_id]});
-			}
-		}
-
-		return setImmediate(cb, null, null);
-	});
+	return setImmediate(cb, null, null);
 };
 
 /**
@@ -138,7 +111,7 @@ __private.forge = function (cb) {
 
 	// When client is not loaded, is syncing or round is ticking
 	// Do not try to forge new blocks as client is not ready
-	if (!__private.loaded || modules.loader.syncing() || !modules.rounds.loaded() || modules.rounds.ticking()) {
+	if (!__private.loaded || modules.loader.syncing()) {
 		library.logger.debug('Client not ready to forge');
 		return setImmediate(cb);
 	}
@@ -193,7 +166,7 @@ __private.forge = function (cb) {
 				library.logger.info([
 					'Forged new block id:', forgedBlock.id,
 					'height:', forgedBlock.height,
-					'round:', modules.rounds.calc(forgedBlock.height),
+					'round:', slots.calcRound(forgedBlock.height),
 					'slot:', slots.getSlotNumber(currentBlockData.time),
 					'reward:' + forgedBlock.reward
 				].join(' '));
@@ -432,33 +405,18 @@ __private.loadDelegates = function (cb) {
 };
 
 // Public methods
+
 /**
- * Gets delegate list by vote and changes order.
- * @param {number} height
+ * Get delegates list for current round.
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} err | truncated delegate list.
- * @todo explain seed.
+ * @returns {setImmediateCallback} err
  */
-Delegates.prototype.generateDelegateList = function (height, cb) {
-	__private.getKeysSortByVote(function (err, truncDelegateList) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		var seedSource = modules.rounds.calc(height).toString();
-		var currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest();
-
-		for (var i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
-			for (var x = 0; x < 4 && i < delCount; i++, x++) {
-				var newIndex = currentSeed[x] % delCount;
-				var b = truncDelegateList[newIndex];
-				truncDelegateList[newIndex] = truncDelegateList[i];
-				truncDelegateList[i] = b;
-			}
-			currentSeed = crypto.createHash('sha256').update(currentSeed).digest();
-		}
-
-		return setImmediate(cb, null, truncDelegateList);
+Delegates.prototype.generateDelegateList = function (cb) {
+	library.db.query(sql.delegateList).then(function (result) {
+		__private.delegatesList = result[0].list;
+		return setImmediate(cb);
+	}).catch(function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
@@ -581,23 +539,15 @@ Delegates.prototype.fork = function (block, cause) {
  * @returns {setImmediateCallback} error message | cb
  */
 Delegates.prototype.validateBlockSlot = function (block, cb) {
-	self.generateDelegateList(block.height, function (err, activeDelegates) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
+	var currentSlot = slots.getSlotNumber(block.timestamp);
+	var delegate_id = __private.delegatesList[currentSlot % slots.delegates];
 
-		var currentSlot = slots.getSlotNumber(block.timestamp);
-		var delegate_id = activeDelegates[currentSlot % slots.delegates];
-		// var nextDelegate_id = activeDelegates[(currentSlot + 1) % slots.delegates];
-		// var previousDelegate_id = activeDelegates[(currentSlot - 1) % slots.delegates];
-
-		if (delegate_id && block.generatorPublicKey === delegate_id) {
-			return setImmediate(cb);
-		} else {
-			library.logger.error('Expected generator: ' + delegate_id + ' Received generator: ' + block.generatorPublicKey);
-			return setImmediate(cb, 'Failed to verify slot: ' + currentSlot);
-		}
-	});
+	if (delegate_id && block.generatorPublicKey === delegate_id) {
+		return setImmediate(cb);
+	} else {
+		library.logger.error('Expected generator: ' + delegate_id + ' Received generator: ' + block.generatorPublicKey);
+		return setImmediate(cb, 'Failed to verify slot: ' + currentSlot);
+	}
 };
 
 // Events
@@ -613,7 +563,6 @@ Delegates.prototype.onBind = function (scope) {
 		delegates: scope.delegates,
 		loader: scope.loader,
 		peers: scope.peers,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport
 	};
@@ -624,20 +573,38 @@ Delegates.prototype.onBind = function (scope) {
 };
 
 /**
+ * Triggered on receiving notification from postgres, indicating round has changed.
+ *
+ * @public
+ * @method onRoundChanged
+ * @listens module:pg-notify~event:roundChanged
+ * @param {object} data Data received from postgres
+ * @param {object} data.round Current round
+ * @param {object} data.list Delegates list used for slot calculations
+ */
+Delegates.prototype.onRoundChanged = function (data) {
+	__private.delegatesList = data.list;
+	library.network.io.sockets.emit('rounds/change', {number: data.round});
+	library.logger.info('Round changed, current round', data.round);
+};
+
+/**
  * Loads delegates.
  * @implements module:transactions#Transactions~fillPool
  */
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadDelegates(function (err) {
-
+	async.waterfall([
+		__private.loadDelegates,
+		self.generateDelegateList
+	], function (err) {
 		function nextForge (cb) {
 			if (err) {
 				library.logger.error('Failed to load delegates', err);
 			}
 
-			async.series([
+			async.waterfall([
 				__private.forge,
 				modules.transactions.fillPool
 			], function () {
@@ -772,23 +739,17 @@ Delegates.prototype.shared = {
 		var currentBlock = modules.blocks.lastBlock.get();
 		var limit = req.body.limit || 10;
 
-		modules.delegates.generateDelegateList(currentBlock.height, function (err, activeDelegates) {
-			if (err) {
-				return setImmediate(cb, err);
+		var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
+		var currentSlot = slots.getSlotNumber();
+		var nextForgers = [];
+
+		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
+			if (__private.delegatesList[(currentSlot + i) % slots.delegates]) {
+				nextForgers.push(__private.delegatesList[(currentSlot + i) % slots.delegates]);
 			}
+		}
 
-			var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
-			var currentSlot = slots.getSlotNumber();
-			var nextForgers = [];
-
-			for (var i = 1; i <= slots.delegates && i <= limit; i++) {
-				if (activeDelegates[(currentSlot + i) % slots.delegates]) {
-					nextForgers.push (activeDelegates[(currentSlot + i) % slots.delegates]);
-				}
-			}
-
-			return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
-		});
+		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
 	},
 
 	search: function (req, cb) {
