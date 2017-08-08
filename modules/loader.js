@@ -405,6 +405,7 @@ __private.loadBlockChain = function () {
 		}
 	}
 
+	// TODO: Remove snapshot verification as part of #544
 	function verifySnapshot (count, round) {
 		if (library.config.loading.snapshot !== undefined || library.config.loading.snapshot > 0) {
 			library.logger.info('Snapshot mode enabled');
@@ -416,7 +417,8 @@ __private.loadBlockChain = function () {
 					library.config.loading.snapshot = (round > 1) ? (round - 1) : 1;
 				}
 
-				//modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
+				// FIXME: Because round module is removed - that no longer works
+				// modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
 			}
 
 			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);
@@ -451,6 +453,9 @@ __private.loadBlockChain = function () {
 		}
 
 		var missed = !(countMemAccounts.count);
+
+		// FIXME: That check is not passing because dependant field in mem_accounts is not always updated
+		// TODO: Remove countMemAccounts check as part of #544
 
 		// if (missed) {
 		// 	return reload(count, 'Detected missed blocks in mem_accounts');

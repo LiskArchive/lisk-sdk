@@ -125,6 +125,8 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 	});
 };
 
+// FIXME: That function no longer works because rounds rewards are applied by triggers
+// TODO: Remove that function as part of #544
 
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
