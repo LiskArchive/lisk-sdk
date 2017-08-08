@@ -125,6 +125,8 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 	});
 };
 
+// FIXME: That function no longer works because rounds rewards are applied by triggers
+// TODO: Remove that function as part of #544
 
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
@@ -147,7 +149,7 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var params = { limit: newLimit, offset: offset || 0 };
 
 	library.logger.debug('Loading blocks offset', {limit: limit, offset: offset, verify: verify});
-	// Execute in sequence via dbSequence]
+	// Execute in sequence via dbSequence
 	library.dbSequence.add(function (cb) {
 		// Loads full blocks from database
 		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
@@ -162,33 +164,59 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 				}
 
 				library.logger.debug('Processing block', block.id);
-				if (verify && block.id !== library.genesisblock.block.id) {
-					// Sanity check of the block, if values are coherent.
-					// No access to database.
-					var check = modules.blocks.verify.verifyBlock(block);
 
-					if (!check.verified) {
-						library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
-						// Return first error from checks
-						return setImmediate(cb, check.errors[0]);
+				if (verify && block.id !== library.genesisblock.block.id) {
+					async.series({
+						normalizeBlock: function (seriesCb) {
+							try {
+								block = library.logic.block.objectNormalize(block);
+							} catch (err) {
+								return setImmediate(seriesCb, err);
+							}
+
+							return setImmediate(seriesCb);
+						},
+						verifyBlock: function (seriesCb) {
+							// Sanity check of the block, if values are coherent.
+							// No access to database
+							modules.blocks.verify.verifyBlock(block, function (err) {
+								if (err) {
+									library.logger.error(['Block', block.id, 'verification failed'].join(' '), err);
+									return setImmediate(seriesCb, err);
+								}
+
+								return setImmediate(seriesCb);
+							});
+						}
+					}, function (err) {
+						if (err) {
+							return setImmediate(cb, err);
+						} else {
+							// Apply block - broadcast: false, saveBlock: false
+							modules.blocks.chain.applyBlock(block, false, function (err) {
+								setImmediate(cb, err);
+							}, false);
+						}
+					});
+
+				} else {
+					if (block.id === library.genesisblock.block.id) {
+						modules.blocks.chain.applyGenesisBlock(block, function (err) {
+							setImmediate(cb, err);
+						});
+					} else {
+						// Apply block - broadcast: false, saveBlock: false
+						modules.blocks.chain.applyBlock(block, false, function (err) {
+							setImmediate(cb, err);
+						}, false);
 					}
 				}
-				if (block.id === library.genesisblock.block.id) {
-					modules.blocks.chain.applyGenesisBlock(block, cb);
-				} else {
-					// Apply block - broadcast: false, saveBlock: false
-					// FIXME: Looks like we are missing some validations here, because applyBlock is different than processBlock used elesewhere
-					// - that need to be checked and adjusted to be consistent
-					modules.blocks.chain.applyBlock(block, false, cb, false);
-				}
-				// Update last block
-				modules.blocks.lastBlock.set(block);
 			}, function (err) {
 				return setImmediate(cb, err, modules.blocks.lastBlock.get());
 			});
 		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#loadBlocksOffset error');
+			library.logger.error(err);
+			return setImmediate(cb, ['Blocks#loadBlocksOffset error', err].join(': '));
 		});
 	}, cb);
 };
@@ -355,7 +383,7 @@ Process.prototype.onReceiveBlock = function (block) {
 	library.sequence.add(function (cb) {
 		// When client is not loaded, is syncing or round is ticking
 		// Do not receive new blocks as client is not ready
-		if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
+		if (!__private.loaded || modules.loader.syncing()) {
 			library.logger.debug('Client not ready to receive block', block.id);
 			return;
 		}
@@ -428,7 +456,7 @@ __private.receiveBlock = function (block, cb) {
 	library.logger.info([
 		'Received new block id:', block.id,
 		'height:', block.height,
-		'round:',  modules.rounds.calc(block.height),
+		'round:',  slots.calcRound(block.height),
 		'slot:', slots.getSlotNumber(block.timestamp),
 		'reward:', block.reward
 	].join(' '));
@@ -445,7 +473,6 @@ __private.receiveBlock = function (block, cb) {
  * - blocks
  * - delegates
  * - loader
- * - rounds
  * - transactions
  * - transport
  * @param {modules} scope Exposed modules
@@ -457,7 +484,6 @@ Process.prototype.onBind = function (scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
 	};

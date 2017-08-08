@@ -8,19 +8,6 @@ var constants = require('../../../helpers/constants.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var db;
 
-before(function (done) {
-	modulesLoader.getDbConnection(function (err, db_handle) {
-		if (err) {
-			return done(err);
-		}
-		db = db_handle;
-		done();
-	});
-});
-
-constants.rewards.distance = 3000000;
-constants.rewards.offset = 1451520;
-
 function calcBlockReward (height, reward, done) {
 	return db.query(sql.calcBlockReward, {height: height}).then(function (rows) {
 		expect(rows).to.be.an('array');
@@ -32,9 +19,7 @@ function calcBlockReward (height, reward, done) {
 			expect(Number(rows[0].reward)).to.equal(reward);
 		}
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcSupply (height, supply, done) {
@@ -48,9 +33,7 @@ function calcSupply (height, supply, done) {
 			expect(Number(rows[0].supply)).to.equal(supply);
 		}
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcSupply_test (height_start, height_end, expected_reward, done) {
@@ -60,9 +43,7 @@ function calcSupply_test (height_start, height_end, expected_reward, done) {
 		expect(rows[0]).to.be.an('object');
 		expect(rows[0].result).to.equal(true);
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcSupply_test_fail (height_start, height_end, expected_reward, done) {
@@ -72,9 +53,7 @@ function calcSupply_test_fail (height_start, height_end, expected_reward, done) 
 		expect(rows[0]).to.be.an('object');
 		expect(rows[0].result).to.equal(false);
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 function calcBlockReward_test (height_start, height_end, expected_reward, done) {
@@ -84,12 +63,22 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 		expect(rows[0]).to.be.an('object');
 		expect(Number(rows[0].result)).to.equal(0);
 		done();
-	}).catch(function (err) {
-		done(err);
-	});
+	}).catch(done);
 };
 
 describe('BlockRewardsSQL', function () {
+	before(function (done) {
+		modulesLoader.getDbConnection(function (err, db_handle) {
+			if (err) {
+				return done(err);
+			}
+			db = db_handle;
+			done();
+		});
+	});
+
+	constants.rewards.distance = 3000000;
+	constants.rewards.offset = 1451520;
 
 	describe('checking SQL function getBlockRewards()', function () {
 
@@ -111,12 +100,9 @@ describe('BlockRewardsSQL', function () {
 				expect(Number(rows[0].milestones[3])).to.equal(constants.rewards.milestones[3]);
 				expect(Number(rows[0].milestones[4])).to.equal(constants.rewards.milestones[4]);
 				done();
-			}).catch(function (err) {
-				done(err);
-			});
+			}).catch(done);
 		});
 	});
-
 
 	describe('checking SQL function calcBlockReward(int)', function () {
 
@@ -361,9 +347,7 @@ describe('BlockRewardsSQL', function () {
 					expect(rows[0]).to.be.an('object');
 					expect(Number(rows[0].result)).to.equal(1000);
 					done();
-				}).catch(function (err) {
-					done(err);
-				});
+				}).catch(done);
 			});
 		});
 

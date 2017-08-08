@@ -383,7 +383,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
 		modules.system.update(function () {
 			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
-				modules.peers.list({}, function (err, peers) {
+				modules.peers.list({normalized: false}, function (err, peers) {
 					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
 						peer.rpc.acceptPeer(library.logic.peers.me(), function (err) {
 							if (err) {

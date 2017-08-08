@@ -61,6 +61,7 @@ function Peers (cb, scope) {
  * @returns {setImmediateCallback} peers length
  */
 __private.countByFilter = function (filter, cb) {
+	filter.normalized = false;
 	__private.getByFilter(filter, function (err, peers) {
 		return setImmediate(cb, null, peers.length);
 	});
@@ -110,7 +111,8 @@ __private.getByFilter = function (filter, cb) {
 	};
 
 	// Apply filters (by AND)
-	var peers = library.logic.peers.list();
+	var normalized = filter.normalized === undefined ? true : filter.normalized;
+	var peers = library.logic.peers.list(normalized);
 
 	peers = peers.filter(function (peer) {
 		// var peer = __private.peers[index];
@@ -305,7 +307,7 @@ Peers.prototype.getConsensus = function (matched, active) {
 		return undefined;
 	}
 
-	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED});
+	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED, normalized: false});
 	matched = matched || __private.getMatched({broadhash: modules.system.getBroadhash()}, active);
 
 	active = active.slice(0, constants.maxPeers);
@@ -360,8 +362,8 @@ Peers.prototype.remove = function (peer) {
 Peers.prototype.discover = function (cb) {
 	library.logger.trace('Peers->discover');
 	function getFromRandomPeer (waterCb) {
-		self.list({limit: 1, allowedStates: [Peer.STATE.DISCONNECTED, Peer.STATE.CONNECTED]}, function (err, peers) {
-			var randomPeer = peers.length ? library.logic.peers.create(peers[0]) : null;
+		self.list({limit: 1, allowedStates: [Peer.STATE.DISCONNECTED, Peer.STATE.CONNECTED], normalized: false}, function (err, peers) {
+			var randomPeer = peers.length ? peers[0] : null;
 			if (!err && randomPeer) {
 				randomPeer.rpc.status(function (err, status) {
 					__private.updatePeerStatus(err, status, randomPeer);
@@ -386,7 +388,6 @@ Peers.prototype.discover = function (cb) {
 	}
 
 	function updatePeers (peers, waterCb) {
-		var updated = 0;
 		async.each(peers, function (peer, eachCb) {
 			peer = library.logic.peers.create(peer);
 			library.schema.validate(peer, schema.discover.peer, function (err) {
@@ -453,7 +454,7 @@ Peers.prototype.list = function (options, cb) {
 
 	function randomList (options, peers, cb) {
 		// Get full peers list (random)
-		__private.getByFilter({}, function (err, peersList) {
+		__private.getByFilter({normalized: options.normalized}, function (err, peersList) {
 			var accepted, found, matched, picked;
 
 			found = peersList.length;
@@ -654,6 +655,7 @@ Peers.prototype.shared = {
 				return setImmediate(cb, 'Invalid limit. Maximum is 100');
 			}
 
+			req.body.normalized = true;
 			__private.getByFilter(req.body, function (err, peers) {
 				if (err) {
 					return setImmediate(cb, 'Failed to get peers');
@@ -671,7 +673,8 @@ Peers.prototype.shared = {
 			}
 			__private.getByFilter({
 				ip: req.body.ip,
-				port: req.body.port
+				port: req.body.port,
+				normalized: true
 			}, function (err, peers) {
 				if (err) {
 					return setImmediate(cb, 'Failed to get peer');

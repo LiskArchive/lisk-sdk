@@ -2,6 +2,7 @@
 
 var constants = require('../helpers/constants.js');
 var bignum = require('../helpers/bignum.js');
+var slots = require('../helpers/slots.js');
 
 // Private fields
 var modules, library;
@@ -24,12 +25,10 @@ function Transfer (logger, schema) {
 /**
  * Binds input parameters to private variable modules.
  * @param {Accounts} accounts
- * @param {Rounds} rounds
  */
-Transfer.prototype.bind = function (accounts, rounds) {
+Transfer.prototype.bind = function (accounts) {
 	modules = {
-		accounts: accounts,
-		rounds: rounds,
+		accounts: accounts
 	};
 };
 
@@ -100,7 +99,7 @@ Transfer.prototype.getBytes = function (trs) {
  * mergeAccountAndGet with unconfirmed trs amount.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -118,7 +117,7 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
 			balance: trs.amount,
 			u_balance: trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -130,7 +129,7 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
  * mergeAccountAndGet with unconfirmed trs amount and balance negative.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -148,7 +147,7 @@ Transfer.prototype.undo = function (trs, block, sender, cb) {
 			balance: -trs.amount,
 			u_balance: -trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});

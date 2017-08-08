@@ -2,6 +2,7 @@
 
 var constants = require('../helpers/constants.js');
 var sql = require('../sql/dapps.js');
+var slots = require('../helpers/slots.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -30,13 +31,11 @@ function OutTransfer (db, schema, logger) {
 /**
  * Binds input modules to private variable module.
  * @param {Accounts} accounts
- * @param {Rounds} rounds
  * @param {Dapps} dapps
  */
-OutTransfer.prototype.bind = function (accounts, rounds, dapps) {
+OutTransfer.prototype.bind = function (accounts, dapps) {
 	modules = {
 		accounts: accounts,
-		rounds: rounds,
 		dapps: dapps,
 	};
 };
@@ -148,7 +147,7 @@ OutTransfer.prototype.getBytes = function (trs) {
  * mergeAccountAndGet with unconfirmed trs amount.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -168,7 +167,7 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 			balance: trs.amount,
 			u_balance: trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -181,7 +180,7 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
  * mergeAccountAndGet with unconfirmed trs amount and balance both negatives.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -200,7 +199,7 @@ OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 			balance: -trs.amount,
 			u_balance: -trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
