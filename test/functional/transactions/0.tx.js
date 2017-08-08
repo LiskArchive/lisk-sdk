@@ -80,7 +80,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong TYPE values', function () {
+		describe('sending transactions with wrong type values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.type = null;
@@ -171,7 +171,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong AMOUNT values', function () {
+		describe('sending transactions with wrong amount values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.amount = null;
@@ -295,7 +295,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong FEE values', function () {
+		describe('sending transactions with wrong fee values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.fee = null;
@@ -419,7 +419,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong RECIPIENTID values', function () {
+		describe('sending transactions with wrong recipientId values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.recipientId = null;
@@ -554,7 +554,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong TIMESTAMP values', function () {
+		describe('sending transactions with wrong timestamp values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.timestamp = null;
@@ -667,7 +667,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong SENDERPUBLICKEY values', function () {
+		describe('sending transactions with wrong senderPublicKey values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.senderPublicKey = null;
@@ -780,7 +780,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong SIGNATURE values', function () {
+		describe('sending transactions with wrong signature values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.signature = null;
@@ -882,9 +882,9 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong ID values', function () {
+		describe('sending transactions with wrong id values', function () {
 
-			it('using null should be OK', function (done) {
+			it('using null should be ok', function (done) {
 				transaction.id = null;
 
 				sendTransaction(transaction, function (err, res) {
@@ -908,7 +908,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using undefined should be OK', function (done) {
+			it('using undefined should be ok', function (done) {
 				transaction.id = undefined;
 
 				sendTransaction(transaction, function (err, res) {
@@ -920,7 +920,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using NaN should be OK', function (done) {
+			it('using NaN should be ok', function (done) {
 				transaction.id = NaN;
 
 				sendTransaction(transaction, function (err, res) {
@@ -1020,7 +1020,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		it('when sender has NO funds should fail', function (done) {
+		it('when sender has no funds should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
 
 			sendTransaction(transaction, function (err, res) {
@@ -1064,7 +1064,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		it('when sender has funds should be OK', function (done) {
+		it('when sender has funds should be ok', function (done) {
 			sendTransaction(goodTransaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(goodTransaction.id);
@@ -1073,7 +1073,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		it('sending transaction with same ID twice should fail', function (done) {
+		it('sending transaction with same id twice should fail', function (done) {
 			sendTransaction(goodTransaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('message').to.equal('Transaction is already processed: '+goodTransaction.id);

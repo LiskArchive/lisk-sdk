@@ -21,9 +21,6 @@ describe('Basic Transactions via websockets', function () {
 		transaction = node.randomTx();
 	});
 
-	describe('schema', function () {
-	});
-
 	describe('processing', function () {
 
 		it('when sender has NO funds should fail', function (done) {
