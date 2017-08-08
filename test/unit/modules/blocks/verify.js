@@ -164,7 +164,7 @@ var previousBlock1 = {
 	version:0,
 };
 var block1;
-var transactionsBlock1 =	[
+var transactionsBlock1 = [
 	{
 		'type': 0,
 		'amount': 10000000000000000,
