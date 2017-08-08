@@ -393,7 +393,7 @@ __private.loadDelegates = function (cb) {
 		library.logger.info(['Loading', secretsList.length, 'delegates from config'].join(' '));
 	}
 
-	async.each(secretsList, function (encryptedItem, cb) {
+	async.eachSeries(secretsList, function (encryptedItem, cb) {
 		var secret;
 
 		try {
