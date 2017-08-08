@@ -28,7 +28,7 @@ var wsRPC = {
 	 */
 	getServer: function () {
 		if (!wsServer) {
-			throw new Error('WS server haven\'t been initialized!');
+			throw new Error('WS server hasn\'t been initialized!');
 		}
 		return wsServer;
 	},
@@ -59,7 +59,7 @@ var wsRPC = {
 	 */
 	getServerAuthKey: function () {
 		if (!wsServer) {
-			throw new Error('WS server haven\'t been initialized!');
+			throw new Error('WS server has\'t been initialized!');
 		}
 		return wsServer.socketCluster.options.authKey;
 	}
@@ -193,7 +193,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 };
 
 var remoteAction = function () {
-	throw new Error('Function invoked on a master instead of slave process');
+	throw new Error('Function invoked on a master instead of a slave process');
 };
 
 var slaveRPCStub = {

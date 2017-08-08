@@ -196,7 +196,7 @@ describe('RPC', function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
-							node.expect(err).to.equal('Validation of access to internal function failed due to wrong authKey delivered');
+							node.expect(err).to.equal('Unable to access internal function - Incorrect authKey');
 							done();
 						});
 				});
@@ -259,7 +259,7 @@ describe('RPC', function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
-							node.expect(err).to.equal('Validation of access to internal function failed due to wrong authKey delivered');
+							node.expect(err).to.equal('Unable to access internal function - Incorrect authKey');
 							done();
 						});
 				});

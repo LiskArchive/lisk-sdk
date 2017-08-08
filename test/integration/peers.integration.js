@@ -301,18 +301,18 @@ describe('forging', function () {
 			return socket.wampSend('status');
 		})).then(function (results) {
 			var maxHeight = 1;
-			var heightsSum = 0;
+			var heightSum = 0;
 			results.forEach(function (result) {
 				expect(result).to.have.property('success').to.be.ok;
 				expect(result).to.have.property('height').to.be.a('number');
 				if (result.height > maxHeight) {
 					maxHeight = result.height;
 				}
-				heightsSum += result.height;
+				heightSum += result.height;
 			});
 			return cb(null, {
 				height: maxHeight,
-				averageHeight: heightsSum / results.length
+				averageHeight: heightSum / results.length
 			});
 
 		}).catch(function (err) {

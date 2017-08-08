@@ -19,14 +19,14 @@ ConnectionsTable.prototype.getNonce = function (connectionId) {
 
 /**
  * @param {string} nonce
- * @returns {string|undefined} returns matching connection id if an entry was added previously
+ * @returns {string|undefined} returns matching connectionId if an entry was added previously
  */
 ConnectionsTable.prototype.getConnectionId = function (nonce) {
 	return this.nonceToConnectionIdMap[nonce];
 };
 
 /**
- * Links peer (peer's nonce) with given connection id
+ * Links peer via nonce with given connectionId
  * @param {string} nonce
  * @param {string} connectionId
  */
@@ -43,7 +43,7 @@ ConnectionsTable.prototype.add = function (nonce, connectionId) {
 };
 
 /**
- * Removes assignment a peer with connection id
+ * Removes a peer with assigned connectionId
  * @param {string} nonce
  */
 ConnectionsTable.prototype.remove = function (nonce) {

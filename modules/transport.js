@@ -590,7 +590,7 @@ Transport.prototype.shared = {
  * Validation of all internal requests
  * @param {Object} query
  * @param {string} query.authKey - key shared between master and slave processes. Not shared with the rest of network.
- * @param {Object} query.peer - key shared between master and slave processes. Not shared with the rest of network.
+ * @param {Object} query.peer - peer to update
  * @param {string} cb
  */
 __private.checkInternalAccess = function (query, cb) {
@@ -599,7 +599,7 @@ __private.checkInternalAccess = function (query, cb) {
 			return setImmediate(cb, err[0].message);
 		}
 		if (query.authKey !== wsRPC.getServerAuthKey()) {
-			return setImmediate(cb, 'Validation of access to internal function failed due to wrong authKey delivered');
+			return setImmediate(cb, 'Unable to access internal function - Incorrect authKey');
 		}
 		return setImmediate(cb, null);
 	});

@@ -77,7 +77,7 @@ var extractHeaders = function (request) {
 	headers.port = parseInt(headers.port);
 
 	if (!headers.nonce || headers.nonce.length !== 16) {
-		throw new Error('Received empty or wrong nonce');
+		throw new Error('Received empty or unmatched nonce');
 	}
 
 	return headers;

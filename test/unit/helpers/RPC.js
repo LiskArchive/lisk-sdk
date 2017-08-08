@@ -5,7 +5,6 @@ var config = require('../../../config.json');
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
-var _  = require('lodash');
 var sinon = require('sinon');
 
 var constants = require('../../../helpers/constants');
@@ -45,17 +44,17 @@ describe('wsRPC', function () {
 
 		it('getter should return throw an error when setting server to null', function () {
 			wsRPC.setServer(null);
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
 		});
 
 		it('getter should return throw an error when setting server to 0', function () {
 			wsRPC.setServer(0);
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
 		});
 
 		it('getter should return throw an error when setting server to undefined', function () {
 			wsRPC.setServer(undefined);
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
 		});
 
 		it('should return server instance after setting it', function () {
@@ -76,7 +75,7 @@ describe('wsRPC', function () {
 		});
 
 		it('should raise and error when wsSerer is not set', function () {
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
 		});
 
 		it('should return wsSerer set before', function () {
@@ -170,9 +169,6 @@ describe('wsRPC', function () {
 				expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 			});
-
 		});
-
-
 	});
 });

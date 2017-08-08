@@ -63,6 +63,9 @@ module.exports.run = function (worker) {
 				}
 
 				scope.slaveWAMPServer.sendToMaster('list', {query: {nonce: headers.nonce}}, headers.nonce, function (err, result) {
+					if (err) {
+						return next(err);
+					}
 					//peer is already on list - no need to insert
 					if (!err && result.peers.length && result.peers[0].state === Peer.STATE.CONNECTED) {
 						return next('Peer is already on inserted and active.');
