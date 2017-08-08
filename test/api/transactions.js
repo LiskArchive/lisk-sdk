@@ -2,7 +2,7 @@
 
 var node = require('../node.js');
 var http = require('../common/httpCommunication.js');
-var ws = require('../../common/wsCommunication');
+var ws = require('../common/wsCommunication');
 var sendLiskTrs = require('../common/complexTransactions.js').sendLISK;
 var transactionSortFields = require('../../sql/transactions').sortFields;
 var modulesLoader = require('../common/initModule').modulesLoader;
@@ -608,15 +608,15 @@ describe('GET /api/transactions/queued/get?id=', function () {
 			var transferTrs = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
 			postTransaction(transferTrs, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').that.is.not.empty;
 				var transaction = {
 					'sender': account.address,
 					'recipient': account2.address,
 					'grossSent': (amountToSend + expectedFee) / node.normalizer,
 					'fee': expectedFee / node.normalizer,
 					'netSent': amountToSend / node.normalizer,
-					'txId': res.body.transactionId,
+					'txId': res.transactionId,
 					'type': node.txTypes.SEND,
 					'data': data
 				};
@@ -628,7 +628,7 @@ describe('GET /api/transactions/queued/get?id=', function () {
 		createTransactionWithData(function (transactionInCheck) {
 			var trsId = transactionInCheck.txId;
 			var params = 'id=' + trsId;
-			node.get('/api/transactions/queued/get?' + params, function (err, res) {
+			http.get('/api/transactions/queued/get?' + params, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 				node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);

@@ -203,6 +203,7 @@ describe('transaction', function () {
 	});
 
 	describe('sign', function () {
+
 		it('should throw an error with no param', function () {
 			expect(transactionLogic.sign).to.throw();
 		});
@@ -216,7 +217,7 @@ describe('transaction', function () {
 			var trs = _.cloneDeep(transaction);
 			trs.data = '123';
 
-			expect(transaction.sign(senderKeypair, trs)).to.be.a('string').which.is.not.equal(originalSignature);
+			expect(transactionLogic.sign(senderKeypair, trs)).to.be.a('string').which.is.not.equal(originalSignature);
 		});
 	});
 
@@ -806,6 +807,7 @@ describe('transaction', function () {
 	});
 
 	describe('apply', function () {
+
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
@@ -853,6 +855,7 @@ describe('transaction', function () {
 	});
 
 	describe('undo', function () {
+
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
