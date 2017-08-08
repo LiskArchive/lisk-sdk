@@ -454,6 +454,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
+					library.bus.message('newBlock', block, broadcast);
 
 					return seriesCb();
 				});
