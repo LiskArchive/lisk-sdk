@@ -26,7 +26,7 @@ function onNotification (data) {
 		logger.info('pg-notify: Round closed');
 		try {
 			data.payload = JSON.parse(data.payload);
-		} catch(e) {
+		} catch (e) {
 			logger.error('pg-notify: Unable to parse JSON', {err: e, data: data});
 			return;
 		}
@@ -34,7 +34,7 @@ function onNotification (data) {
 		logger.warn('pg-notify: Round reopened');
 		try {
 			data.payload = JSON.parse(data.payload);
-		} catch(e) {
+		} catch (e) {
 			logger.error('pg-notify: Unable to parse JSON', {err: e, data: data});
 			return;
 		}
