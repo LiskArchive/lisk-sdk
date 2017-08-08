@@ -5,7 +5,8 @@ npm-debug.log
 .nyc_output
 yuidoc
 test/.coverage-unit
+browsertest/browsertest.js
+browsertest/browsertest.min.js
 coveralls
 coverage/
-dist-browser/
 dist-node/

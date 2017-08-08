@@ -8,10 +8,12 @@ module.exports = function configureGrunt(grunt) {
 		pkg: grunt.file.readJSON('package.json'),
 
 		exec: {
-			coverageSingle: './node_modules/.bin/nyc --report-dir=test/.coverage-unit --reporter=lcov ./node_modules/.bin/_mocha $TEST',
+			coverageSingle: './node_modules/.bin/nyc --report-dir=test/.coverage-unit --reporter=lcov ./node_modules/.bin/_mocha ./test/**/*.js',
 			prepareDistNode: 'rm -r dist-node/* || mkdir dist-node | echo',
 			prepareDistBrowser: 'rm -r dist-browser/* || mkdir dist-browser | echo',
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
+			babelTest: './node_modules/.bin/babel src --out-dir ./browsertest/src && ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
+			tidyTest: 'rm -r browsertest/{src,test}',
 		},
 
 		eslint: {
@@ -19,9 +21,13 @@ module.exports = function configureGrunt(grunt) {
 		},
 
 		browserify: {
-			js: {
+			dist: {
 				src: './dist-node/*',
 				dest: './dist-browser/lisk-js.js',
+			},
+			test: {
+				src: './browsertest/test/**/*.js',
+				dest: './browsertest/browsertest.js',
 			},
 			options: {
 				browserifyOptions: {
@@ -31,13 +37,18 @@ module.exports = function configureGrunt(grunt) {
 		},
 
 		uglify: {
-			options: {
-				mangle: false,
-			},
-			myTarget: {
+			dist: {
 				files: {
 					'dist-browser/lisk-js.min.js': ['dist-browser/lisk-js.js'],
 				},
+			},
+			test: {
+				files: {
+					'browsertest/browsertest.min.js': 'browsertest/browsertest.js',
+				},
+			},
+			options: {
+				mangle: false,
 			},
 		},
 
@@ -53,7 +64,6 @@ module.exports = function configureGrunt(grunt) {
 
 	grunt.loadNpmTasks('grunt-browserify');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
-	grunt.loadNpmTasks('grunt-force');
 	grunt.loadNpmTasks('grunt-coveralls');
 	grunt.registerTask('jenkins', ['exec:coverageSingle', 'coveralls']);
 	grunt.registerTask('eslint-ci', ['eslint']);
@@ -61,8 +71,14 @@ module.exports = function configureGrunt(grunt) {
 		'exec:prepareDistNode',
 		'exec:prepareDistBrowser',
 		'exec:babel',
-		'browserify',
-		'uglify',
+		'browserify:dist',
+		'uglify:dist',
+	]);
+	grunt.registerTask('build-browsertest', [
+		'exec:babelTest',
+		'browserify:test',
+		'uglify:test',
+		'exec:tidyTest',
 	]);
 	grunt.registerTask('default', [
 		'eslint',
