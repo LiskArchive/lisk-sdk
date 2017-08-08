@@ -563,7 +563,6 @@ Delegates.prototype.onBind = function (scope) {
 		delegates: scope.delegates,
 		loader: scope.loader,
 		peers: scope.peers,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport
 	};

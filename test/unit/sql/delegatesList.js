@@ -1,12 +1,12 @@
 'use strict';
 
-var chai = require('chai');
+var chai   = require('chai');
+var crypto = require('crypto');
 var expect = require('chai').expect;
 
-var crypto = require('crypto');
-var sql = require('../../sql/delegatesList.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var db;
+var slots         = require('../../../helpers/slots.js');
+var sql           = require('../../sql/delegatesList.js');
 
 function generateDelegatesList (round, delegates) {
 	var i, x, n, old, len;
@@ -34,6 +34,7 @@ function generateDelegatesList (round, delegates) {
 };
 
 describe('Delegate list SQL functions', function () {
+	var db;
 
 	before(function (done) {
 		modulesLoader.getDbConnection(function (err, db_handle) {
@@ -45,6 +46,7 @@ describe('Delegate list SQL functions', function () {
 		});
 	});
 
+	// Old logic - not used, for reference only
 	function getKeysSortByVote (cb) {
 		library.db.query(sql.delegateList).then(function (rows) {
 			return setImmediate(cb, null, rows.map(function (el) {
@@ -55,13 +57,14 @@ describe('Delegate list SQL functions', function () {
 		});
 	};
 
+	// Old logic - not used, for reference only
 	function generateDelegateList (height, cb) {
 		getKeysSortByVote(function (err, truncDelegateList) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
-			var seedSource = modules.rounds.calc(height).toString();
+			var seedSource = slots.calcRound(height).toString();
 			var currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest();
 
 			for (var i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
