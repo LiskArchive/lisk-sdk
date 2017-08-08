@@ -233,7 +233,6 @@ function deleteBlockProperties (block) {
 		delete block.transactions;
 	}
 	delete block.id;
-	return;
 }
 
 describe('blocks/verify', function () {
