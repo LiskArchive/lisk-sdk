@@ -29,7 +29,8 @@ function sendSignature (signature, transaction, cb) {
 }
 
 function sendLISK (params, cb) {
-	sendTransaction(lisk.transaction.createTransaction(params.address, params.amount, params.secret, params.secondSecret), cb);
+	var transaction = lisk.transaction.createTransaction(params.address, params.amount, params.secret, params.secondSecret);
+	sendTransaction(transaction, cb);
 }
 
 module.exports = {

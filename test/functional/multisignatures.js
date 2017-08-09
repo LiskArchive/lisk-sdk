@@ -24,7 +24,8 @@ before(function (done) {
 		amount: node.randomLISK(),
 		address: multisigAccount.address
 	}, function (err, res) {
-		node.expect(err).to.be.null;
+		node.expect(res).to.have.property('success').to.be.ok;
+		node.expect(res).to.have.property('transactionId').that.is.not.empty;
 		node.onNewBlock(function () {
 			keysGroup = accounts.map(function (account) { 
 				return '+' + account.publicKey; 
