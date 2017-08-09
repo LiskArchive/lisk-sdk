@@ -1,8 +1,8 @@
 'use strict';
 
 var connectionsTable = require('./connectionsTable');
-var Z_schema = require('../../../helpers/z_schema');
 var schema = require('../../../schema/transport');
+var Z_schema = require('../../../helpers/z_schema');
 
 var self, z_schema =  new Z_schema();
 

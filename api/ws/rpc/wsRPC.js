@@ -166,7 +166,6 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 	return function (procedureName) {
 		/**
 		 * @param {Object} data [data={}] argument passed to procedure
-		 * @param {function} cb [cb=function(){}] cb
 		 */
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};

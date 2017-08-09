@@ -334,7 +334,7 @@ describe('forging', function () {
 					return done(err);
 				}
 				console.log('Second: ' + parseInt(checkNetworkStatusInterval * timesNetworkStatusChecked / 1000),
-					'network status: height - ' + res.height, 'average height - ' + res.averageHeight );
+					'network status: height - ' + res.height, 'average height - ' + res.averageHeight);
 				if (timesNetworkStatusChecked === timesToCheckNetworkStatus) {
 					clearInterval(checkingInterval);
 					return done(null, res);
@@ -356,8 +356,8 @@ describe('forging', function () {
 		Promise.all(sockets.map(function (socket) {
 			return socket.wampSend('list');
 		})).then(function (results) {
-			expect(results.some(function (singlePeerPeers) {
-				return singlePeerPeers.peers.some(function (peer) {
+			expect(results.some(function (peersList) {
+				return peersList.peers.some(function (peer) {
 					return peer.height > 1;
 				});
 			}));
