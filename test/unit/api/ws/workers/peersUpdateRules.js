@@ -282,7 +282,7 @@ describe('PeersUpdateRules', function () {
 			});
 		});
 
-		it('return an error when attempt to update peer which has no connection established', function (done) {
+		it('should return an error when attempt to update peer which has no connection established', function (done) {
 			peersUpdateRules.external.update(minimalValidUpdateRequest, function (err, res) {
 				expect(err).to.equal('Connection id did not match with corresponding peer');
 				done();

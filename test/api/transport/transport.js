@@ -316,7 +316,7 @@ describe('RPC', function () {
 				});
 		});
 
-		it('should work ok with asking for a list multiple times', function (done) {
+		it('asking for a list multiple times should be ok', function (done) {
 
 			var successfulAsks = 0;
 			for (var i = 0; i < 100; i += 1) {

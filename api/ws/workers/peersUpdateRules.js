@@ -7,7 +7,8 @@ var schema = require('../../../schema/transport');
 var self, z_schema =  new Z_schema();
 
 /**
- * @param {SlaveWAMPServer} slaveWAMPServer
+ * Secures peers updates. Used only by workers.
+ * @param {SlaveWAMPServer} slaveWAMPServer - used to send verified update requests to master process.
  * @constructor
  */
 function PeersUpdateRules (slaveWAMPServer) {
@@ -75,7 +76,7 @@ PeersUpdateRules.prototype.internal = {
 			return cb('Cannot remove peer without nonce');
 		}
 		if (!connectionsTable.getConnectionId(peer.nonce)) {
-			return cb('Peer of nonce has no connection established');
+			return cb('Peer with specified nonce has no active connection');
 		}
 		if (!connectionId || connectionId !== connectionsTable.getConnectionId(peer.nonce)) {
 			return cb('Attempt to remove peer from different or empty connection id');
