@@ -213,20 +213,16 @@ function transformGETRequest(baseRequestObject, requestType, options) {
 }
 
 function transformPUTOrPOSTRequest(baseRequestObject, requestType, options) {
-	const transformRequest = this
-		.parseOfflineRequests(requestType, options)
-		.checkOfflineRequestBefore();
-
-	return (transformRequest.requestUrl === 'transactions' || transformRequest.requestUrl === 'signatures')
+	return (requestType === 'transactions' || requestType === 'signatures')
 		? Object.assign({}, {
-			requestUrl: `${getFullUrl.call(this)}/peer/${transformRequest.requestUrl}`,
+			requestUrl: `${getFullUrl.call(this)}/peer/${requestType}`,
 			nethash: this.nethash,
 			requestMethod: 'POST',
-			requestParams: transformRequest.params,
+			requestParams: options,
 		})
 		: Object.assign({}, baseRequestObject, {
-			requestUrl: `${getFullUrl.call(this)}/api/${transformRequest.requestUrl}`,
-			requestMethod: transformRequest.requestMethod,
+			requestUrl: `${getFullUrl.call(this)}/api/${requestType}`,
+			requestMethod: 'GET',
 			requestParams: options,
 		});
 }
