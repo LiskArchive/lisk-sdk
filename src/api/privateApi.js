@@ -257,15 +257,16 @@ function changeRequest(requestType, options) {
 
 /**
  * @method doPopsicleRequest
+ * @param requestMethod
  * @param requestValue
  * @private
  *
  * @return APIcall Promise
  */
 
-function doPopsicleRequest(requestValue) {
+function doPopsicleRequest(requestMethod, requestValue) {
 	return popsicle.request({
-		method: requestValue.requestMethod,
+		method: requestMethod,
 		url: requestValue.requestUrl,
 		headers: requestValue.nethash,
 		body: requestValue.requestMethod !== 'GET' ? requestValue.requestParams : '',
@@ -274,6 +275,7 @@ function doPopsicleRequest(requestValue) {
 
 /**
  * @method sendRequestPromise
+ * @param requestMethod
  * @param requestType
  * @param options
  * @private
@@ -281,10 +283,10 @@ function doPopsicleRequest(requestValue) {
  * @return APIcall Promise
  */
 
-function sendRequestPromise(requestType, options) {
+function sendRequestPromise(requestMethod, requestType, options) {
 	if (checkRequest.call(this, requestType, options) !== 'NOACTION') {
 		const requestValues = changeRequest.call(this, requestType, options);
-		return doPopsicleRequest.call(this, requestValues);
+		return doPopsicleRequest.call(this, requestMethod, requestValues);
 	}
 	return new Promise(((resolve) => {
 		resolve({ done: 'done' });
