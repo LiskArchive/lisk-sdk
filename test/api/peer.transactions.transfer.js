@@ -142,6 +142,7 @@ describe('POST /peer/transactions', function () {
 
 		addTransaction(trs, function (err, res) { expect(err).to.not.exist;
 			var transactionId = res.transactionId;
+
 			node.onNewBlock(function (err) {
 				getTransactionById(transactionId, function (err, res) {
 					expect(err).to.not.exist;

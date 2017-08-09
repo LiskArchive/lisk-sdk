@@ -242,7 +242,7 @@ Transfer.prototype.dbRead = function (raw) {
 /**
  * Checks if asset exists, if so, returns transfer table promise, otherwise returns null.
  * @param {transaction} trs
- * @return {Object} {table:signatures, values: publicKey and transaction id} or null.
+ * @return {Object} {table:transfer, values: data and transactionId} or null.
  */
 Transfer.prototype.dbSave = function (trs) {
 	if (trs.asset && trs.asset.data) {

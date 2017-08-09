@@ -160,6 +160,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: '0'
 			};
+
 			expect(transfer.calculateFee.call(transaction, trs)).to.equal(node.constants.fees.send + node.constants.fees.data);
 		});
 	});
@@ -215,6 +216,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: data
 			};
+
 			expect(transfer.getBytes(trs)).to.eql(Buffer.from(data, 'utf8'));
 		});
 	});
@@ -292,9 +294,9 @@ describe('transfer', function () {
 					expect(err).to.not.exist;
 
 					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
-						expect(err).to.not.exist;
-
 						var balanceAfter = new bignum(accountAfter.balance.toString());
+
+						expect(err).to.not.exist;
 						expect(balanceAfter.plus(amount).toString()).to.equal(balanceBefore.toString());
 						applyTransaction(validTransaction, validSender, done);
 					});
@@ -321,6 +323,7 @@ describe('transfer', function () {
 		it('should remove blockId from trs', function () {
 			var trs = _.cloneDeep(validTransaction);
 			trs.blockId = '9314232245035524467';
+
 			expect(transfer.objectNormalize(trs)).to.not.have.key('blockId');
 		});
 
@@ -329,6 +332,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: '123'
 			};
+
 			expect(transfer.objectNormalize(trs).asset).to.eql(trs.asset);
 		});
 
@@ -337,6 +341,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: null 
 			};
+
 			expect(transfer.objectNormalize(trs).asset).to.eql({});
 		});
 
@@ -345,6 +350,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: undefined
 			};
+
 			expect(transfer.objectNormalize(trs).asset).to.eql({});
 		});
 
@@ -353,6 +359,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: new Array(65).fill('x').join('')
 			};
+
 			expect(function () {
 				transfer.objectNormalize(trs);
 			}).to.throw('Failed to validate transfer schema: String is too long (65 chars), maximum 64');
@@ -368,6 +375,7 @@ describe('transfer', function () {
 			var rawTrs = _.cloneDeep(rawValidTransaction);
 			var data = '123';
 			rawTrs.tf_data = data;
+
 			expect(transfer.dbRead(rawTrs)).to.eql({
 				data: data
 			});
@@ -386,6 +394,7 @@ describe('transfer', function () {
 				data: data
 			};
 			var transferPromise = transfer.dbSave(trs);
+
 			expect(transferPromise.table).to.equal('transfer');
 			expect(transferPromise.fields).to.eql([
 				'data',
@@ -402,6 +411,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: undefined
 			};
+
 			expect(transfer.dbSave(trs)).to.eql(null);
 		});
 
@@ -410,6 +420,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: null
 			};
+
 			expect(transfer.dbSave(trs)).to.eql(null);
 		});
 	});
@@ -423,6 +434,7 @@ describe('transfer', function () {
 			var trs = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+
 			expect(transaction.ready(trs, vs)).to.equal(false);
 		});
 
@@ -431,9 +443,11 @@ describe('transfer', function () {
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			vs.multimin = 1;
+
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
 			trs.signatures = [transaction.multisign(validKeypair, trs)];
+
 			expect(transaction.ready(trs, vs)).to.equal(true);
 		});
 	});
