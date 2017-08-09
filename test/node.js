@@ -550,7 +550,7 @@ node.initApplication = function (cb) {
 			cb(scope);
 		});
 	});
-}
+};
 
 before(function (done) {
 	require('./common/globalBefore').waitUntilBlockchainReady(done);
