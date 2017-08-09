@@ -966,7 +966,7 @@ describe('Lisk.api()', () => {
 				limit: '123',
 				offset: 5,
 			};
-			const createObject = LSK.constructRequestData({address}, requestData);
+			const createObject = LSK.constructRequestData({ address }, requestData);
 			(createObject).should.be.eql(expectedObject);
 		});
 
@@ -975,7 +975,7 @@ describe('Lisk.api()', () => {
 			const expectedObject = {
 				address: '123',
 			};
-			const createObject = LSK.constructRequestData({address}, () => { return '123'; });
+			const createObject = LSK.constructRequestData({ address }, () => { return '123'; });
 			(createObject).should.be.eql(expectedObject);
 		});
 	});
