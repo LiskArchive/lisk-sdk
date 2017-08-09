@@ -10,7 +10,6 @@ describe('Lisk.api()', () => {
 	const localNode = 'localhost';
 	const externalNode = 'external';
 	const defaultSecret = 'secret';
-	const defaultSecondSecret = 'second secret';
 
 	describe('liskApi()', () => {
 		it('should create a new instance when using liskApi()', () => {
@@ -466,35 +465,6 @@ describe('Lisk.api()', () => {
 
 			(checkRequestAnswer).should.be.ok();
 			(checkRequestAnswer).should.be.eql(output);
-		});
-
-		it('should give the correct parameters for POST requests', () => {
-			const requestType = 'accounts/open';
-			const options = { secret: defaultSecret };
-			const thisLSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
-
-			const output = {
-				nethash: '',
-				requestMethod: 'GET',
-				requestParams: { secret: defaultSecret },
-				requestUrl: `http://${localNode}:${livePort}/api/accounts?address=18160565574430594874L`,
-			};
-
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.eql(output);
-		});
-
-		it('should give the correct parameters for PUT requests', () => {
-			const requestType = 'signatures';
-			const options = { secret: defaultSecret, secondSecret: defaultSecondSecret };
-			const thisLSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
-
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer.requestParams.transaction).should.have.property('id').which.is.a.String();
-			(checkRequestAnswer.requestParams.transaction).should.have.property('amount').which.is.a.Number();
-			(checkRequestAnswer.requestParams).should.have.property('transaction').which.is.a.Object();
 		});
 	});
 
@@ -1040,19 +1010,6 @@ describe('Lisk.api()', () => {
 			});
 		});
 
-		it('should route the request accordingly when request method is POST but GET can be used', () => {
-			return liskApi().sendRequest('accounts/open', { secret: defaultSecret }).then((result) => {
-				(result).should.be.type('object');
-				(result.account).should.be.ok();
-			});
-		});
-
-		it('should respond with error when API call is disabled', () => {
-			return liskApi().sendRequest('delegates/forging/enable', { secret: defaultSecret }).then((result) => {
-				(result.error).should.be.equal('Forging not available via offlineRequest');
-			});
-		});
-
 		it('should be able to use sendRequest as a promise for POST', () => {
 			const options = {
 				ssl: false,
@@ -1062,7 +1019,6 @@ describe('Lisk.api()', () => {
 				port: testPort,
 				bannedPeers: [],
 			};
-
 			const LSKnode = liskApi(options);
 			const secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
 			const secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';

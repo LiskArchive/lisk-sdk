@@ -160,13 +160,6 @@ LiskAPI.prototype.setSSL = function setSSL(ssl) {
 	}
 };
 
-function parseResponse(requestType, options, requestSuccess) {
-	const parser = parseOfflineRequest(requestType, options);
-	return parser.requestMethod === 'GET'
-		? requestSuccess.body
-		: parser.transactionOutputAfter(requestSuccess.body);
-}
-
 function handleTimestampIsInFutureFailures(requestType, options, result) {
 	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
 		const newOptions = {};
@@ -210,8 +203,8 @@ function optionallyCallCallback(callback, result) {
 /**
  * @method sendRequest
  * @param requestType
- * @param options
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return APIanswer Object
  */
@@ -223,7 +216,7 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 	const options = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? privateApi.checkOptions.call(this, optionsOrCallback) : {};
 
 	return privateApi.sendRequestPromise.call(this, requestType, options)
-		.then(parseResponse.bind(this, requestType, options))
+		.then(result => result.body)
 		.then(handleTimestampIsInFutureFailures.bind(this, requestType, options))
 		.catch(handleSendRequestFailures.bind(this, requestType, options))
 		.then(optionallyCallCallback.bind(this, callback));
