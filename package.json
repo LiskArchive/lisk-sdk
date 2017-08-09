@@ -2,7 +2,7 @@
   "name": "lisk-js",
   "version": "0.4.5",
   "description": "JavaScript library for sending Lisk transactions from the client or server",
-  "main": "./dist/index.js",
+  "main": "./dist-node/index.js",
   "scripts": {
     "test": "nyc mocha test/**/*.js",
     "test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test/**/*.js\" --initial",
