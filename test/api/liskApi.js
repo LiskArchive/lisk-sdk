@@ -366,7 +366,7 @@ describe('Lisk.api()', () => {
 			const options = { limit: '1', orderBy: 'rate:asc', offset: 101 };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
 
-			LSK.listStandbyDelegates('1', callback);
+			LSK.listStandbyDelegates('1', options, callback);
 
 			(LSK.sendRequest.calledWith('GET', 'delegates/', options)).should.be.true();
 			(callback.called).should.be.true();
@@ -535,16 +535,17 @@ describe('Lisk.api()', () => {
 		it('should list transactions of a defined account', () => {
 			const callback = sinon.spy();
 			const address = '12731041415715717263L';
+			const optionAddress = '15731041415715717263L';
 			const options = {
-				senderId: address,
 				recipientId: address,
+				senderId: optionAddress,
 				limit: '1',
 				offset: '2',
 				orderBy: 'timestamp:desc',
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
 
-			LSK.listTransactions(address, '1', '2', callback);
+			LSK.listTransactions(address, options, callback);
 
 			(LSK.sendRequest.calledWith('GET', 'transactions', options)).should.be.true();
 			(callback.called).should.be.true();
@@ -692,23 +693,6 @@ describe('Lisk.api()', () => {
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
-		});
-	});
-
-	describe('#generateAccount', () => {
-		const expectedRessult = {
-			privateKey:
-				'7683ba873c5e5aa6c12df564a60a93a519e2a5682cf5358a6a5b9ccc70607e96d803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
-			publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
-		};
-
-		it('should get publicKey', () => {
-			const callback = sinon.spy();
-			const secret = 'dream capable public heart sauce pilot ordinary fever final brand flock boring';
-
-			LSK.generateAccount(secret, callback);
-			(callback.called).should.be.true();
-			(callback.calledWith(expectedRessult)).should.be.true();
 		});
 	});
 

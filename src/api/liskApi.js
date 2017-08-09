@@ -226,6 +226,21 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 };
 
 /**
+ * @method constructRequestData
+ * @param providedObject
+ * @param optionsOrCallback
+ *
+ * @return request object
+ */
+
+LiskAPI.prototype.constructRequestData = function constructRequestData(
+	providedObject, optionsOrCallback,
+) {
+	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
+	return Object.assign({}, providedOptions, providedObject);
+};
+
+/**
  * @method getAddressFromSecret
  * @param secret
  *
@@ -245,153 +260,190 @@ LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
 /**
  * @method getAccount
  * @param address
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getAccount = function getAccount(address, callback) {
-	return this.sendRequest('GET', 'accounts', { address }, result => callback(result));
-};
-
-/**
- * @method generateAccount
- * @param secret
- * @param callback
- *
- * @return API object
- */
-
-LiskAPI.prototype.generateAccount = function generateAccount(secret, callback) {
-	const keys = LiskJS.crypto.getPrivateAndPublicKeyFromSecret(secret);
-	callback(keys);
-	return this;
+LiskAPI.prototype.getAccount = function getAccount(
+	address, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ address }, optionsOrCallback);
+	return this.sendRequest('GET', 'accounts', data, callback);
 };
 
 /**
  * @method listActiveDelegates
  * @param limit
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listActiveDelegates = function listActiveDelegates(limit, callback) {
-	this.sendRequest('GET', 'delegates/', { limit }, result => callback(result));
+LiskAPI.prototype.listActiveDelegates = function listActiveDelegates(
+	limit, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ limit }, optionsOrCallback);
+	return this.sendRequest('GET', 'delegates/', data, callback);
 };
 
 /**
  * @method listStandbyDelegates
  * @param limit
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listStandbyDelegates = function listStandbyDelegates(limit, callback) {
-	const standByOffset = 101;
-
-	this.sendRequest('GET', 'delegates/', { limit, orderBy: 'rate:asc', offset: standByOffset }, result => callback(result));
+LiskAPI.prototype.listStandbyDelegates = function listStandbyDelegates(
+	limit, optionsOrCallback, callbackIfOptions,
+) {
+	const offset = typeof optionsOrCallback !== 'function' && optionsOrCallback.offset ? optionsOrCallback.offset : 101;
+	const orderBy = typeof optionsOrCallback !== 'function' && optionsOrCallback.orderBy ? optionsOrCallback.orderBy : 'rate:asc';
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ limit, offset, orderBy }, optionsOrCallback);
+	return this.sendRequest('GET', 'delegates/', data, callback);
 };
 
 /**
  * @method searchDelegateByUsername
  * @param username
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.searchDelegateByUsername = function searchDelegateByUsername(username, callback) {
-	this.sendRequest('GET', 'delegates/search/', { q: username }, result => callback(result));
+LiskAPI.prototype.searchDelegateByUsername = function searchDelegateByUsername(
+	username, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ q: username }, optionsOrCallback);
+	return this.sendRequest('GET', 'delegates/search/', data, callback);
 };
 
 /**
  * @method listBlocks
- * @param amount
- * @param callback
+ * @param limit
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listBlocks = function listBlocks(amount, callback) {
-	this.sendRequest('GET', 'blocks', { limit: amount }, result => callback(result));
+LiskAPI.prototype.listBlocks = function listBlocks(
+	limit, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ limit }, optionsOrCallback);
+	return this.sendRequest('GET', 'blocks', data, callback);
 };
 
 /**
  * @method listForgedBlocks
- * @param publicKey
- * @param callback
+ * @param generatorPublicKey
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listForgedBlocks = function listForgedBlocks(publicKey, callback) {
-	this.sendRequest('GET', 'blocks', { generatorPublicKey: publicKey }, result => callback(result));
+LiskAPI.prototype.listForgedBlocks = function listForgedBlocks(
+	generatorPublicKey, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ generatorPublicKey }, optionsOrCallback);
+	return this.sendRequest('GET', 'blocks', data, callback);
 };
 
 /**
  * @method getBlock
- * @param block
- * @param callback
+ * @param height
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getBlock = function getBlock(block, callback) {
-	this.sendRequest('GET', 'blocks', { height: block }, result => callback(result));
+LiskAPI.prototype.getBlock = function getBlock(
+	height, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ height }, optionsOrCallback);
+	return this.sendRequest('GET', 'blocks', data, callback);
 };
 
 /**
  * @method listTransactions
- * @param address
- * @param limit
- * @param offset
- * @param callback
+ * @param providedAddress
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
 LiskAPI.prototype.listTransactions = function listTransactions(
-	address, limit = '20', offset = '0', callback,
+	providedAddress, optionsOrCallback, callbackIfOptions,
 ) {
-	this.sendRequest('GET', 'transactions', { senderId: address, recipientId: address, limit, offset, orderBy: 'timestamp:desc' }, result => callback(result));
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ recipientId: providedAddress }, optionsOrCallback);
+	return this.sendRequest('GET', 'transactions', data, callback);
 };
 
 /**
  * @method getTransaction
- * @param transactionId
- * @param callback
+ * @param id
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getTransaction = function getTransaction(transactionId, callback) {
-	this.sendRequest('GET', 'transactions/get', { id: transactionId }, result => callback(result));
+LiskAPI.prototype.getTransaction = function getTransaction(
+	id, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ id }, optionsOrCallback);
+	return this.sendRequest('GET', 'transactions/get', data, callback);
 };
 
 /**
  * @method listVotes
  * @param address
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listVotes = function listVotes(address, callback) {
-	this.sendRequest('GET', 'accounts/delegates', { address }, result => callback(result));
+LiskAPI.prototype.listVotes = function listVotes(
+	address, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ address }, optionsOrCallback);
+	return this.sendRequest('GET', 'accounts/delegates', data, callback);
 };
 
 /**
  * @method listVoters
  * @param publicKey
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listVoters = function listVoters(publicKey, callback) {
-	this.sendRequest('GET', 'delegates/voters', { publicKey }, result => callback(result));
+LiskAPI.prototype.listVoters = function listVoters(
+	publicKey, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ publicKey }, optionsOrCallback);
+	return this.sendRequest('GET', 'delegates/voters', data, callback);
 };
 
 /**
@@ -405,8 +457,10 @@ LiskAPI.prototype.listVoters = function listVoters(publicKey, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.sendLSK = function sendLSK(recipient, amount, secret, secondSecret, callback) {
-	this.sendRequest('POST', 'transactions', { recipientId: recipient, amount, secret, secondSecret }, response => callback(response));
+LiskAPI.prototype.sendLSK = function sendLSK(
+	recipient, amount, secret, secondSecret, callback,
+) {
+	return this.sendRequest('POST', 'transactions', { recipientId: recipient, amount, secret, secondSecret }, callback);
 };
 
 /**
@@ -419,21 +473,24 @@ LiskAPI.prototype.sendLSK = function sendLSK(recipient, amount, secret, secondSe
 LiskAPI.prototype.listMultisignatureTransactions = function listMultisignatureTransactions(
 	callback,
 ) {
-	this.sendRequest('GET', 'transactions/multisignatures', result => callback(result));
+	return this.sendRequest('GET', 'transactions/multisignatures', callback);
 };
 
 /**
  * @method getMultisignatureTransaction
- * @param transactionId
- * @param callback
+ * @param id
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
 LiskAPI.prototype.getMultisignatureTransaction = function getMultisignatureTransaction(
-	transactionId, callback,
+	id, optionsOrCallback, callbackIfOptions,
 ) {
-	this.sendRequest('GET', 'transactions/multisignatures/get', { id: transactionId }, result => callback(result));
+	const callback = callbackIfOptions || optionsOrCallback;
+	const data = this.constructRequestData({ id }, optionsOrCallback);
+	this.sendRequest('GET', 'transactions/multisignatures/get', data, callback);
 };
 
 LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransaction(
