@@ -186,91 +186,42 @@ function serialiseHttpData(data) {
 }
 
 /**
- * @method checkRequest
+ * @method createRequestObject
+ * @param requestMethod
  * @param requestType
  * @param options
  * @private
  *
- * @return method string
+ * @return request Object
  */
 
-function checkRequest(requestType, options) {
-	return this.parseOfflineRequests(requestType, options).requestMethod;
-}
+function createRequestObject(requestMethod, requestType, options) {
+	const requestUrl = requestMethod === 'GET'
+		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHttpData.call(this, options, requestMethod)}`
+		: `${getFullUrl.call(this)}/api/${requestType}`;
 
-function transformGETRequest(baseRequestObject, requestType, options) {
-	const requestMethod = 'GET';
-	const requestUrlBase = `${getFullUrl.call(this)}/api/${requestType}`;
-	const requestUrl = Object.keys(options).length
-		? requestUrlBase + serialiseHttpData.call(this, options, requestMethod)
-		: requestUrlBase;
-	const requestParams = options;
-	return Object.assign({}, baseRequestObject, {
-		requestMethod,
-		requestUrl,
-		requestParams,
-	});
-}
-
-function transformPUTOrPOSTRequest(baseRequestObject, requestType, options) {
-	return (requestType === 'transactions' || requestType === 'signatures')
-		? Object.assign({}, {
-			requestUrl: `${getFullUrl.call(this)}/peer/${requestType}`,
-			nethash: this.nethash,
-			requestMethod: 'POST',
-			requestParams: options,
-		})
-		: Object.assign({}, baseRequestObject, {
-			requestUrl: `${getFullUrl.call(this)}/api/${requestType}`,
-			requestMethod: 'GET',
-			requestParams: options,
-		});
-}
-
-/**
- * @method changeRequest
- * @param requestType
- * @param options
- * @private
- *
- * @return httpRequest object
- */
-
-function changeRequest(requestType, options) {
-	const defaultRequestObject = {
-		requestMethod: '',
-		requestUrl: '',
-		nethash: '',
-		requestParams: '',
+	return {
+		method: requestMethod,
+		url: requestUrl,
+		headers: this.nethash,
+		body: requestMethod === 'GET' ? {} : options,
 	};
-
-	switch (checkRequest.call(this, requestType, options)) {
-	case 'GET':
-		return transformGETRequest.call(this, defaultRequestObject, requestType, options);
-	case 'PUT':
-	case 'POST':
-		return transformPUTOrPOSTRequest.call(this, defaultRequestObject, requestType, options);
-	default:
-		return defaultRequestObject;
-	}
 }
 
 /**
  * @method doPopsicleRequest
  * @param requestMethod
- * @param requestValue
+ * @param requestType
+ * @param options
  * @private
  *
  * @return APIcall Promise
  */
 
-function doPopsicleRequest(requestMethod, requestValue) {
-	return popsicle.request({
-		method: requestMethod,
-		url: requestValue.requestUrl,
-		headers: requestValue.nethash,
-		body: requestValue.requestMethod !== 'GET' ? requestValue.requestParams : '',
-	}).use(popsicle.plugins.parse(['json', 'urlencoded']));
+function doPopsicleRequest(requestMethod, requestType, options) {
+	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
+
+	return popsicle.request(requestObject).use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
 
 /**
@@ -284,13 +235,7 @@ function doPopsicleRequest(requestMethod, requestValue) {
  */
 
 function sendRequestPromise(requestMethod, requestType, options) {
-	if (checkRequest.call(this, requestType, options) !== 'NOACTION') {
-		const requestValues = changeRequest.call(this, requestType, options);
-		return doPopsicleRequest.call(this, requestMethod, requestValues);
-	}
-	return new Promise(((resolve) => {
-		resolve({ done: 'done' });
-	}));
+	return doPopsicleRequest.call(this, requestMethod, requestType, options);
 }
 
 module.exports = {
@@ -304,7 +249,6 @@ module.exports = {
 	checkOptions,
 	sendRequestPromise,
 	doPopsicleRequest,
-	changeRequest,
-	checkRequest,
 	serialiseHttpData,
+	createRequestObject,
 };
