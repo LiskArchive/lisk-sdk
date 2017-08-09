@@ -55,7 +55,7 @@ var validAccount = {
 
 describe('account', function () {
 
-	var account; 
+	var account;
 	var accountLogic;
 	var accountModuleDependencies;
 
@@ -105,7 +105,6 @@ describe('account', function () {
 				result.transactionModule.onBind({
 					accounts: __accountModule,
 					transactions: result.transactionModule,
-					//loader: 
 				});
 
 				account.onBind({
@@ -114,7 +113,7 @@ describe('account', function () {
 					transactions: result.transactionModule
 				});
 
-				accountModuleDependencies = result; 
+				accountModuleDependencies = result;
 				done();
 			}, {
 				logic: {
@@ -427,7 +426,7 @@ describe('account', function () {
 				});
 			});
 
-			it('should return top 10 accounts with respect to highest balance', function (done) {
+			it('should return top 10 accounts ordered by balance desc', function (done) {
 				var limit = 10;
 				account.internal.top({
 					limit: limit

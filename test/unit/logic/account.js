@@ -52,7 +52,7 @@ var validAccount = {
 // - Add test cases for createTables function
 describe('account', function () {
 
-	var account; 
+	var account;
 
 	before(function (done) {
 		modulesLoader.initLogicWithDb(AccountLogic, function (err, __account) {
@@ -130,7 +130,7 @@ describe('account', function () {
 		it('should return null for non-existent account', function (done) {
 			account.get({address: 'invalid address'}, function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(null);
+				expect(res).to.equal(null);
 				done();
 			});
 		});
@@ -175,11 +175,9 @@ describe('account', function () {
 			});
 		});
 
-		it('should ignore limit if its < 1', function (done) {
+		it('should ignore limit when below 1', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
 			});
 
 			account.getAll({
@@ -192,11 +190,9 @@ describe('account', function () {
 			});
 		});
 
-		it('should ignore offset if its < 1', function (done) {
+		it('should ignore offset when below 1', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
 			});
 
 			account.getAll({
@@ -265,11 +261,9 @@ describe('account', function () {
 			});
 		});
 
-		it('should fetch results with limit of 49', function (done) {
+		it('should fetch results with limit of 50', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
 			}).slice(0, 50);
 
 			account.getAll({
@@ -283,11 +277,9 @@ describe('account', function () {
 			});
 		});
 
-		it('should ignore limit when its value is negative', function (done) {
+		it('should ignore negative limit', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
 			});
 
 			account.getAll({
@@ -302,9 +294,7 @@ describe('account', function () {
 
 		it('should sort the result according to field type in ASC order', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
 			});
 			account.getAll({sort: {username: 1}}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
@@ -315,9 +305,7 @@ describe('account', function () {
 
 		it('should sort the result according to field type in DESC', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').reverse().map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
 			});
 			account.getAll({sort: {username: -1}}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
