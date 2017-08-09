@@ -3,6 +3,7 @@
  * @module lisk
  * @main lisk
  */
+import 'babel-polyfill';
 import naclFactory from 'js-nacl';
 import buffer from 'buffer';
 import crypto from './transactions/crypto';
