@@ -95,5 +95,12 @@ describe('signature.js', () => {
 				});
 			});
 		});
+
+		describe('should not have signSignature itself', () => {
+			it('should not have signSignature property', () => {
+				const sign = createSignature('secret', 'second secret');
+				(sign).should.not.have.property('signSignature');
+			});
+		});
 	});
 });
