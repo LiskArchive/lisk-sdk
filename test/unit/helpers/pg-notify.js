@@ -100,15 +100,15 @@ describe('helpers/pg-notify', function () {
 				var err_msgs = ['password authentication failed for user "invalidUser"', 'role "invalidUser" does not exist'];
 				// Error should propagate
 				expect(err).to.be.an('error');
-				expect(err_msgs.indexOf(err.message)).to.not.equal(-1);
+				expect(err_msgs).to.include(err.message);
 				// First try
 				expect(logger.error.args[0][0]).to.equal('pg-notify: Error connecting');
 				expect(logger.error.args[0][1]).to.be.an('error');
-				expect(err_msgs.indexOf(logger.error.args[0][1].message)).to.not.equal(-1);
+				expect(err_msgs).to.include(logger.error.args[0][1].message);
 				// Retry
 				expect(logger.error.args[1][0]).to.equal('pg-notify: Initial connection failed');
 				expect(logger.error.args[1][1]).to.be.an('error');
-				expect(err_msgs.indexOf(logger.error.args[1][1].message)).to.not.equal(-1);
+				expect(err_msgs).to.include(logger.error.args[1][1].message);
 				done();
 			});
 		});
@@ -194,7 +194,7 @@ describe('helpers/pg-notify', function () {
 					for (var i = errors.length - 1; i >= 0; i--) {
 						expect(errors[i][0]).to.equal('pg-notify: Error connecting');
 						expect(errors[i][1]).to.be.an('error');
-						expect(err_msgs.indexOf(errors[i][1].message)).to.not.equal(-1);
+						expect(err_msgs).to.include(errors[i][1].message);
 					}
 
 					// Last error - function should fail to reconnect
