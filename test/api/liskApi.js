@@ -280,122 +280,6 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#checkRequest', () => {
-		describe('should identify GET requests', () => {
-			it('api/loader/status', () => {
-				const requestType = 'api/loader/status';
-				const options = '';
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('GET');
-			});
-
-			it('api/loader/status/sync', () => {
-				const requestType = 'api/loader/status/sync';
-				const options = '';
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('GET');
-			});
-
-			it('api/loader/status/ping', () => {
-				const requestType = 'api/loader/status/ping';
-				const options = '';
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('GET');
-			});
-
-			it('api/transactions', () => {
-				const requestType = 'api/transactions';
-				const options = { blockId: '123', senderId: '123' };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('GET');
-			});
-		});
-
-		describe('should identify POST requests', () => {
-			it('accounts/generatePublicKey', () => {
-				const requestType = 'accounts/generatePublicKey';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('POST');
-			});
-			it('accounts/open', () => {
-				const requestType = 'accounts/open';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('POST');
-			});
-			it('multisignatures/sign', () => {
-				const requestType = 'multisignatures/sign';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('POST');
-			});
-		});
-
-		describe('should identify PUT requests', () => {
-			it('accounts/delegates', () => {
-				const requestType = 'accounts/delegates';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('PUT');
-			});
-
-			it('signatures', () => {
-				const requestType = 'signatures';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('PUT');
-			});
-
-			it('transactions', () => {
-				const requestType = 'transactions';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('PUT');
-			});
-		});
-
-		describe('should identify NOACTION requests', () => {
-			it('enable forging', () => {
-				const requestType = 'delegates/forging/enable';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('NOACTION');
-			});
-
-			it('uninstall dapp', () => {
-				const requestType = 'dapps/uninstall';
-				const options = { secret: defaultSecret };
-				const checkRequestAnswer = privateApi.checkRequest.call(LSK, requestType, options);
-
-				(checkRequestAnswer).should.be.ok();
-				(checkRequestAnswer).should.be.equal('NOACTION');
-			});
-		});
-	});
-
 	describe('#checkOptions', () => {
 		it('should not accept falsy options like undefined', () => {
 			(function sendRequestWithUndefinedLimit() {
@@ -407,64 +291,6 @@ describe('Lisk.api()', () => {
 			(function sendRequestWithNaNLimit() {
 				liskApi().sendRequest('GET', 'delegates/', { limit: NaN }, () => {});
 			}).should.throw('parameter value "limit" should not be NaN');
-		});
-	});
-
-	describe('#changeRequest', () => {
-		it('should give the correct parameters for GET requests', () => {
-			const requestType = 'transactions';
-			const options = { blockId: '123', senderId: '123' };
-			const thisLSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
-
-			const output = {
-				nethash: '',
-				requestMethod: 'GET',
-				requestParams: {
-					blockId: '123',
-					senderId: '123',
-				},
-				requestUrl: `http://${localNode}:${livePort}/api/transactions?blockId=123&senderId=123`,
-			};
-
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.eql(output);
-		});
-
-		it('should give the correct parameters for GET requests with parameters', () => {
-			const requestType = 'delegates/search/';
-			const options = { q: 'oliver' };
-			const thisLSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
-
-			const output = {
-				nethash: '',
-				requestMethod: 'GET',
-				requestParams: {
-					q: 'oliver',
-				},
-				requestUrl: `http://${localNode}:${livePort}/api/delegates/search/?q=oliver`,
-			};
-
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.eql(output);
-		});
-
-		it('should give the correct parameters for NOACTION requests', () => {
-			const requestType = 'delegates/forging/enable';
-			const options = { secret: defaultSecret };
-			const thisLSK = liskApi({ node: localNode });
-			const checkRequestAnswer = privateApi.changeRequest.call(thisLSK, requestType, options);
-
-			const output = {
-				nethash: '',
-				requestMethod: '',
-				requestParams: '',
-				requestUrl: '',
-			};
-
-			(checkRequestAnswer).should.be.ok();
-			(checkRequestAnswer).should.be.eql(output);
 		});
 	});
 
@@ -1001,7 +827,7 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#sendRequest with promise @now', () => {
+	describe('#sendRequest with promise', () => {
 		it('should be able to use sendRequest as a promise for GET', () => {
 			return liskApi().sendRequest('GET', 'blocks/getHeight', {}).then((result) => {
 				(result).should.be.type('object');
@@ -1097,6 +923,50 @@ describe('Lisk.api()', () => {
 			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {
 				(result.success).should.be.true();
 			});
+		});
+	});
+
+	describe('#createRequestObject', () => {
+		const options = { limit: 5, offset: 3, details: 'moredetails' };
+		const LSKAPI = liskApi({ node: 'localhost' });
+		it('should create a valid request Object for GET request', () => {
+			const requestObject = privateApi.createRequestObject.call(LSKAPI, 'GET', 'transaction', options);
+			const expectedObject = {
+				method: 'GET',
+				url: 'http://localhost:8000/api/transaction?limit=5&offset=3&details=moredetails',
+				headers: {
+					'Content-Type': 'application/json',
+					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					os: 'lisk-js-api',
+					version: '1.0.0',
+					minVersion: '>=0.5.0',
+					port: 8000,
+				},
+				body: {},
+			};
+
+			(requestObject).should.be.eql(expectedObject);
+		});
+
+		it('should create a valid request Object for POST request', () => {
+			const requestObject = privateApi.createRequestObject.call(LSKAPI, 'POST', 'transaction', options);
+			const expectedObject = {
+				method: 'POST',
+				url: 'http://localhost:8000/api/transaction',
+				headers: {
+					'Content-Type': 'application/json',
+					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					os: 'lisk-js-api',
+					version: '1.0.0',
+					minVersion: '>=0.5.0',
+					port: 8000,
+				},
+				body: { limit: 5, offset: 3, details: 'moredetails' },
+			};
+
+			(requestObject).should.be.eql(expectedObject);
 		});
 	});
 });
