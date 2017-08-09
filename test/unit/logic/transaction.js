@@ -1,14 +1,16 @@
 'use strict';/*eslint*/
 
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');
 var async = require('async');
 
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
+
+var node = require('./../../node.js');
+var ed = require('../../../helpers/ed');
+var bignum = require('../../../helpers/bignum.js');
+
 var transactionTypes = require('../../../helpers/transactionTypes');
 var slots = require('../../../helpers/slots');
 

@@ -79,16 +79,16 @@ Transfer.prototype.process = function (trs, sender, cb) {
 /**
  * Creates a buffer with asset.transfer.data.
  * @param {transaction} trs
- * @return {Array} Buffer
- * @throws {e} error
+ * @return {buffer} buf
+ * @throws {error} error
  */
 Transfer.prototype.getBytes = function (trs) {
 	var buf;
 
 	try {
 		buf = (trs.asset && trs.asset.data) ? Buffer.from(trs.asset.data, 'utf8') : null;
-	} catch (e) {
-		throw e;
+	} catch (ex) {
+		throw ex;
 	}
 
 	return buf;
@@ -225,11 +225,15 @@ Transfer.prototype.dbFields = [
 	'transactionId'
 ];
 
+/**
+ * @typedef transferAsset
+ * @property {String} data
+ */
 
 /**
  * Checks if asset exists, if so, returns value, otherwise returns null.
  * @param {Object} raw
- * @return {null}
+ * @return {transferAsset|null}
  */
 Transfer.prototype.dbRead = function (raw) {
 	if (raw.tf_data) {
@@ -240,9 +244,16 @@ Transfer.prototype.dbRead = function (raw) {
 };
 
 /**
+ * @typedef trsPromise
+ * @property {string} table
+ * @property {array} fields
+ * @property {object} values
+ */
+
+/**
  * Checks if asset exists, if so, returns transfer table promise, otherwise returns null.
  * @param {transaction} trs
- * @return {Object} {table:transfer, values: data and transactionId} or null.
+ * @return {trsPromise|null}
  */
 Transfer.prototype.dbSave = function (trs) {
 	if (trs.asset && trs.asset.data) {
@@ -250,8 +261,8 @@ Transfer.prototype.dbSave = function (trs) {
 
 		try {
 			data = Buffer.from(trs.asset.data, 'utf8');
-		} catch (e) {
-			throw e;
+		} catch (ex) {
+			throw ex;
 		}
 
 		return {
