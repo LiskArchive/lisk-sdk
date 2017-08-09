@@ -953,4 +953,30 @@ describe('Lisk.api()', () => {
 			(requestObject).should.be.eql(expectedObject);
 		});
 	});
+
+	describe('#constructRequestData @now', () => {
+		it('should construct optional request data for API helper functions', () => {
+			const address = '123';
+			const requestData = {
+				limit: '123',
+				offset: 5,
+			};
+			const expectedObject = {
+				address: '123',
+				limit: '123',
+				offset: 5,
+			};
+			const createObject = LSK.constructRequestData({address}, requestData);
+			(createObject).should.be.eql(expectedObject);
+		});
+
+		it('should construct with variable and callback', () => {
+			const address = '123';
+			const expectedObject = {
+				address: '123',
+			};
+			const createObject = LSK.constructRequestData({address}, () => { return '123'; });
+			(createObject).should.be.eql(expectedObject);
+		});
+	});
 });
