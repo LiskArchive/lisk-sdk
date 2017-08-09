@@ -76,7 +76,7 @@ PeersUpdateRules.prototype.internal = {
 			return cb('Cannot remove peer without nonce');
 		}
 		if (!connectionsTable.getConnectionId(peer.nonce)) {
-			return cb('Peer with specified nonce has no active connection');
+			return cb('Peer with nonce has no connection established');
 		}
 		if (!connectionId || connectionId !== connectionsTable.getConnectionId(peer.nonce)) {
 			return cb('Attempt to remove peer from different or empty connection id');

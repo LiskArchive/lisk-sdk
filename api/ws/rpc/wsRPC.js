@@ -59,7 +59,7 @@ var wsRPC = {
 	 */
 	getServerAuthKey: function () {
 		if (!wsServer) {
-			throw new Error('WS server has\'t been initialized!');
+			throw new Error('WS server hasn\'t been initialized!');
 		}
 		return wsServer.socketCluster.options.authKey;
 	}

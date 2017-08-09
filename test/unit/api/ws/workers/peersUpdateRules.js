@@ -167,9 +167,9 @@ describe('PeersUpdateRules', function () {
 			expect(actionCb.calledWith('Cannot remove peer without nonce')).to.be.ok;
 		});
 
-		it('should return an error when attempt to remove peer which was not added previously', function () {
+		it('should return an error when attempting to remove peer which was not added previously', function () {
 			peersUpdateRules.internal.remove(validPeer, validConnectionId, actionCb);
-			expect(actionCb.calledWith('Peer of nonce has no connection established')).to.be.ok;
+			expect(actionCb.calledWith('Peer with nonce has no connection established')).to.be.ok;
 		});
 
 		describe('after peer is added', function () {
@@ -282,7 +282,7 @@ describe('PeersUpdateRules', function () {
 			});
 		});
 
-		it('should return an error when attempt to update peer which has no connection established', function (done) {
+		it('should return an error when attempting to update peer which has no connection established', function (done) {
 			peersUpdateRules.external.update(minimalValidUpdateRequest, function (err, res) {
 				expect(err).to.equal('Connection id did not match with corresponding peer');
 				done();

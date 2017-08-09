@@ -44,17 +44,17 @@ describe('wsRPC', function () {
 
 		it('getter should return throw an error when setting server to null', function () {
 			wsRPC.setServer(null);
-			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server hasn\'t been initialized!');
 		});
 
 		it('getter should return throw an error when setting server to 0', function () {
 			wsRPC.setServer(0);
-			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server hasn\'t been initialized!');
 		});
 
 		it('getter should return throw an error when setting server to undefined', function () {
 			wsRPC.setServer(undefined);
-			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server hasn\'t been initialized!');
 		});
 
 		it('should return server instance after setting it', function () {
@@ -75,7 +75,7 @@ describe('wsRPC', function () {
 		});
 
 		it('should raise and error when wsSerer is not set', function () {
-			expect(wsRPC.getServer).to.throw('WS server has\'t been initialized!');
+			expect(wsRPC.getServer).to.throw('WS server hasn\'t been initialized!');
 		});
 
 		it('should return wsSerer set before', function () {
