@@ -288,8 +288,10 @@ Delegate.prototype.dbRead = function (raw) {
 Delegate.prototype.dbTable = 'delegates';
 
 Delegate.prototype.dbFields = [
-	'username',
-	'transactionId'
+	'tx_id',
+	'name',
+	'pk',
+	'address'
 ];
 
 /**
@@ -302,8 +304,10 @@ Delegate.prototype.dbSave = function (trs) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			username: trs.asset.delegate.username,
-			transactionId: trs.id
+			tx_id: trs.id,
+			name: trs.asset.delegate.username,
+			pk: Buffer.from(trs.senderPublicKey, 'hex'),
+			address: trs.senderId
 		}
 	};
 };

@@ -112,5 +112,14 @@ module.exports = {
 
 	roundTime: function (date) {
 		return Math.floor(date.getTime() / 1000) * 1000;
+	},
+
+	/**
+	 * Calculates round number from the given height
+	 * @param {number} height Height from which round is calculated
+	 * @return {number} Round
+	 */
+	calcRound: function (height) {
+		return Math.ceil(height / this.delegates);
 	}
 };

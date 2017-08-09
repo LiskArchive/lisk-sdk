@@ -5,6 +5,9 @@ var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var _ = require('lodash');
+var BSON = require('bson');
+
+var bson = new BSON();
 
 // Private fields
 var modules, library, self, __private = {};
@@ -100,6 +103,7 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
 Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
+	params.normalized = false;
 
 	var originalLimit = params.limit;
 
@@ -151,6 +155,9 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 			}
 		},
 		function sendToPeer (peers, waterCb) {
+			if (options.data.block) {
+				options.data.block = bson.deserialize(options.data.block);
+			}
 			library.logger.debug('Begin broadcast', options);
 			if (params.limit === self.config.peerLimit) {
 				peers = peers.slice(0, self.config.broadcastLimit);

@@ -40,7 +40,16 @@ var modulesLoader = new function () {
 		schema: new z_schema(),
 		ed: ed,
 		bus: {
-			message: function () {}
+			argsMessages: [],
+			message: function () {
+				Array.prototype.push.apply(this.argsMessages, arguments);
+			},
+			getMessages: function () {
+				return this.argsMessages;
+			},
+			clearMessages: function () {
+				this.argsMessages = [];
+			}
 		},
 		nonce: randomString.generate(16),
 		dbSequence: new Sequence({
@@ -180,7 +189,6 @@ var modulesLoader = new function () {
 			{loader: require('../../modules/loader')},
 			{multisignatures: require('../../modules/multisignatures')},
 			{peers: require('../../modules/peers')},
-			{rounds: require('../../modules/rounds')},
 			{signatures: require('../../modules/signatures')},
 			{system: require('../../modules/system')},
 			{transactions: require('../../modules/transactions')},
