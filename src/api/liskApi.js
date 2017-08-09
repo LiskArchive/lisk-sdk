@@ -39,7 +39,6 @@
  * @class lisk.api()
  * @main lisk
  */
-import parseOfflineRequest from './parseTransaction';
 import privateApi from './privateApi';
 import config from '../../config.json';
 import { extend } from './utils';
@@ -81,7 +80,6 @@ function LiskAPI(providedOptions = {}) {
 	this.port = (options.port === '' || options.port)
 		? options.port
 		: getDefaultPort(options);
-	this.parseOfflineRequests = parseOfflineRequest;
 	this.nethash = this.getNethash(options.nethash);
 }
 
