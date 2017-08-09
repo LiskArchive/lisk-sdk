@@ -287,6 +287,13 @@ describe('transaction', function () {
 		});
 
 		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
+			var trsBytesFromLogic = transactionLogic.getBytes(transaction);
+			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(transaction);
+
+			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
+		});
+
+		it('should return same result of getBytes using /logic/transaction and lisk-js package (with data field)', function () {
 			var trs = _.cloneDeep(transaction);
 			trs.asset = {data: '123'};
 
