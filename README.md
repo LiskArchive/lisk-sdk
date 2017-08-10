@@ -3,7 +3,7 @@ Lisky allows you to communicate with a remote or local node and carry out Lisk-r
 
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisky/master)](https://jenkins.lisk.io/job/lisky/job/master/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-[![GitHub release](https://img.shields.io/badge/version-0.1.0-blue.svg)](#)
+[![GitHub release](https://img.shields.io/badge/version-0.1.1-blue.svg)](#)
 
 ## Prerequisites
 
@@ -23,7 +23,6 @@ Clone the Lisky repository using Git and install the dependencies:
 ```sh
 $ git clone https://github.com/LiskHQ/lisky.git
 $ cd lisky
-$ git checkout 0.1.0
 $ npm install
 ```
 Before running the executable you will need to build Lisky:
@@ -72,7 +71,7 @@ $ lisky
 |_|_|___/_|\_\\__, |
               |___/
 
-Running v0.1.0. Copyright (C) 2017 Lisk Foundation
+Running v0.1.1. Copyright (C) 2017 Lisk Foundation
 Type `help` to get started.
 
 lisky> help
