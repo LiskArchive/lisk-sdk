@@ -10,6 +10,7 @@ describe('Lisk.api()', () => {
 	const localNode = 'localhost';
 	const externalNode = 'external';
 	const defaultSecret = 'secret';
+	const defaultData = 'testData';
 	const GET = 'GET';
 	const POST = 'POST';
 
@@ -931,16 +932,13 @@ describe('Lisk.api()', () => {
 	describe('#createRequestObject', () => {
 		let options;
 		let LSKAPI;
+		let expectedObject;
 		beforeEach(() => {
-			options = { limit: 5, offset: 3, details: 'moredetails' };
-			LSKAPI = liskApi({ node: 'localhost' });
-		});
-
-		it('should create a valid request Object for GET request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, GET, 'transaction', options);
-			const expectedObject = {
+			options = { limit: 5, offset: 3, details: defaultData };
+			LSKAPI = liskApi({ node: localNode });
+			expectedObject = {
 				method: GET,
-				url: 'http://localhost:8000/api/transaction?limit=5&offset=3&details=moredetails',
+				url: 'http://localhost:8000/api/transaction',
 				headers: {
 					'Content-Type': 'application/json',
 					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
@@ -952,66 +950,33 @@ describe('Lisk.api()', () => {
 				},
 				body: {},
 			};
+		});
+
+		it('should create a valid request Object for GET request', () => {
+			const requestObject = privateApi.createRequestObject.call(LSKAPI, GET, 'transaction', options);
+			expectedObject.url = 'http://localhost:8000/api/transaction?limit=5&offset=3&details=testData';
 
 			(requestObject).should.be.eql(expectedObject);
 		});
 
 		it('should create a valid request Object for POST request', () => {
 			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction', options);
-			const expectedObject = {
-				method: POST,
-				url: 'http://localhost:8000/api/transaction',
-				headers: {
-					'Content-Type': 'application/json',
-					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					os: 'lisk-js-api',
-					version: '1.0.0',
-					minVersion: '>=0.5.0',
-					port: 8000,
-				},
-				body: { limit: 5, offset: 3, details: 'moredetails' },
-			};
+			expectedObject.body = { limit: 5, offset: 3, details: 'testData' };
+			expectedObject.method = POST;
 
 			(requestObject).should.be.eql(expectedObject);
 		});
 
 		it('should create a valid request Object for POST request without options', () => {
 			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction');
-			const expectedObject = {
-				method: POST,
-				url: 'http://localhost:8000/api/transaction',
-				headers: {
-					'Content-Type': 'application/json',
-					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					os: 'lisk-js-api',
-					version: '1.0.0',
-					minVersion: '>=0.5.0',
-					port: 8000,
-				},
-				body: {},
-			};
+			expectedObject.method = POST;
 
 			(requestObject).should.be.eql(expectedObject);
 		});
 
 		it('should create a valid request Object for undefined request without options', () => {
 			const requestObject = privateApi.createRequestObject.call(LSKAPI, undefined, 'transaction');
-			const expectedObject = {
-				method: undefined,
-				url: 'http://localhost:8000/api/transaction',
-				headers: {
-					'Content-Type': 'application/json',
-					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					os: 'lisk-js-api',
-					version: '1.0.0',
-					minVersion: '>=0.5.0',
-					port: 8000,
-				},
-				body: {},
-			};
+			expectedObject.method = undefined;
 
 			(requestObject).should.be.eql(expectedObject);
 		});

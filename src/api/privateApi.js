@@ -1,6 +1,8 @@
 import * as popsicle from 'popsicle';
 import utils from './utils';
 
+const GET = 'GET';
+
 /**
  * @method netHashOptions
  * @return {object}
@@ -197,7 +199,7 @@ function serialiseHttpData(data) {
 
 function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
-	const url = method === 'GET'
+	const url = method === GET
 		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHttpData.call(this, options)}`
 		: `${getFullUrl.call(this)}/api/${requestType}`;
 
@@ -205,7 +207,7 @@ function createRequestObject(method, requestType, providedOptions) {
 		method,
 		url,
 		headers: this.nethash,
-		body: method === 'GET' ? {} : options,
+		body: method === GET ? {} : options,
 	};
 }
 
