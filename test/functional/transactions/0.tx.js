@@ -55,7 +55,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string should fail', function (done) {
+			it('using empty string should fail', function (done) {
 				sendTransaction('', function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
@@ -63,7 +63,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				sendTransaction([], function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
@@ -80,7 +80,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong type values', function () {
+		describe('sending transactions with invalid type values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.type = null;
@@ -126,7 +126,18 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string should fail', function (done) {
+			it('using empty string should fail', function (done) {
+				transaction.type = '';
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Unknown transaction type ');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('using not empty string should fail', function (done) {
 				transaction.type = '1';
 
 				sendTransaction(transaction, function (err, res) {
@@ -137,7 +148,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.type = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -148,7 +159,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.type = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -160,7 +171,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 
 			it('using unsupported type should fail', function (done) {
-				transaction.type = Number.MAX_SAFE_INTEGER;
+				transaction.type = 8;
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -171,7 +182,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong amount values', function () {
+		describe('sending transactions with invalid amount values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.amount = null;
@@ -217,7 +228,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string should fail', function (done) {
+			it('using empty string should fail', function (done) {
 				transaction.amount = '';
 
 				sendTransaction(transaction, function (err, res) {
@@ -228,7 +239,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.amount = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -239,7 +250,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.amount = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -295,7 +306,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong fee values', function () {
+		describe('sending transactions with invalid fee values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.fee = null;
@@ -352,7 +363,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.fee = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -363,7 +374,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.fee = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -408,7 +419,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 
 			it('using more than maximum should fail', function (done) {
-				transaction.fee = Number(new BigNumber(constants.totalAmount)+ 1);
+				transaction.fee = Number(new BigNumber(constants.totalAmount) + 1);
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
@@ -419,7 +430,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong recipientId values', function () {
+		describe('sending transactions with invalid recipientId values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.recipientId = null;
@@ -487,7 +498,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.recipientId = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -498,7 +509,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.recipientId = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -509,7 +520,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string with bad format should fail', function (done) {
+			it('using malformed address should fail', function (done) {
 				transaction.recipientId = '15738697512051092602.L';
 
 				sendTransaction(transaction, function (err, res) {
@@ -531,7 +542,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string shorter than expected should fail', function (done) {
+			it('using address shorter than expected should fail', function (done) {
 				transaction.recipientId = '';
 
 				sendTransaction(transaction, function (err, res) {
@@ -542,8 +553,8 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string with good format but larger than expected should fail', function (done) {
-				transaction.recipientId = Array(22).fill('1').join('')+'L';
+			it('using address with good format but longer than expected should fail', function (done) {
+				transaction.recipientId = Array(22).fill('1').join('') + 'L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -554,7 +565,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong timestamp values', function () {
+		describe('sending transactions with invalid timestamp values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.timestamp = null;
@@ -600,7 +611,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string should fail', function (done) {
+			it('using empty string should fail', function (done) {
 				transaction.timestamp = '';
 
 				sendTransaction(transaction, function (err, res) {
@@ -611,7 +622,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.timestamp = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -622,7 +633,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.timestamp = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -667,7 +678,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong senderPublicKey values', function () {
+		describe('sending transactions with invalid senderPublicKey values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.senderPublicKey = null;
@@ -735,7 +746,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.senderPublicKey = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -746,7 +757,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.senderPublicKey = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -757,19 +768,19 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string with bad format should fail', function (done) {
-				transaction.senderPublicKey = '15738697512051092602.L';
+			it('using empty string should fail', function (done) {
+				transaction.senderPublicKey = '';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format publicKey: '+transaction.senderPublicKey);
+					node.expect(res).to.have.property('message').to.equal('Invalid public key');
 					badTransactions.push(transaction);
 					done();
 				}, true);
 			});
 
-			it('using address without letter L at the end should fail', function (done) {
-				transaction.senderPublicKey = '15738697512051092602';
+			it('using invalid public key should fail', function (done) {
+				transaction.senderPublicKey = '15738697512051092602.L';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -780,7 +791,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong signature values', function () {
+		describe('sending transactions with invalid signature values', function () {
 
 			it('using null should fail', function (done) {
 				transaction.signature = null;
@@ -848,7 +859,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.signature = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -859,7 +870,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.signature = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -870,8 +881,19 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string with bad format should fail', function (done) {
-				transaction.signature = 'wrong signature';
+			it('using empty string should fail', function (done) {
+				transaction.signature = '';
+
+				sendTransaction(transaction, function (err, res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction id');
+					badTransactions.push(transaction);
+					done();
+				}, true);
+			});
+
+			it('using invalid signature should fail', function (done) {
+				transaction.signature = 'invalid signature';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -882,7 +904,7 @@ describe('POST /api/transactions (type 0)', function () {
 			});
 		});
 
-		describe('sending transactions with wrong id values', function () {
+		describe('sending transactions with invalid id values', function () {
 
 			it('using null should be ok', function (done) {
 				transaction.id = null;
@@ -896,7 +918,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('without property should fail', function (done) {
+			it('without property should be ok', function (done) {
 				delete transaction.id;
 
 				sendTransaction(transaction, function (err, res) {
@@ -952,7 +974,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using array should fail', function (done) {
+			it('using empty array should fail', function (done) {
 				transaction.id = [];
 
 				sendTransaction(transaction, function (err, res) {
@@ -962,7 +984,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using object should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				transaction.id = {};
 
 				sendTransaction(transaction, function (err, res) {
@@ -992,12 +1014,12 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using longer string than expected recipientId should fail', function (done) {
-				transaction.recipientId = Array(22).fill('1').join('')+'L';
+			it('using string longer than expected id should fail', function (done) {
+				transaction.id = Array(21).fill('1').join('');
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: String is too long (23 chars), maximum 22');
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: String is too long (21 chars), maximum 20');
 					done();
 				}, true);
 			});
