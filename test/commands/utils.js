@@ -13,11 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const should = require('should');
-const sinon = require('sinon');
+/* eslint-disable import/prefer-default-export */
+import Vorpal from 'vorpal';
 
-process.env.NODE_ENV = 'test';
-
-// See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: should });
-global.sinon = sinon;
+export const setUpVorpalWithCommand = (command, capturedOutput) => {
+	const vorpal = new Vorpal();
+	vorpal.use(command);
+	vorpal.pipe((outputs) => {
+		outputs.forEach(output => capturedOutput.push(output));
+		return '';
+	});
+	return vorpal;
+};

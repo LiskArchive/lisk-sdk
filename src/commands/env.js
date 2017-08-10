@@ -13,11 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const should = require('should');
-const sinon = require('sinon');
+import config from '../../config.json';
 
-process.env.NODE_ENV = 'test';
+const env = vorpal => () => Promise.resolve(vorpal.log(JSON.stringify(config, null, '\t')));
 
-// See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: should });
-global.sinon = sinon;
+export default function envCommand(vorpal) {
+	vorpal
+		.command('env')
+		.description('Print environmental configuration')
+		.action(env(vorpal));
+}

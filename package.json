@@ -14,8 +14,9 @@
     "test:now:watch": "npm run test:now -- --watch",
     "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register",
     "build": "babel src -d dist",
+    "jenkins": "npm test && nyc report --reporter=text-lcov | coveralls",
     "prepush": "grunt eslint && npm test",
-    "postinstall": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -38,8 +39,9 @@
     "babel-cli": "=6.24.1",
     "babel-preset-env": "=1.6.0",
     "babel-register": "=6.24.1",
+    "coveralls": "=2.13.1",
     "eslint-config-airbnb-base": "=11.2.0",
-    "eslint-config-lisk-base": "^0.1.0",
+    "eslint-config-lisk-base": "=0.1.0",
     "eslint-plugin-import": "=2.2.0",
     "grunt": "=1.0.1",
     "grunt-mocha-test": "=0.13.2",
@@ -54,7 +56,7 @@
     "cli-table2": "=0.2.0",
     "file-system": "=2.2.2",
     "fs-extra": "=3.0.1",
-    "lisk-js": "=0.4.1",
+    "lisk-js": "=0.4.5",
     "vorpal": "LiskHQ/vorpal#master"
   }
 }

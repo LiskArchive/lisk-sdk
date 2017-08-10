@@ -13,11 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const should = require('should');
-const sinon = require('sinon');
+import lisk from 'lisk-js';
+import liskInstance from '../../src/utils/liskInstance';
 
-process.env.NODE_ENV = 'test';
+describe('liskInstance', () => {
+	it('should be ok', () => {
+		(liskInstance).should.be.ok();
+	});
 
-// See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: should });
-global.sinon = sinon;
+	it('should be an instance of lisk api', () => {
+		(liskInstance).should.be.instanceOf(lisk.api);
+	});
+});

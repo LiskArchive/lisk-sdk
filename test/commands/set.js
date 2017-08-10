@@ -1,85 +1,228 @@
-import Vorpal from 'vorpal';
+/*
+ * LiskHQ/lisky
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+/* eslint-disable global-require, import/no-dynamic-require */
+import fse from 'fs-extra';
 import set from '../../src/commands/set';
+import get from '../../src/commands/get';
+import liskInstance from '../../src/utils/liskInstance';
+import { setUpVorpalWithCommand } from './utils';
+
+const configPath = '../../config.json';
+const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
+const stringifyConfig = config => JSON.stringify(config, null, '\t');
+const writeConfig = (config) => {
+	const configString = typeof config === 'string'
+		? config
+		: stringifyConfig(config);
+	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
+};
+
+const initialConfig = stringifyConfig(require(configPath));
+deleteConfigCache();
+
+const defaultConfig = {
+	name: 'lisky',
+	json: false,
+	liskJS: {
+		testnet: false,
+	},
+};
 
 describe('set command', () => {
 	let vorpal;
+	let capturedOutput = [];
+
+	before(() => {
+		writeConfig(defaultConfig);
+	});
 
 	beforeEach(() => {
-		vorpal = new Vorpal();
-		vorpal.use(set);
-		vorpal.pipe(() => '');
+		vorpal = setUpVorpalWithCommand(set, capturedOutput);
 	});
 
 	afterEach(() => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
+		capturedOutput = [];
+		writeConfig(defaultConfig);
+	});
+
+	after(() => {
+		writeConfig(initialConfig);
 	});
 
 	describe('should exist', () => {
-		let setCommand;
-		// eslint-disable-next-line no-underscore-dangle
+		/* eslint-disable no-underscore-dangle */
 		const filterCommand = vorpalCommand => vorpalCommand._name === 'set';
+		let setCommand;
 
 		beforeEach(() => {
 			setCommand = vorpal.commands.filter(filterCommand)[0];
 		});
 
 		it('should be available', () => {
-			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args).should.be.length(2);
-			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._name).should.be.equal('set');
 		});
 
-		it('should have 2 require inputs', () => {
-			// eslint-disable-next-line no-underscore-dangle
+		it('should have 2 required inputs', () => {
 			(setCommand._args[0].required).should.be.true();
-			// eslint-disable-next-line no-underscore-dangle
 			(setCommand._args[1].required).should.be.true();
+		});
+		/* eslint-enable */
+	});
+
+	it('should handle unknown config variables', () => {
+		const invalidVariableCommand = 'set xxx true';
+		return vorpal.exec(invalidVariableCommand, () => {
+			(capturedOutput).should.be.eql(['Unsupported variable name.']);
 		});
 	});
 
-	describe('should set json to true', () => {
+	describe('should set json parameter', () => {
 		const setJsonTrueCommand = 'set json true';
 		const setJsonFalseCommand = 'set json false';
-		const setJsonTrueResult = 'successfully set json output to true';
-		const setJsonFalseResult = 'successfully set json output to false';
+		const invalidValueCommand = 'set json tru';
+		const getDelegateCommand = 'get delegate lightcurve';
+		const setJsonTrueResult = 'Successfully set json output to true.';
+		const setJsonFalseResult = 'Successfully set json output to false.';
+		const invalidValueResult = 'Cannot set json output to tru.';
 
-		it('should be set json true and give feedback', () => {
-			const result = vorpal.execSync(setJsonTrueCommand);
-			(result).should.be.equal(setJsonTrueResult);
+		const jsonProperty = 'json';
+
+		afterEach(() => {
+			deleteConfigCache();
 		});
 
-		it('should be set json back to false and give feedback', () => {
-			const result = vorpal.execSync(setJsonFalseCommand);
-			(result).should.be.equal(setJsonFalseResult);
+		it('should set json to true', () => {
+			return vorpal.exec(setJsonTrueCommand, () => {
+				const config = require(configPath);
+
+				(config).should.have.property(jsonProperty).be.true();
+				(capturedOutput).should.be.eql([setJsonTrueResult]);
+			});
 		});
 
-		it('should be set json back to false and give feedback', () => {
-			const result = vorpal.execSync(setJsonFalseCommand);
-			(result).should.be.equal(setJsonFalseResult);
+		it('should set json to false', () => {
+			return vorpal.exec(setJsonFalseCommand, () => {
+				const config = require(configPath);
+
+				(config).should.have.property(jsonProperty).be.false();
+				(capturedOutput).should.be.eql([setJsonFalseResult]);
+			});
 		});
 
-		it('should be set json back to false and give feedback asynchronous', () => vorpal.exec(setJsonFalseCommand, (result) => {
-			(result).should.be.equal(setJsonFalseResult);
-		}));
+		it('should set json to true and then to false', () => {
+			return vorpal.exec(setJsonTrueCommand, () =>
+				vorpal.exec(setJsonFalseCommand, () => {
+					const config = require(configPath);
+
+					(config).should.have.property(jsonProperty).be.false();
+					(capturedOutput).should.be.eql([setJsonTrueResult, setJsonFalseResult]);
+				}),
+			);
+		});
+
+		it('should not set json to non-boolean values', () => {
+			return vorpal.exec(setJsonTrueCommand, () =>
+				vorpal.exec(invalidValueCommand, () => {
+					const config = require(configPath);
+
+					(config).should.have.property(jsonProperty).be.true();
+					(capturedOutput).should.be.eql([setJsonTrueResult, invalidValueResult]);
+				}),
+			);
+		});
+
+		it('should have an immediate effect', () => {
+			vorpal.use(get);
+
+			return vorpal.exec(setJsonTrueCommand)
+				.then(() => vorpal.exec(getDelegateCommand))
+				.then(() => {
+					(() => JSON.parse(capturedOutput[1])).should.not.throw();
+					return vorpal.exec(setJsonFalseCommand);
+				})
+				.then(() => vorpal.exec(getDelegateCommand))
+				.then(() => {
+					(() => JSON.parse(capturedOutput[3])).should.throw();
+				});
+		});
 	});
 
 	describe('switch testnet and mainnet', () => {
+		const setTestnetTrueCommand = 'set testnet true';
+		const setTestnetFalseCommand = 'set testnet false';
+		const invalidValueCommand = 'set testnet tru';
+		const setTestnetTrueResult = 'Successfully set testnet to true.';
+		const setTestnetFalseResult = 'Successfully set testnet to false.';
+		const invalidValueResult = 'Cannot set testnet to tru.';
+
+		const testnetProperties = ['liskJS', 'testnet'];
+
+		let stub;
+
+		beforeEach(() => {
+			stub = sinon.stub(liskInstance, 'setTestnet');
+		});
+
+		afterEach(() => {
+			stub.restore();
+			deleteConfigCache();
+		});
+
 		it('should set testnet to true', () => {
-			const command = 'set testnet true';
+			return vorpal.exec(setTestnetTrueCommand, () => {
+				const config = require(configPath);
 
-			const result = vorpal.execSync(command);
-
-			(result).should.be.equal('successfully set testnet to true');
+				(stub.calledWithExactly(true)).should.be.true();
+				(config)
+					.should.have.property(testnetProperties[0])
+					.have.property(testnetProperties[1])
+					.be.true();
+				(capturedOutput).should.be.eql([setTestnetTrueResult]);
+			});
 		});
 
 		it('should set testnet to false', () => {
-			const command = 'set testnet false';
+			return vorpal.exec(setTestnetFalseCommand, () => {
+				const config = require(configPath);
 
-			const result = vorpal.execSync(command);
+				(stub.calledWithExactly(false)).should.be.true();
+				(config)
+					.should.have.property(testnetProperties[0])
+					.have.property(testnetProperties[1])
+					.be.false();
+				(capturedOutput).should.be.eql([setTestnetFalseResult]);
+			});
+		});
 
-			(result).should.be.equal('successfully set testnet to false');
+		it('should not set testnet to non-boolean values', () => {
+			return vorpal.exec(setTestnetTrueCommand, () =>
+				vorpal.exec(invalidValueCommand, () => {
+					const config = require(configPath);
+
+					(stub.calledWithExactly(true)).should.be.true();
+					(config)
+						.should.have.property(testnetProperties[0])
+						.have.property(testnetProperties[1])
+						.be.true();
+					(capturedOutput).should.be.eql([setTestnetTrueResult, invalidValueResult]);
+				}),
+			);
 		});
 	});
 });

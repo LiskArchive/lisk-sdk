@@ -13,11 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const should = require('should');
-const sinon = require('sinon');
+import tablify from './tablify';
 
-process.env.NODE_ENV = 'test';
+export const getTableString = result => tablify(result).toString();
 
-// See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: should });
-global.sinon = sinon;
+export const printResult = (printFn, vorpal, result) => {
+	vorpal.log(printFn(result));
+};

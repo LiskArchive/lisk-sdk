@@ -1,7 +1,10 @@
 {
-  "name": "lisky",
-  "json": "false",
-  "liskJS": {
-    "testnet": false
-  }
+	"name": "lisky",
+	"json": false,
+	"liskJS": {
+		"testnet": false,
+		"node": "",
+		"port": "",
+		"ssl": false
+	}
 }

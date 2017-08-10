@@ -1,55 +1,60 @@
+/*
+ * LiskHQ/lisky
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import config from '../../config.json';
-import tablify from '../utils/tablify';
 import query from '../utils/query';
+import { COMMAND_TYPES } from '../utils/constants';
+import {
+	getTableString,
+	printResult,
+} from '../utils/print';
+import {
+	deAlias,
+	shouldUseJsonOutput,
+} from '../utils/helpers';
+
+const handlers = {
+	account: account => query.isAccountQuery(account),
+	address: address => query.isAccountQuery(address),
+	block: block => query.isBlockQuery(block),
+	delegate: delegate => query.isDelegateQuery(delegate),
+	transaction: transaction => query.isTransactionQuery(transaction),
+};
+
+const processResult = (useJsonOutput, vorpal, type, result) => {
+	const printFn = useJsonOutput ? JSON.stringify : getTableString;
+	const resultToPrint = result.error ? result : result[type];
+	printResult(printFn, vorpal, resultToPrint);
+	return result;
+};
+
+const get = vorpal => ({ options, type, input }) => {
+	const useJsonOutput = shouldUseJsonOutput(config, options);
+
+	return COMMAND_TYPES.includes(type)
+		? handlers[type](input)
+			.then(processResult.bind(null, useJsonOutput, vorpal, deAlias(type)))
+		: Promise.resolve(vorpal.log('Unsupported type.'));
+};
 
 export default function getCommand(vorpal) {
-	function switchType(type) {
-		return {
-			account: 'account',
-			address: 'address',
-			block: 'block',
-			delegate: 'delegate',
-			transaction: 'transaction',
-		}[type];
-	}
-
 	vorpal
 		.command('get <type> <input>')
 		.option('-j, --json', 'Sets output to json')
 		.option('--no-json', 'Default: sets output to text. You can change this in the config.json')
 		.description('Get information from <type> with parameter <input>. \n Types available: account, address, block, delegate, transaction \n E.g. get delegate lightcurve \n e.g. get block 5510510593472232540')
-		.autocomplete(['account', 'address', 'block', 'delegate', 'transaction'])
-		.action((userInput) => {
-			const getType = {
-				account: query.isAccountQuery.bind(query),
-				address: query.isAccountQuery.bind(query),
-				block: query.isBlockQuery.bind(query),
-				delegate: query.isDelegateQuery.bind(query),
-				transaction: query.isTransactionQuery.bind(query),
-			};
-
-			const output = getType[userInput.type](userInput.input);
-
-			const shouldUseJsonOutput = (userInput.options.json === true || config.json === true)
-								&& userInput.options.json !== false;
-
-			if (shouldUseJsonOutput) {
-				return output.then((result) => {
-					if (result.error) {
-						vorpal.log(JSON.stringify(result));
-						return result;
-					}
-					vorpal.log(JSON.stringify(result[switchType(userInput.type)]));
-					return result[switchType(userInput.type)];
-				});
-			}
-			return output.then((result) => {
-				if (result.error) {
-					vorpal.log(tablify(result).toString());
-					return result;
-				}
-				vorpal.log(tablify(result[switchType(userInput.type)]).toString());
-				return result[switchType(userInput.type)];
-			});
-		});
+		.autocomplete(COMMAND_TYPES)
+		.action(get(vorpal));
 }

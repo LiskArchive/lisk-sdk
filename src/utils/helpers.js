@@ -13,11 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const should = require('should');
-const sinon = require('sinon');
+export const deAlias = type => (
+	type === 'address'
+		? 'account'
+		: type
+);
 
-process.env.NODE_ENV = 'test';
-
-// See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: should });
-global.sinon = sinon;
+export const shouldUseJsonOutput = (config, options) =>
+	(options.json === true || config.json === true)
+		&& options.json !== false;

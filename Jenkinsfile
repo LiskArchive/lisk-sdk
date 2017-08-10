@@ -10,7 +10,7 @@ node('lisky-01'){
         sh '''#!/bin/bash
         # Install Deps
         npm install --verbose
-        # cp ~/.coveralls.yml-lisky .coveralls.yml
+        cp ~/.coveralls.yml-lisky .coveralls.yml
         '''
       } catch (err) {
         currentBuild.result = 'FAILURE'
