@@ -71,7 +71,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using empty dict should fail', function (done) {
+			it('using empty object should fail', function (done) {
 				sendTransaction({}, function (err, res) {
 					node.expect(res).to.have.property('success').not.to.be.ok;
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Empty trs passed');
@@ -93,7 +93,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.type;
 
 				sendTransaction(transaction, function (err, res) {
@@ -159,7 +159,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using unknown type type should fail', function (done) {
+			it('using unsupported type should fail', function (done) {
 				transaction.type = Number.MAX_SAFE_INTEGER;
 
 				sendTransaction(transaction, function (err, res) {
@@ -184,7 +184,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.amount;
 
 				sendTransaction(transaction, function (err, res) {
@@ -223,7 +223,7 @@ describe('POST /api/transactions (type 0)', function () {
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type string');
-		  		badTransactions.push(transaction);
+					badTransactions.push(transaction);
 					done();
 				}, true);
 			});
@@ -234,7 +234,7 @@ describe('POST /api/transactions (type 0)', function () {
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type array');
-		  		badTransactions.push(transaction);
+					badTransactions.push(transaction);
 					done();
 				}, true);
 			});
@@ -245,7 +245,7 @@ describe('POST /api/transactions (type 0)', function () {
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type object');
-		  		badTransactions.push(transaction);
+					badTransactions.push(transaction);
 					done();
 				}, true);
 			});
@@ -308,7 +308,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.fee;
 
 				sendTransaction(transaction, function (err, res) {
@@ -341,12 +341,11 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string should fail', function (done) {
+			it('using empty string should fail', function (done) {
 				transaction.fee = '';
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					// TODO
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type string');
 					badTransactions.push(transaction);
 					done();
@@ -358,7 +357,6 @@ describe('POST /api/transactions (type 0)', function () {
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
-					// TODO
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type integer but found type array');
 					badTransactions.push(transaction);
 					done();
@@ -411,6 +409,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 			it('using more than maximum should fail', function (done) {
 				transaction.fee = Number(new BigNumber(constants.totalAmount)+ 1);
+
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.have.string('Invalid transaction body - Failed to validate transaction schema: Value '+transaction.fee+' is greater than maximum 10000000000000000');
@@ -433,7 +432,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.recipientId;
 
 				sendTransaction(transaction, function (err, res) {
@@ -568,7 +567,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.timestamp;
 
 				sendTransaction(transaction, function (err, res) {
@@ -681,7 +680,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.senderPublicKey;
 
 				sendTransaction(transaction, function (err, res) {
@@ -794,7 +793,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.signature;
 
 				sendTransaction(transaction, function (err, res) {
@@ -897,7 +896,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('deleting the key should fail', function (done) {
+			it('without property should fail', function (done) {
 				delete transaction.id;
 
 				sendTransaction(transaction, function (err, res) {
@@ -973,8 +972,8 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using NOT allowed string should fail', function (done) {
-				transaction.id = 'a'; //The string id should just contain number chars
+			it('using not allowed string should fail', function (done) {
+				transaction.id = 'a'; // ID should only contains digits
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
@@ -993,7 +992,7 @@ describe('POST /api/transactions (type 0)', function () {
 				}, true);
 			});
 
-			it('using string larger than expected recipientId should fail', function (done) {
+			it('using longer string than expected recipientId should fail', function (done) {
 				transaction.recipientId = Array(22).fill('1').join('')+'L';
 
 				sendTransaction(transaction, function (err, res) {

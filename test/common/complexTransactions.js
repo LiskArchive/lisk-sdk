@@ -13,19 +13,19 @@ function httpCallbackHelper (cb, err, res) {
 }
 
 function getTransaction (transaction, cb) {
-	http.get('/api/transactions/get?id='+transaction, httpCallbackHelper.bind(null, cb));
+	http.get('/api/transactions/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
 }
 
 function getUnconfirmedTransaction (transaction, cb) {
-	http.get('/api/transactions/unconfirmed/get?id='+transaction, httpCallbackHelper.bind(null, cb));
+	http.get('/api/transactions/unconfirmed/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
 }
 
 function sendTransaction (transaction, cb) {
-	http.post('/api/transactions', { transaction: transaction }, httpCallbackHelper.bind(null, cb));
+	http.post('/api/transactions', {transaction: transaction}, httpCallbackHelper.bind(null, cb));
 }
 
 function sendSignature (signature, transaction, cb) {
-	http.post('/api/signatures', { signature: signature, transaction: transaction.id }, httpCallbackHelper.bind(null, cb));
+	http.post('/api/signatures', {signature: signature, transaction: transaction.id}, httpCallbackHelper.bind(null, cb));
 }
 
 function sendLISK (params, cb) {

@@ -7,7 +7,7 @@ var ws = require('../../common/wsCommunication');
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', {
 		transaction: transaction
-	}, done, true);
+	}, done);
 }
 
 describe('Basic Transactions via websockets', function () {
