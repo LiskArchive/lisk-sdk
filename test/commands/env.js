@@ -33,6 +33,9 @@ const defaultConfig = {
 	json: false,
 	liskJS: {
 		testnet: false,
+		node: '',
+		port: '',
+		ssl: false,
 	},
 };
 
@@ -86,6 +89,9 @@ describe('env command', () => {
 				json: true,
 				liskJS: {
 					testnet: false,
+					node: '',
+					port: '',
+					ssl: false,
 				},
 			};
 
