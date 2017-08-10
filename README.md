@@ -1,7 +1,7 @@
 # lisky
 Lisky allows you to communicate with a remote or local node and carry out Lisk-related functionality using an interactive or non-interactive command line tool.
 
-[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisky/master)](https://jenkins.lisk.io/job/lisky/job/master/)
+[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisky/development)](https://jenkins.lisk.io/job/lisky/job/development/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 [![GitHub release](https://img.shields.io/badge/version-0.1.0-blue.svg)](#)
 
