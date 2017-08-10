@@ -47,6 +47,8 @@ import cryptoModule from '../transactions/crypto';
 const LiskJS = {
 	crypto: cryptoModule,
 };
+const GET = 'GET';
+const POST = 'POST';
 
 function LiskAPI(providedOptions = {}) {
 	if (!(this instanceof LiskAPI)) {
@@ -158,10 +160,6 @@ LiskAPI.prototype.setSSL = function setSSL(ssl) {
 	}
 };
 
-function parseResponse(requestSuccess) {
-	return requestSuccess.body;
-}
-
 function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
 	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
 		const newOptions = {};
@@ -213,13 +211,13 @@ function optionallyCallCallback(callback, result) {
  */
 
 LiskAPI.prototype.sendRequest = function sendRequest(
-	requestMethod = 'GET', requestType, optionsOrCallback, callbackIfOptions,
+	requestMethod = GET, requestType, optionsOrCallback, callbackIfOptions,
 ) {
 	const callback = callbackIfOptions || optionsOrCallback;
 	const options = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? privateApi.checkOptions.call(this, optionsOrCallback) : {};
 
 	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
-		.then(parseResponse.bind(this))
+		.then(result => result.body)
 		.then(handleTimestampIsInFutureFailures.bind(this, requestMethod, requestType, options))
 		.catch(handleSendRequestFailures.bind(this, requestMethod, requestType, options))
 		.then(optionallyCallCallback.bind(this, callback));
@@ -497,13 +495,13 @@ LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransacti
 	transaction, callback,
 ) {
 	const request = {
-		requestMethod: 'POST',
+		requestMethod: POST,
 		requestUrl: `${privateApi.getFullUrl.call(this)}/peer/transactions`,
 		nethash: this.nethash,
 		requestParams: { transaction },
 	};
 
-	privateApi.doPopsicleRequest.call(this, 'POST', request).then(result => callback(result.body));
+	privateApi.sendRequestPromise.call(this, POST, request).then(result => callback(result.body));
 };
 
 module.exports = LiskAPI;
