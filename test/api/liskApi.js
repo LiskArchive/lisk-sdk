@@ -816,7 +816,6 @@ describe('Lisk.api()', () => {
 
 	describe('#sendRequest with promise', () => {
 		it('should be able to use sendRequest as a promise for GET', () => {
-
 			return liskApi().sendRequest(GET, 'blocks/getHeight', {}).then((result) => {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
@@ -992,5 +991,4 @@ describe('Lisk.api()', () => {
 			(createObject).should.be.eql(expectedObject);
 		});
 	});
-
 });
