@@ -65,36 +65,41 @@ describe('account', function () {
 	describe('Account', function () {
 
 	});
+
 	describe('createTables', function () {
 
 	});
+
 	describe('removeTables', function () {
 
 	});
+
 	describe('objectNormalize', function () {
+
 		it.skip('should be okay for a valid account object', function () {
 			expect(account.objectNormalize(validAccount)).to.be.an('object');
 		});
 	});
 
 	describe('verifyPublicKey', function () {
+
 		it('should be okay for empty params', function () {
 			expect(account.verifyPublicKey()).to.be.undefined;
 		});
 
-		it('should throw if parameter is not a string', function () {
+		it('should throw error if parameter is not a string', function () {
 			expect(function () {
 				account.verifyPublicKey(1);
 			}).to.throw('Invalid public key, must be a string');
 		});
 
-		it('should throw if parameter is of invalid length', function () {
+		it('should throw error if parameter is of invalid length', function () {
 			expect(function () {
 				account.verifyPublicKey('231312312321');
 			}).to.throw('Invalid public key, must be 64 characters long');
 		});
 
-		it('should throw if parameter is not a hex string', function () {
+		it('should throw error if parameter is not a hex string', function () {
 			expect(function () {
 				account.verifyPublicKey('c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az');
 			}).to.throw('Invalid public key, must be a hex string');
@@ -292,7 +297,7 @@ describe('account', function () {
 			});
 		});
 
-		it('should sort the result according to field type in ASC order', function (done) {
+		it('should sort the result according to field type in ascending order', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
 				return {username: v.username};
 			});
@@ -303,7 +308,7 @@ describe('account', function () {
 			});
 		});
 
-		it('should sort the result according to field type in DESC', function (done) {
+		it('should sort the result according to field type in descending order', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').reverse().map(function (v) {
 				return {username: v.username};
 			});

@@ -125,6 +125,7 @@ describe('account', function () {
 	});
 
 	describe('Accounts', function () {
+
 		it('should throw with no params', function () {
 			expect(function () {
 				new AccountModule();
@@ -133,12 +134,14 @@ describe('account', function () {
 	});
 
 	describe('generateAddressByPublicKey', function () {
+
 		it('should generate correct address for the publicKey provided', function () {
 			expect(account.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
 		it.skip('should throw error for invalid publicKey', function () {
 			var invalidPublicKey = 'invalidPublicKey';
+
 			expect(function () {
 				account.generateAddressByPublicKey(invalidPublicKey);
 			}).to.throw('Invalid public key: ', invalidPublicKey);
@@ -146,8 +149,10 @@ describe('account', function () {
 	});
 
 	describe('getAccount', function () {
+
 		it('should convert publicKey filter to address and call account.get', function (done) {
 			var getAccountStub = sinon.stub(accountLogic, 'get');
+
 			account.getAccount({publicKey: validAccount.publicKey});
 			expect(getAccountStub.calledOnce).to.be.ok;
 			expect(getAccountStub.calledWith({address: validAccount.address})).to.be.ok;
@@ -167,6 +172,7 @@ describe('account', function () {
 	});
 
 	describe('getAccounts', function () {
+
 		it('should get accounts for the filter provided', function (done) {
 			account.getAccounts({secondSignature: 0}, function (err, res) {
 				expect(err).to.not.exist;
@@ -180,6 +186,7 @@ describe('account', function () {
 
 		it('should internally call logic/account.getAll method', function (done) {
 			var getAllSpy = sinon.spy(accountLogic, 'getAll');
+
 			account.getAccounts({address : validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array').to.have.length(1);
@@ -191,12 +198,14 @@ describe('account', function () {
 	});
 
 	describe('onBind', function () {
+
 		it('should throw error with empty params', function () {
 			expect(account.onBind).to.throw();
 		});
 	});
 
 	describe('isLoaded', function () {
+
 		it('should return true when modules are loaded', function () {
 			expect(account.isLoaded).to.be.ok;
 		});
@@ -332,6 +341,7 @@ describe('account', function () {
 		});
 
 		describe('getDelegatesFee', function () {
+
 			it('should return the correct fee for delegate', function (done) {
 				account.shared.getDelegatesFee({}, function (err, res) {
 					expect(err).to.not.exist;
@@ -426,8 +436,9 @@ describe('account', function () {
 				});
 			});
 
-			it('should return top 10 accounts ordered by balance desc', function (done) {
+			it('should return top 10 accounts ordered by descending balance', function (done) {
 				var limit = 10;
+
 				account.internal.top({
 					limit: limit
 				}, function (err, res) {
@@ -441,7 +452,7 @@ describe('account', function () {
 				});
 			});
 
-			it('should get accounts with highest balance in the range 10-20', function (done) {
+			it('should return accounts in the range 10 to 20 ordered by descending balance', function (done) {
 				var limit = 10;
 				var offset = 10;
 
