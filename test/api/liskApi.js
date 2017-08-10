@@ -400,7 +400,7 @@ describe('Lisk.api()', () => {
 
 			LSK.searchDelegateByUsername('oliver', callback);
 
-			(LSK.sendRequest.calledWith('GET', 'delegates/search/', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'delegates/search/', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -439,7 +439,7 @@ describe('Lisk.api()', () => {
 
 			LSK.listBlocks('1', callback);
 
-			(LSK.sendRequest.calledWith('GET', 'blocks', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'blocks', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -627,7 +627,7 @@ describe('Lisk.api()', () => {
 
 			LSK.listVotes(address, callback);
 
-			(LSK.sendRequest.calledWith('GET', 'accounts/delegates', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'accounts/delegates', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -742,7 +742,7 @@ describe('Lisk.api()', () => {
 		});
 
 		it('should be able to get a new node when current one is not reachable', () => {
-			return liskApi({ node: externalNode, randomPeer: true }).sendRequest('GET', 'blocks/getHeight', {}, (result) => {
+			return liskApi({ node: externalNode, randomPeer: true }).sendRequest(GET, 'blocks/getHeight', {}, (result) => {
 				(result).should.be.type('object');
 			});
 		});
