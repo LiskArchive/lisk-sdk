@@ -187,41 +187,26 @@ function serialiseHttpData(data) {
 
 /**
  * @method createRequestObject
- * @param requestMethod
+ * @param method
  * @param requestType
- * @param options
+ * @param providedOptions
  * @private
  *
  * @return request Object
  */
 
-function createRequestObject(requestMethod, requestType, options) {
-	const requestUrl = requestMethod === 'GET'
-		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHttpData.call(this, options, requestMethod)}`
+function createRequestObject(method, requestType, providedOptions) {
+	const options = providedOptions || {};
+	const url = method === 'GET'
+		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHttpData.call(this, options)}`
 		: `${getFullUrl.call(this)}/api/${requestType}`;
 
 	return {
-		method: requestMethod,
-		url: requestUrl,
+		method,
+		url,
 		headers: this.nethash,
-		body: requestMethod === 'GET' ? {} : options,
+		body: method === 'GET' ? {} : options,
 	};
-}
-
-/**
- * @method doPopsicleRequest
- * @param requestMethod
- * @param requestType
- * @param options
- * @private
- *
- * @return APIcall Promise
- */
-
-function doPopsicleRequest(requestMethod, requestType, options) {
-	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
-
-	return popsicle.request(requestObject).use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
 
 /**
@@ -235,7 +220,9 @@ function doPopsicleRequest(requestMethod, requestType, options) {
  */
 
 function sendRequestPromise(requestMethod, requestType, options) {
-	return doPopsicleRequest.call(this, requestMethod, requestType, options);
+	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
+
+	return popsicle.request(requestObject).use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
 
 module.exports = {
@@ -248,7 +235,6 @@ module.exports = {
 	checkReDial,
 	checkOptions,
 	sendRequestPromise,
-	doPopsicleRequest,
 	serialiseHttpData,
 	createRequestObject,
 };

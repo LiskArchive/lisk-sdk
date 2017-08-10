@@ -10,6 +10,8 @@ describe('Lisk.api()', () => {
 	const localNode = 'localhost';
 	const externalNode = 'external';
 	const defaultSecret = 'secret';
+	const GET = 'GET';
+	const POST = 'POST';
 
 	describe('liskApi()', () => {
 		it('should create a new instance when using liskApi()', () => {
@@ -283,13 +285,13 @@ describe('Lisk.api()', () => {
 	describe('#checkOptions', () => {
 		it('should not accept falsy options like undefined', () => {
 			(function sendRequestWithUndefinedLimit() {
-				liskApi().sendRequest('GET', 'delegates/', { limit: undefined }, () => {});
+				liskApi().sendRequest(GET, 'delegates/', { limit: undefined }, () => {});
 			}).should.throw('parameter value "limit" should not be undefined');
 		});
 
 		it('should not accept falsy options like NaN', () => {
 			(function sendRequestWithNaNLimit() {
-				liskApi().sendRequest('GET', 'delegates/', { limit: NaN }, () => {});
+				liskApi().sendRequest(GET, 'delegates/', { limit: NaN }, () => {});
 			}).should.throw('parameter value "limit" should not be NaN');
 		});
 	});
@@ -300,7 +302,7 @@ describe('Lisk.api()', () => {
 				body: { success: true, height: 2850466 },
 			};
 			const stub = sinon.stub(privateApi, 'sendRequestPromise').resolves(expectedResponse);
-			return LSK.sendRequest('GET', 'blocks/getHeight', (data) => {
+			return LSK.sendRequest(GET, 'blocks/getHeight', (data) => {
 				(data).should.be.ok();
 				(data).should.be.type('object');
 				(data.success).should.be.true();
@@ -335,7 +337,7 @@ describe('Lisk.api()', () => {
 
 			LSK.listActiveDelegates('1', callback);
 
-			(LSK.sendRequest.calledWith('GET', 'delegates/', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'delegates/', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -368,7 +370,7 @@ describe('Lisk.api()', () => {
 
 			LSK.listStandbyDelegates('1', callback);
 
-			(LSK.sendRequest.calledWith('GET', 'delegates/', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'delegates/', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -458,7 +460,7 @@ describe('Lisk.api()', () => {
 
 			LSK.listForgedBlocks(key, callback);
 
-			(LSK.sendRequest.calledWith('GET', 'blocks', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'blocks', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -499,7 +501,7 @@ describe('Lisk.api()', () => {
 
 			LSK.getBlock(blockId, callback);
 
-			(LSK.sendRequest.calledWith('GET', 'blocks', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'blocks', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -546,7 +548,7 @@ describe('Lisk.api()', () => {
 
 			LSK.listTransactions(address, '1', '2', callback);
 
-			(LSK.sendRequest.calledWith('GET', 'transactions', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'transactions', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -587,7 +589,7 @@ describe('Lisk.api()', () => {
 
 			LSK.getTransaction(transactionId, callback);
 
-			(LSK.sendRequest.calledWith('GET', 'transactions/get', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'transactions/get', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -653,7 +655,7 @@ describe('Lisk.api()', () => {
 
 			LSK.listVoters(publicKey, callback);
 
-			(LSK.sendRequest.calledWith('GET', 'delegates/voters', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'delegates/voters', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -688,7 +690,7 @@ describe('Lisk.api()', () => {
 
 			LSK.getAccount(address, callback);
 
-			(LSK.sendRequest.calledWith('GET', 'accounts', options)).should.be.true();
+			(LSK.sendRequest.calledWith(GET, 'accounts', options)).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -735,7 +737,7 @@ describe('Lisk.api()', () => {
 
 			LSKnode.sendLSK(recipient, amount, secret, secondSecret, callback);
 
-			(LSKnode.sendRequest.calledWith('POST', 'transactions', {
+			(LSKnode.sendRequest.calledWith(POST, 'transactions', {
 				recipientId: recipient,
 				amount,
 				secret,
@@ -786,7 +788,7 @@ describe('Lisk.api()', () => {
 			thisLSK.bannedPeers = liskApi().defaultPeers;
 			thisLSK.currentPeer = '';
 
-			return thisLSK.sendRequest('GET', 'blocks/getHeight').then((e) => {
+			return thisLSK.sendRequest(GET, 'blocks/getHeight').then((e) => {
 				(e.message).should.be.equal('could not create http request to any of the given peers');
 			});
 		});
@@ -829,7 +831,7 @@ describe('Lisk.api()', () => {
 
 	describe('#sendRequest with promise', () => {
 		it('should be able to use sendRequest as a promise for GET', () => {
-			return liskApi().sendRequest('GET', 'blocks/getHeight', {}).then((result) => {
+			return liskApi().sendRequest(GET, 'blocks/getHeight', {}).then((result) => {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
 				(result.height).should.be.type('number');
@@ -851,7 +853,7 @@ describe('Lisk.api()', () => {
 			const recipient = '10279923186189318946L';
 			const amount = 100000000;
 
-			return LSKnode.sendRequest('GET', 'transactions', { recipientId: recipient, secret, secondSecret, amount }).then((result) => {
+			return LSKnode.sendRequest(GET, 'transactions', { recipientId: recipient, secret, secondSecret, amount }).then((result) => {
 				(result).should.be.type('object');
 				(result).should.be.ok();
 			});
@@ -868,7 +870,7 @@ describe('Lisk.api()', () => {
 			stub.resolves(futureTimestampResponse);
 			stub.onThirdCall().resolves(successResponse);
 
-			return thisLSK.sendRequest('POST', 'transactions')
+			return thisLSK.sendRequest(POST, 'transactions')
 				.then(() => {
 					(spy.callCount).should.equal(3);
 					(spy.args[1][2]).should.have.property('timeOffset').equal(10);
@@ -887,7 +889,7 @@ describe('Lisk.api()', () => {
 			const spy = sinon.spy(thisLSK, 'sendRequest');
 			stub.resolves(futureTimestampResponse);
 
-			return thisLSK.sendRequest('POST', 'transactions')
+			return thisLSK.sendRequest(POST, 'transactions')
 				.then((response) => {
 					(response).should.equal(futureTimestampResponse.body);
 					stub.restore();
@@ -927,12 +929,17 @@ describe('Lisk.api()', () => {
 	});
 
 	describe('#createRequestObject', () => {
-		const options = { limit: 5, offset: 3, details: 'moredetails' };
-		const LSKAPI = liskApi({ node: 'localhost' });
+		let options;
+		let LSKAPI;
+		beforeEach(() => {
+			options = { limit: 5, offset: 3, details: 'moredetails' };
+			LSKAPI = liskApi({ node: 'localhost' });
+		});
+
 		it('should create a valid request Object for GET request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, 'GET', 'transaction', options);
+			const requestObject = privateApi.createRequestObject.call(LSKAPI, GET, 'transaction', options);
 			const expectedObject = {
-				method: 'GET',
+				method: GET,
 				url: 'http://localhost:8000/api/transaction?limit=5&offset=3&details=moredetails',
 				headers: {
 					'Content-Type': 'application/json',
@@ -950,9 +957,9 @@ describe('Lisk.api()', () => {
 		});
 
 		it('should create a valid request Object for POST request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, 'POST', 'transaction', options);
+			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction', options);
 			const expectedObject = {
-				method: 'POST',
+				method: POST,
 				url: 'http://localhost:8000/api/transaction',
 				headers: {
 					'Content-Type': 'application/json',
@@ -964,6 +971,46 @@ describe('Lisk.api()', () => {
 					port: 8000,
 				},
 				body: { limit: 5, offset: 3, details: 'moredetails' },
+			};
+
+			(requestObject).should.be.eql(expectedObject);
+		});
+
+		it('should create a valid request Object for POST request without options', () => {
+			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction');
+			const expectedObject = {
+				method: POST,
+				url: 'http://localhost:8000/api/transaction',
+				headers: {
+					'Content-Type': 'application/json',
+					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					os: 'lisk-js-api',
+					version: '1.0.0',
+					minVersion: '>=0.5.0',
+					port: 8000,
+				},
+				body: {},
+			};
+
+			(requestObject).should.be.eql(expectedObject);
+		});
+
+		it('should create a valid request Object for undefined request without options', () => {
+			const requestObject = privateApi.createRequestObject.call(LSKAPI, undefined, 'transaction');
+			const expectedObject = {
+				method: undefined,
+				url: 'http://localhost:8000/api/transaction',
+				headers: {
+					'Content-Type': 'application/json',
+					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+					os: 'lisk-js-api',
+					version: '1.0.0',
+					minVersion: '>=0.5.0',
+					port: 8000,
+				},
+				body: {},
 			};
 
 			(requestObject).should.be.eql(expectedObject);

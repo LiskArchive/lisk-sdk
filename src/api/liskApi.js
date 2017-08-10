@@ -442,7 +442,7 @@ LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransacti
 		requestParams: { transaction },
 	};
 
-	privateApi.doPopsicleRequest.call(this, 'POST', request).then(result => callback(result.body));
+	privateApi.sendRequestPromise.call(this, 'POST', request).then(result => callback(result.body));
 };
 
 module.exports = LiskAPI;
