@@ -243,6 +243,9 @@ module.exports = {
 					secret: {
 						type: 'array'
 					},
+					ecryptedSecrets: {
+						type: 'array'
+					},
 					access: {
 						type: 'object',
 						properties: {

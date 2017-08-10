@@ -7,7 +7,7 @@ module.exports = {
 		id: 'delegates.enableForging',
 		type: 'object',
 		properties: {
-			key: {
+			secret: {
 				type: 'string',
 				minLength: 1,
 				maxLength: 100
@@ -17,10 +17,26 @@ module.exports = {
 				format: 'publicKey'
 			}
 		},
-		required: ['key', 'publicKey']
+		required: ['secret']
 	},
 	disableForging: {
 		id: 'delegates.disableForging',
+		type: 'object',
+		properties: {
+			secret: {
+				type: 'string',
+				minLength: 1,
+				maxLength: 100
+			},
+			publicKey: {
+				type: 'string',
+				format: 'publicKey'
+			}
+		},
+		required: ['secret']
+	},
+	toggleForging: {
+		id: 'delegates.toggleForging',
 		type: 'object',
 		properties: {
 			key: {
@@ -31,7 +47,7 @@ module.exports = {
 			publicKey: {
 				type: 'string',
 				format: 'publicKey'
-			}
+			},
 		},
 		required: ['key', 'publicKey']
 	},
