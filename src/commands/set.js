@@ -13,14 +13,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import fse from 'fs-extra';
-import config from '../../config.json';
+import config from '../utils/env';
 import liskInstance from '../utils/liskInstance';
 import { CONFIG_VARIABLES } from '../utils/constants';
 
+const configFilePath = `${os.homedir()}/.lisky/config.json`;
+
 const writeConfigToFile = (newConfig) => {
-	const configString = JSON.stringify(newConfig, null, '\t');
-	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
+	fse.writeJsonSync(configFilePath, newConfig, {
+		spaces: '\t',
+	});
 };
 
 const checkBoolean = value => ['true', 'false'].includes(value);
@@ -45,7 +49,6 @@ const setBoolean = (variable, path) => (value) => {
 	if (variable === 'testnet') {
 		liskInstance.setTestnet(newValue);
 	}
-
 	writeConfigToFile(config);
 	return `Successfully set ${variable} to ${value}.`;
 };
