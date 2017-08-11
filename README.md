@@ -117,11 +117,6 @@ Configuration is stored in a config file placed in the user's home directory (ru
 | <code>set json true&#124;false</code> | Sets default to json output (true) or text output (false) |
 | <code>set testnet true&#124;false</code> | Set default to testnet (true) or mainnet (false) |
 
-## Run Test
-
-```sh
-$ npm test
-```
 
 ## Documentation
 
@@ -146,6 +141,14 @@ As with every repository on LiskHQ we are working intensively with GitHub open-s
 If you find a bug, you can create an [issue](https://github.com/LiskHQ/lisky/issues), please provide as much detail as you can.
 
 We would be more than happy if you decide to contribute to this code and make it better along the way. Please have a look at the Lisk contribution guidelines before you start.
+
+## Run Tests
+
+Lisky has an extensive set of unit tests. To run the tests, please install lisky from source, and then run the command:
+
+```sh
+$ npm test
+```
 
 ## License
 
