@@ -34,27 +34,27 @@ describe('vote.js', () => {
 		});
 
 		describe('timestamp', () => {
-			const now = new Date();
-			let clock;
+			const timeWithOffset = 38350076;
+			let stub;
 
 			beforeEach(() => {
-				clock = sinon.useFakeTimers(now, 'Date');
+				stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 			});
 
 			afterEach(() => {
-				clock.restore();
+				stub.restore();
 			});
 
 			it('should use time slots to get the time for the timestamp', () => {
 				const vt = createVote('secret', publicKeys, null);
-				(vt).should.have.property('timestamp').and.be.equal(slots.getTime());
+				(vt).should.have.property('timestamp').and.be.equal(timeWithOffset);
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
 				const offset = -10;
 				const vt = createVote('secret', publicKeys, null, offset);
 
-				(vt).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+				(vt).should.have.property('timestamp').and.be.equal(timeWithOffset);
 			});
 		});
 

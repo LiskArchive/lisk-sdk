@@ -1,6 +1,5 @@
 import slots from '../../src/time/slots';
 import multisignature from '../../src/transactions/multisignature';
-import cryptoModule from '../../src/transactions/crypto';
 
 describe('multisignature.js', () => {
 	it('should be ok', () => {
@@ -84,21 +83,21 @@ describe('multisignature.js', () => {
 		const minimumSignatures = 2;
 		const requestLifeTime = 5;
 		const multiSignaturePublicKeyArray = ['+123456789', '-987654321'];
-		const now = new Date();
-		let clock;
+		const timeWithOffset = 38350076;
+		let stub;
 
 		beforeEach(() => {
-			clock = sinon.useFakeTimers(now, 'Date');
+			stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
 		afterEach(() => {
-			clock.restore();
+			stub.restore();
 		});
 
 		it('should use time slots to get the time for the timestamp', () => {
 			const trs = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures);
 
-			(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
+			(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
 		});
 
 		it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -106,7 +105,7 @@ describe('multisignature.js', () => {
 
 			const trs = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures, offset);
 
-			(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+			(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
 		});
 	});
 
@@ -159,7 +158,7 @@ describe('multisignature.js', () => {
 
 		it('should create a multisignature transaction without requesterPublicKey and secondSecret', () => {
 			const msigTransaction2 = multisignature.createTransaction(recipientId, amount, secret);
-			const pubKey = cryptoModule.getPrivateAndPublicKeyFromSecret(secret).publicKey;
+			const pubKey = 'f120fd1ac603e3049328a0cb87ba226bff44d329b2738a7db2b0a1e3d95000d4';
 
 			(msigTransaction2.requesterPublicKey).should.be.equal(pubKey);
 		});

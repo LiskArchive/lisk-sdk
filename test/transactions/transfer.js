@@ -74,28 +74,28 @@ describe('transfer.js', () => {
 		});
 
 		describe('timestamp', () => {
-			const now = new Date();
-			let clock;
+			const timeWithOffset = 38350076;
+			let stub;
 
 			beforeEach(() => {
-				clock = sinon.useFakeTimers(now, 'Date');
+				stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 			});
 
 			afterEach(() => {
-				clock.restore();
+				stub.restore();
 			});
 
 			it('should use time slots to get the time for the timestamp', () => {
 				const trs = createInTransfer(dappId, amount, secret);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
+				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
 				const offset = -10;
 				const trs = createInTransfer(dappId, amount, secret, null, offset);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
 			});
 		});
 	});
@@ -174,21 +174,21 @@ describe('transfer.js', () => {
 		});
 
 		describe('timestamp', () => {
-			const now = new Date();
-			let clock;
+			const timeWithOffset = 38350076;
+			let stub;
 
 			beforeEach(() => {
-				clock = sinon.useFakeTimers(now, 'Date');
+				stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 			});
 
 			afterEach(() => {
-				clock.restore();
+				stub.restore();
 			});
 
 			it('should use time slots to get the time for the timestamp', () => {
 				const trs = createOutTransfer(dappId, transactionId, recipientId, amount, secret);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
+				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -197,7 +197,7 @@ describe('transfer.js', () => {
 					dappId, transactionId, recipientId, amount, secret, null, offset,
 				);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
 			});
 		});
 	});
