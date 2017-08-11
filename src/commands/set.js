@@ -80,7 +80,7 @@ const set = vorpal => ({ variable, value }) => {
 export default function setCommand(vorpal) {
 	vorpal
 		.command('set <variable> <value>')
-		.description('Set configuration <variable> to <value>.')
+		.description(`Set configuration <variable> to <value>. Configuration is persisted in \`${configFilePath}\`.`)
 		.autocomplete(CONFIG_VARIABLES)
 		.action(set(vorpal));
 }
