@@ -40,7 +40,7 @@ CREATE OR REPLACE FUNCTION on_transaction_insert() RETURNS TRIGGER LANGUAGE PLPG
 		ELSIF sender_pk IS NULL THEN
 			-- Sender address exists, but no PK - update pk
 			UPDATE accounts SET pk = NEW."senderPublicKey", pk_tx_id = NEW.id WHERE accounts.address = NEW."senderId";
-		ELSIF sender_pk !== NEW."senderPublicKey" THEN
+		ELSIF sender_pk != NEW."senderPublicKey" THEN
 			RAISE check_violation USING MESSAGE = 'Transaction invalid - cannot change account public key';
 		END IF;
 
