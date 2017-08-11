@@ -1,4 +1,5 @@
 # lisky
+
 Lisky allows you to communicate with a remote or local node and carry out Lisk-related functionality using an interactive or non-interactive command line tool.
 
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisky/master)](https://jenkins.lisk.io/job/lisky/job/master/)
@@ -12,6 +13,7 @@ Lisky requires [Node.js](https://nodejs.org/) as the underlying engine for code 
 ## Installation
 
 ### From NPM
+
 ```sh
 $ npm install --global --production lisky
 ```
@@ -19,16 +21,20 @@ $ npm install --global --production lisky
 Upon successful completion, NPM will add the `lisky` executable to your PATH.
 
 ### From Source
+
 Clone the Lisky repository using Git and install the dependencies:
+
 ```sh
 $ git clone https://github.com/LiskHQ/lisky.git
 $ cd lisky
 $ npm install
 ```
 Before running the executable you will need to build Lisky:
+
 ```sh
 npm run build
 ```
+
 #### Adding the Lisky executable to your PATH
 
 WARNING: If you have installed Lisky globally via NPM (see [Install Lisky via NPM](docs:lisky-installation-npm)), following the instructions in this section is not recommended as they will introduce conflicts.
@@ -101,7 +107,6 @@ Pass arguments and options directly from the command line. E.g.:
 ```sh
 $ lisky get delegate lightcurve --json
 ```
-
 
 ## Settings
 
