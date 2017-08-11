@@ -9,9 +9,9 @@ var constants = require('../../../helpers/constants');
 describe('app', function () {
 
 	before(function (done) {
-		//run the app
+		// Run the app
 		require('../../../app');
-		//wait for modules to be initialized
+		// Wait for modules to be initialized
 		setTimeout(done, 3000);
 	});
 
@@ -19,12 +19,12 @@ describe('app', function () {
 
 		describe('nonce', function () {
 
-			it('should have nonce set after app starts', function () {
+			it('should be set after app starts', function () {
 				var nonce = constants.getConst('headers').nonce;
 				expect(nonce).not.to.be.empty;
 			});
 
-			it('nonce should be a string', function () {
+			it('should be a string', function () {
 				var nonce = constants.getConst('headers').nonce;
 				expect(nonce).to.be.a('string');
 			});

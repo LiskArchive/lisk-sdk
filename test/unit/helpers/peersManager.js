@@ -27,6 +27,7 @@ describe('PeersManager', function () {
 	});
 
 	describe('method', function () {
+
 		var validPeer;
 
 		beforeEach(function () {
@@ -69,6 +70,27 @@ describe('PeersManager', function () {
 				expect(peersManager.nonceToAddressMap).to.have.property(validPeer.nonce).eql(validPeer.string);
 			});
 
+			it('should prevent from adding peer with the same nonce but different address', function () {
+				expect(peersManager.add(validPeer)).to.be.ok;
+				validPeer.string = 'DIFFERENT';
+				expect(peersManager.add(validPeer)).not.to.be.ok;
+			});
+
+			it('should update data on peers list', function () {
+				expect(peersManager.add(validPeer)).to.be.ok;
+				validPeer.height = 'DIFFERENT';
+				expect(peersManager.add(validPeer)).to.be.ok;
+				expect(peersManager.peers[validPeer.string]).eql(validPeer);
+			});
+
+			it('should remove old entry when nonce is different', function () {
+				expect(peersManager.add(validPeer)).to.be.ok;
+				validPeer.nonce = 'DIFFERENT';
+				expect(peersManager.add(validPeer)).to.be.ok;
+				expect(Object.keys(peersManager.peers).length).to.equal(1);
+				expect(peersManager.peers[validPeer.string]).eql(validPeer);
+			});
+
 			describe('multiple valid entries', function () {
 
 				var validPeerA, validPeerB;
@@ -104,27 +126,6 @@ describe('PeersManager', function () {
 					expect(peersManager.nonceToAddressMap).to.have.property(validPeerA.nonce).equal(validPeerA.string);
 					expect(peersManager.nonceToAddressMap).to.have.property(validPeerB.nonce).equal(validPeerB.string);
 				});
-			});
-
-			it('should prevent from adding peer with the same nonce but different address', function () {
-				expect(peersManager.add(validPeer)).to.be.ok;
-				validPeer.string = 'DIFFERENT';
-				expect(peersManager.add(validPeer)).not.to.be.ok;
-			});
-
-			it('should update data on peers list', function () {
-				expect(peersManager.add(validPeer)).to.be.ok;
-				validPeer.height = 'DIFFERENT';
-				expect(peersManager.add(validPeer)).to.be.ok;
-				expect(peersManager.peers[validPeer.string]).eql(validPeer);
-			});
-
-			it('should remove old entry when peer\'s nonce is different', function () {
-				expect(peersManager.add(validPeer)).to.be.ok;
-				validPeer.nonce = 'DIFFERENT';
-				expect(peersManager.add(validPeer)).to.be.ok;
-				expect(Object.keys(peersManager.peers).length).to.equal(1);
-				expect(peersManager.peers[validPeer.string]).eql(validPeer);
 			});
 		});
 

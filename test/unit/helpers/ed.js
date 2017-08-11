@@ -105,7 +105,5 @@ describe('ed', function () {
 		it('should throw an error when proper non hex string signature is checked with matching string non hex public key', function () {
 			expect(ed.verify.bind(null, Buffer.from(JSON.stringify(messageToSign)), signature.toString('hex'), keys.publicKey.toString())).to.throw();
 		});
-
 	});
-
 });

@@ -26,8 +26,6 @@ var wsCommunication = {
 			query: headers !== undefined ? headers : node.generatePeerHeaders(ip, port)
 		};
 
-		console.log(wsOptions);
-
 		var socket = scClient.connect(wsOptions);
 
 		wampClient.upgradeToWAMP(socket);
@@ -41,7 +39,7 @@ var wsCommunication = {
 		});
 
 		socket.on('error', function (err) {
-			console.log(err);
+			console.log('Client WS connection error: code - ', err.code, 'message: ', err.message);
 		});
 	},
 
