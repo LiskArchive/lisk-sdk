@@ -1,22 +1,7 @@
 import utils from '../../src/api/utils';
 
 describe('api utils', () => {
-	const testPort = 7000;
-	// const livePort = 8000;
-	// const localNode = 'localhost';
-	// const externalNode = 'external';
-	// const defaultSecret = 'secret';
-	// const defaultSecondSecret = 'second secret';
-	// const defaultAddress = {
-	// 	publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-	// 	address: '18160565574430594874L',
-	// };
-	//
-	// let LSK;
-	//
-	// beforeEach(() => {
-	// 	LSK = liskApi();
-	// });
+	const port = 7000;
 
 	describe('#trimObj', () => {
 		const untrimmedObj = {
@@ -61,7 +46,7 @@ describe('api utils', () => {
 
 		const options = {
 			ssl: true,
-			port: testPort,
+			port,
 			testnet: true,
 		};
 
@@ -73,7 +58,7 @@ describe('api utils', () => {
 				ssl: true,
 				randomPeer: true,
 				node: null,
-				port: testPort,
+				port,
 				nethash: null,
 				bannedPeers: [],
 			});
