@@ -17,6 +17,7 @@ describe('ConnectionsTable', function () {
 	});
 
 	describe('constructor', function () {
+
 		it('should have empty connectionIdToNonceMap map after initialization', function () {
 			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be.empty;
 		});

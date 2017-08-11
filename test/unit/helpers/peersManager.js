@@ -96,7 +96,6 @@ describe('PeersManager', function () {
 				var validPeerA, validPeerB;
 
 				beforeEach(function () {
-
 					validPeerA = _.clone(validPeer);
 					validPeerA.string += 'A';
 					validPeerA.nonce += 'A';

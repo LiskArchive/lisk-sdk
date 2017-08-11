@@ -67,7 +67,6 @@ PeersUpdateRules.prototype.panic = function (peer, connectionId, cb) {
 };
 
 PeersUpdateRules.prototype.internal = {
-
 	/**
 	 * @param {number} updateType
 	 * @param {Object} peer
@@ -88,7 +87,6 @@ PeersUpdateRules.prototype.internal = {
 };
 
 PeersUpdateRules.prototype.external = {
-
 	/**
 	 * @param {Object} request - peer object with extra requests fields added by SlaveWAMPServer
 	 * @param {Object} request.data - peer's data
@@ -102,7 +100,7 @@ PeersUpdateRules.prototype.external = {
 				return setImmediate(cb, err[0].message);
 			}
 			if (request.socketId !== connectionsTable.getConnectionId(request.data.nonce)) {
-				return setImmediate(cb, 'Connection id did not match with corresponding peer');
+				return setImmediate(cb, 'Connection id does not match with corresponding peer');
 			}
 			self.slaveToMasterSender.send('acceptPeer', request.data, cb);
 		});

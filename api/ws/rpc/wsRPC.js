@@ -23,7 +23,7 @@ var wsRPC = {
 	},
 
 	/**
-	 * @throws {Error} thrown if wsServer haven't been initialized before
+	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 */
 	getServer: function () {
@@ -54,7 +54,7 @@ var wsRPC = {
 	},
 
 	/**
-	 * @throws {Error} thrown if wsServer haven't been initialized before
+	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 */
 	getServerAuthKey: function () {
