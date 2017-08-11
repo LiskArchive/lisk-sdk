@@ -20,6 +20,6 @@ const env = vorpal => () => Promise.resolve(vorpal.log(JSON.stringify(config, nu
 export default function envCommand(vorpal) {
 	vorpal
 		.command('env')
-		.description('Print environmental configuration')
+		.description('Print environmental configuration.')
 		.action(env(vorpal));
 }

@@ -86,7 +86,7 @@ lisky> help
 
     help [command...]                    Provides help for a given command.
     exit                                 Exits lisky.
-    env                                  Print environmental configuration
+    env                                  Print environmental configuration.
     get [options] <type> <input>         Get information from <type> with parameter <input>.
                                          Types available: account, address, block, delegate, transaction
                                          E.g. get delegate lightcurve
