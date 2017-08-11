@@ -62,11 +62,11 @@ $ npm link
 This will also add `lisky` to your PATH, but you won't have to repeat the process if you pull or create a new build. Be aware that any previous globally installed lisky version will get overridden with this local version.
 
 
-## Usage:
+## Usage
 
 ### Interactive use
 
-Start lisky:
+To run commands interactively:
 
 ```sh
 $ lisky
@@ -102,7 +102,7 @@ lisky>
 
 ### Non-interactive use
 
-Pass arguments and options directly from the command line. E.g.:
+To run commands and options directly from the command line:
 
 ```sh
 $ lisky get delegate lightcurve --json
