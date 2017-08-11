@@ -45,11 +45,6 @@ describe('transactionPool', function () {
 					}
 				});
 			}],
-			// transactionModule: ['transactionLogic', function (result, cb) {
-			//   modulesLoader.initModuleWithDb(TransactionModule, cb, {
-			//     transaction: result.transactionLogic
-			//   });
-			// }]
 		}, function (err, result) {
 			modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
 				expect(err).to.not.exist;
@@ -67,12 +62,6 @@ describe('transactionPool', function () {
 				});
 				var sendLogic = result.transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
 				sendLogic.bind(account, /* rounds */ null);
-				//
-				// result.transactionModule.onBind({
-				//   accounts: __accountModule,
-				//   // transactions: result.transactionModule,
-				//   //loader:
-				// });
 
 				account.onBind({
 					delegates: result.delegateModule,

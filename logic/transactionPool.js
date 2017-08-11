@@ -101,7 +101,7 @@ TransactionPool.prototype.transactionInPool = function (id) {
 		self.bundled.index[id],
 		self.queued.index[id],
 		self.multisignature.index[id]
-	].filter(function (index) {
+	].some(function (index) {
 		return typeof(index) === 'number';
 	}).length > 0;
 };
