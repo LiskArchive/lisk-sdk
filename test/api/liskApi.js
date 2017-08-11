@@ -6,8 +6,6 @@ describe('Lisk.api()', () => {
 	const testPort = 7000;
 	const livePort = 8000;
 	const defaultSecret = 'secret';
-	const defaultData = 'testData';
-	const localNode = 'localhost';
 	const GET = 'GET';
 	const POST = 'POST';
 	const defaultAddress = {
@@ -687,59 +685,6 @@ describe('Lisk.api()', () => {
 			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {
 				(result.success).should.be.true();
 			});
-		});
-	});
-
-	describe('#createRequestObject', () => {
-		let options;
-		let LSKAPI;
-		let expectedObject;
-		beforeEach(() => {
-			options = { limit: 5, offset: 3, details: defaultData };
-			LSKAPI = liskApi({ node: localNode });
-			expectedObject = {
-				method: GET,
-				url: 'http://localhost:8000/api/transaction',
-				headers: {
-					'Content-Type': 'application/json',
-					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					os: 'lisk-js-api',
-					version: '1.0.0',
-					minVersion: '>=0.5.0',
-					port: 8000,
-				},
-				body: {},
-			};
-		});
-
-		it('should create a valid request Object for GET request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, GET, 'transaction', options);
-			expectedObject.url = 'http://localhost:8000/api/transaction?limit=5&offset=3&details=testData';
-
-			(requestObject).should.be.eql(expectedObject);
-		});
-
-		it('should create a valid request Object for POST request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction', options);
-			expectedObject.body = { limit: 5, offset: 3, details: 'testData' };
-			expectedObject.method = POST;
-
-			(requestObject).should.be.eql(expectedObject);
-		});
-
-		it('should create a valid request Object for POST request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction');
-			expectedObject.method = POST;
-
-			(requestObject).should.be.eql(expectedObject);
-		});
-
-		it('should create a valid request Object for undefined request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, undefined, 'transaction');
-			expectedObject.method = undefined;
-
-			(requestObject).should.be.eql(expectedObject);
 		});
 	});
 });

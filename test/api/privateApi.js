@@ -1,18 +1,18 @@
 import privateApi from '../../src/api/privateApi';
 
-describe('privateApiq', () => {
+describe('privateApi', () => {
 	const port = 7000;
 	const localNode = 'localhost';
 	const externalNode = 'external';
 	const externalTestnetNode = 'testnet';
+	const defaultData = 'testData';
+	const GET = 'GET';
+	const POST = 'POST';
 
 	let LSK;
 
 	beforeEach(() => {
 		LSK = {
-			options: {
-				node: localNode,
-			},
 			randomPeer: false,
 			currentPeer: localNode,
 			defaultPeers: [localNode, externalNode],
@@ -20,6 +20,12 @@ describe('privateApiq', () => {
 			defaultTestnetPeers: [localNode, externalTestnetNode],
 			bannedPeers: [],
 			port,
+			options: {
+				node: localNode,
+			},
+			nethash: {
+				foo: 'bar',
+			},
 
 			parseOfflineRequests: () => ({
 				requestMethod: 'GET',
@@ -184,6 +190,51 @@ describe('privateApiq', () => {
 			LSK.randomPeer = false;
 
 			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
+		});
+	});
+
+	describe('#createRequestObject', () => {
+		const requestType = 'transaction';
+		let options;
+		let expectedObject;
+
+		beforeEach(() => {
+			options = { limit: 5, offset: 3, details: defaultData };
+			expectedObject = {
+				method: GET,
+				url: `http://${localNode}:${port}/api/${requestType}`,
+				headers: LSK.nethash,
+				body: {},
+			};
+		});
+
+		it('should create a valid request Object for GET request', () => {
+			const requestObject = privateApi.createRequestObject.call(LSK, GET, requestType, options);
+			expectedObject.url += `?limit=${options.limit}&offset=${options.offset}&details=${options.details}`;
+
+			(requestObject).should.be.eql(expectedObject);
+		});
+
+		it('should create a valid request Object for POST request', () => {
+			const requestObject = privateApi.createRequestObject.call(LSK, POST, requestType, options);
+			expectedObject.body = { limit: 5, offset: 3, details: 'testData' };
+			expectedObject.method = POST;
+
+			(requestObject).should.be.eql(expectedObject);
+		});
+
+		it('should create a valid request Object for POST request without options', () => {
+			const requestObject = privateApi.createRequestObject.call(LSK, POST, requestType);
+			expectedObject.method = POST;
+
+			(requestObject).should.be.eql(expectedObject);
+		});
+
+		it('should create a valid request Object for undefined request without options', () => {
+			const requestObject = privateApi.createRequestObject.call(LSK, undefined, requestType);
+			expectedObject.method = undefined;
+
+			(requestObject).should.be.eql(expectedObject);
 		});
 	});
 });
