@@ -52,6 +52,7 @@ describe('transaction.js', () => {
 				trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret);
 
 				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(undefined)).should.be.true();
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -67,6 +68,7 @@ describe('transaction.js', () => {
 				);
 
 				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(offset)).should.be.true();
 			});
 		});
 

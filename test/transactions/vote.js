@@ -2,7 +2,7 @@ import slots from '../../src/time/slots';
 import vote from '../../src/transactions/vote';
 import cryptoModule from '../../src/transactions/crypto';
 
-describe('vote.js', () => {
+describe('vote.js @now', () => {
 	it('should be ok', () => {
 		(vote).should.be.ok();
 	});
@@ -16,7 +16,7 @@ describe('vote.js', () => {
 	});
 
 	describe('#createVote', () => {
-		const createVote = vote.createVote;
+		const { createVote } = vote;
 		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 		const publicKeys = [`+${publicKey}`];
 
@@ -48,6 +48,7 @@ describe('vote.js', () => {
 			it('should use time slots to get the time for the timestamp', () => {
 				const vt = createVote('secret', publicKeys, null);
 				(vt).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(undefined)).should.be.true();
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -55,6 +56,7 @@ describe('vote.js', () => {
 				const vt = createVote('secret', publicKeys, null, offset);
 
 				(vt).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(offset)).should.be.true();
 			});
 		});
 

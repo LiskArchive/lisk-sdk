@@ -43,6 +43,7 @@ describe('signature.js', () => {
 			it('should use time slots to get the time for the timestamp', () => {
 				sgn = createSignature('secret', 'second secret');
 				(sgn).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(undefined)).should.be.true();
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -51,6 +52,7 @@ describe('signature.js', () => {
 				sgn = createSignature('secret', 'second secret', offset);
 
 				(sgn).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(offset)).should.be.true();
 			});
 		});
 

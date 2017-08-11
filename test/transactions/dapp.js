@@ -86,6 +86,7 @@ describe('dapp.js', () => {
 						trs = createDapp('secret', null, options);
 
 						(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+						(stub.calledWithExactly(undefined)).should.be.true();
 					});
 
 					it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -93,6 +94,7 @@ describe('dapp.js', () => {
 						trs = createDapp('secret', null, options, offset);
 
 						(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+						(stub.calledWithExactly(offset)).should.be.true();
 					});
 				});
 

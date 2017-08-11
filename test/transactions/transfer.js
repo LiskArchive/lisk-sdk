@@ -89,6 +89,7 @@ describe('transfer.js', () => {
 				const trs = createInTransfer(dappId, amount, secret);
 
 				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(undefined)).should.be.true();
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -96,6 +97,7 @@ describe('transfer.js', () => {
 				const trs = createInTransfer(dappId, amount, secret, null, offset);
 
 				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(offset)).should.be.true();
 			});
 		});
 	});
@@ -189,6 +191,7 @@ describe('transfer.js', () => {
 				const trs = createOutTransfer(dappId, transactionId, recipientId, amount, secret);
 
 				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(undefined)).should.be.true();
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -198,6 +201,7 @@ describe('transfer.js', () => {
 				);
 
 				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(offset)).should.be.true();
 			});
 		});
 	});
