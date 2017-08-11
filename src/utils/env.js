@@ -1,6 +1,6 @@
 import os from 'os';
 import fse from 'fs-extra';
-import defaultConfig from '../../config.json';
+import defaultConfig from '../../defaultConfig.json';
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';
