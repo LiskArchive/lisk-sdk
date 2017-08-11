@@ -449,6 +449,64 @@ describe('SQL triggers related to accounts', function () {
 							});
 						});
 					}); // END: virgin account to new account
+
+					describe ('virgin account to self', function () {
+						var account_before;
+						var transactions = [];
+
+						before(function () {
+							last_random_account = node.randomAccount();
+							var tx = node.lisk.transaction.createTransaction(
+								last_random_account.address,
+								node.randomNumber(100000000, 1000000000),
+								node.gAccount.password
+							);
+							transactions.push(tx);	
+
+							return Promise.promisify(addTransactionsAndForge)(transactions).then(function () {
+								return getAccountByAddress(last_random_account.address).then(function (accounts) {						
+									account_before = accounts[last_random_account.address];
+
+									var tx = node.lisk.transaction.createTransaction(
+										account_before.address,
+										node.randomNumber(1, new bignum(account_before.balance).minus(10000000).toNumber()),
+										last_random_account.password
+									);
+									transactions.push(tx);
+
+									return Promise.promisify(addTransactionsAndForge)([tx]);
+								});
+							});
+						});
+
+						describe('account', function () {
+							var account, tx;
+
+							before(function () {
+								tx = transactions[1];
+								return getAccountByAddress(last_random_account.address).then(function (accounts) {
+									account = accounts[last_random_account.address];
+								});
+							});
+
+							it('should substract only fee', function () {
+								account_before.balance = new bignum(account_before.balance).minus(tx.fee).toString();
+								expect(account_before.balance).to.equal(account.balance);
+								var expected = new bignum(transactions[0].amount).minus(tx.fee).toString();
+								expect(account.balance).to.equal(expected);
+							});
+
+							it('should not modify tx_id', function () {
+								expect(account.tx_id).to.not.be.equal(tx.id);
+								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							});
+
+							it('should set pk, pk_tx_id', function () {
+								expect(account.pk).to.be.equal(tx.senderPublicKey);
+								expect(account.pk_tx_id).to.be.equal(tx.id);
+							});
+						});
+					}); // END: virgin account to self
 				}); // END: type 0 - TRANSFER
 			}); // END: signle transaction
 		}); // END: transactions
