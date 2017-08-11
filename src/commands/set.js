@@ -28,7 +28,7 @@ const writeConfigToFile = (newConfig) => {
 		});
 		return true;
 	} catch (e) {
-		console.warn(`WARNING: Could not write to \`${configFilePath}\`; your configuration will not be persisted.`);
+		console.warn(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
 		return false;
 	}
 };
