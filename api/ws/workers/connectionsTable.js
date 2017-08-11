@@ -31,6 +31,7 @@ ConnectionsTable.prototype.getConnectionId = function (nonce) {
  * @param {string} connectionId
  */
 ConnectionsTable.prototype.add = function (nonce, connectionId) {
+
 	if (!nonce) {
 		throw 'Cannot add connection table entry without nonce';
 	}

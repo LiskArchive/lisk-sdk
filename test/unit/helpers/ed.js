@@ -33,7 +33,6 @@ describe('ed', function () {
 		it('should create a privateKey should have be a Buffer type', function () {
 			expect(Buffer.isBuffer(keys.privateKey)).to.be.ok;
 		});
-
 	});
 
 	describe('sign', function () {
@@ -66,7 +65,6 @@ describe('ed', function () {
 		it('should throw error when passing JSON as message to sign', function () {
 			expect(ed.sign.bind(null, messageToSign, keys.privateKey)).to.throw('argument message must be a buffer');
 		});
-
 	});
 
 	describe('verify', function () {

@@ -1,6 +1,8 @@
 'use strict';
 
 var connectionsTable = require('./connectionsTable');
+var SlaveToMasterSender = require('./slaveToMasterSender');
+var Rules = require('./rules');
 var schema = require('../../../schema/transport');
 var Z_schema = require('../../../helpers/z_schema');
 
@@ -12,86 +14,76 @@ var self, z_schema =  new Z_schema();
  * @constructor
  */
 function PeersUpdateRules (slaveWAMPServer) {
-	this.slaveWAMPServer = slaveWAMPServer;
+	this.slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServer);
+	this.rules = new Rules(this.insert, this.remove, this.panic);
 	self = this;
 }
 
 /**
- * Sends requests to main process with SocketCluster authKey attached
- * @param {string} procedureName
  * @param {Object} peer
- * @param {function} cb
+ * @param {string} connectionId
+ * @param {Function} cb
  */
-PeersUpdateRules.prototype.sendInternally = function (procedureName, peer, cb) {
-	this.slaveWAMPServer.sendToMaster(procedureName, {peer: peer, authKey: this.slaveWAMPServer.worker.options.authKey}, peer.nonce, cb);
+PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
+	try {
+		connectionsTable.add(peer.nonce, connectionId);
+		self.slaveToMasterSender.send('acceptPeer', peer, function (err) {
+			if (err) {
+				connectionsTable.remove(peer.nonce);
+			}
+			return setImmediate(cb, err);
+		});
+	} catch (ex) {
+		return setImmediate(cb, ex);
+	}
+};
+
+/**
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {Function} cb
+ */
+PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
+	try {
+		connectionsTable.remove(peer.nonce);
+		self.slaveToMasterSender.send('removePeer', peer, function (err) {
+			if (err) {
+				connectionsTable.add(peer.nonce, connectionId);
+			}
+			return setImmediate(cb, err);
+		});
+	} catch (ex) {
+		return setImmediate(cb, ex);
+	}
+};
+
+/**
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {Function} cb
+ */
+PeersUpdateRules.prototype.panic = function (peer, connectionId, cb) {
+	return setImmediate(cb, 'Update peer error - peer should never be in current state');
 };
 
 PeersUpdateRules.prototype.internal = {
 
 	/**
-	 * @throws {Error} if peer does not exist
-	 * @throws {Error} if peer.nonce or connectionId is undefined/null/0
-	 * @throws {Error} if peer registered connection before
-	 * @throws {Error} if peer doesn't have nonce, height or broadhash fields
-	 * @throws {Error} if error has been returned from main process
+	 * @param {number} updateType
 	 * @param {Object} peer
 	 * @param {string} connectionId
 	 * @param {function} cb
 	 */
-	insert: function (peer, connectionId, cb) {
-		if (!peer || !peer.nonce) {
-			return cb('Cannot insert peer without nonce');
-		}
-		if (connectionsTable.getConnectionId(peer.nonce)) {
-			return cb('Peer with nonce ' + peer.nonce + ' is already inserted');
-		}
-		if (connectionsTable.connectionIdToNonceMap[connectionId]) {
-			return cb('Connection id ' + connectionId + ' is already assigned');
-		}
-		try {
-			connectionsTable.add(peer.nonce, connectionId);
-			self.sendInternally('acceptPeer', peer, function (err) {
-				if (err) {
-					connectionsTable.remove(peer.nonce);
-				}
-				return cb(err);
-			});
-		} catch (ex) {
-			return cb(ex);
-		}
-	},
+	update: function (updateType, peer, connectionId, cb) {
+		self.slaveToMasterSender.getPeer(peer.nonce, function (err, onMasterPresence) {
+			if (err) {
+				return setImmediate(cb, 'Update peer error - failed to check if peer is already added: ' + err);
+			}
+			var isNoncePresent = !!connectionsTable.getNonce(connectionId);
+			var isConnectionIdPresent = !!connectionsTable.getConnectionId(peer.nonce);
 
-	/**
-	 * @throws {Error} if peer does not exist
-	 * @throws {Error} if peer.nonce is undefined/null/0
-	 * @throws {Error} if peer doesn't have a connection registered
-	 * @throws {Error} if peer.nonce is different than assigned to given connection id
-	 * @throws {Error} if error has been returned from main process
-	 * @param {Object} peer
-	 * @param {string} connectionId
-	 * @param {function} cb
-	 */
-	remove: function (peer, connectionId, cb) {
-		if (!peer || !peer.nonce) {
-			return cb('Cannot remove peer without nonce');
-		}
-		if (!connectionsTable.getConnectionId(peer.nonce)) {
-			return cb('Peer with nonce has no connection established');
-		}
-		if (!connectionId || connectionId !== connectionsTable.getConnectionId(peer.nonce)) {
-			return cb('Attempt to remove peer from different or empty connection id');
-		}
-		try {
-			connectionsTable.remove(peer.nonce);
-			self.sendInternally('removePeer', peer, function (err) {
-				if (err) {
-					connectionsTable.add(peer.nonce, connectionId);
-				}
-				return cb(err);
-			});
-		} catch (ex) {
-			return cb(ex);
-		}
+			return self.rules.rules[updateType][isNoncePresent][isConnectionIdPresent][onMasterPresence](peer, connectionId, cb);
+		});
 	}
 };
 
@@ -112,7 +104,7 @@ PeersUpdateRules.prototype.external = {
 			if (request.socketId !== connectionsTable.getConnectionId(request.data.nonce)) {
 				return setImmediate(cb, 'Connection id did not match with corresponding peer');
 			}
-			self.sendInternally('acceptPeer', request.data, cb);
+			self.slaveToMasterSender.send('acceptPeer', request.data, cb);
 		});
 	}
 };

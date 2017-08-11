@@ -10,6 +10,7 @@ var System = require('./modules/system');
 var Handshake = require('./helpers/wsApi').middleware.Handshake;
 var extractHeaders = require('./helpers/wsApi').extractHeaders;
 var PeersUpdateRules = require('./api/ws/workers/peersUpdateRules');
+var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failureCodes');
 var Logger = require('./logger');
 var config = require('./config.json');
@@ -62,23 +63,14 @@ module.exports.run = function (worker) {
 					return next(invalidHeadersException);
 				}
 
-				scope.slaveWAMPServer.sendToMaster('list', {query: {nonce: headers.nonce}}, headers.nonce, function (err, result) {
+				//insert
+				handshake(headers, function (err, peer) {
 					if (err) {
-						return next(err);
+						scope.logger.debug('Handshake with peer: ' + peer.string + ' rejected: ' + err.message);
+					} else {
+						scope.logger.debug('Handshake with peer: ' + peer.string + ' success');
 					}
-					//peer is already on list - no need to insert
-					if (!err && result.peers.length && result.peers[0].state === Peer.STATE.CONNECTED) {
-						return next('Peer is already on inserted and active.');
-					}
-					//insert
-					handshake(headers, function (err, peer) {
-						if (err) {
-							scope.logger.debug('Handshake with peer: ' + peer.string + ' rejected: ' + err.message);
-						} else {
-							scope.logger.debug('Handshake with peer: ' + peer.string + ' success');
-						}
-						next(err);
-					});
+					next(err);
 				});
 			});
 			return cb(null, handshake);
@@ -89,7 +81,7 @@ module.exports.run = function (worker) {
 			scope.slaveWAMPServer.upgradeToWAMP(socket);
 			socket.on('disconnect', removePeerConnection.bind(null, socket));
 			socket.on('error', removePeerConnection.bind(null, socket));
-			updatePeerConnection(socket, scope.peersUpdateRules.internal.insert, function (onUpdateError) {
+			updatePeerConnection(socket, Rules.UPDATES.INSERT, function (onUpdateError) {
 				if (onUpdateError) {
 					socket.disconnect(failureCodes.ON_INSERT_ERROR, onUpdateError);
 					scope.logger.debug('Peer insert error: ' + onUpdateError);
@@ -102,20 +94,20 @@ module.exports.run = function (worker) {
 				return;
 			}
 			scope.slaveWAMPServer.onSocketDisconnect(socket);
-			updatePeerConnection(socket, scope.peersUpdateRules.internal.remove, function (onUpdateError) {
+			updatePeerConnection(socket, Rules.UPDATES.REMOVE, function (onUpdateError) {
 				if (onUpdateError) {
 					scope.logger.error(onUpdateError.error);
 				}
 			});
 		}
 
-		function updatePeerConnection (socket, updateAction, cb) {
+		function updatePeerConnection (socket, updateType, cb) {
 			try {
 				var headers = extractHeaders(socket.request);
 			} catch (ex) {
-				return cb('Failed to extract peer headers');
+				return setImmediate(cb, 'Failed to extract peer headers');
 			}
-			updateAction(new Peer(headers).object(), socket.id, cb);
+			scope.peersUpdateRules.internal.update(updateType, new Peer(headers).object(), socket.id, cb);
 		}
 	});
 };
