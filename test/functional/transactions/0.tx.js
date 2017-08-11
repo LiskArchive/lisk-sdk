@@ -294,8 +294,9 @@ describe('POST /api/transactions (type 0)', function () {
 				});
 			});
 
-			it('using more than maximum should fail', function (done) {
-				transaction.amount = Number(new BigNumber(constants.totalAmount) + 1);
+			//TODO : enable the test when core fixes #713
+			it.skip('using more than maximum should fail', function (done) {
+				transaction.amount = new BigNumber(constants.totalAmount).plus(1).toString();
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
@@ -418,8 +419,9 @@ describe('POST /api/transactions (type 0)', function () {
 				});
 			});
 
-			it('using more than maximum should fail', function (done) {
-				transaction.fee = Number(new BigNumber(constants.totalAmount) + 1);
+			//TODO : enable the test when core fixes #713
+			it.skip('using more than maximum should fail', function (done) {
+				transaction.fee = new BigNumber(constants.totalAmount).plus(1).toString();
 
 				sendTransaction(transaction, function (err, res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
