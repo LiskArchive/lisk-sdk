@@ -444,9 +444,8 @@ describe('account', function () {
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
-					for (var i = 1; i < limit; i++) {
-						var isLarger = res.accounts[i - 1] >= res.accounts[i];
-						expect(isLarger).to.equal(true);
+					for (var i = 0; i < limit - 1; i++) {
+						expect(new bignum(res.accounts[i].balance).gte(new bignum(res.accounts[i + 1].balance))).to.equal(true);
 					}
 					done();
 				});
@@ -462,9 +461,8 @@ describe('account', function () {
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
-					for (var i = 1; i < limit; i++) {
-						var isLarger = res.accounts[i - 1] >= res.accounts[i];
-						expect(isLarger).to.equal(true);
+					for (var i = 0; i < limit - 1; i++) {
+						expect(new bignum(res.accounts[i].balance).gte(new bignum(res.accounts[i + 1].balance))).to.equal(true);
 					}
 					done();
 				});
