@@ -151,7 +151,11 @@ describe('SQL triggers related to accounts', function () {
 					addTransaction(transaction, eachSeriesCb);
 				}, waterCb);
 			},
-			forge
+			function (waterCb) {
+				setTimeout(function() {
+					forge(waterCb);
+				}, 100);
+			}
 		], function (err) {
 			cb(err);
 		});
@@ -464,7 +468,7 @@ describe('SQL triggers related to accounts', function () {
 							transactions.push(tx);	
 
 							return Promise.promisify(addTransactionsAndForge)(transactions).then(function () {
-								return getAccountByAddress(last_random_account.address).then(function (accounts) {						
+								return getAccountByAddress(last_random_account.address).then(function (accounts) {
 									account_before = accounts[last_random_account.address];
 
 									var tx = node.lisk.transaction.createTransaction(
