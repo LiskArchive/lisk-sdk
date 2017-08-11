@@ -194,146 +194,217 @@ describe('SQL triggers related to accounts', function () {
 		describe('transactions', function () {
 			var last_random_account;
 
-			describe ('single, type TRANSFER - 0 from non-virgin account', function () {
-				var sender_before;
-				var transactions = [];
+			describe('signle transaction', function () {
 
-				before(function () {
-					last_random_account = node.randomAccount();
-					var tx = node.lisk.transaction.createTransaction(
-						last_random_account.address,
-						node.randomNumber(100000000, 1000000000),
-						node.gAccount.password
-					);
-					transactions.push(tx);
+				describe('type 0 - TRANSFER', function () {
 
-					return getAccountByAddress(node.gAccount.address).then(function (accounts) {
-						sender_before = accounts[node.gAccount.address];
-						return Promise.promisify(addTransactionsAndForge)(transactions);
-					});
+					describe ('non-virgin account to new account', function () {
+						var sender_before;
+						var transactions = [];
 
-				});
+						before(function () {
+							last_random_account = node.randomAccount();
 
-				describe('sender', function () {
+							return getAccountByAddress(node.gAccount.address).then(function (accounts) {
+								sender_before = accounts[node.gAccount.address];
 
-					it('should substract balance', function () {
-						return getAccountByAddress(node.gAccount.address).then(function (accounts) {
-							var sender = accounts[node.gAccount.address];
-							var tx = transactions[0];
-							sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
-							expect(sender_before.balance).to.equal(sender.balance);
+								var tx = node.lisk.transaction.createTransaction(
+									last_random_account.address,
+									node.randomNumber(100000000, 1000000000),
+									node.gAccount.password
+								);
+								transactions.push(tx);
+
+								return Promise.promisify(addTransactionsAndForge)(transactions);
+							});
 						});
-					});
-				});
 
-				describe('recipient', function () {
-					var recipient, tx;
+						describe('sender', function () {
 
-					before(function () {
-						tx = transactions[0];
-						return getAccountByAddress(tx.recipientId).then(function (accounts) {
-							recipient = accounts[tx.recipientId];
+							it('should substract balance', function () {
+								return getAccountByAddress(node.gAccount.address).then(function (accounts) {
+									var sender = accounts[node.gAccount.address];
+									var tx = transactions[0];
+									sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
+									expect(sender_before.balance).to.equal(sender.balance);
+								});
+							});
 						});
-					});
 
-					it('should create account', function () {
-						expect(recipient.address).to.be.equal(tx.recipientId);
-					});
+						describe('recipient', function () {
+							var recipient, tx;
 
-					it('should set tx_id', function () {
-						expect(recipient.tx_id).to.be.equal(tx.id);
-					});
+							before(function () {
+								tx = transactions[0];
+								return getAccountByAddress(tx.recipientId).then(function (accounts) {
+									recipient = accounts[tx.recipientId];
+								});
+							});
 
-					it('should not set pk, pk_tx_id, second_pk', function () {
-						expect(recipient.pk).to.be.null;
-						expect(recipient.pk_tx_id).to.be.null;
-						expect(recipient.second_pk).to.be.null;
-					});
+							it('should create account', function () {
+								expect(recipient.address).to.be.equal(tx.recipientId);
+							});
 
-					it('should credit balance', function () {
-						expect(recipient.balance).to.equal(tx.amount.toString());
-					});
-				});
-			});
+							it('should set tx_id', function () {
+								expect(recipient.tx_id).to.be.equal(tx.id);
+							});
 
-			describe ('single, type TRANSFER - 0 from virgin account', function () {
-				var sender_before;
-				var transactions = [];
+							it('should not set pk, pk_tx_id, second_pk', function () {
+								expect(recipient.pk).to.be.null;
+								expect(recipient.pk_tx_id).to.be.null;
+								expect(recipient.second_pk).to.be.null;
+							});
 
-				before(function () {
-					return getAccountByAddress(last_random_account.address).then(function (accounts) {						
-						sender_before = accounts[last_random_account.address];
-
-						var tx = node.lisk.transaction.createTransaction(
-							node.randomAccount().address,
-							node.randomNumber(1, new bignum(sender_before.balance).minus(10000000).toNumber()),
-							last_random_account.password
-						);
-						transactions.push(tx);
-
-						return Promise.promisify(addTransactionsAndForge)(transactions);
-					});
-
-				});
-
-				describe('sender', function () {
-					var sender, tx;
-
-					before(function () {
-						tx = transactions[0];
-						return getAccountByAddress(tx.senderId).then(function (accounts) {
-							sender = accounts[tx.senderId];
+							it('should credit balance', function () {
+								expect(recipient.balance).to.equal(tx.amount.toString());
+							});
 						});
-					});
+					}); // END: non-virgin account to new account
 
-					it('should not modify tx_id', function () {
-						expect(sender_before.tx_id).to.equal(sender.tx_id);
-					});
+					describe ('non-virgin account to existing virgin account', function () {
+						var sender_before;
+						var recipient_before;
+						var transactions = [];
 
-					it('should substract balance', function () {
-						sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
-						expect(sender_before.balance).to.equal(sender.balance);
-					});
+						before(function () {
+							return Promise.join(getAccountByAddress(node.gAccount.address), getAccountByAddress(last_random_account.address), function (sender, recipient) {
+								sender_before = sender[node.gAccount.address];
+								recipient_before = recipient[last_random_account.address];
 
-					it('should set pk, pk_tx_id', function () {
-						expect(sender.pk).to.equal(tx.senderPublicKey);
-						expect(sender.pk_tx_id).to.equal(tx.id);
-					});
+								var tx = node.lisk.transaction.createTransaction(
+									last_random_account.address,
+									node.randomNumber(100000000, 1000000000),
+									node.gAccount.password
+								);
+								transactions.push(tx);
 
-					it('should not set second_pk', function () {
-						expect(sender.second_pk).to.be.null;
-					});
-				});
-
-				describe('recipient', function () {
-					var recipient, tx;
-
-					before(function () {
-						tx = transactions[0];
-						return getAccountByAddress(tx.recipientId).then(function (accounts) {
-							recipient = accounts[tx.recipientId];
+								return Promise.promisify(addTransactionsAndForge)(transactions);
+							});
 						});
-					});
 
-					it('should create account', function () {
-						expect(recipient.address).to.be.equal(tx.recipientId);
-					});
+						describe('sender', function () {
 
-					it('should set tx_id', function () {
-						expect(recipient.tx_id).to.be.equal(tx.id);
-					});
+							it('should substract balance', function () {
+								return getAccountByAddress(node.gAccount.address).then(function (accounts) {
+									var sender = accounts[node.gAccount.address];
+									var tx = transactions[0];
+									sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
+									expect(sender_before.balance).to.equal(sender.balance);
+								});
+							});
+						});
 
-					it('should not set pk, pk_tx_id, second_pk', function () {
-						expect(recipient.pk).to.be.null;
-						expect(recipient.pk_tx_id).to.be.null;
-						expect(recipient.second_pk).to.be.null;
-					});
+						describe('recipient', function () {
+							var recipient, tx;
 
-					it('should credit balance', function () {
-						expect(recipient.balance).to.equal(tx.amount.toString());
-					});
-				});
-			});
-		});
+							before(function () {
+								tx = transactions[0];
+								return getAccountByAddress(tx.recipientId).then(function (accounts) {
+									recipient = accounts[tx.recipientId];
+								});
+							});
+
+							it('account should exist', function () {
+								expect(recipient.address).to.be.equal(tx.recipientId);
+							});
+
+							it('should not modify tx_id', function () {
+								expect(recipient.tx_id).to.not.be.equal(tx.id);
+								expect(recipient.tx_id).to.be.equal(recipient_before.tx_id);
+							});
+
+							it('should not set pk, pk_tx_id, second_pk', function () {
+								expect(recipient.pk).to.be.null;
+								expect(recipient.pk_tx_id).to.be.null;
+								expect(recipient.second_pk).to.be.null;
+							});
+
+							it('should credit balance', function () {
+								var expected = new bignum(recipient_before.balance).plus(tx.amount).toString()
+								expect(recipient.balance).to.equal(expected);
+							});
+						});
+					}); // END: non-virgin account to existing virgin account
+
+					describe ('virgin account to new account', function () {
+						var sender_before;
+						var transactions = [];
+
+						before(function () {
+							return getAccountByAddress(last_random_account.address).then(function (accounts) {						
+								sender_before = accounts[last_random_account.address];
+
+								var tx = node.lisk.transaction.createTransaction(
+									node.randomAccount().address,
+									node.randomNumber(1, new bignum(sender_before.balance).minus(10000000).toNumber()),
+									last_random_account.password
+								);
+								transactions.push(tx);
+
+								return Promise.promisify(addTransactionsAndForge)(transactions);
+							});
+						});
+
+						describe('sender', function () {
+							var sender, tx;
+
+							before(function () {
+								tx = transactions[0];
+								return getAccountByAddress(tx.senderId).then(function (accounts) {
+									sender = accounts[tx.senderId];
+								});
+							});
+
+							it('should not modify tx_id', function () {
+								expect(sender_before.tx_id).to.equal(sender.tx_id);
+							});
+
+							it('should substract balance', function () {
+								sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
+								expect(sender_before.balance).to.equal(sender.balance);
+							});
+
+							it('should set pk, pk_tx_id', function () {
+								expect(sender.pk).to.equal(tx.senderPublicKey);
+								expect(sender.pk_tx_id).to.equal(tx.id);
+							});
+
+							it('should not set second_pk', function () {
+								expect(sender.second_pk).to.be.null;
+							});
+						});
+
+						describe('recipient', function () {
+							var recipient, tx;
+
+							before(function () {
+								tx = transactions[0];
+								return getAccountByAddress(tx.recipientId).then(function (accounts) {
+									recipient = accounts[tx.recipientId];
+								});
+							});
+
+							it('should create account', function () {
+								expect(recipient.address).to.be.equal(tx.recipientId);
+							});
+
+							it('should set tx_id', function () {
+								expect(recipient.tx_id).to.be.equal(tx.id);
+							});
+
+							it('should not set pk, pk_tx_id, second_pk', function () {
+								expect(recipient.pk).to.be.null;
+								expect(recipient.pk_tx_id).to.be.null;
+								expect(recipient.second_pk).to.be.null;
+							});
+
+							it('should credit balance', function () {
+								expect(recipient.balance).to.equal(tx.amount.toString());
+							});
+						});
+					}); // END: virgin account to new account
+				}); // END: type 0 - TRANSFER
+			}); // END: signle transaction
+		}); // END: transactions
 	});
 });
