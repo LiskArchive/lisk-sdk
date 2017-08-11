@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../../config.json';
+import config from '../utils/env';
 import query from '../utils/query';
 import { COMMAND_TYPES } from '../utils/constants';
 import {

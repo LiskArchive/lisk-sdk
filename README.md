@@ -89,7 +89,8 @@ lisky> help
                                          Types available: accounts, addresses, blocks, delegates, transactions
                                          E.g. list delegates lightcurve tosch
                                          E.g. list blocks 5510510593472232540 16450842638530591789
-    set <variable> <value>               Set configuration <variable> to <value>.
+    set <variable> <value>               Set configuration <variable> to <value>. Configuration is
+                                         persisted in `~/.lisky/config.json`.
 lisky>
 ```
 
@@ -103,6 +104,8 @@ $ lisky get delegate lightcurve --json
 
 
 ## Settings
+
+Configuration is stored in a config file placed in the user's home directory (run `help set` to see the exact location). If this is unavailable a default configuration is used. The following settings can be updated (and will be persisted if possible):
 
 | Command | Description |
 | --- | --- |

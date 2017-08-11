@@ -2358,9 +2358,9 @@ levn@^0.3.0, levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lisk-js@=0.4.4:
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/lisk-js/-/lisk-js-0.4.4.tgz#d12a7d9cd48d32c6513fb5ab5ffaf318403ac1c6"
+lisk-js@=0.4.5:
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/lisk-js/-/lisk-js-0.4.5.tgz#54309938cc5d8fe04996382a96cd7db939d760b8"
   dependencies:
     browserify-bignum "=1.3.0-2"
     buffer "=5.0.6"
