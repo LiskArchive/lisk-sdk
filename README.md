@@ -149,6 +149,11 @@ Lisky has an extensive set of unit tests. To run the tests, please install lisky
 $ npm test
 ```
 
+## Authors
+
+- Tobias Schwarz <tobias@lightcurve.io>
+- Will Clark <will@lightcurve.io>
+
 ## License
 
 Copyright © 2016-2017 Lisk Foundation
