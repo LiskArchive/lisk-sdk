@@ -181,7 +181,6 @@ Multisignatures.prototype.onBind = function (scope) {
 	};
 
 	__private.assetTypes[transactionTypes.MULTI].bind(
-		scope.rounds,
 		scope.accounts
 	);
 };

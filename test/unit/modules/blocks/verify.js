@@ -241,12 +241,13 @@ describe('blocks/verify', function () {
 	var blocks;
 	var blockLogic;
 	var accounts;
+	var delegates;
 
 	before(function (done) {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
 			if (err) {
 				return done(err);
-			}
+			}			
 			blockLogic = __blockLogic;
 
 			modulesLoader.initModules([
@@ -272,6 +273,8 @@ describe('blocks/verify', function () {
 				blocks = __modules.blocks;
 				blocksVerify = __modules.blocks.verify;
 				accounts = __modules.accounts;
+				delegates = __modules.delegates;
+
 				done();
 			});
 		});
@@ -281,16 +284,16 @@ describe('blocks/verify', function () {
 
 		it('should be ok', function (done) {
 			blocks.lastBlock.set(previousBlock);
-
+			
 			blocksVerify.verifyBlock(validBlock, function (err) {
 				expect(err).to.be.null;
 				done();
 			});
 		});
-
+		
 		it('should be ok when block is invalid but block id is excepted for having invalid block reward', function (done) {
 			exceptions.blockRewards.push(blockRewardInvalid.id);
-
+			
 			blocksVerify.verifyBlock(blockRewardInvalid, function (err) {
 				expect(err).to.be.null;
 				done();
@@ -299,7 +302,7 @@ describe('blocks/verify', function () {
 	});
 
 	describe('verifyBlock() for invalid block', function () {
-
+		
 		describe('base validations', function () {
 
 			it('should fail when block version != 0', function (done) {
@@ -323,7 +326,7 @@ describe('blocks/verify', function () {
 					done();
 				});
 			});
-
+			
 			it('should fail when previousBlock property is missing', function (done) {
 				var previousBlock = validBlock.previousBlock;
 				delete validBlock.previousBlock;
@@ -359,7 +362,7 @@ describe('blocks/verify', function () {
 
 			it('should fail when transactions length is not equal to numberOfTransactions property', function (done) {
 				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
-
+				
 				blocksVerify.verifyBlock(validBlock, function (err) {
 					expect(err).to.equal('Included transactions do not match block transactions count');
 					validBlock.numberOfTransactions = validBlock.transactions.length;
@@ -371,7 +374,7 @@ describe('blocks/verify', function () {
 				var transactions = validBlock.transactions;
 				validBlock.transactions = new Array(26);
 				validBlock.numberOfTransactions = validBlock.transactions.length;
-
+				
 				blocksVerify.verifyBlock(validBlock, function (err) {
 					expect(err).to.equal('Number of transactions exceeds maximum per block');
 					validBlock.transactions = transactions;
@@ -472,7 +475,7 @@ describe('blocks/verify', function () {
 					validBlock.generatorPublicKey = generatorPublicKey;
 					done();
 				});
-			});
+			});		
 
 			it('should fail when generatorPublicKey property is an invalid hex string', function (done) {
 				var generatorPublicKey = validBlock.generatorPublicKey;
@@ -485,7 +488,7 @@ describe('blocks/verify', function () {
 				});
 			});
 		});
-
+		
 		describe('setBlockId validations', function () {
 
 			it('should reset block id when block id is an invalid alpha-numeric string value', function (done) {
@@ -553,9 +556,10 @@ describe('blocks/verify', function () {
 			});
 		});
 	});
+
 	// Sends a block to network, save it locally.
 	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', function () {
-
+		
 		it('should clear database', function (done) {
 			async.every([
 				'blocks where height > 1',
@@ -569,7 +573,7 @@ describe('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				return done();
+				delegates.generateDelegateList(done);
 			});
 		});
 
@@ -584,8 +588,8 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate block 1', function (done) {
-			var secret = 'famous weapon poverty blast announce observe discover prosper mystery adapt tuna office';
-
+			var secret = 'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
+			
 			block1 = createBlock(blocks, blockLogic, secret, 32578370, transactionsBlock1, previousBlock1);
 			expect(block1.version).to.equal(0);
 			expect(block1.timestamp).to.equal(32578370);
@@ -621,7 +625,7 @@ describe('blocks/verify', function () {
 	});
 
 	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', function () {
-
+		
 		it('should fail when process block 1 again (checkExists)', function (done) {
 			blocks.lastBlock.set(previousBlock1);
 
@@ -632,15 +636,15 @@ describe('blocks/verify', function () {
 			}, true);
 		});
 	});
-
+	
 	// Receives a block from network, save it locally.
 	describe('processBlock() for invalid block {broadcast: false, saveBlock: true}', function () {
-
+		
 		var invalidBlock2;
 
 		it('should generate block 2 with invalid generator slot', function (done) {
-			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
-
+			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
+			
 			block2 = createBlock(blocks, blockLogic, secret, 33772882, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772882);
@@ -720,8 +724,8 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate block 2 with valid generator slot and processed trs', function (done) {
-			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
-
+			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
+			
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock1, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772862);
@@ -750,8 +754,8 @@ describe('blocks/verify', function () {
 	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', function () {
 
 		it('should generate block 2 with valid generator slot', function (done) {
-			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
-
+			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
+			
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772862);
@@ -805,8 +809,8 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate block 3', function (done) {
-			var secret = 'flavor type stone episode capable usage save sniff notable liar gas someone';
-
+			var secret = 'term stable snap size half hotel unique biology amateur fortune easily tribe';
+			
 			block3 = createBlock(blocks, blockLogic, secret, 33942637, [], block2);
 			expect(block3.version).to.equal(0);
 			done();
@@ -838,7 +842,7 @@ describe('blocks/verify', function () {
 
 		it('should be ok when broadcast block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
-
+			
 			blocksVerify.processBlock(block3, true, function (err, result) {
 				if (err) {
 					return done(err);
