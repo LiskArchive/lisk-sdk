@@ -8,4 +8,6 @@ require('./peers');
 require('./transactions');
 require('./transport/transport');
 require('./transport/transport.blocks');
+require('./transport/transport.transactions');
 require('./transport/transport.transactions.stress');
+require('./transactions/0.tx');

@@ -16,7 +16,8 @@ before(function (done) {
 		amount: node.randomLISK(),
 		address: delegate.address
 	}, function (err, res) {
-		node.expect(err).to.be.null;
+		node.expect(res).to.have.property('success').to.be.ok;
+		node.expect(res).to.have.property('transactionId').that.is.not.empty;
 		node.onNewBlock(function () {
 			var insertDelegateTrs = node.lisk.delegate.createDelegate(delegate.password, delegate.username);
 			sendTransaction(insertDelegateTrs, function (err, res) {
@@ -117,7 +118,7 @@ describe('GET /api/delegates (cache)', function () {
 describe('GET /api/delegates', function () {
 
 	before(function () {
-		
+
 	});
 	it('using no params should be ok', function (done) {
 		http.get('/api/delegates', function (err, res) {
