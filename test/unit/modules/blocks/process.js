@@ -31,7 +31,6 @@ describe('blocks/process', function () {
 				{accounts: require('../../../../modules/accounts')},
 				{delegates: require('../../../../modules/delegates')},
 				{transactions: require('../../../../modules/transactions')},
-				{rounds: require('../../../../modules/rounds')},
 				{multisignatures: require('../../../../modules/multisignatures')},
 				{signatures: require('../../../../modules/signatures')},
 			], [
@@ -49,7 +48,6 @@ describe('blocks/process', function () {
 				__modules.accounts.onBind(__modules);
 				__modules.transactions.onBind(__modules);
 				__modules.blocks.chain.onBind(__modules);
-				__modules.rounds.onBind(__modules);
 				__modules.multisignatures.onBind(__modules);
 				__modules.signatures.onBind(__modules);
 				__modules.blocks.process.onBind(__modules);
