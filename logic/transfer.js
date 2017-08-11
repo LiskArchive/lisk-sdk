@@ -237,7 +237,7 @@ Transfer.prototype.dbFields = [
  */
 Transfer.prototype.dbRead = function (raw) {
 	if (raw.tf_data) {
-		return { data: raw.tf_data };
+		return {data: raw.tf_data};
 	}
 
 	return null;
@@ -269,7 +269,7 @@ Transfer.prototype.dbSave = function (trs) {
 			table: this.dbTable,
 			fields: this.dbFields,
 			values: {
-				data : data,
+				data: data,
 				transactionId: trs.id
 			}
 		};

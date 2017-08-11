@@ -4,8 +4,8 @@
 
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS "transfer"(
-  "data" bytea NOT NULL,
+CREATE TABLE IF NOT EXISTS "transfer" (
+  "data" BYTEA NOT NULL,
   "transactionId" VARCHAR(20) NOT NULL,
   FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE
 );
