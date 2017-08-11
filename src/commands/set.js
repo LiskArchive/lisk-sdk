@@ -22,9 +22,15 @@ import { CONFIG_VARIABLES } from '../utils/constants';
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 
 const writeConfigToFile = (newConfig) => {
-	fse.writeJsonSync(configFilePath, newConfig, {
-		spaces: '\t',
-	});
+	try {
+		fse.writeJsonSync(configFilePath, newConfig, {
+			spaces: '\t',
+		});
+		return true;
+	} catch (e) {
+		console.warn(`WARNING: Could not write to \`${configFilePath}\`; your configuration will not be persisted.`);
+		return false;
+	}
 };
 
 const checkBoolean = value => ['true', 'false'].includes(value);
@@ -49,7 +55,12 @@ const setBoolean = (variable, path) => (value) => {
 	if (variable === 'testnet') {
 		liskInstance.setTestnet(newValue);
 	}
-	writeConfigToFile(config);
+
+	const writeSuccess = writeConfigToFile(config);
+
+	if (!writeSuccess && process.argv.length > 2) {
+		return `Could not set ${variable} to ${value}.`;
+	}
 	return `Successfully set ${variable} to ${value}.`;
 };
 
