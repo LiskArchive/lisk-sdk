@@ -1,7 +1,7 @@
 'use strict';
 
 var node = require('../../node');
-var shared = require('../transactions/shared');
+var shared = require('../http/post/shared');
 var ws = require('../../common/wsCommunication');
 
 function postTransaction (transaction, done) {

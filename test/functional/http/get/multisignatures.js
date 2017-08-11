@@ -1,11 +1,11 @@
 'use strict';
 
 var async = require('async');
-var node = require('../node.js');
-var http = require('../common/httpCommunication.js');
-var sendLISK = require('../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../common/complexTransactions.js').sendTransaction;
-var sendSignature = require('../common/complexTransactions.js').sendSignature;
+var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
+var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
+var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
+var sendSignature = require('../../../common/complexTransactions.js').sendSignature;
 
 var multisigAccount = node.randomAccount();
 var multisigTransaction;

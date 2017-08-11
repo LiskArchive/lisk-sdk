@@ -1,21 +1,19 @@
 'use strict';
 
-var Promise = require('bluebird');
+var node = require('../../../node');
 
-var node = require('../../node');
+var getTransaction = require('../../../common/complexTransactions').getTransaction;
+var getUnconfirmedTransaction = require('../../../common/complexTransactions').getUnconfirmedTransaction;
 
-var getTransaction = require('../../common/complexTransactions').getTransaction;
-var getUnconfirmedTransaction = require('../../common/complexTransactions').getUnconfirmedTransaction;
-
-var getTransactionPromise = Promise.promisify(getTransaction);
-var getUnconfirmedTransactionPromise = Promise.promisify(getUnconfirmedTransaction);
+var getTransactionPromise = node.Promise.promisify(getTransaction);
+var getUnconfirmedTransactionPromise = node.Promise.promisify(getUnconfirmedTransaction);
 
 exports.confirmationPhase = function (goodTransactions, badTransactions){
 
 	describe('before new block', function () {
 
 		it('good transactions should remain unconfirmed', function () {
-			return Promise.map(goodTransactions, function (tx) {
+			return node.Promise.map(goodTransactions, function (tx) {
 				return getTransactionPromise(tx.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('error').equal('Transaction not found');
@@ -31,7 +29,7 @@ exports.confirmationPhase = function (goodTransactions, badTransactions){
 		});
 
 		it('bad transactions should not be confirmed', function () {
-			return Promise.map(badTransactions, function (tx) {
+			return node.Promise.map(badTransactions, function (tx) {
 				return getTransactionPromise(tx.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('error').equal('Transaction not found');
@@ -40,7 +38,7 @@ exports.confirmationPhase = function (goodTransactions, badTransactions){
 		});
 
 		it('good transactions should not be unconfirmed', function () {
-			return Promise.map(goodTransactions, function (tx) {
+			return node.Promise.map(goodTransactions, function (tx) {
 				return getUnconfirmedTransactionPromise(tx.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('error').equal('Transaction not found');
@@ -49,7 +47,7 @@ exports.confirmationPhase = function (goodTransactions, badTransactions){
 		});
 
 		it('good transactions should be confirmed', function () {
-			return Promise.map(goodTransactions, function (tx) {
+			return node.Promise.map(goodTransactions, function (tx) {
 				return getTransactionPromise(tx.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transaction').to.have.property('id').equal(tx.id);

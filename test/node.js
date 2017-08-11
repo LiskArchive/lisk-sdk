@@ -27,6 +27,7 @@ node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
+node.Promise = require('bluebird');
 var randomString = require('randomstring');
 require('colors');
 
