@@ -135,12 +135,11 @@ Further information can be found on our documentation site:
     - [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage-interactive-and-noninteractive)
     - [Commands](https://docs.lisk.io/v1.3/docs/lisky-usage-commands)
 
-## Get involved
+## Get Involved
 
-As with every repository on LiskHQ we are working intensively with GitHub open-source tools.
-If you find a bug, you can create an [issue](https://github.com/LiskHQ/lisky/issues), please provide as much detail as you can.
+Lisky is an open-source project and all contributions are welcome.
 
-We would be more than happy if you decide to contribute to this code and make it better along the way. Please have a look at the Lisk contribution guidelines before you start.
+If you find a bug or want to make feature request, please create an [issue](https://github.com/LiskHQ/lisky/issues) with as much detail as you can.
 
 ## Run Tests
 
