@@ -326,6 +326,52 @@ describe('SQL triggers related to accounts', function () {
 						});
 					}); // END: non-virgin account to existing virgin account
 
+					describe ('non-virgin account to self', function () {
+						var account_before;
+						var transactions = [];
+
+						before(function () {
+							return getAccountByAddress(node.gAccount.address).then(function (accounts) {
+								account_before = accounts[node.gAccount.address];
+
+								var tx = node.lisk.transaction.createTransaction(
+									node.gAccount.address,
+									node.randomNumber(100000000, 1000000000),
+									node.gAccount.password
+								);
+								transactions.push(tx);
+
+								return Promise.promisify(addTransactionsAndForge)(transactions);
+							});
+						});
+
+						describe('account', function () {
+							var account, tx;
+
+							before(function () {
+								tx = transactions[0];
+								return getAccountByAddress(node.gAccount.address).then(function (accounts) {
+									account = accounts[node.gAccount.address];
+								});
+							});
+
+							it('should substract only fee', function () {
+								account_before.balance = new bignum(account_before.balance).minus(tx.fee).toString();
+								expect(account_before.balance).to.equal(account.balance);
+							});
+
+							it('should not modify tx_id', function () {
+								expect(account.tx_id).to.not.be.equal(tx.id);
+								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							});
+
+							it('should not modify pk_tx_id', function () {
+								expect(account.pk_tx_id).to.not.be.equal(tx.id);
+								expect(account.pk_tx_id).to.be.equal(account_before.pk_tx_id);
+							});
+						});
+					}); // END: non-virgin account to self
+
 					describe ('virgin account to new account', function () {
 						var sender_before;
 						var transactions = [];
