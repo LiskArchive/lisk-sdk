@@ -139,7 +139,7 @@ TxPool.prototype.get = function (id) {
 	}
 	return {
 		tx: undefined,
-		status: 'not in pool'
+		status: 'Not in pool'
 	};
 };
 
@@ -162,7 +162,7 @@ TxPool.prototype.getReady = function (limit) {
  * @param {string} poolList unverified, pending, ready
  * @param {boolean} reverse
  * @param {number} limit
- * @return {getTransactionList} Calls getTransactionList
+ * @return {[transactins]} transactions in pool list filter by limit.
  */
 TxPool.prototype.getByPoolList  = function (poolList, reverse, limit) {
 	switch (poolList) {
@@ -429,7 +429,7 @@ __private.delete = function (id, poolList) {
 };
 
 /**
- * Sums unverified, verified.pending and verified.ready transactions length.
+ * Sums unverified, verified.pending and verified.ready indexes length.
  * @return {Number} unverified, pending, ready
  */
 __private.countTxsPool = function () {

@@ -279,31 +279,65 @@ describe('txPool', function () {
 		});
 	});
 
-	describe('process worker', function() {
+	describe('transport', function() {
 
 	});
-	
-	describe('transport', function() {
+
+	describe('process worker', function() {
 
 	});
 
 	describe('getters', function() {
 
-		it('should be ok when get all transactions from unverified', function (done) {
+		xit('should be ok when get transaction by id from unverified list', function (done) {
+			var transaction = txPool.get(transactions[5].id);
+			expect(transaction.tx).to.deep.equal(transactions[5]);
+			expect(transaction.status).to.equal('unverified');
+			done();
+		});
+
+		xit('should be ok when get transaction by id from pending list', function (done) {
+			var transaction = txPool.get(transactions[5].id);
+			expect(transaction.tx).to.deep.equal(transactions[5]);
+			expect(transaction.status).to.equal('pending');
+			done();
+		});
+
+		it('should be ok when get transaction by id from ready list', function (done) {
+			var transaction = txPool.get(transactions[5].id);
+			expect(transaction.tx).to.deep.equal(transactions[5]);
+			expect(transaction.status).to.equal('ready');
+			done();
+		});
+
+		it('should fail when get transaction by id that is not in the pool', function (done) {
+			var transaction = txPool.get(transactions[0].id);
+			expect(transaction.tx).to.be.undefined;
+			expect(transaction.status).to.equal('Not in pool');
+			done();
+		});
+
+		it('should be ok when get all transactions from unverified list', function (done) {
 			var txs = txPool.getByPoolList('unverified');
 			expect(txs.length).to.equal(0)
 			done();
 		});
 
-		it('should be ok when get all transactions from pending', function (done) {
+		it('should be ok when get all transactions from pending list', function (done) {
 			var txs = txPool.getByPoolList('pending');
 			expect(txs.length).to.equal(0)
 			done();
 		});
 		
-		it('should be ok when get all transactions from ready', function (done) {
+		it('should be ok when get all transactions from ready list', function (done) {
 			var txs = txPool.getByPoolList('ready');
 			expect(txs.length).to.equal(5)
+			done();
+		});
+
+		it('should fail when get all transactions from unknown list', function (done) {
+			var txs = txPool.getByPoolList('unknown');
+			expect(txs).to.equal('Invalid pool list');
 			done();
 		});
 	});
