@@ -103,7 +103,7 @@ TransactionPool.prototype.transactionInPool = function (id) {
 		self.multisignature.index[id]
 	].some(function (index) {
 		return typeof(index) === 'number';
-	}).length > 0;
+	});
 };
 
 /**

@@ -8,7 +8,6 @@ var transactionTypes = require('../../../helpers/transactionTypes');
 var AccountModule    = require('../../../modules/accounts.js');
 var BlocksModule     = require('../../../modules/blocks.js');
 var AccountLogic     = require('../../../logic/account.js');
-var Rounds           = require('../../../modules/rounds.js');
 var modulesLoader    = require('../../common/initModule').modulesLoader;
 var async            = require('async');
 var expect           = require('chai').expect;
@@ -22,9 +21,7 @@ describe('transactionPool', function () {
 	before(function (done) {
 		// Init transaction logic
 		async.auto({
-			rounds          : function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
-			},
+
 			accountLogic    : function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
 			},
