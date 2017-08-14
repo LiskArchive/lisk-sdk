@@ -342,7 +342,6 @@ LiskAPI.prototype.listVoters = privateApi.wrapSendRequest(GET, 'delegates/voters
 /**
  * @method listMultisignatureTransactions
  * @param data
- * @param callback
  *
  * @return API object
  */
