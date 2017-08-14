@@ -27,6 +27,7 @@ node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
+node.Promise = require('bluebird');
 var randomString = require('randomstring');
 require('colors');
 
@@ -327,6 +328,12 @@ node.randomTxAccount = function () {
 		totalPaidFee: '',
 		transactions: []
 	});
+};
+
+// Returns an random basic transaction to send 1 LSK from genesis account to a random account
+node.randomTx = function () {
+	var randomAccount = node.randomAccount();
+	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password);;
 };
 
 // Returns a random password

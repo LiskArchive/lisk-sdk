@@ -1,0 +1,14 @@
+require('./http/get/accounts');
+require('./http/get/blocks');
+require('./http/get/dapps');
+require('./http/get/delegates');
+require('./http/get/loader');
+require('./http/get/multisignatures');
+require('./http/get/peers');
+require('./http/get/transactions');
+require('./ws/transport');
+require('./ws/transport.blocks');
+require('./ws/transport.transactions');
+require('./ws/transport.transactions.stress');
+require('./http/post/0.tx');
+require('./http/post/1.second.secret');
