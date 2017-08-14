@@ -1,17 +1,17 @@
-var TransactionPool  = require('../../../logic/transactionPool');
+var TransactionPool = require('../../../logic/transactionPool');
 var TransactionLogic = require('../../../logic/transaction');
-var DelegateModule   = require('../../../modules/delegates');
+var DelegateModule = require('../../../modules/delegates');
 
 var TransferLogic = require('../../../logic/transfer');
 
 var transactionTypes = require('../../../helpers/transactionTypes');
-var AccountModule    = require('../../../modules/accounts');
-var BlocksModule     = require('../../../modules/blocks');
-var AccountLogic     = require('../../../logic/account');
-var modulesLoader    = require('../../common/initModule').modulesLoader;
-var async            = require('async');
-var expect           = require('chai').expect;
-var node             = require('../../node');
+var AccountModule = require('../../../modules/accounts');
+var BlocksModule = require('../../../modules/blocks');
+var AccountLogic = require('../../../logic/account');
+var modulesLoader = require('../../common/initModule').modulesLoader;
+var async = require('async');
+var expect = require('chai').expect;
+var node = require('../../node');
 
 describe('transactionPool', function () {
 
@@ -33,7 +33,7 @@ describe('transactionPool', function () {
 					account: result.accountLogic
 				});
 			}],
-			delegateModule  : ['transactionLogic', function (result, cb) {
+			delegateModule: ['transactionLogic', function (result, cb) {
 				modulesLoader.initModuleWithDb(DelegateModule, cb, {
 					logic: {
 						transaction: result.transactionLogic
@@ -44,7 +44,7 @@ describe('transactionPool', function () {
 			modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
 				expect(err).to.not.exist;
 
-				var account  = __accountModule;
+				var account = __accountModule;
 				var accountLogic = result.accountLogic;
 
 				// For correctly initializing setting blocks module
@@ -59,7 +59,7 @@ describe('transactionPool', function () {
 
 				account.onBind({
 					delegates: result.delegateModule,
-					accounts : account,
+					accounts: account,
 				});
 
 				var accountModuleDependencies = result;
@@ -74,7 +74,7 @@ describe('transactionPool', function () {
 				done();
 			}, {
 				logic: {
-					account    : result.accountLogic,
+					account: result.accountLogic,
 					transaction: result.transactionLogic
 				}
 			});
@@ -100,7 +100,7 @@ describe('transactionPool', function () {
 
 		it('should process tx if valid and insert tx into queue', function (done) {
 			var account = node.randomAccount();
-			const tx    = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
+			const tx = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
 
 			txPool.receiveTransactions([tx], false, function (err, data) {
 				expect(err).to.not.exist;
