@@ -232,7 +232,6 @@ function deleteBlockProperties (block) {
 	if (block.transactions && block.transactions.length === 0) {
 		delete block.transactions;
 	}
-	delete block.id;
 }
 
 describe('blocks/verify', function () {
@@ -614,7 +613,6 @@ describe('blocks/verify', function () {
 				onMessage[1] = bson.deserialize(onMessage[1]);
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.equal('transactionsSaved');
 				expect(onMessage[4]).to.deep.equal(block1.transactions);
@@ -832,7 +830,6 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].payloadLength).to.be.undefined;
 				expect(onMessage[1].reward).to.be.undefined;
 				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.be.undefined; // transactionsSaved
 				modulesLoader.scope.bus.clearMessages();
@@ -858,7 +855,6 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].payloadLength).to.be.undefined;
 				expect(onMessage[1].reward).to.be.undefined;
 				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.be.undefined; // transactionsSaved
 				modulesLoader.scope.bus.clearMessages();

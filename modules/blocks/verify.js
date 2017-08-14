@@ -154,7 +154,6 @@ __private.deleteBlockProperties = function (block) {
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
 		delete reducedBlock.transactions;
 	}
-	delete reducedBlock.id;
 	return reducedBlock;
 };
 
@@ -357,20 +356,6 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 
 			return setImmediate(seriesCb);
 		},
-		deleteBlockProperties: function (seriesCb) {
-			if (broadcast) {
-				try {
-					// delete default properties
-					var blockReduced = __private.deleteBlockProperties(block);
-					var serializedBlockReduced = bson.serialize(blockReduced);
-					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, broadcast);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
-			}
-
-			return setImmediate(seriesCb);
-		},
 		verifyBlock: function (seriesCb) {
 			// Sanity check of the block, if values are coherent.
 			// No access to database
@@ -382,6 +367,20 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 
 				return setImmediate(seriesCb);
 			});
+		},
+		deleteBlockProperties: function (seriesCb) {
+			if (broadcast) {
+				try {
+					// delete default properties
+					var blockReduced = __private.deleteBlockProperties(block);
+					var serializedBlockReduced = bson.serialize(blockReduced);
+					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, block.id, broadcast);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+			}
+
+			return setImmediate(seriesCb);
 		},
 		checkExists: function (seriesCb) {
 			// Check if block id is already in the database (very low probability of hash collision).

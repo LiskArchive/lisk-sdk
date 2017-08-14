@@ -491,11 +491,12 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 /**
  * Broadcast reduced block to increase network performance.
  * @param {Object} reducedBlock reduced block
+ * @param {Number} blockId
  * @param {boolean} broadcast Indicator that block needs to be broadcasted
  */
-Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
+Chain.prototype.broadcastReducedBlock = function (reducedBlock, blockId, broadcast) {
 	library.bus.message('newBlock', reducedBlock, broadcast);
-	library.logger.debug(['reducedBlock', reducedBlock.id, 'broadcasted correctly'].join(' '));
+	library.logger.debug(['reducedBlock', blockId, 'broadcasted correctly'].join(' '));
 };
 
 /**
