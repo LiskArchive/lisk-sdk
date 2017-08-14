@@ -600,7 +600,8 @@ describe('GET /api/transactions/queued/get?id=', function () {
 		});
 	});
 
-	it('using valid id should be ok for transaction with data field', function (done) {
+	describe('for transaction with data field', function () {
+
 		function createTransactionWithData (done) {
 			var amountToSend = 123456789;
 			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
@@ -625,20 +626,23 @@ describe('GET /api/transactions/queued/get?id=', function () {
 			});
 		}
 
-		createTransactionWithData(function (transactionInCheck) {
-			var trsId = transactionInCheck.txId;
-			var params = 'id=' + trsId;
-			http.get('/api/transactions/queued/get?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
-				node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
-				node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
-				node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
-				node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
-				node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-				node.expect(res.body.transaction.asset.data).to.equal(transactionInCheck.data);
-				done();
+		it('using valid id should be ok', function (done) {
+			createTransactionWithData(function (transactionInCheck) {
+				var trsId = transactionInCheck.txId;
+				var params = 'id=' + trsId;
+
+				http.get('/api/transactions/queued/get?' + params, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transaction').that.is.an('object');
+					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
+					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
+					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
+					node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
+					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
+					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+					node.expect(res.body.transaction.asset.data).to.equal(transactionInCheck.data);
+					done();
+				});
 			});
 		});
 	});
