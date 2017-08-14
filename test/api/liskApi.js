@@ -345,7 +345,7 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#listStandbyDelegates', () => {
+	describe('#listStandbyDelegates @now', () => {
 		const expectedResponse = {
 			body: {
 				success: true,
@@ -372,6 +372,18 @@ describe('Lisk.api()', () => {
 			LSK.listStandbyDelegates('1', options, callback);
 
 			(LSK.sendRequest.calledWith(GET, 'delegates', options)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
+			LSK.sendRequest.restore();
+		});
+
+		it('should list standby delegates without specifying offset or orderBy', () => {
+			const callback = sinon.spy();
+			const options = {};
+			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
+
+			LSK.listStandbyDelegates('1', options, callback);
+
 			(callback.called).should.be.true();
 			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();

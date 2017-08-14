@@ -235,9 +235,7 @@ function sendRequestPromise(requestMethod, requestType, options) {
  * @return request object
  */
 
-const constructRequestData = (
-	providedObject, optionsOrCallback,
-) => {
+const constructRequestData = (providedObject, optionsOrCallback) => {
 	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
 	return Object.assign({}, providedOptions, providedObject);
 };
@@ -248,7 +246,7 @@ const constructRequestData = (
  * @param endpoint
  * @param getDataFn
  *
- * @return request object
+ * @return function wrappedSendRequest
  */
 
 const wrapSendRequest = (method, endpoint, getDataFn) =>

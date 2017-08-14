@@ -243,6 +243,8 @@ LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
 /**
  * @method getAccount
  * @param address
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -252,6 +254,8 @@ LiskAPI.prototype.getAccount = privateApi.wrapSendRequest(GET, 'accounts', addre
 /**
  * @method listActiveDelegates
  * @param limit
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -261,15 +265,19 @@ LiskAPI.prototype.listActiveDelegates = privateApi.wrapSendRequest(GET, 'delegat
 /**
  * @method listStandbyDelegates
  * @param limit
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegates', limit => ({ limit }));
+LiskAPI.prototype.listStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegates', (limit, {orderBy = 'rate:asc', offset = 101}) => ({ limit, orderBy, offset }));
 
 /**
  * @method searchDelegateByUsername
  * @param username
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -279,6 +287,8 @@ LiskAPI.prototype.searchDelegateByUsername = privateApi.wrapSendRequest(GET, 'de
 /**
  * @method listBlocks
  * @param limit
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -288,6 +298,8 @@ LiskAPI.prototype.listBlocks = privateApi.wrapSendRequest(GET, 'blocks', limit =
 /**
  * @method listForgedBlocks
  * @param generatorPublicKey
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -297,6 +309,8 @@ LiskAPI.prototype.listForgedBlocks = privateApi.wrapSendRequest(GET, 'blocks', g
 /**
  * @method getBlock
  * @param height
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -306,6 +320,8 @@ LiskAPI.prototype.getBlock = privateApi.wrapSendRequest(GET, 'blocks', height =>
 /**
  * @method listTransactions
  * @param recipientId
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -315,6 +331,8 @@ LiskAPI.prototype.listTransactions = privateApi.wrapSendRequest(GET, 'transactio
 /**
  * @method getTransaction
  * @param id
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -324,6 +342,8 @@ LiskAPI.prototype.getTransaction = privateApi.wrapSendRequest(GET, 'transactions
 /**
  * @method listVotes
  * @param address
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -333,6 +353,8 @@ LiskAPI.prototype.listVotes = privateApi.wrapSendRequest(GET, 'accounts/delegate
 /**
  * @method listVoters
  * @param publicKey
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
@@ -342,15 +364,19 @@ LiskAPI.prototype.listVoters = privateApi.wrapSendRequest(GET, 'delegates/voters
 /**
  * @method listMultisignatureTransactions
  * @param data
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listMultisignatureTransactions = privateApi.wrapSendRequest(GET, 'transactions/multisignatures', data => ({ data }));
+LiskAPI.prototype.listMultisignatureTransactions = privateApi.wrapSendRequest(GET, 'transactions/multisignatures', data => data);
 
 /**
  * @method getMultisignatureTransaction
  * @param id
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
