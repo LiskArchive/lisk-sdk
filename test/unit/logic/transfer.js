@@ -92,8 +92,8 @@ var rawValidTransaction = {
 	confirmations: 8343
 };
 
-
 describe('transfer', function () {
+
 	var transfer;
 	var transaction;
 	var transferBindings;
@@ -136,6 +136,7 @@ describe('transfer', function () {
 	});
 
 	describe('bind', function () {
+
 		it('should be okay with correct params', function () {
 			expect(function () {
 				transfer.bind(transferBindings.account);
@@ -167,9 +168,11 @@ describe('transfer', function () {
 	});
 
 	describe('verify', function () {
+
 		it('should return error if recipientId is not set', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			delete trs.recipientId;
+
 			transfer.verify(trs, validSender, function (err) {
 				expect(err).to.equal('Missing recipient');
 				done();
@@ -192,12 +195,14 @@ describe('transfer', function () {
 	});
 
 	describe('process', function () {
+
 		it('should be okay', function (done) {
 			transfer.process(validTransaction, validSender, done);
 		});
 	});
 
 	describe('getBytes', function () {
+
 		it('should return null for empty asset', function () {
 			expect(transfer.getBytes(validTransaction)).to.eql(null);
 		});
@@ -208,6 +213,7 @@ describe('transfer', function () {
 			trs.asset = {
 				data: data
 			};
+
 			expect(transfer.getBytes(trs)).to.eql(Buffer.from(data, 'utf8'));
 		});
 
@@ -223,6 +229,7 @@ describe('transfer', function () {
 	});
 
 	describe('apply', function () {
+
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
@@ -266,6 +273,7 @@ describe('transfer', function () {
 	});
 
 	describe('undo', function () {
+
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
@@ -278,6 +286,7 @@ describe('transfer', function () {
 		it('should return error if recipientid is not set', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			delete trs.recipientId;
+
 			transfer.undo.call(transaction, trs, dummyBlock, validSender, function (err) {
 				expect(err).to.equal('Invalid public key');
 				done();
@@ -321,6 +330,7 @@ describe('transfer', function () {
 	});
 
 	describe('objectNormalize', function () {
+
 		it('should remove blockId from trs', function () {
 			var trs = _.cloneDeep(validTransaction);
 			trs.blockId = '9314232245035524467';
@@ -368,6 +378,7 @@ describe('transfer', function () {
 	});
 
 	describe('dbRead', function () {
+
 		it('should return null when data field is not set', function () {
 			expect(transfer.dbRead(rawValidTransaction)).to.eql(null);
 		});
@@ -384,6 +395,7 @@ describe('transfer', function () {
 	});
 
 	describe('dbSave', function () {
+
 		it('should return null when transaction does not contain asset', function () {
 			expect(transfer.dbSave(validTransaction)).to.eql(null);
 		});
@@ -427,6 +439,7 @@ describe('transfer', function () {
 	});
 
 	describe('ready', function () {
+
 		it('should return true for single signature trs', function () {
 			expect(transfer.ready(validTransaction, validSender)).to.equal(true);
 		});

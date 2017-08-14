@@ -56,6 +56,7 @@ describe('POST /peer/transactions', function () {
 
 	it('should create transaction with empty asset', function (done) {
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password);
+
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
 
@@ -115,6 +116,7 @@ describe('POST /peer/transactions', function () {
 	it('should create transaction with utf-8 string', function (done) {
 		var data = '綾波レイ';
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
+
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
 
@@ -161,6 +163,7 @@ describe('POST /peer/transactions', function () {
 	it('should create transaction with empty asset when data field is set to null', function (done) {
 		var data = null;
 		var trs = node.lisk.transaction.createTransaction(node.randomAccount().address, 1000, account.password, null, data);
+
 		addTransaction(trs, function (err, res) {
 			expect(err).to.not.exist;
 
