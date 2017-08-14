@@ -1,5 +1,5 @@
 /**
- * Create transfer trs table and it's index.
+ * Create transfer trs table and index.
  */
 
 BEGIN;
