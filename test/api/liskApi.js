@@ -345,7 +345,7 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#listStandbyDelegates @now', () => {
+	describe('#listStandbyDelegates', () => {
 		const expectedResponse = {
 			body: {
 				success: true,
