@@ -271,7 +271,7 @@ LiskAPI.prototype.listActiveDelegates = privateApi.wrapSendRequest(GET, 'delegat
  * @return API object
  */
 
-LiskAPI.prototype.listStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegates', (limit, {orderBy = 'rate:asc', offset = 101}) => ({ limit, orderBy, offset }));
+LiskAPI.prototype.listStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegates', (limit, { orderBy = 'rate:asc', offset = 101 }) => ({ limit, orderBy, offset }));
 
 /**
  * @method searchDelegateByUsername
