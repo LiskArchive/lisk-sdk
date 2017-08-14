@@ -13,20 +13,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import env from '../../src/commands/env';
+import configObj from '../../src/utils/env';
 import { setUpVorpalWithCommand } from './utils';
 
+const configFilePath = `${os.homedir()}/.lisky/config.json`;
 const stringifyConfig = config => JSON.stringify(config, null, '\t');
-const writeConfig = (config) => {
-	const configString = typeof config === 'string'
-		? config
-		: stringifyConfig(config);
-	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
-};
+const writeConfig = config => fse.writeJsonSync(configFilePath, config, { spaces: '\t' });
 
-const initialConfig = stringifyConfig(require('../../config.json'));
+const initialConfig = fse.readJsonSync(configFilePath);
 
 const defaultConfig = {
 	name: 'lisky',
@@ -38,6 +36,7 @@ const defaultConfig = {
 		ssl: false,
 	},
 };
+const defaultConfigString = JSON.stringify(defaultConfig);
 
 describe('env command', () => {
 	/* eslint-disable no-underscore-dangle */
@@ -72,6 +71,8 @@ describe('env command', () => {
 		const envCommandString = 'env';
 
 		beforeEach(() => {
+			const defaultConfigClone = JSON.parse(defaultConfigString);
+			Object.assign(configObj, defaultConfigClone);
 			writeConfig(defaultConfig);
 		});
 
@@ -84,16 +85,9 @@ describe('env command', () => {
 		it('should print updated config file after change', () => {
 			vorpal.use(set);
 
-			const expectedUpdatedConfig = {
-				name: 'lisky',
+			const expectedUpdatedConfig = Object.assign({}, JSON.parse(defaultConfigString), {
 				json: true,
-				liskJS: {
-					testnet: false,
-					node: '',
-					port: '',
-					ssl: false,
-				},
-			};
+			});
 
 			return vorpal.exec(setJsonTrueCommand).then(() => {
 				return vorpal.exec(envCommandString).then(() => {
