@@ -266,6 +266,9 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 
 					export TEST=test/unit/sql/rounds.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
+
+					export TEST=test/unit/sql/accounts.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					npm run jenkins
 					'''
 				}
 			},
