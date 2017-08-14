@@ -1,6 +1,5 @@
 import liskApi from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
-import transactionModule from '../../src/transactions/transaction';
 
 describe('Lisk.api()', () => {
 	const testPort = 7000;
@@ -679,8 +678,17 @@ describe('Lisk.api()', () => {
 	describe('#broadcastSignedTransaction', () => {
 		it('should be able to broadcast a finished and signed transaction', () => {
 			const LSKAPI = liskApi({ testnet: true });
-			const amount = 0.001 * (10 ** 8);
-			const transaction = transactionModule.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
+			const transaction = {
+				type: 0,
+				amount: 100000,
+				fee: 10000000,
+				recipientId: '1859190791819301L',
+				senderPublicKey: 'a056010eed1ad3233d7872a5e158d90a777a6d894a3c0ec7ff1a2ddfd393f530',
+				timestamp: 38349628,
+				asset: {},
+				signature: '2a36c96669bd8eeae22a3b8bb88ad8ddc519777cade7526e70cd77a608c4bed218e34a6bf82921fcc85ec54390bcb6fd9212c46e70b499f65f6db54dfe69250f',
+				id: '15207344917078411810',
+			};
 
 			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {
 				(result.success).should.be.true();
