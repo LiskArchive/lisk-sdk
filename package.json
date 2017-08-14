@@ -14,7 +14,8 @@
     "test-functional": "grunt test-functional",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "create-bundles": "webpack",
-    "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
+    "server-docs": "npm run jsdoc && http-server docs/jsdoc/",
+    "precommit": "npm run eslint"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
