@@ -1,13 +1,13 @@
-var TransactionPool  = require('../../../logic/transactionPool.js');
-var TransactionLogic = require('../../../logic/transaction.js');
-var DelegateModule   = require('../../../modules/delegates.js');
+var TransactionPool  = require('../../../logic/transactionPool');
+var TransactionLogic = require('../../../logic/transaction');
+var DelegateModule   = require('../../../modules/delegates');
 
-var TransferLogic = require('../../../logic/transfer.js');
+var TransferLogic = require('../../../logic/transfer');
 
 var transactionTypes = require('../../../helpers/transactionTypes');
-var AccountModule    = require('../../../modules/accounts.js');
-var BlocksModule     = require('../../../modules/blocks.js');
-var AccountLogic     = require('../../../logic/account.js');
+var AccountModule    = require('../../../modules/accounts');
+var BlocksModule     = require('../../../modules/blocks');
+var AccountLogic     = require('../../../logic/account');
 var modulesLoader    = require('../../common/initModule').modulesLoader;
 var async            = require('async');
 var expect           = require('chai').expect;
