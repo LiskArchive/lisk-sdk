@@ -33,10 +33,10 @@ ConnectionsTable.prototype.getConnectionId = function (nonce) {
 ConnectionsTable.prototype.add = function (nonce, connectionId) {
 
 	if (!nonce) {
-		throw 'Cannot add connection table entry without nonce';
+		throw new Error('Cannot add connection table entry without nonce');
 	}
 	if (!connectionId) {
-		throw 'Cannot add connection table entry without connectionId';
+		throw new Error('Cannot add connection table entry without connectionId');
 	}
 
 	this.connectionIdToNonceMap[connectionId] = nonce;
@@ -49,7 +49,7 @@ ConnectionsTable.prototype.add = function (nonce, connectionId) {
  */
 ConnectionsTable.prototype.remove = function (nonce) {
 	if (!nonce) {
-		throw 'Cannot remove connection table entry without nonce';
+		throw new Error('Cannot remove connection table entry without nonce');
 	}
 	var connectionId = this.getConnectionId(nonce);
 	this.nonceToConnectionIdMap[nonce] = null;

@@ -15,7 +15,7 @@ var self, z_schema =  new Z_schema();
  */
 function PeersUpdateRules (slaveWAMPServer) {
 	this.slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServer);
-	this.rules = new Rules(this.insert, this.remove, this.panic);
+	this.rules = new Rules(this.insert, this.remove, this.block);
 	self = this;
 }
 
@@ -31,7 +31,7 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 			if (err) {
 				connectionsTable.remove(peer.nonce);
 			}
-			return setImmediate(cb, err);
+			return setImmediate(cb, err ? new Error(err) : null);
 		});
 	} catch (ex) {
 		return setImmediate(cb, ex);
@@ -50,7 +50,7 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
 			if (err) {
 				connectionsTable.add(peer.nonce, connectionId);
 			}
-			return setImmediate(cb, err);
+			return setImmediate(cb, err ? new Error(err) : null);
 		});
 	} catch (ex) {
 		return setImmediate(cb, ex);
@@ -62,8 +62,8 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
  * @param {string} connectionId
  * @param {Function} cb
  */
-PeersUpdateRules.prototype.panic = function (peer, connectionId, cb) {
-	return setImmediate(cb, 'Update peer error - peer should never be in current state');
+PeersUpdateRules.prototype.block = function (peer, connectionId, cb) {
+	return setImmediate(cb, new Error('Update peer action blocked - malicious behaviour detected'));
 };
 
 PeersUpdateRules.prototype.internal = {
@@ -74,14 +74,15 @@ PeersUpdateRules.prototype.internal = {
 	 * @param {function} cb
 	 */
 	update: function (updateType, peer, connectionId, cb) {
+		//ToDo: Peer headers and connectionId validation
 		self.slaveToMasterSender.getPeer(peer.nonce, function (err, onMasterPresence) {
 			if (err) {
-				return setImmediate(cb, 'Update peer error - failed to check if peer is already added: ' + err);
+				return setImmediate(cb, new Error('Update peer error - failed to check if peer is already added: ' + err));
 			}
 			var isNoncePresent = !!connectionsTable.getNonce(connectionId);
 			var isConnectionIdPresent = !!connectionsTable.getConnectionId(peer.nonce);
 
-			return self.rules.rules[updateType][isNoncePresent][isConnectionIdPresent][onMasterPresence](peer, connectionId, cb);
+			self.rules.rules[updateType][isNoncePresent][isConnectionIdPresent][onMasterPresence](peer, connectionId, cb);
 		});
 	}
 };
@@ -100,7 +101,7 @@ PeersUpdateRules.prototype.external = {
 				return setImmediate(cb, err[0].message);
 			}
 			if (request.socketId !== connectionsTable.getConnectionId(request.data.nonce)) {
-				return setImmediate(cb, 'Connection id does not match with corresponding peer');
+				return setImmediate(cb, new Error('Connection id does not match with corresponding peer'));
 			}
 			self.slaveToMasterSender.send('acceptPeer', request.data, cb);
 		});

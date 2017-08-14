@@ -149,7 +149,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 		clientSocket.disconnect();
 	});
 
-	clientSocket.on('connectAbort', function (err, data) {
+	clientSocket.on('connectAbort', function () {
 		connectionState.reject('Connection rejected by failed handshake procedure');
 	});
 
