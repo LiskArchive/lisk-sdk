@@ -47,7 +47,7 @@ describe('transactionPool', function () {
 				var account  = __accountModule;
 				var accountLogic = result.accountLogic;
 
-				// for correctly initializing setting blocks module
+				// For correctly initializing setting blocks module
 				result.blockModule.lastBlock.set({ height: 10 });
 
 				result.delegateModule.onBind({
@@ -67,8 +67,8 @@ describe('transactionPool', function () {
 					modulesLoader.scope.config.broadcasts.broadcastInterval,
 					modulesLoader.scope.config.broadcasts.releaseLimit,
 					result.transactionLogic,
-					modulesLoader.scope.bus, // bus
-					modulesLoader.logger// logger
+					modulesLoader.scope.bus, // Bus
+					modulesLoader.logger // Logger
 				);
 				txPool.bind(account, null, modulesLoader.scope.loader);
 				done();
