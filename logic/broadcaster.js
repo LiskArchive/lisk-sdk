@@ -155,10 +155,12 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 			}
 		},
 		function sendToPeer (peers, waterCb) {
-			if (options.data.block) {
-				options.data.block = bson.deserialize(options.data.block);
+			var optionDeserialized = JSON.parse(JSON.stringify(options));
+
+			if (optionDeserialized.data.block) {
+				optionDeserialized.data.block = bson.deserialize(options.data.block);
 			}
-			library.logger.debug('Begin broadcast', options);
+			library.logger.debug('Begin broadcast', optionDeserialized);
 			if (params.limit === self.config.peerLimit) {
 				peers = peers.slice(0, self.config.broadcastLimit);
 			}

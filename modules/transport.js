@@ -13,7 +13,9 @@ var sql = require('../sql/transport.js');
 var zlib = require('zlib');
 var Peer = require('../logic/peer');
 var System = require('../modules/system');
+var BSON = require('bson');
 
+var bson = new BSON();
 // Private fields
 var modules, library, self, __private = {}, shared = {};
 
@@ -491,6 +493,9 @@ Transport.prototype.internal = {
 	postBlock: function (query, cb) {
 		query = query || {};
 		try {
+			if (query.block) {
+				query.block = bson.deserialize(Buffer.from(query.block));
+			}
 			var block = modules.blocks.verify.addBlockProperties(query.block);
 			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
