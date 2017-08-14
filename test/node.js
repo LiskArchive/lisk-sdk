@@ -41,7 +41,7 @@ node.fees = {
 	secondPasswordFee: node.constants.fees.secondsignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappAddFee: node.constants.fees.dapp,
+	dappRegistrationFee: node.constants.fees.dapp,
 	dataFee: node.constants.fees.data
 };
 

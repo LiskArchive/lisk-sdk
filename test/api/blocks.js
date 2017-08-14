@@ -72,7 +72,7 @@ describe('GET /api/blocks/getfees', function () {
 			node.expect(res.body).to.have.property('fees');
 			node.expect(res.body.fees.send).to.equal(node.fees.transactionFee);
 			node.expect(res.body.fees.vote).to.equal(node.fees.voteFee);
-			node.expect(res.body.fees.dapp).to.equal(node.fees.dappAddFee);
+			node.expect(res.body.fees.dapp).to.equal(node.fees.dappRegistrationFee);
 			node.expect(res.body.fees.secondsignature).to.equal(node.fees.secondPasswordFee);
 			node.expect(res.body.fees.delegate).to.equal(node.fees.delegateRegistrationFee);
 			node.expect(res.body.fees.multisignature).to.equal(node.fees.multisignatureRegistrationFee);
