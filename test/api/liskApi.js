@@ -537,18 +537,18 @@ describe('Lisk.api()', () => {
 
 		it('should list transactions of a defined account', () => {
 			const callback = sinon.spy();
-			const address = '12731041415715717263L';
-			const optionAddress = '15731041415715717263L';
+			const recipientAddress = '12731041415715717263L';
+			const senderAddress = '15731041415715717263L';
 			const options = {
-				recipientId: address,
-				senderId: optionAddress,
+				recipientId: recipientAddress,
+				senderId: senderAddress,
 				limit: '1',
 				offset: '2',
 				orderBy: 'timestamp:desc',
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
 
-			LSK.listTransactions(address, options, callback);
+			LSK.listTransactions(recipientAddress, options, callback);
 
 			(LSK.sendRequest.calledWith(GET, 'transactions', options)).should.be.true();
 			(callback.called).should.be.true();
