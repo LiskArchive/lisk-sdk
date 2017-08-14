@@ -10,7 +10,7 @@ function postTransaction (transaction, done) {
 	}, done, true);
 }
 
-describe('Basic Transactions via websockets', function () {
+describe('Posting transaction (type 0)', function () {
 
 	var transaction;
 	var goodTransactions = [];
