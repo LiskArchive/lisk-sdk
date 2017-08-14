@@ -54,7 +54,6 @@ describe('transactionPool', function () {
 
 				result.delegateModule.onBind({
 					accounts: __accountModule,
-					// transactions: result.transactionModule,
 					blocks  : result.blockModule
 				});
 				var sendLogic = result.transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
@@ -63,7 +62,6 @@ describe('transactionPool', function () {
 				account.onBind({
 					delegates: result.delegateModule,
 					accounts : account,
-					// transactions: result.transactionModule
 				});
 
 				var accountModuleDependencies = result;
