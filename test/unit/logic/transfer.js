@@ -149,15 +149,16 @@ describe('transfer', function () {
 	});
 
 	describe('calculateFee', function () {
-		it('should throw for no params', function () {
+
+		it('should throw error if given no params', function () {
 			expect(transfer.calculateFee).to.throw();
 		});
 
-		it('should return the correct fee for send trs without data field', function () {
+		it('should return the correct fee when data field is not set', function () {
 			expect(transfer.calculateFee.call(transaction, validTransaction)).to.equal(node.constants.fees.send);
 		});
 
-		it('should return the correct fee with data field', function () {
+		it('should return the correct fee when data field is set', function () {
 			var trs = _.clone(validTransaction);
 			trs.asset = {
 				data: '0'
