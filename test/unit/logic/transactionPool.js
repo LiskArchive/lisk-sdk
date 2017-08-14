@@ -1,3 +1,5 @@
+'use strict';/*eslint*/
+
 var TransactionPool = require('../../../logic/transactionPool');
 var TransactionLogic = require('../../../logic/transaction');
 var DelegateModule = require('../../../modules/delegates');
