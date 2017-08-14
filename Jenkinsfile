@@ -233,6 +233,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						'''
 					}
 			},
+			"Functional Transactions - 1 second secret" : {
+				node('node-02'){
+						sh '''
+						export TEST=test/functional/http/post/1.second.secret.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
+						cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+						npm run jenkins
+						'''
+					}
+			},
 			"Functional Transport - Peers" : {
 				node('node-02'){
 						sh '''
