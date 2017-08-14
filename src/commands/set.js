@@ -13,14 +13,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import fse from 'fs-extra';
-import config from '../../config.json';
+import config from '../utils/env';
 import liskInstance from '../utils/liskInstance';
 import { CONFIG_VARIABLES } from '../utils/constants';
 
+const configFilePath = `${os.homedir()}/.lisky/config.json`;
+
 const writeConfigToFile = (newConfig) => {
-	const configString = JSON.stringify(newConfig, null, '\t');
-	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
+	try {
+		fse.writeJsonSync(configFilePath, newConfig, {
+			spaces: '\t',
+		});
+		return true;
+	} catch (e) {
+		console.warn(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
+		return false;
+	}
 };
 
 const checkBoolean = value => ['true', 'false'].includes(value);
@@ -46,7 +56,11 @@ const setBoolean = (variable, path) => (value) => {
 		liskInstance.setTestnet(newValue);
 	}
 
-	writeConfigToFile(config);
+	const writeSuccess = writeConfigToFile(config);
+
+	if (!writeSuccess && process.argv.length > 2) {
+		return `Could not set ${variable} to ${value}.`;
+	}
 	return `Successfully set ${variable} to ${value}.`;
 };
 
@@ -66,7 +80,7 @@ const set = vorpal => ({ variable, value }) => {
 export default function setCommand(vorpal) {
 	vorpal
 		.command('set <variable> <value>')
-		.description('Set configuration <variable> to <value>.')
+		.description(`Set configuration <variable> to <value>. Configuration is persisted in \`${configFilePath}\`.`)
 		.autocomplete(CONFIG_VARIABLES)
 		.action(set(vorpal));
 }

@@ -16,8 +16,8 @@
 import path from 'path';
 import fse from 'fs-extra';
 import vorpal from 'vorpal';
-import config from './../config.json';
 import { version } from '../package.json';
+import config from './utils/env';
 
 const lisky = vorpal();
 
