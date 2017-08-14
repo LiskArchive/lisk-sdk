@@ -693,8 +693,8 @@ describe('Lisk.api()', () => {
 			LSK.getAccount(address, callback);
 
 			(LSK.sendRequest.calledWith(GET, 'accounts', options)).should.be.true();
-			// (callback.called).should.be.true();
-			// (callback.calledWith(expectedResponse)).should.be.true();
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
