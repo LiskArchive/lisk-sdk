@@ -13,19 +13,17 @@ var async            = require('async');
 var expect           = require('chai').expect;
 var node             = require('../../node');
 
-
-
 describe('transactionPool', function () {
+
 	var txPool;
 
 	before(function (done) {
 		// Init transaction logic
 		async.auto({
-
-			accountLogic    : function (cb) {
+			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
 			},
-			blockModule     : ['accountLogic', function (result, cb) {
+			blockModule: ['accountLogic', function (result, cb) {
 				modulesLoader.initModuleWithDb(BlocksModule, cb, {
 					logic: { /* dependencies not included */ },
 				});
@@ -54,7 +52,7 @@ describe('transactionPool', function () {
 
 				result.delegateModule.onBind({
 					accounts: __accountModule,
-					blocks  : result.blockModule
+					blocks: result.blockModule
 				});
 				var sendLogic = result.transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
 				sendLogic.bind(account);
@@ -65,7 +63,7 @@ describe('transactionPool', function () {
 				});
 
 				var accountModuleDependencies = result;
-				txPool                    = new TransactionPool(
+				txPool = new TransactionPool(
 					modulesLoader.scope.config.broadcasts.broadcastInterval,
 					modulesLoader.scope.config.broadcasts.releaseLimit,
 					result.transactionLogic,
@@ -81,10 +79,10 @@ describe('transactionPool', function () {
 				}
 			});
 		});
-
 	});
 
 	describe('receiveTransactions', function () {
+
 		it('should do nothing for empty array', function (done) {
 			txPool.receiveTransactions([], false, function (err, data) {
 				expect(err).to.not.exist;
@@ -92,15 +90,18 @@ describe('transactionPool', function () {
 				done();
 			});
 		});
+
 		it('should return error for invalid tx', function (done) {
 			txPool.receiveTransactions([{ id: '123' }], false, function (err, data) {
 				expect(err).to.exist;
 				done();
 			});
 		});
+
 		it('should process tx if valid and insert tx into queue', function (done) {
 			var account = node.randomAccount();
 			const tx    = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
+
 			txPool.receiveTransactions([tx], false, function (err, data) {
 				expect(err).to.not.exist;
 				expect(txPool.transactionInPool(tx.id)).to.be.true;
@@ -110,6 +111,7 @@ describe('transactionPool', function () {
 	});
 
 	describe('transactionInPool', function () {
+
 		it('should return false for an unknown id', function () {
 			expect(txPool.transactionInPool('11111')).to.be.false;
 		});
