@@ -57,7 +57,7 @@ describe('transactionPool', function () {
 					blocks  : result.blockModule
 				});
 				var sendLogic = result.transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
-				sendLogic.bind(account, /* rounds */ null);
+				sendLogic.bind(account);
 
 				account.onBind({
 					delegates: result.delegateModule,
