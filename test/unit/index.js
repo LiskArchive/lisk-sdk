@@ -19,4 +19,3 @@ require('./modules/peers.js');
 require('./sql/blockRewards.js');
 require('./sql/delegatesList.js');
 require('./sql/rounds.js');
-require('./sql/accounts.js');
