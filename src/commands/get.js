@@ -55,6 +55,7 @@ export default function getCommand(vorpal) {
 		.option('-j, --json', 'Sets output to json')
 		.option('--no-json', 'Default: sets output to text. You can change this in the config.js')
 		.description('Get information from <type> with parameter <input>. \n Types available: account, address, block, delegate, transaction \n E.g. get delegate lightcurve \n e.g. get block 5510510593472232540')
+		.description('Get information from <type> with parameter <input>.\n  Types available: account, address, block, delegate, transaction\n  Example: get delegate lightcurve\n  Example: get block 5510510593472232540')
 		.autocomplete(COMMAND_TYPES)
 		.action(get(vorpal));
 }
