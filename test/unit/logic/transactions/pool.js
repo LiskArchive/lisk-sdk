@@ -5,7 +5,7 @@ var expect = require('chai').expect;
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var TxPool = require('../../../../logic/transactions/pool.js');
 var Transaction = require('../../../../logic/transaction.js');
-var utils = require('../../../../logic/transactions/utils.js');
+var bson = require('../../../../helpers/bson.js');
 
 var transactions = [
 	/* type: 0 - Transmit funds */
@@ -283,22 +283,22 @@ describe('txPool', function () {
 	describe('broadcast transactions', function() {
 		var broadcastTx;
 
-		it('should be ok when serialize transaction (pack)', function (done) {
-			broadcastTx = utils.pack(transactions[0]);
+		it('should be ok when serialize transaction', function (done) {
+			broadcastTx = bson.serialize(transactions[0]);
 			expect(broadcastTx).that.is.an('Uint8Array');
 			done();
 		});
 
-		it('should be ok when unpacked size is greater than packed size', function (done) {
-			var packedLenght = Buffer.from(broadcastTx).length;
-			var unpackedLenght = Buffer.from(JSON.stringify(transactions[0])).length;
+		it('should be ok when deserialized size is greater than serialized size', function (done) {
+			var serializedLenght = Buffer.from(broadcastTx).length;
+			var deserializedLenght = Buffer.from(JSON.stringify(transactions[0])).length;
 
-			expect(unpackedLenght).to.be.at.least(packedLenght);
+			expect(deserializedLenght).to.be.at.least(serializedLenght);
 			done();
 		});
 
-		it('should be ok when deserialize transaction (unpack)', function (done) {
-			broadcastTx = utils.unpack(broadcastTx);
+		it('should be ok when deserialize transaction', function (done) {
+			broadcastTx = bson.deserialize(broadcastTx);
 			expect(broadcastTx).to.deep.equal(transactions[0]);
 			done();
 		});

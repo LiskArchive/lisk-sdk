@@ -6,7 +6,6 @@ var config = require('../../config.json');
 var constants = require('../../helpers/constants.js');
 var jobsQueue = require('../../helpers/jobsQueue.js');
 var transactionTypes = require('../../helpers/transactionTypes.js');
-var utils = require('./utils');
 
 // Private fields
 var modules, library, self, __private = {}, pool = {};
