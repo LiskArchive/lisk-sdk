@@ -251,7 +251,7 @@ describe('Lisk.api()', () => {
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
 			});
 
-			it('should list standby delegates without specifying offset or orderBy', () => {
+			it('should list standby delegates with a default offset and ordering when not specified', () => {
 				const options = {};
 
 				LSK.listStandbyDelegates(defaultRequestLimit, options, callback);
@@ -420,7 +420,7 @@ describe('Lisk.api()', () => {
 
 	describe('#constructRequestData', () => {
 		const address = defaultAddress.address;
-		const requestData = {
+		const optionsObject = {
 			limit: defaultRequestLimit,
 			offset: defaultRequestOffset,
 		};
@@ -440,17 +440,17 @@ describe('Lisk.api()', () => {
 			offset: defaultRequestOffset,
 		};
 
-		it('should construct optional request data for API helper functions', () => {
-			const createObject = privateApi.constructRequestData({ address }, requestData);
+		it('should merge a data object with an options object', () => {
+			const createObject = privateApi.constructRequestData({ address }, optionsObject);
 			(createObject).should.be.eql(expectedObject);
 		});
 
-		it('should construct with variable and callback', () => {
+		it('should recognise when a callback function is passed instead of an options object', () => {
 			const createObject = privateApi.constructRequestData({ address }, () => true);
 			(createObject).should.be.eql({ address });
 		});
 
-		it('should give conflicting input, first parameters passed', () => {
+		it('should prioritise values from the data object when the data object and options object conflict', () => {
 			const createObject = privateApi.constructRequestData(
 				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, conflictObject,
 			);
