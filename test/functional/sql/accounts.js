@@ -17,7 +17,7 @@ describe('SQL triggers related to accounts', function () {
 			// Set delegates module as loaded to allow manual forging
 			library.rewiredModules.delegates.__set__('__private.loaded', true);
 
-			setTimeout(done, 10000);
+			setTimeout(done, 3000);
 		})
 	});
 
@@ -52,6 +52,12 @@ describe('SQL triggers related to accounts', function () {
 	function getAccountByAddress (address) {
 		return library.db.query('SELECT * FROM accounts WHERE address = ${address}', {address: address}).then(function (rows) {
 			return normalizeAccounts(rows);
+		});
+	};
+
+	function getSignatureByTxId (id) {
+		return library.db.query('SELECT * FROM signatures WHERE "transactionId" = ${id}', {id: id}).then(function (rows) {
+			return rows;
 		});
 	};
 
@@ -550,6 +556,81 @@ describe('SQL triggers related to accounts', function () {
 						});
 					}); // END: delete blocks with transaction that issued pk creation
 				}); // END: type 0 - TRANSFER
+
+				describe('type 1 - SIGNATURE', function () {
+					var last_tx;
+
+					describe ('from virgin account', function () {
+						var account_before;
+						var transactions = [];
+
+						before(function () {
+							last_random_account = node.randomAccount();
+							var tx = node.lisk.transaction.createTransaction(
+								last_random_account.address,
+								node.randomNumber(100000000, 1000000000),
+								node.gAccount.password
+							);
+							transactions.push(tx);
+
+							return Promise.promisify(addTransactionsAndForge)(transactions).then(function () {
+								return getAccountByAddress(last_random_account.address).then(function (accounts) {
+									account_before = accounts[last_random_account.address];
+
+									var tx = node.lisk.signature.createSignature(
+										last_random_account.password,
+										last_random_account.secondPassword
+									);
+									transactions.push(tx);
+
+									return Promise.promisify(addTransactionsAndForge)([tx]);
+								});
+							});
+						});
+
+						describe('account', function () {
+							var account, tx;
+
+							before(function () {
+								tx = last_tx = transactions[1];
+								return getAccountByAddress(last_random_account.address).then(function (accounts) {
+									account = accounts[last_random_account.address];
+								});
+							});
+
+							it('should substract only fee', function () {
+								account_before.balance = new bignum(account_before.balance).minus(tx.fee).toString();
+								expect(account_before.balance).to.equal(account.balance);
+								var expected = new bignum(transactions[0].amount).minus(tx.fee).toString();
+								expect(account.balance).to.equal(expected);
+							});
+
+							it('should not modify tx_id', function () {
+								expect(account.tx_id).to.not.be.equal(tx.id);
+								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							});
+
+							it('should set pk, pk_tx_id', function () {
+								expect(account.pk).to.be.equal(tx.senderPublicKey);
+								expect(account.pk_tx_id).to.be.equal(tx.id);
+							});
+
+							it('should insert transaction id and signature to signature table', function () {
+								return getSignatureByTxId(tx.id).then(function (signatures) {
+									expect(signatures.length).to.equal(1);
+									var sig = signatures[0];
+									expect(sig.transactionId).to.equal(tx.id);
+									expect(sig.publicKey.toString('hex')).to.equal(last_random_account.secondPublicKey);
+								});
+							});
+
+							it.skip('should set second_pk', function () {
+								expect(account.second_pk).to.equal(last_random_account.secondPublicKey);
+							});
+						});
+					}); // END: from virgin account
+				}); // END: type 1 - SIGNATURE
+
 			}); // END: signle transaction
 		}); // END: transactions
 	});
