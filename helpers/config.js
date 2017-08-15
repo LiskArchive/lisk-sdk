@@ -38,6 +38,50 @@ function Config (packageJson) {
 		appConfig = JSON.parse(appConfig);
 	}
 
+	if (program.port) {
+		appConfig.port = +program.port;
+	}
+
+	if (program.httpPort) {
+		appConfig.httpPort = +program.httpPort;
+	}
+
+	if (program.address) {
+		appConfig.address = program.address;
+	}
+
+	if (program.database) {
+		appConfig.db.database = program.database;
+	}
+
+	if (program.peers) {
+		if (typeof program.peers === 'string') {
+			appConfig.peers.list = program.peers.split(',').map(function (peer) {
+				peer = peer.split(':');
+				return {
+					ip: peer.shift(),
+					port: peer.shift() || appConfig.port
+				};
+			});
+		} else {
+			appConfig.peers.list = [];
+		}
+	}
+
+	if (program.log) {
+		appConfig.consoleLogLevel = program.log;
+	}
+
+	if (program.snapshot) {
+		appConfig.loading.snapshot = Math.abs(
+			Math.floor(program.snapshot)
+		);
+	}
+
+	if (process.env.NODE_ENV === 'test') {
+		appConfig.coverage = true;
+	}
+
 	var validator = new z_schema();
 	var valid = validator.validate(appConfig, configSchema.config);
 
@@ -46,51 +90,6 @@ function Config (packageJson) {
 		process.exit(1);
 	} else {
 		validateForce(appConfig);
-
-		if (program.port) {
-			appConfig.port = program.port;
-		}
-
-		if (program.httpPort) {
-			appConfig.httpPort = program.httpPort;
-		}
-
-		if (program.address) {
-			appConfig.address = program.address;
-		}
-
-		if (program.database) {
-			appConfig.db.database = program.database;
-		}
-
-		if (program.peers) {
-			if (typeof program.peers === 'string') {
-				appConfig.peers.list = program.peers.split(',').map(function (peer) {
-					peer = peer.split(':');
-					return {
-						ip: peer.shift(),
-						port: peer.shift() || appConfig.port
-					};
-				});
-			} else {
-				appConfig.peers.list = [];
-			}
-		}
-
-		if (program.log) {
-			appConfig.consoleLogLevel = program.log;
-		}
-
-		if (program.snapshot) {
-			appConfig.loading.snapshot = Math.abs(
-				Math.floor(program.snapshot)
-			);
-		}
-
-		if (process.env.NODE_ENV === 'test') {
-			appConfig.coverage = true;
-		}
-
 		return appConfig;
 	}
 }
