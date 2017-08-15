@@ -206,32 +206,6 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 	return newBlock;
 }
 
-function deleteBlockProperties (block) {
-	// see modules/blocks/verify.js for deleted fields reference.
-	if (block.version === 0) {
-		delete block.version;
-	}
-	// verifyBlock ensures numberOfTransactions is transactions.length
-	if (typeof(block.numberOfTransactions) === 'number') {
-		delete block.numberOfTransactions;
-	}
-	if (block.totalAmount === 0) {
-		delete block.totalAmount;
-	}
-	if (block.totalFee === 0) {
-		delete block.totalFee;
-	}
-	if (block.payloadLength === 0) {
-		delete block.payloadLength;
-	}
-	if (block.reward === 0) {
-		delete block.reward;
-	}
-	if (block.transactions && block.transactions.length === 0) {
-		delete block.transactions;
-	}
-}
-
 describe('blocks/verify', function () {
 
 	var blocksVerify;
@@ -657,7 +631,7 @@ describe('blocks/verify', function () {
 		describe('normalizeBlock validations', function () {
 
 			it('should fail when timestamp property is missing', function (done) {
-				deleteBlockProperties(block2);
+				block2 = blocksVerify.deleteBlockProperties(block2);
 				var timestamp = block2.timestamp;
 				delete block2.timestamp;
 
@@ -736,7 +710,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should fail when transaction is already confirmed (fork:2)', function (done) {
-			deleteBlockProperties(block2);
+			block2 = blocksVerify.deleteBlockProperties(block2);
 
 			blocksVerify.processBlock(block2, false, function (err, result) {
 				if (err) {
@@ -866,7 +840,7 @@ describe('blocks/verify', function () {
 
 		it('should be ok when receive block 3', function (done) {
 			blocks.lastBlock.set(block2);
-			deleteBlockProperties(block3);
+			block3 = blocksVerify.deleteBlockProperties(block3);
 
 			blocksVerify.processBlock(block3, false, function (err, result) {
 				if (err) {
@@ -881,7 +855,7 @@ describe('blocks/verify', function () {
 
 		it('should be ok when receive block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
-			deleteBlockProperties(block3);
+			block3 = blocksVerify.deleteBlockProperties(block3);
 
 			blocksVerify.processBlock(block3, false, function (err, result) {
 				expect(result).to.be.undefined;

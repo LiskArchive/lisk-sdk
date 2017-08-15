@@ -19,8 +19,8 @@ var bs = {};
  * @return {Buffer}
  */
 bs.serialize = function (data) {
-  return bson.serialize(data);
-}
+	return bson.serialize(data);
+};
 
 /**
  * Deserializes input data.
@@ -29,7 +29,7 @@ bs.serialize = function (data) {
  * @return {Object}
  */
 bs.deserialize = function (data) {
-  return bson.deserialize(data);
-}
+	return bson.deserialize(data);
+};
 
 module.exports = bs;

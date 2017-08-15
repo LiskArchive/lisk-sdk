@@ -124,11 +124,10 @@ Verify.prototype.addBlockProperties = function (block) {
 
 /**
  * Deletes default properties from block.
- * @private
  * @param {Object} block Block object completed
  * @return {Object} Block object reduced
  */
-__private.deleteBlockProperties = function (block) {
+Verify.prototype.deleteBlockProperties = function (block) {
 	var reducedBlock = JSON.parse(JSON.stringify(block));
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
@@ -370,7 +369,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			if (broadcast) {
 				try {
 					// delete default properties
-					var blockReduced = __private.deleteBlockProperties(block);
+					var blockReduced = self.deleteBlockProperties(block);
 					var serializedBlockReduced = bson.serialize(blockReduced);
 					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, block.id, broadcast);
 				} catch (err) {
