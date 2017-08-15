@@ -17,7 +17,7 @@ module.exports = function configureGrunt(grunt) {
 		},
 
 		eslint: {
-			target: ['src/**/*.js', 'test/**/*.js', 'Gruntfile.js', 'index.js'],
+			target: ['.'],
 		},
 
 		browserify: {
