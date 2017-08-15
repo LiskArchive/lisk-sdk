@@ -1,9 +1,9 @@
 'use strict';
 
-var node = require('../node.js');
-var http = require('../common/httpCommunication.js');
-var ws = require('../common/wsCommunication.js');
-var peersSortFields = require('../../sql/peers').sortFields;
+var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
+var ws = require('../../../common/wsCommunication.js');
+var peersSortFields = require('../../../../sql/peers').sortFields;
 
 before(function (done) {
 	ws.addPeer('127.0.0.1', 5000, done);

@@ -1,7 +1,7 @@
 'use strict';
 
-var node = require('../node.js');
-var http = require('../common/httpCommunication.js');
+var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
 
 var account = node.randomAccount();
 

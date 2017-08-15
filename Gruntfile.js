@@ -78,7 +78,7 @@ module.exports = function (grunt) {
 			},
 
 			testFunctional: {
-				command: './node_modules/.bin/mocha test/api/index.js',
+				command: './node_modules/.bin/_mocha test/functional/index.js',
 				maxBuffer: maxBufferSize
 			},
 
