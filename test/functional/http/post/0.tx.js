@@ -11,7 +11,7 @@ describe('POST /api/transactions (type 0)', function () {
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	describe('schema checks', function () {
+	describe('schema validation', function () {
 
 		var transaction;
 
@@ -76,7 +76,7 @@ describe('POST /api/transactions (type 0)', function () {
 		});
 	});
 
-	describe('processing', function () {
+	describe('transaction processing', function () {
 
 		var account = node.randomAccount();
 		var goodTransaction = node.randomTx();
@@ -97,7 +97,7 @@ describe('POST /api/transactions (type 0)', function () {
 
 			sendTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: '+account.address+' balance: 0');
+				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
 				badTransactions.push(transaction);
 				done();
 			});
@@ -148,13 +148,13 @@ describe('POST /api/transactions (type 0)', function () {
 		it('sending transaction with same id twice should fail', function (done) {
 			sendTransaction(goodTransaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Transaction is already processed: '+goodTransaction.id);
+				node.expect(res).to.have.property('message').to.equal('Transaction is already processed: ' + goodTransaction.id);
 				done();
 			});
 		});
 	});
 
-	describe('confirmation', function () {
+	describe('transaction confirmations', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
 	});

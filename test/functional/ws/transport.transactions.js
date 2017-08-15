@@ -21,7 +21,7 @@ describe('Posting transaction (type 0)', function () {
 		transaction = node.randomTx();
 	});
 
-	describe('processing', function () {
+	describe('transaction processing', function () {
 
 		it('when sender has no funds should fail', function (done) {
 			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
@@ -44,7 +44,7 @@ describe('Posting transaction (type 0)', function () {
 		});
 	});
 
-	describe('confirmation', function () {
+	describe('transaction confirmations', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
 	});

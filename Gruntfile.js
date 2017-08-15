@@ -72,18 +72,13 @@ module.exports = function (grunt) {
 				maxBuffer: maxBufferSize
 			},
 
-			testUnit: {
+			coverageUnit: {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.js',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctional: {
 				command: './node_modules/.bin/_mocha test/functional/index.js',
-				maxBuffer: maxBufferSize
-			},
-
-			testIntegration: {
-				command: './node_modules/.bin/_mocha test/integration/index.js',
 				maxBuffer: maxBufferSize
 			},
 
@@ -146,9 +141,8 @@ module.exports = function (grunt) {
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
-	grunt.registerTask('testUnit', ['eslint', 'exec:testUnit']);
-	grunt.registerTask('testFunctional', ['eslint', 'exec:testFunctional']);
-	grunt.registerTask('testIntegration', ['eslint', 'exec:testIntegration']);
+	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
+	grunt.registerTask('test-functional', ['eslint', 'exec:testFunctional']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
