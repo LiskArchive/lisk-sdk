@@ -249,6 +249,18 @@ describe('transaction.js', () => {
 			(trs).should.be.ok();
 		});
 
+		it('should create transaction with empty string second signature and data', () => {
+			trs = createTransaction(
+				testRecipientAddress,
+				testAmountThousand,
+				testSecret,
+				'',
+				testData,
+			);
+			(trs).should.be.ok();
+			(trs).should.have.property('signSignature').and.be.type('string');
+		});
+
 		describe('returned transaction', () => {
 			it('should conatain data field with string value', () => {
 				(trs.asset.data).should.be.type('string');

@@ -16,6 +16,7 @@ describe('signature.js', () => {
 
 	describe('#createSignature', () => {
 		const createSignature = signature.createSignature;
+		const emptyStringPublicKey = 'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 		let sgn = null;
 
 		it('should be function', () => {
@@ -26,6 +27,13 @@ describe('signature.js', () => {
 			sgn = createSignature('secret', 'second secret');
 			(sgn).should.be.ok();
 			(sgn).should.be.type('object');
+		});
+
+		it('should create signature transaction with empty string', () => {
+			sgn = createSignature('secret', '');
+			(sgn).should.be.ok();
+			(sgn).should.be.type('object');
+			(sgn.asset.signature.publicKey).should.be.eql(emptyStringPublicKey);
 		});
 
 		describe('timestamp', () => {
