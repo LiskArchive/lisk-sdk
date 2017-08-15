@@ -617,23 +617,6 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#generateAccount', () => {
-		const expectedRessult = {
-			privateKey:
-				'7683ba873c5e5aa6c12df564a60a93a519e2a5682cf5358a6a5b9ccc70607e96d803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
-			publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
-		};
-
-		it('should get publicKey', () => {
-			const callback = sinon.spy();
-			const secret = 'dream capable public heart sauce pilot ordinary fever final brand flock boring';
-
-			LSK.generateAccount(secret, callback);
-			(callback.called).should.be.true();
-			(callback.calledWith(expectedRessult)).should.be.true();
-		});
-	});
-
 	describe('#listMultisignatureTransactions', () => {
 		it('should list all current not signed multisignature transactions', () => {
 			return liskApi().listMultisignatureTransactions((result) => {
