@@ -246,7 +246,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'delegates', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -279,7 +279,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'delegates', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 
@@ -291,7 +291,7 @@ describe('Lisk.api()', () => {
 			LSK.listStandbyDelegates('1', options, callback);
 
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -320,7 +320,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'delegates/search', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -359,7 +359,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'blocks', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -381,7 +381,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'blocks', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -422,7 +422,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'blocks', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -470,7 +470,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'transactions', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -511,7 +511,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'transactions/get', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -547,7 +547,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'accounts/delegates', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -577,7 +577,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'delegates/voters', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
@@ -612,7 +612,7 @@ describe('Lisk.api()', () => {
 
 			(LSK.sendRequest.calledWith(GET, 'accounts', options)).should.be.true();
 			(callback.called).should.be.true();
-			(callback.calledWith(expectedResponse)).should.be.true();
+			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
 		});
 	});
