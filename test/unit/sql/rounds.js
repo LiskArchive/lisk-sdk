@@ -535,7 +535,7 @@ describe('Rounds-related SQL triggers', function () {
 		}
 
 		before(function () {
-			return Promise.delay(1000).then(function () {
+			return Promise.delay(2000).then(function () {
 				// Set delegates module as loaded to allow manual forging
 				library.rewiredModules.delegates.__set__('__private.loaded', true);
 			});
@@ -545,7 +545,7 @@ describe('Rounds-related SQL triggers', function () {
 			var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
 			loadDelegates(function (err) {
 				keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
-				expect(Object.keys(keypairs).length).to.equal(config.forging.secret.length);
+				expect(Object.keys(keypairs).length).to.equal(config.forging.secret.length + config.forging.encryptedSecrets.length);
 				_.each(keypairs, function (keypair, pk) {
 					expect(keypair.publicKey).to.be.instanceOf(Buffer);
 					expect(keypair.privateKey).to.be.instanceOf(Buffer);
