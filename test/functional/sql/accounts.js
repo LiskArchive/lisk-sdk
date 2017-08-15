@@ -8,7 +8,7 @@ var slots   = require('../../../helpers/slots.js');
 var Promise = require('bluebird');
 
 describe('SQL triggers related to accounts', function () {
-	var library, processed_txs = [];
+	var library, deleteLastBlockPromise, processed_txs = [];
 
 	before(function (done) {
 		node.initApplication(function (scope) {
@@ -22,6 +22,7 @@ describe('SQL triggers related to accounts', function () {
 	});
 
 	before(function (done) {
+		deleteLastBlockPromise = Promise.promisify(library.modules.blocks.chain.deleteLastBlock);
 		// Load forging delegates
 		var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
 		loadDelegates(done);
@@ -465,7 +466,7 @@ describe('SQL triggers related to accounts', function () {
 								node.randomNumber(100000000, 1000000000),
 								node.gAccount.password
 							);
-							transactions.push(tx);	
+							transactions.push(tx);
 
 							return Promise.promisify(addTransactionsAndForge)(transactions).then(function () {
 								return getAccountByAddress(last_random_account.address).then(function (accounts) {
@@ -511,6 +512,37 @@ describe('SQL triggers related to accounts', function () {
 							});
 						});
 					}); // END: virgin account to self
+
+					describe ('delete block with transaction that issued pk creation', function () {
+						var account_before;
+
+						before(function () {
+							return getAccountByAddress(last_random_account.address).then(function (accounts) {
+								account_before = accounts[last_random_account.address];
+							}).then (function () {
+								return deleteLastBlockPromise();
+							});
+						});
+
+						describe('account', function () {
+							var account;
+
+							before(function () {
+								return getAccountByAddress(last_random_account.address).then(function (accounts) {
+									account = accounts[last_random_account.address];
+								});
+							});
+
+							it('should set pk, pk_tx_id to NULL', function () {
+								expect(account.pk).to.be.an('null');
+								expect(account.pk_tx_id).to.be.an('null');
+							});
+
+							it('should not modify tx_id', function () {
+								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							});
+						});
+					}); // END: delete blocks with transaction that issued pk creation
 				}); // END: type 0 - TRANSFER
 			}); // END: signle transaction
 		}); // END: transactions

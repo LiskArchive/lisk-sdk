@@ -68,4 +68,18 @@ CREATE TRIGGER on_transaction_insert
 	FOR EACH ROW
 	EXECUTE PROCEDURE on_transaction_insert();
 
+-- Create function for rollback pk
+CREATE OR REPLACE FUNCTION pk_rollback() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+	BEGIN
+		NEW.pk = NULL;
+	RETURN NEW;
+END $$;
+
+-- Create trigger that will execute 'pk_rollback' when 'pk_tx_id' is set to NULL
+CREATE TRIGGER pk_rollback
+	BEFORE UPDATE ON accounts
+	FOR EACH ROW
+	WHEN (OLD.pk_tx_id IS NOT NULL AND NEW.pk_tx_id IS NULL)
+	EXECUTE PROCEDURE pk_rollback();
+
 COMMIT;
