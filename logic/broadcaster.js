@@ -5,9 +5,7 @@ var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var _ = require('lodash');
-var BSON = require('bson');
-
-var bson = new BSON();
+var bson = require('../helpers/bson.js');
 
 // Private fields
 var modules, library, self, __private = {};

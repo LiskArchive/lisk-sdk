@@ -9,9 +9,7 @@ var exceptions = require('../../../../helpers/exceptions.js');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
 
 var crypto = require('crypto');
-var BSON = require('bson');
-
-var bson = new BSON();
+var bson = require('../../../../helpers/bson.js');
 
 var previousBlock = {
 	blockSignature:'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',

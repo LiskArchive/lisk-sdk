@@ -7,9 +7,7 @@ var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
 var exceptions = require('../../helpers/exceptions.js');
-var BSON = require('bson');
-
-var bson = new BSON();
+var bson = require('../../helpers/bson.js');
 
 var modules, library, self, __private = {};
 
