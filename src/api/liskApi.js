@@ -384,7 +384,7 @@ LiskAPI.prototype.getMultisignatureTransaction = privateApi.wrapSendRequest(GET,
 
 /**
  * @method sendLSK
- * @param recipient
+ * @param recipientId
  * @param amount
  * @param secret
  * @param secondSecret
@@ -394,9 +394,9 @@ LiskAPI.prototype.getMultisignatureTransaction = privateApi.wrapSendRequest(GET,
  */
 
 LiskAPI.prototype.sendLSK = function sendLSK(
-	recipient, amount, secret, secondSecret, callback,
+	recipientId, amount, secret, secondSecret, callback,
 ) {
-	return this.sendRequest(POST, 'transactions', { recipientId: recipient, amount, secret, secondSecret }, callback);
+	return this.sendRequest(POST, 'transactions', { recipientId, amount, secret, secondSecret }, callback);
 };
 
 /**
