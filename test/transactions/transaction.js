@@ -258,6 +258,7 @@ describe('transaction.js', () => {
 				testData,
 			);
 			(trs).should.be.ok();
+			(trs).should.have.property('signSignature').and.be.type('string');
 		});
 
 		describe('returned transaction', () => {
