@@ -11,6 +11,8 @@ describe('Lisk.api()', () => {
 		publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		address: '18160565574430594874L',
 	};
+	const requestDataLimit = 10;
+	const requestOffset = 101;
 
 	let LSK;
 
@@ -239,10 +241,10 @@ describe('Lisk.api()', () => {
 
 		it('should list active delegates', () => {
 			const callback = sinon.spy();
-			const options = { limit: '1' };
+			const options = { limit: requestDataLimit };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
 
-			LSK.listActiveDelegates('1', callback);
+			LSK.listActiveDelegates(requestDataLimit, callback);
 
 			(LSK.sendRequest.calledWith(GET, 'delegates', options)).should.be.true();
 			(callback.called).should.be.true();
@@ -272,10 +274,10 @@ describe('Lisk.api()', () => {
 
 		it('should list standby delegates', () => {
 			const callback = sinon.spy();
-			const options = { limit: '1', orderBy: 'rate:asc', offset: 101 };
+			const options = { limit: requestDataLimit, orderBy: 'rate:asc', offset: requestOffset };
 			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
 
-			LSK.listStandbyDelegates('1', options, callback);
+			LSK.listStandbyDelegates(requestDataLimit, options, callback);
 
 			(LSK.sendRequest.calledWith(GET, 'delegates', options)).should.be.true();
 			(callback.called).should.be.true();
@@ -288,8 +290,9 @@ describe('Lisk.api()', () => {
 			const options = {};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
 
-			LSK.listStandbyDelegates('1', options, callback);
+			LSK.listStandbyDelegates(requestDataLimit, options, callback);
 
+			(LSK.sendRequest.calledWith(GET, 'delegates', { limit: requestDataLimit, orderBy: 'rate:asc', offset: requestOffset })).should.be.true();
 			(callback.called).should.be.true();
 			(callback.calledWithExactly(expectedResponse)).should.be.true();
 			LSK.sendRequest.restore();
@@ -460,8 +463,8 @@ describe('Lisk.api()', () => {
 			const options = {
 				recipientId: recipientAddress,
 				senderId: senderAddress,
-				limit: '1',
-				offset: '2',
+				limit: requestDataLimit,
+				offset: requestOffset,
 				orderBy: 'timestamp:desc',
 			};
 			sinon.stub(LSK, 'sendRequest').callsArgWith(3, expectedResponse);
@@ -693,29 +696,41 @@ describe('Lisk.api()', () => {
 	});
 
 
-	describe('#constructRequestData', () => {
+	describe('#constructRequestData @now', () => {
+		const address = defaultAddress.address;
+		const requestData = {
+			limit: requestDataLimit,
+			offset: requestOffset,
+		};
+		const expectedObject = {
+			address: '18160565574430594874L',
+			limit: requestDataLimit,
+			offset: requestOffset,
+		};
+		const conflictObject = {
+			address: '18160565574430594874',
+			limit: 0,
+			offset: 5,
+		};
+		const resolvedConflictObject = {
+			address: '18160565574430594874',
+			limit: requestDataLimit,
+			offset: requestOffset,
+		};
+
 		it('should construct optional request data for API helper functions', () => {
-			const address = '123';
-			const requestData = {
-				limit: '123',
-				offset: 5,
-			};
-			const expectedObject = {
-				address: '123',
-				limit: '123',
-				offset: 5,
-			};
 			const createObject = privateApi.constructRequestData({ address }, requestData);
 			(createObject).should.be.eql(expectedObject);
 		});
 
 		it('should construct with variable and callback', () => {
-			const address = '123';
-			const expectedObject = {
-				address: '123',
-			};
-			const createObject = privateApi.constructRequestData({ address }, () => { return '123'; });
-			(createObject).should.be.eql(expectedObject);
+			const createObject = privateApi.constructRequestData({ address }, () => true );
+			(createObject).should.be.eql({ address });
+		});
+
+		it('should give conflicting input, first parameters passed', () => {
+			const createObject = privateApi.constructRequestData({ limit: requestDataLimit, offset: requestOffset }, conflictObject);
+			(createObject).should.be.eql(resolvedConflictObject);
 		});
 	});
 });
