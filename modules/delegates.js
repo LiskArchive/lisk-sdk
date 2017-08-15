@@ -262,7 +262,6 @@ __private.updateForgingStatus = function (secret, publicKey, action, cb) {
  * @returns {setImmediateCallback}
  */
 __private.toggleForgingStatus = function (publicKey, secretKey, cb) {
-
 	var actionEnable = false;
 	var actionDisable = false;
 
@@ -433,7 +432,6 @@ __private.loadDelegates = function (cb) {
 
 		async.eachSeries(secretsList, function (encryptedItem, seriesCb) {
 			var secret;
-
 			try {
 				secret = __private.decryptSecret(encryptedItem.encryptedSecret, library.config.forging.defaultKey);
 			} catch (e) {
@@ -513,7 +511,7 @@ __private.loadDelegates = function (cb) {
 	}
 
 	async.series([loadPlainTextSecrets, loadEncryptedSecrets], function (err, res) {
-		cb();
+		cb(err);
 	});
 };
 
@@ -754,6 +752,10 @@ Delegates.prototype.isLoaded = function () {
  */
 Delegates.prototype.internal = {
 	forgingEnable: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
+
 		library.schema.validate(req.body, schema.enableForging, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
@@ -763,6 +765,10 @@ Delegates.prototype.internal = {
 		});
 	},
 	forgingDisable: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
+
 		library.schema.validate(req.body, schema.disableForging, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
@@ -772,10 +778,10 @@ Delegates.prototype.internal = {
 		});
 	},
 	forgingToggle: function (req, cb) {
-		console.log(' schema.toggleForging');
-		console.log( schema.toggleForging);
-		console.log('req.body');
-		console.log(req.body);
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
+
 		library.schema.validate(req.body, schema.toggleForging, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
