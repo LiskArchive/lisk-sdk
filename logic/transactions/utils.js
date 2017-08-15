@@ -14,5 +14,3 @@ function pack (data) {
 function unpack (data) {
   return bson.deserialize(data);
 }
-
- 

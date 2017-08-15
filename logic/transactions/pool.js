@@ -178,6 +178,52 @@ TxPool.prototype.getByPoolList  = function (poolList, reverse, limit) {
 };
 
 /**
+ * Gets transactions from pool based on account address and entity: sender, recipient.
+ * @implements {__private.getAllPoolTxsByFilter}
+ * @param {account} id valid account address
+ * @param {string} entity sender, recipient
+ * @return {getTransactionList} Calls getTransactionList
+ */
+TxPool.prototype.getByAccountId  = function (id, entity) {
+	var err = __private.checkAddress(id);
+	if (err) {
+		return err;
+	}
+	switch (entity) {
+		case 'sender':
+			return __private.getAllPoolTxsByFilter({'senderId': id});
+		case 'recipient':
+			return __private.getAllPoolTxsByFilter({'recipientId': id});
+		default:
+			return 'Invalid entity account address';
+	}
+};
+
+/**
+ * Gets transactions from pool based on publicKey and entity: sender, recipient.
+ * @implements {__private.getAllPoolTxsByFilter}
+ * @param {string} publicKey
+ * @param {string} entity sender, requester
+ * @return {getTransactionList} Calls getTransactionList
+ */
+TxPool.prototype.getByAccountPublicKey  = function (publicKey, entity) {
+	var err = __private.checkPublicKey(publicKey);
+	if (err) {
+		return err;
+	}
+	switch (entity) {
+		case 'sender':
+			return __private.getAllPoolTxsByFilter({'senderPublicKey': publicKey});
+		case 'requester':
+			return __private.getAllPoolTxsByFilter({'requesterPublicKey': publicKey});
+		default:
+			return 'Invalid entity for public key';
+	}
+};
+
+
+
+/**
  * Checks sender has enough credit to apply transaction.
  * @param {transaction} transaction
  * @param {address} sender
@@ -354,6 +400,22 @@ __private.getTxsFromPoolList = function (transactions, reverse, limit) {
 };
 
 /**
+ * Gets transactions from pool list based on filter.
+ * @private
+ * @param {Object} filter search criteria
+ * @return {Objetc} transactions by pool list
+ */
+__private.getAllPoolTxsByFilter = function (filter) {
+	var txs = {
+		unverified: _.filter(pool.unverified, filter),
+		pending: _.filter(pool.verified.pending, filter),
+		ready: _.filter(pool.verified.ready, filter)
+	};
+
+	return txs;
+};
+
+/**
  * Returns true if the id is present in at least one of the index values.
  * Index values: unverified, verified.pending, verified.ready.
  * @param {string} id
@@ -367,6 +429,41 @@ __private.transactionInPool = function (id) {
 	].filter(function (inList) {
 		return inList !== undefined;
 	}).length > 0;
+};
+
+/**
+ * Validates address.
+ * @param {string} address
+ * @return {null|err}
+ * @todo check address against mem_accounts
+ */
+__private.checkAddress = function (address) {
+	if (address.charAt(address.length-1) !== 'L') {
+		return 'Invalid address, last char must be "L"';
+	} 
+	if (address.slice(0,address.length-1).match(/^[0-9]+$/) === null) {
+		return 'Invalid address, must be numbers';
+	}
+	return null;
+};
+
+/**
+ * Validates publicKey.
+ * @param {string} publicKey
+ * @return {null|err}
+ * @todo check publicKey against mem_accounts
+ */
+__private.checkPublicKey = function (publicKey) {
+	if (typeof publicKey !== 'string') {
+		return 'Invalid public key, must be a string';
+	}
+	if (publicKey.length !== 64) {
+		return 'Invalid public key, must be 64 characters long';
+	}
+	if (publicKey.match(/^[0-9A-Fa-f]+$/) === null) {
+		return 'Invalid public key, must be a hex string';
+	}
+	return null;
 };
 
 /**
