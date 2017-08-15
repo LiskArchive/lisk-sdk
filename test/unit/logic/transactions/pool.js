@@ -32,9 +32,9 @@ var transactions = [
 		'fee': 500000000,
 		'senderId': '2737453412992791987L',
 		'asset': {
-				'signature': {
-					'publicKey': 'The public key associated with the second passphrase'
-				}
+			'signature': {
+				'publicKey': 'The public key associated with the second passphrase'
+			}
 		}
 	},
 	/* type: 2 - Register a delegate */
@@ -49,10 +49,10 @@ var transactions = [
 		'fee': 500000000,
 		'senderId': '2737453412992791987L',
 		'asset': {
-				'delegate': {
-					'username': 'The chosen username',
-					'publicKey': 'The public key associated with the second passphrase'
-				}
+			'delegate': {
+				'username': 'The chosen username',
+				'publicKey': 'The public key associated with the second passphrase'
+			}
 		}
 	},
 	/* type: 3 - Submit votes */
@@ -110,14 +110,14 @@ describe('txPool', function () {
 			modulesLoader.scope.config.transactions.poolProcessInterval = 6000;
 			poolStorageTxsLimit = modulesLoader.scope.config.transactions.poolStorageTxsLimit;
 			txPool = new TxPool(
-					modulesLoader.scope.config.broadcasts.broadcastInterval,
-					modulesLoader.scope.config.broadcasts.releaseLimit,
-					modulesLoader.scope.config.transactions.poolStorageTxsLimit,
-					modulesLoader.scope.config.transactions.poolProcessInterval,
-					__trsLogic,
-					modulesLoader.scope.bus,
-					modulesLoader.scope.logger
-				);
+				modulesLoader.scope.config.broadcasts.broadcastInterval,
+				modulesLoader.scope.config.broadcasts.releaseLimit,
+				modulesLoader.scope.config.transactions.poolStorageTxsLimit,
+				modulesLoader.scope.config.transactions.poolProcessInterval,
+				__trsLogic,
+				modulesLoader.scope.bus,
+				modulesLoader.scope.logger
+			);
 
 			modulesLoader.initModules([
 				{accounts: require('../../../../modules/accounts')},
@@ -185,7 +185,7 @@ describe('txPool', function () {
 			});
 
 			it('should be ok when add transactions to fill pool storage', function (done) {
-				var trx = transactions.slice(1,transactions.length)
+				var trx = transactions.slice(1,transactions.length);
 				txPool.add(trx, function (err, cbtx) {
 					if (err) {
 						done(err);
@@ -280,7 +280,7 @@ describe('txPool', function () {
 		});
 	});
 
-	describe('broadcast transactions', function() {
+	describe('broadcast transactions', function () {
 		var broadcastTx;
 
 		it('should be ok when serialize transaction', function (done) {
@@ -304,22 +304,22 @@ describe('txPool', function () {
 		});
 	});
 
-	describe('process worker', function() {
+	describe('process worker', function () {
 
 	});
 
-	describe('getters', function() {
+	describe('getters', function () {
 
-		describe('get transaction by id', function() {
+		describe('get transaction by id', function () {
 
-			xit('should be ok when transaction is in unverified list', function (done) {
+			it.skip('should be ok when transaction is in unverified list', function (done) {
 				var transaction = txPool.get(transactions[5].id);
 				expect(transaction.tx).to.deep.equal(transactions[5]);
 				expect(transaction.status).to.equal('unverified');
 				done();
 			});
 
-			xit('should be ok when transaction is in pending list', function (done) {
+			it.skip('should be ok when transaction is in pending list', function (done) {
 				var transaction = txPool.get(transactions[5].id);
 				expect(transaction.tx).to.deep.equal(transactions[5]);
 				expect(transaction.status).to.equal('pending');
@@ -341,23 +341,23 @@ describe('txPool', function () {
 			});
 		});
 
-		describe('get all by pool list', function() {
+		describe('get all by pool list', function () {
 
 			it('should be ok when pool list is unverified', function (done) {
 				var txs = txPool.getByPoolList('unverified');
-				expect(txs.length).to.equal(0)
+				expect(txs.length).to.equal(0);
 				done();
 			});
 
 			it('should be ok when pool list is pending', function (done) {
 				var txs = txPool.getByPoolList('pending');
-				expect(txs.length).to.equal(0)
+				expect(txs.length).to.equal(0);
 				done();
 			});
 			
 			it('should be ok when pool list is ready', function (done) {
 				var txs = txPool.getByPoolList('ready');
-				expect(txs.length).to.equal(5)
+				expect(txs.length).to.equal(5);
 				done();
 			});
 
@@ -368,7 +368,7 @@ describe('txPool', function () {
 			});
 		});
 
-		describe('get all by id (address)', function() {
+		describe('get all by id (address)', function () {
 
 			it('should be ok when sender account is valid', function (done) {
 				var txs = txPool.getByAccountId('2737453412992791987L', 'sender');
@@ -417,7 +417,7 @@ describe('txPool', function () {
 			});
 		});
 
-		describe('get all by publicKey', function() {
+		describe('get all by publicKey', function () {
 			it('should be ok when sender publicKey is valid', function (done) {
 				var txs = txPool.getByAccountPublicKey('c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5', 'sender');
 

@@ -231,7 +231,7 @@ TxPool.prototype.getByAccountPublicKey  = function (publicKey, entity) {
  */
 TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
 	var balance;
-	return setImmediate(cb, err, balance);
+	return setImmediate(cb, balance);
 };
 
 /**
@@ -593,7 +593,7 @@ __private.expireTxsFromList = function (poolList, parentIds, cb) {
 		var timeNow = Math.floor(Date.now() / 1000);
 		var timeOut = __private.transactionTimeOut(transaction);
 		// transaction.receivedAt is instance of Date
-		console.log("expireTransactions - transaction.receivedAt",transaction.receivedAt);
+		console.log('expireTransactions - transaction.receivedAt',transaction.receivedAt);
 		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
 		if (seconds > timeOut) {
