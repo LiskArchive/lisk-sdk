@@ -82,4 +82,30 @@ CREATE TRIGGER pk_rollback
 	WHEN (OLD.pk_tx_id IS NOT NULL AND NEW.pk_tx_id IS NULL)
 	EXECUTE PROCEDURE pk_rollback();
 
+-- Create function for maintain 'accounts' table in case of rollback
+CREATE OR REPLACE FUNCTION on_transaction_delete() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+	DECLARE
+		sender_address VARCHAR(22);
+		recipient_address VARCHAR(22);
+	BEGIN
+		-- Update sender balance
+		IF OLD."senderId" IS NOT NULL THEN
+			UPDATE accounts SET balance = accounts.balance+(OLD.amount+OLD.fee) WHERE accounts.address = OLD."senderId";
+		END IF;
+
+		-- Update recipient balance
+		IF OLD."recipientId" IS NOT NULL THEN
+			UPDATE accounts SET balance = accounts.balance-OLD.amount WHERE accounts.address = OLD."recipientId";
+		END IF;
+
+	RETURN NULL;
+END $$;
+
+-- Create trigger that will execute 'on_transaction_delete' function before deletion of transaction
+CREATE CONSTRAINT TRIGGER on_transaction_delete
+	AFTER DELETE ON trs
+	DEFERRABLE INITIALLY DEFERRED
+	FOR EACH ROW
+	EXECUTE PROCEDURE on_transaction_delete();
+
 COMMIT;

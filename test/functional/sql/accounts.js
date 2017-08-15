@@ -202,6 +202,7 @@ describe('SQL triggers related to accounts', function () {
 			describe('signle transaction', function () {
 
 				describe('type 0 - TRANSFER', function () {
+					var last_tx;
 
 					describe ('non-virgin account to new account', function () {
 						var sender_before;
@@ -488,7 +489,7 @@ describe('SQL triggers related to accounts', function () {
 							var account, tx;
 
 							before(function () {
-								tx = transactions[1];
+								tx = last_tx = transactions[1];
 								return getAccountByAddress(last_random_account.address).then(function (accounts) {
 									account = accounts[last_random_account.address];
 								});
@@ -531,6 +532,11 @@ describe('SQL triggers related to accounts', function () {
 								return getAccountByAddress(last_random_account.address).then(function (accounts) {
 									account = accounts[last_random_account.address];
 								});
+							});
+
+							it('should credit fee back', function () {
+								account_before.balance = new bignum(account_before.balance).plus(last_tx.fee).toString();
+								expect(account_before.balance).to.equal(account.balance);
 							});
 
 							it('should set pk, pk_tx_id to NULL', function () {
