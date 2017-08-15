@@ -2,6 +2,7 @@
 
 var node = require('../node.js');
 var http = require('../common/httpCommunication.js');
+var ws = require('../common/wsCommunication');
 var sendLiskTrs = require('../common/complexTransactions.js').sendLISK;
 var transactionSortFields = require('../../sql/transactions').sortFields;
 var modulesLoader = require('../common/initModule').modulesLoader;
@@ -35,6 +36,12 @@ function sendLISK (account, amount, done) {
 		});
 		done(err, res);
 	});
+}
+
+function postTransaction (transaction, done) {
+	ws.call('postTransactions', {
+		transaction: transaction
+	}, done, true);
 }
 
 before(function (done) {
@@ -590,6 +597,53 @@ describe('GET /api/transactions/queued/get?id=', function () {
 			node.expect(res.body).to.have.property('success').to.be.false;
 			node.expect(res.body).to.have.property('error').that.is.equal('Transaction not found');
 			done();
+		});
+	});
+
+	describe('for transaction with data field', function () {
+
+		function createTransactionWithData (done) {
+			var amountToSend = 123456789;
+			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
+			var data = 'extra information';
+			var transferTrs = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
+
+			postTransaction(transferTrs, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').that.is.not.empty;
+				var transaction = {
+					'sender': account.address,
+					'recipient': account2.address,
+					'grossSent': (amountToSend + expectedFee) / node.normalizer,
+					'fee': expectedFee / node.normalizer,
+					'netSent': amountToSend / node.normalizer,
+					'txId': res.transactionId,
+					'type': node.txTypes.SEND,
+					'data': data
+				};
+				transactionList.push(transaction);
+				done(transaction);
+			});
+		}
+
+		it('using valid id should be ok', function (done) {
+			createTransactionWithData(function (transactionInCheck) {
+				var trsId = transactionInCheck.txId;
+				var params = 'id=' + trsId;
+
+				http.get('/api/transactions/queued/get?' + params, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transaction').that.is.an('object');
+					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
+					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
+					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
+					node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
+					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
+					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+					node.expect(res.body.transaction.asset.data).to.equal(transactionInCheck.data);
+					done();
+				});
+			});
 		});
 	});
 });
