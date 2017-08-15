@@ -510,7 +510,7 @@ __private.loadDelegates = function (cb) {
 		}, plainTextSecretsCb);
 	}
 
-	async.series([loadPlainTextSecrets, loadEncryptedSecrets], function (err, res) {
+	async.series([loadPlainTextSecrets, loadEncryptedSecrets], function (err) {
 		cb(err);
 	});
 };

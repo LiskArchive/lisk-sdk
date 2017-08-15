@@ -401,7 +401,6 @@ describe('delegates', function () {
 		describe('loadDelegates', function () {
 
 			var rewiredDelegates;
-			var originalConfig;
 			var loadDelegates;
 			var config;
 			var __private;
@@ -428,10 +427,6 @@ describe('delegates', function () {
 				publicKey: '3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 				encryptedSecret: '2df503fb168552063136a479fe5598a28e90261b8ba6c16a8a27ff3ac9b3398aeebe6cf7afe6e84279f204bfcd2a62a18d71e08b14792a456bd3b78e60e215263a3aa2ed401346016e72c2a841e0d236',
 			}];
-
-			before(function () {
-				originalConfig = _.cloneDeep(node.config);
-			});
 
 			before(function () {
 				loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
@@ -506,6 +501,19 @@ describe('delegates', function () {
 						done();
 					});
 				});
+
+				it('should load 101 delegates in plaintext format', function (done) {
+					config.forging.secret = genesisDelegates.delegates.map(function (delegate) {
+						return delegate.secret;
+					});
+					config.forging.encryptedSecrets = [];
+
+					loadDelegates(function (err) {
+						expect(err).to.not.exist;
+						expect(Object.keys(__private.keypairs).length).to.equal(101);
+						done();
+					});
+				});
 			});
 
 			describe('via encrypted secrets', function () {
@@ -518,17 +526,6 @@ describe('delegates', function () {
 					loadDelegates(function (err) {
 						expect(err).to.not.exist;
 						expect(Object.keys(__private.keypairs).length).to.equal(0);
-						done();
-					});
-				});
-
-				it('should load secrets in encrypted format with the key', function (done) {
-					config.forging.secret = [];
-					config.forging.encryptedSecrets = encryptedSecret;
-
-					loadDelegates(function (err) {
-						expect(err).to.not.exist;
-						expect(Object.keys(__private.keypairs).length).to.equal(encryptedSecret.length);
 						done();
 					});
 				});
@@ -556,9 +553,10 @@ describe('delegates', function () {
 				});
 
 
-				it('should return error if encrypted secret does not decrpt with default secret', function (done) {
+				it('should return error if encrypted secret does not decript with default secret', function (done) {
+
 					var accountDetails = {
-						encryptedSecret:  '61cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
+						encryptedSecret:  '1cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
 						publicKey: '35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 					};
 
@@ -566,7 +564,7 @@ describe('delegates', function () {
 					config.forging.encryptedSecrets = [accountDetails];
 
 					loadDelegates(function (err) {
-						expect(err).to.equal('Public keys do not match');
+						expect(err).to.equal('Invalid encryptedSecret for publicKey: ' + accountDetails.publicKey);
 						expect(Object.keys(__private.keypairs).length).to.equal(0);
 						done();
 					});
@@ -611,7 +609,10 @@ describe('delegates', function () {
 
 				it('should not load account as delegates for non-delegate item', function (done) {
 					config.forging.secret = [];
-					config.forging.encryptedSecrets = [];
+					config.forging.encryptedSecrets = [{
+						encryptedSecret: node.gAccount.encryptedSecret,
+						publicKey: node.gAccount.publicKey
+					}];
 
 					loadDelegates(function (err) {
 						expect(err).to.not.exist;
@@ -619,15 +620,49 @@ describe('delegates', function () {
 						done();
 					});
 				});
+
+				it('should load secrets in encrypted format with the key', function (done) {
+					config.forging.secret = [];
+					config.forging.encryptedSecrets = encryptedSecret;
+
+					loadDelegates(function (err) {
+						expect(err).to.not.exist;
+						expect(Object.keys(__private.keypairs).length).to.equal(encryptedSecret.length);
+						done();
+					});
+				});
+
+				it('should load all 101 delegates', function (done) {
+					config.forging.secret = [];
+					config.forging.encryptedSecrets = genesisDelegates.delegates.map(function (delegate) {
+						return {
+							encryptedSecret: delegate.encryptedSecret,
+							publicKey: delegate.publicKey
+						};
+					});
+
+					loadDelegates(function (err) {
+						expect(err).to.not.exist;
+						expect(Object.keys(__private.keypairs).length).to.equal(101);
+						done();
+					});
+				});
 			});
 
 			it('should load delegates from plaintext and encrypted secrets list', function (done) {
-				config.forging.secret = [node.gAccount.password];
-				config.forging.encryptedSecrets = [];
+				config.forging.secret = genesisDelegates.delegates.map(function (delegate) {
+					return delegate.secret;
+				}).slice(0, 10);
+				config.forging.encryptedSecrets = genesisDelegates.delegates.map(function (delegate) {
+					return {
+						encryptedSecret: delegate.encryptedSecret,
+						publicKey: delegate.publicKey
+					};
+				}).slice(10, 20);
 
 				loadDelegates(function (err) {
 					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					expect(Object.keys(__private.keypairs).length).to.equal(20);
 					done();
 				});
 			});
