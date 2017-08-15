@@ -12,7 +12,7 @@ const prepareTransaction = (transaction, keys, secondSecret) => {
 		signature: crypto.sign(transaction, keys),
 	});
 
-	const signedTransaction = (typeof secondSecret === 'string' && transaction.type !== 1)
+	const signedTransaction = secondSecret && transaction.type !== 1
 		? secondSignTransaction(singleSignedTransaction, secondSecret)
 		: singleSignedTransaction;
 
