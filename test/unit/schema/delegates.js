@@ -43,15 +43,6 @@ describe('delegates', function () {
 				return error.message;
 			})).to.include('String is too short (0 chars), minimum 1');
 		});
-		
-		it('should return false when secret longer than 100 characters', function () {
-			var testObject = {secret: new Array(101).fill('x').join('')};
-
-			expect(validator.validate(testObject, schema.enableForging)).to.equal(false);
-			expect(validator.getLastErrors().map(function (error) {
-				return error.message;
-			})).to.include('String is too long (101 chars), maximum 100');
-		});
 
 		it('should return false when secret longer than 100 characters', function () {
 			var testObject = {secret: new Array(101).fill('x').join('')};
@@ -151,15 +142,6 @@ describe('delegates', function () {
 			})).to.include('String is too short (0 chars), minimum 1');
 		});
 		
-		it('should return false when secret longer than 100 characters', function () {
-			var testObject = {secret: new Array(101).fill('x').join('')};
-
-			expect(validator.validate(testObject, schema.disableForging)).to.equal(false);
-			expect(validator.getLastErrors().map(function (error) {
-				return error.message;
-			})).to.include('String is too long (101 chars), maximum 100');
-		});
-
 		it('should return false when secret longer than 100 characters', function () {
 			var testObject = {secret: new Array(101).fill('x').join('')};
 
@@ -306,7 +288,7 @@ describe('delegates', function () {
 			})).to.include('Expected type string but found type null');
 		});
 
-		it('should return false when publicKey when is an invalid hex string', function () {
+		it('should return false when publicKey is an invalid hex string', function () {
 			var invalidPublicKey = 'zd3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f';
 			var testObject = {
 				key: node.gAccount.key,
@@ -320,7 +302,7 @@ describe('delegates', function () {
 			})).to.include('Object didn\'t pass validation for format publicKey: zd3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f');
 		});
 
-		it('should return false when publicKey when is of invalid length', function () {
+		it('should return false when publicKey is of invalid length', function () {
 			var invalidPublicKey = '3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f';
 			var testObject = {
 				key: node.gAccount.key,
