@@ -1,159 +1,167 @@
-import slots from '../../src/time/slots';
 import vote from '../../src/transactions/vote';
 import cryptoModule from '../../src/transactions/crypto';
+import slots from '../../src/time/slots';
 
-describe('vote.js', () => {
-	it('should be ok', () => {
-		(vote).should.be.ok();
-	});
+describe('vote module', () => {
+	describe('exports', () => {
+		it('should be an object', () => {
+			(vote).should.be.type('object');
+		});
 
-	it('should be object', () => {
-		(vote).should.be.type('object');
-	});
-
-	it('should have createVote property', () => {
-		(vote).should.have.property('createVote');
+		it('should export createVote function', () => {
+			(vote).should.have.property('createVote').be.type('function');
+		});
 	});
 
 	describe('#createVote', () => {
-		const createVote = vote.createVote;
+		const { createVote } = vote;
+		const secret = 'secret';
+		const secondSecret = 'second secret';
 		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 		const publicKeys = [`+${publicKey}`];
+		const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+		const address = '18160565574430594874L';
+		const timeWithOffset = 38350076;
 
-		it('should be ok', () => {
-			(createVote).should.be.ok();
+		let getAddressStub;
+		let getTimeWithOffsetStub;
+		let voteTransaction;
+
+		beforeEach(() => {
+			getAddressStub = sinon.stub(cryptoModule, 'getAddress').returns(address);
+			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
-		it('should be function', () => {
-			(createVote).should.be.type('function');
+		afterEach(() => {
+			getAddressStub.restore();
+			getTimeWithOffsetStub.restore();
 		});
 
-		it('should create vote', () => {
-			const vt = createVote('secret', publicKeys, 'second secret');
-			(vt).should.be.ok();
-		});
-
-		describe('timestamp', () => {
-			const now = new Date();
-			let clock;
-
+		describe('without second secret', () => {
 			beforeEach(() => {
-				clock = sinon.useFakeTimers(now, 'Date');
+				voteTransaction = createVote(secret, publicKeys);
 			});
 
-			afterEach(() => {
-				clock.restore();
+			it('should create a vote transaction', () => {
+				(voteTransaction).should.be.ok();
 			});
 
-			it('should use time slots to get the time for the timestamp', () => {
-				const vt = createVote('secret', publicKeys, null);
-				(vt).should.have.property('timestamp').and.be.equal(slots.getTime());
+			it('should use crypto.getAddress to calculate the recipient id', () => {
+				(getAddressStub.calledWithExactly(publicKey)).should.be.true();
 			});
 
-			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
+			it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+				(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
+			});
+
+			it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 				const offset = -10;
-				const vt = createVote('secret', publicKeys, null, offset);
+				createVote(secret, publicKeys, null, offset);
 
-				(vt).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
-			});
-		});
-
-		describe('returned vote', () => {
-			let vt;
-
-			beforeEach(() => {
-				vt = createVote('secret', publicKeys, 'second secret');
+				(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 			});
 
-			it('should be ok', () => {
-				(vt).should.be.ok();
-			});
-
-			it('should be object', () => {
-				(vt).should.be.type('object');
-			});
-
-			it('should have recipientId string equal to sender', () => {
-				(vt).should.have.property('recipientId').and.be.type('string').and.equal(cryptoModule.getAddress(publicKey));
-			});
-
-			it('should have amount number equal to 0', () => {
-				(vt).should.have.property('amount').and.be.type('number').and.equal(0);
-			});
-
-			it('should have type number equal to 3', () => {
-				(vt).should.have.property('type').and.be.type('number').and.equal(3);
-			});
-
-			it('should have timestamp number', () => {
-				(vt).should.have.property('timestamp').and.be.type('number');
-			});
-
-			it('should have senderPublicKey hex string equal to sender public key', () => {
-				(vt).should.have.property('senderPublicKey').and.be.type('string').and.equal(publicKey).and.be.hexString();
-			});
-
-			it('should have signature hex string', () => {
-				(vt).should.have.property('signature').and.be.type('string').and.be.hexString();
-			});
-
-			it('should have second signature hex string', () => {
-				(vt).should.have.property('signSignature').and.be.type('string').and.be.hexString();
-			});
-
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verify(vt);
-				(result).should.be.ok();
-			});
-
-			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifySecondSignature(vt, cryptoModule.getKeys('second secret').publicKey);
-				(result).should.be.ok();
-			});
-
-			it('should not be signed correctly now', () => {
-				vt.amount = 100;
-				const result = cryptoModule.verify(vt);
-				(result).should.be.not.ok();
-			});
-
-			it('should not be second signed correctly now', () => {
-				vt.amount = 100;
-				const result = cryptoModule.verifySecondSignature(vt, cryptoModule.getKeys('second secret').publicKey);
-				(result).should.be.not.ok();
-			});
-
-			it('should have asset', () => {
-				(vt).should.have.property('asset').and.not.be.empty();
-			});
-
-			describe('vote asset', () => {
-				it('should be ok', () => {
-					(vt.asset).should.have.property('votes').and.be.ok();
+			describe('returned vote', () => {
+				it('should be an object', () => {
+					(voteTransaction).should.be.type('object');
 				});
 
-				it('should be object', () => {
-					(vt.asset.votes).should.be.type('object');
+				it('should have type number equal to 3', () => {
+					(voteTransaction).should.have.property('type').and.be.type('number').and.equal(3);
 				});
 
-				it('should be not empty', () => {
-					(vt.asset.votes).should.be.not.empty();
+				it('should have amount number equal to 0', () => {
+					(voteTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 				});
 
-				it('should contains one element', () => {
-					(vt.asset.votes.length).should.be.equal(1);
+				it('should have fee number equal to 0', () => {
+					(voteTransaction).should.have.property('fee').and.be.type('number').and.equal(1e8);
 				});
 
-				it('should have public keys in hex', () => {
-					vt.asset.votes.forEach((v) => {
-						(v).should.be.type('string').and.startWith('+');
-						(v.slice(1)).should.be.hexString();
+				it('should have recipientId string equal to address', () => {
+					(voteTransaction).should.have.property('recipientId').and.be.type('string').and.equal(address);
+				});
+
+				it('should have senderPublicKey hex string equal to sender public key', () => {
+					(voteTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+				});
+
+				it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+					(voteTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				});
+
+				it('should have signature hex string', () => {
+					(voteTransaction).should.have.property('signature').and.be.hexString();
+				});
+
+				it('should be signed correctly', () => {
+					const result = cryptoModule.verify(voteTransaction);
+					(result).should.be.ok();
+				});
+
+				it('should not be signed correctly if modified', () => {
+					voteTransaction.amount = 100;
+					const result = cryptoModule.verify(voteTransaction);
+					(result).should.be.not.ok();
+				});
+
+				it('should have asset', () => {
+					(voteTransaction).should.have.property('asset').and.not.be.empty();
+				});
+
+				describe('votes asset', () => {
+					it('should be object', () => {
+						(voteTransaction.asset).should.have.property('votes').and.be.type('object');
+					});
+
+					it('should not be empty', () => {
+						(voteTransaction.asset.votes).should.not.be.empty();
+					});
+
+					it('should contain one element', () => {
+						(voteTransaction.asset.votes).should.have.length(1);
+					});
+
+					it('should have public keys in hex', () => {
+						voteTransaction.asset.votes.forEach((v) => {
+							(v).should.be.type('string').and.startWith('+');
+							(v.slice(1)).should.be.hexString();
+						});
+					});
+
+					it('should have a vote for the delegate public key', () => {
+						const v = voteTransaction.asset.votes[0];
+						(v.substring(1, v.length)).should.be.equal(publicKey);
 					});
 				});
+			});
+		});
 
-				it('should be equal to sender public key', () => {
-					const v = vt.asset.votes[0];
-					(v.substring(1, v.length)).should.be.equal(publicKey);
+		describe('with second secret', () => {
+			beforeEach(() => {
+				voteTransaction = createVote(secret, publicKeys, secondSecret);
+			});
+
+			it('should create a vote transaction with a second secret', () => {
+				const voteTransactionWithoutSecondSecret = createVote(secret, publicKeys);
+				(voteTransaction).should.be.ok();
+				(voteTransaction).should.not.be.equal(voteTransactionWithoutSecondSecret);
+			});
+
+			describe('returned vote', () => {
+				it('should have second signature hex string', () => {
+					(voteTransaction).should.have.property('signSignature').and.be.hexString();
+				});
+
+				it('should be second signed correctly', () => {
+					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					(result).should.be.ok();
+				});
+
+				it('should not be second signed correctly if modified', () => {
+					voteTransaction.amount = 100;
+					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					(result).should.not.be.ok();
 				});
 			});
 		});

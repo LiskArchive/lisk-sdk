@@ -32,23 +32,21 @@ describe('delegate.js', () => {
 		});
 
 		describe('timestamp', () => {
-			let now;
-			let clock;
+			const timeWithOffset = 38350086;
+			let stub;
 
 			beforeEach(() => {
-				now = new Date();
-				clock = sinon.useFakeTimers(now, 'Date');
+				stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 			});
 
 			afterEach(() => {
-				clock.restore();
+				stub.restore();
 			});
 
 			it('should use time slots to get the time for the timestamp', () => {
 				trs = createDelegate('secret', 'delegate', null);
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime());
-
-				clock.restore();
+				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(undefined)).should.be.true();
 			});
 
 			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -56,7 +54,8 @@ describe('delegate.js', () => {
 
 				trs = createDelegate('secret', 'delegate', null, offset);
 
-				(trs).should.have.property('timestamp').and.be.equal(slots.getTime() + offset);
+				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
+				(stub.calledWithExactly(offset)).should.be.true();
 			});
 		});
 
