@@ -1,18 +1,22 @@
 import liskApi from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
-import utils from '../../src/api/utils';
-import transactionModule from '../../src/transactions/transaction';
 
 describe('Lisk.api()', () => {
-	const LSK = liskApi();
 	const testPort = 7000;
 	const livePort = 8000;
-	const localNode = 'localhost';
-	const externalNode = 'external';
 	const defaultSecret = 'secret';
-	const defaultData = 'testData';
 	const GET = 'GET';
 	const POST = 'POST';
+	const defaultAddress = {
+		publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		address: '18160565574430594874L',
+	};
+
+	let LSK;
+
+	beforeEach(() => {
+		LSK = liskApi();
+	});
 
 	describe('liskApi()', () => {
 		it('should create a new instance when using liskApi()', () => {
@@ -24,10 +28,13 @@ describe('Lisk.api()', () => {
 		});
 
 		it('should use testnet peer for testnet settings', () => {
-			const TESTLSK = liskApi({ testnet: true });
+			LSK = liskApi({ testnet: true });
+			(LSK).should.have.property('port').be.equal(testPort);
+			(LSK).should.have.property('testnet').be.equal(true);
+		});
 
-			(TESTLSK.port).should.be.equal(testPort);
-			(TESTLSK.testnet).should.be.equal(true);
+		it('currentPeer should be set by default', () => {
+			(LSK).should.have.property('currentPeer').be.ok();
 		});
 	});
 
@@ -35,77 +42,56 @@ describe('Lisk.api()', () => {
 		it('should give a set of the peers', () => {
 			(LSK.listPeers()).should.be.ok();
 			(LSK.listPeers()).should.be.type('object');
-			(LSK.listPeers().official.length).should.be.equal(8);
-			(LSK.listPeers().testnet.length).should.be.equal(1);
-		});
-	});
-
-	describe('.currentPeer', () => {
-		it('currentPeer should be set by default', () => {
-			(LSK.currentPeer).should.be.ok();
+			(LSK.listPeers()).should.have.property('official').have.property('length').be.equal(8);
+			(LSK.listPeers()).should.have.property('testnet').have.property('length').be.equal(1);
 		});
 	});
 
 	describe('#getNethash', () => {
-		it('Nethash should be hardcoded variables', () => {
-			const NetHash = {
-				'Content-Type': 'application/json',
-				nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				os: 'lisk-js-api',
-				version: '1.0.0',
-				minVersion: '>=0.5.0',
-				port: livePort,
-			};
-			(LSK.getNethash()).should.eql(NetHash);
+		const defaultNethash = {
+			'Content-Type': 'application/json',
+			nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+			os: 'lisk-js-api',
+			version: '1.0.0',
+			minVersion: '>=0.5.0',
+			port: livePort,
+		};
+		const testnetNethash = Object.assign({}, defaultNethash, {
+			nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			broadhash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			port: testPort,
+		});
+		const customNethash = Object.assign({}, defaultNethash, {
+			nethash: '123',
+			version: '0.0.0a',
+			port: livePort,
 		});
 
-		it('should give corret Nethash for testnet', () => {
+		it('nethash should provide default values', () => {
+			(LSK.getNethash()).should.eql(defaultNethash);
+		});
+
+		it('should provide correct nethash for testnet', () => {
 			LSK.setTestnet(true);
-
-			const NetHash = {
-				'Content-Type': 'application/json',
-				nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				broadhash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				os: 'lisk-js-api',
-				version: '1.0.0',
-				minVersion: '>=0.5.0',
-				port: testPort,
-			};
-
-			(LSK.getNethash()).should.eql(NetHash);
+			(LSK.getNethash()).should.eql(testnetNethash);
 		});
 
-
-		it('should be possible to use my own Nethash', () => {
-			const NetHash = {
-				'Content-Type': 'application/json',
-				nethash: '123',
-				broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				os: 'lisk-js-api',
-				version: '0.0.0a',
-				minVersion: '>=0.5.0',
-				port: livePort,
-			};
-			const LSKNethash = liskApi({ nethash: '123' });
-
-			(LSKNethash.nethash).should.eql(NetHash);
+		it('should be possible to use my own nethash', () => {
+			LSK = liskApi({ nethash: '123' });
+			(LSK).should.have.property('nethash').be.eql(customNethash);
 		});
 	});
 
 	describe('#setTestnet', () => {
-		it('should set to testnet', () => {
-			const LISK = liskApi();
-			LISK.setTestnet(true);
-
-			(LISK.testnet).should.be.true();
+		it('should set testnet to true', () => {
+			LSK.setTestnet(true);
+			(LSK).should.have.property('testnet').be.true();
 		});
 
-		it('should set to mainnet', () => {
-			const LISK = liskApi();
-			LISK.setTestnet(false);
-
-			(LISK.testnet).should.be.false();
+		it('should set testnet to false', () => {
+			LSK.setTestnet(false);
+			(LSK).should.have.property('testnet').be.false();
 		});
 	});
 
@@ -114,201 +100,121 @@ describe('Lisk.api()', () => {
 			const myOwnNode = 'myOwnNode.com';
 			LSK.setNode(myOwnNode);
 
-			(LSK.currentPeer).should.be.equal(myOwnNode);
+			(LSK).should.have.property('currentPeer').be.equal(myOwnNode);
 		});
 
 		it('should select a node when not explicitly set', () => {
 			LSK.setNode();
 
-			(LSK.currentPeer).should.be.ok();
-		});
-	});
-
-	describe('#selectNode', () => {
-		it('should return the node from initial settings when set', () => {
-			const LiskUrlInit = liskApi({
-				port: testPort,
-				node: localNode,
-				ssl: true,
-				randomPeer: false,
-			});
-
-			(privateApi.selectNode.call(LiskUrlInit)).should.be.equal(localNode);
-		});
-	});
-
-	describe('#getRandomPeer', () => {
-		const LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: true, randomPeer: false });
-		it('should give a random peer', () => {
-			(privateApi.getRandomPeer.call(LiskUrlInit)).should.be.ok();
-		});
-	});
-
-	describe('#banNode', () => {
-		it('should add current node to LSK.bannedPeers', () => {
-			const currentNode = LSK.currentPeer;
-			privateApi.banNode.call(LSK);
-
-			(LSK.bannedPeers).should.containEql(currentNode);
-		});
-	});
-
-	describe('#getFullUrl', () => {
-		it('should give the full url inclusive port', () => {
-			const LiskUrlInit = liskApi({ port: testPort, node: localNode, ssl: false });
-			const fullUrl = `http://${localNode}:${testPort}`;
-
-			(privateApi.getFullUrl.call(LiskUrlInit)).should.be.equal(fullUrl);
-		});
-
-		it('should give the full url without port and with SSL', () => {
-			const LiskUrlInit = liskApi({ port: '', node: localNode, ssl: true });
-			const fullUrl = `https://${localNode}`;
-
-			(privateApi.getFullUrl.call(LiskUrlInit)).should.be.equal(fullUrl);
-		});
-	});
-
-	describe('#getURLPrefix', () => {
-		it('should be http when ssl is false', () => {
-			LSK.setSSL(false);
-
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('http');
-		});
-
-		it('should be https when ssl is true', () => {
-			LSK.setSSL(true);
-
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('https');
-		});
-	});
-
-	describe('#trimObj', () => {
-		const untrimmedObj = {
-			' my_Obj ': ' myval ',
-		};
-
-		const trimmedObj = {
-			my_Obj: 'myval', // eslint-disable-line camelcase
-		};
-
-		it('should not be equal before trim', () => {
-			(untrimmedObj).should.not.be.equal(trimmedObj);
-		});
-
-		it('should be equal after trim an Object in keys and value', () => {
-			const trimIt = utils.trimObj(untrimmedObj);
-
-			(trimIt).should.be.eql(trimmedObj);
-		});
-
-		it('should accept numbers and strings as value', () => {
-			const obj = {
-				myObj: 2,
-			};
-
-			const trimmedObjWithNumberValue = utils.trimObj(obj);
-			(trimmedObjWithNumberValue).should.be.ok();
-			(trimmedObjWithNumberValue).should.be.eql({ myObj: '2' });
-		});
-	});
-
-	describe('#extend', () => {
-		const defaultOptions = {
-			testnet: false,
-			ssl: false,
-			randomPeer: true,
-			node: null,
-			port: null,
-			nethash: null,
-			bannedPeers: [],
-		};
-
-		const options = {
-			ssl: true,
-			port: testPort,
-			testnet: true,
-		};
-
-		it('should extend obj1 by obj2 and not modify original obj1', () => {
-			const result = utils.extend(defaultOptions, options);
-
-			(result).should.be.eql({
-				testnet: true,
-				ssl: true,
-				randomPeer: true,
-				node: null,
-				port: testPort,
-				nethash: null,
-				bannedPeers: [],
-			});
-			(result).should.be.not.eql(defaultOptions);
-		});
-	});
-
-	describe('#toQueryString', () => {
-		it('should create a http string from an object. Like { obj: "myval", key: "myval" } -> obj=myval&key=myval', () => {
-			const myObj = {
-				obj: 'myval',
-				key: 'my2ndval',
-			};
-
-			const serialised = utils.toQueryString(myObj);
-
-			(serialised).should.be.equal('obj=myval&key=my2ndval');
-		});
-	});
-
-	describe('#serialiseHttpData', () => {
-		it('should create a http string from an object and trim.', () => {
-			const myObj = {
-				obj: ' myval',
-				key: 'my2ndval ',
-			};
-
-			const serialised = privateApi.serialiseHttpData(myObj);
-
-			(serialised).should.be.equal('?obj=myval&key=my2ndval');
+			(LSK).should.have.property('currentPeer').be.ok();
 		});
 	});
 
 	describe('#getAddressFromSecret', () => {
 		it('should create correct address and publicKey', () => {
-			const address = {
-				publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				address: '18160565574430594874L',
-			};
+			(LSK.getAddressFromSecret(defaultSecret)).should.eql(defaultAddress);
+		});
+	});
 
-			(LSK.getAddressFromSecret(defaultSecret)).should.eql(address);
+	describe('#sendRequest', () => {
+		it('should receive block height from a random public peer', () => {
+			const expectedResponse = {
+				body: {
+					success: true,
+					height: 2850466,
+				},
+			};
+			const stub = sinon.stub(privateApi, 'sendRequestPromise').resolves(expectedResponse);
+
+			return LSK.sendRequest(GET, 'blocks/getHeight', (data) => {
+				(data).should.be.ok();
+				(data).should.be.type('object');
+				(data).should.have.property('success').be.true();
+				stub.restore();
+			});
 		});
 	});
 
 	describe('#checkOptions', () => {
 		it('should not accept falsy options like undefined', () => {
 			(function sendRequestWithUndefinedLimit() {
-				liskApi().sendRequest(GET, 'delegates/', { limit: undefined }, () => {});
+				LSK.sendRequest(GET, 'delegates/', { limit: undefined }, () => {});
 			}).should.throw('parameter value "limit" should not be undefined');
 		});
 
 		it('should not accept falsy options like NaN', () => {
 			(function sendRequestWithNaNLimit() {
-				liskApi().sendRequest(GET, 'delegates/', { limit: NaN }, () => {});
+				LSK.sendRequest(GET, 'delegates/', { limit: NaN }, () => {});
 			}).should.throw('parameter value "limit" should not be NaN');
 		});
 	});
 
-	describe('#sendRequest', () => {
-		it('should receive Height from a random public peer', () => {
-			const expectedResponse = {
-				body: { success: true, height: 2850466 },
-			};
-			const stub = sinon.stub(privateApi, 'sendRequestPromise').resolves(expectedResponse);
-			return LSK.sendRequest(GET, 'blocks/getHeight', (data) => {
-				(data).should.be.ok();
-				(data).should.be.type('object');
-				(data.success).should.be.true();
-				stub.restore();
+	describe('#sendRequest with promise', () => {
+		it('should be able to use sendRequest as a promise for GET', () => {
+			return liskApi().sendRequest(GET, 'blocks/getHeight', {}).then((result) => {
+				(result).should.be.type('object');
+				(result.success).should.be.equal(true);
+				(result.height).should.be.type('number');
 			});
+		});
+
+		it('should be able to use sendRequest as a promise for POST', () => {
+			const options = {
+				ssl: false,
+				node: '',
+				randomPeer: true,
+				testnet: true,
+				port: testPort,
+				bannedPeers: [],
+			};
+
+			const LSKnode = liskApi(options);
+			const secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+			const secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
+			const recipient = '10279923186189318946L';
+			const amount = 100000000;
+
+			return LSKnode.sendRequest(GET, 'transactions', { recipientId: recipient, secret, secondSecret, amount }).then((result) => {
+				(result).should.be.type('object');
+				(result).should.be.ok();
+			});
+		});
+
+		it('should retry timestamp in future failures', () => {
+			const successResponse = { body: { success: true } };
+			const futureTimestampResponse = {
+				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
+			};
+			const stub = sinon.stub(privateApi, 'sendRequestPromise');
+			const spy = sinon.spy(LSK, 'sendRequest');
+			stub.resolves(futureTimestampResponse);
+			stub.onThirdCall().resolves(successResponse);
+
+			return LSK.sendRequest(GET, 'transactions')
+				.then(() => {
+					(spy.callCount).should.equal(3);
+					(spy.args[1][2]).should.have.property('timeOffset').equal(10);
+					(spy.args[2][2]).should.have.property('timeOffset').equal(20);
+					stub.restore();
+					spy.restore();
+				});
+		});
+
+		it('should not retry timestamp in future failures forever', () => {
+			const thisLSK = liskApi();
+			const futureTimestampResponse = {
+				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
+			};
+			const stub = sinon.stub(privateApi, 'sendRequestPromise');
+			const spy = sinon.spy(thisLSK, 'sendRequest');
+			stub.resolves(futureTimestampResponse);
+
+			return thisLSK.sendRequest(GET, 'transactions')
+				.then((response) => {
+					(response).should.equal(futureTimestampResponse.body);
+					stub.restore();
+					spy.restore();
+				});
 		});
 	});
 
@@ -711,6 +617,41 @@ describe('Lisk.api()', () => {
 		});
 	});
 
+	describe('#generateAccount', () => {
+		const expectedRessult = {
+			privateKey:
+				'7683ba873c5e5aa6c12df564a60a93a519e2a5682cf5358a6a5b9ccc70607e96d803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
+			publicKey: 'd803281f421e35ca585682829119c270a094fa9a1da2edc3dd65a3dc0dc46497',
+		};
+
+		it('should get publicKey', () => {
+			const callback = sinon.spy();
+			const secret = 'dream capable public heart sauce pilot ordinary fever final brand flock boring';
+
+			LSK.generateAccount(secret, callback);
+			(callback.called).should.be.true();
+			(callback.calledWith(expectedRessult)).should.be.true();
+		});
+	});
+
+	describe('#listMultisignatureTransactions', () => {
+		it('should list all current not signed multisignature transactions', () => {
+			return liskApi().listMultisignatureTransactions((result) => {
+				(result).should.be.ok();
+				(result).should.be.type('object');
+			});
+		});
+	});
+
+	describe('#getMultisignatureTransaction', () => {
+		it('should get a multisignature transaction by id', () => {
+			return liskApi().getMultisignatureTransaction('123', (result) => {
+				(result).should.be.ok();
+				(result).should.be.type('object');
+			});
+		});
+	});
+
 	describe('#sendLSK', () => {
 		const expectedResponse = {
 			body: { success: true, transactionId: '8921031602435581844' },
@@ -747,177 +688,20 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#checkReDial', () => {
-		it('should check if all the peers are already banned', () => {
-			const thisLSK = liskApi();
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(true);
-		});
-
-		it('should be able to get a new node when current one is not reachable', () => {
-			return liskApi({ node: externalNode, randomPeer: true }).sendRequest(GET, 'blocks/getHeight', {}, (result) => {
-				(result).should.be.type('object');
-			});
-		});
-
-		it('should recognize that now all the peers are banned for mainnet', () => {
-			const thisLSK = liskApi();
-			thisLSK.bannedPeers = liskApi().defaultPeers;
-
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
-		});
-
-		it('should recognize that now all the peers are banned for testnet', () => {
-			const thisLSK = liskApi({ testnet: true });
-			thisLSK.bannedPeers = liskApi().defaultTestnetPeers;
-
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
-		});
-
-		it('should recognize that now all the peers are banned for ssl', () => {
-			const thisLSK = liskApi({ ssl: true });
-			thisLSK.bannedPeers = liskApi().defaultSSLPeers;
-
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
-		});
-
-		it('should stop redial when all the peers are banned already', () => {
-			const thisLSK = liskApi();
-			thisLSK.bannedPeers = liskApi().defaultPeers;
-			thisLSK.currentPeer = '';
-
-			return thisLSK.sendRequest(GET, 'blocks/getHeight').then((e) => {
-				(e.message).should.be.equal('could not create http request to any of the given peers');
-			});
-		});
-
-		it('should redial to new node when randomPeer is set true', () => {
-			const thisLSK = liskApi({ randomPeer: true, node: externalNode });
-
-			return thisLSK.getAccount('12731041415715717263L', (data) => {
-				(data).should.be.ok();
-				(data.success).should.be.equal(true);
-			});
-		});
-
-		it('should not redial to new node when randomPeer is set to true but unknown nethash provided', () => {
-			const thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: '123' });
-
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
-		});
-
-		it('should redial to mainnet nodes when nethash is set and randomPeer is true', () => {
-			const thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511' });
-
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(true);
-			(thisLSK.testnet).should.be.equal(false);
-		});
-
-		it('should redial to testnet nodes when nethash is set and randomPeer is true', () => {
-			const thisLSK = liskApi({ randomPeer: true, node: externalNode, nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba' });
-
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(true);
-			(thisLSK.testnet).should.be.equal(true);
-		});
-
-		it('should not redial when randomPeer is set false', () => {
-			const thisLSK = liskApi({ randomPeer: false });
-
-			(privateApi.checkReDial.call(thisLSK)).should.be.equal(false);
-		});
-	});
-
-	describe('#sendRequest with promise', () => {
-		it('should be able to use sendRequest as a promise for GET', () => {
-			return liskApi().sendRequest(GET, 'blocks/getHeight', {}).then((result) => {
-				(result).should.be.type('object');
-				(result.success).should.be.equal(true);
-				(result.height).should.be.type('number');
-			});
-		});
-
-		it('should be able to use sendRequest as a promise for POST', () => {
-			const options = {
-				ssl: false,
-				node: '',
-				randomPeer: true,
-				testnet: true,
-				port: testPort,
-				bannedPeers: [],
-			};
-			const LSKnode = liskApi(options);
-			const secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
-			const secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
-			const recipient = '10279923186189318946L';
-			const amount = 100000000;
-
-			return LSKnode.sendRequest(GET, 'transactions', { recipientId: recipient, secret, secondSecret, amount }).then((result) => {
-				(result).should.be.type('object');
-				(result).should.be.ok();
-			});
-		});
-
-		it('should retry timestamp in future failures', () => {
-			const thisLSK = liskApi();
-			const successResponse = { body: { success: true } };
-			const futureTimestampResponse = {
-				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
-			};
-			const stub = sinon.stub(privateApi, 'sendRequestPromise');
-			const spy = sinon.spy(thisLSK, 'sendRequest');
-			stub.resolves(futureTimestampResponse);
-			stub.onThirdCall().resolves(successResponse);
-
-			return thisLSK.sendRequest(POST, 'transactions')
-				.then(() => {
-					(spy.callCount).should.equal(3);
-					(spy.args[1][2]).should.have.property('timeOffset').equal(10);
-					(spy.args[2][2]).should.have.property('timeOffset').equal(20);
-					stub.restore();
-					spy.restore();
-				});
-		});
-
-		it('should not retry timestamp in future failures forever', () => {
-			const thisLSK = liskApi();
-			const futureTimestampResponse = {
-				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
-			};
-			const stub = sinon.stub(privateApi, 'sendRequestPromise');
-			const spy = sinon.spy(thisLSK, 'sendRequest');
-			stub.resolves(futureTimestampResponse);
-
-			return thisLSK.sendRequest(POST, 'transactions')
-				.then((response) => {
-					(response).should.equal(futureTimestampResponse.body);
-					stub.restore();
-					spy.restore();
-				});
-		});
-	});
-
-	describe('#listMultisignatureTransactions', () => {
-		it('should list all current not signed multisignature transactions', () => {
-			return liskApi().listMultisignatureTransactions((result) => {
-				(result).should.be.ok();
-				(result).should.be.type('object');
-			});
-		});
-	});
-
-	describe('#getMultisignatureTransaction', () => {
-		it('should get a multisignature transaction by id', () => {
-			return liskApi().getMultisignatureTransaction('123', (result) => {
-				(result).should.be.ok();
-				(result).should.be.type('object');
-			});
-		});
-	});
-
 	describe('#broadcastSignedTransaction', () => {
 		it('should be able to broadcast a finished and signed transaction', () => {
 			const LSKAPI = liskApi({ testnet: true });
-			const amount = 0.001 * (10 ** 8);
-			const transaction = transactionModule.createTransaction('1859190791819301L', amount, 'rebuild price rigid sight blood kangaroo voice festival glow treat topic weapon');
+			const transaction = {
+				type: 0,
+				amount: 100000,
+				fee: 10000000,
+				recipientId: '1859190791819301L',
+				senderPublicKey: 'a056010eed1ad3233d7872a5e158d90a777a6d894a3c0ec7ff1a2ddfd393f530',
+				timestamp: 38349628,
+				asset: {},
+				signature: '2a36c96669bd8eeae22a3b8bb88ad8ddc519777cade7526e70cd77a608c4bed218e34a6bf82921fcc85ec54390bcb6fd9212c46e70b499f65f6db54dfe69250f',
+				id: '15207344917078411810',
+			};
 
 			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {
 				(result.success).should.be.true();
@@ -925,58 +709,6 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#createRequestObject', () => {
-		let options;
-		let LSKAPI;
-		let expectedObject;
-		beforeEach(() => {
-			options = { limit: 5, offset: 3, details: defaultData };
-			LSKAPI = liskApi({ node: localNode });
-			expectedObject = {
-				method: GET,
-				url: 'http://localhost:8000/api/transaction',
-				headers: {
-					'Content-Type': 'application/json',
-					nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-					os: 'lisk-js-api',
-					version: '1.0.0',
-					minVersion: '>=0.5.0',
-					port: 8000,
-				},
-				body: {},
-			};
-		});
-
-		it('should create a valid request Object for GET request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, GET, 'transaction', options);
-			expectedObject.url = 'http://localhost:8000/api/transaction?limit=5&offset=3&details=testData';
-
-			(requestObject).should.be.eql(expectedObject);
-		});
-
-		it('should create a valid request Object for POST request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction', options);
-			expectedObject.body = { limit: 5, offset: 3, details: 'testData' };
-			expectedObject.method = POST;
-
-			(requestObject).should.be.eql(expectedObject);
-		});
-
-		it('should create a valid request Object for POST request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, POST, 'transaction');
-			expectedObject.method = POST;
-
-			(requestObject).should.be.eql(expectedObject);
-		});
-
-		it('should create a valid request Object for undefined request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSKAPI, undefined, 'transaction');
-			expectedObject.method = undefined;
-
-			(requestObject).should.be.eql(expectedObject);
-		});
-	});
 
 	describe('#constructRequestData', () => {
 		it('should construct optional request data for API helper functions', () => {
