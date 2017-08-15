@@ -724,12 +724,14 @@ describe('Lisk.api()', () => {
 		});
 
 		it('should construct with variable and callback', () => {
-			const createObject = privateApi.constructRequestData({ address }, () => true );
+			const createObject = privateApi.constructRequestData({ address }, () => true);
 			(createObject).should.be.eql({ address });
 		});
 
 		it('should give conflicting input, first parameters passed', () => {
-			const createObject = privateApi.constructRequestData({ limit: requestDataLimit, offset: requestOffset }, conflictObject);
+			const createObject = privateApi.constructRequestData(
+				{ limit: requestDataLimit, offset: requestOffset }, conflictObject,
+			);
 			(createObject).should.be.eql(resolvedConflictObject);
 		});
 	});
