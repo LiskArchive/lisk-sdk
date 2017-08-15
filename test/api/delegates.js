@@ -836,19 +836,6 @@ describe('POST /api/delegates/forging/disable', function () {
 		});
 	});
 
-	it('using invalid key should fail', function (done) {
-		var invalidSecret = 'invalid secret';
-
-		http.post('/api/delegates/forging/disable', {
-			publicKey: testDelegate.publicKey,
-			secret: invalidSecret
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').not.to.be.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string').and.to.contain('Invalid passphrase and public key combination');
-			done();
-		});
-	});
-
 	it('using non delegate account should fail', function (done) {
 		http.post('/api/delegates/forging/enable', {
 			publicKey: node.gAccount.publicKey,
@@ -1010,7 +997,7 @@ describe('PUT /api/delegates/forging', function () {
 			publicKey: testDelegate.publicKey,
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('publicKey').equal(testDelegate.publicKey);
-			node.expect(res.body).to.have.property('forging').equal(true);
+			node.expect(res.body).to.have.property('forging').to.be.a('boolean');
 			done();
 		});
 	});
@@ -1018,15 +1005,11 @@ describe('PUT /api/delegates/forging', function () {
 	it('using valid params should toggle forging status', function (done) {
 		getForgingStatus(testDelegate.publicKey, function (err, res) {
 			var currentStatus = res.enabled;
-			console.log('currentStatus');
-			console.log(currentStatus);
 
 			http.put('/api/delegates/forging', {
 				publicKey: testDelegate.publicKey,
 				key: testDelegate.key
 			}, function (err, res) {
-				console.log('currentStatus');
-				console.log(res.body.forging);
 				node.expect(res.body).to.have.property('publicKey').equal(testDelegate.publicKey);
 				node.expect(res.body).to.have.property('forging').to.not.equal(currentStatus);
 				done();
