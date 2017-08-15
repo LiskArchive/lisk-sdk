@@ -29,13 +29,8 @@ import { prepareTransaction } from './utils';
  */
 
 function newSignature(secondSecret) {
-	const keys = crypto.getKeys(secondSecret);
-
-	const signature = {
-		publicKey: keys.publicKey,
-	};
-
-	return signature;
+	const publicKey = crypto.getKeys(secondSecret).publicKey;
+	return { publicKey };
 }
 
 /**
