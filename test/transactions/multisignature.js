@@ -22,7 +22,7 @@ describe('multisignature.js', () => {
 		const minimumSignatures = 2;
 		const requestLifeTime = 5;
 		const multiSignaturePublicKeyArray = ['+123456789', '-987654321'];
-		const createMultisig = multisignature.createMultisignature('secret', '', multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures);
+		const createMultisig = multisignature.createMultisignature('secret', null, multiSignaturePublicKeyArray, requestLifeTime, minimumSignatures);
 
 		it('should create Multisignature account with single secret', () => {
 			(createMultisig).should.be.ok();
