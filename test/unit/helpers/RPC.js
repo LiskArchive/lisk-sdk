@@ -53,17 +53,17 @@ describe('wsRPC', function () {
 		});
 
 		describe('getter', function () {
-			it('should return throw an error when setting server to null', function () {
+			it('should throw an error when setting server to null', function () {
 				wsRPC.setServer(null);
 				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 			});
 
-			it('should return throw an error when setting server to 0', function () {
+			it('should throw an error when setting server to 0', function () {
 				wsRPC.setServer(0);
 				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 			});
 
-			it('should return throw an error when setting server to undefined', function () {
+			it('should throw an error when setting server to undefined', function () {
 				wsRPC.setServer(undefined);
 				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 			});
