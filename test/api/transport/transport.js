@@ -90,36 +90,6 @@ describe('handshake', function () {
 				return done(err);
 			});
 	});
-
-	it('should list connected peer properly', function (done) {
-
-		var socketDefer = PromiseDefer();
-
-		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
-
-		socketDefer.promise
-			.then(function (socket) {
-				socket.wampSend('list').then(function (res) {
-					node.debug('> Response:'.grey, JSON.stringify(res));
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('peers').that.is.an('array').and.not.empty;
-					res.peers.forEach(function (peer) {
-						node.expect(peer).to.have.property('ip').that.is.a('string');
-						node.expect(peer).to.have.property('port').that.is.a('number');
-						node.expect(peer).to.have.property('state').that.is.a('number');
-						node.expect(peer).to.have.property('os');
-						node.expect(peer).to.have.property('version');
-						node.expect(peer).to.have.property('broadhash');
-						node.expect(peer).to.have.property('height');
-					});
-				}).catch(function (err) {
-					done(err);
-				});
-				return done();
-			}).catch(function (err) {
-				return done(err);
-			});
-	});
 });
 
 describe('RPC', function () {
