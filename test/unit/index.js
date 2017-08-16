@@ -11,10 +11,13 @@ require('./logic/transaction');
 require('./logic/transfer');
 require('./logic/vote');
 
+require('./modules/accounts.js');
+require('./modules/transactions.js');
 require('./modules/blocks.js');
 require('./modules/cache.js');
 require('./modules/loader.js');
 require('./modules/peers.js');
+require('./modules/delegates.js');
 
 require('./sql/blockRewards.js');
 require('./sql/delegatesList.js');
