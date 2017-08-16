@@ -275,13 +275,11 @@ d.run(function () {
 				nonce: scope.config.nonce
 			};
 
-			var socketCluster = new SocketCluster(webSocketConfig);
-
+			scope.socketCluster = new SocketCluster(webSocketConfig);
 			var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+			scope.network.app.rpc = wsRPC.setServer(new MasterWAMPServer(scope.socketCluster, childProcessOptions));
 
-			scope.network.app.rpc = wsRPC.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
-
-			socketCluster.on('ready', function (err, result) {
+			scope.socketCluster.on('ready', function () {
 				scope.logger.info('Socket Cluster ready for incoming connections');
 				cb();
 			});
@@ -613,6 +611,8 @@ d.run(function () {
 			 */
 			process.once('cleanup', function () {
 				scope.logger.info('Cleaning up...');
+				scope.socketCluster.killWorkers();
+				scope.socketCluster.killBrokers();
 				async.eachSeries(modules, function (module, cb) {
 					if (typeof(module.cleanup) === 'function') {
 						module.cleanup(cb);
