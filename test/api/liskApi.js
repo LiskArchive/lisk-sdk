@@ -2,6 +2,7 @@ import liskApi from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
 
 describe('Lisk.api()', () => {
+	const fixedPoint = 10 ** 8;
 	const testPort = 7000;
 	const livePort = 8000;
 	const defaultSecret = 'secret';
@@ -14,7 +15,8 @@ describe('Lisk.api()', () => {
 	};
 	const defaultRequestLimit = 10;
 	const defaultRequestOffset = 101;
-	const defaultAmount = 100000000;
+	const defaultAmount = 1 * fixedPoint;
+	const defaultOrderBy = 'rate:asc';
 
 	let LSK;
 
@@ -245,7 +247,10 @@ describe('Lisk.api()', () => {
 
 		describe('#listStandbyDelegates', () => {
 			it('should list standby delegates', () => {
-				const options = { limit: defaultRequestLimit, orderBy: 'rate:asc', offset: defaultRequestOffset };
+				const orderBy = 'rate:desc';
+				const offset = '202';
+				const limit = 100;
+				const options = { orderBy: orderBy, offset: offset };
 
 				LSK.listStandbyDelegates(defaultRequestLimit, options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
@@ -255,7 +260,7 @@ describe('Lisk.api()', () => {
 				const options = {};
 
 				LSK.listStandbyDelegates(defaultRequestLimit, options, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'delegates', { limit: defaultRequestLimit, orderBy: 'rate:asc', offset: defaultRequestOffset }, callback)).should.be.true();
+				(LSK.sendRequest.calledWithExactly(GET, 'delegates', { limit: defaultRequestLimit, orderBy: defaultOrderBy, offset: defaultRequestOffset }, callback)).should.be.true();
 			});
 		});
 
