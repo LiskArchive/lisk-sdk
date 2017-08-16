@@ -281,7 +281,7 @@ LiskAPI.prototype.getStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegat
  * @return API object
  */
 
-LiskAPI.prototype.searchDelegateByUsername = privateApi.wrapSendRequest(GET, 'delegates/search', username => ({ username }));
+LiskAPI.prototype.searchDelegatesByUsername = privateApi.wrapSendRequest(GET, 'delegates/search', username => ({ username }));
 
 /**
  * @method getBlocks

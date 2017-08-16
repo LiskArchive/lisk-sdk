@@ -263,8 +263,8 @@ describe('Lisk.api()', () => {
 			});
 		});
 
-		describe('#searchDelegateByUsername', () => {
-			it('should find a delegate by name', () => {
+		describe('#searchDelegatesByUsername', () => {
+			it('should find delegates by name', () => {
 				const options = { username: 'oliver' };
 
 				LSK.searchDelegateByUsername('oliver', callback);
