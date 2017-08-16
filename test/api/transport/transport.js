@@ -2,110 +2,33 @@
 
 var _ = require('lodash');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var scClient = require('socketcluster-client');
+
 var node = require('../../node');
-var ws = require('../../common/wsCommunication');
-var PromiseDefer = require('../../../helpers/promiseDefer');
 var randomPeer = require('../../common/objectStubs').randomPeer;
-
-
-describe('handshake', function () {
-
-	var socketDefer = null;
-
-	beforeEach(function () {
-		socketDefer = PromiseDefer();
-	});
-
-	it('should not connect without headers', function (done) {
-
-		ws.connect('127.0.0.1', 5000, socketDefer, null);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function () {
-				return done();
-			});
-	});
-
-	it('using incorrect nethash in headers should fail', function (done) {
-		socketDefer = PromiseDefer();
-
-		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
-		headers['nethash'] = 'incorrect';
-
-		ws.connect('127.0.0.1', 5000, socketDefer, headers);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function (err) {
-				return done();
-			});
-	});
-
-	it('using incorrect version in headers should fail', function (done) {
-		socketDefer = PromiseDefer();
-
-		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
-		headers['version'] = '0.1.0a';
-
-		ws.connect('127.0.0.1', 5000, socketDefer, headers);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function (err) {
-				return done();
-			});
-	});
-
-	it('should not accept itself as a peer', function (done) {
-		socketDefer = PromiseDefer();
-
-		var headers = node.generatePeerHeaders('127.0.0.1', 5000);
-		headers['version'] = '0.1.0a';
-
-		ws.connect('127.0.0.1', 5000, socketDefer, headers);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function (err) {
-				return done();
-			});
-	});
-
-	it('should connect with valid options', function (done) {
-
-		var socketDefer = PromiseDefer();
-
-		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
-
-		socketDefer.promise
-			.then(function (socket) {
-				socket.disconnect();
-				return done();
-			}).catch(function (err) {
-				return done(err);
-			});
-	});
-});
+var testConfig = require('../../config.json');
+var wsServer = require('../../common/wsServer');
 
 describe('RPC', function () {
 
 	var clientSocket;
+	var validClientSocketOptions;
+	var wampClient = new WAMPClient();
+	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port);
 
 	before(function (done) {
-		var socketDefer = PromiseDefer();
-		ws.connect('127.0.0.1', 5000, socketDefer);
-		socketDefer.promise
-			.then(function (socket) {
-				clientSocket = socket;
-				return done();
-			}).catch(function (err) {
-				return done(err);
-			});
+		validClientSocketOptions = {
+			protocol: 'http',
+			hostname: '127.0.0.1',
+			port: testConfig.port,
+			query: _.clone(frozenHeaders)
+		};
+		clientSocket = scClient.connect(validClientSocketOptions);
+		wampClient.upgradeToWAMP(clientSocket);
+		clientSocket.on('connectAbort', done);
+		clientSocket.on('connect', done.bind(null, null));
+		clientSocket.on('disconnect', done);
+		clientSocket.on('error', done);
 	});
 
 	describe('internal', function () {

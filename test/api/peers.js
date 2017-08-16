@@ -480,14 +480,7 @@ describe('GET /api/peers', function () {
 
 describe.skip('GET /api/peers/get', function () {
 
-	var validParams;
-
-	before(function (done) {
-		http.addPeers(1, '0.0.0.0', function (err, headers) {
-			validParams = headers;
-			done();
-		});
-	});
+	var validParams = node.generatePeerHeaders();
 
 	it('using known ip address with no port should fail', function (done) {
 		http.get('/api/peers/get?ip=127.0.0.1', function (err, res) {
@@ -501,14 +494,6 @@ describe.skip('GET /api/peers/get', function () {
 		http.get('/api/peers/get?port=' + validParams.port, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: ip');
-			done();
-		});
-	});
-
-	it('using known ip address and port should be ok', function (done) {
-		http.get('/api/peers/get?ip=127.0.0.1&port=' + validParams.port, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('peer').to.be.an('object');
 			done();
 		});
 	});
