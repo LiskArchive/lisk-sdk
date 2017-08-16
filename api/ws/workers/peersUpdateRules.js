@@ -4,6 +4,8 @@ var connectionsTable = require('./connectionsTable');
 var SlaveToMasterSender = require('./slaveToMasterSender');
 var Rules = require('./rules');
 var schema = require('../../../schema/transport');
+var failureCodes = require('../../../api/ws/rpc/failureCodes');
+var Peer = require('../../../logic/peer');
 var Z_schema = require('../../../helpers/z_schema');
 
 var self, z_schema =  new Z_schema();
@@ -27,11 +29,15 @@ function PeersUpdateRules (slaveWAMPServer) {
 PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 	try {
 		connectionsTable.add(peer.nonce, connectionId);
+		peer.state = Peer.STATE.CONNECTED;
 		self.slaveToMasterSender.send('acceptPeer', peer, function (err) {
 			if (err) {
 				connectionsTable.remove(peer.nonce);
+				err = new Error(err);
+				err.description = err;
+				err.code = failureCodes.ON_MASTER_ERROR;
 			}
-			return setImmediate(cb, err ? new Error(err) : null);
+			return setImmediate(cb, err ? err : null);
 		});
 	} catch (ex) {
 		return setImmediate(cb, ex);
@@ -49,8 +55,11 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
 		self.slaveToMasterSender.send('removePeer', peer, function (err) {
 			if (err) {
 				connectionsTable.add(peer.nonce, connectionId);
+				err = new Error(err);
+				err.description = err;
+				err.code = failureCodes.ON_MASTER_ERROR;
 			}
-			return setImmediate(cb, err ? new Error(err) : null);
+			return setImmediate(cb, err ? err : null);
 		});
 	} catch (ex) {
 		return setImmediate(cb, ex);
@@ -58,12 +67,15 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
 };
 
 /**
+ * @param {number} code
  * @param {Object} peer
  * @param {string} connectionId
  * @param {Function} cb
  */
-PeersUpdateRules.prototype.block = function (peer, connectionId, cb) {
-	return setImmediate(cb, new Error('Update peer action blocked - malicious behaviour detected'));
+PeersUpdateRules.prototype.block = function (code, peer, connectionId, cb) {
+	var err = new Error('Update peer action blocked - malicious behaviour detected');
+	err.code = code;
+	return setImmediate(cb, new Error(err));
 };
 
 PeersUpdateRules.prototype.internal = {

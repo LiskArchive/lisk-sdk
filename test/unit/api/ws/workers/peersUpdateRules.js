@@ -223,9 +223,11 @@ describe('PeersUpdateRules', function () {
 
 	describe('block', function () {
 
+		var validFailureCode = 4100;
+
 		it('should return an error when called', function (done) {
-			peersUpdateRules.block(validPeer, validConnectionId, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Update peer action blocked - malicious behaviour detected');
+			peersUpdateRules.block(validFailureCode, validPeer, validConnectionId, function (err) {
+				expect(err).to.be.an('error').and.to.have.property('message').equal('Error: Update peer action blocked - malicious behaviour detected');
 				done();
 			});
 		});

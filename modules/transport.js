@@ -625,7 +625,6 @@ Transport.prototype.internal = {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			query.peer.state = Peer.STATE.CONNECTED;
 			return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
 		});
 	},
