@@ -153,12 +153,16 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 			}
 		},
 		function sendToPeer (peers, waterCb) {
-			var optionDeserialized = JSON.parse(JSON.stringify(options));
+			try {
+				var optionDeserialized = JSON.parse(JSON.stringify(options));
 
-			if (optionDeserialized.data.block) {
-				optionDeserialized.data.block = bson.deserialize(options.data.block);
+				if (optionDeserialized.data.block) {
+					optionDeserialized.data.block = bson.deserialize(options.data.block);
+				}
+				library.logger.debug('Begin broadcast', optionDeserialized);
+			} catch (e) {
+				library.logger.debug('Begin broadcast (deserialization failed for log)', {err: e.toString(), options: options });
 			}
-			library.logger.debug('Begin broadcast', optionDeserialized);
 			if (params.limit === self.config.peerLimit) {
 				peers = peers.slice(0, self.config.broadcastLimit);
 			}
