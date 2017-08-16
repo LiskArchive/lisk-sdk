@@ -274,9 +274,9 @@ describe('Lisk.api()', () => {
 
 		describe('#listBlocks', () => {
 			it('should list amount of blocks defined', () => {
-				const options = { limit: '1' };
+				const options = { limit: defaultRequestLimit };
 
-				LSK.listBlocks('1', callback);
+				LSK.listBlocks(defaultRequestLimit, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'blocks', options, callback)).should.be.true();
 			});
 		});
@@ -429,7 +429,7 @@ describe('Lisk.api()', () => {
 
 
 	describe('#constructRequestData', () => {
-		const address = defaultAddress.address;
+		const { address } = defaultAddress;
 		const optionsObject = {
 			limit: defaultRequestLimit,
 			offset: defaultRequestOffset,
