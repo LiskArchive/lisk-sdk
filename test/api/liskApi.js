@@ -226,14 +226,15 @@ describe('Lisk.api()', () => {
 
 	describe('API Functions', () => {
 		let callback;
+		let stub;
 
 		beforeEach(() => {
 			callback = sinon.spy();
-			sinon.stub(LSK, 'sendRequest');
+			stub = sinon.stub(LSK, 'sendRequest');
 		});
 
 		afterEach(() => {
-			LSK.sendRequest.restore();
+			stub.restore();
 		});
 
 		describe('#listActiveDelegates', () => {
@@ -374,7 +375,7 @@ describe('Lisk.api()', () => {
 		});
 
 		describe('#listMultisignatureTransactions', () => {
-			it('should list all current not signed multisignature transactions', () => {
+			it('should list all current unsigned multisignature transactions', () => {
 				LSK.listMultisignatureTransactions();
 				(LSK.sendRequest.calledWithExactly(GET, 'transactions/multisignatures', {}, undefined)).should.be.true();
 			});
