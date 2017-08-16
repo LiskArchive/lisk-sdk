@@ -91,7 +91,7 @@ describe('handshake', function () {
 			});
 	});
 
-	it('should list connected peer properly', function (done) {
+	it.skip('should list connected peer properly', function (done) {
 
 		var socketDefer = PromiseDefer();
 
