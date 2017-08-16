@@ -1,115 +1,139 @@
-import slots from '../../src/time/slots';
 import signature from '../../src/transactions/signature';
+import cryptoModule from '../../src/transactions/crypto';
+import slots from '../../src/time/slots';
 
-describe('signature.js', () => {
-	it('should be ok', () => {
-		(signature).should.be.ok();
-	});
+describe('signature module', () => {
+	describe('exports', () => {
+		it('should be an object', () => {
+			(signature).should.be.type('object');
+		});
 
-	it('should be object', () => {
-		(signature).should.be.type('object');
-	});
-
-	it('should have properties', () => {
-		(signature).should.have.property('createSignature');
+		it('should export createSignature function', () => {
+			(signature).should.have.property('createSignature').be.type('function');
+		});
 	});
 
 	describe('#createSignature', () => {
-		const createSignature = signature.createSignature;
+		const { createSignature } = signature;
+		const secret = 'secret';
+		const secondSecret = 'second secret';
+		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+		const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 		const emptyStringPublicKey = 'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
-		let sgn = null;
+		const signatureFee = 5e8;
+		const address = '18160565574430594874L';
+		const timeWithOffset = 38350076;
 
-		it('should be function', () => {
-			(createSignature).should.be.type('function');
+		let getAddressStub;
+		let getTimeWithOffsetStub;
+		let signatureTransaction;
+
+		beforeEach(() => {
+			getAddressStub = sinon.stub(cryptoModule, 'getAddress').returns(address);
+			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+			signatureTransaction = createSignature(secret, secondSecret);
 		});
 
-		it('should create signature transaction', () => {
-			sgn = createSignature('secret', 'second secret');
-			(sgn).should.be.ok();
-			(sgn).should.be.type('object');
+		afterEach(() => {
+			getAddressStub.restore();
+			getTimeWithOffsetStub.restore();
 		});
 
-		it('should create signature transaction with empty string', () => {
-			sgn = createSignature('secret', '');
-			(sgn).should.be.ok();
-			(sgn).should.be.type('object');
-			(sgn.asset.signature.publicKey).should.be.eql(emptyStringPublicKey);
+		it('should create a signature transaction', () => {
+			(signatureTransaction).should.be.ok();
 		});
 
-		describe('timestamp', () => {
-			const timeWithOffset = 38350076;
-			let stub;
+		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
+		});
 
-			beforeEach(() => {
-				stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-			});
+		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+			const offset = -10;
+			createSignature(secret, secondSecret, offset);
 
-			afterEach(() => {
-				stub.restore();
-			});
-
-			it('should use time slots to get the time for the timestamp', () => {
-				sgn = createSignature('secret', 'second secret');
-				(sgn).should.have.property('timestamp').and.be.equal(timeWithOffset);
-				(stub.calledWithExactly(undefined)).should.be.true();
-			});
-
-			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
-				const offset = -10;
-
-				sgn = createSignature('secret', 'second secret', offset);
-
-				(sgn).should.have.property('timestamp').and.be.equal(timeWithOffset);
-				(stub.calledWithExactly(offset)).should.be.true();
-			});
+			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
 		describe('returned signature transaction', () => {
-			it('should have empty recipientId', () => {
-				(sgn).should.have.property('recipientId').equal(null);
+			it('should be an object', () => {
+				(signatureTransaction).should.be.type('object');
 			});
 
-			it('should have amount equal 0', () => {
-				(sgn.amount).should.be.type('number').equal(0);
+			it('should have type number equal to 1', () => {
+				(signatureTransaction).should.have.property('type').and.be.type('number').and.equal(1);
 			});
 
-			it('should have asset', () => {
-				(sgn.asset).should.be.type('object');
-				(sgn.asset).should.be.not.empty();
+			it('should have amount number equal to 0', () => {
+				(signatureTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 			});
 
-			it('should have signature inside asset', () => {
-				(sgn.asset).should.have.property('signature');
+			it('should have fee number equal to signature fee', () => {
+				(signatureTransaction).should.have.property('fee').and.be.type('number').and.equal(signatureFee);
+			});
+
+			it('should have recipientId equal to null', () => {
+				(signatureTransaction).should.have.property('recipientId').and.be.null();
+			});
+
+			it('should have senderPublicKey hex string equal to sender public key', () => {
+				(signatureTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+			});
+
+			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+				(signatureTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+			});
+
+			it('should have signature hex string', () => {
+				(signatureTransaction).should.have.property('signature').and.be.hexString();
+			});
+
+			it('should have an id string', () => {
+				(signatureTransaction).should.have.property('id').and.be.type('string');
+			});
+
+			it('should be signed correctly', () => {
+				const result = cryptoModule.verify(signatureTransaction);
+				(result).should.be.ok();
+			});
+
+			it('should not be signed correctly if modified', () => {
+				signatureTransaction.amount = 100;
+				const result = cryptoModule.verify(signatureTransaction);
+				(result).should.be.not.ok();
+			});
+
+			it('should have asset object', () => {
+				(signatureTransaction).should.have.property('asset').and.not.be.empty();
+			});
+
+			it('should not have a signSignature property', () => {
+				(signatureTransaction).should.not.have.property('signSignature');
 			});
 
 			describe('signature asset', () => {
-				it('should be ok', () => {
-					(sgn.asset.signature).should.be.ok();
+				it('should be an object', () => {
+					(signatureTransaction.asset).should.have.property('signature')
+						.and.be.type('object')
+						.and.not.be.empty();
 				});
 
-				it('should be object', () => {
-					(sgn.asset.signature).should.be.type('object');
+				it('should have a 32-byte publicKey hex string', () => {
+					(signatureTransaction.asset).should.have.property('signature')
+						.with.property('publicKey')
+						.and.be.hexString();
+					(Buffer.from(signatureTransaction.asset.signature.publicKey, 'hex')).should.have.length(32);
 				});
 
-				it('should have publicKey property', () => {
-					(sgn.asset.signature).should.have.property('publicKey');
+				it('should have a publicKey equal to the public key for the provided second secret', () => {
+					(signatureTransaction.asset).should.have.property('signature')
+						.with.property('publicKey')
+						.and.equal(secondPublicKey);
 				});
 
-				it('should have publicKey in hex', () => {
-					(sgn.asset.signature).should.have.property('publicKey').and.be.type('string').and.be.hexString();
+				it('should have the correct publicKey if the provided second secret is an empty string', () => {
+					signatureTransaction = createSignature('secret', '');
+					(signatureTransaction.asset.signature.publicKey).should.be.equal(emptyStringPublicKey);
 				});
-
-				it('should have publicKey in 32 bytes', () => {
-					const publicKey = Buffer.from(sgn.asset.signature.publicKey, 'hex');
-					(publicKey.length).should.be.equal(32);
-				});
-			});
-		});
-
-		describe('should not have signSignature itself', () => {
-			it('should not have signSignature property', () => {
-				const sign = createSignature('secret', 'second secret');
-				(sign).should.not.have.property('signSignature');
 			});
 		});
 	});
