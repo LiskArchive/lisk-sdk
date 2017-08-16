@@ -255,6 +255,9 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					export TEST=test/unit/modules/peers.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
 
+					export TEST=test/unit/modules/app.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					npm run jenkins
+
 					# Temporarily disabled until implemented
 					#TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					#npm run jenkins
