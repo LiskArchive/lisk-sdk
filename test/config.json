@@ -76,8 +76,9 @@
     },
     "forging": {
         "force": true,
-				"defaultKey": "elephant tree paris dragon chair galaxy",
-				"secret": [{
+        "defaultKey": "elephant tree paris dragon chair galaxy",
+        "secret": [],
+        "encryptedSecrets": [{
 					"encryptedSecret": "19e9f8eee5d9516234a10953669518bf23371d34e114713c8043a98378fd866834946380c4cc0e40f23305643206c1c5be496074f350d09d87735c42eae30c604cabea9862f4fe8f906313c67a7146d54fa844171e6cf925b7c953987082cdd6",
 					"publicKey": "9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f"
 				},
