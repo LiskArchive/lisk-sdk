@@ -45,7 +45,7 @@ describe('Lisk.api()', () => {
 	});
 
 	describe('#getPeers', () => {
-		it('should give a set of the peers', () => {
+		it('should get a set of peers', () => {
 			(LSK.getPeers()).should.be.ok();
 			(LSK.getPeers()).should.be.type('object');
 			(LSK.getPeers()).should.have.property('official').have.property('length').be.equal(8);
@@ -273,7 +273,7 @@ describe('Lisk.api()', () => {
 		});
 
 		describe('#getBlocks', () => {
-			it('should list amount of blocks defined', () => {
+			it('should get amount of blocks defined', () => {
 				const options = { limit: defaultRequestLimit };
 
 				LSK.getBlocks(defaultRequestLimit, callback);
