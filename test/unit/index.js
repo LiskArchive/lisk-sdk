@@ -8,6 +8,7 @@ require('./logic/blockReward.js');
 require('./logic/peer');
 require('./logic/peers');
 require('./logic/transaction');
+require('./logic/transactionPool');
 require('./logic/transfer');
 require('./logic/vote');
 
