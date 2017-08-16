@@ -2,125 +2,195 @@
 
 var config = require('../../../config.json');
 
+var async = require('async');
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
-var _  = require('lodash');
 var sinon = require('sinon');
 
 var wsApi = require('../../../helpers/wsApi');
+var failureCodes = require('../../../api/ws/rpc/failureCodes');
 
 var System = require('../../../modules/system');
 
 describe('handshake', function () {
 
-	var system, handshake, validRequest;
+	var system;
+	var handshake;
+	var validConfig;
+	var validHeaders;
+	var minVersion = '1.0.0';
+	var nonStrings = [{}, [], 1, 0.1, NaN, true];
+	var nonNumbers = [{}, [], 'A', '1', NaN, true];
 
-	before(function (done) {
-
-		sinon.stub(System.prototype, 'getNethash').returns(config.nethash);
-		sinon.stub(System.prototype, 'getMinVersion').returns(config.version);
-
+	beforeEach(function (done) {
+		validConfig = {
+			config: {
+				version: config.version,
+				minVersion: minVersion,
+				nethash: config.nethash,
+				nonce: 'ABCDEF0123456789'
+			}
+		};
 		new System(function (err, __system) {
 			system = __system;
 			handshake = wsApi.middleware.Handshake(system);
 			done(err);
-		}, {config: {
-			version: config.version,
-			minVersion: config.minVersion,
-			nethash: config.nethash,
-			nonce: 'EXAMPLE_NONCE'
-		}});
+		}, validConfig);
 
-		validRequest = {
-			ip: '0.0.0.0',
-			port: 4000,
+		validHeaders = {
+			port: 5000,
 			nethash: config.nethash,
-			version: config.version,
-			nonce: 'PEER_NONCE'
+			version: minVersion,
+			nonce: '0123456789ABCDEF',
+			height: 1
 		};
 	});
 
-	it('should accept handshake when valid request passed', function (done) {
-
-		handshake(validRequest, function (err, data) {
+	it('should accept handshake for valid headers', function (done) {
+		handshake(validHeaders, function (err) {
 			expect(err).to.be.null;
 			done();
 		});
 	});
 
-	it('should return error when empty undefined request', function (done) {
-
-		handshake(undefined, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when invoked with undefined', function (done) {
+		handshake(undefined, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').equal('#/: Expected type object but found type undefined');
 			done();
 		});
 	});
 
-	it('should return error when empty null request', function (done) {
-
-		handshake(null, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when invoked with null', function (done) {
+		handshake(null, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').equal('#/: Expected type object but found type null');
 			done();
 		});
 	});
 
-	it('should return error when 0 as request', function (done) {
-
-		handshake(0, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when invoked with 0', function (done) {
+		handshake(0, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').equal('#/: Expected type object but found type integer');
 			done();
 		});
 	});
 
-	it('should return error when empty request passed', function (done) {
-
-		handshake({}, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when invoked with empty object', function (done) {
+		handshake({}, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').contain('Missing required property');
 			done();
 		});
 	});
 
-	it('should return error when wrong request without version passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.version;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when invoked without version', function (done) {
+		delete validHeaders.version;
+		handshake(validHeaders, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').equal('#/: Missing required property: version');
 			done();
 		});
 	});
 
-	it('should return error when wrong request without port passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.port;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when version is not a string', function (done) {
+		async.forEachOf(nonStrings, function (nonString, index, eachCb) {
+			validHeaders.version = nonString;
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+				expect(err).to.have.property('description').contain('#/version: Expected type string but found type');
+				eachCb();
+			});
+		}, done);
+	});
+
+	it('should return an error for version less than required', function (done) {
+		validHeaders.version = '0.0.0';
+		handshake(validHeaders, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_VERSION);
+			expect(err).to.have.property('description').equal('Expected min version: ' + minVersion + ' but received: ' + validHeaders.version);
 			done();
 		});
 	});
 
-	it('should return error when wrong request without ip passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.ip;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when invoked without port', function (done) {
+		delete validHeaders.port;
+		handshake(validHeaders, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').equal('#/: Missing required property: port');
 			done();
 		});
 	});
 
-	it('should return error when wrong request without nethash passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.nethash;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
+	it('should return an error when port is not a number', function (done) {
+		async.forEachOf(nonNumbers, function (nonNumber, index, eachCb) {
+			validHeaders.port = nonNumber;
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+				expect(err).to.have.property('description').contain('#/port: Expected type integer but found type');
+				eachCb();
+			});
+		}, done);
+	});
+
+	it('should return an error when invoked without nethash', function (done) {
+		delete validHeaders.nethash;
+		handshake(validHeaders, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').equal('#/: Missing required property: nethash');
+			done();
+		});
+	});
+
+	it('should return an error when nethash is not a string', function (done) {
+		async.forEachOf(nonStrings, function (nonString, index, eachCb) {
+			validHeaders.nethash = nonString;
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+				expect(err).to.have.property('description').contain('#/nethash: Expected type string but found type');
+				eachCb();
+			});
+		}, done);
+	});
+
+	it('should return an error when for different network', function (done) {
+		async.forEachOf(nonStrings, function (nonString, index, eachCb) {
+			validHeaders.nethash = 'DIFFERENT_NETWORK_NETHASH';
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NETWORK);
+				expect(err).to.have.property('description').contain('Expected network: ' + config.nethash + ' but received: ' + validHeaders.nethash);
+				eachCb();
+			});
+		}, done);
+	});
+
+	it('should return an error when invoked without nonce', function (done) {
+		delete validHeaders.nonce;
+		handshake(validHeaders, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+			expect(err).to.have.property('description').equal('#/: Missing required property: nonce');
+			done();
+		});
+	});
+
+	it('should return an error when nethash is not a nonce', function (done) {
+		async.forEachOf(nonStrings, function (nonString, index, eachCb) {
+			validHeaders.nonce = nonString;
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+				expect(err).to.have.property('description').contain('#/nonce: Expected type string but found type');
+				eachCb();
+			});
+		}, done);
+	});
+
+	it('should return an error for the same as server\'s nonce', function (done) {
+		validHeaders.nonce = validConfig.config.nonce;
+		handshake(validHeaders, function (err) {
+			expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NONCE);
+			expect(err).to.have.property('description').contain('Expected nonce different than ' + validConfig.config.nonce);
 			done();
 		});
 	});
