@@ -42,7 +42,7 @@
     "coveralls": "=2.13.1",
     "eslint-config-airbnb-base": "=11.2.0",
     "eslint-config-lisk-base": "=0.1.0",
-    "eslint-plugin-import": "=2.2.0",
+    "eslint-plugin-import": "=2.7.0",
     "grunt": "=1.0.1",
     "grunt-mocha-test": "=0.13.2",
     "gruntify-eslint": "=4.0.0",
