@@ -227,6 +227,35 @@ function sendRequestPromise(requestMethod, requestType, options) {
 	return popsicle.request(requestObject).use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
 
+/**
+ * @method constructRequestData
+ * @param providedObject
+ * @param optionsOrCallback
+ *
+ * @return request object
+ */
+
+const constructRequestData = (providedObject, optionsOrCallback) => {
+	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
+	return Object.assign({}, providedOptions, providedObject);
+};
+
+/**
+ * @method wrapSendRequest
+ * @param method
+ * @param endpoint
+ * @param getDataFn
+ *
+ * @return function wrappedSendRequest
+ */
+
+const wrapSendRequest = (method, endpoint, getDataFn) =>
+	function wrappedSendRequest(value, optionsOrCallback, callbackIfOptions) {
+		const callback = callbackIfOptions || optionsOrCallback;
+		const data = constructRequestData(getDataFn(value, optionsOrCallback), optionsOrCallback);
+		return this.sendRequest(method, endpoint, data, callback);
+	};
+
 module.exports = {
 	netHashOptions,
 	getFullUrl,
@@ -239,4 +268,6 @@ module.exports = {
 	sendRequestPromise,
 	serialiseHttpData,
 	createRequestObject,
+	constructRequestData,
+	wrapSendRequest,
 };
