@@ -50,6 +50,23 @@ function Peers (cb, scope) {
 	};
 	self = this;
 
+	setInterval(function () {
+		this.list({normalized: false}, function (err, peers) {
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(function (p) {
+				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
+			}));
+
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- logic peers ---- ', library.logic.peers.list().map(function (p) {
+				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
+			}));
+
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- consensus ---- ', self.getConsensus());
+
+			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- height ---- ', modules.system.getHeight());
+		});
+
+	}.bind(this), 5000);
+
 	setImmediate(cb, null, self);
 }
 
