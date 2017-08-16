@@ -98,17 +98,19 @@ describe('peers', function () {
 			});
 		});
 
-		it('should list peers as objects when normalized', function () {
-			peers.upsert(randomPeer);
-			peers.list(true).forEach(function (peer) {
-				expect(peer).to.be.an('object');
+		describe('when normalized', function () {
+			it('should list peers as objects when normalized', function () {
+				peers.upsert(randomPeer);
+				peers.list(true).forEach(function (peer) {
+					expect(peer).to.be.an('object');
+				});
 			});
-		});
 
-		it('should should not contain rpc when normalized', function () {
-			peers.upsert(randomPeer);
-			peers.list(true).forEach(function (peer) {
-				expect(peer).not.to.have.property('rpc');
+			it('should not contain rpc property when normalized', function () {
+				peers.upsert(randomPeer);
+				peers.list(true).forEach(function (peer) {
+					expect(peer).not.to.have.property('rpc');
+				});
 			});
 		});
 	});

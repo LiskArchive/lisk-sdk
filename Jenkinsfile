@@ -233,11 +233,23 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},  // End Node-02 Tests
+			"Unit - Api" : {
+				node('node-03'){
+					sh '''
+					export TEST=test/unit/api/ws/workers TEST_TYPE='UNIT' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},
 			"Unit - Modules" : {
 				node('node-03'){
 					sh '''
 					export TEST=test/unit/modules/blocks.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+
+                    export TEST=test/unit/modules/app.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
 
 					export TEST=test/unit/modules/cache.js TEST_TYPE='UNIT' NODE_ENV='TEST'

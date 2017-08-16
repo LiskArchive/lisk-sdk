@@ -5,7 +5,6 @@ var config = require('../../../config.json');
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
-var _  = require('lodash');
 var sinon = require('sinon');
 
 var constants = require('../../../helpers/constants');
@@ -43,19 +42,8 @@ describe('wsRPC', function () {
 			wsRPC.setServer(null);
 		});
 
-		it('getter should return throw an error when setting server to null', function () {
+		after(function () {
 			wsRPC.setServer(null);
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
-		});
-
-		it('getter should return throw an error when setting server to 0', function () {
-			wsRPC.setServer(0);
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
-		});
-
-		it('getter should return throw an error when setting server to undefined', function () {
-			wsRPC.setServer(undefined);
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
 		});
 
 		it('should return server instance after setting it', function () {
@@ -64,8 +52,21 @@ describe('wsRPC', function () {
 			expect(wsRPCServer).to.be.an('object').eql({name: 'my ws server'});
 		});
 
-		after(function () {
-			wsRPC.setServer(null);
+		describe('getter', function () {
+			it('should throw an error when setting server to null', function () {
+				wsRPC.setServer(null);
+				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+			});
+
+			it('should throw an error when setting server to 0', function () {
+				wsRPC.setServer(0);
+				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+			});
+
+			it('should throw an error when setting server to undefined', function () {
+				wsRPC.setServer(undefined);
+				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+			});
 		});
 	});
 
@@ -75,11 +76,11 @@ describe('wsRPC', function () {
 			wsRPC.setServer(null);
 		});
 
-		it('should raise and error when wsSerer is not set', function () {
-			expect(wsRPC.getServer).to.throw('WS server haven\'t been initialized!');
+		it('should throw an error when WS server has not been initialized', function () {
+			expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 		});
 
-		it('should return wsSerer set before', function () {
+		it('should return WS server if set before', function () {
 			wsRPC.setServer({name: 'my ws server'});
 			expect(wsRPC.getServer).not.to.throw;
 			expect(wsRPC.getServer()).to.a('object').eql({name: 'my ws server'});
@@ -170,9 +171,6 @@ describe('wsRPC', function () {
 				expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 			});
-
 		});
-
-
 	});
 });

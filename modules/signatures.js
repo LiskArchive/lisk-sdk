@@ -82,7 +82,7 @@ Signatures.prototype.shared = {
 	},
 
 	postSignatures: function (req, cb) {
-		return modules.transport.internal.postSignatures(req.body, cb);
+		return modules.transport.shared.postSignatures(req.body, cb);
 	}
 };
 
