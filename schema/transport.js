@@ -42,7 +42,7 @@ module.exports = {
 				maxLength: 16
 			}
 		},
-		required: ['port', 'version', 'nethash', 'height']
+		required: ['port', 'version', 'nonce', 'nethash', 'height']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',

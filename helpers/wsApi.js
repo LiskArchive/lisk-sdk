@@ -15,15 +15,15 @@ var middleware = {
 	Handshake: function (system) {
 		return function (headers, cb) {
 			z_schema.validate(headers, schema.headers, function (error) {
-				headers.state = Peer.STATE.CONNECTED;
-				var peer = new Peer(headers);
-
 				if (error) {
 					return setImmediate(cb, {
 						code: failureCodes.INVALID_HEADERS,
 						description: error[0].path + ': ' + error[0].message
-					}, peer);
+					}, null);
 				}
+
+				headers.state = Peer.STATE.CONNECTED;
+				var peer = new Peer(headers);
 
 				if (!system.nonceCompatible(headers.nonce)) {
 					return setImmediate(cb, {

@@ -28,7 +28,6 @@ var wsServer = {
 
 	// Invoked by each of workers
 	run: function (worker) {
-		console.log('test worker sie melduje: ', worker.id);
 		var scServer = worker.scServer;
 		this.testWampServer = new WAMPServer();
 		scServer.on('connection', function (socket) {
