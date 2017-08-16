@@ -13,9 +13,10 @@ var sql = require('../sql/transport.js');
 var zlib = require('zlib');
 var Peer = require('../logic/peer');
 var System = require('../modules/system');
+var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, library, self, __private = {};
 
 __private.headers = {};
 __private.loaded = false;
@@ -385,9 +386,9 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
 				modules.peers.list({normalized: false}, function (err, peers) {
 					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
-						peer.rpc.acceptPeer(library.logic.peers.me(), function (err) {
+						peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
 							if (err) {
-								library.logger.debug('Failed to update peer after new block applied', peer.string);
+								library.logger.debug('Failed to update peer after new block applied', peer.string + ':' + err.toString());
 								cb({errorMsg: err, peer: peer});
 								__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
 							} else {
@@ -432,7 +433,7 @@ Transport.prototype.isLoaded = function () {
  * @todo implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
-Transport.prototype.internal = {
+Transport.prototype.shared = {
 	blocksCommon: function (query, cb) {
 		query = query || {};
 		return library.schema.validate(query, schema.commonBlock, function (err, valid) {
@@ -443,7 +444,7 @@ Transport.prototype.internal = {
 			}
 
 			var escapedIds = query.ids
-			// Remove quotes
+				// Remove quotes
 				.replace(/['"]+/g, '')
 				// Separate by comma into an array
 				.split(',')
@@ -507,7 +508,8 @@ Transport.prototype.internal = {
 
 	list: function (req, cb) {
 		req = req || {};
-		modules.peers.list(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
+		var peersFinder = !req.query ? modules.peers.list : modules.peers.shared.getPeers;
+		peersFinder(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
 			peers = (!err ? peers : []);
 			return setImmediate(cb, null, {success: !err, peers: peers});
 		});
@@ -581,25 +583,61 @@ Transport.prototype.internal = {
 				}
 			});
 		}
-	},
+	}
+};
 
-	/**
-	 * @param {Peer} peer
-	 * @param {function} cb
-	 */
-	removePeer: function (peer, cb) {
-		return setImmediate(cb, __private.removePeer({peer: peer, code: 0}, '') ? null : 'Failed to remove peer');
-	},
-
-	/**
-	 * @param {Peer} peer
-	 * @param {function} cb
-	 */
-	acceptPeer: function (peer, cb) {
-		if (['height', 'nonce', 'broadhash'].some(function (header) { return peer[header] === undefined; })) {
-			return setImmediate(cb, 'No headers information');
+/**
+ * Validation of all internal requests
+ * @param {Object} query
+ * @param {string} query.authKey - key shared between master and slave processes. Not shared with the rest of network.
+ * @param {Object} query.peer - peer to update
+ * @param {string} cb
+ */
+__private.checkInternalAccess = function (query, cb) {
+	library.schema.validate(query, schema.internalAccess, function (err) {
+		if (err) {
+			return setImmediate(cb, err[0].message);
 		}
-		return setImmediate(cb, modules.peers.update(peer) ? null : 'Failed to accept peer');
+		if (query.authKey !== wsRPC.getServerAuthKey()) {
+			return setImmediate(cb, 'Unable to access internal function - Incorrect authKey');
+		}
+		return setImmediate(cb, null);
+	});
+};
+
+Transport.prototype.internal = {
+
+	/**
+	 * Inserts or updates a peer on peers list
+	 * @param {Object} query
+	 * @param {Object} query.peer
+	 * @param {string} query.authKey - signed peer data with in hex format
+	 * @param {function} cb
+	 */
+	acceptPeer: function (query, cb) {
+		__private.checkInternalAccess(query, function (err) {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+			query.peer.state = Peer.STATE.CONNECTED;
+			return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
+		});
+	},
+
+	/**
+	 * Removes peer from peers list
+	 * @param {Object} query
+	 * @param {Object} query.peer
+	 * @param {string} query.signature - signed peer data with in hex format
+	 * @param {function} cb
+	 */
+	removePeer: function (query, cb) {
+		__private.checkInternalAccess(query, function (err) {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+			return setImmediate(cb, __private.removePeer({peer: query.peer, code: 0}, '') ? null : 'Failed to remove peer');
+		});
 	}
 };
 

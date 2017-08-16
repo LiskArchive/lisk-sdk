@@ -246,7 +246,7 @@ node.generatePeerHeaders = function (ip, port) {
 		ip: ip,
 		port: port,
 		version: version,
-		nonce: node.nonce
+		nonce: randomString.generate(16)
 	};
 };
 

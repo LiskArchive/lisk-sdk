@@ -23,12 +23,12 @@ var wsRPC = {
 	},
 
 	/**
-	 * @throws {Error} thrown if wsServer haven't been initialized before
+	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 */
 	getServer: function () {
 		if (!wsServer) {
-			throw new Error('WS server haven\'t been initialized!');
+			throw new Error('WS server has not been initialized!');
 		}
 		return wsServer;
 	},
@@ -51,6 +51,17 @@ var wsRPC = {
 			this.clientsConnectionsMap[address] = connectionState;
 		}
 		return connectionState.stub;
+	},
+
+	/**
+	 * @throws {Error} if WS server has not been initialized yet
+	 * @returns {MasterWAMPServer} wsServer
+	 */
+	getServerAuthKey: function () {
+		if (!wsServer) {
+			throw new Error('WS server has not been initialized!');
+		}
+		return wsServer.socketCluster.options.authKey;
 	}
 };
 
@@ -138,7 +149,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 		clientSocket.disconnect();
 	});
 
-	clientSocket.on('connectAbort', function (err, data) {
+	clientSocket.on('connectAbort', function () {
 		connectionState.reject('Connection rejected by failed handshake procedure');
 	});
 
@@ -154,8 +165,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 	return function (procedureName) {
 		/**
-		 * @param {object} data [data={}] argument passed to procedure
-		 * @param {function} cb [cb=function(){}] cb
+		 * @param {Object} data [data={}] argument passed to procedure
 		 */
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
@@ -181,8 +191,17 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 	};
 };
 
+var remoteAction = function () {
+	throw new Error('Function invoked on master instead of slave process');
+};
+
+var slaveRPCStub = {
+	updateMyself: remoteAction
+};
+
 module.exports = {
 	wsRPC: wsRPC,
 	ConnectionState: ConnectionState,
-	ClientRPCStub: ClientRPCStub
+	ClientRPCStub: ClientRPCStub,
+	slaveRPCStub: slaveRPCStub
 };
