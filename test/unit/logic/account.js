@@ -52,7 +52,7 @@ var validAccount = {
 // - Add test cases for createTables function
 describe('account', function () {
 
-	var account; 
+	var account;
 
 	before(function (done) {
 		modulesLoader.initLogicWithDb(AccountLogic, function (err, __account) {
@@ -65,36 +65,41 @@ describe('account', function () {
 	describe('Account', function () {
 
 	});
+
 	describe('createTables', function () {
 
 	});
+
 	describe('removeTables', function () {
 
 	});
+
 	describe('objectNormalize', function () {
+
 		it.skip('should be okay for a valid account object', function () {
 			expect(account.objectNormalize(validAccount)).to.be.an('object');
 		});
 	});
 
 	describe('verifyPublicKey', function () {
+
 		it('should be okay for empty params', function () {
 			expect(account.verifyPublicKey()).to.be.undefined;
 		});
 
-		it('should throw if parameter is not a string', function () {
+		it('should throw error if parameter is not a string', function () {
 			expect(function () {
 				account.verifyPublicKey(1);
 			}).to.throw('Invalid public key, must be a string');
 		});
 
-		it('should throw if parameter is of invalid length', function () {
+		it('should throw error if parameter is of invalid length', function () {
 			expect(function () {
 				account.verifyPublicKey('231312312321');
 			}).to.throw('Invalid public key, must be 64 characters long');
 		});
 
-		it.skip('should throw if parameter is not a hex string', function () {
+		it('should throw error if parameter is not a hex string', function () {
 			expect(function () {
 				account.verifyPublicKey('c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az');
 			}).to.throw('Invalid public key, must be a hex string');
@@ -130,7 +135,7 @@ describe('account', function () {
 		it('should return null for non-existent account', function (done) {
 			account.get({address: 'invalid address'}, function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(null);
+				expect(res).to.equal(null);
 				done();
 			});
 		});
@@ -175,22 +180,32 @@ describe('account', function () {
 			});
 		});
 
-		it('should ignore limit if its < 1', function (done) {
+		it('should ignore limit when below 1', function (done) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {username: v.username};
+			});
+
 			account.getAll({
-				limit: 0
-			}, function (err, res) {
+				limit: 0,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts);
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});
 
-		it('should ignore offset if its < 1', function (done) {
+		it('should ignore offset when below 1', function (done) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {username: v.username};
+			});
+
 			account.getAll({
-				offset: 0
-			}, function (err, res) {
+				offset: 0,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts);
+				expect(res).to.eql(sortedUsernames);
 				done();
 			});
 		});
@@ -252,26 +267,39 @@ describe('account', function () {
 		});
 
 		it('should fetch results with limit of 50', function (done) {
-			account.getAll({limit: 50}, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts.slice(0, 50));
-				done();
-			});
-		});
-
-		it('should ignore limit when its value is negative', function (done) {
-			account.getAll({limit: -50}, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.eql(allAccounts);
-				done();
-			});
-		});
-
-		it('should sort the result according to field type in ASC order', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
+			}).slice(0, 50);
+
+			account.getAll({
+				limit: 50,
+				offset: 0,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.eql(sortedUsernames);
+				done();
+			});
+		});
+
+		it('should ignore negative limit', function (done) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {username: v.username};
+			});
+
+			account.getAll({
+				limit: -50,
+				sort: {username: 1}
+			}, ['username'], function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.eql(sortedUsernames);
+				done();
+			});
+		});
+
+		it('should sort the result according to field type in ascending order', function (done) {
+			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
+				return {username: v.username};
 			});
 			account.getAll({sort: {username: 1}}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
@@ -280,11 +308,9 @@ describe('account', function () {
 			});
 		});
 
-		it('should sort the result according to field type in DESC', function (done) {
+		it('should sort the result according to field type in descending order', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').reverse().map(function (v) {
-				return {
-					username: v.username
-				};
+				return {username: v.username};
 			});
 			account.getAll({sort: {username: -1}}, ['username'], function (err, res) {
 				expect(err).to.not.exist;

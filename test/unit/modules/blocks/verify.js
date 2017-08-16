@@ -241,6 +241,7 @@ describe('blocks/verify', function () {
 	var blocks;
 	var blockLogic;
 	var accounts;
+	var delegates;
 
 	before(function (done) {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
@@ -254,7 +255,6 @@ describe('blocks/verify', function () {
 				{accounts: require('../../../../modules/accounts')},
 				{delegates: require('../../../../modules/delegates')},
 				{transactions: require('../../../../modules/transactions')},
-				{rounds: require('../../../../modules/rounds')},
 				{transport: require('../../../../modules/transport')},
 				{system: require('../../../../modules/system')},
 			], [
@@ -269,11 +269,12 @@ describe('blocks/verify', function () {
 				__modules.delegates.onBind(__modules);
 				__modules.transactions.onBind(__modules);
 				__modules.blocks.chain.onBind(__modules);
-				__modules.rounds.onBind(__modules);
 				__modules.transport.onBind(__modules);
 				blocks = __modules.blocks;
 				blocksVerify = __modules.blocks.verify;
 				accounts = __modules.accounts;
+				delegates = __modules.delegates;
+
 				done();
 			});
 		});
@@ -555,6 +556,7 @@ describe('blocks/verify', function () {
 			});
 		});
 	});
+
 	// Sends a block to network, save it locally.
 	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', function () {
 		
@@ -571,7 +573,7 @@ describe('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				return done();
+				delegates.generateDelegateList(done);
 			});
 		});
 
@@ -586,7 +588,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate block 1', function (done) {
-			var secret = 'famous weapon poverty blast announce observe discover prosper mystery adapt tuna office';
+			var secret = 'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
 			
 			block1 = createBlock(blocks, blockLogic, secret, 32578370, transactionsBlock1, previousBlock1);
 			expect(block1.version).to.equal(0);
@@ -641,7 +643,7 @@ describe('blocks/verify', function () {
 		var invalidBlock2;
 
 		it('should generate block 2 with invalid generator slot', function (done) {
-			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
+			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 			
 			block2 = createBlock(blocks, blockLogic, secret, 33772882, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
@@ -722,7 +724,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate block 2 with valid generator slot and processed trs', function (done) {
-			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
+			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 			
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock1, block1);
 			expect(block2.version).to.equal(0);
@@ -752,7 +754,7 @@ describe('blocks/verify', function () {
 	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', function () {
 
 		it('should generate block 2 with valid generator slot', function (done) {
-			var secret = 'flip relief play educate address plastic doctor fix must frown oppose segment';
+			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 			
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
@@ -807,7 +809,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate block 3', function (done) {
-			var secret = 'flavor type stone episode capable usage save sniff notable liar gas someone';
+			var secret = 'term stable snap size half hotel unique biology amateur fortune easily tribe';
 			
 			block3 = createBlock(blocks, blockLogic, secret, 33942637, [], block2);
 			expect(block3.version).to.equal(0);

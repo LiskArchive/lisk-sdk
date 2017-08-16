@@ -97,18 +97,18 @@ describe('helpers/pg-notify', function () {
 
 		it('should fail (after 1 retry) to establish initial connection using invalid params', function (done) {
 			pg_notify.init(invalid_db, bus, logger, function (err) {
-				var err_msg = 'password authentication failed for user "invalidUser"';
+				var err_msgs = ['password authentication failed for user "invalidUser"', 'role "invalidUser" does not exist'];
 				// Error should propagate
 				expect(err).to.be.an('error');
-				expect(err.message).to.equal(err_msg);
+				expect(err_msgs).to.include(err.message);
 				// First try
 				expect(logger.error.args[0][0]).to.equal('pg-notify: Error connecting');
 				expect(logger.error.args[0][1]).to.be.an('error');
-				expect(logger.error.args[0][1].message).to.equal(err_msg);
+				expect(err_msgs).to.include(logger.error.args[0][1].message);
 				// Retry
 				expect(logger.error.args[1][0]).to.equal('pg-notify: Initial connection failed');
 				expect(logger.error.args[1][1]).to.be.an('error');
-				expect(logger.error.args[1][1].message).to.equal(err_msg);
+				expect(err_msgs).to.include(logger.error.args[1][1].message);
 				done();
 			});
 		});
@@ -168,6 +168,7 @@ describe('helpers/pg-notify', function () {
 
 	describe('onConnectionLost', function () {
 		it('should fail after 10 retries if cannot reconnect', function (done) {
+			var err_msgs = ['password authentication failed for user "invalidUser"', 'role "invalidUser" does not exist'];
 			// Re-init connection
 			pg_notify.init(invalid_db, bus, logger, function (err) {
 				resetSpiesState();
@@ -193,7 +194,7 @@ describe('helpers/pg-notify', function () {
 					for (var i = errors.length - 1; i >= 0; i--) {
 						expect(errors[i][0]).to.equal('pg-notify: Error connecting');
 						expect(errors[i][1]).to.be.an('error');
-						expect(errors[i][1].message).to.equal('password authentication failed for user "invalidUser"');
+						expect(err_msgs).to.include(errors[i][1].message);
 					}
 
 					// Last error - function should fail to reconnect

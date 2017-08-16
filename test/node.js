@@ -2,7 +2,14 @@
 
 // Root object
 var node = {};
-var slots = require('../helpers/slots.js');
+
+var Promise = require('bluebird');
+var rewire  = require('rewire');
+var sinon   = require('sinon');
+
+// Application specific
+var Sequence  = require('../helpers/sequence.js');
+var slots     = require('../helpers/slots.js');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -11,7 +18,6 @@ node.constants = require('../helpers/constants.js');
 node.dappCategories = require('../helpers/dappCategories.js');
 node.dappTypes = require('../helpers/dappTypes.js');
 node.txTypes = require('../helpers/transactionTypes.js');
-
 node._ = require('lodash');
 node.async = require('async');
 node.popsicle = require('popsicle');
@@ -41,7 +47,8 @@ node.fees = {
 	secondPasswordFee: node.constants.fees.secondsignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappAddFee: node.constants.fees.dapp
+	dappRegistrationFee: node.constants.fees.dapp,
+	dataFee: node.constants.fees.data
 };
 
 // Test application
@@ -258,6 +265,11 @@ node.expectedFee = function (amount) {
 	return parseInt(node.fees.transactionFee);
 };
 
+// Returns the expected fee for the given amount with data property
+node.expectedFeeForTrsWithData = function (amount) {
+	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
+};
+
 // Returns a random username
 node.randomUsername = function () {
 	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
@@ -326,6 +338,224 @@ node.randomTxAccount = function () {
 // Returns a random password
 node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
+};
+
+
+// Init whole application inside tests
+node.initApplication = function (cb) {
+	var modules = [], rewiredModules = {};
+	// Init dummy connection with database - valid, used for tests here
+	var options = {
+	    promiseLib: Promise
+	};
+	var pgp = require('pg-promise')(options);
+	node.config.db.user = node.config.db.user || process.env.USER;
+	var db = pgp(node.config.db);
+
+	// Clear tables
+	db.task(function (t) {
+		return t.batch([
+			t.none('DELETE FROM blocks WHERE height > 1'),
+			t.none('DELETE FROM blocks'),
+			t.none('DELETE FROM mem_accounts')
+		]);
+	}).then(function () {
+		// Force rewards start at 150-th block
+		node.constants.rewards.offset = 150;
+
+		var logger = {
+			trace: sinon.spy(),
+			debug: sinon.spy(),
+			info:  sinon.spy(),
+			log:   sinon.spy(),
+			warn:  sinon.spy(),
+			error: sinon.spy()
+		};
+
+		var modulesInit = {
+			accounts: '../modules/accounts.js',
+			transactions: '../modules/transactions.js',
+			blocks: '../modules/blocks.js',
+			signatures: '../modules/signatures.js',
+			transport: '../modules/transport.js',
+			loader: '../modules/loader.js',
+			system: '../modules/system.js',
+			peers: '../modules/peers.js',
+			delegates: '../modules/delegates.js',
+			multisignatures: '../modules/multisignatures.js',
+			dapps: '../modules/dapps.js',
+			crypto: '../modules/crypto.js',
+			// cache: '../modules/cache.js'
+		};
+
+		// Init limited application layer
+		node.async.auto({
+			config: function (cb) {
+				cb(null, node.config);
+			},
+			genesisblock: function (cb) {
+				var genesisblock = require('../genesisBlock.json');
+				cb(null, {block: genesisblock});
+			},
+
+			schema: function (cb) {
+				var z_schema = require('../helpers/z_schema.js');
+				cb(null, new z_schema());
+			},
+			network: function (cb) {
+				// Init with empty function
+				cb(null, {io: {sockets: {emit: function () {}}}});
+			},
+			webSocket: ['config', 'logger', 'network', function (scope, cb) {
+				// Init with empty functions
+				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+				var dummySocketCluster = {on: function () {}};
+				var dummyWAMPServer = new MasterWAMPServer(dummySocketCluster, {});
+				var wsRPC = require('../api/ws/rpc/wsRPC.js').wsRPC;
+
+				wsRPC.setServer(dummyWAMPServer);
+				wsRPC.getServer().registerRPCEndpoints({status: function () {}});
+
+				cb();
+			}],
+			logger: function (cb) {
+				cb(null, logger);
+			},
+			dbSequence: ['logger', function (scope, cb) {
+				var sequence = new Sequence({
+					onWarning: function (current, limit) {
+						scope.logger.warn('DB queue', current);
+					}
+				});
+				cb(null, sequence);
+			}],
+			sequence: ['logger', function (scope, cb) {
+				var sequence = new Sequence({
+					onWarning: function (current, limit) {
+						scope.logger.warn('Main queue', current);
+					}
+				});
+				cb(null, sequence);
+			}],
+			balancesSequence: ['logger', function (scope, cb) {
+				var sequence = new Sequence({
+					onWarning: function (current, limit) {
+						scope.logger.warn('Balance queue', current);
+					}
+				});
+				cb(null, sequence);
+			}],
+			ed: function (cb) {
+				cb(null, require('../helpers/ed.js'));
+			},
+
+			bus: ['ed', function (scope, cb) {
+				var changeCase = require('change-case');
+				var bus = function () {
+					this.message = function () {
+						var args = [];
+						Array.prototype.push.apply(args, arguments);
+						var topic = args.shift();
+						var eventName = 'on' + changeCase.pascalCase(topic);
+
+						// Iterate over modules and execute event functions (on*)
+						modules.forEach(function (module) {
+							if (typeof(module[eventName]) === 'function') {
+								module[eventName].apply(module[eventName], args);
+							}
+							if (module.submodules) {
+								node.async.each(module.submodules, function (submodule) {
+									if (submodule && typeof(submodule[eventName]) === 'function') {
+										submodule[eventName].apply(submodule[eventName], args);
+									}
+								});
+							}
+						});
+					};
+				};
+				cb(null, new bus());
+			}],
+			db: function (cb) {
+				cb(null, db);
+			},
+			pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
+				var pg_notify = require('../helpers/pg-notify.js');
+				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
+			}],
+			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
+				var Transaction = require('../logic/transaction.js');
+				var Block = require('../logic/block.js');
+				var Account = require('../logic/account.js');
+				var Peers = require('../logic/peers.js');
+
+				node.async.auto({
+					bus: function (cb) {
+						cb(null, scope.bus);
+					},
+					db: function (cb) {
+						cb(null, scope.db);
+					},
+					ed: function (cb) {
+						cb(null, scope.ed);
+					},
+					logger: function (cb) {
+						cb(null, scope.logger);
+					},
+					schema: function (cb) {
+						cb(null, scope.schema);
+					},
+					genesisblock: function (cb) {
+						cb(null, {
+							block: scope.genesisblock.block
+						});
+					},
+					account: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'logger', function (scope, cb) {
+						new Account(scope.db, scope.schema, scope.logger, cb);
+					}],
+					transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
+						new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
+					}],
+					block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
+						new Block(scope.ed, scope.schema, scope.transaction, cb);
+					}],
+					peers: ['logger', function (scope, cb) {
+						new Peers(scope.logger, cb);
+					}]
+				}, cb);
+			}],
+			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+				var tasks = {};
+				scope.rewiredModules = {};
+
+				Object.keys(modulesInit).forEach(function (name) {
+					tasks[name] = function (cb) {
+						var Instance = rewire(modulesInit[name]);
+						rewiredModules[name] = Instance;
+						var obj = new rewiredModules[name](cb, scope);
+						modules.push(obj);
+					};
+				});
+
+				node.async.parallel(tasks, function (err, results) {
+					cb(err, results);
+				});
+			}],
+			ready: ['modules', 'bus', 'logic', function (scope, cb) {
+				// Fire onBind event in every module
+				scope.bus.message('bind', scope.modules);
+
+				scope.logic.peers.bindModules(scope.modules);
+				cb();
+			}]
+		}, function (err, scope) {
+			// Overwrite onBlockchainReady function to prevent automatic forging
+			scope.modules.delegates.onBlockchainReady = function () {};
+			scope.rewiredModules = rewiredModules;
+
+			cb(scope);
+		});
+	});
 };
 
 before(function (done) {

@@ -249,18 +249,20 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
 
+                    export TEST=test/unit/modules/app.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					npm run jenkins
+
 					export TEST=test/unit/modules/cache.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
 
 					export TEST=test/unit/modules/peers.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
 
-					export TEST=test/unit/modules/app.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					export TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
 
-					# Temporarily disabled until implemented
-					#TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					#npm run jenkins
+					export TEST=test/unit/modules/blocks/verify.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					npm run jenkins
 					'''
 				}
 			},
