@@ -44,12 +44,12 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#listPeers', () => {
-		it('should give a set of the peers', () => {
-			(LSK.listPeers()).should.be.ok();
-			(LSK.listPeers()).should.be.type('object');
-			(LSK.listPeers()).should.have.property('official').have.property('length').be.equal(8);
-			(LSK.listPeers()).should.have.property('testnet').have.property('length').be.equal(1);
+	describe('#getPeers', () => {
+		it('should get a set of peers', () => {
+			(LSK.getPeers()).should.be.ok();
+			(LSK.getPeers()).should.be.type('object');
+			(LSK.getPeers()).should.have.property('official').have.property('length').be.equal(8);
+			(LSK.getPeers()).should.have.property('testnet').have.property('length').be.equal(1);
 		});
 	});
 
@@ -237,57 +237,57 @@ describe('Lisk.api()', () => {
 			stub.restore();
 		});
 
-		describe('#listActiveDelegates', () => {
-			it('should list active delegates', () => {
+		describe('#getActiveDelegates', () => {
+			it('should get active delegates', () => {
 				const options = { limit: defaultRequestLimit };
 
-				LSK.listActiveDelegates(defaultRequestLimit, callback);
+				LSK.getActiveDelegates(defaultRequestLimit, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
 			});
 		});
 
-		describe('#listStandbyDelegates', () => {
-			it('should list standby delegates', () => {
+		describe('#getStandbyDelegates', () => {
+			it('should get standby delegates', () => {
 				const orderBy = 'rate:desc';
 				const offset = '202';
 				const options = { orderBy, offset, limit: defaultRequestLimit };
 
-				LSK.listStandbyDelegates(defaultRequestLimit, options, callback);
+				LSK.getStandbyDelegates(defaultRequestLimit, options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
 			});
 
-			it('should list standby delegates with a default offset and ordering when not specified', () => {
+			it('should get standby delegates with a default offset and ordering when not specified', () => {
 				const options = {};
 
-				LSK.listStandbyDelegates(defaultRequestLimit, options, callback);
+				LSK.getStandbyDelegates(defaultRequestLimit, options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates', { limit: defaultRequestLimit, orderBy: defaultOrderBy, offset: defaultRequestOffset }, callback)).should.be.true();
 			});
 		});
 
-		describe('#searchDelegateByUsername', () => {
-			it('should find a delegate by name', () => {
+		describe('#searchDelegatesByUsername', () => {
+			it('should find delegates by name', () => {
 				const options = { username: 'oliver' };
 
-				LSK.searchDelegateByUsername('oliver', callback);
+				LSK.searchDelegatesByUsername('oliver', callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates/search', options, callback)).should.be.true();
 			});
 		});
 
-		describe('#listBlocks', () => {
-			it('should list amount of blocks defined', () => {
+		describe('#getBlocks', () => {
+			it('should get amount of blocks defined', () => {
 				const options = { limit: defaultRequestLimit };
 
-				LSK.listBlocks(defaultRequestLimit, callback);
+				LSK.getBlocks(defaultRequestLimit, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'blocks', options, callback)).should.be.true();
 			});
 		});
 
-		describe('#listForgedBlocks', () => {
-			it('should list amount of ForgedBlocks', () => {
+		describe('#getForgedBlocks', () => {
+			it('should get amount of ForgedBlocks', () => {
 				const key = '130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0';
 				const options = { generatorPublicKey: key };
 
-				LSK.listForgedBlocks(key, callback);
+				LSK.getForgedBlocks(key, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'blocks', options, callback)).should.be.true();
 			});
 		});
@@ -302,8 +302,8 @@ describe('Lisk.api()', () => {
 			});
 		});
 
-		describe('#listTransactions', () => {
-			it('should list transactions of a defined account', () => {
+		describe('#getTransactions', () => {
+			it('should get transactions of a defined account', () => {
 				const recipientAddress = '12731041415715717263L';
 				const senderAddress = '15731041415715717263L';
 				const orderBy = 'timestamp:desc';
@@ -321,13 +321,13 @@ describe('Lisk.api()', () => {
 					orderBy,
 				};
 
-				LSK.listTransactions(recipientAddress, options, callback);
+				LSK.getTransactions(recipientAddress, options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'transactions', expectedPassedOptions, callback)).should.be.true();
 			});
 		});
 
 		describe('#getTransaction', () => {
-			it('should list a defined transaction', () => {
+			it('should get a defined transaction', () => {
 				const transactionId = '7520138931049441691';
 				const options = {
 					id: transactionId,
@@ -338,26 +338,26 @@ describe('Lisk.api()', () => {
 			});
 		});
 
-		describe('#listVotes', () => {
-			it('should list votes of an account', () => {
+		describe('#getVotes', () => {
+			it('should get votes of an account', () => {
 				const address = '16010222169256538112L';
 				const options = {
 					address,
 				};
 
-				LSK.listVotes(address, callback);
+				LSK.getVotes(address, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'accounts/delegates', options, callback)).should.be.true();
 			});
 		});
 
-		describe('#listVoters', () => {
-			it('should list voters of an account', () => {
+		describe('#getVoters', () => {
+			it('should get voters of an account', () => {
 				const publicKey = '6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a';
 				const options = {
 					publicKey,
 				};
 
-				LSK.listVoters(publicKey, callback);
+				LSK.getVoters(publicKey, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates/voters', options, callback)).should.be.true();
 			});
 		});
@@ -374,9 +374,9 @@ describe('Lisk.api()', () => {
 			});
 		});
 
-		describe('#listMultisignatureTransactions', () => {
-			it('should list all current unsigned multisignature transactions', () => {
-				LSK.listMultisignatureTransactions();
+		describe('#getMultisignatureTransactions', () => {
+			it('should get all current unsigned multisignature transactions', () => {
+				LSK.getMultisignatureTransactions();
 				(LSK.sendRequest.calledWithExactly(GET, 'transactions/multisignatures', {}, undefined)).should.be.true();
 			});
 		});
