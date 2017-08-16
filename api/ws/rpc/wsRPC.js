@@ -4,8 +4,10 @@ var _ = require('lodash');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var System = require('../../../modules/system');
+
+var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var PromiseDefer = require('../../../helpers/promiseDefer');
+var System = require('../../../modules/system');
 
 var wsServer = null;
 
@@ -150,11 +152,14 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	});
 
 	clientSocket.on('connectAbort', function () {
-		connectionState.reject('Connection rejected by failed handshake procedure');
+		connectionState.reject('Connection rejected while attempt to establish connection');
 	});
 
-	clientSocket.on('disconnect', function () {
-		connectionState.reject('Connection disconnected');
+	clientSocket.on('disconnect', function (code, description) {
+		var err = new Error('Socket disconnected - ' + failureCodes.errorMessages[code]);
+		err.code = code;
+		err.description = description;
+		connectionState.reject(err);
 	});
 };
 
@@ -182,7 +187,8 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 						return setImmediate(cb, null, res);
 					})
 					.catch(function (err) {
-						return setImmediate(cb, err);
+						var stringifiedError = '{code: ' + err.code + ', description: ' + err.description + '}';
+						return setImmediate(cb, stringifiedError);
 					});
 			}).catch(function (err) {
 				return setImmediate(cb, err);
