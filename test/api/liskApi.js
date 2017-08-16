@@ -267,7 +267,7 @@ describe('Lisk.api()', () => {
 			it('should find delegates by name', () => {
 				const options = { username: 'oliver' };
 
-				LSK.searchDelegateByUsername('oliver', callback);
+				LSK.searchDelegatesByUsername('oliver', callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates/search', options, callback)).should.be.true();
 			});
 		});
