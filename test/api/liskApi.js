@@ -249,8 +249,7 @@ describe('Lisk.api()', () => {
 			it('should list standby delegates', () => {
 				const orderBy = 'rate:desc';
 				const offset = '202';
-				const limit = 100;
-				const options = { orderBy: orderBy, offset: offset };
+				const options = { orderBy, offset, limit: defaultRequestLimit };
 
 				LSK.listStandbyDelegates(defaultRequestLimit, options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
@@ -306,16 +305,23 @@ describe('Lisk.api()', () => {
 			it('should list transactions of a defined account', () => {
 				const recipientAddress = '12731041415715717263L';
 				const senderAddress = '15731041415715717263L';
+				const orderBy = 'timestamp:desc';
 				const options = {
+					senderId: senderAddress,
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
+					orderBy,
+				};
+				const expectedPassedOptions = {
 					recipientId: recipientAddress,
 					senderId: senderAddress,
 					limit: defaultRequestLimit,
 					offset: defaultRequestOffset,
-					orderBy: 'timestamp:desc',
+					orderBy,
 				};
 
 				LSK.listTransactions(recipientAddress, options, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions', options, callback)).should.be.true();
+				(LSK.sendRequest.calledWithExactly(GET, 'transactions', expectedPassedOptions, callback)).should.be.true();
 			});
 		});
 
@@ -369,34 +375,33 @@ describe('Lisk.api()', () => {
 
 		describe('#listMultisignatureTransactions', () => {
 			it('should list all current not signed multisignature transactions', () => {
-				return liskApi().listMultisignatureTransactions((result) => {
-					(result).should.be.ok();
-					(result).should.be.type('object');
-				});
+				LSK.listMultisignatureTransactions();
+				(LSK.sendRequest.calledWithExactly(GET, 'transactions/multisignatures', {}, undefined)).should.be.true();
 			});
 		});
 
 		describe('#getMultisignatureTransaction', () => {
 			it('should get a multisignature transaction by id', () => {
-				return liskApi().getMultisignatureTransaction('123', (result) => {
-					(result).should.be.ok();
-					(result).should.be.type('object');
-					(result).should.have.property('error').be.eql('Transaction not found');
-				});
+				const address = '16010222169256538112L';
+				const options = { id: address };
+
+				LSK.getMultisignatureTransaction(address, callback);
+				(LSK.sendRequest.calledWithExactly(GET, 'transactions/multisignatures/get', options, callback)).should.be.true();
 			});
 		});
 
 		describe('#sendLSK', () => {
 			it('should send testnet LSK', () => {
 				const recipientId = '10279923186189318946L';
-
-				LSK.sendLSK(recipientId, defaultAmount, defaultSecret, defaultSecondSecret, callback);
-				(LSK.sendRequest.calledWithExactly(POST, 'transactions', {
+				const options = {
 					recipientId,
 					amount: defaultAmount,
 					secret: defaultSecret,
 					secondSecret: defaultSecondSecret,
-				}, callback)).should.be.true();
+				};
+
+				LSK.sendLSK(recipientId, defaultAmount, defaultSecret, defaultSecondSecret, callback);
+				(LSK.sendRequest.calledWithExactly(POST, 'transactions', options, callback)).should.be.true();
 			});
 		});
 	});
@@ -434,32 +439,32 @@ describe('Lisk.api()', () => {
 			limit: defaultRequestLimit,
 			offset: defaultRequestOffset,
 		};
-		const conflictObject = {
-			address: '18160565574430594874',
-			limit: 0,
+		const optionsWithConflictObject = {
+			address: '123L',
+			limit: 4,
 			offset: 5,
 		};
 		const resolvedConflictObject = {
-			address: '18160565574430594874',
+			address: '123L',
 			limit: defaultRequestLimit,
 			offset: defaultRequestOffset,
 		};
 
 		it('should merge a data object with an options object', () => {
-			const createObject = privateApi.constructRequestData({ address }, optionsObject);
-			(createObject).should.be.eql(expectedObject);
+			const requestData = privateApi.constructRequestData({ address }, optionsObject);
+			(requestData).should.be.eql(expectedObject);
 		});
 
 		it('should recognise when a callback function is passed instead of an options object', () => {
-			const createObject = privateApi.constructRequestData({ address }, () => true);
-			(createObject).should.be.eql({ address });
+			const requestData = privateApi.constructRequestData({ address }, () => true);
+			(requestData).should.be.eql({ address });
 		});
 
 		it('should prioritise values from the data object when the data object and options object conflict', () => {
-			const createObject = privateApi.constructRequestData(
-				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, conflictObject,
+			const requestData = privateApi.constructRequestData(
+				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, optionsWithConflictObject,
 			);
-			(createObject).should.be.eql(resolvedConflictObject);
+			(requestData).should.be.eql(resolvedConflictObject);
 		});
 	});
 });
