@@ -204,8 +204,76 @@ function recreateDatabases (done) {
 	});
 }
 
+function registerDelegatesUsingHttpRequests (done) {
+	var enableForgingPromises = [];
+	testNodeConfigs.forEach(function (testNodeConfig) {
+		testNodeConfig.secrets.forEach(function (keys) {
+			var enableForgingPromise = popsicle.post({
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging/enable',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: {
+					key: 'elephant tree paris dragon chair galaxy',
+					publicKey: keys.publicKey
+				}
+			});
+			enableForgingPromises.push(enableForgingPromise);
+		});
+	});
+	Promise.all(enableForgingPromises).then(function () {
+		done();
+	}).catch(function () {
+		done('Error during registering delegates using http requests');
+	});
+}
+
+function waitForAllNodesToBeReady (done) {
+	var nodesReadyCnt = 0;
+	var nodeReadyCb = function (err) {
+		if (err) {
+			return done(err);
+		}
+		nodesReadyCnt += 1;
+		if (nodesReadyCnt === testNodeConfigs.length) {
+			done();
+		}
+	};
+
+	testNodeConfigs.forEach(function (testNodeConfig) {
+		waitUntilBlockchainReady(nodeReadyCb, 20, 2000, 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000));
+	});
+}
+
+function establishWSConnectionsToNodes (sockets, done) {
+	var connectedTo = 0;
+	var wampClient = new WAMPClient();
+	//ToDo: find a better way for waiting until all test node being able to receive connections
+	setTimeout(function () {
+		testNodeConfigs.forEach(function (testNodeConfig) {
+			monitorWSClient.port = testNodeConfig.port;
+			var socket = scClient.connect(monitorWSClient);
+			wampClient.upgradeToWAMP(socket);
+			socket.on('connect', function () {
+				sockets.push(socket);
+				connectedTo += 1;
+				if (connectedTo === testNodeConfigs.length) {
+					done();
+				}
+			});
+			socket.on('error', function (err) {});
+			socket.on('connectAbort', function (err) {
+				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+			});
+		}, 1000);
+	});
+}
+
 describe('integration', function () {
+
 	var sockets = [];
+
 	before(function () {
 		generatePM2NodesConfig(testNodeConfigs);
 	});
@@ -223,49 +291,19 @@ describe('integration', function () {
 	});
 
 	before(function (done) {
+		waitForAllNodesToBeReady(done);
+	});
 
-		var nodesReadyCnt = 0;
-		var nodeReadyCb = function (err) {
-			if (err) {
-				return done(err);
-			}
-			nodesReadyCnt += 1;
-			if (nodesReadyCnt === testNodeConfigs.length) {
-				done();
-			}
-		};
+	before(function (done) {
+		registerDelegatesUsingHttpRequests(done);
+	});
 
-		testNodeConfigs.forEach(function (testNodeConfig) {
-			waitUntilBlockchainReady(nodeReadyCb, 20, 2000, 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000));
-		});
+	before(function (done) {
+		establishWSConnectionsToNodes(sockets, done);
 	});
 
 	after(function (done) {
 		killTestNodes(done);
-	});
-
-	before(function (done) {
-		var connectedTo = 0;
-		var wampClient = new WAMPClient();
-		//ToDo: find a better way for waiting until all test node being able to receive connections
-		setTimeout(function () {
-			testNodeConfigs.forEach(function (testNodeConfig) {
-				monitorWSClient.port = testNodeConfig.port;
-				var socket = scClient.connect(monitorWSClient);
-				wampClient.upgradeToWAMP(socket);
-				socket.on('connect', function () {
-					sockets.push(socket);
-					connectedTo += 1;
-					if (connectedTo === testNodeConfigs.length) {
-						done();
-					}
-				});
-				socket.on('error', function (err) {});
-				socket.on('connectAbort', function (err) {
-					done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
-				});
-			}, 1000);
-		});
 	});
 
 	describe('Peers mutual connections', function () {
@@ -407,10 +445,7 @@ describe('integration', function () {
 						url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
 						headers: {
 							'Accept': 'application/json',
-							'ip': '0.0.0.0',
-							'port': 9999,
-							'nethash': '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-							'version': '0.0.0a'
+							'Content-Type': 'application/json'
 						}
 					});
 				})).then(function (results) {

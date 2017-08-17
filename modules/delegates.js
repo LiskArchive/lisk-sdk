@@ -360,7 +360,7 @@ __private.loadDelegates = function (cb) {
 
 	var secretsList = library.config.forging.secret;
 
-	if (!secretsList || !secretsList.length || !library.config.forging.defaultKey) {
+	if (!secretsList || !secretsList.length || !library.config.forging.force || !library.config.forging.defaultKey) {
 		return setImmediate(cb);
 	} else {
 		library.logger.info(['Loading', secretsList.length, 'delegates from config'].join(' '));

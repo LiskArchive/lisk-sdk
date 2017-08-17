@@ -55,7 +55,7 @@ node('node-06'){
     stage ('Cleanup') {
       try {
         sh '''#!/bin/bash
-           node_modules/.bin/pm2 delete all
+           node_modules/.bin/pm2 kill
         '''
       } catch (err) {
         currentBuild.result = 'FAILURE'
