@@ -173,46 +173,6 @@ LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
 	};
 };
 
-function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
-	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
-		const newOptions = {};
-
-		Object.keys(options).forEach((key) => {
-			newOptions[key] = options[key];
-		});
-		newOptions.timeOffset = (options.timeOffset || 0) + 10;
-
-		return this.sendRequest(requestMethod, requestType, newOptions);
-	}
-	return Promise.resolve(result);
-}
-
-function handleSendRequestFailures(requestMethod, requestType, options, error) {
-	const that = this;
-	if (privateApi.checkReDial.call(that)) {
-		return new Promise(((resolve, reject) => {
-			setTimeout(() => {
-				privateApi.banNode.call(that);
-				that.setNode();
-				that.sendRequest(requestMethod, requestType, options)
-					.then(resolve, reject);
-			}, 1000);
-		}));
-	}
-	return Promise.resolve({
-		success: false,
-		error,
-		message: 'could not create http request to any of the given peers',
-	});
-}
-
-function optionallyCallCallback(callback, result) {
-	if (callback && (typeof callback === 'function')) {
-		callback(result);
-	}
-	return result;
-}
-
 /**
  * @method sendRequest
  * @param requestMethod
@@ -230,9 +190,11 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 	const options = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? privateApi.checkOptions.call(this, optionsOrCallback) : {};
 	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
 		.then(result => result.body)
-		.then(handleTimestampIsInFutureFailures.bind(this, requestMethod, requestType, options))
-		.catch(handleSendRequestFailures.bind(this, requestMethod, requestType, options))
-		.then(optionallyCallCallback.bind(this, callback));
+		.then(privateApi.handleTimestampIsInFutureFailures.bind(
+			this, requestMethod, requestType, options,
+		))
+		.catch(privateApi.handleSendRequestFailures.bind(this, requestMethod, requestType, options))
+		.then(privateApi.optionallyCallCallback.bind(this, callback));
 };
 
 /**
