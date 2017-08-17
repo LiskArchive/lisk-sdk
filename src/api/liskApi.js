@@ -156,6 +156,23 @@ LiskAPI.prototype.setSSL = function setSSL(ssl) {
 	}
 };
 
+/**
+ * @method getAddressFromSecret
+ * @param secret
+ *
+ * @return keys object
+ */
+
+LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
+	const accountKeys = cryptoModule.getKeys(secret);
+	const accountAddress = cryptoModule.getAddress(accountKeys.publicKey);
+
+	return {
+		address: accountAddress,
+		publicKey: accountKeys.publicKey,
+	};
+};
+
 function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
 	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
 		const newOptions = {};
@@ -219,20 +236,24 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 };
 
 /**
- * @method getAddressFromSecret
- * @param secret
+ * @method broadcastSignedTransaction
+ * @param transaction
+ * @param callback
  *
- * @return keys object
+ * @return API object
  */
 
-LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
-	const accountKeys = cryptoModule.getKeys(secret);
-	const accountAddress = cryptoModule.getAddress(accountKeys.publicKey);
-
-	return {
-		address: accountAddress,
-		publicKey: accountKeys.publicKey,
+LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransaction(
+	transaction, callback,
+) {
+	const request = {
+		requestMethod: POST,
+		requestUrl: `${privateApi.getFullUrl.call(this)}/api/transactions`,
+		nethash: this.nethash,
+		requestParams: { transaction },
 	};
+
+	privateApi.sendRequestPromise.call(this, POST, request).then(result => callback(result.body));
 };
 
 /**
@@ -415,27 +436,6 @@ LiskAPI.prototype.sendLSK = function sendLSK(
 	recipientId, amount, secret, secondSecret, callback,
 ) {
 	return this.sendRequest(POST, 'transactions', { recipientId, amount, secret, secondSecret }, callback);
-};
-
-/**
- * @method broadcastSignedTransaction
- * @param transaction
- * @param callback
- *
- * @return API object
- */
-
-LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransaction(
-	transaction, callback,
-) {
-	const request = {
-		requestMethod: POST,
-		requestUrl: `${privateApi.getFullUrl.call(this)}/api/transactions`,
-		nethash: this.nethash,
-		requestParams: { transaction },
-	};
-
-	privateApi.sendRequestPromise.call(this, POST, request).then(result => callback(result.body));
 };
 
 module.exports = LiskAPI;

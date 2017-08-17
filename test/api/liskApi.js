@@ -15,7 +15,7 @@
 import liskApi from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
 
-describe('Lisk.api()', () => {
+describe('Lisk API module @now', () => {
 	const fixedPoint = 10 ** 8;
 	const testPort = 7000;
 	const livePort = 8000;
@@ -58,15 +58,6 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#getPeers', () => {
-		it('should get a set of peers', () => {
-			(LSK.getPeers()).should.be.ok();
-			(LSK.getPeers()).should.be.type('object');
-			(LSK.getPeers()).should.have.property('official').have.property('length').be.equal(8);
-			(LSK.getPeers()).should.have.property('testnet').have.property('length').be.equal(1);
-		});
-	});
-
 	describe('#getNethash', () => {
 		const defaultNethash = {
 			'Content-Type': 'application/json',
@@ -103,15 +94,12 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#setTestnet', () => {
-		it('should set testnet to true', () => {
-			LSK.setTestnet(true);
-			(LSK).should.have.property('testnet').be.true();
-		});
-
-		it('should set testnet to false', () => {
-			LSK.setTestnet(false);
-			(LSK).should.have.property('testnet').be.false();
+	describe('#getPeers', () => {
+		it('should get a set of peers', () => {
+			(LSK.getPeers()).should.be.ok();
+			(LSK.getPeers()).should.be.type('object');
+			(LSK.getPeers()).should.have.property('official').have.property('length').be.equal(8);
+			(LSK.getPeers()).should.have.property('testnet').have.property('length').be.equal(1);
 		});
 	});
 
@@ -128,6 +116,22 @@ describe('Lisk.api()', () => {
 
 			(LSK).should.have.property('currentPeer').be.ok();
 		});
+	});
+
+	describe('#setTestnet', () => {
+		it('should set testnet to true', () => {
+			LSK.setTestnet(true);
+			(LSK).should.have.property('testnet').be.true();
+		});
+
+		it('should set testnet to false', () => {
+			LSK.setTestnet(false);
+			(LSK).should.have.property('testnet').be.false();
+		});
+	});
+
+	describe('#setSSL', () => {
+		// write tests!
 	});
 
 	describe('#getAddressFromSecret', () => {
@@ -152,20 +156,6 @@ describe('Lisk.api()', () => {
 				(data).should.have.property('success').be.true();
 				stub.restore();
 			});
-		});
-	});
-
-	describe('#checkOptions', () => {
-		it('should not accept falsy options like undefined', () => {
-			(function sendRequestWithUndefinedLimit() {
-				LSK.sendRequest(GET, 'delegates', { limit: undefined }, () => {});
-			}).should.throw('parameter value "limit" should not be undefined');
-		});
-
-		it('should not accept falsy options like NaN', () => {
-			(function sendRequestWithNaNLimit() {
-				LSK.sendRequest(GET, 'delegates', { limit: NaN }, () => {});
-			}).should.throw('parameter value "limit" should not be NaN');
 		});
 	});
 
@@ -235,6 +225,27 @@ describe('Lisk.api()', () => {
 					stub.restore();
 					spy.restore();
 				});
+		});
+	});
+
+	describe('#broadcastSignedTransaction', () => {
+		it('should be able to broadcast a finished and signed transaction', () => {
+			const LSKAPI = liskApi({ testnet: true });
+			const transaction = {
+				type: 0,
+				amount: 100000,
+				fee: 10000000,
+				recipientId: '1859190791819301L',
+				senderPublicKey: 'a056010eed1ad3233d7872a5e158d90a777a6d894a3c0ec7ff1a2ddfd393f530',
+				timestamp: 38349628,
+				asset: {},
+				signature: '2a36c96669bd8eeae22a3b8bb88ad8ddc519777cade7526e70cd77a608c4bed218e34a6bf82921fcc85ec54390bcb6fd9212c46e70b499f65f6db54dfe69250f',
+				id: '15207344917078411810',
+			};
+
+			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {
+				(result.success).should.be.true();
+			});
 		});
 	});
 
@@ -450,68 +461,6 @@ describe('Lisk.api()', () => {
 				LSK.sendLSK(recipientId, defaultAmount, defaultSecret, defaultSecondSecret, callback);
 				(LSK.sendRequest.calledWithExactly(POST, 'transactions', options, callback)).should.be.true();
 			});
-		});
-	});
-
-	describe('#broadcastSignedTransaction', () => {
-		it('should be able to broadcast a finished and signed transaction', () => {
-			const LSKAPI = liskApi({ testnet: true });
-			const transaction = {
-				type: 0,
-				amount: 100000,
-				fee: 10000000,
-				recipientId: '1859190791819301L',
-				senderPublicKey: 'a056010eed1ad3233d7872a5e158d90a777a6d894a3c0ec7ff1a2ddfd393f530',
-				timestamp: 38349628,
-				asset: {},
-				signature: '2a36c96669bd8eeae22a3b8bb88ad8ddc519777cade7526e70cd77a608c4bed218e34a6bf82921fcc85ec54390bcb6fd9212c46e70b499f65f6db54dfe69250f',
-				id: '15207344917078411810',
-			};
-
-			return LSKAPI.broadcastSignedTransaction(transaction, (result) => {
-				(result.success).should.be.true();
-			});
-		});
-	});
-
-
-	describe('#constructRequestData', () => {
-		const { address } = defaultAddress;
-		const optionsObject = {
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-		const expectedObject = {
-			address: '18160565574430594874L',
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-		const optionsWithConflictObject = {
-			address: '123L',
-			limit: 4,
-			offset: 5,
-		};
-		const resolvedConflictObject = {
-			address: '123L',
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-
-		it('should merge a data object with an options object', () => {
-			const requestData = privateApi.constructRequestData({ address }, optionsObject);
-			(requestData).should.be.eql(expectedObject);
-		});
-
-		it('should recognise when a callback function is passed instead of an options object', () => {
-			const requestData = privateApi.constructRequestData({ address }, () => true);
-			(requestData).should.be.eql({ address });
-		});
-
-		it('should prioritise values from the data object when the data object and options object conflict', () => {
-			const requestData = privateApi.constructRequestData(
-				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, optionsWithConflictObject,
-			);
-			(requestData).should.be.eql(resolvedConflictObject);
 		});
 	});
 });
