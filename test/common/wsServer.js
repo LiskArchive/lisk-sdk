@@ -42,6 +42,9 @@ var wsServer = {
 		},
 		list: function (cb) {
 			return cb(null, {success: true, peers: []});
+		},
+		updateMyself: function (cb) {
+			return cb(null);
 		}
 	},
 

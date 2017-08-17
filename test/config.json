@@ -9,7 +9,7 @@
     "consoleLogLevel": "debug",
     "trustProxy": false,
     "topAccounts": false,
-    "cacheEnabled": false,
+    "cacheEnabled": true,
     "wsWorkers": 1,
     "db": {
         "host": "localhost",
