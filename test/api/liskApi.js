@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskApi from '../../src/api/liskApi';
+import LiskApi from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
 
 describe('Lisk API module @now', () => {
@@ -35,20 +35,20 @@ describe('Lisk API module @now', () => {
 	let LSK;
 
 	beforeEach(() => {
-		LSK = liskApi();
+		LSK = new LiskApi();
 	});
 
-	describe('liskApi()', () => {
-		it('should create a new instance when using liskApi()', () => {
+	describe('LiskApi()', () => {
+		it('should create a new instance when using LiskApi()', () => {
 			(LSK).should.be.ok();
 		});
 
-		it('new liskApi() should be Object', () => {
+		it('new LiskApi() should be Object', () => {
 			(LSK).should.be.type('object');
 		});
 
 		it('should use testnet peer for testnet settings', () => {
-			LSK = liskApi({ testnet: true });
+			LSK = new LiskApi({ testnet: true });
 			(LSK).should.have.property('port').be.equal(testPort);
 			(LSK).should.have.property('testnet').be.equal(true);
 		});
@@ -89,7 +89,7 @@ describe('Lisk API module @now', () => {
 		});
 
 		it('should be possible to use my own nethash', () => {
-			LSK = liskApi({ nethash: '123' });
+			LSK = new LiskApi({ nethash: '123' });
 			(LSK).should.have.property('nethash').be.eql(customNethash);
 		});
 	});
@@ -161,7 +161,7 @@ describe('Lisk API module @now', () => {
 
 	describe('#sendRequest with promise', () => {
 		it('should be able to use sendRequest as a promise for GET', () => {
-			return liskApi().sendRequest(GET, 'blocks/getHeight', {}).then((result) => {
+			return new LiskApi().sendRequest(GET, 'blocks/getHeight', {}).then((result) => {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
 				(result.height).should.be.type('number');
@@ -178,7 +178,7 @@ describe('Lisk API module @now', () => {
 				bannedPeers: [],
 			};
 
-			const LSKnode = liskApi(options);
+			const LSKnode = new LiskApi(options);
 			const secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
 			const secondSecret = 'spider must salmon someone toe chase aware denial same chief else human';
 			const recipient = '10279923186189318946L';
@@ -211,7 +211,7 @@ describe('Lisk API module @now', () => {
 		});
 
 		it('should not retry timestamp in future failures forever', () => {
-			const thisLSK = liskApi();
+			const thisLSK = new LiskApi();
 			const futureTimestampResponse = {
 				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
 			};
@@ -230,7 +230,7 @@ describe('Lisk API module @now', () => {
 
 	describe('#broadcastSignedTransaction', () => {
 		it('should be able to broadcast a finished and signed transaction', () => {
-			const LSKAPI = liskApi({ testnet: true });
+			const LSKAPI = new LiskApi({ testnet: true });
 			const transaction = {
 				type: 0,
 				amount: 100000,
