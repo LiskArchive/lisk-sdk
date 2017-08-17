@@ -43,9 +43,6 @@ import privateApi from './privateApi';
 import config from '../../config.json';
 import cryptoModule from '../transactions/crypto';
 
-const LiskJS = {
-	crypto: cryptoModule,
-};
 const GET = 'GET';
 const POST = 'POST';
 
@@ -229,8 +226,8 @@ LiskAPI.prototype.sendRequest = function sendRequest(
  */
 
 LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
-	const accountKeys = LiskJS.crypto.getKeys(secret);
-	const accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
+	const accountKeys = cryptoModule.getKeys(secret);
+	const accountAddress = cryptoModule.getAddress(accountKeys.publicKey);
 
 	return {
 		address: accountAddress,
