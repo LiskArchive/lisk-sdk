@@ -44,8 +44,8 @@ node('lisky-01'){
 
     stage ('Set milestone') {
       milestone 1
-			deleteDir()
-      currentBuild.result = 'SUCCESS'0
+      deleteDir()
+      currentBuild.result = 'SUCCESS'
     }
   }
 }
