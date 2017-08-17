@@ -1,8 +1,38 @@
 'use strict';
 
+var _ = require('lodash');
+var scClient = require('socketcluster-client');
+
 var node = require('../node.js');
 var http = require('../common/httpCommunication.js');
+var Peer = require('../../logic/peer.js');
 var peersSortFields = require('../../sql/peers').sortFields;
+var wsServer = require('../common/wsServer');
+var testConfig = require('../config.json');
+
+var validHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port);
+
+before(function () {
+	wsServer.start();
+});
+
+before(function (done) {
+	var validClientSocketOptions = {
+		protocol: 'http',
+		hostname: '127.0.0.1',
+		port: testConfig.port,
+		query: _.clone(validHeaders)
+	};
+	var clientSocket = scClient.connect(validClientSocketOptions);
+	clientSocket.on('connectAbort', done);
+	clientSocket.on('connect', done.bind(null, null));
+	clientSocket.on('disconnect', done);
+	clientSocket.on('error', done);
+});
+
+after(function () {
+	wsServer.stop();
+});
 
 describe('GET /api/peers/version', function () {
 
@@ -22,7 +52,7 @@ describe('GET /api/peers/count', function () {
 	it('should be ok', function (done) {
 		http.get('/api/peers/count', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('connected').that.is.a('number');
+			node.expect(res.body).to.have.property('connected').that.is.a('number').equal(1);
 			node.expect(res.body).to.have.property('disconnected').that.is.a('number');
 			node.expect(res.body).to.have.property('banned').that.is.a('number');
 			done ();
@@ -480,8 +510,6 @@ describe('GET /api/peers', function () {
 
 describe('GET /api/peers/get', function () {
 
-	var validParams = node.generatePeerHeaders();
-
 	it('using known ip address with no port should fail', function (done) {
 		http.get('/api/peers/get?ip=127.0.0.1', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -491,7 +519,7 @@ describe('GET /api/peers/get', function () {
 	});
 
 	it('using valid port with no ip address should fail', function (done) {
-		http.get('/api/peers/get?port=' + validParams.port, function (err, res) {
+		http.get('/api/peers/get?port=' + validHeaders.port, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Missing required property: ip');
 			done();
@@ -499,9 +527,26 @@ describe('GET /api/peers/get', function () {
 	});
 
 	it('using unknown ip address and port should fail', function (done) {
-		http.get('/api/peers/get?ip=0.0.0.0&port=' + validParams.port, function (err, res) {
+		http.get('/api/peers/get?ip=0.0.0.0&port=' + validHeaders.port, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Peer not found');
+			done();
+		});
+	});
+
+	it('using known ip address and port should be ok', function (done) {
+		http.get('/api/peers/get?ip=127.0.0.1&port=' + validHeaders.port, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('peer').to.be.an('object');
+			node.expect(res.body.peer).to.have.property('ip').to.be.a('string').equal(validHeaders.ip);
+			node.expect(res.body.peer).to.have.property('nonce').to.be.a('string').equal(validHeaders.nonce);
+			node.expect(res.body.peer).to.have.property('port').to.be.a('number').equal(validHeaders.port);
+			node.expect(res.body.peer).to.have.property('height').to.be.a('number').equal(validHeaders.height);
+			node.expect(res.body.peer).to.have.property('os').to.be.a('string').equal(validHeaders.os);
+			node.expect(res.body.peer).to.have.property('version').to.be.a('string').equal(validHeaders.version);
+			node.expect(res.body.peer).to.have.property('broadhash').to.be.a('string').equal(validHeaders.broadhash);
+			node.expect(res.body.peer).to.have.property('updated').to.be.a('number');
+			node.expect(res.body.peer).to.have.property('clock').to.be.null;
 			done();
 		});
 	});
