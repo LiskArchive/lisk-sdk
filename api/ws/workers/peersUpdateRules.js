@@ -5,6 +5,7 @@ var SlaveToMasterSender = require('./slaveToMasterSender');
 var Rules = require('./rules');
 var schema = require('../../../schema/transport');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
+var PeerUpdateError = require('../../../api/ws/rpc/failureCodes').PeerUpdateError;
 var Peer = require('../../../logic/peer');
 var Z_schema = require('../../../helpers/z_schema');
 
@@ -30,14 +31,14 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 	try {
 		connectionsTable.add(peer.nonce, connectionId);
 		peer.state = Peer.STATE.CONNECTED;
-		self.slaveToMasterSender.send('acceptPeer', peer, function (err) {
+		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, peer, function (err) {
 			if (err) {
 				connectionsTable.remove(peer.nonce);
-				err = new Error(err);
-				err.description = err;
-				err.code = failureCodes.ON_MASTER_ERROR;
+				if (!err.code) {
+					err = new PeerUpdateError(failureCodes.ON_MASTER.UPDATE.TRANSPORT, failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT], err);
+				}
 			}
-			return setImmediate(cb, err ? err : null);
+			return setImmediate(cb, err);
 		});
 	} catch (ex) {
 		return setImmediate(cb, ex);
@@ -52,14 +53,12 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
 	try {
 		connectionsTable.remove(peer.nonce);
-		self.slaveToMasterSender.send('removePeer', peer, function (err) {
-			if (err) {
+		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.REMOVE, peer, function (err) {
+			if (err && !err.code) {
 				connectionsTable.add(peer.nonce, connectionId);
-				err = new Error(err);
-				err.description = err;
-				err.code = failureCodes.ON_MASTER_ERROR;
+				err = new PeerUpdateError(failureCodes.ON_MASTER.UPDATE.TRANSPORT, failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT], err);
 			}
-			return setImmediate(cb, err ? err : null);
+			return setImmediate(cb, err);
 		});
 	} catch (ex) {
 		return setImmediate(cb, ex);
@@ -89,7 +88,10 @@ PeersUpdateRules.prototype.internal = {
 		//ToDo: Peer headers and connectionId validation
 		self.slaveToMasterSender.getPeer(peer.nonce, function (err, onMasterPresence) {
 			if (err) {
-				return setImmediate(cb, new Error('Update peer error - failed to check if peer is already added: ' + err));
+				return setImmediate(cb, new PeerUpdateError(
+					failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE,
+					failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE],
+					err));
 			}
 			var isNoncePresent = !!connectionsTable.getNonce(connectionId);
 			var isConnectionIdPresent = !!connectionsTable.getConnectionId(peer.nonce);

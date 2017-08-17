@@ -1,11 +1,13 @@
 'use strict';
 
 var _ = require('lodash');
+var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
 
 var node = require('../../node');
 var randomPeer = require('../../common/objectStubs').randomPeer;
+var Rules = require('../../../api/ws/workers/rules');
 var testConfig = require('../../config.json');
 var wsServer = require('../../common/wsServer');
 
@@ -33,14 +35,15 @@ describe('RPC', function () {
 
 	describe('internal', function () {
 
-		describe('acceptPeer', function () {
+		describe('updatePeer', function () {
 			var validPeer;
 			var validAcceptRequest;
 
 			beforeEach(function () {
 				validAcceptRequest = {
 					authKey: 'authentication key',
-					peer: randomPeer
+					peer: randomPeer,
+					updateType: Rules.UPDATES.INSERT
 				};
 				validPeer = _.clone(randomPeer);
 			});
@@ -48,8 +51,8 @@ describe('RPC', function () {
 			describe('schema', function () {
 
 				it('should reject empty request', function (done) {
-					clientSocket.wampSend('acceptPeer', undefined)
-						.then(function (err, res) {
+					clientSocket.wampSend('updatePeer', undefined)
+						.then(function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
@@ -60,8 +63,8 @@ describe('RPC', function () {
 
 				it('should reject requests without peer field defined', function (done) {
 					delete validAcceptRequest.peer;
-					clientSocket.wampSend('acceptPeer', validAcceptRequest)
-						.then(function (err, res) {
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
@@ -72,8 +75,8 @@ describe('RPC', function () {
 
 				it('should reject requests without authKey field defined', function (done) {
 					delete validAcceptRequest.authKey;
-					clientSocket.wampSend('acceptPeer', validAcceptRequest)
-						.then(function (err, res) {
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
@@ -84,8 +87,8 @@ describe('RPC', function () {
 
 				it('should reject requests with incorrect authKey', function (done) {
 					validAcceptRequest.authKey = 'incorrect authKey';
-					clientSocket.wampSend('acceptPeer', validAcceptRequest)
-						.then(function (err, res) {
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
@@ -93,66 +96,42 @@ describe('RPC', function () {
 							done();
 						});
 				});
-			});
-		});
 
-		describe('removePeer', function () {
-			var validPeer;
-			var validRemoveRequest;
-
-			beforeEach(function () {
-				validRemoveRequest = {
-					authKey: 'authentication key',
-					peer: randomPeer
-				};
-				validPeer = _.clone(randomPeer);
-			});
-
-			describe('schema', function () {
-
-				it('should reject empty request', function (done) {
-					clientSocket.wampSend('removePeer', undefined)
-						.then(function (err, res) {
+				it('should reject requests without updateType', function (done) {
+					delete validAcceptRequest.updateType;
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
-							node.expect(err).to.equal('Expected type object but found type undefined');
+							node.expect(err).to.equal('Missing required property: updateType');
 							done();
 						});
 				});
 
-				it('should reject requests without peer field defined', function (done) {
-					delete validRemoveRequest.peer;
-					clientSocket.wampSend('removePeer', validRemoveRequest)
-						.then(function (err, res) {
-							done('should not be here');
-						})
-						.catch(function (err) {
-							node.expect(err).to.equal('Missing required property: peer');
-							done();
-						});
+				it('should reject requests with updateType not being a number', function (done) {
+					var nonNumbers = [{}, [], 'A', '1', NaN, true];
+					async.forEachOf(nonNumbers, function (nonNumber, index, eachCb) {
+						validAcceptRequest.updateType = nonNumber;
+						clientSocket.wampSend('updatePeer', validAcceptRequest)
+							.then(function () {
+								eachCb('should not be here');
+							})
+							.catch(function (err) {
+								node.expect(err).to.contain('Expected type integer but found type');
+								eachCb();
+							});
+					}, done);
 				});
 
-				it('should reject requests without authKey field defined', function (done) {
-					delete validRemoveRequest.authKey;
-					clientSocket.wampSend('removePeer', validRemoveRequest)
-						.then(function (err, res) {
+				it('should reject requests with updateType greater than 1', function (done) {
+					validAcceptRequest.updateType = 2;
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
 							done('should not be here');
 						})
 						.catch(function (err) {
-							node.expect(err).to.equal('Missing required property: authKey');
-							done();
-						});
-				});
-
-				it('should reject requests with incorrect authKey', function (done) {
-					validRemoveRequest.authKey = 'incorrect authKey';
-					clientSocket.wampSend('removePeer', validRemoveRequest)
-						.then(function (err, res) {
-							done('should not be here');
-						})
-						.catch(function (err) {
-							node.expect(err).to.equal('Unable to access internal function - Incorrect authKey');
+							node.expect(err).to.contain('Value ' + validAcceptRequest.updateType + ' is greater than maximum 1');
 							done();
 						});
 				});

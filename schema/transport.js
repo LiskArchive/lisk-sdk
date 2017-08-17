@@ -123,9 +123,14 @@ module.exports = {
 			},
 			authKey: {
 				type: 'string'
+			},
+			updateType: {
+				type: 'integer',
+				minimum: 0,
+				maximum: 1
 			}
 		},
-		required: ['authKey', 'peer']
+		required: ['authKey', 'peer', 'updateType']
 	},
 	update: {
 		id: 'transport.update',

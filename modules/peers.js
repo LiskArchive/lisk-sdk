@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var failureCodes = require('../api/ws/rpc/failureCodes.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
@@ -48,23 +49,6 @@ function Peers (cb, scope) {
 		}
 	};
 	self = this;
-
-	setInterval(function () {
-		this.list({normalized: false}, function (err, peers) {
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- accepted peers ---- ', peers.map(function (p) {
-				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
-			}));
-
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- logic peers ---- ', library.logic.peers.list().map(function (p) {
-				return p.string + ' # ' + p.broadhash + ' # ' + p.height + ' # ' + p.state;
-			}));
-
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- consensus ---- ', self.getConsensus());
-
-			console.log('\x1b[36m%s\x1b[0m', 'PEERS MODULES --- height ---- ', modules.system.getHeight());
-		});
-
-	}.bind(this), 5000);
 
 	setImmediate(cb, null, self);
 }
@@ -195,7 +179,7 @@ __private.updatePeerStatus = function (err, status, peer) {
 		});
 	}
 
-	library.logic.peers.upsert(peer);
+	library.logic.peers.upsert(peer, false);
 };
 
 /**
@@ -342,20 +326,20 @@ Peers.prototype.getConsensus = function (matched, active) {
 // Public methods
 
 /**
- * Sets peer state to active (2).
+ * Updates peer on a list
  * @param {peer} peer
- * @return {function} Calls peers.upsert
+ * @return {boolean|number} Calls peers.upsert
  * @todo rename this function to activePeer or similar
  */
 Peers.prototype.update = function (peer) {
-	return library.logic.peers.upsert(peer);
+	return library.logic.peers.upsert(peer, false);
 };
 
 /**
  * Removes peer from peers list if it is not a peer from config file list.
  * @implements logic.peers.remove
  * @param {Peer} peer
- * @return {boolean} Calls peers.remove
+ * @return {boolean|number} Calls peers.remove
  */
 Peers.prototype.remove = function (peer) {
 	var frozenPeer = _.find(library.config.peers.list, function (__peer) {
@@ -366,7 +350,7 @@ Peers.prototype.remove = function (peer) {
 		library.logger.debug('Cannot remove frozen peer', peer.ip + ':' + peer.port);
 		peer.state = Peer.STATE.DISCONNECTED;
 		library.logic.peers.upsert(peer);
-		return false;
+		return failureCodes.ON_MASTER.REMOVE.FROZEN_PEER;
 	}
 	return library.logic.peers.remove(peer);
 };

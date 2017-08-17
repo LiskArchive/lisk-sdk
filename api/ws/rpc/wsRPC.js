@@ -187,8 +187,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 						return setImmediate(cb, null, res);
 					})
 					.catch(function (err) {
-						var stringifiedError = '{code: ' + err.code + ', description: ' + err.description + '}';
-						return setImmediate(cb, stringifiedError);
+						return setImmediate(cb, err.toString());
 					});
 			}).catch(function (err) {
 				return setImmediate(cb, err);
