@@ -117,7 +117,7 @@ PeersUpdateRules.prototype.external = {
 			if (request.socketId !== connectionsTable.getConnectionId(request.data.nonce)) {
 				return setImmediate(cb, new Error('Connection id does not match with corresponding peer'));
 			}
-			self.slaveToMasterSender.send('acceptPeer', request.data, cb);
+			self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, request.data, cb);
 		});
 	}
 };

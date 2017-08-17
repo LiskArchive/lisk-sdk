@@ -238,6 +238,7 @@ describe('handshake', function () {
 							done(err);
 						});
 				}, 1000);
+				this.timeout(2000);
 			});
 
 			describe('with not present nonce', function () {
