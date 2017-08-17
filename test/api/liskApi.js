@@ -378,7 +378,7 @@ describe('Lisk.api()', () => {
 			it('should get all current unsigned multisignature transactions', () => {
 				const transactionId = '7520138931049441691';
 				const options = {
-						transactionId,
+					transactionId,
 				};
 				LSK.getUnsignedMultisignatureTransactions(options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'transactions/unsigned', options, callback)).should.be.true();

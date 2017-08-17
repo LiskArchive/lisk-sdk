@@ -215,7 +215,6 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 ) {
 	const callback = callbackIfOptions || optionsOrCallback;
 	const options = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? privateApi.checkOptions.call(this, optionsOrCallback) : {};
-	console.log(requestMethod, requestType, optionsOrCallback, callbackIfOptions);
 	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
 		.then(result => result.body)
 		.then(handleTimestampIsInFutureFailures.bind(this, requestMethod, requestType, options))
