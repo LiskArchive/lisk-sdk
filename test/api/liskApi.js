@@ -266,10 +266,10 @@ describe('Lisk.api()', () => {
 
 		describe('#searchDelegatesByUsername', () => {
 			it('should find delegates by name', () => {
-				const options = { username: 'oliver' };
+				const options = { search: 'oliver' };
 
 				LSK.searchDelegatesByUsername('oliver', callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'delegates/search', options, callback)).should.be.true();
+				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
 			});
 		});
 
@@ -330,11 +330,11 @@ describe('Lisk.api()', () => {
 			it('should get a defined transaction', () => {
 				const transactionId = '7520138931049441691';
 				const options = {
-					id: transactionId,
+					transactionId,
 				};
 
 				LSK.getTransaction(transactionId, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions/get', options, callback)).should.be.true();
+				(LSK.sendRequest.calledWithExactly(GET, 'transactions', options, callback)).should.be.true();
 			});
 		});
 
@@ -346,19 +346,19 @@ describe('Lisk.api()', () => {
 				};
 
 				LSK.getVotes(address, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'accounts/delegates', options, callback)).should.be.true();
+				(LSK.sendRequest.calledWithExactly(GET, 'votes', options, callback)).should.be.true();
 			});
 		});
 
 		describe('#getVoters', () => {
 			it('should get voters of an account', () => {
-				const publicKey = '6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a';
+				const username = 'lightcurve';
 				const options = {
-					publicKey,
+					username,
 				};
 
-				LSK.getVoters(publicKey, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'delegates/voters', options, callback)).should.be.true();
+				LSK.getVoters(username, callback);
+				(LSK.sendRequest.calledWithExactly(GET, 'voters', options, callback)).should.be.true();
 			});
 		});
 
@@ -374,20 +374,10 @@ describe('Lisk.api()', () => {
 			});
 		});
 
-		describe('#getMultisignatureTransactions', () => {
+		describe('#getUnsignedMultisignatureTransactions', () => {
 			it('should get all current unsigned multisignature transactions', () => {
-				LSK.getMultisignatureTransactions();
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions/multisignatures', {}, undefined)).should.be.true();
-			});
-		});
-
-		describe('#getMultisignatureTransaction', () => {
-			it('should get a multisignature transaction by id', () => {
-				const address = '16010222169256538112L';
-				const options = { id: address };
-
-				LSK.getMultisignatureTransaction(address, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions/multisignatures/get', options, callback)).should.be.true();
+				LSK.getUnsignedMultisignatureTransactions();
+				(LSK.sendRequest.calledWithExactly(GET, 'transactions/unsigned', {}, undefined)).should.be.true();
 			});
 		});
 
