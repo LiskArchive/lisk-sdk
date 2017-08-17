@@ -23,7 +23,12 @@ import { prepareTransaction } from './utils';
 
 const isInt = n => parseInt(n, 10) === n;
 
-const validateOptions = ({ category, name, type, link }) => {
+const validateOptions = (options) => {
+	if (typeof options !== 'object') {
+		throw new Error('Options must be an object.');
+	}
+	const { category, name, type, link } = options;
+
 	if (!isInt(category)) {
 		throw new Error('Dapp category must be an integer.');
 	}
@@ -48,7 +53,7 @@ const validateOptions = ({ category, name, type, link }) => {
  * @return {Object}
  */
 
-function createDapp(secret, secondSecret, options = {}, timeOffset) {
+function createDapp(secret, secondSecret, options, timeOffset) {
 	validateOptions(options);
 
 	const keys = crypto.getKeys(secret);
