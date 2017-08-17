@@ -3,6 +3,7 @@
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
+var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
@@ -492,7 +493,12 @@ Transport.prototype.shared = {
 	postBlock: function (query, cb) {
 		query = query || {};
 		try {
-			var block = library.logic.block.objectNormalize(query.block);
+			var block;
+			if (query.block) {
+				query.block = bson.deserialize(Buffer.from(query.block));
+				block = modules.blocks.verify.addBlockProperties(query.block);
+			}
+			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
 			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 

@@ -9,9 +9,7 @@ var exceptions = require('../../../../helpers/exceptions.js');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
 
 var crypto = require('crypto');
-var BSON = require('bson');
-
-var bson = new BSON();
+var bson = require('../../../../helpers/bson.js');
 
 var previousBlock = {
 	blockSignature:'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
@@ -206,33 +204,6 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 	});
 	//newBlock.id = blockLogic.getId(newBlock);
 	return newBlock;
-}
-
-function deleteBlockProperties (block) {
-	// see modules/blocks/verify.js for deleted fields reference.
-	if (block.version === 0) {
-		delete block.version;
-	}
-	// verifyBlock ensures numberOfTransactions is transactions.length
-	if (typeof(block.numberOfTransactions) === 'number') {
-		delete block.numberOfTransactions;
-	}
-	if (block.totalAmount === 0) {
-		delete block.totalAmount;
-	}
-	if (block.totalFee === 0) {
-		delete block.totalFee;
-	}
-	if (block.payloadLength === 0) {
-		delete block.payloadLength;
-	}
-	if (block.reward === 0) {
-		delete block.reward;
-	}
-	if (block.transactions && block.transactions.length === 0) {
-		delete block.transactions;
-	}
-	delete block.id;
 }
 
 describe('blocks/verify', function () {
@@ -614,7 +585,6 @@ describe('blocks/verify', function () {
 				onMessage[1] = bson.deserialize(onMessage[1]);
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.equal('transactionsSaved');
 				expect(onMessage[4]).to.deep.equal(block1.transactions);
@@ -661,7 +631,7 @@ describe('blocks/verify', function () {
 		describe('normalizeBlock validations', function () {
 
 			it('should fail when timestamp property is missing', function (done) {
-				deleteBlockProperties(block2);
+				block2 = blocksVerify.deleteBlockProperties(block2);
 				var timestamp = block2.timestamp;
 				delete block2.timestamp;
 
@@ -740,7 +710,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should fail when transaction is already confirmed (fork:2)', function (done) {
-			deleteBlockProperties(block2);
+			block2 = blocksVerify.deleteBlockProperties(block2);
 
 			blocksVerify.processBlock(block2, false, function (err, result) {
 				if (err) {
@@ -832,7 +802,6 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].payloadLength).to.be.undefined;
 				expect(onMessage[1].reward).to.be.undefined;
 				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.be.undefined; // transactionsSaved
 				modulesLoader.scope.bus.clearMessages();
@@ -858,7 +827,6 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].payloadLength).to.be.undefined;
 				expect(onMessage[1].reward).to.be.undefined;
 				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[1].id).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
 				expect(onMessage[3]).to.be.undefined; // transactionsSaved
 				modulesLoader.scope.bus.clearMessages();
@@ -872,7 +840,7 @@ describe('blocks/verify', function () {
 
 		it('should be ok when receive block 3', function (done) {
 			blocks.lastBlock.set(block2);
-			deleteBlockProperties(block3);
+			block3 = blocksVerify.deleteBlockProperties(block3);
 
 			blocksVerify.processBlock(block3, false, function (err, result) {
 				if (err) {
@@ -887,7 +855,7 @@ describe('blocks/verify', function () {
 
 		it('should be ok when receive block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
-			deleteBlockProperties(block3);
+			block3 = blocksVerify.deleteBlockProperties(block3);
 
 			blocksVerify.processBlock(block3, false, function (err, result) {
 				expect(result).to.be.undefined;

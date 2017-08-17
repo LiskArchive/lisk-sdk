@@ -4,6 +4,8 @@ var node = require('../../node.js');
 var ws = require('../../common/wsCommunication');
 
 var genesisblock = require('../../genesisBlock.json');
+var verify = require('../../../modules/blocks/verify.js');
+var bson = require('../../../helpers/bson.js');
 
 describe('blocks', function () {
 
@@ -158,8 +160,9 @@ describe('postBlock', function () {
 	it('using invalid block schema should fail', function (done) {
 		var blockSignature = genesisblock.blockSignature;
 		genesisblock.blockSignature = null;
+		genesisblock = verify.prototype.deleteBlockProperties(genesisblock);
 
-		ws.call('postBlock', { block: genesisblock }, function (err, res) {
+		ws.call('postBlock', { block: bson.serialize(genesisblock) }, function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 			node.expect(err).to.contain('Failed to validate block schema');
 			genesisblock.blockSignature = blockSignature;
@@ -173,7 +176,7 @@ describe('postBlock', function () {
 				transaction.asset.delegate.publicKey = transaction.senderPublicKey;
 			}
 		});
-		ws.call('postBlock', { block: genesisblock }, function (err, res) {
+		ws.call('postBlock', { block: bson.serialize(genesisblock) }, function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 			node.expect(res).to.have.property('blockId').to.equal('6524861224470851795');
 			done();
