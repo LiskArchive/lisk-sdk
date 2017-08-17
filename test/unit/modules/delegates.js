@@ -216,9 +216,6 @@ describe('delegates', function () {
 
 			before(function () {
 				loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
-			});
-
-			beforeEach(function () {
 				config = library.rewiredModules.delegates.__get__('library.config');
 				__private = library.rewiredModules.delegates.__get__('__private');
 			});
@@ -226,7 +223,6 @@ describe('delegates', function () {
 			beforeEach(function () {
 				__private.keypairs = {};
 				config.forging.force = true;
-				config.forging.secret = [];
 				config.forging.secret = [];
 			});
 
@@ -263,7 +259,6 @@ describe('delegates', function () {
 
 
 			it('should return error if encrypted secret does not decrypt with default secret', function (done) {
-
 				var accountDetails = {
 					encryptedSecret:  '1cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
 					publicKey: '35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
@@ -304,6 +299,7 @@ describe('delegates', function () {
 					encryptedSecret: randomAccount.encryptedSecret,
 					publicKey: randomAccount.publicKey,
 				};
+
 				config.forging.secret = [accountDetails];
 
 				loadDelegates(function (err) {
@@ -350,7 +346,6 @@ describe('delegates', function () {
 					done();
 				});
 			});
-
 		});
 	});
 });

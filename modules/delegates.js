@@ -230,12 +230,10 @@ __private.toggleForgingStatus = function (publicKey, secretKey, cb) {
 
 	if (__private.keypairs[keypair.publicKey.toString('hex')]) {
 		actionDisable = true;
-		actionEnable = false;
 	}
 
 	if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
 		actionEnable = true;
-		actionDisable = false;
 	}
 
 	modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
