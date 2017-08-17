@@ -44,7 +44,7 @@ node('node-06'){
       try {
         sh '''#!/bin/bash
             cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run test-integration
+            npm run test-integration | tee integrationTests.logs
         '''
       } catch (err) {
         currentBuild.result = 'FAILURE'

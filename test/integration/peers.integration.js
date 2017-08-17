@@ -12,6 +12,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var baseConfig = require('../../test/config.json');
 var Logger = require('../../logger');
+var logger = new Logger({filename: 'integrationTestsLogger.logs', echo: 'log'});
 
 var SYNC_MODE = {
 	RANDOM: 0,
@@ -27,8 +28,6 @@ var SYNC_MODE_DEFAULT_ARGS = {
 		INDICES: []
 	}
 };
-
-var logger = new Logger({filename: 'integrationTests.logs', echo: 'log'});
 
 var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
@@ -168,7 +167,6 @@ function launchTestNodes (cb) {
 
 function killTestNodes (cb) {
 	child_process.exec('node_modules/.bin/pm2 delete all', function (err, stdout) {
-		logger.log(stdout);
 		return cb(err);
 	});
 }
