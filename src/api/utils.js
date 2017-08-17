@@ -61,23 +61,7 @@ function toQueryString(obj) {
 	return parts.join('&');
 }
 
-/**
- * Extend a JavaScript object with the key/value pairs of another.
- * @method extend
- * @param obj
- * @param src
- *
- * @return obj Object
- */
-function extend(obj, src) {
-	// clone settings
-	const cloneObj = JSON.parse(JSON.stringify(obj));
-	Object.keys(src).forEach((key) => { cloneObj[key] = src[key]; });
-	return cloneObj;
-}
-
 module.exports = {
 	trimObj,
 	toQueryString,
-	extend,
 };

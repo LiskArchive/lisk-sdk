@@ -41,7 +41,6 @@
  */
 import privateApi from './privateApi';
 import config from '../../config.json';
-import { extend } from './utils';
 import cryptoModule from '../transactions/crypto';
 
 const LiskJS = {
@@ -55,7 +54,7 @@ function LiskAPI(providedOptions = {}) {
 		return new LiskAPI(providedOptions);
 	}
 
-	const options = extend(config.options, providedOptions);
+	const options = Object.assign({}, config.options, providedOptions);
 	const getDefaultPort = () => {
 		if (options.testnet) return 7000;
 		if (options.ssl) return 443;
