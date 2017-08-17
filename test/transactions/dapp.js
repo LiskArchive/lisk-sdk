@@ -30,6 +30,7 @@ describe('dapp module', () => {
 		};
 		const fee = 25e8;
 		const timeWithOffset = 38350076;
+		const noOptionsError = 'Options must be an object.';
 		const categoryIntegerError = 'Dapp category must be an integer.';
 		const nameStringError = 'Dapp name must be a string.';
 		const typeIntegerError = 'Dapp type must be an integer.';
@@ -55,6 +56,10 @@ describe('dapp module', () => {
 
 			it('should create a dapp transaction', () => {
 				(dappTransaction).should.be.ok();
+			});
+
+			it('should throw an error if no options are provided', () => {
+				(createDapp.bind(null, secret)).should.throw(noOptionsError);
 			});
 
 			it('should throw an error if no category is provided', () => {
