@@ -44,6 +44,7 @@ node('lisk-js-01'){
 
     stage ('Set milestone') {
       milestone 1
+      deleteDir()
       currentBuild.result = 'SUCCESS'
     }
   }
