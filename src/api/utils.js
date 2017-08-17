@@ -55,7 +55,7 @@ function toQueryString(obj) {
 	const parts = Object.entries(obj)
 		.reduce((accumulator, [key, value]) => [
 			...accumulator,
-			`${encodeURIComponent(key)}=${encodeURI(value)}`,
+			`${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
 		], []);
 
 	return parts.join('&');
