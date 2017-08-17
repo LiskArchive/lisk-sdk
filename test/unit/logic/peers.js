@@ -2,10 +2,11 @@
 
 var chai = require('chai');
 var expect = require('chai').expect;
-
 var express = require('express');
 var _  = require('lodash');
 var sinon = require('sinon');
+
+var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var Peers = require('../../../logic/peers.js');
@@ -274,9 +275,9 @@ describe('peers', function () {
 			expect(peers.list().length).equal(0);
 		});
 
-		it('should return false when trying to remove non inserted peer', function () {
+		it('should return the error code when trying to remove non inserted peer', function () {
 			var result = peers.remove(randomPeer);
-			expect(result).to.be.not.ok;
+			expect(result).to.be.a('number').equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);
 			expect(peers.list().length).equal(0);
 		});
 	});

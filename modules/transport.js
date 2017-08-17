@@ -1,17 +1,20 @@
 'use strict';
 
 var async = require('async');
-var Broadcaster = require('../logic/broadcaster.js');
-var bignum = require('../helpers/bignum.js');
-var bson = require('../helpers/bson.js');
-var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
 var popsicle = require('popsicle');
+var zlib = require('zlib');
+
+var Broadcaster = require('../logic/broadcaster.js');
+var bignum = require('../helpers/bignum.js');
+var failureCodes = require('../api/ws/rpc/failureCodes');
+var Rules = require('../api/ws/workers/rules');
+var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
+var constants = require('../helpers/constants.js');
 var schema = require('../schema/transport.js');
 var sql = require('../sql/transport.js');
-var zlib = require('zlib');
 var Peer = require('../logic/peer');
 var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
@@ -493,12 +496,7 @@ Transport.prototype.shared = {
 	postBlock: function (query, cb) {
 		query = query || {};
 		try {
-			var block;
-			if (query.block) {
-				query.block = bson.deserialize(Buffer.from(query.block));
-				block = modules.blocks.verify.addBlockProperties(query.block);
-			}
-			block = library.logic.block.objectNormalize(block);
+			var block = library.logic.block.objectNormalize(query.block);
 		} catch (e) {
 			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 
@@ -597,7 +595,8 @@ Transport.prototype.shared = {
  * @param {Object} query
  * @param {string} query.authKey - key shared between master and slave processes. Not shared with the rest of network.
  * @param {Object} query.peer - peer to update
- * @param {string} cb
+ * @param {number} query.updateType - 0 (insert) or 1 (remove)
+ * @param {function} cb
  */
 __private.checkInternalAccess = function (query, cb) {
 	library.schema.validate(query, schema.internalAccess, function (err) {
@@ -618,30 +617,19 @@ Transport.prototype.internal = {
 	 * @param {Object} query
 	 * @param {Object} query.peer
 	 * @param {string} query.authKey - signed peer data with in hex format
+	 * @param {number} query.updateType - 0 (insert) or 1 (remove)
 	 * @param {function} cb
 	 */
-	acceptPeer: function (query, cb) {
+	updatePeer: function (query, cb) {
 		__private.checkInternalAccess(query, function (err) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
-		});
-	},
-
-	/**
-	 * Removes peer from peers list
-	 * @param {Object} query
-	 * @param {Object} query.peer
-	 * @param {string} query.signature - signed peer data with in hex format
-	 * @param {function} cb
-	 */
-	removePeer: function (query, cb) {
-		__private.checkInternalAccess(query, function (err) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb, __private.removePeer({peer: query.peer, code: 0}, '') ? null : 'Failed to remove peer');
+			var updates = {};
+			updates[Rules.UPDATES.INSERT] = modules.peers.update;
+			updates[Rules.UPDATES.REMOVE] = modules.peers.remove;
+			var updateResult = updates[query.updateType](query.peer);
+			return setImmediate(cb, updateResult === true ? null : new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult]));
 		});
 	}
 };

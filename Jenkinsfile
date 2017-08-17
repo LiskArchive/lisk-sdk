@@ -215,7 +215,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},
-            "Functional Transport - Handshake" : {
+			"Functional Transport - Handshake" : {
 				node('node-02'){
 					sh '''
 					export TEST=test/api/transport/transport.handshake.js TEST_TYPE='FUNC' NODE_ENV='TEST'

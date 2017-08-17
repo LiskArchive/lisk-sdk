@@ -1,10 +1,11 @@
 'use strict';
 
+var _  = require('lodash');
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
+var randomstring = require('randomstring');
 var sinon = require('sinon');
-var _  = require('lodash');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../config.json');
@@ -152,7 +153,7 @@ describe('peers', function () {
 				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
 				var secondPeer = _.clone(randomPeer);
 				secondPeer.port += 1;
-				secondPeer.nonce = 'someDifferentNonce';
+				secondPeer.nonce = randomstring.generate(16);
 				peers.update(secondPeer);
 				getPeers(function (err, __peers) {
 					expect(__peers).to.have.a.lengthOf(2);

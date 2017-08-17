@@ -6,8 +6,22 @@ module.exports = {
 	INCOMPATIBLE_NETWORK: 4102,
 	INCOMPATIBLE_VERSION: 4103,
 	ALREADY_ADDED: 4104,
-	DIFFERENT_CONN_ID: 4105,
-	ON_MASTER_ERROR: 4106
+	ALREADY_REMOVED: 4105,
+	DIFFERENT_CONN_ID: 4107,
+	ON_MASTER: {
+		UPDATE: {
+			CHECK_PRESENCE: 4200,
+			INVALID_PEER: 4201,
+			TRANSPORT: 4202,
+		},
+		REMOVE: {
+			NOT_ON_LIST: 4210,
+			FROZEN_PEER: 4211
+		},
+		INSERT: {
+			INSERT_ONLY_FAILURE: 4230
+		}
+	}
 };
 
 module.exports.errorMessages = {
@@ -16,6 +30,33 @@ module.exports.errorMessages = {
 	4102: 'Request is made on the wrong network',
 	4103: 'Request is made from incompatible version',
 	4104: 'Attempt to insert already active peer',
-	4105: 'Attempt to change peer data from different connection',
-	4106: 'Error occurred during update on master process'
+	4105: 'Attempt to remove not existing peer',
+	4106: 'Attempt to change peer data from different connection',
+	4107: 'Error occurred during update on master process',
+	4200: 'Failed to check if peer is already added',
+	4201: 'Cannot match a proper address for the peer',
+	4202: 'Transport error during invoking update procedure',
+	4210: 'Peer is not on a peers list',
+	4211: 'Attempt to remove frozen peer',
+	4230: 'Update with insert only failed - peer is on a list',
 };
+
+/**
+ * @param {number} code
+ * @param {string} message
+ * @param {string}[description=undefined] description
+ * @constructor
+ */
+function PeerUpdateError (code, message, description) {
+	this.code = code;
+	this.message = message;
+	this.description = description;
+}
+
+PeerUpdateError.prototype.toString = function () {
+	return JSON.stringify({code: this.code, message: this.message, description: this.description});
+};
+
+PeerUpdateError.prototype = Error.prototype;
+
+module.exports.PeerUpdateError = PeerUpdateError;
