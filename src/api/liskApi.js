@@ -281,7 +281,7 @@ LiskAPI.prototype.getStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegat
  * @return API object
  */
 
-LiskAPI.prototype.searchDelegatesByUsername = privateApi.wrapSendRequest(GET, 'delegates/search', username => ({ username }));
+LiskAPI.prototype.searchDelegatesByUsername = privateApi.wrapSendRequest(GET, 'delegates', search => ({ search }));
 
 /**
  * @method getBlocks
@@ -329,14 +329,14 @@ LiskAPI.prototype.getTransactions = privateApi.wrapSendRequest(GET, 'transaction
 
 /**
  * @method getTransaction
- * @param id
+ * @param transactionId
  * @param optionsOrCallback
  * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getTransaction = privateApi.wrapSendRequest(GET, 'transactions/get', id => ({ id }));
+LiskAPI.prototype.getTransaction = privateApi.wrapSendRequest(GET, 'transactions', transactionId => ({ transactionId }));
 
 /**
  * @method getVotes
@@ -347,21 +347,21 @@ LiskAPI.prototype.getTransaction = privateApi.wrapSendRequest(GET, 'transactions
  * @return API object
  */
 
-LiskAPI.prototype.getVotes = privateApi.wrapSendRequest(GET, 'accounts/delegates', address => ({ address }));
+LiskAPI.prototype.getVotes = privateApi.wrapSendRequest(GET, 'votes', address => ({ address }));
 
 /**
  * @method getVoters
- * @param publicKey
+ * @param username
  * @param optionsOrCallback
  * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getVoters = privateApi.wrapSendRequest(GET, 'delegates/voters', publicKey => ({ publicKey }));
+LiskAPI.prototype.getVoters = privateApi.wrapSendRequest(GET, 'voters', username => ({ username }));
 
 /**
- * @method listMultisignatureTransactions
+ * @method getUnsignedMultisignatureTransactions
  * @param data
  * @param optionsOrCallback
  * @param callbackIfOptions
@@ -369,18 +369,7 @@ LiskAPI.prototype.getVoters = privateApi.wrapSendRequest(GET, 'delegates/voters'
  * @return API object
  */
 
-LiskAPI.prototype.getMultisignatureTransactions = privateApi.wrapSendRequest(GET, 'transactions/multisignatures', data => data);
-
-/**
- * @method getMultisignatureTransaction
- * @param id
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return API object
- */
-
-LiskAPI.prototype.getMultisignatureTransaction = privateApi.wrapSendRequest(GET, 'transactions/multisignatures/get', id => ({ id }));
+LiskAPI.prototype.getUnsignedMultisignatureTransactions = privateApi.wrapSendRequest(GET, 'transactions/unsigned', data => data);
 
 /**
  * @method sendLSK
@@ -412,7 +401,7 @@ LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransacti
 ) {
 	const request = {
 		requestMethod: POST,
-		requestUrl: `${privateApi.getFullUrl.call(this)}/peer/transactions`,
+		requestUrl: `${privateApi.getFullUrl.call(this)}/api/transactions`,
 		nethash: this.nethash,
 		requestParams: { transaction },
 	};
