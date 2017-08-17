@@ -414,7 +414,7 @@ describe('Lisk.api()', () => {
 			it('should get dapps with options', () => {
 				const options = {
 					limit: 10,
-					offset: 1
+					offset: 1,
 				};
 				LSK.getDapps(options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'dapps', options, callback)).should.be.true();
@@ -425,7 +425,7 @@ describe('Lisk.api()', () => {
 			it('should get getDappCategory', () => {
 				const options = {
 					limit: 10,
-					offset: 1
+					offset: 1,
 				};
 				const expectedPassedOptions = {
 					limit: 10,
