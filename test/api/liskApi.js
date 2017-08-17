@@ -376,8 +376,12 @@ describe('Lisk.api()', () => {
 
 		describe('#getUnsignedMultisignatureTransactions', () => {
 			it('should get all current unsigned multisignature transactions', () => {
-				LSK.getUnsignedMultisignatureTransactions();
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions/unsigned', {}, undefined)).should.be.true();
+				const transactionId = '7520138931049441691';
+				const options = {
+						transactionId,
+				};
+				LSK.getUnsignedMultisignatureTransactions(options, callback);
+				(LSK.sendRequest.calledWithExactly(GET, 'transactions/unsigned', options, callback)).should.be.true();
 			});
 		});
 
