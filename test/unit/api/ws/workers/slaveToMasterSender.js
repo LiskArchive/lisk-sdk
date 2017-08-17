@@ -41,22 +41,25 @@ describe('SlaveToMasterSender', function () {
 		var expectedPayload;
 		var validProcedureName;
 		var validPeer;
+		var validUpdateType;
 
 		beforeEach(function () {
 			validProcedureName = 'validProcedureName';
+			validUpdateType = 1;
 			validPeer = {
 				nonce: validNonce
 			};
 			expectedPayload = {
 				peer: validPeer,
-				authKey: slaveWAMPServerMock.worker.options.authKey
+				authKey: slaveWAMPServerMock.worker.options.authKey,
+				updateType: validUpdateType
 			};
 		});
 
 		describe('should call sendToMaster with', function () {
 
 			beforeEach(function () {
-				slaveToMasterSender.send(validProcedureName, validPeer, validCb);
+				slaveToMasterSender.send(validProcedureName, validUpdateType, validPeer, validCb);
 			});
 
 			it('passed procedure as a first argument', function () {
