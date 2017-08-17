@@ -110,10 +110,6 @@ describe('delegate module', () => {
 					it('should have the provided username as a string', () => {
 						(delegateTransaction.asset.delegate).should.have.property('username').and.be.type('string').and.equal(username);
 					});
-
-					it('should have the sender’s public key as a hex string', () => {
-						(delegateTransaction.asset.delegate).should.have.property('publicKey').and.be.hexString().and.equal(publicKey);
-					});
 				});
 			});
 		});

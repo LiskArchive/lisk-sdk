@@ -44,7 +44,6 @@ function createDelegate(secret, username, secondSecret, timeOffset) {
 		asset: {
 			delegate: {
 				username,
-				publicKey: keys.publicKey,
 			},
 		},
 	};
