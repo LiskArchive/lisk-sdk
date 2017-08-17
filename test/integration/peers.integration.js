@@ -124,11 +124,7 @@ function generatePM2NodesConfig (testNodeConfigs) {
 			nodePM2Config.args += ' -c ./test/integration/configs/config.non-forge.json';
 		} else {
 			var currentNodeConfig = _.clone(baseConfig);
-			/**
-			 * ToDo: Solve a conflict of force flag responsibilities.
-			 * When flag is set to true delegates automatic forging is disabled (modules/delegates:141L).
-			 */
-			currentNodeConfig.forging.force = true;
+			currentNodeConfig.forging.force = false;
 			currentNodeConfig.forging.secret = nodeConfig.secrets;
 			fs.writeFileSync(__dirname + '/configs/config.node-' + index + '.json', JSON.stringify(currentNodeConfig, null, 4));
 			nodePM2Config.args += ' -c ./test/integration/configs/config.node-' + index + '.json';
