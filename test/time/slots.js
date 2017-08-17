@@ -1,199 +1,162 @@
 import slots from '../../src/time/slots';
 
-describe('slots.js', () => {
-	it('should be ok', () => {
-		(slots).should.be.ok();
+describe('slots module', () => {
+	const nowRealTime = 1464109220000;
+	const nowEpochTime = 20;
+	let clock;
+
+	before(() => {
+		clock = sinon.useFakeTimers(nowRealTime, 'Date');
 	});
 
-	it('should be object', () => {
-		(slots).should.be.type('object');
+	after(() => {
+		clock.restore();
 	});
 
-	it('should have properties', () => {
-		const properties = ['interval', 'delegates', 'getTime', 'getRealTime', 'getSlotNumber', 'getSlotTime', 'getNextSlot', 'getLastSlot'];
-		properties.forEach((property) => {
-			(slots).should.have.property(property);
-		});
-	});
-
-	describe('.interval', () => {
-		const interval = slots.interval;
-
-		it('should be ok', () => {
-			(interval).should.be.ok();
+	describe('exports', () => {
+		it('should be an object', () => {
+			(slots).should.be.type('object');
 		});
 
-		it('should be number and not NaN', () => {
-			(interval).should.be.type('number').and.not.NaN();
-		});
-	});
-
-	describe('.delegates', () => {
-		const delegates = slots.delegates;
-
-		it('should be ok', () => {
-			(delegates).should.be.ok();
+		it('should export interval number', () => {
+			(slots).should.have.property('interval').be.type('number').and.not.be.NaN();
 		});
 
-		it('should be number and not NaN', () => {
-			(delegates).should.be.type('number').and.not.NaN();
+		it('should export delegates number', () => {
+			(slots).should.have.property('delegates').be.type('number').and.not.be.NaN();
+		});
+
+		it('should export getTime function', () => {
+			(slots).should.have.property('getTime').be.type('function');
+		});
+
+		it('should export getTimeWithOffset function', () => {
+			(slots).should.have.property('getTimeWithOffset').be.type('function');
+		});
+
+		it('should export getRealTime function', () => {
+			(slots).should.have.property('getRealTime').be.type('function');
+		});
+
+		it('should export getSlotNumber function', () => {
+			(slots).should.have.property('getSlotNumber').be.type('function');
+		});
+
+		it('should export getSlotTime function', () => {
+			(slots).should.have.property('getSlotTime').be.type('function');
+		});
+
+		it('should export getNextSlot function', () => {
+			(slots).should.have.property('getNextSlot').be.type('function');
+		});
+
+		it('should export getLastSlot function', () => {
+			(slots).should.have.property('getLastSlot').be.type('function');
 		});
 	});
 
 	describe('#getTime', () => {
-		const getTime = slots.getTime;
+		const { getTime } = slots;
 
-		it('should be ok', () => {
-			(getTime).should.be.ok();
+		it('should return current time as number', () => {
+			const time = getTime();
+
+			(time).should.be.equal(nowEpochTime);
 		});
 
-		it('should be a function', () => {
-			(getTime).should.be.type('function');
-		});
+		it('should return epoch time for provided time as number, equal to 10', () => {
+			const realTime = 1464109210001;
+			const time = getTime(realTime);
 
-		it('should return epoch time as number, equal to 10', () => {
-			const d = 1464109210000;
-			const time = getTime(d);
-
-			(time).should.be.type('number').and.equal(10);
+			(time).should.be.equal(10);
 		});
 	});
 
 	describe('#getTimeWithOffset', () => {
-		const getTimeWithOffset = slots.getTimeWithOffset;
-		const now = new Date(1464109210000);
-		let clock;
+		const { getTimeWithOffset } = slots;
 
-		before(() => {
-			clock = sinon.useFakeTimers(now, 'Date');
-		});
-
-		after(() => {
-			clock.restore();
-		});
-
-		it('should be ok', () => {
-			(getTimeWithOffset).should.be.ok();
-		});
-
-		it('should be a function', () => {
-			(getTimeWithOffset).should.be.type('function');
-		});
-
-		it('should call getTime using the offset', () => {
-			const offset = -3;
-
-			const time = getTimeWithOffset(offset);
-
-			(time).should.be.type('number').and.equal(7);
-		});
-
-		it('should handle undefined offset', () => {
+		it('should get time with undefined offset', () => {
 			const time = getTimeWithOffset();
 
-			(time).should.be.type('number').and.equal(10);
+			(time).should.be.equal(nowEpochTime);
+		});
+
+		it('should get time with positive offset', () => {
+			const offset = 3;
+			const time = getTimeWithOffset(offset);
+
+			(time).should.be.equal(23);
+		});
+
+		it('should get time with negative offset', () => {
+			const offset = -3;
+			const time = getTimeWithOffset(offset);
+
+			(time).should.be.equal(17);
 		});
 	});
 
 	describe('#getRealTime', () => {
-		const getRealTime = slots.getRealTime;
+		const { getRealTime } = slots;
 
-		it('should be ok', () => {
-			(getRealTime).should.be.ok();
-		});
+		it('should return real current time for undefined input', () => {
+			const realTime = getRealTime();
 
-		it('should be a function', () => {
-			(getRealTime).should.be.type('function');
+			(realTime).should.be.equal(nowRealTime);
 		});
 
 		it('should return return real time, convert 10 to 1464109210000', () => {
-			const d = 10;
-			const real = getRealTime(d);
+			const realTime = getRealTime(10);
 
-			(real).should.be.ok();
-			(real).should.be.type('number').and.equal(1464109210000);
-		});
-
-		it('should return real time, even when undefined input', () => {
-			const getRealTimeOutput = getRealTime(undefined);
-
-			(getRealTimeOutput).should.be.ok();
+			(realTime).should.be.equal(1464109210000);
 		});
 	});
 
 	describe('#getSlotNumber', () => {
-		const getSlotNumber = slots.getSlotNumber;
+		const { getSlotNumber } = slots;
 
-		it('should be ok', () => {
-			(getSlotNumber).should.be.ok();
-		});
+		it('should return slot number for undefined input', () => {
+			const slot = getSlotNumber();
 
-		it('should be a function', () => {
-			(getSlotNumber).should.be.type('function');
+			(slot).should.be.equal(2);
 		});
 
 		it('should return slot number, equal to 1', () => {
 			const slot = getSlotNumber(10);
 
-			(slot).should.be.type('number').and.equal(1);
+			(slot).should.be.equal(1);
 		});
 	});
 
 	describe('#getSlotTime', () => {
-		const getSlotTime = slots.getSlotTime;
+		const { getSlotTime } = slots;
 
-		it('should be ok', () => {
-			(getSlotTime).should.be.ok();
-		});
+		it('should return slot time number, equal to 196140', () => {
+			const slotTime = getSlotTime(19614);
 
-		it('should be function', () => {
-			(getSlotTime).should.be.type('function');
-		});
-
-		it('should return slot time number, equal to ', () => {
-			const slot = 19614;
-			const slotTime = getSlotTime(slot);
-
-			(slotTime).should.be.ok();
-			(slotTime).should.be.type('number').and.equal(196140);
+			(slotTime).should.be.equal(196140);
 		});
 	});
 
 	describe('#getNextSlot', () => {
-		const getNextSlot = slots.getNextSlot;
-
-		it('should be ok', () => {
-			(getNextSlot).should.be.ok();
-		});
-
-		it('should be function', () => {
-			(getNextSlot).should.be.type('function');
-		});
+		const { getNextSlot } = slots;
+		const currentSlot = 2;
 
 		it('should return next slot number', () => {
 			const nextSlot = getNextSlot();
 
-			(nextSlot).should.be.ok();
-			(nextSlot).should.be.type('number').and.not.NaN();
+			(nextSlot).should.be.equal(currentSlot + 1);
 		});
 	});
 
 	describe('#getLastSlot', () => {
-		const getLastSlot = slots.getLastSlot;
-
-		it('should be ok', () => {
-			(getLastSlot).should.be.ok();
-		});
-
-		it('should be function', () => {
-			(getLastSlot).should.be.type('function');
-		});
+		const { getLastSlot } = slots;
 
 		it('should return last slot number', () => {
-			const lastSlot = getLastSlot(slots.getNextSlot());
+			const nextSlot = 1337;
+			const lastSlot = getLastSlot(nextSlot);
 
-			(lastSlot).should.be.ok();
-			(lastSlot).should.be.type('number').and.not.NaN();
+			(lastSlot).should.be.equal(nextSlot + slots.delegates);
 		});
 	});
 });
