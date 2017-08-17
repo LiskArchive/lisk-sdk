@@ -1,270 +1,207 @@
-import slots from '../../src/time/slots';
 import transaction from '../../src/transactions/transaction';
+import slots from '../../src/time/slots';
 import cryptoModule from '../../src/transactions/crypto';
 
-describe('transaction.js', () => {
-	const fixedPoint = 10 ** 8;
-	const testRecipientAddress = '58191285901858109L';
-	const testData = 'data';
-	const testSecret = 'secret';
-	const testSecondSecret = 'second secret';
-	const testAmountThousand = 1000;
-	const feeWithData = 0.2 * fixedPoint;
-	const keys = {
-		publicKey: '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-		privateKey: '9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-	};
+describe('transaction module', () => {
+	describe('exports', () => {
+		it('should be an object', () => {
+			(transaction).should.be.type('object');
+		});
 
-	it('should be object', () => {
-		(transaction).should.be.type('object');
-	});
-
-	it('should have properties', () => {
-		(transaction).should.have.property('createTransaction');
+		it('should export createTransaction function', () => {
+			(transaction).should.have.property('createTransaction').be.type('function');
+		});
 	});
 
 	describe('#createTransaction', () => {
-		const createTransaction = transaction.createTransaction;
-		let trs = null;
+		const { createTransaction } = transaction;
+		const fixedPoint = 10 ** 8;
+		const recipientAddress = '58191285901858109L';
+		const testData = 'data';
+		const secret = 'secret';
+		const secondSecret = 'second secret';
+		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+		const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+		const emptyPublicKey = 'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
+		const testAmount = 1000;
+		const sendFee = 0.1 * fixedPoint;
+		const sendWithDataFee = 0.2 * fixedPoint;
+		const timeWithOffset = 38350076;
 
-		it('should be a function', () => {
-			(createTransaction).should.be.type('function');
+		let getTimeWithOffsetStub;
+		let transactionTransaction;
+
+		beforeEach(() => {
+			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
-		it('should create transaction without second signature', () => {
-			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret);
-			(trs).should.be.ok();
+		afterEach(() => {
+			getTimeWithOffsetStub.restore();
 		});
 
-		describe('timestamp', () => {
-			const timeWithOffset = 38350076;
-			let stub;
+		describe('without second secret', () => {
+			describe('without data', () => {
+				beforeEach(() => {
+					transactionTransaction = createTransaction(
+						recipientAddress, testAmount, secret,
+					);
+				});
 
+				it('should create a transaction transaction', () => {
+					(transactionTransaction).should.be.ok();
+				});
+
+				it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+					(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
+				});
+
+				it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+					const offset = -10;
+					createTransaction(
+						recipientAddress, testAmount, secret, null, null, offset,
+					);
+
+					(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
+				});
+
+				describe('returned transaction', () => {
+					it('should be an object', () => {
+						(transactionTransaction).should.be.type('object');
+					});
+
+					it('should have type number equal to 0', () => {
+						(transactionTransaction).should.have.property('type').and.be.type('number').and.equal(0);
+					});
+
+					it('should have amount number equal to provided amount', () => {
+						(transactionTransaction).should.have.property('amount').and.be.type('number').and.equal(testAmount);
+					});
+
+					it('should have fee number equal to send fee', () => {
+						(transactionTransaction).should.have.property('fee').and.be.type('number').and.equal(sendFee);
+					});
+
+					it('should have recipientId string equal to provided recipient id', () => {
+						(transactionTransaction).should.have.property('recipientId').and.be.type('string').and.equal(recipientAddress);
+					});
+
+					it('should have senderPublicKey hex string equal to sender public key', () => {
+						(transactionTransaction).should.have.property('senderPublicKey')
+							.and.be.hexString()
+							.and.equal(publicKey);
+					});
+
+					it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+						(transactionTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+					});
+
+					it('should have signature hex string', () => {
+						(transactionTransaction).should.have.property('signature').and.be.hexString();
+					});
+
+					it('should be signed correctly', () => {
+						const result = cryptoModule.verify(transactionTransaction);
+						(result).should.be.ok();
+					});
+
+					it('should not be signed correctly if modified', () => {
+						transactionTransaction.amount = 100;
+						const result = cryptoModule.verify(transactionTransaction);
+						(result).should.be.not.ok();
+					});
+
+					it('should have id string', () => {
+						(transactionTransaction).should.have.property('id').and.be.type('string');
+					});
+
+					it('should have an empty asset object', () => {
+						(transactionTransaction).should.have.property('asset').and.be.type('object').and.be.empty();
+					});
+				});
+			});
+
+			describe('with data', () => {
+				beforeEach(() => {
+					transactionTransaction = createTransaction(
+						recipientAddress, testAmount, secret, null, testData,
+					);
+				});
+
+				it('should handle invalid (non-utf8 string) data', () => {
+					(createTransaction.bind(null, recipientAddress, testAmount, secret, null, Buffer.from('hello')))
+						.should.throw('Invalid encoding in transaction data. Data must be utf-8 encoded.');
+				});
+
+				it('should have fee number equal to send with data fee', () => {
+					(transactionTransaction).should.have.property('fee').and.be.type('number').and.equal(sendWithDataFee);
+				});
+
+				describe('data asset', () => {
+					it('should be a string equal to provided data', () => {
+						(transactionTransaction.asset).should.have.property('data')
+							.and.be.type('string')
+							.and.equal(testData);
+					});
+				});
+			});
+		});
+
+		describe('with second secret', () => {
 			beforeEach(() => {
-				stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-			});
-
-			afterEach(() => {
-				stub.restore();
-			});
-
-			it('should use time slots to get the time for the timestamp', () => {
-				trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret);
-
-				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
-				(stub.calledWithExactly(undefined)).should.be.true();
-			});
-
-			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
-				const offset = -10;
-
-				trs = createTransaction(
-					testRecipientAddress,
-					testAmountThousand,
-					testSecret,
-					null,
-					null,
-					offset,
+				transactionTransaction = createTransaction(
+					recipientAddress, testAmount, secret, secondSecret,
 				);
-
-				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
-				(stub.calledWithExactly(offset)).should.be.true();
-			});
-		});
-
-		describe('returned transaction', () => {
-			it('should be object', () => {
-				(trs).should.be.type('object');
 			});
 
-			it('should have id as string', () => {
-				(trs).should.have.property('id').and.be.type('string');
+			it('should create a transaction transaction', () => {
+				const transactionTransactionWithoutSecondSecret = createTransaction(
+					recipientAddress, testAmount, secret,
+				);
+				(transactionTransaction).should.be.ok();
+				(transactionTransaction).should.not.be.equal(transactionTransactionWithoutSecondSecret);
 			});
 
-			it('should have type as number and equal 0', () => {
-				(trs).should.have.property('type').and.be.type('number').and.equal(0);
+			it('should create transaction with second signature and data', () => {
+				transactionTransaction = createTransaction(
+					recipientAddress,
+					testAmount,
+					secret,
+					secondSecret,
+					testData,
+				);
+				(transactionTransaction).should.be.ok();
 			});
 
-			it('should have timestamp as number', () => {
-				(trs).should.have.property('timestamp').and.be.type('number').and.not.NaN();
-			});
+			describe('returned transaction', () => {
+				it('should have second signature hex string', () => {
+					(transactionTransaction).should.have.property('signSignature').and.be.hexString();
+				});
 
-			it('should have senderPublicKey as hex string', () => {
-				(trs).should.have.property('senderPublicKey').and.be.type('string').and.be.hexString();
-			});
+				it('should be second signed correctly', () => {
+					const result = cryptoModule
+						.verifySecondSignature(transactionTransaction, secondPublicKey);
+					(result).should.be.ok();
+				});
 
-			it('should have recipientId as string and to be equal 58191285901858109L', () => {
-				(trs).should.have.property('recipientId').and.be.type('string').and.equal(testRecipientAddress);
-			});
+				it('should be second signed correctly if second signature is an empty string', () => {
+					transactionTransaction = createTransaction(
+						recipientAddress,
+						testAmount,
+						secret,
+						'',
+						testData,
+					);
+					const result = cryptoModule
+						.verifySecondSignature(transactionTransaction, emptyPublicKey);
+					(result).should.be.ok();
+				});
 
-			it('should have amount as number and equal to 1000', () => {
-				(trs).should.have.property('amount').and.be.type('number').and.equal(testAmountThousand);
-			});
-
-			it('should have empty asset object', () => {
-				(trs).should.have.property('asset').and.be.type('object').and.empty();
-			});
-
-			it('should does not have second signature', () => {
-				(trs).should.not.have.property('signSignature');
-			});
-
-			it('should have signature as hex string', () => {
-				(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
-			});
-
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verify(trs);
-				(result).should.be.ok();
-			});
-
-			it('should not be signed correctly now', () => {
-				trs.amount = 10000;
-				const result = cryptoModule.verify(trs);
-				(result).should.be.not.ok();
-			});
-		});
-	});
-
-	describe('#createTransaction with second secret', () => {
-		const createTransaction = transaction.createTransaction;
-		let trs = null;
-
-		it('should be a function', () => {
-			(createTransaction).should.be.type('function');
-		});
-
-		it('should create transaction without second signature', () => {
-			trs = createTransaction(
-				testRecipientAddress,
-				testAmountThousand,
-				testSecret,
-				testSecondSecret,
-			);
-			(trs).should.be.ok();
-		});
-
-		describe('returned transaction', () => {
-			it('should be object', () => {
-				(trs).should.be.type('object');
-			});
-
-			it('should have id as string', () => {
-				(trs).should.have.property('id').and.be.type('string');
-			});
-
-			it('should have type as number and equal 0', () => {
-				(trs).should.have.property('type').and.be.type('number').and.equal(0);
-			});
-
-			it('should have timestamp as number', () => {
-				(trs).should.have.property('timestamp').and.be.type('number').and.not.NaN();
-			});
-
-			it('should have senderPublicKey as hex string', () => {
-				(trs).should.have.property('senderPublicKey').and.be.type('string').and.be.hexString();
-			});
-
-			it('should have recipientId as string and to be equal 58191285901858109L', () => {
-				(trs).should.have.property('recipientId').and.be.type('string').and.equal(testRecipientAddress);
-			});
-
-			it('should have amount as number and equal to 1000', () => {
-				(trs).should.have.property('amount').and.be.type('number').and.equal(testAmountThousand);
-			});
-
-			it('should have empty asset object', () => {
-				(trs).should.have.property('asset').and.be.type('object').and.empty();
-			});
-
-			it('should have second signature', () => {
-				(trs).should.have.property('signSignature');
-			});
-
-			it('should have signature as hex string', () => {
-				(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
-			});
-
-			it('should have signSignature as hex string', () => {
-				(trs).should.have.property('signSignature').and.be.type('string').and.be.hexString();
-			});
-
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verify(trs);
-				(result).should.be.ok();
-			});
-
-			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifySecondSignature(trs, keys.publicKey);
-				(result).should.be.ok();
-			});
-
-			it('should not be signed correctly now', () => {
-				trs.amount = 10000;
-				const result = cryptoModule.verify(trs);
-				(result).should.be.not.ok();
-			});
-
-			it('should not be second signed correctly now', () => {
-				trs.amount = 10000;
-				const result = cryptoModule.verifySecondSignature(trs, keys.publicKey);
-				(result).should.be.not.ok();
-			});
-		});
-	});
-
-	describe('#createTransaction with data', () => {
-		const createTransaction = transaction.createTransaction;
-		let trs = null;
-
-		it('should create transaction with data', () => {
-			trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, '', testData);
-			(trs).should.be.ok();
-			(trs.fee).should.be.equal(feeWithData);
-		});
-
-		it('should create transaction with invalid data', () => {
-			(() => {
-				trs = createTransaction(testRecipientAddress, testAmountThousand, testSecret, '', Buffer.from('hello'));
-			}).should.throw('Invalid encoding in transaction data. Data must be utf-8 encoded.');
-		});
-	});
-
-	describe('#createTransaction with secondSignature and data', () => {
-		const createTransaction = transaction.createTransaction;
-		let trs = null;
-
-		it('should be a function', () => {
-			(createTransaction).should.be.type('function');
-		});
-
-		it('should create transaction with second signature and data', () => {
-			trs = createTransaction(
-				testRecipientAddress,
-				testAmountThousand,
-				testSecret,
-				testSecondSecret,
-				testData,
-			);
-			(trs).should.be.ok();
-		});
-
-		it('should create transaction with empty string second signature and data', () => {
-			trs = createTransaction(
-				testRecipientAddress,
-				testAmountThousand,
-				testSecret,
-				'',
-				testData,
-			);
-			(trs).should.be.ok();
-			(trs).should.have.property('signSignature').and.be.type('string');
-		});
-
-		describe('returned transaction', () => {
-			it('should conatain data field with string value', () => {
-				(trs.asset.data).should.be.type('string');
-				(trs.fee).should.be.equal(feeWithData);
+				it('should not be second signed correctly if modified', () => {
+					transactionTransaction.amount = 100;
+					const result = cryptoModule
+						.verifySecondSignature(transactionTransaction, secondPublicKey);
+					(result).should.not.be.ok();
+				});
 			});
 		});
 	});

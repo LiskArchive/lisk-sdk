@@ -21,6 +21,23 @@ import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
+const isInt = n => parseInt(n, 10) === n;
+
+const validateOptions = ({ category, name, type, link }) => {
+	if (!isInt(category)) {
+		throw new Error('Dapp category must be an integer.');
+	}
+	if (typeof name !== 'string') {
+		throw new Error('Dapp name must be a string.');
+	}
+	if (!isInt(type)) {
+		throw new Error('Dapp type must be an integer.');
+	}
+	if (typeof link !== 'string') {
+		throw new Error('Dapp link must be a string.');
+	}
+};
+
 /**
  * @method createDapp
  * @param secret
@@ -31,7 +48,9 @@ import { prepareTransaction } from './utils';
  * @return {Object}
  */
 
-function createDapp(secret, secondSecret, options, timeOffset) {
+function createDapp(secret, secondSecret, options = {}, timeOffset) {
+	validateOptions(options);
+
 	const keys = crypto.getKeys(secret);
 
 	const transaction = {
