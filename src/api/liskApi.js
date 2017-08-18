@@ -46,6 +46,10 @@ import cryptoModule from '../transactions/crypto';
 const GET = 'GET';
 const POST = 'POST';
 
+const livePort = 8000;
+const testPort = 7000;
+const sslPort = 443;
+
 function LiskAPI(providedOptions = {}) {
 	if (!(this instanceof LiskAPI)) {
 		return new LiskAPI(providedOptions);
@@ -53,9 +57,9 @@ function LiskAPI(providedOptions = {}) {
 
 	const options = Object.assign({}, config.options, providedOptions);
 	const getDefaultPort = () => {
-		if (options.testnet) return 7000;
-		if (options.ssl) return 443;
-		return 8000;
+		if (options.testnet) return testPort;
+		if (options.ssl) return sslPort;
+		return livePort;
 	};
 
 	this.defaultPeers = options.peers || config.peers.mainnet;
@@ -131,16 +135,12 @@ LiskAPI.prototype.setNode = function setNode(node) {
 
 LiskAPI.prototype.setTestnet = function setTestnet(testnet) {
 	if (this.testnet !== testnet) {
-		this.testnet = testnet;
 		this.bannedPeers = [];
-		this.port = 7000;
-		privateApi.selectNode.call(this);
-	} else {
-		this.testnet = false;
-		this.bannedPeers = [];
-		this.port = 8000;
-		privateApi.selectNode.call(this);
 	}
+	this.testnet = testnet;
+	this.port = testnet ? testPort : livePort;
+
+	privateApi.selectNode.call(this);
 };
 
 /**
