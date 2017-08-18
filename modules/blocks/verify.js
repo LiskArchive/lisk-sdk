@@ -7,9 +7,7 @@ var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
 var exceptions = require('../../helpers/exceptions.js');
-var BSON = require('bson');
-
-var bson = new BSON();
+var bson = require('../../helpers/bson.js');
 
 var modules, library, self, __private = {};
 
@@ -92,11 +90,10 @@ __private.checkTransaction = function (block, transaction, cb) {
 
 /**
  * Adds default properties to block.
- * @private
  * @param {Object} block Block object reduced
  * @return {Object} Block object completed
  */
-__private.addBlockProperties = function (block) {
+Verify.prototype.addBlockProperties = function (block) {
 	if (block.version === undefined) {
 		block.version = 0;
 	}
@@ -127,11 +124,10 @@ __private.addBlockProperties = function (block) {
 
 /**
  * Deletes default properties from block.
- * @private
  * @param {Object} block Block object completed
  * @return {Object} Block object reduced
  */
-__private.deleteBlockProperties = function (block) {
+Verify.prototype.deleteBlockProperties = function (block) {
 	var reducedBlock = JSON.parse(JSON.stringify(block));
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
@@ -155,7 +151,6 @@ __private.deleteBlockProperties = function (block) {
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
 		delete reducedBlock.transactions;
 	}
-	delete reducedBlock.id;
 	return reducedBlock;
 };
 
@@ -341,7 +336,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			if (!broadcast) {
 				try {
 					// set default properties
-					block = __private.addBlockProperties(block);
+					block = self.addBlockProperties(block);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -358,20 +353,6 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 
 			return setImmediate(seriesCb);
 		},
-		deleteBlockProperties: function (seriesCb) {
-			if (broadcast) {
-				try {
-					// delete default properties
-					var blockReduced = __private.deleteBlockProperties(block);
-					var serializedBlockReduced = bson.serialize(blockReduced);
-					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, broadcast);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
-			}
-
-			return setImmediate(seriesCb);
-		},
 		verifyBlock: function (seriesCb) {
 			// Sanity check of the block, if values are coherent.
 			// No access to database
@@ -383,6 +364,20 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 
 				return setImmediate(seriesCb);
 			});
+		},
+		deleteBlockProperties: function (seriesCb) {
+			if (broadcast) {
+				try {
+					// delete default properties
+					var blockReduced = self.deleteBlockProperties(block);
+					var serializedBlockReduced = bson.serialize(blockReduced);
+					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, block.id, broadcast);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+			}
+
+			return setImmediate(seriesCb);
 		},
 		checkExists: function (seriesCb) {
 			// Check if block id is already in the database (very low probability of hash collision).

@@ -57,7 +57,7 @@ function Transactions (cb, scope) {
 	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
-		transactionTypes.SEND, new Transfer()
+		transactionTypes.SEND, new Transfer(library.logger, library.schema)
 	);
 
 	setImmediate(cb, null, self);
@@ -240,6 +240,7 @@ __private.getById = function (id, cb) {
 
 		var rawTransaction = rows[0];
 		var queryNames = {};
+		queryNames[transactionTypes.SEND] = 'getTransferById';
 		queryNames[transactionTypes.SIGNATURE] = 'getSignatureById';
 		queryNames[transactionTypes.DELEGATE] = 'getDelegateById';
 		queryNames[transactionTypes.VOTE] = 'getVotesById';
@@ -651,7 +652,6 @@ Transactions.prototype.shared = {
 				}
 
 				return setImmediate(cb, null, {transaction: transaction});
-
 			});
 		});
 	},
@@ -694,7 +694,7 @@ Transactions.prototype.shared = {
 	},
 
 	postTransactions: function (req, cb) {
-		return modules.transport.internal.postTransactions(req.body, cb);
+		return modules.transport.shared.postTransactions(req.body, cb);
 	}
 };
 

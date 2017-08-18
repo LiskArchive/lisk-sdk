@@ -2,23 +2,26 @@
 
 var wsApi = require('../../helpers/wsApi');
 var wsRPC = require('./rpc/wsRPC').wsRPC;
+var slaveRPCStub = require('./rpc/wsRPC').slaveRPCStub;
 
-function TransportWSApi (transportModule, app, logger) {
+function TransportWSApi (transportModule) {
 
 	wsRPC.getServer().registerRPCEndpoints({
 		acceptPeer: transportModule.internal.acceptPeer,
 		removePeer: transportModule.internal.removePeer,
-		blocksCommon: transportModule.internal.blocksCommon,
-		blocks: transportModule.internal.blocks,
-		list: transportModule.internal.list,
-		height: transportModule.internal.height,
-		getTransactions: transportModule.internal.getTransactions,
-		getSignatures: transportModule.internal.getSignatures,
-		status: transportModule.internal.status,
-		postBlock: transportModule.internal.postBlock,
-		postSignatures: transportModule.internal.postSignatures,
-		postTransactions: transportModule.internal.postTransactions
+		blocksCommon: transportModule.shared.blocksCommon,
+		blocks: transportModule.shared.blocks,
+		list: transportModule.shared.list,
+		height: transportModule.shared.height,
+		getTransactions: transportModule.shared.getTransactions,
+		getSignatures: transportModule.shared.getSignatures,
+		status: transportModule.shared.status,
+		postBlock: transportModule.shared.postBlock,
+		postSignatures: transportModule.shared.postSignatures,
+		postTransactions: transportModule.shared.postTransactions
 	});
+
+	wsRPC.getServer().registerRPCEndpoints(slaveRPCStub);
 }
 
 module.exports = TransportWSApi;

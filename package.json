@@ -14,7 +14,8 @@
     "test-functional": "grunt test-functional",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "create-bundles": "webpack",
-    "server-docs": "npm run jsdoc && http-server docs/jsdoc/"
+    "server-docs": "npm run jsdoc && http-server docs/jsdoc/",
+    "precommit": "npm run eslint"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
@@ -58,7 +59,7 @@
     "valid-url": "=1.0.9",
     "validator": "=7.0.0",
     "validator.js": "=2.0.3",
-    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#47b53a59f72441686314296f619b67cc8e855e21",
+    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#dd6d5d71d61fa9f48cc3f75ea334577ca1711b9b",
     "z-schema": "=3.18.2"
   },
   "devDependencies": {
@@ -76,11 +77,12 @@
     "grunt-eslint": "=20.0.0",
     "grunt-exec": "=2.0.0",
     "grunt-obfuscator": "=0.1.0",
+    "husky": "=0.14.3",
     "istanbul": "=0.4.5",
     "istanbul-middleware": "=0.2.2",
     "jsdoc": "=3.4.3",
     "jsdox": "=0.4.10",
-    "lisk-js": "=0.4.3",
+    "lisk-js": "git://github.com/LiskHQ/lisk-js#optional_data_test",
     "mocha": "=3.4.2",
     "moment": "=2.18.1",
     "pm2": "=2.4.6",
