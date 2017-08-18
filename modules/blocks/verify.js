@@ -64,7 +64,7 @@ __private.checkTransaction = function (block, transaction, cb) {
 					// Fork: Transaction already confirmed.
 					modules.delegates.fork(block, 2);
 					modules.blocks.verify.forks.add(block.id);
-					
+
 					// Undo the offending transaction.
 					// DATABASE: write
 					modules.transactions.undoUnconfirmed(transaction, function (err2) {
@@ -167,14 +167,14 @@ Verify.prototype.deleteBlockProperties = function (block) {
  */
 Verify.prototype.verifyBlock = function (block, cb) {
 	var lastBlock = modules.blocks.lastBlock.get();
-	
+
 	// Calculate expected block slot
 	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
 	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
 	// Set block height
 	block.height = lastBlock.height + 1;
-	
+
 	async.series([
 		function baseValidations (seriesCb) {
 			var error = null;
@@ -269,7 +269,7 @@ Verify.prototype.verifyBlock = function (block, cb) {
 				},
 				signature: function (parallelCb) {
 					var valid;
-					
+
 					try {
 						valid = library.logic.block.verifySignature(block);
 					} catch (e) {
@@ -314,7 +314,7 @@ Verify.prototype.verifyBlock = function (block, cb) {
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
  * - Apply the block to database if both verifications are ok
- * 
+ *
  * @async
  * @public
  * @method processBlock
@@ -437,6 +437,7 @@ Verify.prototype.forks = {
 	get: function (blockId) {
 		return forks.indexOf(blockId);
 	},
+
 	add: function (blockId) {
 		if (forks.length > 100){
 			forks.shift();
