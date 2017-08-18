@@ -10,6 +10,7 @@ var exceptions = require('../../helpers/exceptions.js');
 var bson = require('../../helpers/bson.js');
 
 var modules, library, self, __private = {};
+var forks = [];
 
 __private.blockReward = new BlockReward();
 
@@ -62,6 +63,8 @@ __private.checkTransaction = function (block, transaction, cb) {
 				if (err) {
 					// Fork: Transaction already confirmed.
 					modules.delegates.fork(block, 2);
+					modules.blocks.verify.forks.add(block.id);
+					
 					// Undo the offending transaction.
 					// DATABASE: write
 					modules.transactions.undoUnconfirmed(transaction, function (err2) {
@@ -423,6 +426,23 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			modules.blocks.chain.applyBlock(block, saveBlock, cb);
 		}
 	});
+};
+
+/**
+ * In memory fork list functions: get, add
+ * @property {function} get Returns blockId index
+ * @property {function} add Adds new blockId to fork list and returns index
+ */
+Verify.prototype.forks = {
+	get: function (blockId) {
+		return forks.indexOf(blockId);
+	},
+	add: function (blockId) {
+		if (forks.length > 100){
+			forks.shift();
+		}
+		forks.push(blockId);
+	}
 };
 
 /**
