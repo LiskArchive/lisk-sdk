@@ -568,7 +568,7 @@ describe('SQL triggers related to accounts', function () {
 							last_random_account = node.randomAccount();
 							var tx = node.lisk.transaction.createTransaction(
 								last_random_account.address,
-								node.randomNumber(100000000, 1000000000),
+								node.randomNumber(500000000, 1000000000),
 								node.gAccount.password
 							);
 							transactions.push(tx);
