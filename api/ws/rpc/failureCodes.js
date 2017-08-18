@@ -30,7 +30,7 @@ module.exports.errorMessages = {
 	4102: 'Request is made on the wrong network',
 	4103: 'Request is made from incompatible version',
 	4104: 'Attempting to insert already active peer',
-	4105: 'Attempting to remove not existing peer',
+	4105: 'Attempting to remove non-existent peer',
 	4106: 'Attempting to change peer data from different connection',
 	4107: 'Error occurred during update on master process', // Needs to be implemented
 	4200: 'Failed to check if peer is already present',
