@@ -26,7 +26,7 @@ var wsServer = {
 		this.testSocketCluster = null;
 	},
 
-	// Invoked by each of workers
+	// Invoked by each worker
 	run: function (worker) {
 		var scServer = worker.scServer;
 		this.testWampServer = new WAMPServer();
