@@ -413,26 +413,26 @@ describe('Lisk.api()', () => {
 		describe('#getDapps', () => {
 			it('should get dapps with options', () => {
 				const options = {
-					limit: 10,
-					offset: 1,
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
 				};
 				LSK.getDapps(options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'dapps', options, callback)).should.be.true();
 			});
 		});
 
-		describe('#getDappCategory', () => {
-			it('should get getDappCategory', () => {
+		describe('#getDappsByCategory', () => {
+			it('should get dapps by category', () => {
 				const options = {
-					limit: 10,
-					offset: 1,
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
 				};
 				const expectedPassedOptions = {
-					limit: 10,
-					offset: 1,
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
 					category: 'blockchain',
 				};
-				LSK.getDappCategory('blockchain', options, callback);
+				LSK.getDappsByCategory('blockchain', options, callback);
 				(LSK.sendRequest.calledWithExactly(GET, 'dapps', expectedPassedOptions, callback)).should.be.true();
 			});
 		});
