@@ -372,6 +372,39 @@ LiskAPI.prototype.getVoters = privateApi.wrapSendRequest(GET, 'voters', username
 LiskAPI.prototype.getUnsignedMultisignatureTransactions = privateApi.wrapSendRequest(GET, 'transactions/unsigned', data => data);
 
 /**
+ * @method getDapp
+ * @param transactionId
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return API object
+ */
+
+LiskAPI.prototype.getDapp = privateApi.wrapSendRequest(GET, 'dapps', transactionId => ({ transactionId }));
+
+/**
+ * @method getDapps
+ * @param data
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return API object
+ */
+
+LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => data);
+
+/**
+ * @method getDappsByCategory
+ * @param category
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return API object
+ */
+
+LiskAPI.prototype.getDappsByCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
+
+/**
  * @method sendLSK
  * @param recipientId
  * @param amount

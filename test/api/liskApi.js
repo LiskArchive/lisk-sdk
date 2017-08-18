@@ -399,6 +399,44 @@ describe('Lisk.api()', () => {
 			});
 		});
 
+		describe('#getDapp', () => {
+			it('should get a dapp by transactiondId', () => {
+				const transactionId = '7520138931049441691';
+				const options = {
+					transactionId,
+				};
+				LSK.getDapp(transactionId, callback);
+				(LSK.sendRequest.calledWithExactly(GET, 'dapps', options, callback)).should.be.true();
+			});
+		});
+
+		describe('#getDapps', () => {
+			it('should get dapps with options', () => {
+				const options = {
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
+				};
+				LSK.getDapps(options, callback);
+				(LSK.sendRequest.calledWithExactly(GET, 'dapps', options, callback)).should.be.true();
+			});
+		});
+
+		describe('#getDappsByCategory', () => {
+			it('should get dapps by category', () => {
+				const options = {
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
+				};
+				const expectedPassedOptions = {
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
+					category: 'blockchain',
+				};
+				LSK.getDappsByCategory('blockchain', options, callback);
+				(LSK.sendRequest.calledWithExactly(GET, 'dapps', expectedPassedOptions, callback)).should.be.true();
+			});
+		});
+
 		describe('#sendLSK', () => {
 			it('should send testnet LSK', () => {
 				const recipientId = '10279923186189318946L';
