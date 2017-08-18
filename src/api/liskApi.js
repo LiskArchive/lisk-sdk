@@ -185,7 +185,6 @@ LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransacti
 	transaction, callback,
 ) {
 	const request = {
-		requestMethod: POST,
 		requestUrl: `${privateApi.getFullUrl.call(this)}/api/transactions`,
 		nethash: this.nethash,
 		requestParams: { transaction },
