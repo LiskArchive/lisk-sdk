@@ -28,21 +28,21 @@ var middleware = {
 				if (!system.nonceCompatible(headers.nonce)) {
 					return setImmediate(cb, {
 						code: failureCodes.INCOMPATIBLE_NONCE,
-						description: 'Expected nonce different than ' + system.getNonce()
+						description: 'Expected nonce: ' + system.getNonce() + ' but received: ' + headers.nonce
 					}, peer);
 				}
 
 				if (!system.networkCompatible(headers.nethash)) {
 					return setImmediate(cb, {
 						code: failureCodes.INCOMPATIBLE_NETWORK,
-						description: 'Expected network: ' + system.getNethash() + ' but received: ' + headers.nethash
+						description: 'Expected nethash: ' + system.getNethash() + ' but received: ' + headers.nethash
 					}, peer);
 				}
 
 				if (!system.versionCompatible(headers.version)) {
 					return setImmediate(cb, {
 						code: failureCodes.INCOMPATIBLE_VERSION,
-						description: 'Expected minVersion: ' + system.getMinVersion() + ' but received: ' + headers.version
+						description: 'Expected version: ' + system.getMinVersion() + ' but received: ' + headers.version
 					}, peer);
 				}
 				return setImmediate(cb, null, peer);
