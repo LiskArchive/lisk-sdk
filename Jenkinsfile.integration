@@ -1,71 +1,90 @@
+def beforeExec() {
+	sh '''
+	bash ~/before.sh
+	'''
+}
+
+def afterExec() {
+	sh '''
+	bash ~/after.sh
+	'''
+}
+
 node('node-06'){
-  lock(resource: "core-integration-tests", inversePrecedence: true) {
-    stage ('Prepare Workspace') {
-      deleteDir()
-      checkout scm
-    }
+	lock(resource: "core-integration-tests", inversePrecedence: true) {
+		stage ('Prepare Workspace') {
+			deleteDir()
+			checkout scm
+			beforeExec()
+		}
 
-    stage ('Reset DB') {
-      try {
-        sh '''#!/bin/bash
-        sudo service postgresql restart
-        dropdb lisk_test || true
-        createdb lisk_test
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, installation failed')
-      }
-    }
+		stage ('Reset DB') {
+			try {
+				sh '''#!/bin/bash
+				sudo service postgresql restart
+				dropdb lisk_test || true
+				createdb lisk_test
+				'''
+			} catch (err) {
+				currentBuild.result = 'FAILURE'
+				afterExec()
+				error('Stopping build, installation failed')
+			}
+		}
 
-    stage ('Build Dependencies') {
-      try {
-        sh '''#!/bin/bash
-        npm install
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, build dependencies failed')
-      }
-    }
+		stage ('Build Dependencies') {
+			try {
+				sh '''#!/bin/bash
+				npm install
+				'''
+			} catch (err) {
+				currentBuild.result = 'FAILURE'
+				afterExec()
+				error('Stopping build, build dependencies failed')
+			}
+		}
 
-    stage ('Prepare configuration') {
-      try {
-        sh '''#!/bin/bash
-	    cp test/config.json test/genesisBlock.json .
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, preparing configuration failed')
-      }
-    }
+		stage ('Prepare configuration') {
+			try {
+				sh '''#!/bin/bash
+			cp test/config.json test/genesisBlock.json .
+				'''
+			} catch (err) {
+				currentBuild.result = 'FAILURE'
+				afterExec()
+				error('Stopping build, preparing configuration failed')
+			}
+		}
 
-    stage ('Integration Tests') {
-      try {
-        sh '''#!/bin/bash
-            cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-            npm run test-integration | tee integrationTests.logs
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, integration tests failed')
-      }
-    }
+		stage ('Integration Tests') {
+			try {
+				sh '''#!/bin/bash
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run test-integration | tee integrationTests.logs
+				'''
+			} catch (err) {
+				currentBuild.result = 'FAILURE'
+				afterExec
+				error('Stopping build, integration tests failed')
+			}
+		}
 
-    stage ('Cleanup') {
-      try {
-        sh '''#!/bin/bash
-           node_modules/.bin/pm2 kill
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, cleanup failed')
-      }
-    }
+		stage ('Cleanup') {
+			try {
+				sh '''#!/bin/bash
+					node_modules/.bin/pm2 kill
+				'''
+			} catch (err) {
+				currentBuild.result = 'FAILURE'
+				afterExec()
+				error('Stopping build, cleanup failed')
+			}
+		}
 
-    stage ('Set milestone') {
-      milestone 1
-      currentBuild.result = 'SUCCESS'
-    }
-  }
+		stage ('Set milestone') {
+			milestone 1
+			currentBuild.result = 'SUCCESS'
+			afterExec()
+		}
+	}
 }
