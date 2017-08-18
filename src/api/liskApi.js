@@ -402,7 +402,7 @@ LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => da
  * @return API object
  */
 
-LiskAPI.prototype.getDappCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
+LiskAPI.prototype.getDappsCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
 
 
 /**
