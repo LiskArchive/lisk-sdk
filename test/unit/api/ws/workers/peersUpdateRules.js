@@ -116,7 +116,7 @@ describe('PeersUpdateRules', function () {
 			peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
 				expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
-				expect(err).to.have.property('message').equal('Transport error during invoking update procedure');
+				expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
 				expect(err).to.have.property('description').equal('On remove error');
 				done();
 			});
@@ -258,7 +258,7 @@ describe('PeersUpdateRules', function () {
 				peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
-					expect(err).to.have.property('message').equal('Transport error during invoking update procedure');
+					expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
 					expect(err).to.have.property('description').equal('On remove error');
 					done();
 				});
@@ -298,8 +298,8 @@ describe('PeersUpdateRules', function () {
 			});
 		});
 	});
-	
-	
+
+
 	describe('internal.update', function () {
 
 		var insertStub;

@@ -42,7 +42,7 @@ var middleware = {
 				if (!system.versionCompatible(headers.version)) {
 					return setImmediate(cb, {
 						code: failureCodes.INCOMPATIBLE_VERSION,
-						description: 'Expected min version: ' + system.getMinVersion() + ' but received: ' + headers.version
+						description: 'Expected minVersion: ' + system.getMinVersion() + ' but received: ' + headers.version
 					}, peer);
 				}
 				return setImmediate(cb, null, peer);
