@@ -1,11 +1,11 @@
 'use strict';
+
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster').SocketCluster;
 var testConfig = require('../config.json');
 
 var wsServer = {
-
 	port: 9999,
 	testSocketCluster: null,
 	testWampServer: null,
@@ -40,9 +40,11 @@ var wsServer = {
 		status: function (cb) {
 			return cb(null, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash});
 		},
+
 		list: function (cb) {
 			return cb(null, {success: true, peers: []});
 		},
+
 		updateMyself: function (cb) {
 			return cb(null);
 		}
