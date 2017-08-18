@@ -33,12 +33,11 @@ import { getBytes } from './transactions/transactionBytes';
 
 function getId(transaction) {
 	const transactionBytes = getBytes(transaction);
-	const transactionBytesHex = cryptoModule.bufferToHex(transactionBytes);
-	const transactionHash = cryptoModule.getSha256Hash(transactionBytesHex, 'hex');
-	const bufferFromFirstEntries = Buffer.from(transactionHash).slice(0, 8).reverse();
-	const id = bignum.fromBuffer(bufferFromFirstEntries).toString();
+	const transactionHash = crypto.createHash('sha256').update(transactionBytes).digest();
+	const bufferFromFirstEntries = transactionHash.slice(0, 8).reverse();
+	const firstEntriesToNumber = bignum.fromBuffer(bufferFromFirstEntries);
 
-	return id;
+	return firstEntriesToNumber.toString();
 }
 
 /**
@@ -73,20 +72,6 @@ function getFee(transaction) {
  */
 
 function sign(transaction, keys) {
-	const hash = getHash(transaction);
-	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-	return Buffer.from(signature).toString('hex');
-}
-
-/**
- * @method secondSign
- * @param transaction Object
- * @param keys Object
- *
- * @return {string}
- */
-
-function secondSign(transaction, keys) {
 	const hash = getHash(transaction);
 	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
 	return Buffer.from(signature).toString('hex');
@@ -194,7 +179,6 @@ module.exports = {
 	getId,
 	getFee,
 	sign,
-	secondSign,
 	multiSign,
 	getKeys,
 	getAddress,

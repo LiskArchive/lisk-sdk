@@ -25,7 +25,7 @@ describe('crypto.js @now', () => {
 	});
 
 	it('should has properties', () => {
-		const properties = ['getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
+		const properties = ['getHash', 'getId', 'getFee', 'sign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
 		properties.forEach((property) => {
 			(cryptoModule).should.have.property(property);
 		});
@@ -184,18 +184,6 @@ describe('crypto.js @now', () => {
 
 		it('should be a function', () => {
 			(sign).should.be.type('function');
-		});
-	});
-
-	describe('#secondSign', () => {
-		const secondSign = cryptoModule.secondSign;
-
-		it('should be ok', () => {
-			(secondSign).should.be.ok();
-		});
-
-		it('should be a function', () => {
-			(secondSign).should.be.type('function');
 		});
 	});
 

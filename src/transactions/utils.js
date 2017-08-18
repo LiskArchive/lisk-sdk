@@ -17,7 +17,7 @@ import crypto from '../crypto';
 const secondSignTransaction = (transactionObject, secondSecret) => {
 	const secondKeys = crypto.getKeys(secondSecret);
 	return Object.assign({}, transactionObject, {
-		signSignature: crypto.secondSign(transactionObject, secondKeys),
+		signSignature: crypto.sign(transactionObject, secondKeys),
 	});
 };
 
