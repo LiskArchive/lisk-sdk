@@ -247,6 +247,7 @@ Delegate.prototype.schema = {
 	},
 	required: ['username']
 };
+
 /**
  * Validates transaction delegate schema.
  * @param {transaction} trs
