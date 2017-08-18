@@ -101,7 +101,7 @@ describe('PeersUpdateRules', function () {
 			expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionId).equal(validPeer.nonce);
 		});
 
-		it('should return the error from server when invoked with valid arguments and received error code', function (done) {
+		it('should return an error from server when invoked with valid arguments and received error code', function (done) {
 			peersUpdateRules.slaveToMasterSender.send.restore();
 			peersUpdateRules.slaveToMasterSender.send =
 				sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
@@ -243,7 +243,7 @@ describe('PeersUpdateRules', function () {
 				});
 			});
 
-			it('should return the error from server when invoked with valid arguments and received error code', function (done) {
+			it('should return an error from server when invoked with valid arguments and received error code', function (done) {
 				peersUpdateRules.slaveToMasterSender.send.restore();
 				peersUpdateRules.slaveToMasterSender.send =
 					sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});

@@ -275,7 +275,7 @@ describe('peers', function () {
 			expect(peers.list().length).equal(0);
 		});
 
-		it('should return the error code when trying to remove non inserted peer', function () {
+		it('should return an error when trying to remove a non-existent peer', function () {
 			var result = peers.remove(randomPeer);
 			expect(result).to.be.a('number').equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);
 			expect(peers.list().length).equal(0);

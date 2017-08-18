@@ -186,31 +186,31 @@ describe('handshake', function () {
 
 		describe('when present on master', function () {
 
-			describe('with not present nonce', function () {
+			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
 					validClientSocketOptions.query.nonce = randomString.generate(16);
 				});
 
-				it('and present connectionId should succeed', function (done) {
+				it('should succeed when connectionId is present', function (done) {
 					connect();
 					expectConnect(this, done);
 				});
 
-				it('and not present connectionId should succeed', function (done) {
+				it('should succeed when connectionId is not present', function (done) {
 					// Change query to obtain new id assignment during next connection
 					validClientSocketOptions.query.height += 1;
 					expectConnect(this, done);
 				});
 			});
 
-			describe('with present nonce', function () {
+			describe('when nonce is present', function () {
 
-				it('and present connectionId should succeed', function () {
+				it('should succeed when connectionId is present', function () {
 					// Impossible to recreate
 				});
 
-				it('and not present connectionId should succeed', function (done) {
+				it('should succeed when connectionId is not present', function (done) {
 					// Change query to obtain new id assignment during next connection
 					validClientSocketOptions.query.height += 1;
 					connect();
@@ -240,32 +240,32 @@ describe('handshake', function () {
 				this.timeout(2000);
 			});
 
-			describe('with not present nonce', function () {
+			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
 					validClientSocketOptions.query.nonce = randomString.generate(16);
 				});
 
-				it('and present connectionId should succeed', function (done) {
+				it('should succeed when connectionId is present', function (done) {
 					connect();
 					expectConnect(this, done);
 				});
 
-				it('and not present connectionId should succeed', function (done) {
+				it('should succeed when connectionId is not present', function (done) {
 					validClientSocketOptions.query.height += 1;
 					connect();
 					expectConnect(this, done);
 				});
 			});
 
-			describe('with present nonce', function () {
+			describe('when nonce is not present', function () {
 
-				it('and present connectionId should succeed', function (done) {
+				it('should succeed when connectionId is present', function (done) {
 					connect();
 					expectConnect(this, done);
 				});
 
-				it('and not present connectionId should succeed', function (done) {
+				it('should succeed when connectionId is not present', function (done) {
 					// Change query to obtain new id assignment during next connection
 					validClientSocketOptions.query.height += 1;
 					connect();
