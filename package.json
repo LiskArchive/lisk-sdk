@@ -82,7 +82,7 @@
     "istanbul-middleware": "=0.2.2",
     "jsdoc": "=3.4.3",
     "jsdox": "=0.4.10",
-    "lisk-js": "git://github.com/LiskHQ/lisk-js#optional_data_test",
+    "lisk-js": "git://github.com/LiskHQ/lisk-js#1.0.0-dev",
     "mocha": "=3.4.2",
     "moment": "=2.18.1",
     "pm2": "=2.4.6",
