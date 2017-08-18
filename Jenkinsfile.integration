@@ -1,21 +1,8 @@
-def beforeExec() {
-	sh '''
-	bash ~/before.sh
-	'''
-}
-
-def afterExec() {
-	sh '''
-	bash ~/after.sh
-	'''
-}
-
 node('node-06'){
 	lock(resource: "core-integration-tests", inversePrecedence: true) {
 		stage ('Prepare Workspace') {
 			deleteDir()
 			checkout scm
-			beforeExec()
 		}
 
 		stage ('Reset DB') {
@@ -27,7 +14,6 @@ node('node-06'){
 				'''
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
-				afterExec()
 				error('Stopping build, installation failed')
 			}
 		}
@@ -39,7 +25,6 @@ node('node-06'){
 				'''
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
-				afterExec()
 				error('Stopping build, build dependencies failed')
 			}
 		}
@@ -51,7 +36,6 @@ node('node-06'){
 				'''
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
-				afterExec()
 				error('Stopping build, preparing configuration failed')
 			}
 		}
@@ -64,7 +48,6 @@ node('node-06'){
 				'''
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
-				afterExec
 				error('Stopping build, integration tests failed')
 			}
 		}
@@ -84,7 +67,20 @@ node('node-06'){
 		stage ('Set milestone') {
 			milestone 1
 			currentBuild.result = 'SUCCESS'
-			afterExec()
 		}
 	}
+
+	step([
+		$class: 'GitHubCommitStatusSetter',
+		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
+		contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/integration'],
+		statusResultSource: [
+			$class: 'ConditionalStatusResultSource',
+			results: [
+					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
+					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
+					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build some how escaped evaluation']
+			]
+		]
+	])
 }
