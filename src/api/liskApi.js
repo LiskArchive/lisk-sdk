@@ -404,7 +404,6 @@ LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => da
 
 LiskAPI.prototype.getDappsByCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
 
-
 /**
  * @method sendLSK
  * @param recipientId
