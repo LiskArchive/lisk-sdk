@@ -334,5 +334,5 @@ function getBytes(transaction, options) {
 }
 
 module.exports = {
-	getBytes
+	getBytes,
 };
