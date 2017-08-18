@@ -15,7 +15,7 @@
 import cryptoModule from '../../src/crypto';
 import { getBytes } from '../../src/transactions/transactionBytes';
 
-describe('crypto.js @now', () => {
+describe('crypto.js', () => {
 	it('should be ok', () => {
 		(cryptoModule).should.be.ok();
 	});
@@ -137,55 +137,6 @@ describe('crypto.js @now', () => {
 		});
 	});
 
-	describe('#getFee', () => {
-		const getFee = cryptoModule.getFee;
-
-		it('should be ok', () => {
-			(getFee).should.be.ok();
-		});
-
-		it('should be a function', () => {
-			(getFee).should.be.type('function');
-		});
-
-		it('should return number', () => {
-			const fee = getFee({ amount: 100000, type: 0 });
-			(fee).should.be.type('number');
-			(fee).should.be.not.NaN();
-		});
-
-		it('should return 10000000', () => {
-			const fee = getFee({ amount: 100000, type: 0 });
-			(fee).should.be.type('number').and.equal(10000000);
-		});
-
-		it('should return 500000000', () => {
-			const fee = getFee({ type: 1 });
-			(fee).should.be.type('number').and.equal(500000000);
-		});
-
-		it('should be equal 2500000000', () => {
-			const fee = getFee({ type: 2 });
-			(fee).should.be.type('number').and.equal(2500000000);
-		});
-
-		it('should be equal 100000000', () => {
-			const fee = getFee({ type: 3 });
-			(fee).should.be.type('number').and.equal(100000000);
-		});
-	});
-
-	describe('#sign', () => {
-		const sign = cryptoModule.sign;
-
-		it('should be ok', () => {
-			(sign).should.be.ok();
-		});
-
-		it('should be a function', () => {
-			(sign).should.be.type('function');
-		});
-	});
 
 	describe('#getKeys', () => {
 		const getKeys = cryptoModule.getKeys;
@@ -229,27 +180,157 @@ describe('crypto.js @now', () => {
 		});
 	});
 
-	describe('#verify', () => {
+	describe('#getFee', () => {
+		const getFee = cryptoModule.getFee;
+
+		it('should be ok', () => {
+			(getFee).should.be.ok();
+		});
+
+		it('should be a function', () => {
+			(getFee).should.be.type('function');
+		});
+
+		it('should return number', () => {
+			const fee = getFee({ amount: 100000, type: 0 });
+			(fee).should.be.type('number');
+			(fee).should.be.not.NaN();
+		});
+
+		it('should return 10000000', () => {
+			const fee = getFee({ amount: 100000, type: 0 });
+			(fee).should.be.type('number').and.equal(10000000);
+		});
+
+		it('should return 500000000', () => {
+			const fee = getFee({ type: 1 });
+			(fee).should.be.type('number').and.equal(500000000);
+		});
+
+		it('should be equal 2500000000', () => {
+			const fee = getFee({ type: 2 });
+			(fee).should.be.type('number').and.equal(2500000000);
+		});
+
+		it('should be equal 100000000', () => {
+			const fee = getFee({ type: 3 });
+			(fee).should.be.type('number').and.equal(100000000);
+		});
+	});
+
+	describe('sign and verify @now', () => {
+		const sign = cryptoModule.sign;
 		const verify = cryptoModule.verify;
-
-		it('should be ok', () => {
-			(verify).should.be.ok();
+		const keys = cryptoModule.getKeys('123');
+		const secondKeys = cryptoModule.getKeys('345');
+		const expectedSignature = '05383e756598172785843f5f165a8bef3632d6a0f6b7a3429201f83e5d60a5b57faa1fa383c4f33bb85d5804848e5313aa7b0cf1058873bc8576d206bdb9c804';
+		const transaction = {
+			type: 0,
+			amount: 1000,
+			recipientId: '58191285901858109L',
+			timestamp: 141738,
+			asset: {},
+			id: '13987348420913138422',
+			senderPublicKey: keys.publicKey,
+		};
+		const signature = sign(transaction, keys);
+		const alterTransaction = {
+			type: 0,
+			amount: '100',
+			recipientId: '58191285901858109L',
+			timestamp: 141738,
+			asset: {},
+			id: '13987348420913138422',
+			senderPublicKey: keys.publicKey,
+		};
+		const alterSignature = sign(alterTransaction, keys);
+		const transactionToVerify = Object.assign({}, transaction, {
+			signature: sign(transaction, keys),
+		});
+		const transactionToSecondVerify = Object.assign({}, transactionToVerify, {
+			signSignature: sign(transactionToVerify, secondKeys),
 		});
 
-		it('should be function', () => {
-			(verify).should.be.type('function');
+		describe('#sign', () => {
+			it('should be ok', () => {
+				(sign).should.be.ok();
+			});
+
+			it('should be a function', () => {
+				(sign).should.be.type('function');
+			});
+
+			it('should sign a transaction', () => {
+				(signature).should.be.equal(expectedSignature);
+			});
+
+			it('should not be equal signing a different transaction', () => {
+				(alterSignature).should.not.be.eql(signature);
+			});
+		});
+
+		describe('#verify', () => {
+			it('should be ok', () => {
+				(verify).should.be.ok();
+			});
+
+			it('should be function', () => {
+				(verify).should.be.type('function');
+			});
+
+			it('should verify a transaction', () => {
+				const verification = verify(transactionToVerify);
+				(verification).should.be.true();
+			});
+		});
+
+		describe('#verifySecondSignature', () => {
+			const verifySecondSignature = cryptoModule.verifySecondSignature;
+
+			it('should be ok', () => {
+				(verifySecondSignature).should.be.ok();
+			});
+
+			it('should be function', () => {
+				(verifySecondSignature).should.be.type('function');
+			});
+
+			it('should verify a second signed transaction', () => {
+				const verification = verifySecondSignature(transactionToSecondVerify, secondKeys.publicKey);
+				(verification).should.be.true();
+			});
+		});
+
+		describe('#multiSign', () => {
+			const multiSign = cryptoModule.multiSign;
+
+			it('should be ok', () => {
+				(multiSign).should.be.ok();
+			});
+
+			it('should be function', () => {
+				(multiSign).should.be.type('function');
+			});
+
+			it('should sign a multisignature transaction', () => {
+				const keys = cryptoModule.getKeys('123');
+				const expectedSignature = '9eb6ea53f0fd5079b956625a4f1c09e3638ab3378b0e7847cfcae9dde5a67121dfc49b5e51333296002d70166d0a93d2f4b5eef9eae4e040b83251644bb49409';
+				const transaction = {
+					type: 0,
+					amount: 1000,
+					recipientId: '58191285901858109L',
+					timestamp: 141738,
+					asset: {},
+					senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+					signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					id: '13987348420913138422',
+				};
+
+				const signature = multiSign(transaction, keys);
+
+				(signature).should.be.eql(expectedSignature);
+			});
 		});
 	});
 
-	describe('#verifySecondSignature @now', () => {
-		const verifySecondSignature = cryptoModule.verifySecondSignature;
-
-		it('should be ok', () => {
-			(verifySecondSignature).should.be.ok();
-		});
-
-		it('should be function', () => {
-			(verifySecondSignature).should.be.type('function');
-		});
-	});
 });

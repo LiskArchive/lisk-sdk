@@ -34,8 +34,8 @@ import { getBytes } from './transactions/transactionBytes';
 function getId(transaction) {
 	const transactionBytes = getBytes(transaction);
 	const transactionHash = crypto.createHash('sha256').update(transactionBytes).digest();
-	const bufferFromFirstEntries = transactionHash.slice(0, 8).reverse();
-	const firstEntriesToNumber = bignum.fromBuffer(bufferFromFirstEntries);
+	const bufferFromFirstEntriesReversed = transactionHash.slice(0, 8).reverse();
+	const firstEntriesToNumber = bignum.fromBuffer(bufferFromFirstEntriesReversed);
 
 	return firstEntriesToNumber.toString();
 }
@@ -86,13 +86,15 @@ function sign(transaction, keys) {
  */
 
 function multiSign(transaction, keys) {
-	const bytes = getBytes(transaction, 'multisignature');
+	delete transaction.signature;
+	delete transaction.signSignature;
+	const { privateKey } = keys;
+	const bytes = getBytes(transaction);
 	const hash = crypto.createHash('sha256').update(bytes).digest();
-	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
+	const signature = naclInstance.crypto_sign_detached(hash, cryptoModule.hexToBuffer(privateKey));
 
 	return Buffer.from(signature).toString('hex');
 }
-
 /**
  * @method verify
  * @param transaction Object

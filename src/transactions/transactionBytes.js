@@ -205,11 +205,10 @@ function getTransactionBytes(transaction) {
 /**
  * @method createTransactionBuffer
  * @param transaction Object
- * @param options String
  * @return {buffer}
  */
 
-function createTransactionBuffer(transaction, options) {
+function createTransactionBuffer(transaction) {
 	function assignHexToTransactionBytes(partTransactionBuffer, hexValue) {
 		const hexBuffer = Buffer.from(hexValue, 'hex');
 		for (let i = 0; i < hexBuffer.length; i++) {
@@ -287,14 +286,12 @@ function createTransactionBuffer(transaction, options) {
 			}
 		}
 
-		if (options !== 'multisignature') {
-			if (transaction.signature) {
-				assignHexToTransactionBytes(transactionBuffer, transaction.signature);
-			}
+		if (transaction.signature) {
+			assignHexToTransactionBytes(transactionBuffer, transaction.signature);
+		}
 
-			if (transaction.signSignature) {
-				assignHexToTransactionBytes(transactionBuffer, transaction.signSignature);
-			}
+		if (transaction.signSignature) {
+			assignHexToTransactionBytes(transactionBuffer, transaction.signSignature);
 		}
 
 		transactionBuffer.flip();
