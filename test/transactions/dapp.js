@@ -14,7 +14,7 @@
  */
 import dapp from '../../src/transactions/dapp';
 import slots from '../../src/time/slots';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 
 describe('dapp module', () => {
 	describe('exports', () => {

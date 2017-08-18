@@ -16,7 +16,7 @@
  * Delegate module provides functions to create delegate registration transactions.
  * @class delegate
  */
-import crypto from './crypto';
+import crypto from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';

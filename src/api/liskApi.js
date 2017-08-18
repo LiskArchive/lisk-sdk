@@ -42,7 +42,7 @@
 import privateApi from './privateApi';
 import config from '../../config.json';
 import { extend } from './utils';
-import cryptoModule from '../transactions/crypto';
+import cryptoModule from '../crypto';
 
 const LiskJS = {
 	crypto: cryptoModule,

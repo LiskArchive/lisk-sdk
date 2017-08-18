@@ -13,7 +13,7 @@
  *
  */
 import newCrypto from '../../../src/crypto/index';
-import oldCrypto from '../../../src/transactions/crypto';
+import oldCrypto from '../../../src/crypto';
 
 describe('crypto/index.js', () => {
 	it('should be ok', () => {

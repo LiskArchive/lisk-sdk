@@ -16,7 +16,7 @@
  * Transaction module provides functions for creating balance transfer transactions.
  * @class transaction
  */
-import crypto from './crypto';
+import crypto from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';

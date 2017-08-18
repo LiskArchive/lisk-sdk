@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
+import { getBytes } from '../../src/transactions/transactionBytes';
 
-describe('crypto.js', () => {
+describe('crypto.js @now', () => {
 	it('should be ok', () => {
 		(cryptoModule).should.be.ok();
 	});
@@ -24,14 +25,13 @@ describe('crypto.js', () => {
 	});
 
 	it('should has properties', () => {
-		const properties = ['getBytes', 'getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
+		const properties = ['getHash', 'getId', 'getFee', 'sign', 'secondSign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
 		properties.forEach((property) => {
 			(cryptoModule).should.have.property(property);
 		});
 	});
 
 	describe('#getBytes', () => {
-		const getBytes = cryptoModule.getBytes;
 		let bytes = null;
 
 		it('should be ok', () => {
@@ -253,7 +253,7 @@ describe('crypto.js', () => {
 		});
 	});
 
-	describe('#verifySecondSignature', () => {
+	describe('#verifySecondSignature @now', () => {
 		const verifySecondSignature = cryptoModule.verifySecondSignature;
 
 		it('should be ok', () => {

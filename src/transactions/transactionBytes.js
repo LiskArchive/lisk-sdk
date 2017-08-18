@@ -12,17 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Crypto module provides functions for byte/fee calculation, hash/address/id/keypair generation,
- * plus signing and verifying of transactions.
- * @class crypto
- */
 /* eslint-disable no-plusplus */
-import crypto from 'crypto-browserify';
 import ByteBuffer from 'bytebuffer';
 import bignum from 'browserify-bignum';
-import constants from '../constants';
-import cryptoModule from '../crypto/index';
 
 /**
  * @method getTransactionBytes
@@ -332,6 +324,7 @@ function createTransactionBuffer(transaction, options) {
 /**
  * @method getBytes
  * @param transaction Object
+ * @param options
  *
  * @return {buffer}
  */
@@ -340,212 +333,6 @@ function getBytes(transaction, options) {
 	return createTransactionBuffer(transaction, options);
 }
 
-/**
- * @method getId
- * @param transaction Object
- *
- * @return {string}
- */
-
-function getId(transaction) {
-	const hash = crypto.createHash('sha256').update(getBytes(transaction).toString('hex'), 'hex').digest();
-	const temp = Buffer.alloc(8);
-	for (let i = 0; i < 8; i++) {
-		temp[i] = hash[7 - i];
-	}
-
-	const id = bignum.fromBuffer(temp).toString();
-	return id;
-}
-
-/**
- * @method getHash
- * @param transaction Object
- *
- * @return {string}
- */
-
-function getHash(transaction) {
-	const bytes = getBytes(transaction);
-	return crypto.createHash('sha256').update(bytes).digest();
-}
-
-/**
- * @method getFee
- * @param transaction Object
- *
- * @return {number}
- */
-
-function getFee(transaction) {
-	return constants.fee[transaction.type];
-}
-
-/**
- * @method sign
- * @param transaction Object
- * @param keys Object
- *
- * @return {string}
- */
-
-function sign(transaction, keys) {
-	const hash = getHash(transaction);
-	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-	return Buffer.from(signature).toString('hex');
-}
-
-/**
- * @method secondSign
- * @param transaction Object
- * @param keys Object
- *
- * @return {string}
- */
-
-function secondSign(transaction, keys) {
-	const hash = getHash(transaction);
-	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-	return Buffer.from(signature).toString('hex');
-}
-
-/**
- * @method multiSign
- * @param transaction Object
- * @param keys Object
- *
- * @return {string}
- */
-
-function multiSign(transaction, keys) {
-	const bytes = getBytes(transaction, 'multisignature');
-	const hash = crypto.createHash('sha256').update(bytes).digest();
-	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
-
-	return Buffer.from(signature).toString('hex');
-}
-
-/**
- * @method verify
- * @param transaction Object
- *
- * @return {boolean}
- */
-
-function verify(transaction) {
-	let remove = 64;
-
-	if (transaction.signSignature) {
-		remove = 128;
-	}
-
-	const bytes = getBytes(transaction);
-	const data2 = Buffer.alloc(bytes.length - remove);
-
-	for (let i = 0; i < data2.length; i++) {
-		data2[i] = bytes[i];
-	}
-
-	const hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
-
-	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
-	const senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
-	const res = naclInstance
-		.crypto_sign_verify_detached(signatureBuffer, hash, senderPublicKeyBuffer);
-
-	return res;
-}
-
-/**
- * @method verifySecondSignature
- * @param transaction Object
- * @param publicKey Object
- *
- * @return {boolean}
- */
-
-function verifySecondSignature(transaction, publicKey) {
-	const bytes = getBytes(transaction);
-	const data2 = Buffer.alloc(bytes.length - 64);
-
-	for (let i = 0; i < data2.length; i++) {
-		data2[i] = bytes[i];
-	}
-
-	const hash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
-
-	const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
-	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	const res = naclInstance.crypto_sign_verify_detached(signSignatureBuffer, hash, publicKeyBuffer);
-
-	return res;
-}
-
-/**
- * @method getKeys
- * @param secret string
- *
- * @return {object}
- */
-
-function getKeys(secret) {
-	const hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
-	const keypair = naclInstance.crypto_sign_keypair_from_seed(hash);
-
-	return {
-		publicKey: Buffer.from(keypair.signPk).toString('hex'),
-		privateKey: Buffer.from(keypair.signSk).toString('hex'),
-	};
-}
-
-/**
- * @method getAddress
- * @param publicKey string
- *
- * @return {hex publicKey}
- */
-
-function getAddress(publicKey) {
-	const publicKeyHash = crypto.createHash('sha256').update(publicKey.toString('hex'), 'hex').digest();
-	const temp = Buffer.alloc(8);
-
-	for (let i = 0; i < 8; i++) {
-		temp[i] = publicKeyHash[7 - i];
-	}
-
-	const address = `${bignum.fromBuffer(temp).toString()}L`;
-	return address;
-}
-
 module.exports = {
-	getBytes,
-	getHash,
-	getId,
-	getFee,
-	sign,
-	secondSign,
-	multiSign,
-	getKeys,
-	getAddress,
-	verify,
-	verifySecondSignature,
-
-	bufferToHex: cryptoModule.bufferToHex,
-	hexToBuffer: cryptoModule.hexToBuffer,
-	useFirstEightBufferEntriesReversed: cryptoModule.useFirstEightBufferEntriesReversed,
-	verifyMessageWithPublicKey: cryptoModule.verifyMessageWithPublicKey,
-	signMessageWithSecret: cryptoModule.signMessageWithSecret,
-	signAndPrintMessage: cryptoModule.signAndPrintMessage,
-	printSignedMessage: cryptoModule.printSignedMessage,
-	getPrivateAndPublicKeyFromSecret: cryptoModule.getPrivateAndPublicKeyFromSecret,
-	getRawPrivateAndPublicKeyFromSecret: cryptoModule.getRawPrivateAndPublicKeyFromSecret,
-	getAddressFromPublicKey: cryptoModule.getAddressFromPublicKey,
-	getSha256Hash: cryptoModule.getSha256Hash,
-	encryptMessageWithSecret: cryptoModule.encryptMessageWithSecret,
-	decryptMessageWithSecret: cryptoModule.decryptMessageWithSecret,
-	convertPublicKeyEd2Curve: cryptoModule.convertPublicKeyEd2Curve,
-	convertPrivateKeyEd2Curve: cryptoModule.convertPrivateKeyEd2Curve,
-	toAddress: cryptoModule.toAddress,
-	signMessageWithTwoSecrets: cryptoModule.signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys: cryptoModule.verifyMessageWithTwoPublicKeys,
+	getBytes
 };

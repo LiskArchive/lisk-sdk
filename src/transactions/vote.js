@@ -16,7 +16,7 @@
  * Vote module provides functions for creating vote transactions.
  * @class vote
  */
-import crypto from './crypto';
+import crypto from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';

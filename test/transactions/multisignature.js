@@ -13,7 +13,7 @@
  *
  */
 import multisignature from '../../src/transactions/multisignature';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 describe('multisignature module', () => {
