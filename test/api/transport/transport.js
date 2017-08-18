@@ -109,7 +109,7 @@ describe('RPC', function () {
 						});
 				});
 
-				it('should reject requests with updateType not being a number', function (done) {
+				it('should reject requests when updateType is not a number', function (done) {
 					var nonNumbers = [{}, [], 'A', '1', NaN, true];
 					async.forEachOf(nonNumbers, function (nonNumber, index, eachCb) {
 						validAcceptRequest.updateType = nonNumber;
@@ -124,7 +124,7 @@ describe('RPC', function () {
 					}, done);
 				});
 
-				it('should reject requests with updateType greater than 1', function (done) {
+				it('should reject requests when updateType is greater than 1', function (done) {
 					validAcceptRequest.updateType = 2;
 					clientSocket.wampSend('updatePeer', validAcceptRequest)
 						.then(function () {

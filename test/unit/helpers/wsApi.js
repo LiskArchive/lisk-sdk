@@ -106,7 +106,7 @@ describe('handshake', function () {
 		}, done);
 	});
 
-	it('should return an error for version less than required', function (done) {
+	it('should return an error when version is incompatible', function (done) {
 		validHeaders.version = '0.0.0';
 		handshake(validHeaders, function (err) {
 			expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_VERSION);
@@ -155,7 +155,7 @@ describe('handshake', function () {
 		}, done);
 	});
 
-	it('should return an error when for different network', function (done) {
+	it('should return an error when nethash does not match', function (done) {
 		async.forEachOf(nonStrings, function (nonString, index, eachCb) {
 			validHeaders.nethash = 'DIFFERENT_NETWORK_NETHASH';
 			handshake(validHeaders, function (err) {
@@ -175,7 +175,7 @@ describe('handshake', function () {
 		});
 	});
 
-	it('should return an error when nethash is not a nonce', function (done) {
+	it('should return an error when nonce is not a string', function (done) {
 		async.forEachOf(nonStrings, function (nonString, index, eachCb) {
 			validHeaders.nonce = nonString;
 			handshake(validHeaders, function (err) {
@@ -186,7 +186,7 @@ describe('handshake', function () {
 		}, done);
 	});
 
-	it('should return an error for the same as server\'s nonce', function (done) {
+	it('should return an error when nonce is identical to server', function (done) {
 		validHeaders.nonce = validConfig.config.nonce;
 		handshake(validHeaders, function (err) {
 			expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NONCE);
