@@ -313,9 +313,8 @@ describe('crypto.js', () => {
 			});
 
 			it('should sign a multisignature transaction', () => {
-				const keys = cryptoModule.getKeys('123');
-				const expectedSignature = '9eb6ea53f0fd5079b956625a4f1c09e3638ab3378b0e7847cfcae9dde5a67121dfc49b5e51333296002d70166d0a93d2f4b5eef9eae4e040b83251644bb49409';
-				const transaction = {
+				const expectedMultiSignature = '9eb6ea53f0fd5079b956625a4f1c09e3638ab3378b0e7847cfcae9dde5a67121dfc49b5e51333296002d70166d0a93d2f4b5eef9eae4e040b83251644bb49409';
+				const multiSigtransaction = {
 					type: 0,
 					amount: 1000,
 					recipientId: '58191285901858109L',
@@ -326,11 +325,10 @@ describe('crypto.js', () => {
 					id: '13987348420913138422',
 				};
 
-				const signature = multiSign(transaction, keys);
+				const multiSignature = multiSign(multiSigtransaction, keys);
 
-				(signature).should.be.eql(expectedSignature);
+				(multiSignature).should.be.eql(expectedMultiSignature);
 			});
 		});
 	});
-
 });

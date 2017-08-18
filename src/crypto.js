@@ -86,10 +86,11 @@ function sign(transaction, keys) {
  */
 
 function multiSign(transaction, keys) {
-	delete transaction.signature;
-	delete transaction.signSignature;
+	const signTransaction = transaction;
+	delete signTransaction.signature;
+	delete signTransaction.signSignature;
 	const { privateKey } = keys;
-	const bytes = getBytes(transaction);
+	const bytes = getBytes(signTransaction);
 	const hash = crypto.createHash('sha256').update(bytes).digest();
 	const signature = naclInstance.crypto_sign_detached(hash, cryptoModule.hexToBuffer(privateKey));
 
